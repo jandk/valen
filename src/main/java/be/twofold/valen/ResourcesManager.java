@@ -1,6 +1,5 @@
 package be.twofold.valen;
 
-import be.twofold.valen.model.*;
 import be.twofold.valen.oodle.*;
 import be.twofold.valen.reader.packagemapspec.*;
 import be.twofold.valen.reader.resource.*;
@@ -15,7 +14,7 @@ public final class ResourcesManager {
     private final Path basePath;
     private final PackageMapSpec packageMapSpec;
     private Map<String, SeekableByteChannel> pathToChannel;
-    private Map<FileEntry, String> entryToPath;
+    private Map<ResourcesEntry, String> entryToPath;
 
     private ResourcesManager(Path basePath, PackageMapSpec packageMapSpec) {
         this.basePath = basePath;
@@ -26,17 +25,17 @@ public final class ResourcesManager {
         return new ResourcesManager(basePath, packageMapSpec);
     }
 
-    public Collection<FileEntry> getEntries() {
+    public Collection<ResourcesEntry> getEntries() {
         return entryToPath.keySet();
     }
 
-    public byte[] read(FileEntry entry) throws IOException {
+    public byte[] read(ResourcesEntry entry) throws IOException {
         String path = entryToPath.get(entry);
         SeekableByteChannel channel = pathToChannel.get(path);
 
-        channel.position(entry.offset());
-        byte[] compressed = IOUtils.readBytes(channel, entry.size());
-        return OodleDecompressor.decompress(compressed, entry.sizeUncompressed());
+        channel.position(entry.dataOffset());
+        byte[] compressed = IOUtils.readBytes(channel, entry.dataSize());
+        return OodleDecompressor.decompress(compressed, entry.dataSizeUncompressed());
     }
 
     public void select(String map) throws IOException {
@@ -47,7 +46,7 @@ public final class ResourcesManager {
             .toList();
 
         Map<String, SeekableByteChannel> pathToChannel = new HashMap<>();
-        Map<FileEntry, String> entryToPath = new HashMap<>();
+        Map<ResourcesEntry, String> entryToPath = new HashMap<>();
         for (String path : paths) {
             System.out.println("Loading resources: " + path);
             Path fullPath = basePath.resolve(path);
@@ -55,8 +54,7 @@ public final class ResourcesManager {
             pathToChannel.put(path, channel);
 
             Resources resources = new ResourcesReader(channel).read(false);
-            List<FileEntry> entries = FileEntryMapper.mapEntries(resources);
-            for (FileEntry entry : entries) {
+            for (ResourcesEntry entry : resources.entries()) {
                 entryToPath.putIfAbsent(entry, path);
             }
         }

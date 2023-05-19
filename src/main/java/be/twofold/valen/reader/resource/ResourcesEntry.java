@@ -1,8 +1,11 @@
 package be.twofold.valen.reader.resource;
 
 import java.nio.*;
+import java.util.*;
 
 public record ResourcesEntry(
+    ResourcesName name,
+    String type,
     int dependencyIndexNumber,
     int pathTupleIndex,
     int dataOffset,
@@ -20,7 +23,7 @@ public record ResourcesEntry(
 ) {
     static final int Size = 0x90;
 
-    public static ResourcesEntry read(ByteBuffer buffer) {
+    public static ResourcesEntry read(ByteBuffer buffer, int[] pathStringIndexes, List<String> strings) {
         int dependencyIndexNumber = Math.toIntExact(buffer.getLong(0x18));
         int pathTupleIndex = Math.toIntExact(buffer.getLong(0x20));
         int dataOffset = Math.toIntExact(buffer.getLong(0x38));
@@ -36,7 +39,12 @@ public record ResourcesEntry(
         byte havokFlag3 = buffer.get(0x73);
         short numDependencies = buffer.getShort(0x84);
 
+        String type = strings.get(pathStringIndexes[pathTupleIndex]);
+        String name = strings.get(pathStringIndexes[pathTupleIndex + 1]);
+
         return new ResourcesEntry(
+            ResourcesName.parse(name),
+            type,
             dependencyIndexNumber,
             pathTupleIndex,
             dataOffset,
@@ -52,5 +60,17 @@ public record ResourcesEntry(
             havokFlag3,
             numDependencies
         );
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (!(obj instanceof ResourcesEntry other)) return false;
+        return name.equals(other.name);
+    }
+
+    @Override
+    public int hashCode() {
+        return name.hashCode();
     }
 }

@@ -8,7 +8,7 @@ import java.nio.channels.*;
 import java.nio.file.*;
 import java.util.*;
 
-public final class StreamDbManager implements AutoCloseable {
+public final class StreamDbManager implements StreamLoader, AutoCloseable {
     private final Map<String, SeekableByteChannel> pathToChannel;
     private final Map<Long, String> hashToPath;
     private final Map<Long, StreamDbEntry> hashToEntry;
@@ -54,7 +54,8 @@ public final class StreamDbManager implements AutoCloseable {
         return new StreamDbManager(pathToChannel, hashToPath, hashToEntry);
     }
 
-    public Optional<byte[]> read(long identity) {
+    @Override
+    public Optional<byte[]> load(long identity, int size) {
         String path = hashToPath.get(identity);
         if (path == null) {
             return Optional.empty();
@@ -69,6 +70,11 @@ public final class StreamDbManager implements AutoCloseable {
         } catch (IOException e) {
             throw new UncheckedIOException(String.format("Failed to read stream: 0x%016x", entry.identity()), e);
         }
+    }
+
+    @Override
+    public boolean exists(long identity) {
+        return hashToPath.containsKey(identity);
     }
 
     @Override

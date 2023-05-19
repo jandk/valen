@@ -1,15 +1,15 @@
-package be.twofold.valen.model;
+package be.twofold.valen.reader.resource;
 
 import java.util.*;
 import java.util.stream.*;
 
-public record Name(
+public record ResourcesName(
     String name,
     String path,
     String file,
     Map<String, String> properties
 ) {
-    public static Name parse(String name) {
+    public static ResourcesName parse(String name) {
         int dollarIndex = name.indexOf('$');
         String fullPath = name.substring(0, dollarIndex < 0 ? name.length() : dollarIndex);
 
@@ -22,14 +22,14 @@ public record Name(
             .map(s -> s.split("="))
             .collect(Collectors.toUnmodifiableMap(s -> s[0], s -> s.length > 1 ? s[1] : s[0]));
 
-        return new Name(name, path, file, properties);
+        return new ResourcesName(name, path, file, properties);
     }
 
     @Override
     public boolean equals(Object obj) {
         if (this == obj) return true;
-        if (!(obj instanceof Name)) return false;
-        return name.equals(((Name) obj).name);
+        if (!(obj instanceof ResourcesName)) return false;
+        return name.equals(((ResourcesName) obj).name);
     }
 
     @Override

@@ -10,6 +10,8 @@ public final class ResourcesReader {
     private final SeekableByteChannel channel;
 
     private ResourcesHeader header;
+    private List<String> strings;
+    private int[] stringIndexes;
     private List<ResourcesDependency> dependencies;
     private int[] dependencyIndexes;
 
@@ -19,34 +21,24 @@ public final class ResourcesReader {
 
     public Resources read(boolean withDeps) throws IOException {
         header = IOUtils.readStruct(channel, ResourcesHeader.Size, ResourcesHeader::read);
-        List<ResourcesEntry> entries = IOUtils.readStructs(channel, header.numFileEntries(), ResourcesEntry.Size, ResourcesEntry::read);
-        List<String> pathStrings = readPathStrings();
+        strings = readPathStrings();
 
         readDependencies(withDeps);
-
-        long[] pathStringIndexes = IOUtils.readLongs(channel, header.numPathStringIndexes());
-        List<String> strings = Arrays.stream(pathStringIndexes)
+        stringIndexes = Arrays.stream(IOUtils.readLongs(channel, header.numPathStringIndexes()))
             .mapToInt(Math::toIntExact)
-            .mapToObj(pathStrings::get)
-            .toList();
+            .toArray();
 
         if (channel.position() != header.addrEndMarker()) {
             throw new IOException("Expected to be at " + header.addrEndMarker() + " but was at " + channel.position());
         }
 
+        List<ResourcesEntry> entries = readEntries();
+
         return new Resources(header, entries, strings, dependencies, dependencyIndexes);
     }
 
-    private void readDependencies(boolean withDeps) throws IOException {
-        if (withDeps) {
-            dependencies = IOUtils.readStructs(channel, header.numDependencyEntries(), ResourcesDependency.Size, ResourcesDependency::read);
-            dependencyIndexes = IOUtils.readInts(channel, header.numDependencyIndexes());
-        } else {
-            channel.position(header.addrDependencyIndexes() + header.numDependencyIndexes() * 4L);
-        }
-    }
-
     private List<String> readPathStrings() throws IOException {
+        channel.position(header.addrPathStringOffsets());
         int numStrings = Math.toIntExact(IOUtils.readBuffer(channel, 8).getLong());
         long[] stringOffsets = IOUtils.readLongs(channel, numStrings);
 
@@ -57,5 +49,21 @@ public final class ResourcesReader {
             .mapToInt(Math::toIntExact)
             .mapToObj(i -> buffer.substring(i, buffer.indexOf('\0', i)))
             .toList();
+    }
+
+    private void readDependencies(boolean withDeps) throws IOException {
+        if (withDeps) {
+            dependencies = IOUtils.readStructs(channel, header.numDependencyEntries(), ResourcesDependency.Size,
+                buffer -> ResourcesDependency.read(buffer, strings));
+            dependencyIndexes = IOUtils.readInts(channel, header.numDependencyIndexes());
+        } else {
+            channel.position(header.addrDependencyIndexes() + header.numDependencyIndexes() * 4L);
+        }
+    }
+
+    private List<ResourcesEntry> readEntries() throws IOException {
+        channel.position(ResourcesHeader.Size);
+        return IOUtils.readStructs(channel, header.numFileEntries(), ResourcesEntry.Size,
+            buffer -> ResourcesEntry.read(buffer, stringIndexes, strings));
     }
 }
