@@ -1,6 +1,7 @@
 package be.twofold.valen;
 
 import be.twofold.valen.model.*;
+import be.twofold.valen.oodle.*;
 import be.twofold.valen.reader.packagemapspec.*;
 import be.twofold.valen.reader.resource.*;
 
@@ -27,6 +28,15 @@ public final class ResourcesManager {
 
     public Collection<FileEntry> getEntries() {
         return entryToPath.keySet();
+    }
+
+    public byte[] read(FileEntry entry) throws IOException {
+        String path = entryToPath.get(entry);
+        SeekableByteChannel channel = pathToChannel.get(path);
+
+        channel.position(entry.offset());
+        byte[] compressed = IOUtils.readBytes(channel, entry.size());
+        return OodleDecompressor.decompress(compressed, entry.sizeUncompressed());
     }
 
     public void select(String map) throws IOException {

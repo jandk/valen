@@ -4,3 +4,6 @@ target/
 # IntelliJ
 .idea/
 *.iml
+
+# Native
+*.dll
