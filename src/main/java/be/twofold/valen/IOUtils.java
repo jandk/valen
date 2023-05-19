@@ -21,6 +21,10 @@ public final class IOUtils {
         return buffer.flip();
     }
 
+    public static byte[] readBytes(SeekableByteChannel channel, int size) throws IOException {
+        return readBuffer(channel, size).array();
+    }
+
     public static int[] readInts(SeekableByteChannel channel, int count) throws IOException {
         int[] ints = new int[count];
         readBuffer(channel, count * Integer.BYTES).asIntBuffer().get(ints);
