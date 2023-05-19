@@ -32,9 +32,15 @@ public final class StreamDbManager implements AutoCloseable {
         Map<Long, String> hashToPath = new HashMap<>();
         Map<Long, StreamDbEntry> hashToEntry = new HashMap<>();
 
+        /*
+         * We can actually get away with loading all streamdb files into memory.
+         * The order in packagemapspec.json is consistent across all maps, so
+         * we can just load them in order and then use the first one that has
+         * the entry we're looking for.
+         */
         for (String path : paths) {
+            System.out.println("Loading streamdb: " + path);
             Path fullPath = base.resolve(path);
-            System.out.println("Loading streamdb: " + fullPath);
             SeekableByteChannel channel = Files.newByteChannel(fullPath);
             pathToChannel.put(path, channel);
 

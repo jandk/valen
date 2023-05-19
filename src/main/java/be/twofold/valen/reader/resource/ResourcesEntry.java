@@ -3,11 +3,11 @@ package be.twofold.valen.reader.resource;
 import java.nio.*;
 
 public record ResourcesEntry(
-    long dependencyIndexNumber,
-    long pathTupleIndex,
-    long dataOffset,
-    long dataSize,
-    long dataSizeUncompressed,
+    int dependencyIndexNumber,
+    int pathTupleIndex,
+    int dataOffset,
+    int dataSize,
+    int dataSizeUncompressed,
     long dataCheckSum,
     long timestamp,
     long streamResourceHash,
@@ -21,11 +21,11 @@ public record ResourcesEntry(
     static final int Size = 0x90;
 
     public static ResourcesEntry read(ByteBuffer buffer) {
-        long dependencyIndexNumber = buffer.getLong(0x18);
-        long pathTupleIndex = buffer.getLong(0x20);
-        long dataOffset = buffer.getLong(0x38);
-        long dataSize = buffer.getLong(0x40);
-        long dataSizeUncompressed = buffer.getLong(0x48);
+        int dependencyIndexNumber = Math.toIntExact(buffer.getLong(0x18));
+        int pathTupleIndex = Math.toIntExact(buffer.getLong(0x20));
+        int dataOffset = Math.toIntExact(buffer.getLong(0x38));
+        int dataSize = Math.toIntExact(buffer.getLong(0x40));
+        int dataSizeUncompressed = Math.toIntExact(buffer.getLong(0x48));
         long dataCheckSum = buffer.getLong(0x50);
         long timestamp = buffer.getLong(0x58);
         long streamResourceHash = buffer.getLong(0x60);

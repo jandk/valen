@@ -38,9 +38,7 @@ public final class IOUtils {
     }
 
     public static String readString(SeekableByteChannel channel, int size) throws IOException {
-        return StandardCharsets.US_ASCII.newDecoder()
-            .decode(readBuffer(channel, size))
-            .toString();
+        return new String(readBytes(channel, size), StandardCharsets.US_ASCII);
     }
 
     public static <T> T readStruct(ReadableByteChannel channel, int size, Function<ByteBuffer, T> reader) throws IOException {
