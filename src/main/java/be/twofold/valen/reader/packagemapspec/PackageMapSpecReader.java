@@ -6,7 +6,7 @@ import java.io.*;
 import java.util.*;
 import java.util.stream.*;
 
-public final class PackageMapSpecReader implements AutoCloseable {
+public final class PackageMapSpecReader {
     private final Reader reader;
 
     private List<String> files;
@@ -39,10 +39,5 @@ public final class PackageMapSpecReader implements AutoCloseable {
         }
         mapFiles.replaceAll((k, v) -> List.copyOf(v));
         return Map.copyOf(mapFiles);
-    }
-
-    @Override
-    public void close() throws IOException {
-        reader.close();
     }
 }
