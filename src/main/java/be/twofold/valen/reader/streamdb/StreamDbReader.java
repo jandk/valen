@@ -21,10 +21,13 @@ public final class StreamDbReader {
 
     public StreamDb read() throws IOException {
         readIndex();
-        readPrefetch();
 
-        if (channel.position() != header.headerLength()) {
-            throw new IOException("Header length does not match position");
+        // We don't need the prefetch data, so skip it
+        if (false) {
+            readPrefetch();
+            if (channel.position() != header.headerLength()) {
+                throw new IOException("Header length does not match position");
+            }
         }
 
         return new StreamDb(header, entries, prefetchHeader, prefetchBlocks, prefetchIDs);
