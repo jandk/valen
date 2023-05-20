@@ -5,7 +5,7 @@ import be.twofold.valen.writer.dds.*;
 
 import java.util.*;
 
-public class ImageToDds {
+public final class ImageToDds {
     public Dds convert(Image image) {
         DdsInfo info = createHeader(image);
         byte[][] mipMaps = createMipMapArray(image);
