@@ -21,23 +21,15 @@ public final class ResourcesReader {
 
     public Resources read(boolean withDeps) throws IOException {
         header = IOUtils.readStruct(channel, ResourcesHeader.Size, ResourcesHeader::read);
-        strings = readPathStrings();
+        readStringChunk();
+        readDependencyChunk(withDeps);
+        assert channel.position() == header.addrEndMarker() : "We're in the wrong place!";
 
-        readDependencies(withDeps);
-        stringIndexes = Arrays.stream(IOUtils.readLongs(channel, header.numPathStringIndexes()))
-            .mapToInt(Math::toIntExact)
-            .toArray();
-
-        if (channel.position() != header.addrEndMarker()) {
-            throw new IOException("Expected to be at " + header.addrEndMarker() + " but was at " + channel.position());
-        }
-
-        List<ResourcesEntry> entries = readEntries();
-
-        return new Resources(header, entries, strings, dependencies, dependencyIndexes);
+        List<ResourcesEntry> entries = readEntryChunk();
+        return new Resources(header, entries, dependencies, dependencyIndexes);
     }
 
-    private List<String> readPathStrings() throws IOException {
+    private void readStringChunk() throws IOException {
         channel.position(header.addrPathStringOffsets());
         int numStrings = Math.toIntExact(IOUtils.readBuffer(channel, 8).getLong());
         long[] stringOffsets = IOUtils.readLongs(channel, numStrings);
@@ -45,23 +37,32 @@ public final class ResourcesReader {
         int bufferLength = (int) (header.addrDependencyEntries() - channel.position());
         String buffer = IOUtils.readString(channel, bufferLength);
 
-        return Arrays.stream(stringOffsets)
+        strings = Arrays.stream(stringOffsets)
             .mapToInt(Math::toIntExact)
             .mapToObj(i -> buffer.substring(i, buffer.indexOf('\0', i)))
             .toList();
     }
 
-    private void readDependencies(boolean withDeps) throws IOException {
+    private void readDependencyChunk(boolean withDeps) throws IOException {
+        channel.position(header.addrDependencyIndexes());
         if (withDeps) {
             dependencies = IOUtils.readStructs(channel, header.numDependencyEntries(), ResourcesDependency.Size,
                 buffer -> ResourcesDependency.read(buffer, strings));
             dependencyIndexes = IOUtils.readInts(channel, header.numDependencyIndexes());
         } else {
-            channel.position(header.addrDependencyIndexes() + header.numDependencyIndexes() * 4L);
+            channel.position(channel.position() + header.numDependencyIndexes() * 4L);
         }
+
+        // String indices are stored in the dependency chunk for some reason...
+        // My guess is that the actual filenames don't matter, and the dependency structure is used to determine
+        // which files to load. The filenames are only used for debugging purposes.
+        stringIndexes = Arrays.stream(IOUtils.readLongs(channel, header.numPathStringIndexes()))
+            .mapToInt(Math::toIntExact)
+            .toArray();
     }
 
-    private List<ResourcesEntry> readEntries() throws IOException {
+    private List<ResourcesEntry> readEntryChunk() throws IOException {
+        // This position is stored in the file somewhere, but the value is always 124
         channel.position(ResourcesHeader.Size);
         return IOUtils.readStructs(channel, header.numFileEntries(), ResourcesEntry.Size,
             buffer -> ResourcesEntry.read(buffer, stringIndexes, strings));
