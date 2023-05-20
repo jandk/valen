@@ -1,5 +1,6 @@
 package be.twofold.valen;
 
+import be.twofold.valen.oodle.*;
 import be.twofold.valen.reader.packagemapspec.*;
 import be.twofold.valen.reader.streamdb.*;
 
@@ -65,8 +66,9 @@ public final class StreamDbManager implements StreamLoader, AutoCloseable {
         SeekableByteChannel channel = pathToChannel.get(path);
         try {
             channel.position(entry.offset());
-            byte[] data = IOUtils.readBytes(channel, entry.length());
-            return Optional.of(data);
+            byte[] compressed = IOUtils.readBytes(channel, entry.length());
+            byte[] decompressed = OodleDecompressor.decompress(compressed, size);
+            return Optional.of(decompressed);
         } catch (IOException e) {
             throw new UncheckedIOException(String.format("Failed to read stream: 0x%016x", entry.identity()), e);
         }
