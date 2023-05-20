@@ -24,15 +24,13 @@ public final class ImageReader {
     public Image read(boolean readMips) {
         header = IOUtils.readStruct(buffer, ImageHeader.Size, ImageHeader::read);
         mips = IOUtils.readStructs(buffer, header.totalMipCount(), ImageMip.Size, ImageMip::read);
+        mipData = readEmbeddedMips();
         if (readMips) {
-            mipData = readEmbeddedMips();
             readStreamedMips();
         }
 
         // Sanity check, if this fails, we have a misunderstanding of the format
-        if (buffer.hasRemaining()) {
-            throw new UnsupportedOperationException("Buffer has remaining bytes");
-        }
+        assert !buffer.hasRemaining() : "Buffer has remaining bytes";
         return new Image(header, mips, mipData);
     }
 
@@ -56,8 +54,8 @@ public final class ImageReader {
         int minMip = Integer.parseInt(entry.name().properties().getOrDefault("minmip", "0"));
         for (int i = minMip; i < header.startMip(); i++) {
             ImageMip mip = mips.get(i);
-            int index = header.mipCount() - mip.mipLevel();
-            long hash = entry.streamResourceHash() << 4 | index;
+            int mipIndex = header.mipCount() - mip.mipLevel();
+            long hash = entry.streamResourceHash() << 4 | mipIndex;
             mipData[i] = loader.load(hash, mip.decompressedSize()).orElse(null);
         }
     }

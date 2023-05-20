@@ -44,13 +44,13 @@ public final class ResourcesReader {
     }
 
     private void readDependencyChunk(boolean withDeps) throws IOException {
-        channel.position(header.addrDependencyIndexes());
+        channel.position(header.addrDependencyEntries());
         if (withDeps) {
             dependencies = IOUtils.readStructs(channel, header.numDependencyEntries(), ResourcesDependency.Size,
                 buffer -> ResourcesDependency.read(buffer, strings));
             dependencyIndexes = IOUtils.readInts(channel, header.numDependencyIndexes());
         } else {
-            channel.position(channel.position() + header.numDependencyIndexes() * 4L);
+            channel.position(header.addrDependencyIndexes() + header.numDependencyIndexes() * 4L);
         }
 
         // String indices are stored in the dependency chunk for some reason...
