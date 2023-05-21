@@ -6,4 +6,4 @@ target/
 *.iml
 
 # Native
-*.dll
+/*.dll

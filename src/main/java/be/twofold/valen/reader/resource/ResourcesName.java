@@ -25,6 +25,11 @@ public record ResourcesName(
         return new ResourcesName(name, path, file, properties);
     }
 
+    public String fileWithoutExtension() {
+        int dotIndex = file.lastIndexOf('.');
+        return file.substring(0, dotIndex < 0 ? file.length() : dotIndex);
+    }
+
     @Override
     public boolean equals(Object obj) {
         if (this == obj) return true;

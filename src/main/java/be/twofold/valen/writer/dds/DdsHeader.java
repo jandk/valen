@@ -82,7 +82,7 @@ final class DdsHeader {
         return switch (format) {
             case A8_UNORM -> width;
             case R16G16_FLOAT, R8G8B8A8_UNORM -> width * 4;
-            case R8G8_UNORM -> width * 2;
+            case R16_FLOAT, R8G8_UNORM -> width * 2;
             default -> throw new UnsupportedOperationException("Unsupported format: " + format);
         };
     }

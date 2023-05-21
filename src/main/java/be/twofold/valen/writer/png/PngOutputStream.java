@@ -24,6 +24,7 @@ final class PngOutputStream implements AutoCloseable {
     // Filtering
     private final byte[][] filtered;
     private byte[] previous;
+    private int[] filterCounts = new int[5];
 
     // IDAT
     private final Deflater deflater = new Deflater(Deflater.BEST_SPEED);
@@ -51,6 +52,8 @@ final class PngOutputStream implements AutoCloseable {
         for (int y = 0; y < format.height(); y++) {
             writeRow(image, y * format.bytesPerRow());
         }
+        System.out.printf("Filter counts - None: %d, Sub: %d, Up: %d, Average: %d, Paeth: %d%n",
+            filterCounts[0], filterCounts[1], filterCounts[2], filterCounts[3], filterCounts[4]);
     }
 
     private void writeRow(byte[] image, int offset) throws IOException {
@@ -58,6 +61,7 @@ final class PngOutputStream implements AutoCloseable {
             throw new IllegalArgumentException("image has wrong size, expected at least " + (offset + format.bytesPerRow()) + " but was " + image.length);
         }
         int filterMethod = filter(image, offset);
+        filterCounts[filterMethod]++;
         deflate(new byte[]{(byte) filterMethod}, 0, 1);
         deflate(filtered[filterMethod], format.bytesPerPixel(), format.bytesPerRow());
     }

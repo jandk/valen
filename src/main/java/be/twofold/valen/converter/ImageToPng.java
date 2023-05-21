@@ -7,6 +7,10 @@ import be.twofold.valen.writer.png.*;
 public final class ImageToPng {
     private final boolean normalizeNormalMap;
 
+    public ImageToPng() {
+        this(false);
+    }
+
     public ImageToPng(boolean normalizeNormalMap) {
         this.normalizeNormalMap = normalizeNormalMap;
     }
