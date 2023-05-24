@@ -37,16 +37,23 @@ public final class BetterBuffer {
         };
     }
 
-    public byte[] getBytes(int size) {
-        byte[] bytes = new byte[size];
+    public byte[] getBytes(int count) {
+        byte[] bytes = new byte[count];
         buffer.get(bytes);
         return bytes;
     }
 
-    public int[] getInts(int size) {
-        int[] ints = new int[size];
+    public short[] getShorts(int count) {
+        short[] shorts = new short[count];
+        buffer.asShortBuffer().get(shorts);
+        skip(count * Short.BYTES);
+        return shorts;
+    }
+
+    public int[] getInts(int count) {
+        int[] ints = new int[count];
         buffer.asIntBuffer().get(ints);
-        skip(size * Integer.BYTES);
+        skip(count * Integer.BYTES);
         return ints;
     }
 
@@ -76,8 +83,12 @@ public final class BetterBuffer {
         return new Vector4(x, y, z, w);
     }
 
+    public int position() {
+        return buffer.position();
+    }
+
     public void skip(int size) {
-        buffer.position(buffer.position() + size);
+        buffer.position(position() + size);
     }
 
     public void expectInt(int expected) {

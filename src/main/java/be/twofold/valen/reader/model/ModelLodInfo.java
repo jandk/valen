@@ -3,12 +3,10 @@ package be.twofold.valen.reader.model;
 import be.twofold.valen.*;
 import be.twofold.valen.geometry.*;
 
-import java.util.*;
-
 public record ModelLodInfo(
     int numVertices,
     int numEdges,
-    EnumSet<ModelFlags> flags,
+    int flags,
     Vector3 negBounds,
     Vector3 posBounds,
     Vector3 vertexOffset,
@@ -22,7 +20,7 @@ public record ModelLodInfo(
         buffer.expectInt(-2);
         int numVertices = buffer.getInt();
         int numEdges = buffer.getInt();
-        EnumSet<ModelFlags> flags = ModelFlags.fromMask(buffer.getInt());
+        int flags = buffer.getInt();
         Vector3 negBounds = buffer.getVector3();
         Vector3 posBounds = buffer.getVector3();
         Vector3 vertexOffset = buffer.getVector3();
