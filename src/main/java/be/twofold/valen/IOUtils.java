@@ -31,10 +31,15 @@ public final class IOUtils {
         return readBuffer(channel, size).array();
     }
 
-    public static int[] readInts(SeekableByteChannel channel, int count) throws IOException {
+    public static int[] readInts(ByteBuffer buffer, int count) {
         int[] ints = new int[count];
-        readBuffer(channel, count * Integer.BYTES).asIntBuffer().get(ints);
+        buffer.asIntBuffer().get(ints);
+        buffer.position(buffer.position() + count * Integer.BYTES);
         return ints;
+    }
+
+    public static int[] readInts(SeekableByteChannel channel, int count) throws IOException {
+        return readInts(readBuffer(channel, count * Integer.BYTES), count);
     }
 
     public static long[] readLongs(ReadableByteChannel channel, int count) throws IOException {

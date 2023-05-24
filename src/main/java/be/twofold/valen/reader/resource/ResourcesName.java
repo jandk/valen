@@ -26,8 +26,17 @@ public record ResourcesName(
     }
 
     public String fileWithoutExtension() {
-        int dotIndex = file.lastIndexOf('.');
-        return file.substring(0, dotIndex < 0 ? file.length() : dotIndex);
+        int dot = file.lastIndexOf('.');
+        return dot < 0 ? file : file.substring(0, dot);
+    }
+
+    public String fileExtension() {
+        int dot = file.lastIndexOf('.');
+        return dot < 0 ? "" : file.substring(dot + 1);
+    }
+
+    public String fullPath() {
+        return path + "/" + file;
     }
 
     @Override
