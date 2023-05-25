@@ -129,9 +129,13 @@ public final class ModelReader {
     private List<Mesh> readStreamedGeometry(int lod) {
         long hash = (entry.streamResourceHash() << 4) | lod;
         int size = streamDiskLayouts.get(lod).uncompressedSize();
-        byte[] bytes = streamLoader.load(hash, size)
-            .orElseThrow(() -> new RuntimeException("Failed to load streamed geometry"));
-        BetterBuffer buffer = new BetterBuffer(ByteBuffer.wrap(bytes).order(ByteOrder.LITTLE_ENDIAN));
+        Optional<byte[]> bytes = streamLoader.load(hash, size);
+        if (bytes.isEmpty()) {
+            System.out.println("Could not load streamed geometry for " + entry.name() + " (lod " + lod + ")");
+            return List.of();
+        }
+
+        BetterBuffer buffer = new BetterBuffer(ByteBuffer.wrap(bytes.get()).order(ByteOrder.LITTLE_ENDIAN));
 
         List<FloatBuffer> vertexBuffers = new ArrayList<>();
         for (GeometryMemoryLayout streamInfo : streamMemLayouts.get(lod)) {
