@@ -20,6 +20,10 @@ public final class BetterBuffer {
         return buffer.get();
     }
 
+    public short getShort() {
+        return buffer.getShort();
+    }
+
     public int getInt() {
         return buffer.getInt();
     }
@@ -85,6 +89,10 @@ public final class BetterBuffer {
 
     public int position() {
         return buffer.position();
+    }
+
+    public void position(int newPosition) {
+        buffer.position(newPosition);
     }
 
     public void skip(int size) {

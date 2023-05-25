@@ -6,10 +6,10 @@ public enum ModelFlags {
     Vertices(1, 12),
     PackedVertices(32, 8),
     PackedNormals(20, 8),
-    Colors(64, 4),
+    LightMapUVs(64, 4),
     UVs(131072, 8),
     PackedUVs(32768, 4),
-    Faces(8, 0),
+    Colors(8, 0),
     Unknown2(2, 0),
     Unknown10000(65536, 0);
 

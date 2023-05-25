@@ -40,6 +40,7 @@ public final class ModelReader {
 
         if (header.streamed()) {
             readStreamInfo();
+            readStreamedGeometry(0);
         } else {
             readEmbeddedGeometry();
         }
@@ -109,8 +110,8 @@ public final class ModelReader {
                 texCoords.put(buffer.getFloat()); // v
             }
 
-            readPackedNormal(buffer, normals);
-            readPackedTangent(buffer, tangents);
+            Geometry.readPackedNormal(buffer, normals);
+            Geometry.readPackedTangent(buffer, tangents);
             buffer.expectInt(-1);
 
             buffer.skip(8); // skip lightmap UVs
@@ -122,41 +123,73 @@ public final class ModelReader {
         }
 
         indices.put(buffer.getShorts(lodInfo.numEdges()));
-        return new Mesh(vertices, normals, tangents, texCoords, indices);
+        return new Mesh(vertices, normals, texCoords, indices);
     }
 
-    public static void readPackedNormal(BetterBuffer src, FloatBuffer dst) {
-        float packedXn = Byte.toUnsignedInt(src.getByte());
-        float packedYn = Byte.toUnsignedInt(src.getByte());
-        float packedZn = Byte.toUnsignedInt(src.getByte());
-        src.skip(1);
+    private List<Mesh> readStreamedGeometry(int lod) {
+        long hash = (entry.streamResourceHash() << 4) | lod;
+        int size = streamDiskLayouts.get(lod).uncompressedSize();
+        byte[] bytes = streamLoader.load(hash, size)
+            .orElseThrow(() -> new RuntimeException("Failed to load streamed geometry"));
+        BetterBuffer buffer = new BetterBuffer(ByteBuffer.wrap(bytes).order(ByteOrder.LITTLE_ENDIAN));
 
-        float x = (packedXn / 255) * 2 - 1;
-        float y = (packedYn / 255) * 2 - 1;
-        float z = (packedZn / 255) * 2 - 1;
+        List<FloatBuffer> vertexBuffers = new ArrayList<>();
+        for (GeometryMemoryLayout streamInfo : streamMemLayouts.get(lod)) {
+            buffer.position(streamInfo.positionOffset());
+            for (List<ModelLodInfo> lodInfo : lodInfos) {
+                if (lodInfo.get(lod).flags() == streamInfo.combinedVertexMask()) {
+                    FloatBuffer vertexBuffer = switch (streamInfo.positionMask()) {
+                        case 0x01 -> Geometry.readVertices(buffer, lodInfo.get(lod));
+                        case 0x20 -> Geometry.readPackedVertices(buffer, lodInfo.get(lod));
+                        default -> throw new RuntimeException("Unknown position mask: " + streamInfo.positionMask());
+                    };
+                    vertexBuffers.add(vertexBuffer);
+                }
+            }
+        }
 
-        // Normalize, as we have low accuracy
-        float scale = (float) (1 / Math.sqrt(x * x + y * y + z * z));
-        dst.put(x * scale);
-        dst.put(y * scale);
-        dst.put(z * scale);
-    }
+        List<FloatBuffer> normalBuffers = new ArrayList<>();
+        for (GeometryMemoryLayout streamInfo : streamMemLayouts.get(lod)) {
+            buffer.position(streamInfo.normalOffset());
+            for (List<ModelLodInfo> lodInfo : lodInfos) {
+                if (lodInfo.get(lod).flags() == streamInfo.combinedVertexMask()) {
+                    if (streamInfo.normalMask() != 0x14) {
+                        throw new RuntimeException("Unknown normal mask: " + streamInfo.normalMask());
+                    }
+                    normalBuffers.add(Geometry.readPackedNormals(buffer, lodInfo.get(lod)));
+                }
+            }
+        }
 
-    public static void readPackedTangent(BetterBuffer src, FloatBuffer dst) {
-        float packedXn = Byte.toUnsignedInt(src.getByte());
-        float packedYn = Byte.toUnsignedInt(src.getByte());
-        float packedZn = Byte.toUnsignedInt(src.getByte());
-        float w = src.getByte() == 0 ? 1 : -1;
+        List<FloatBuffer> uvBuffers = new ArrayList<>();
+        for (GeometryMemoryLayout streamInfo : streamMemLayouts.get(lod)) {
+            buffer.position(streamInfo.uvOffset());
+            for (List<ModelLodInfo> lodInfo : lodInfos) {
+                if (lodInfo.get(lod).flags() == streamInfo.combinedVertexMask()) {
+                    FloatBuffer uvBuffer = switch (streamInfo.uvMask()) {
+                        case 0x08000 -> Geometry.readPackedUVs(buffer, lodInfo.get(lod));
+                        case 0x20000 -> Geometry.readUVs(buffer, lodInfo.get(lod));
+                        default -> throw new RuntimeException("Unknown UV mask: " + streamInfo.normalMask());
+                    };
+                    uvBuffers.add(uvBuffer);
+                }
+            }
+        }
 
-        float x = (packedXn / 255) * 2 - 1;
-        float y = (packedYn / 255) * 2 - 1;
-        float z = (packedZn / 255) * 2 - 1;
+        List<ShortBuffer> faceBuffers = new ArrayList<>();
+        for (GeometryMemoryLayout streamInfo : streamMemLayouts.get(lod)) {
+            buffer.position(streamInfo.indexOffset());
+            for (List<ModelLodInfo> lodInfo : lodInfos) {
+                if (lodInfo.get(lod).flags() == streamInfo.combinedVertexMask()) {
+                    faceBuffers.add(Geometry.readFaces(buffer, lodInfo.get(lod)));
+                }
+            }
+        }
 
-        // Normalize, as we have low accuracy
-        float scale = (float) (1 / Math.sqrt(x * x + y * y + z * z));
-        dst.put(x * scale);
-        dst.put(y * scale);
-        dst.put(z * scale);
-        dst.put(w);
+        List<Mesh> meshes = new ArrayList<>();
+        for (int i = 0; i < meshInfos.size(); i++) {
+            meshes.add(new Mesh(vertexBuffers.get(i), normalBuffers.get(i), uvBuffers.get(i), faceBuffers.get(i)));
+        }
+        return List.copyOf(meshes);
     }
 }
