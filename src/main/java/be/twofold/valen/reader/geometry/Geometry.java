@@ -84,8 +84,8 @@ public final class Geometry {
         float z = src.getFloat() * scale + offsetZ;
 
         dst.put(x);
+        dst.put(y);
         dst.put(z);
-        dst.put(-y);
     }
 
     public static void readPackedVertex(BetterBuffer src, FloatBuffer dst, float offsetX, float offsetY, float offsetZ, float scale) {
@@ -99,8 +99,8 @@ public final class Geometry {
         float z = (pz / 65535f) * scale + offsetZ;
 
         dst.put(x);
+        dst.put(y);
         dst.put(z);
-        dst.put(-y);
     }
 
     public static void readPackedNormal(BetterBuffer src, FloatBuffer nDst) {

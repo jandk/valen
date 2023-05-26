@@ -1,5 +1,6 @@
 package be.twofold.valen.reader.model;
 
+import be.twofold.valen.geometry.*;
 import be.twofold.valen.reader.geometry.*;
 
 import java.util.*;
@@ -11,6 +12,7 @@ public record Model(
     ModelSettings settings,
     ModelBooleans booleans,
     List<List<GeometryMemoryLayout>> streamInfos,
-    List<GeometryDiskLayout> streamLayouts
+    List<GeometryDiskLayout> streamLayouts,
+    List<Mesh> meshes
 ) {
 }

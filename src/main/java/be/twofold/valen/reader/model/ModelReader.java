@@ -19,8 +19,6 @@ public final class ModelReader {
     private ModelHeader header;
     private final List<ModelMeshInfo> meshInfos = new ArrayList<>();
     private final List<List<ModelLodInfo>> lodInfos = new ArrayList<>();
-    private ModelSettings settings;
-    private ModelBooleans booleans;
     private final List<List<GeometryMemoryLayout>> streamMemLayouts = new ArrayList<>();
     private final List<GeometryDiskLayout> streamDiskLayouts = new ArrayList<>();
 
@@ -33,19 +31,20 @@ public final class ModelReader {
     public Model read() throws IOException {
         header = ModelHeader.read(buffer);
         readMeshesAndLods();
-        settings = ModelSettings.read(buffer);
+        ModelSettings settings = ModelSettings.read(buffer);
         readGeoDecals();
-        booleans = ModelBooleans.read(buffer);
+        ModelBooleans booleans = ModelBooleans.read(buffer);
         buffer.skip(header.numMeshes() * LodCount);
 
+        List<Mesh> meshes;
         if (header.streamed()) {
             readStreamInfo();
-            readStreamedGeometry(0);
+            meshes = readStreamedGeometry(0);
         } else {
-            readEmbeddedGeometry();
+            meshes = readEmbeddedGeometry();
         }
 
-        return new Model(header, meshInfos, lodInfos, settings, booleans, streamMemLayouts, streamDiskLayouts);
+        return new Model(header, meshInfos, lodInfos, settings, booleans, streamMemLayouts, streamDiskLayouts, meshes);
     }
 
     private void readMeshesAndLods() {
