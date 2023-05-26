@@ -1,6 +1,6 @@
 package be.twofold.valen.reader.resource;
 
-import java.nio.*;
+import be.twofold.valen.*;
 
 public record ResourcesHeader(
     int numFileEntries,
@@ -8,31 +8,41 @@ public record ResourcesHeader(
     int numDependencyIndexes,
     int numPathStringIndexes,
     int sizeStrings,
-    long addrPathStringOffsets,
-    long addrDependencyEntries,
-    long addrDependencyIndexes,
-    long addrData,
-    long addrEndMarker
+    int addrPathStringOffsets,
+    int addrErrorLogs,
+    int addrDependencyEntries,
+    int addrDependencyIndexes,
+    int addrData,
+    int addrEndMarker
 ) {
-    private static final int Magic = 0x4c434449;
     static final int Size = 0x7c;
 
-    public static ResourcesHeader read(ByteBuffer buffer) {
-        int magic = buffer.getInt(0x00);
-        if (magic != Magic) {
-            throw new IllegalArgumentException("Invalid magic, expected 0x%08x, got 0x%08x".formatted(Magic, magic));
-        }
+    public static ResourcesHeader read(BetterBuffer buffer) {
+        buffer.expectInt(0x4c434449);
+        buffer.expectInt(12);
+        buffer.expectInt(0);
+        buffer.expectInt(1);
+        buffer.expectLong(0xffffffffffL);
+        buffer.expectLong(0);
 
-        int numFileEntries = buffer.getInt(0x20);
-        int numDependencyEntries = buffer.getInt(0x24);
-        int numDependencyIndexes = buffer.getInt(0x28);
-        int numPathStringIndexes = buffer.getInt(0x2c);
-        int sizeStrings = buffer.getInt(0x38);
-        long addrPathStringOffsets = buffer.getLong(0x40);
-        long addrDependencyEntries = buffer.getLong(0x58);
-        long addrDependencyIndexes = buffer.getLong(0x60);
-        long addrData = buffer.getLong(0x68);
-        long addrEndMarker = buffer.getLong(0x74);
+        int numFileEntries = buffer.getInt();
+        int numDependencyEntries = buffer.getInt();
+        int numDependencyIndexes = buffer.getInt();
+        int numPathStringIndexes = buffer.getInt();
+
+        buffer.expectInt(0);
+        buffer.expectInt(0);
+        int sizeStrings = buffer.getInt();
+        buffer.expectInt(0);
+
+        int addrPathStringOffsets = buffer.getLongAsInt();
+        int addrErrorLogs = buffer.getLongAsInt();
+        buffer.expectLong(0x7c);
+        int addrDependencyEntries = buffer.getLongAsInt();
+        int addrDependencyIndexes = buffer.getLongAsInt();
+        int addrData = buffer.getLongAsInt();
+        buffer.expectInt(0);
+        int addrEndMarker = buffer.getLongAsInt();
 
         return new ResourcesHeader(
             numFileEntries,
@@ -41,6 +51,7 @@ public record ResourcesHeader(
             numPathStringIndexes,
             sizeStrings,
             addrPathStringOffsets,
+            addrErrorLogs,
             addrDependencyEntries,
             addrDependencyIndexes,
             addrData,

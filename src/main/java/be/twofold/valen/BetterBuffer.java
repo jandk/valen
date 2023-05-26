@@ -45,6 +45,10 @@ public final class BetterBuffer {
         };
     }
 
+    public int getLongAsInt() {
+        return Math.toIntExact(getLong());
+    }
+
     public byte[] getBytes(int count) {
         byte[] bytes = new byte[count];
         buffer.get(bytes);
@@ -101,6 +105,13 @@ public final class BetterBuffer {
 
     public void skip(int size) {
         buffer.position(position() + size);
+    }
+
+    public void expectShort(short expected) {
+        short value = getShort();
+        if (value != expected) {
+            throw new IllegalStateException("Expected " + expected + ", but got " + value);
+        }
     }
 
     public void expectInt(int expected) {

@@ -1,6 +1,7 @@
 package be.twofold.valen.reader.resource;
 
-import java.nio.*;
+import be.twofold.valen.*;
+
 import java.util.*;
 
 public record ResourcesEntry(
@@ -23,21 +24,32 @@ public record ResourcesEntry(
 ) {
     static final int Size = 0x90;
 
-    public static ResourcesEntry read(ByteBuffer buffer, int[] pathStringIndexes, List<String> strings) {
-        int dependencyIndexNumber = Math.toIntExact(buffer.getLong(0x18));
-        int pathTupleIndex = Math.toIntExact(buffer.getLong(0x20));
-        int dataOffset = Math.toIntExact(buffer.getLong(0x38));
-        int dataSize = Math.toIntExact(buffer.getLong(0x40));
-        int dataSizeUncompressed = Math.toIntExact(buffer.getLong(0x48));
-        long dataCheckSum = buffer.getLong(0x50);
-        long timestamp = buffer.getLong(0x58);
-        long streamResourceHash = buffer.getLong(0x60);
-        int version = buffer.getInt(0x68);
-        int havokFlag1 = buffer.getInt(0x6c);
-        short compressionMode = buffer.getShort(0x70);
-        byte havokFlag2 = buffer.get(0x72);
-        byte havokFlag3 = buffer.get(0x73);
-        short numDependencies = buffer.getShort(0x84);
+    public static ResourcesEntry read(BetterBuffer buffer, int[] pathStringIndexes, List<String> strings) {
+        buffer.expectLong(0);
+        buffer.expectLong(1);
+        buffer.expectLong(-1);
+        int dependencyIndexNumber = buffer.getLongAsInt();
+        int pathTupleIndex = buffer.getLongAsInt();
+        buffer.expectLong(0);
+        buffer.expectLong(0);
+        int dataOffset = buffer.getLongAsInt();
+        int dataSize = buffer.getLongAsInt();
+        int dataSizeUncompressed = buffer.getLongAsInt();
+        long dataCheckSum = buffer.getLong();
+        long timestamp = buffer.getLong();
+        long streamResourceHash = buffer.getLong();
+        int version = buffer.getInt();
+        int havokFlag1 = buffer.getInt();
+        short compressionMode = buffer.getShort();
+        byte havokFlag2 = buffer.getByte();
+        byte havokFlag3 = buffer.getByte();
+        buffer.expectInt(0); // padding
+        buffer.expectInt(0); // padding
+        buffer.expectInt(0); // flags
+        buffer.expectInt(2); // desired compression mode
+        short numDependencies = buffer.getShort();
+        buffer.expectShort((short) 0);
+        buffer.expectLong(0);
 
         String type = strings.get(pathStringIndexes[pathTupleIndex]);
         String name = strings.get(pathStringIndexes[pathTupleIndex + 1]);

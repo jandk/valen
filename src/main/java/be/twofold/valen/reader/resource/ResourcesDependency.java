@@ -1,6 +1,7 @@
 package be.twofold.valen.reader.resource;
 
-import java.nio.*;
+import be.twofold.valen.*;
+
 import java.util.*;
 
 public record ResourcesDependency(
@@ -12,12 +13,13 @@ public record ResourcesDependency(
 ) {
     static final int Size = 0x20;
 
-    public static ResourcesDependency read(ByteBuffer buffer, List<String> strings) {
-        String typeName = strings.get(Math.toIntExact(buffer.getLong(0x00)));
-        String fileName = strings.get(Math.toIntExact(buffer.getLong(0x08)));
-        int dependencyType = buffer.getInt(0x10);
-        int unk18 = buffer.getInt(0x18);
-        int unk1c = buffer.getInt(0x1c);
+    public static ResourcesDependency read(BetterBuffer buffer, List<String> strings) {
+        String typeName = strings.get(buffer.getLongAsInt());
+        String fileName = strings.get(buffer.getLongAsInt());
+        int dependencyType = buffer.getInt();
+        buffer.expectInt(1);
+        int unk18 = buffer.getInt();
+        int unk1c = buffer.getInt();
 
         return new ResourcesDependency(
             typeName,
