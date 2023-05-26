@@ -11,7 +11,7 @@ public record ModelLodInfo(
     Vector3 posBounds,
     Vector3 vertexOffset,
     float vertexScale,
-    Vector2 uvMapOffset,
+    Vector2 uvOffset,
     float uvScale,
     float unkFloat2,
     float unkFloat3
@@ -25,7 +25,7 @@ public record ModelLodInfo(
         Vector3 posBounds = buffer.getVector3();
         Vector3 vertexOffset = buffer.getVector3();
         float vertexScale = buffer.getFloat();
-        Vector2 uvMapOffset = buffer.getVector2();
+        Vector2 uvOffset = buffer.getVector2();
         float uvScale = buffer.getFloat();
         buffer.expectInt(0);
         float unkFloat1 = buffer.getFloat();
@@ -40,7 +40,7 @@ public record ModelLodInfo(
             posBounds,
             vertexOffset,
             vertexScale,
-            uvMapOffset,
+            uvOffset,
             uvScale,
             unkFloat1,
             unkFloat2

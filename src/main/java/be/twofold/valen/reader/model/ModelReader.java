@@ -100,13 +100,9 @@ public final class ModelReader {
         ShortBuffer indices = ShortBuffer.allocate(lodInfo.numEdges() * 2);
 
         for (int i = 0; i < lodInfo.numVertices(); i++) {
-            vertices.put(buffer.getFloat()); // x
-            vertices.put(buffer.getFloat()); // y
-            vertices.put(buffer.getFloat()); // z
-
+            Geometry.readVertex(buffer, vertices, lodInfo.vertexOffset(), lodInfo.vertexScale());
             if (lodInfo.flags() != 0x0801d) {
-                texCoords.put(buffer.getFloat()); // u
-                texCoords.put(buffer.getFloat()); // v
+                Geometry.readUV(buffer, texCoords, lodInfo.uvOffset(), lodInfo.uvScale());
             }
 
             Geometry.readPackedNormal(buffer, normals);
