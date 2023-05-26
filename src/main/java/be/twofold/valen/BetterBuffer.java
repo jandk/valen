@@ -10,10 +10,13 @@ public final class BetterBuffer {
     private final ByteBuffer buffer;
 
     public BetterBuffer(ByteBuffer buffer) {
-        this.buffer = Objects.requireNonNull(buffer, "buffer is null");
-        if (buffer.order() != ByteOrder.LITTLE_ENDIAN) {
-            throw new IllegalArgumentException("buffer must be little endian");
-        }
+        this.buffer = Objects
+            .requireNonNull(buffer, "buffer is null")
+            .order(ByteOrder.LITTLE_ENDIAN);
+    }
+
+    public static BetterBuffer wrap(byte[] bytes) {
+        return new BetterBuffer(ByteBuffer.wrap(bytes));
     }
 
     public byte getByte() {
@@ -34,6 +37,15 @@ public final class BetterBuffer {
 
     public float getFloat() {
         return buffer.getFloat();
+    }
+
+    public boolean getByteAsBool() {
+        byte value = getByte();
+        return switch (value) {
+            case 0 -> false;
+            case 1 -> true;
+            default -> throw new IllegalStateException("Unexpected value for bool1: " + value);
+        };
     }
 
     public boolean getIntAsBool() {
@@ -105,6 +117,13 @@ public final class BetterBuffer {
 
     public void skip(int size) {
         buffer.position(position() + size);
+    }
+
+    public void expectByte(byte expected) {
+        byte value = getByte();
+        if (value != expected) {
+            throw new IllegalStateException("Expected " + expected + ", but got " + value);
+        }
     }
 
     public void expectShort(short expected) {

@@ -4,6 +4,7 @@ import be.twofold.valen.*;
 
 import java.io.*;
 import java.nio.channels.*;
+import java.nio.charset.*;
 import java.util.*;
 
 public final class ResourcesReader {
@@ -35,7 +36,7 @@ public final class ResourcesReader {
         long[] stringOffsets = IOUtils.readLongs(channel, numStrings);
 
         int bufferLength = (int) (header.addrDependencyEntries() - channel.position());
-        String buffer = IOUtils.readString(channel, bufferLength);
+        String buffer = new String(IOUtils.readBytes(channel, bufferLength), StandardCharsets.US_ASCII);
 
         strings = Arrays.stream(stringOffsets)
             .mapToInt(Math::toIntExact)

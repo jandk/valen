@@ -3,11 +3,10 @@ package be.twofold.valen.reader.image;
 import be.twofold.valen.*;
 import be.twofold.valen.reader.resource.*;
 
-import java.nio.*;
 import java.util.*;
 
 public final class ImageReader {
-    private final ByteBuffer buffer;
+    private final BetterBuffer buffer;
     private final StreamLoader loader;
     private final ResourcesEntry entry;
 
@@ -15,15 +14,15 @@ public final class ImageReader {
     private List<ImageMip> mips;
     private byte[][] mipData;
 
-    public ImageReader(ByteBuffer buffer, StreamLoader loader, ResourcesEntry entry) {
+    public ImageReader(BetterBuffer buffer, StreamLoader loader, ResourcesEntry entry) {
         this.buffer = buffer;
         this.loader = loader;
         this.entry = entry;
     }
 
     public Image read(boolean readMips) {
-        header = IOUtils.readStruct(buffer, ImageHeader.Size, ImageHeader::read);
-        mips = IOUtils.readStructs(buffer, header.totalMipCount(), ImageMip.Size, ImageMip::read);
+        header = ImageHeader.read(buffer);
+        mips = IOUtils.readBetterStructs(buffer, header.totalMipCount(), ImageMip::read);
         mipData = new byte[mips.size()][];
         readMipsFromBuffer(buffer, header.startMip());
         if (readMips) {
@@ -40,7 +39,7 @@ public final class ImageReader {
         }
 
         // Sanity check, if this fails, we have a misunderstanding of the format
-        assert !buffer.hasRemaining() : "Buffer has remaining bytes";
+        buffer.expectEnd();
         return new Image(header, mips, mipData);
     }
 
@@ -50,7 +49,7 @@ public final class ImageReader {
             .load(entry.streamResourceHash(), uncompressedSize)
             .orElseThrow(() -> new IllegalStateException("Could not load single stream image"));
 
-        readMipsFromBuffer(ByteBuffer.wrap(uncompressed), 0);
+        readMipsFromBuffer(BetterBuffer.wrap(uncompressed), 0);
     }
 
     private void loadMultiStream() {
@@ -67,9 +66,9 @@ public final class ImageReader {
         }
     }
 
-    private void readMipsFromBuffer(ByteBuffer bytes, int start) {
+    private void readMipsFromBuffer(BetterBuffer buffer, int start) {
         for (int i = start; i < mips.size(); i++) {
-            mipData[i] = IOUtils.readBytes(bytes, mips.get(i).decompressedSize());
+            mipData[i] = buffer.getBytes(mips.get(i).decompressedSize());
         }
     }
 }

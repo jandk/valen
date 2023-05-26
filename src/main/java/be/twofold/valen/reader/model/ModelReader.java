@@ -134,7 +134,7 @@ public final class ModelReader {
             return List.of();
         }
 
-        BetterBuffer buffer = new BetterBuffer(ByteBuffer.wrap(bytes.get()).order(ByteOrder.LITTLE_ENDIAN));
+        BetterBuffer buffer = BetterBuffer.wrap(bytes.get());
 
         List<FloatBuffer> vertexBuffers = new ArrayList<>();
         for (GeometryMemoryLayout streamInfo : streamMemLayouts.get(lod)) {

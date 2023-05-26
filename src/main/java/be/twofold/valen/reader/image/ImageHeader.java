@@ -1,7 +1,6 @@
 package be.twofold.valen.reader.image;
 
-import java.nio.*;
-import java.util.*;
+import be.twofold.valen.*;
 
 public record ImageHeader(
     byte version,
@@ -22,33 +21,32 @@ public record ImageHeader(
     int streamDBMipCount
 ) {
     static final int Size = 0x3f;
-    private static final byte[] Magic = {0x42, 0x49, 0x4d};
 
-    public static ImageHeader read(ByteBuffer buffer) {
-        byte[] magic = new byte[3];
-        buffer.get(magic);
-        if (!Arrays.equals(magic, Magic)) {
-            throw new IllegalArgumentException("Invalid magic, expected %s, got %s".formatted(
-                HexFormat.of().formatHex(Magic),
-                HexFormat.of().formatHex(magic)
-            ));
-        }
-        byte version = buffer.get(0x03);
-        ImageTextureType textureType = ImageTextureType.fromCode(buffer.getInt(0x04));
-        ImageTextureMaterialKind textureMaterialKind = ImageTextureMaterialKind.fromCode(buffer.getInt(0x08));
-        int pixelWidth = buffer.getInt(0x0c);
-        int pixelHeight = buffer.getInt(0x10);
-        int depth = buffer.getInt(0x14);
-        int mipCount = buffer.getInt(0x18);
-        float unkFloat1 = buffer.getFloat(0x1c);
-        float unkFloat2 = buffer.getFloat(0x20);
-        float unkFloat3 = buffer.getFloat(0x24);
-        ImageTextureFormat textureFormat = ImageTextureFormat.fromCode(buffer.getInt(0x29));
-        boolean streamed = buffer.get(0x37) != 0;
-        boolean unkBool1 = buffer.get(0x38) != 0;
-        boolean unkBool2 = buffer.get(0x39) != 0;
-        boolean unkBool3 = buffer.get(0x3a) != 0;
-        int streamDBMipCount = buffer.getInt(0x3b);
+    public static ImageHeader read(BetterBuffer buffer) {
+        buffer.expectByte((byte) 0x42);
+        buffer.expectByte((byte) 0x49);
+        buffer.expectByte((byte) 0x4d);
+        byte version = buffer.getByte();
+
+        ImageTextureType textureType = ImageTextureType.fromCode(buffer.getInt());
+        ImageTextureMaterialKind textureMaterialKind = ImageTextureMaterialKind.fromCode(buffer.getInt());
+        int pixelWidth = buffer.getInt();
+        int pixelHeight = buffer.getInt();
+        int depth = buffer.getInt();
+        int mipCount = buffer.getInt();
+        float unkFloat1 = buffer.getFloat();
+        float unkFloat2 = buffer.getFloat();
+        float unkFloat3 = buffer.getFloat();
+        buffer.expectByte((byte) 0);
+        ImageTextureFormat textureFormat = ImageTextureFormat.fromCode(buffer.getInt());
+        buffer.expectInt(7); // always 7?
+        buffer.expectInt(0); // padding
+        buffer.expectShort((short) 0); // padding
+        boolean streamed = buffer.getByteAsBool();
+        boolean unkBool1 = buffer.getByteAsBool();
+        boolean unkBool2 = buffer.getByteAsBool();
+        boolean unkBool3 = buffer.getByteAsBool();
+        int streamDBMipCount = buffer.getInt();
 
         return new ImageHeader(
             version,
