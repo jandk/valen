@@ -28,6 +28,10 @@ public final class BetterBuffer {
         return buffer.getInt();
     }
 
+    public long getLong() {
+        return buffer.getLong();
+    }
+
     public float getFloat() {
         return buffer.getFloat();
     }
@@ -101,6 +105,13 @@ public final class BetterBuffer {
 
     public void expectInt(int expected) {
         int value = getInt();
+        if (value != expected) {
+            throw new IllegalStateException("Expected " + expected + ", but got " + value);
+        }
+    }
+
+    public void expectLong(long expected) {
+        long value = getLong();
         if (value != expected) {
             throw new IllegalStateException("Expected " + expected + ", but got " + value);
         }

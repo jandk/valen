@@ -20,10 +20,13 @@ public final class StreamDbReader {
     }
 
     public StreamDb read() throws IOException {
+        return read(false);
+    }
+
+    public StreamDb read(boolean prefetch) throws IOException {
         readIndex();
 
-        // We don't need the prefetch data, so skip it
-        if (false) {
+        if (prefetch) {
             readPrefetch();
             if (channel.position() != header.headerLength()) {
                 throw new IOException("Header length does not match position");
@@ -34,13 +37,13 @@ public final class StreamDbReader {
     }
 
     private void readIndex() throws IOException {
-        header = IOUtils.readStruct(channel, StreamDbHeader.Size, StreamDbHeader::read);
-        entries = IOUtils.readStructs(channel, header.numEntries(), StreamDbEntry.Size, StreamDbEntry::read);
+        header = IOUtils.readBetterStruct(channel, StreamDbHeader.Size, StreamDbHeader::read);
+        entries = IOUtils.readBetterStructs(channel, header.numEntries(), StreamDbEntry.Size, StreamDbEntry::read);
     }
 
     private void readPrefetch() throws IOException {
-        prefetchHeader = IOUtils.readStruct(channel, StreamDbPrefetchHeader.Size, StreamDbPrefetchHeader::read);
-        prefetchBlocks = IOUtils.readStructs(channel, prefetchHeader.numPrefetchBlocks(), StreamDbPrefetchBlock.Size, StreamDbPrefetchBlock::read);
+        prefetchHeader = IOUtils.readBetterStruct(channel, StreamDbPrefetchHeader.Size, StreamDbPrefetchHeader::read);
+        prefetchBlocks = IOUtils.readBetterStructs(channel, prefetchHeader.numPrefetchBlocks(), StreamDbPrefetchBlock.Size, StreamDbPrefetchBlock::read);
 
         int numPrefetchIDs = prefetchBlocks.stream()
             .mapToInt(StreamDbPrefetchBlock::numItems)

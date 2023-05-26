@@ -1,6 +1,6 @@
 package be.twofold.valen.reader.streamdb;
 
-import java.nio.*;
+import be.twofold.valen.*;
 
 public record StreamDbEntry(
     long identity,
@@ -9,10 +9,10 @@ public record StreamDbEntry(
 ) {
     static final int Size = 0x10;
 
-    public static StreamDbEntry read(ByteBuffer buffer) {
-        long identity = buffer.getLong(0x00);
-        int offset16 = buffer.getInt(0x08);
-        int length = buffer.getInt(0x0c);
+    public static StreamDbEntry read(BetterBuffer buffer) {
+        long identity = buffer.getLong();
+        int offset16 = buffer.getInt();
+        int length = buffer.getInt();
         return new StreamDbEntry(identity, offset16, length);
     }
 

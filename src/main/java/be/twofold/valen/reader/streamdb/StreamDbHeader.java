@@ -1,21 +1,21 @@
 package be.twofold.valen.reader.streamdb;
 
-import java.nio.*;
+import be.twofold.valen.*;
 
 public record StreamDbHeader(
     int headerLength,
     int numEntries
 ) {
-    private static final long Magic = 0x61c7f32e29c2a550L;
     static final int Size = 0x20;
 
-    public static StreamDbHeader read(ByteBuffer buffer) {
-        long magic = buffer.getLong(0x00);
-        if (magic != Magic) {
-            throw new IllegalArgumentException("Invalid magic, expected 0x%016x, got 0x%016x".formatted(Magic, magic));
-        }
-        int headerLength = buffer.getInt(0x08);
-        int numEntries = buffer.getInt(0x18);
+    public static StreamDbHeader read(BetterBuffer buffer) {
+        buffer.expectLong(0x61c7f32e29c2a550L); // magic
+        int headerLength = buffer.getInt();
+        buffer.expectInt(0); // padding
+        buffer.expectInt(0); // padding
+        buffer.expectInt(0); // padding
+        int numEntries = buffer.getInt();
+        buffer.expectInt(3); // flags
         return new StreamDbHeader(headerLength, numEntries);
     }
 }

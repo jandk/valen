@@ -1,6 +1,6 @@
 package be.twofold.valen.reader.streamdb;
 
-import java.nio.*;
+import be.twofold.valen.*;
 
 public record StreamDbPrefetchBlock(
     long name,
@@ -9,10 +9,10 @@ public record StreamDbPrefetchBlock(
 ) {
     static final int Size = 0x10;
 
-    public static StreamDbPrefetchBlock read(ByteBuffer buffer) {
-        long name = buffer.getLong(0x00);
-        int firstItemIndex = buffer.getInt(0x08);
-        int numItems = buffer.getInt(0x0c);
+    public static StreamDbPrefetchBlock read(BetterBuffer buffer) {
+        long name = buffer.getLong();
+        int firstItemIndex = buffer.getInt();
+        int numItems = buffer.getInt();
         return new StreamDbPrefetchBlock(name, firstItemIndex, numItems);
     }
 }

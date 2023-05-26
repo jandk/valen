@@ -21,6 +21,10 @@ public final class IOUtils {
         return buffer.flip();
     }
 
+    public static BetterBuffer readBetterBuffer(ReadableByteChannel channel, int size) throws IOException {
+        return new BetterBuffer(readBuffer(channel, size));
+    }
+
     public static byte[] readBytes(ByteBuffer buffer, int size) {
         byte[] bytes = new byte[size];
         buffer.get(bytes);
@@ -71,5 +75,24 @@ public final class IOUtils {
     public static <T> List<T> readStructs(ReadableByteChannel channel, int count, int size, Function<ByteBuffer, T> reader) throws IOException {
         ByteBuffer buffer = readBuffer(channel, count * size);
         return readStructs(buffer, count, size, reader);
+    }
+
+    public static <T> T readBetterStruct(BetterBuffer buffer, Function<BetterBuffer, T> reader) {
+        return reader.apply(buffer);
+    }
+
+    public static <T> T readBetterStruct(ReadableByteChannel channel, int size, Function<BetterBuffer, T> reader) throws IOException {
+        return reader.apply(readBetterBuffer(channel, size));
+    }
+
+    public static <T> List<T> readBetterStructs(BetterBuffer buffer, int count, Function<BetterBuffer, T> reader) {
+        return Stream.generate(() -> readBetterStruct(buffer, reader))
+            .limit(count)
+            .toList();
+    }
+
+    public static <T> List<T> readBetterStructs(ReadableByteChannel channel, int count, int size, Function<BetterBuffer, T> reader) throws IOException {
+        BetterBuffer buffer = readBetterBuffer(channel, count * size);
+        return readBetterStructs(buffer, count, reader);
     }
 }
