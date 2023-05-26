@@ -171,8 +171,8 @@ public final class ModelReader {
             for (List<ModelLodInfo> lodInfo : lodInfos) {
                 if (lodInfo.get(lod).flags() == streamInfo.combinedVertexMask()) {
                     FloatBuffer uvBuffer = switch (streamInfo.uvMask()) {
-                        case 0x08000 -> Geometry.readPackedUVs(buffer, lodInfo.get(lod));
-                        case 0x20000 -> Geometry.readUVs(buffer, lodInfo.get(lod));
+                        case 0x08000 -> Geometry.readUVs(buffer, lodInfo.get(lod));
+                        case 0x20000 -> Geometry.readPackedUVs(buffer, lodInfo.get(lod));
                         default -> throw new RuntimeException("Unknown UV mask: " + streamInfo.normalMask());
                     };
                     uvBuffers.add(uvBuffer);

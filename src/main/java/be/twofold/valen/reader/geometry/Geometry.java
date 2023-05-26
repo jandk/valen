@@ -34,6 +34,16 @@ public final class Geometry {
         FloatBuffer dst = FloatBuffer.allocate(lodInfo.numVertices() * 3);
         for (int i = 0; i < lodInfo.numVertices(); i++) {
             readPackedNormal(src, dst);
+            src.skip(4); // skip tangents
+        }
+        return dst.flip();
+    }
+
+    public static FloatBuffer readPackedTangents(BetterBuffer src, ModelLodInfo lodInfo) {
+        FloatBuffer dst = FloatBuffer.allocate(lodInfo.numVertices() * 3);
+        for (int i = 0; i < lodInfo.numVertices(); i++) {
+            src.skip(4); // skip normals
+            readPackedTangent(src, dst);
         }
         return dst.flip();
     }
@@ -93,7 +103,7 @@ public final class Geometry {
         dst.put(-y);
     }
 
-    public static void readPackedNormal(BetterBuffer src, FloatBuffer dst) {
+    public static void readPackedNormal(BetterBuffer src, FloatBuffer nDst) {
         float packedXn = Byte.toUnsignedInt(src.getByte());
         float packedYn = Byte.toUnsignedInt(src.getByte());
         float packedZn = Byte.toUnsignedInt(src.getByte());
@@ -105,9 +115,9 @@ public final class Geometry {
 
         // Normalize, as we have low accuracy
         float scale = (float) (1 / Math.sqrt(x * x + y * y + z * z));
-        dst.put(x * scale);
-        dst.put(y * scale);
-        dst.put(z * scale);
+        nDst.put(x * scale);
+        nDst.put(y * scale);
+        nDst.put(z * scale);
     }
 
     public static void readPackedTangent(BetterBuffer src, FloatBuffer dst) {
