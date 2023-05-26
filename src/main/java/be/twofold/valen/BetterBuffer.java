@@ -5,6 +5,8 @@ import be.twofold.valen.geometry.*;
 import java.nio.*;
 import java.nio.charset.*;
 import java.util.*;
+import java.util.function.*;
+import java.util.stream.*;
 
 public final class BetterBuffer {
     private final ByteBuffer buffer;
@@ -105,6 +107,12 @@ public final class BetterBuffer {
         float z = getFloat();
         float w = getFloat();
         return new Vector4(x, y, z, w);
+    }
+
+    public <T> List<T> getStructs(int count, Function<BetterBuffer, T> reader) {
+        return Stream.generate(() -> reader.apply(this))
+            .limit(count)
+            .toList();
     }
 
     public int position() {

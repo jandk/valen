@@ -5,7 +5,6 @@ import java.nio.*;
 import java.nio.channels.*;
 import java.util.*;
 import java.util.function.*;
-import java.util.stream.*;
 
 public final class IOUtils {
     private IOUtils() {
@@ -45,13 +44,7 @@ public final class IOUtils {
     }
 
     public static <T> List<T> readBetterStructs(ReadableByteChannel channel, int count, int size, Function<BetterBuffer, T> reader) throws IOException {
-        BetterBuffer buffer = readBetterBuffer(channel, count * size);
-        return readBetterStructs(buffer, count, reader);
-    }
-
-    public static <T> List<T> readBetterStructs(BetterBuffer buffer, int count, Function<BetterBuffer, T> reader) {
-        return Stream.generate(() -> reader.apply(buffer))
-            .limit(count)
-            .toList();
+        return readBetterBuffer(channel, count * size)
+            .getStructs(count, reader);
     }
 }

@@ -22,7 +22,7 @@ public final class ImageReader {
 
     public Image read(boolean readMips) {
         header = ImageHeader.read(buffer);
-        mips = IOUtils.readBetterStructs(buffer, header.totalMipCount(), ImageMip::read);
+        mips = buffer.getStructs(header.totalMipCount(), ImageMip::read);
         mipData = new byte[mips.size()][];
         readMipsFromBuffer(buffer, header.startMip());
         if (readMips) {
