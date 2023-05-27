@@ -33,4 +33,8 @@ public record Vector3(
     public String toString() {
         return "(" + x + ", " + y + ", " + z + ")";
     }
+
+    public float[] toArray() {
+        return new float[]{x, y, z};
+    }
 }

@@ -10,4 +10,8 @@ public record Vector4(
     public String toString() {
         return "(" + x + ", " + y + ", " + z + ", " + w + ")";
     }
+
+    public float[] toArray() {
+        return new float[]{x, y, z, w};
+    }
 }
