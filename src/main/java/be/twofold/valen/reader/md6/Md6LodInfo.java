@@ -2,10 +2,11 @@ package be.twofold.valen.reader.md6;
 
 import be.twofold.valen.*;
 import be.twofold.valen.geometry.*;
+import be.twofold.valen.reader.geometry.*;
 
 public record Md6LodInfo(
     int numVertices,
-    int numEdges,
+    int numFaces,
     Vector3 negBounds,
     Vector3 posBounds,
     Vector3 vertexOffset,
@@ -15,7 +16,7 @@ public record Md6LodInfo(
     int flags,
     float unkFloat2,
     float unkFloat3
-) {
+) implements LodInfo {
     public static Md6LodInfo read(BetterBuffer buffer) {
         int numVertices = buffer.getInt();
         int numEdges = buffer.getInt();
@@ -42,5 +43,10 @@ public record Md6LodInfo(
             unkFloat1,
             unkFloat2
         );
+    }
+
+    @Override
+    public int numEdges() {
+        return numFaces * 3;
     }
 }

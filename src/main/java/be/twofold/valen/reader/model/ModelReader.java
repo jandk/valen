@@ -8,6 +8,7 @@ import be.twofold.valen.reader.resource.*;
 import java.io.*;
 import java.nio.*;
 import java.util.*;
+import java.util.stream.*;
 
 public final class ModelReader {
     private static final int LodCount = 5;
@@ -124,71 +125,16 @@ public final class ModelReader {
     private List<Mesh> readStreamedGeometry(int lod) {
         long hash = (entry.streamResourceHash() << 4) | lod;
         int size = streamDiskLayouts.get(lod).uncompressedSize();
-        Optional<byte[]> bytes = streamLoader.load(hash, size);
-        if (bytes.isEmpty()) {
-            System.out.println("Could not load streamed geometry for " + entry.name() + " (lod " + lod + ")");
-            return List.of();
-        }
 
-        BetterBuffer buffer = BetterBuffer.wrap(bytes.get());
+        BetterBuffer buffer = streamLoader
+            .load(hash, size)
+            .map(BetterBuffer::wrap)
+            .orElseThrow();
+        List<LodInfo> lods = lodInfos.stream()
+            .map(l -> l.get(lod))
+            .collect(Collectors.toUnmodifiableList());
+        List<GeometryMemoryLayout> layouts = streamMemLayouts.get(lod);
 
-        List<FloatBuffer> vertexBuffers = new ArrayList<>();
-        for (GeometryMemoryLayout streamInfo : streamMemLayouts.get(lod)) {
-            buffer.position(streamInfo.positionOffset());
-            for (List<ModelLodInfo> lodInfo : lodInfos) {
-                if (lodInfo.get(lod).flags() == streamInfo.combinedVertexMask()) {
-                    FloatBuffer vertexBuffer = switch (streamInfo.positionMask()) {
-                        case 0x01 -> Geometry.readVertices(buffer, lodInfo.get(lod));
-                        case 0x20 -> Geometry.readPackedVertices(buffer, lodInfo.get(lod));
-                        default -> throw new RuntimeException("Unknown position mask: " + streamInfo.positionMask());
-                    };
-                    vertexBuffers.add(vertexBuffer);
-                }
-            }
-        }
-
-        List<FloatBuffer> normalBuffers = new ArrayList<>();
-        for (GeometryMemoryLayout streamInfo : streamMemLayouts.get(lod)) {
-            buffer.position(streamInfo.normalOffset());
-            for (List<ModelLodInfo> lodInfo : lodInfos) {
-                if (lodInfo.get(lod).flags() == streamInfo.combinedVertexMask()) {
-                    if (streamInfo.normalMask() != 0x14) {
-                        throw new RuntimeException("Unknown normal mask: " + streamInfo.normalMask());
-                    }
-                    normalBuffers.add(Geometry.readPackedNormals(buffer, lodInfo.get(lod)));
-                }
-            }
-        }
-
-        List<FloatBuffer> uvBuffers = new ArrayList<>();
-        for (GeometryMemoryLayout streamInfo : streamMemLayouts.get(lod)) {
-            buffer.position(streamInfo.uvOffset());
-            for (List<ModelLodInfo> lodInfo : lodInfos) {
-                if (lodInfo.get(lod).flags() == streamInfo.combinedVertexMask()) {
-                    FloatBuffer uvBuffer = switch (streamInfo.uvMask()) {
-                        case 0x08000 -> Geometry.readUVs(buffer, lodInfo.get(lod));
-                        case 0x20000 -> Geometry.readPackedUVs(buffer, lodInfo.get(lod));
-                        default -> throw new RuntimeException("Unknown UV mask: " + streamInfo.normalMask());
-                    };
-                    uvBuffers.add(uvBuffer);
-                }
-            }
-        }
-
-        List<ShortBuffer> faceBuffers = new ArrayList<>();
-        for (GeometryMemoryLayout streamInfo : streamMemLayouts.get(lod)) {
-            buffer.position(streamInfo.indexOffset());
-            for (List<ModelLodInfo> lodInfo : lodInfos) {
-                if (lodInfo.get(lod).flags() == streamInfo.combinedVertexMask()) {
-                    faceBuffers.add(Geometry.readFaces(buffer, lodInfo.get(lod)));
-                }
-            }
-        }
-
-        List<Mesh> meshes = new ArrayList<>();
-        for (int i = 0; i < meshInfos.size(); i++) {
-            meshes.add(new Mesh(vertexBuffers.get(i), normalBuffers.get(i), uvBuffers.get(i), faceBuffers.get(i)));
-        }
-        return List.copyOf(meshes);
+        return GeometryReader.readMeshes(buffer, lods, layouts);
     }
 }

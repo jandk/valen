@@ -2,7 +2,6 @@ package be.twofold.valen.reader.geometry;
 
 import be.twofold.valen.*;
 import be.twofold.valen.geometry.*;
-import be.twofold.valen.reader.model.*;
 
 import java.nio.*;
 
@@ -10,59 +9,59 @@ public final class Geometry {
     private Geometry() {
     }
 
-    public static FloatBuffer readVertices(BetterBuffer src, ModelLodInfo lodInfo) {
-        FloatBuffer dst = FloatBuffer.allocate(lodInfo.numVertices() * 3);
-        for (int i = 0; i < lodInfo.numVertices(); i++) {
-            readVertex(src, dst, lodInfo.vertexOffset(), lodInfo.vertexScale());
+    public static FloatBuffer readVertices(BetterBuffer src, LodInfo lod) {
+        FloatBuffer dst = FloatBuffer.allocate(lod.numVertices() * 3);
+        for (int i = 0; i < lod.numVertices(); i++) {
+            readVertex(src, dst, lod.vertexOffset(), lod.vertexScale());
         }
         return dst.flip();
     }
 
-    public static FloatBuffer readPackedVertices(BetterBuffer src, ModelLodInfo lodInfo) {
-        FloatBuffer dst = FloatBuffer.allocate(lodInfo.numVertices() * 3);
-        for (int i = 0; i < lodInfo.numVertices(); i++) {
-            readPackedVertex(src, dst, lodInfo.vertexOffset(), lodInfo.vertexScale());
+    public static FloatBuffer readPackedVertices(BetterBuffer src, LodInfo lod) {
+        FloatBuffer dst = FloatBuffer.allocate(lod.numVertices() * 3);
+        for (int i = 0; i < lod.numVertices(); i++) {
+            readPackedVertex(src, dst, lod.vertexOffset(), lod.vertexScale());
         }
         return dst.flip();
     }
 
-    public static FloatBuffer readPackedNormals(BetterBuffer src, ModelLodInfo lodInfo) {
-        FloatBuffer dst = FloatBuffer.allocate(lodInfo.numVertices() * 3);
-        for (int i = 0; i < lodInfo.numVertices(); i++) {
+    public static FloatBuffer readPackedNormals(BetterBuffer src, LodInfo lod) {
+        FloatBuffer dst = FloatBuffer.allocate(lod.numVertices() * 3);
+        for (int i = 0; i < lod.numVertices(); i++) {
             readPackedNormal(src, dst);
             src.skip(4); // skip tangents
         }
         return dst.flip();
     }
 
-    public static FloatBuffer readPackedTangents(BetterBuffer src, ModelLodInfo lodInfo) {
-        FloatBuffer dst = FloatBuffer.allocate(lodInfo.numVertices() * 3);
-        for (int i = 0; i < lodInfo.numVertices(); i++) {
+    public static FloatBuffer readPackedTangents(BetterBuffer src, LodInfo lod) {
+        FloatBuffer dst = FloatBuffer.allocate(lod.numVertices() * 3);
+        for (int i = 0; i < lod.numVertices(); i++) {
             src.skip(4); // skip normals
             readPackedTangent(src, dst);
         }
         return dst.flip();
     }
 
-    public static FloatBuffer readUVs(BetterBuffer src, ModelLodInfo lodInfo) {
-        FloatBuffer dst = FloatBuffer.allocate(lodInfo.numVertices() * 2);
-        for (int i = 0; i < lodInfo.numVertices(); i++) {
-            readUV(src, dst, lodInfo.uvOffset(), lodInfo.uvScale());
+    public static FloatBuffer readUVs(BetterBuffer src, LodInfo lod) {
+        FloatBuffer dst = FloatBuffer.allocate(lod.numVertices() * 2);
+        for (int i = 0; i < lod.numVertices(); i++) {
+            readUV(src, dst, lod.uvOffset(), lod.uvScale());
         }
         return dst.flip();
     }
 
-    public static FloatBuffer readPackedUVs(BetterBuffer src, ModelLodInfo lodInfo) {
-        FloatBuffer dst = FloatBuffer.allocate(lodInfo.numVertices() * 2);
-        for (int i = 0; i < lodInfo.numVertices(); i++) {
-            readPackedUV(src, dst, lodInfo.uvOffset(), lodInfo.uvScale());
+    public static FloatBuffer readPackedUVs(BetterBuffer src, LodInfo lod) {
+        FloatBuffer dst = FloatBuffer.allocate(lod.numVertices() * 2);
+        for (int i = 0; i < lod.numVertices(); i++) {
+            readPackedUV(src, dst, lod.uvOffset(), lod.uvScale());
         }
         return dst.flip();
     }
 
-    public static ShortBuffer readFaces(BetterBuffer src, ModelLodInfo lodInfo) {
-        ShortBuffer dst = ShortBuffer.allocate(lodInfo.numEdges());
-        for (int i = 0; i < lodInfo.numEdges(); i += 3) {
+    public static ShortBuffer readFaces(BetterBuffer src, LodInfo lod) {
+        ShortBuffer dst = ShortBuffer.allocate(lod.numEdges());
+        for (int i = 0; i < lod.numEdges(); i += 3) {
             dst.put(src.getShort());
             dst.put(src.getShort());
             dst.put(src.getShort());

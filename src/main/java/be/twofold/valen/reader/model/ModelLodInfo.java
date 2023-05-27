@@ -2,6 +2,7 @@ package be.twofold.valen.reader.model;
 
 import be.twofold.valen.*;
 import be.twofold.valen.geometry.*;
+import be.twofold.valen.reader.geometry.*;
 
 public record ModelLodInfo(
     int numVertices,
@@ -15,7 +16,7 @@ public record ModelLodInfo(
     float uvScale,
     float unkFloat2,
     float unkFloat3
-) {
+) implements LodInfo {
     public static ModelLodInfo read(BetterBuffer buffer) {
         buffer.expectInt(-2);
         int numVertices = buffer.getInt();

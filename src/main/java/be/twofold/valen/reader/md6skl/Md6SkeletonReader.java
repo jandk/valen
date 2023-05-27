@@ -2,7 +2,6 @@ package be.twofold.valen.reader.md6skl;
 
 import be.twofold.valen.*;
 import be.twofold.valen.geometry.*;
-import be.twofold.valen.writer.gltf.*;
 
 import java.util.*;
 import java.util.stream.*;
@@ -21,7 +20,6 @@ public final class Md6SkeletonReader {
         List<Md6SkeletonBone> bones = readBones();
 
         System.out.println(bonesToDot(bones));
-        GltfOut.dumpBones(bones);
 
         return new Md6Skeleton(header, bones);
     }

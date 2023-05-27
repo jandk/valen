@@ -5,8 +5,8 @@ import be.twofold.valen.geometry.*;
 public record Md6SkeletonBone(
     String name,
     int parent,
-    Vector4 quat,
-    Vector3 pos,
+    Vector4 rotation,
+    Vector3 translation,
     Vector3 scale
 ) {
 }
