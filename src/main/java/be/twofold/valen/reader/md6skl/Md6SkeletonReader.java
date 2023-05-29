@@ -17,70 +17,58 @@ public final class Md6SkeletonReader {
 
     public Md6Skeleton read() {
         header = Md6SkeletonHeader.read(buffer);
-        List<Md6SkeletonBone> bones = readBones();
-
-        System.out.println(bonesToDot(bones));
-
-        return new Md6Skeleton(header, bones);
+        short[] remapTable = readRemapTable();
+        List<Md6SkeletonJoint> bones = readJoints();
+        return new Md6Skeleton(header, remapTable, bones);
     }
 
-    private String bonesToDot(List<Md6SkeletonBone> bones) {
-        StringBuilder builder = new StringBuilder();
-        builder.append("digraph G {\n");
-        builder.append("  rankdir=LR;\n");
-        for (int i = 0; i < bones.size(); i++) {
-            Md6SkeletonBone bone = bones.get(i);
-            builder.append("  ").append(i).append(" [label=\"").append(bone.name()).append("\"];\n");
-            if (bone.parent() != -1) {
-                builder.append("  ").append(bone.parent()).append(" -> ").append(i).append(";\n");
+    private List<Md6SkeletonJoint> readJoints() {
+        buffer.position(header.basePoseOffset() + 4);
+
+        List<Vector4> rotations = buffer.getStructs(header.numJoints(), BetterBuffer::getVector4);
+        buffer.skip(header.jointPadding() * 16);
+
+        List<Vector3> scales = buffer.getStructs(header.numJoints(), BetterBuffer::getVector3);
+        buffer.skip(header.jointPadding() * 12);
+
+        List<Vector3> translations = buffer.getStructs(header.numJoints(), BetterBuffer::getVector3);
+        buffer.skip(header.jointPadding() * 12);
+
+        buffer.position(header.inverseBasePoseOffset() + 4);
+        List<Mat4> inverseBasePoses = new ArrayList<>();
+        for (int i = 0; i < header.numJoints(); i++) {
+            float[] floats = new float[16];
+            for (int j = 0; j < 12; j++) {
+                floats[j] = buffer.getFloat();
             }
+            floats[15] = 1;
+            inverseBasePoses.add(Mat4.fromArray(floats));
         }
-        builder.append("}\n");
-        return builder.toString();
-    }
+        buffer.skip(header.jointPadding() * 48);
 
-    private List<Md6SkeletonBone> readBones() {
-        buffer.position(header.offsets()[2] + 4); // This is weird...
-        List<Vector4> quats = new ArrayList<>();
-        for (int i = 0; i < header.boneCount(); i++) {
-            quats.add(buffer.getVector4());
-        }
-        buffer.skip(header.emptyBones() * 16);
+        buffer.position(header.parentTblOffset() + 4);
+        short[] parents = buffer.getShorts(header.numJoints());
+        buffer.skip(header.jointPadding() * 2);
 
-        List<Vector3> scale = new ArrayList<>();
-        for (int i = 0; i < header.boneCount(); i++) {
-            scale.add(buffer.getVector3());
-        }
-        buffer.skip(header.emptyBones() * 12);
-
-        List<Vector3> position = new ArrayList<>();
-        for (int i = 0; i < header.boneCount(); i++) {
-            position.add(buffer.getVector3());
-        }
-        buffer.skip(header.emptyBones() * 12);
-
-        buffer.position(header.offsets()[4] + 4); // This is weird...
-
-        short[] parents = buffer.getShorts(header.boneCount());
-        buffer.skip(header.emptyBones() * 2);
-
-        short[] remap = buffer.getShorts(header.boneCount());
-        buffer.skip(header.emptyBones() * 2);
-
-        buffer.position(header.boneNamesOffset() + 4);
+        buffer.position(header.size() + 4); // names are tacked on the end
         List<String> names = new ArrayList<>();
-        for (int i = 0; i < header.boneCount(); i++) {
+        for (int i = 0; i < header.numJoints(); i++) {
             names.add(buffer.getString());
         }
 
-        return IntStream.range(0, header.boneCount())
-            .mapToObj(i -> new Md6SkeletonBone(
+        return IntStream.range(0, header.numJoints())
+            .mapToObj(i -> new Md6SkeletonJoint(
                 names.get(i),
                 parents[i],
-                quats.get(i),
-                position.get(i),
-                scale.get(i)
+                rotations.get(i),
+                scales.get(i),
+                translations.get(i)
             ))
             .toList();
+    }
+
+    private short[] readRemapTable() {
+        buffer.position(header.skelRemapTblOffset() + 4);
+        return buffer.getShorts(header.numJoints());
     }
 }

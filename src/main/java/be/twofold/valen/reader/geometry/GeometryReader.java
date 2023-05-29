@@ -51,6 +51,18 @@ public final class GeometryReader {
                 .forEach(uvBuffers::add);
         }
 
+        List<ByteBuffer> colorBuffers = new ArrayList<>();
+        for (GeometryMemoryLayout layout : layouts) {
+            buffer.position(layout.colorOffset());
+            lods.stream()
+                .filter(lod -> lod.flags() == layout.combinedVertexMask())
+                .map(lod -> switch (layout.colorMask()) {
+                    case 0x08 -> Geometry.readColors(buffer, lod);
+                    default -> throw new RuntimeException("Unknown color mask: " + layout.colorMask());
+                })
+                .forEach(colorBuffers::add);
+        }
+
         List<ShortBuffer> indexBuffers = new ArrayList<>();
         for (GeometryMemoryLayout layout : layouts) {
             buffer.position(layout.indexOffset());
@@ -61,7 +73,13 @@ public final class GeometryReader {
         }
 
         return IntStream.range(0, lods.size())
-            .mapToObj(i -> new Mesh(vertexBuffers.get(i), normalBuffers.get(i), uvBuffers.get(i), indexBuffers.get(i)))
+            .mapToObj(i -> new Mesh(
+                vertexBuffers.get(i),
+                normalBuffers.get(i),
+                uvBuffers.get(i),
+                colorBuffers.get(i),
+                indexBuffers.get(i)
+            ))
             .toList();
     }
 }

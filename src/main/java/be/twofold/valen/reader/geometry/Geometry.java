@@ -59,6 +59,12 @@ public final class Geometry {
         return dst.flip();
     }
 
+    public static ByteBuffer readColors(BetterBuffer buffer, LodInfo lod) {
+        ByteBuffer dst = ByteBuffer.allocate(lod.numVertices() * 4);
+        dst.put(buffer.getBytes(lod.numVertices() * 4));
+        return dst.flip();
+    }
+
     public static ShortBuffer readFaces(BetterBuffer src, LodInfo lod) {
         ShortBuffer dst = ShortBuffer.allocate(lod.numEdges());
         for (int i = 0; i < lod.numEdges(); i += 3) {
