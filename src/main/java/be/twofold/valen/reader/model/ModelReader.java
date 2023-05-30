@@ -119,7 +119,7 @@ public final class ModelReader {
         }
 
         indices.put(buffer.getShorts(lodInfo.numEdges()));
-        return new Mesh(vertices, normals, texCoords, null, indices);
+        return new Mesh(vertices, normals, tangents, texCoords, null, indices);
     }
 
     private List<Mesh> readStreamedGeometry(int lod) {

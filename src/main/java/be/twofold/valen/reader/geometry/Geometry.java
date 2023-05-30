@@ -6,6 +6,16 @@ import be.twofold.valen.geometry.*;
 import java.nio.*;
 
 public final class Geometry {
+    private static final byte[] WeightTableZ = {
+        0x00, 0x06, 0x0b, 0x11, 0x17, 0x1c, 0x22, 0x28,
+        0x2d, 0x33, 0x39, 0x3e, 0x44, 0x4a, 0x4f, 0x55
+    };
+
+    private static final byte[] WeightTableW = {
+        0x00, 0x04, 0x09, 0x0d, 0x11, 0x15, 0x1a, 0x1e,
+        0x22, 0x26, 0x2b, 0x2f, 0x33, 0x37, 0x3c, 0x40
+    };
+
     private Geometry() {
     }
 
@@ -35,7 +45,7 @@ public final class Geometry {
     }
 
     public static FloatBuffer readPackedTangents(BetterBuffer src, LodInfo lod) {
-        FloatBuffer dst = FloatBuffer.allocate(lod.numVertices() * 3);
+        FloatBuffer dst = FloatBuffer.allocate(lod.numVertices() * 4);
         for (int i = 0; i < lod.numVertices(); i++) {
             src.skip(4); // skip normals
             readPackedTangent(src, dst);

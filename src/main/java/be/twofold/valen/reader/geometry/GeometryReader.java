@@ -38,6 +38,18 @@ public final class GeometryReader {
                 .forEach(normalBuffers::add);
         }
 
+        List<FloatBuffer> tangentBuffers = new ArrayList<>();
+        for (GeometryMemoryLayout layout : layouts) {
+            buffer.position(layout.normalOffset());
+            lods.stream()
+                .filter(lod -> lod.flags() == layout.combinedVertexMask())
+                .map(lod -> switch (layout.normalMask()) {
+                    case 0x14 -> Geometry.readPackedTangents(buffer, lod);
+                    default -> throw new RuntimeException("Unknown normal mask: " + layout.normalMask());
+                })
+                .forEach(tangentBuffers::add);
+        }
+
         List<FloatBuffer> uvBuffers = new ArrayList<>();
         for (GeometryMemoryLayout layout : layouts) {
             buffer.position(layout.uvOffset());
@@ -76,6 +88,7 @@ public final class GeometryReader {
             .mapToObj(i -> new Mesh(
                 vertexBuffers.get(i),
                 normalBuffers.get(i),
+                tangentBuffers.get(i),
                 uvBuffers.get(i),
                 colorBuffers.get(i),
                 indexBuffers.get(i)
