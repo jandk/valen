@@ -37,13 +37,13 @@ public final class StreamDbReader {
     }
 
     private void readIndex() throws IOException {
-        header = IOUtils.readBetterStruct(channel, StreamDbHeader.Size, StreamDbHeader::read);
-        entries = IOUtils.readBetterStructs(channel, header.numEntries(), StreamDbEntry.Size, StreamDbEntry::read);
+        header = IOUtils.readStruct(channel, StreamDbHeader.Size, StreamDbHeader::read);
+        entries = IOUtils.readStructs(channel, header.numEntries(), StreamDbEntry.Size, StreamDbEntry::read);
     }
 
     private void readPrefetch() throws IOException {
-        prefetchHeader = IOUtils.readBetterStruct(channel, StreamDbPrefetchHeader.Size, StreamDbPrefetchHeader::read);
-        prefetchBlocks = IOUtils.readBetterStructs(channel, prefetchHeader.numPrefetchBlocks(), StreamDbPrefetchBlock.Size, StreamDbPrefetchBlock::read);
+        prefetchHeader = IOUtils.readStruct(channel, StreamDbPrefetchHeader.Size, StreamDbPrefetchHeader::read);
+        prefetchBlocks = IOUtils.readStructs(channel, prefetchHeader.numPrefetchBlocks(), StreamDbPrefetchBlock.Size, StreamDbPrefetchBlock::read);
 
         int numPrefetchIDs = prefetchBlocks.stream()
             .mapToInt(StreamDbPrefetchBlock::numItems)

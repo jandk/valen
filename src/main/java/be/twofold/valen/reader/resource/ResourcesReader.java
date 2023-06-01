@@ -21,7 +21,7 @@ public final class ResourcesReader {
     }
 
     public Resources read(boolean withDeps) throws IOException {
-        header = IOUtils.readBetterStruct(channel, ResourcesHeader.Size, ResourcesHeader::read);
+        header = IOUtils.readStruct(channel, ResourcesHeader.Size, ResourcesHeader::read);
         readStringChunk();
         readDependencyChunk(withDeps);
         assert channel.position() == header.addrEndMarker() : "We're in the wrong place!";
@@ -47,7 +47,7 @@ public final class ResourcesReader {
     private void readDependencyChunk(boolean withDeps) throws IOException {
         channel.position(header.addrDependencyEntries());
         if (withDeps) {
-            dependencies = IOUtils.readBetterStructs(channel, header.numDependencyEntries(), ResourcesDependency.Size,
+            dependencies = IOUtils.readStructs(channel, header.numDependencyEntries(), ResourcesDependency.Size,
                 buffer -> ResourcesDependency.read(buffer, strings));
             dependencyIndexes = IOUtils.readInts(channel, header.numDependencyIndexes());
         } else {
@@ -65,7 +65,7 @@ public final class ResourcesReader {
     private List<ResourcesEntry> readEntryChunk() throws IOException {
         // This position is stored in the file somewhere, but the value is always 124
         channel.position(ResourcesHeader.Size);
-        return IOUtils.readBetterStructs(channel, header.numFileEntries(), ResourcesEntry.Size,
+        return IOUtils.readStructs(channel, header.numFileEntries(), ResourcesEntry.Size,
             buffer -> ResourcesEntry.read(buffer, stringIndexes, strings));
     }
 }

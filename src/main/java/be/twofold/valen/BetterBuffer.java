@@ -83,6 +83,13 @@ public final class BetterBuffer {
         return ints;
     }
 
+    public long[] getLongs(int count) {
+        long[] longs = new long[count];
+        buffer.asLongBuffer().get(longs);
+        skip(count * Long.BYTES);
+        return longs;
+    }
+
     public String getString() {
         int size = getInt();
         return new String(getBytes(size), StandardCharsets.US_ASCII);
