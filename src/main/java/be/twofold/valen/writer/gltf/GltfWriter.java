@@ -1,6 +1,7 @@
 package be.twofold.valen.writer.gltf;
 
 import be.twofold.valen.geometry.*;
+import be.twofold.valen.reader.md6skl.*;
 import com.google.gson.*;
 
 import java.io.*;
@@ -12,7 +13,7 @@ import java.util.*;
 public final class GltfWriter {
     private final WritableByteChannel channel;
     private final List<Mesh> sourceMeshes;
-    private final boolean skinned;
+    private final Md6Skeleton skeleton;
 
     private final List<JsonObject> accessors = new ArrayList<>();
     private final List<JsonObject> bufferViews = new ArrayList<>();
@@ -20,18 +21,25 @@ public final class GltfWriter {
     private final List<JsonObject> meshes = new ArrayList<>();
     private final List<JsonObject> nodes = new ArrayList<>();
     private final List<JsonObject> scenes = new ArrayList<>();
+    private final List<JsonObject> skins = new ArrayList<>();
     private int bufferOffset;
+    private int skeletonNode;
 
-    public GltfWriter(WritableByteChannel channel, List<Mesh> sourceMeshes, boolean skinned) {
+    public GltfWriter(WritableByteChannel channel, List<Mesh> sourceMeshes, Md6Skeleton skeleton) {
         this.channel = channel;
         this.sourceMeshes = sourceMeshes;
-        this.skinned = skinned;
+        this.skeleton = skeleton;
     }
 
     public void write() {
         buildMeshes();
         buildNodes();
         buildScenes();
+        if (skeleton != null) {
+            buildSkeleton();
+            // Ugly little fixup
+            scenes.get(0).get("nodes").getAsJsonArray().add(skeletonNode);
+        }
         buildBuffers(); // Only now we know the buffer offset
 
         String json = buildGltf().toString();
@@ -60,6 +68,9 @@ public final class GltfWriter {
         object.add("meshes", buildArray(meshes));
         object.add("nodes", buildArray(nodes));
         object.add("scenes", buildArray(scenes));
+        if (skeleton != null) {
+            object.add("skins", buildArray(skins));
+        }
         object.addProperty("scene", 0);
         return object;
     }
@@ -98,7 +109,8 @@ public final class GltfWriter {
         attributes.addProperty("TANGENT", buildMeshAccessor(mesh.tangents().capacity(), BufferType.Tangent, null));
         attributes.addProperty("TEXCOORD_0", buildMeshAccessor(mesh.texCoords().capacity(), BufferType.TexCoordN, null));
 
-        if (skinned) {
+        if (skeleton != null) {
+            fixJointsWithEmptyWeights(mesh.colors(), mesh.weights());
             attributes.addProperty("JOINTS_0", buildMeshAccessor(mesh.colors().capacity(), BufferType.JointsN, null));
             attributes.addProperty("WEIGHTS_0", buildMeshAccessor(mesh.weights().capacity(), BufferType.WeightsN, null));
         } else {
@@ -110,6 +122,16 @@ public final class GltfWriter {
         primitive.addProperty("indices", buildMeshAccessor(mesh.indices().capacity(), BufferType.Indices, null));
         primitive.addProperty("mode", 4);
         return primitive;
+    }
+
+    private void fixJointsWithEmptyWeights(ByteBuffer joints, ByteBuffer weights) {
+        byte[] ja = joints.array();
+        byte[] wa = weights.array();
+        for (int i = 0; i < ja.length; i++) {
+            if (wa[i] == 0) {
+                ja[i] = 0;
+            }
+        }
     }
 
     private int buildMeshAccessor(int capacity, BufferType bufferType, Bounds bounds) {
@@ -137,13 +159,15 @@ public final class GltfWriter {
     }
 
     private int buildMeshBufferView(int length, BufferType bufferType) {
-        int byteLength = length * bufferType.elementSize;
+        int byteLength = length * bufferType.componentSize;
 
         JsonObject object = new JsonObject();
         object.addProperty("buffer", 0);
         object.addProperty("byteOffset", bufferOffset);
         object.addProperty("byteLength", byteLength);
-        object.addProperty("target", bufferType == BufferType.Indices ? 34963 : 34962);
+        if (bufferType != BufferType.InverseBind) {
+            object.addProperty("target", bufferType == BufferType.Indices ? 34963 : 34962);
+        }
         bufferViews.add(object);
 
         // Round up offset to a multiple of 4
@@ -154,6 +178,9 @@ public final class GltfWriter {
     private void buildNodes() {
         JsonObject node = new JsonObject();
         node.addProperty("mesh", 0);
+        if (skeleton != null) {
+            node.addProperty("skin", 0);
+        }
         nodes.add(node);
     }
 
@@ -165,6 +192,65 @@ public final class GltfWriter {
         scene.add("nodes", nodes);
 
         scenes.add(scene);
+    }
+
+    private void buildSkeleton() {
+        int offset = nodes.size();
+        List<Md6SkeletonJoint> joints = skeleton.joints();
+
+        // Calculate the parent-child relationships
+        Map<Integer, List<Integer>> children = new HashMap<>();
+        for (int i = 0; i < joints.size(); i++) {
+            Md6SkeletonJoint joint = joints.get(i);
+            children
+                .computeIfAbsent(joint.parent(), __ -> new ArrayList<>())
+                .add(offset + i);
+        }
+
+        // Build the skeleton
+        List<Integer> jointIndices = new ArrayList<>();
+        for (int i = 0; i < joints.size(); i++) {
+            if (joints.get(i).parent() == -1) {
+                skeletonNode = offset + i;
+            }
+            jointIndices.add(offset + i);
+            buildSkeletonJoint(joints.get(i), children.getOrDefault(i, List.of()));
+        }
+
+        // Build the skin
+        buildSkeletonSkin(jointIndices);
+    }
+
+    private void buildSkeletonJoint(Md6SkeletonJoint joint, List<Integer> children) {
+        JsonArray childrenArray = new JsonArray();
+        for (int child : children) {
+            childrenArray.add(child);
+        }
+
+        JsonObject node = new JsonObject();
+        node.addProperty("name", joint.name());
+        node.add("rotation", map(joint.rotation()));
+        node.add("translation", map(joint.translation()));
+        node.add("scale", map(joint.scale()));
+        if (!childrenArray.isEmpty()) {
+            node.add("children", childrenArray);
+        }
+        nodes.add(node);
+    }
+
+    private void buildSkeletonSkin(List<Integer> jointIndices) {
+        JsonArray joints = new JsonArray();
+        for (int jointIndex : jointIndices) {
+            joints.add(jointIndex);
+        }
+
+        int inverseBindMatrices = buildMeshAccessor(joints.size() * 16, BufferType.InverseBind, null);
+
+        JsonObject skin = new JsonObject();
+        skin.addProperty("skeleton", skeletonNode);
+        skin.add("joints", joints);
+        skin.addProperty("inverseBindMatrices", inverseBindMatrices);
+        skins.add(skin);
     }
 
     // endregion
@@ -187,13 +273,23 @@ public final class GltfWriter {
             writeBuffer(mesh.normals());
             writeBuffer(mesh.tangents());
             writeBuffer(mesh.texCoords());
-            if (skinned) {
+            if (skeleton != null) {
                 writeBuffer(mesh.colors());
                 writeBuffer(mesh.weights());
             } else {
                 writeBuffer(mesh.colors());
             }
             writeBuffer(mesh.indices());
+        }
+
+        // Write inverse bind matrices
+        if (skeleton != null) {
+            List<Md6SkeletonJoint> joints = skeleton.joints();
+            FloatBuffer buffer = FloatBuffer.allocate(joints.size() * 16);
+            for (Md6SkeletonJoint joint : joints) {
+                buffer.put(joint.inverseBasePose().transpose().toArray());
+            }
+            writeBuffer(buffer.flip());
         }
     }
 
@@ -270,7 +366,7 @@ public final class GltfWriter {
         return array;
     }
 
-    // endregion
+// endregion
 
     private enum BufferType {
         Position(5126, "VEC3", 4, 3, false),
@@ -280,18 +376,19 @@ public final class GltfWriter {
         ColorN(5121, "VEC4", 1, 4, true),
         JointsN(5121, "VEC4", 1, 4, false),
         WeightsN(5121, "VEC4", 1, 4, true),
-        Indices(5123, "SCALAR", 2, 1, false);
+        Indices(5123, "SCALAR", 2, 1, false),
+        InverseBind(5126, "MAT4", 4, 16, false);
 
         private final int componentType;
         private final String type;
-        private final int elementSize;
+        private final int componentSize;
         private final int typeSize;
         private final boolean normalized;
 
-        BufferType(int componentType, String type, int elementSize, int typeSize, boolean normalized) {
+        BufferType(int componentType, String type, int componentSize, int typeSize, boolean normalized) {
             this.componentType = componentType;
             this.type = type;
-            this.elementSize = elementSize;
+            this.componentSize = componentSize;
             this.typeSize = typeSize;
             this.normalized = normalized;
         }

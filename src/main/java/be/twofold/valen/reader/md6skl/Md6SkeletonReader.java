@@ -62,7 +62,8 @@ public final class Md6SkeletonReader {
                 parents[i],
                 rotations.get(i),
                 scales.get(i),
-                translations.get(i)
+                translations.get(i),
+                inverseBasePoses.get(i)
             ))
             .toList();
     }

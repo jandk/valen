@@ -7,6 +7,7 @@ public record Md6SkeletonJoint(
     int parent,
     Vector4 rotation,
     Vector3 scale,
-    Vector3 translation
+    Vector3 translation,
+    Mat4 inverseBasePose
 ) {
 }
