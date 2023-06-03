@@ -228,9 +228,13 @@ public final class GltfWriter {
             .allocate(shortBuffer.capacity() * 2)
             .order(ByteOrder.LITTLE_ENDIAN);
 
-        buffer.asShortBuffer().put(shortBuffer);
+        for (int i = 0; i < shortBuffer.capacity(); i += 3) {
+            buffer.putShort(shortBuffer.get(i));
+            buffer.putShort(shortBuffer.get(i + 2));
+            buffer.putShort(shortBuffer.get(i + 1));
+        }
 
-        writeBuffer(buffer);
+        writeBuffer(buffer.flip());
     }
 
     private void writeBuffer(ByteBuffer buffer) throws IOException {
