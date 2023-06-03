@@ -23,13 +23,17 @@ public final class ModelReader {
     private final List<List<GeometryMemoryLayout>> streamMemLayouts = new ArrayList<>();
     private final List<GeometryDiskLayout> streamDiskLayouts = new ArrayList<>();
 
-    public ModelReader(ByteBuffer buffer, StreamLoader streamLoader, ResourcesEntry entry) {
-        this.buffer = new BetterBuffer(buffer);
+    public ModelReader(BetterBuffer buffer, StreamLoader streamLoader, ResourcesEntry entry) {
+        this.buffer = buffer;
         this.streamLoader = streamLoader;
         this.entry = entry;
     }
 
     public Model read() throws IOException {
+        return read(false);
+    }
+
+    public Model read(boolean readMeshes) throws IOException {
         header = ModelHeader.read(buffer);
         readMeshesAndLods();
         ModelSettings settings = ModelSettings.read(buffer);
@@ -39,8 +43,12 @@ public final class ModelReader {
 
         List<Mesh> meshes;
         if (header.streamed()) {
-            readStreamInfo();
-            meshes = readStreamedGeometry(0);
+            if (readMeshes) {
+                readStreamInfo();
+                meshes = readStreamedGeometry(0);
+            } else {
+                meshes = List.of();
+            }
         } else {
             meshes = readEmbeddedGeometry();
         }
