@@ -23,9 +23,9 @@ public record ImageHeader(
     static final int Size = 0x3f;
 
     public static ImageHeader read(BetterBuffer buffer) {
-        buffer.expectByte((byte) 0x42);
-        buffer.expectByte((byte) 0x49);
-        buffer.expectByte((byte) 0x4d);
+        buffer.expectByte(0x42);
+        buffer.expectByte(0x49);
+        buffer.expectByte(0x4d);
         byte version = buffer.getByte();
 
         ImageTextureType textureType = ImageTextureType.fromCode(buffer.getInt());
@@ -37,11 +37,11 @@ public record ImageHeader(
         float unkFloat1 = buffer.getFloat();
         float unkFloat2 = buffer.getFloat();
         float unkFloat3 = buffer.getFloat();
-        buffer.expectByte((byte) 0);
+        buffer.expectByte(0);
         ImageTextureFormat textureFormat = ImageTextureFormat.fromCode(buffer.getInt());
         buffer.expectInt(7); // always 7?
         buffer.expectInt(0); // padding
-        buffer.expectShort((short) 0); // padding
+        buffer.expectShort(0); // padding
         boolean streamed = buffer.getByteAsBool();
         boolean unkBool1 = buffer.getByteAsBool();
         boolean unkBool2 = buffer.getByteAsBool();

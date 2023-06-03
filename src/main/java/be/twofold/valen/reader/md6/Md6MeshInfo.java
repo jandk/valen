@@ -16,7 +16,7 @@ public record Md6MeshInfo(
     public static Md6MeshInfo read(BetterBuffer buffer) {
         String meshName = buffer.getString();
         String materialName = buffer.getString();
-        buffer.expectByte((byte) 1);
+        buffer.expectByte(1);
         buffer.expectInt(1);
         int unknown1 = buffer.getInt();
         int unknown2 = buffer.getInt();
@@ -31,7 +31,7 @@ public record Md6MeshInfo(
         }
 
         buffer.expectInt(0);
-        buffer.expectByte((byte) 0);
+        buffer.expectByte(0);
 
         return new Md6MeshInfo(
             meshName,

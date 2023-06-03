@@ -48,7 +48,7 @@ public record ResourcesEntry(
         buffer.expectInt(0); // flags
         buffer.expectInt(2); // desired compression mode
         short numDependencies = buffer.getShort();
-        buffer.expectShort((short) 0);
+        buffer.expectShort(0);
         buffer.expectLong(0);
 
         String type = strings.get(pathStringIndexes[pathTupleIndex]);

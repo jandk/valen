@@ -134,14 +134,14 @@ public final class BetterBuffer {
         buffer.position(position() + size);
     }
 
-    public void expectByte(byte expected) {
+    public void expectByte(int expected) {
         byte value = getByte();
         if (value != expected) {
             throw new IllegalStateException("Expected " + expected + ", but got " + value);
         }
     }
 
-    public void expectShort(short expected) {
+    public void expectShort(int expected) {
         short value = getShort();
         if (value != expected) {
             throw new IllegalStateException("Expected " + expected + ", but got " + value);

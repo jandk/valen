@@ -66,6 +66,6 @@ public final class Md6Reader {
             .collect(Collectors.toUnmodifiableList());
         List<GeometryMemoryLayout> layouts = List.of(memoryLayouts.get(lod));
 
-        return GeometryReader.readMeshes(buffer, lods, layouts);
+        return new GeometryReader(true).readMeshes(buffer, lods, layouts);
     }
 }

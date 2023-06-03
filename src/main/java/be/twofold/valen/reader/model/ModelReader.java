@@ -127,7 +127,7 @@ public final class ModelReader {
         }
 
         indices.put(buffer.getShorts(lodInfo.numEdges()));
-        return new Mesh(vertices, normals, tangents, texCoords, null, indices);
+        return new Mesh(vertices, normals, tangents, texCoords, null, null, indices);
     }
 
     private List<Mesh> readStreamedGeometry(int lod) {
@@ -143,6 +143,6 @@ public final class ModelReader {
             .collect(Collectors.toUnmodifiableList());
         List<GeometryMemoryLayout> layouts = streamMemLayouts.get(lod);
 
-        return GeometryReader.readMeshes(buffer, lods, layouts);
+        return new GeometryReader(false).readMeshes(buffer, lods, layouts);
     }
 }

@@ -7,6 +7,7 @@ public record Mesh(
     FloatBuffer normals,
     FloatBuffer tangents,
     FloatBuffer texCoords,
+    ByteBuffer weights,
     ByteBuffer colors,
     ShortBuffer indices
 ) {

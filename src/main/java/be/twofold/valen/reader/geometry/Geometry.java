@@ -19,72 +19,6 @@ public final class Geometry {
     private Geometry() {
     }
 
-    public static FloatBuffer readVertices(BetterBuffer src, LodInfo lod) {
-        FloatBuffer dst = FloatBuffer.allocate(lod.numVertices() * 3);
-        for (int i = 0; i < lod.numVertices(); i++) {
-            readVertex(src, dst, lod.vertexOffset(), lod.vertexScale());
-        }
-        return dst.flip();
-    }
-
-    public static FloatBuffer readPackedVertices(BetterBuffer src, LodInfo lod) {
-        FloatBuffer dst = FloatBuffer.allocate(lod.numVertices() * 3);
-        for (int i = 0; i < lod.numVertices(); i++) {
-            readPackedVertex(src, dst, lod.vertexOffset(), lod.vertexScale());
-        }
-        return dst.flip();
-    }
-
-    public static FloatBuffer readPackedNormals(BetterBuffer src, LodInfo lod) {
-        FloatBuffer dst = FloatBuffer.allocate(lod.numVertices() * 3);
-        for (int i = 0; i < lod.numVertices(); i++) {
-            readPackedNormal(src, dst);
-            src.skip(4); // skip tangents
-        }
-        return dst.flip();
-    }
-
-    public static FloatBuffer readPackedTangents(BetterBuffer src, LodInfo lod) {
-        FloatBuffer dst = FloatBuffer.allocate(lod.numVertices() * 4);
-        for (int i = 0; i < lod.numVertices(); i++) {
-            src.skip(4); // skip normals
-            readPackedTangent(src, dst);
-        }
-        return dst.flip();
-    }
-
-    public static FloatBuffer readUVs(BetterBuffer src, LodInfo lod) {
-        FloatBuffer dst = FloatBuffer.allocate(lod.numVertices() * 2);
-        for (int i = 0; i < lod.numVertices(); i++) {
-            readUV(src, dst, lod.uvOffset(), lod.uvScale());
-        }
-        return dst.flip();
-    }
-
-    public static FloatBuffer readPackedUVs(BetterBuffer src, LodInfo lod) {
-        FloatBuffer dst = FloatBuffer.allocate(lod.numVertices() * 2);
-        for (int i = 0; i < lod.numVertices(); i++) {
-            readPackedUV(src, dst, lod.uvOffset(), lod.uvScale());
-        }
-        return dst.flip();
-    }
-
-    public static ByteBuffer readColors(BetterBuffer buffer, LodInfo lod) {
-        ByteBuffer dst = ByteBuffer.allocate(lod.numVertices() * 4);
-        dst.put(buffer.getBytes(lod.numVertices() * 4));
-        return dst.flip();
-    }
-
-    public static ShortBuffer readFaces(BetterBuffer src, LodInfo lod) {
-        ShortBuffer dst = ShortBuffer.allocate(lod.numFaces() * 3);
-        for (int i = 0; i < lod.numFaces(); i++) {
-            dst.put(src.getShort());
-            dst.put(src.getShort());
-            dst.put(src.getShort());
-        }
-        return dst.flip();
-    }
-
     public static void readVertex(BetterBuffer src, FloatBuffer dst, Vector3 offset, float scale) {
         src.getVector3().mul(scale).add(offset).put(dst);
     }
@@ -114,6 +48,23 @@ public final class Geometry {
         float w = (src.getByte() & 0x80) == 0 ? 1 : -1;
 
         new Vector3(x, y, z).normalize().put(dst);
+        dst.put(w);
+    }
+
+    public static void readWeight(BetterBuffer src, ByteBuffer dst) {
+        src.skip(3); // skip normal
+        byte wn = src.getByte();
+        src.skip(3); // skip tangent
+        byte wt = src.getByte();
+
+        byte y = (byte) (wt & 0x7f);
+        byte z = WeightTableZ[wn >>> 4];
+        byte w = WeightTableW[wn & 0xf];
+        byte x = (byte) (255 - y - z - w);
+
+        dst.put(x);
+        dst.put(y);
+        dst.put(z);
         dst.put(w);
     }
 
