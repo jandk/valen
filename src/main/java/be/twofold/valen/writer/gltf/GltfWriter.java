@@ -82,7 +82,7 @@ public final class GltfWriter {
     public void buildMeshes() {
         // First we do the meshes
         List<JsonObject> primitives = sourceMeshes.stream()
-            .map(this::buildMesh)
+            .map(this::buildMeshPrimitive)
             .toList();
 
         JsonObject mesh = new JsonObject();
@@ -90,34 +90,34 @@ public final class GltfWriter {
         meshes.add(mesh);
     }
 
-    private JsonObject buildMesh(Mesh mesh) {
+    private JsonObject buildMeshPrimitive(Mesh mesh) {
         JsonObject attributes = new JsonObject();
         Bounds bounds = calculateBounds(mesh.positions());
-        attributes.addProperty("POSITION", buildAccessor(mesh.positions().capacity(), BufferType.Position, bounds));
-        attributes.addProperty("NORMAL", buildAccessor(mesh.normals().capacity(), BufferType.Normal, null));
-        attributes.addProperty("TANGENT", buildAccessor(mesh.tangents().capacity(), BufferType.Tangent, null));
-        attributes.addProperty("TEXCOORD_0", buildAccessor(mesh.texCoords().capacity(), BufferType.TexCoordN, null));
+        attributes.addProperty("POSITION", buildMeshAccessor(mesh.positions().capacity(), BufferType.Position, bounds));
+        attributes.addProperty("NORMAL", buildMeshAccessor(mesh.normals().capacity(), BufferType.Normal, null));
+        attributes.addProperty("TANGENT", buildMeshAccessor(mesh.tangents().capacity(), BufferType.Tangent, null));
+        attributes.addProperty("TEXCOORD_0", buildMeshAccessor(mesh.texCoords().capacity(), BufferType.TexCoordN, null));
 
         if (skinned) {
-            attributes.addProperty("JOINTS_0", buildAccessor(mesh.colors().capacity(), BufferType.JointsN, null));
-            attributes.addProperty("WEIGHTS_0", buildAccessor(mesh.weights().capacity(), BufferType.WeightsN, null));
+            attributes.addProperty("JOINTS_0", buildMeshAccessor(mesh.colors().capacity(), BufferType.JointsN, null));
+            attributes.addProperty("WEIGHTS_0", buildMeshAccessor(mesh.weights().capacity(), BufferType.WeightsN, null));
         } else {
-            attributes.addProperty("COLOR_0", buildAccessor(mesh.colors().capacity(), BufferType.ColorN, null));
+            attributes.addProperty("COLOR_0", buildMeshAccessor(mesh.colors().capacity(), BufferType.ColorN, null));
         }
 
         JsonObject primitive = new JsonObject();
         primitive.add("attributes", attributes);
-        primitive.addProperty("indices", buildAccessor(mesh.indices().capacity(), BufferType.Indices, null));
+        primitive.addProperty("indices", buildMeshAccessor(mesh.indices().capacity(), BufferType.Indices, null));
         primitive.addProperty("mode", 4);
         return primitive;
     }
 
-    private int buildAccessor(int capacity, BufferType bufferType, Bounds bounds) {
-        int bufferView = buildBufferView(capacity, bufferType);
-        return buildAccessor(bufferView, capacity, bufferType, bounds);
+    private int buildMeshAccessor(int capacity, BufferType bufferType, Bounds bounds) {
+        int bufferView = buildMeshBufferView(capacity, bufferType);
+        return buildMeshAccessor(bufferView, capacity, bufferType, bounds);
     }
 
-    private int buildAccessor(int bufferView, int count, BufferType type, Bounds bounds) {
+    private int buildMeshAccessor(int bufferView, int count, BufferType type, Bounds bounds) {
         assert count % type.typeSize == 0 : "Count must be a multiple of " + type.typeSize;
 
         JsonObject object = new JsonObject();
@@ -136,7 +136,7 @@ public final class GltfWriter {
         return accessors.size() - 1;
     }
 
-    private int buildBufferView(int length, BufferType bufferType) {
+    private int buildMeshBufferView(int length, BufferType bufferType) {
         int byteLength = length * bufferType.elementSize;
 
         JsonObject object = new JsonObject();
