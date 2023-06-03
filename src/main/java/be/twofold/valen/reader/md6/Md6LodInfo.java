@@ -19,7 +19,7 @@ public record Md6LodInfo(
 ) implements LodInfo {
     public static Md6LodInfo read(BetterBuffer buffer) {
         int numVertices = buffer.getInt();
-        int numEdges = buffer.getInt();
+        int numFaces = buffer.getInt();
         Vector3 negBounds = buffer.getVector3();
         Vector3 posBounds = buffer.getVector3();
         Vector3 vertexOffset = buffer.getVector3();
@@ -32,7 +32,7 @@ public record Md6LodInfo(
 
         return new Md6LodInfo(
             numVertices,
-            numEdges,
+            numFaces,
             negBounds,
             posBounds,
             vertexOffset,
@@ -43,10 +43,5 @@ public record Md6LodInfo(
             unkFloat1,
             unkFloat2
         );
-    }
-
-    @Override
-    public int numEdges() {
-        return numFaces * 3;
     }
 }

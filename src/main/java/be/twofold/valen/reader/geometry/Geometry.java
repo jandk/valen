@@ -76,8 +76,8 @@ public final class Geometry {
     }
 
     public static ShortBuffer readFaces(BetterBuffer src, LodInfo lod) {
-        ShortBuffer dst = ShortBuffer.allocate(lod.numEdges());
-        for (int i = 0; i < lod.numEdges(); i += 3) {
+        ShortBuffer dst = ShortBuffer.allocate(lod.numFaces() * 3);
+        for (int i = 0; i < lod.numFaces(); i++) {
             dst.put(src.getShort());
             dst.put(src.getShort());
             dst.put(src.getShort());

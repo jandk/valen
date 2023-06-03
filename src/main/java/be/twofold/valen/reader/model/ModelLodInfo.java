@@ -47,4 +47,10 @@ public record ModelLodInfo(
             unkFloat2
         );
     }
+
+    @Override
+    public int numFaces() {
+        assert numEdges % 3 == 0;
+        return numEdges / 3;
+    }
 }

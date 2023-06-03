@@ -6,7 +6,7 @@ public interface LodInfo {
 
     int numVertices();
 
-    int numEdges();
+    int numFaces();
 
     int flags();
 
