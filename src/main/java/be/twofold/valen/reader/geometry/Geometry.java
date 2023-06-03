@@ -58,7 +58,7 @@ public final class Geometry {
         byte wt = src.getByte();
 
         byte y = (byte) (wt & 0x7f);
-        byte z = WeightTableZ[wn >>> 4];
+        byte z = WeightTableZ[(wn & 0xf0) >>> 4];
         byte w = WeightTableW[wn & 0xf];
         byte x = (byte) (255 - y - z - w);
 

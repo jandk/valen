@@ -8,11 +8,11 @@ import java.nio.*;
 import java.nio.channels.*;
 import java.nio.charset.*;
 import java.util.*;
-import java.util.concurrent.atomic.*;
 
 public final class GltfWriter {
     private final WritableByteChannel channel;
     private final List<Mesh> sourceMeshes;
+    private final boolean skinned;
 
     private final List<JsonObject> accessors = new ArrayList<>();
     private final List<JsonObject> bufferViews = new ArrayList<>();
@@ -20,32 +20,31 @@ public final class GltfWriter {
     private final List<JsonObject> meshes = new ArrayList<>();
     private final List<JsonObject> nodes = new ArrayList<>();
     private final List<JsonObject> scenes = new ArrayList<>();
-    private int bufferLength;
+    private int bufferOffset;
 
-    public GltfWriter(WritableByteChannel channel, List<Mesh> sourceMeshes) {
+    public GltfWriter(WritableByteChannel channel, List<Mesh> sourceMeshes, boolean skinned) {
         this.channel = channel;
         this.sourceMeshes = sourceMeshes;
+        this.skinned = skinned;
     }
 
     public void write() {
-        buildAccessors();
-        buildBufferViews();
-        buildBuffers();
         buildMeshes();
         buildNodes();
         buildScenes();
+        buildBuffers(); // Only now we know the buffer offset
 
         String json = buildGltf().toString();
         byte[] rawJson = json.getBytes(StandardCharsets.US_ASCII);
         int alignedJsonLength = alignedLength(rawJson.length);
 
         try {
-            int totalSize = 12 + 8 + alignedJsonLength + 8 + bufferLength;
+            int totalSize = 12 + 8 + alignedJsonLength + 8 + bufferOffset;
             channel.write(GlbHeader.of(totalSize).toBuffer());
             channel.write(GlbChunkHeader.of(GlbChunkType.Json, alignedJsonLength).toBuffer());
             channel.write(ByteBuffer.wrap(rawJson));
             align(rawJson.length, (byte) ' ');
-            channel.write(GlbChunkHeader.of(GlbChunkType.Bin, bufferLength).toBuffer());
+            channel.write(GlbChunkHeader.of(GlbChunkType.Bin, bufferOffset).toBuffer());
             writeBuffers();
         } catch (IOException e) {
             throw new UncheckedIOException(e);
@@ -74,103 +73,82 @@ public final class GltfWriter {
         return object;
     }
 
-    private void buildAccessors() {
-        int bufferView = 0;
-        for (Mesh mesh : sourceMeshes) {
-            Bounds bounds = calculateBounds(mesh.vertices());
-            accessors.add(buildAccessor(bufferView++, 5126, mesh.vertices().capacity(), "VEC3", bounds));
-            accessors.add(buildAccessor(bufferView++, 5126, mesh.normals().capacity(), "VEC3", null));
-            accessors.add(buildAccessor(bufferView++, 5126, mesh.tangents().capacity(), "VEC4", null));
-            accessors.add(buildAccessor(bufferView++, 5126, mesh.texCoords().capacity(), "VEC2", null));
-            accessors.add(buildAccessor(bufferView++, 5123, mesh.indices().capacity(), "SCALAR", null));
-        }
-    }
-
-    private JsonObject buildAccessor(int bufferView, int componentType, int count, String type, Bounds bounds) {
-        int elementSize = switch (type) {
-            case "SCALAR" -> 1;
-            case "VEC2" -> 2;
-            case "VEC3" -> 3;
-            case "VEC4" -> 4;
-            default -> throw new IllegalArgumentException("Unknown type: " + type);
-        };
-
-        assert count % elementSize == 0 : "Count must be a multiple of " + elementSize;
-
-        JsonObject result = new JsonObject();
-        result.addProperty("bufferView", bufferView);
-        result.addProperty("componentType", componentType);
-        result.addProperty("count", count / elementSize);
-        result.addProperty("type", type);
-        if (bounds != null) {
-            result.add("min", map(bounds.min()));
-            result.add("max", map(bounds.max()));
-        }
-        return result;
-    }
-
-    private void buildBufferViews() {
-        int offset = 0;
-        for (Mesh mesh : sourceMeshes) {
-            offset = buildBufferView(offset, mesh.vertices().capacity() * 4, false);
-            offset = buildBufferView(offset, mesh.normals().capacity() * 4, false);
-            offset = buildBufferView(offset, mesh.tangents().capacity() * 4, false);
-            offset = buildBufferView(offset, mesh.texCoords().capacity() * 4, false);
-            offset = buildBufferView(offset, mesh.indices().capacity() * 2, true);
-        }
-        bufferLength = offset;
-    }
-
-    private int buildBufferView(int offset, int length, boolean indices) {
-        JsonObject object = new JsonObject();
-        object.addProperty("buffer", 0);
-        object.addProperty("byteOffset", offset);
-        object.addProperty("byteLength", length);
-        object.addProperty("target", indices ? 34963 : 34962);
-        bufferViews.add(object);
-
-        // Round up offset to a multiple of 4
-        return alignedLength(offset + length);
-    }
-
     private void buildBuffers() {
-        buffers.add(buildBuffer());
+        JsonObject buffer = new JsonObject();
+        buffer.addProperty("byteLength", bufferOffset);
+        buffers.add(buffer);
     }
 
-    private JsonObject buildBuffer() {
-        JsonObject object = new JsonObject();
-        object.addProperty("byteLength", bufferLength);
-        return object;
-    }
+    public void buildMeshes() {
+        // First we do the meshes
+        List<JsonObject> primitives = sourceMeshes.stream()
+            .map(this::buildMesh)
+            .toList();
 
-    private void buildMeshes() {
-        JsonArray primitives = buildArray(buildMeshPrimitives());
         JsonObject mesh = new JsonObject();
-        mesh.add("primitives", primitives);
+        mesh.add("primitives", buildArray(primitives));
         meshes.add(mesh);
     }
 
-    private List<JsonObject> buildMeshPrimitives() {
-        AtomicInteger accessor = new AtomicInteger();
-        List<JsonObject> primitives = new ArrayList<>();
-        for (int i = 0; i < sourceMeshes.size(); i++) {
-            primitives.add(buildMeshPrimitive(accessor));
-        }
-        return primitives;
-    }
-
-    private JsonObject buildMeshPrimitive(AtomicInteger accessor) {
+    private JsonObject buildMesh(Mesh mesh) {
         JsonObject attributes = new JsonObject();
-        attributes.addProperty("POSITION", accessor.getAndIncrement());
-        attributes.addProperty("NORMAL", accessor.getAndIncrement());
-        attributes.addProperty("TANGENT", accessor.getAndIncrement());
-        attributes.addProperty("TEXCOORD_0", accessor.getAndIncrement());
+        Bounds bounds = calculateBounds(mesh.positions());
+        attributes.addProperty("POSITION", buildAccessor(mesh.positions().capacity(), BufferType.Position, bounds));
+        attributes.addProperty("NORMAL", buildAccessor(mesh.normals().capacity(), BufferType.Normal, null));
+        attributes.addProperty("TANGENT", buildAccessor(mesh.tangents().capacity(), BufferType.Tangent, null));
+        attributes.addProperty("TEXCOORD_0", buildAccessor(mesh.texCoords().capacity(), BufferType.TexCoordN, null));
+
+        if (skinned) {
+            attributes.addProperty("JOINTS_0", buildAccessor(mesh.colors().capacity(), BufferType.JointsN, null));
+            attributes.addProperty("WEIGHTS_0", buildAccessor(mesh.weights().capacity(), BufferType.WeightsN, null));
+        } else {
+            attributes.addProperty("COLOR_0", buildAccessor(mesh.colors().capacity(), BufferType.ColorN, null));
+        }
 
         JsonObject primitive = new JsonObject();
         primitive.add("attributes", attributes);
-        primitive.addProperty("indices", accessor.getAndIncrement());
+        primitive.addProperty("indices", buildAccessor(mesh.indices().capacity(), BufferType.Indices, null));
         primitive.addProperty("mode", 4);
         return primitive;
+    }
+
+    private int buildAccessor(int capacity, BufferType bufferType, Bounds bounds) {
+        int bufferView = buildBufferView(capacity, bufferType);
+        return buildAccessor(bufferView, capacity, bufferType, bounds);
+    }
+
+    private int buildAccessor(int bufferView, int count, BufferType type, Bounds bounds) {
+        assert count % type.typeSize == 0 : "Count must be a multiple of " + type.typeSize;
+
+        JsonObject object = new JsonObject();
+        object.addProperty("bufferView", bufferView);
+        object.addProperty("componentType", type.componentType);
+        object.addProperty("count", count / type.typeSize);
+        object.addProperty("type", type.type);
+        if (type.normalized) {
+            object.addProperty("normalized", true);
+        }
+        if (bounds != null) {
+            object.add("min", map(bounds.min()));
+            object.add("max", map(bounds.max()));
+        }
+        accessors.add(object);
+        return accessors.size() - 1;
+    }
+
+    private int buildBufferView(int length, BufferType bufferType) {
+        int byteLength = length * bufferType.elementSize;
+
+        JsonObject object = new JsonObject();
+        object.addProperty("buffer", 0);
+        object.addProperty("byteOffset", bufferOffset);
+        object.addProperty("byteLength", byteLength);
+        object.addProperty("target", bufferType == BufferType.Indices ? 34963 : 34962);
+        bufferViews.add(object);
+
+        // Round up offset to a multiple of 4
+        bufferOffset = alignedLength(bufferOffset + byteLength);
+        return bufferViews.size() - 1;
     }
 
     private void buildNodes() {
@@ -205,10 +183,16 @@ public final class GltfWriter {
 
     private void writeBuffers() throws IOException {
         for (Mesh mesh : sourceMeshes) {
-            writeBuffer(mesh.vertices());
+            writeBuffer(mesh.positions());
             writeBuffer(mesh.normals());
             writeBuffer(mesh.tangents());
             writeBuffer(mesh.texCoords());
+            if (skinned) {
+                writeBuffer(mesh.colors());
+                writeBuffer(mesh.weights());
+            } else {
+                writeBuffer(mesh.colors());
+            }
             writeBuffer(mesh.indices());
         }
     }
@@ -288,4 +272,28 @@ public final class GltfWriter {
 
     // endregion
 
+    private enum BufferType {
+        Position(5126, "VEC3", 4, 3, false),
+        Normal(5126, "VEC3", 4, 3, false),
+        Tangent(5126, "VEC4", 4, 4, false),
+        TexCoordN(5126, "VEC2", 4, 2, false),
+        ColorN(5121, "VEC4", 1, 4, true),
+        JointsN(5121, "VEC4", 1, 4, false),
+        WeightsN(5121, "VEC4", 1, 4, true),
+        Indices(5123, "SCALAR", 2, 1, false);
+
+        private final int componentType;
+        private final String type;
+        private final int elementSize;
+        private final int typeSize;
+        private final boolean normalized;
+
+        BufferType(int componentType, String type, int elementSize, int typeSize, boolean normalized) {
+            this.componentType = componentType;
+            this.type = type;
+            this.elementSize = elementSize;
+            this.typeSize = typeSize;
+            this.normalized = normalized;
+        }
+    }
 }
