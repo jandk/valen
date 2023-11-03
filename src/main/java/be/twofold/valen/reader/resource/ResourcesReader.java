@@ -16,11 +16,19 @@ public final class ResourcesReader {
     private List<ResourcesDependency> dependencies;
     private int[] dependencyIndexes;
 
-    public ResourcesReader(SeekableByteChannel channel) {
+    private ResourcesReader(SeekableByteChannel channel) {
         this.channel = channel;
     }
 
-    public Resources read(boolean withDeps) throws IOException {
+    public static Resources read(SeekableByteChannel channel) {
+        try {
+            return new ResourcesReader(channel).read(false);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    private Resources read(boolean withDeps) throws IOException {
         header = IOUtils.readStruct(channel, ResourcesHeader.Size, ResourcesHeader::read);
         readStringChunk();
         readDependencyChunk(withDeps);

@@ -3,6 +3,7 @@ package be.twofold.valen.reader.packagemapspec;
 import com.google.gson.*;
 
 import java.io.*;
+import java.nio.file.*;
 import java.util.*;
 import java.util.stream.*;
 
@@ -12,11 +13,20 @@ public final class PackageMapSpecReader {
     private List<String> files;
     private List<String> maps;
 
-    public PackageMapSpecReader(Reader reader) {
+    private PackageMapSpecReader(Reader reader) {
         this.reader = reader;
     }
 
-    public PackageMapSpec read() {
+    public static PackageMapSpec read(Path path) {
+        try (Reader reader = Files.newBufferedReader(path)) {
+            return new PackageMapSpecReader(reader).read();
+        } catch (IOException e) {
+            System.err.println("Failed to read package map spec: " + path);
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    private PackageMapSpec read() {
         JsonObject root = JsonParser.parseReader(reader).getAsJsonObject();
         files = readNames(root.get("files"));
         maps = readNames(root.get("maps"));

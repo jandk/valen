@@ -15,15 +15,24 @@ public final class StreamDbReader {
     private List<StreamDbPrefetchBlock> prefetchBlocks;
     private long[] prefetchIDs;
 
-    public StreamDbReader(SeekableByteChannel channel) {
+    private StreamDbReader(SeekableByteChannel channel) {
         this.channel = channel;
     }
 
-    public StreamDb read() throws IOException {
+    public static StreamDb read(SeekableByteChannel channel) {
+        try {
+            StreamDbReader reader = new StreamDbReader(channel);
+            return reader.read();
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    private StreamDb read() throws IOException {
         return read(false);
     }
 
-    public StreamDb read(boolean prefetch) throws IOException {
+    private StreamDb read(boolean prefetch) throws IOException {
         readIndex();
 
         if (prefetch) {

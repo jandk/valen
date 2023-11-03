@@ -1,37 +1,26 @@
 package be.twofold.valen;
 
 import be.twofold.valen.oodle.*;
-import be.twofold.valen.reader.packagemapspec.*;
 import be.twofold.valen.reader.streamdb.*;
 
 import java.io.*;
 import java.nio.channels.*;
-import java.nio.file.*;
 import java.util.*;
 
-public final class StreamDbManager implements StreamLoader, AutoCloseable {
-    private final Map<String, SeekableByteChannel> pathToChannel;
-    private final Map<Long, String> hashToPath;
-    private final Map<Long, StreamDbEntry> hashToEntry;
+public final class StreamDbManager implements StreamLoader {
+    private final FileManager fileManager;
+    private final Map<Long, String> hashToPath = new HashMap<>();
+    private final Map<Long, StreamDbEntry> hashToEntry = new HashMap<>();
 
-    private StreamDbManager(
-        Map<String, SeekableByteChannel> pathToChannel,
-        Map<Long, String> hashToPath,
-        Map<Long, StreamDbEntry> hashToEntry
-    ) {
-        this.pathToChannel = Map.copyOf(pathToChannel);
-        this.hashToPath = Map.copyOf(hashToPath);
-        this.hashToEntry = Map.copyOf(hashToEntry);
+    StreamDbManager(FileManager fileManager) {
+        this.fileManager = Objects.requireNonNull(fileManager);
+        initialize();
     }
 
-    public static StreamDbManager load(Path base, PackageMapSpec spec) throws IOException {
-        List<String> paths = spec.files().stream()
+    private void initialize() {
+        List<String> paths = fileManager.getSpec().files().stream()
             .filter(file -> file.endsWith(".streamdb"))
             .toList();
-
-        Map<String, SeekableByteChannel> pathToChannel = new HashMap<>();
-        Map<Long, String> hashToPath = new HashMap<>();
-        Map<Long, StreamDbEntry> hashToEntry = new HashMap<>();
 
         /*
          * We can actually get away with loading all streamdb files into memory.
@@ -41,18 +30,14 @@ public final class StreamDbManager implements StreamLoader, AutoCloseable {
          */
         for (String path : paths) {
             System.out.println("Loading streamdb: " + path);
-            Path fullPath = base.resolve(path);
-            SeekableByteChannel channel = Files.newByteChannel(fullPath);
-            pathToChannel.put(path, channel);
+            SeekableByteChannel channel = fileManager.open(path);
 
-            StreamDb db = new StreamDbReader(channel).read();
+            StreamDb db = StreamDbReader.read(channel);
             for (StreamDbEntry entry : db.entries()) {
                 hashToPath.putIfAbsent(entry.identity(), path);
                 hashToEntry.putIfAbsent(entry.identity(), entry);
             }
         }
-
-        return new StreamDbManager(pathToChannel, hashToPath, hashToEntry);
     }
 
     @Override
@@ -63,7 +48,7 @@ public final class StreamDbManager implements StreamLoader, AutoCloseable {
         }
 
         StreamDbEntry entry = hashToEntry.get(identity);
-        SeekableByteChannel channel = pathToChannel.get(path);
+        SeekableByteChannel channel = fileManager.open(path);
         try {
             channel.position(entry.offset());
             byte[] compressed = IOUtils.readBytes(channel, entry.length());
@@ -77,12 +62,5 @@ public final class StreamDbManager implements StreamLoader, AutoCloseable {
     @Override
     public boolean exists(long identity) {
         return hashToPath.containsKey(identity);
-    }
-
-    @Override
-    public void close() throws IOException {
-        for (SeekableByteChannel channel : pathToChannel.values()) {
-            channel.close();
-        }
     }
 }
