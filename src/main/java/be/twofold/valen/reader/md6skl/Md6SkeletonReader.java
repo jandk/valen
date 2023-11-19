@@ -69,6 +69,9 @@ public final class Md6SkeletonReader {
     }
 
     private short[] readRemapTable() {
+        if (header.skelRemapTblOffset() == 0) {
+            return new short[0];
+        }
         buffer.position(header.skelRemapTblOffset() + 4);
         return buffer.getShorts(header.numJoints());
     }
