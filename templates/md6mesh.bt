@@ -1,0 +1,138 @@
+struct SString {
+    uint size;
+    char value[size];
+};
+
+struct Vector2 {
+    float x;
+    float y;
+};
+
+struct Vector3 {
+    float x;
+    float y;
+    float z;
+};
+
+struct Bounds {
+    Vector3 min;
+    Vector3 max;
+};
+
+struct Md6Header {
+    SString skelName;
+    Bounds bounds;
+    ubyte regular;
+    uint pad;
+};
+
+struct Md6BoneInfo {
+    ushort numBones;
+    ubyte bones[numBones];
+    Bounds bounds;
+    uint numMaps;
+    uint pad1;
+    float unk1;
+    float unk2;
+    uint pad2[12];
+};
+
+struct Md6LodInfo {
+    uint numVertices;
+    uint numFaces;
+    Vector3 negBounds;
+    Vector3 posBounds;
+    Vector3 vertexOffset;
+    float vertexScale;
+    Vector2 uvOffset;
+    float uvScale;
+    uint flags;
+    float unkFloat2;
+    float unkFloat3;
+};
+
+struct Md6MeshInfo {
+    SString meshName;
+    SString materialName;
+    ubyte  fixed1;
+    uint fixed2;
+    int unknown1;
+    uint unknown2;
+    uint unknown3;
+    uint unkHash;
+    local uint i;
+    for(i = 0; i < 5; i++) {
+        uint absent;
+        if(absent == 0) {
+            Md6LodInfo lodInfo;
+        }
+    }
+    uint pad1;
+    ubyte pad2;
+};
+
+struct Md6MaterialInfo {
+    SString name;
+    uint meshId;
+    uint vertexFrom;
+    uint vertexTo;
+};
+
+struct Md6GeoDecal {
+    SString name;    
+    uint numStreams;
+    uint streamSizes[numStreams];
+    local uint i;
+    local uint numElements = 0;
+    for (i = 0; i < numStreams; i++) {
+        numElements += streamSizes[i];
+    }
+    uint decals[numElements];
+};
+
+struct GeometryMemoryLayout {
+    uint combinedVertexMask;
+    uint size;
+    uint numVertexStreams;
+    Assert(numVertexStreams == 4 || numVertexStreams == 5);
+    
+    uint positionMask; // 1 = unpacked, 32 = packed
+    uint normalMask; // always 20
+    if(numVertexStreams == 5) {
+        uint uvLightmapMask; // always 64
+    }
+    uint uvMask; // 131072 = unpacked, 32768 = packed
+    uint colorMask; // always 8
+    
+    uint positionOffset;
+    uint normalOffset;
+    if(numVertexStreams == 5) {
+        uint uvLightmapOffset;
+    }
+    uint uvOffset;
+    uint colorOffset;
+    uint indexOffset;
+};
+
+struct GeometryDiskLayout {
+    uint compression;
+    uint uncompressedSize;
+    uint compressedSize;
+    uint offset;
+};
+
+struct Md6Mesh {
+    Md6Header header <style=sHeading1>;
+    Md6BoneInfo boneInfo <style=sHeading2>;
+    
+    uint numMeshInfos;
+    Md6MeshInfo meshInfos[numMeshInfos] <style=sSection1, optimize=false>;
+    
+    uint numMaterialInfos;
+    Md6MaterialInfo materialInfos[numMaterialInfos] <style=sSection2, optimize=false>;
+    Md6GeoDecal geoDecal <style=sSection3>;
+    
+    uint numLayouts;
+    GeometryMemoryLayout memoryLayouts[numLayouts] <style=sSection4, optimize=false>;
+    GeometryDiskLayout diskLayouts[numLayouts] <style=sSection4, optimize=false>;
+} md6Mesh;
