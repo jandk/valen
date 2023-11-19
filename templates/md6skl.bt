@@ -1,0 +1,76 @@
+struct SString {
+    uint size;
+    char value[size];
+};
+
+struct Vector2 {
+    float x;
+    float y;
+};
+
+struct Vector3 {
+    float x;
+    float y;
+    float z;
+};
+
+struct Vector4 {
+    float x;
+    float y;
+    float z;
+    float w;
+};
+
+struct Mat3x4 {
+    float values[12];
+};
+
+struct Bounds {
+    Vector3 min;
+    Vector3 max;
+};
+
+struct Md6SklHeader {
+    ushort size;
+    ushort numJoints;
+    ushort numUserChannels;
+    ushort parentTblCrc;
+    ushort basePoseOffset;
+    ushort inverseBasePoseOffset;
+    ushort parentTblOffset;
+    ushort lastChildTblOffset;
+    ushort jointHandleTblOffset;
+    ushort userChannelHandleTblOffset;
+    ushort jointWeightOffsets[8];
+    ushort userWeightOffsets[8];
+    ushort extraJointTblOffset;
+    ushort skelRemapTblOffset;
+    ushort loadedDataSize;
+    ubyte pad[6];
+};
+
+struct Md6Skl {
+    uint size4;
+    Md6SklHeader header <style=sHeading1>;
+    
+    local float numJoints8 = (header.numJoints + 7) & ~7;
+    Printf("Number of joints rounded up to multiple of 8: %d", numJoints8);
+    
+    local float numUserChannels8 = (header.numUserChannels + 7) & ~7;
+    
+    FSeek(4 + header.basePoseOffset);
+    Vector4 rotations[numJoints8] <style=sSection1>;
+    Vector3 scales[numJoints8] <style=sSection1>;
+    Vector3 translations[numJoints8] <style=sSection1>;
+    
+    FSeek(4 + header.inverseBasePoseOffset);
+    Mat3x4 inverseBasePoses[numJoints8] <style=sSection2>;
+    
+    FSeek(4 + header.parentTblOffset);
+    ushort parents[numJoints8] <style=sSection3>;
+    
+    FSeek(4 + header.size);
+    SString names[numJoints8] <style=sSection4, optimize=false>;
+    SString userNames[numUserChannels8] <style=sSection4, optimize=false>;
+    
+} md6Skl;
