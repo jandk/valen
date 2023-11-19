@@ -7,7 +7,8 @@ import java.io.*;
 import java.nio.channels.*;
 import java.util.*;
 
-public final class StreamDbManager implements StreamLoader {
+public final class StreamDbManager {
+
     private final FileManager fileManager;
     private final Map<Long, String> hashToPath = new HashMap<>();
     private final Map<Long, StreamDbEntry> hashToEntry = new HashMap<>();
@@ -40,11 +41,10 @@ public final class StreamDbManager implements StreamLoader {
         }
     }
 
-    @Override
-    public Optional<byte[]> load(long identity, int size) {
+    public byte[] load(long identity, int size) {
         String path = hashToPath.get(identity);
         if (path == null) {
-            return Optional.empty();
+            throw new IllegalArgumentException(String.format("Unknown stream: 0x%016x", identity));
         }
 
         StreamDbEntry entry = hashToEntry.get(identity);
@@ -52,15 +52,14 @@ public final class StreamDbManager implements StreamLoader {
         try {
             channel.position(entry.offset());
             byte[] compressed = IOUtils.readBytes(channel, entry.length());
-            byte[] decompressed = OodleDecompressor.decompress(compressed, size);
-            return Optional.of(decompressed);
+            return OodleDecompressor.decompress(compressed, size);
         } catch (IOException e) {
             throw new UncheckedIOException(String.format("Failed to read stream: 0x%016x", entry.identity()), e);
         }
     }
 
-    @Override
     public boolean exists(long identity) {
         return hashToPath.containsKey(identity);
     }
+
 }

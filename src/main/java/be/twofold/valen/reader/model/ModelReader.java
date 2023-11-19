@@ -8,13 +8,12 @@ import be.twofold.valen.reader.resource.*;
 import java.io.*;
 import java.nio.*;
 import java.util.*;
-import java.util.stream.*;
 
 public final class ModelReader {
     private static final int LodCount = 5;
 
     private final BetterBuffer buffer;
-    private final StreamLoader streamLoader;
+    private final FileManager fileManager;
     private final ResourcesEntry entry;
 
     private ModelHeader header;
@@ -23,9 +22,9 @@ public final class ModelReader {
     private final List<List<GeometryMemoryLayout>> streamMemLayouts = new ArrayList<>();
     private final List<GeometryDiskLayout> streamDiskLayouts = new ArrayList<>();
 
-    public ModelReader(BetterBuffer buffer, StreamLoader streamLoader, ResourcesEntry entry) {
+    public ModelReader(BetterBuffer buffer, FileManager fileManager, ResourcesEntry entry) {
         this.buffer = buffer;
-        this.streamLoader = streamLoader;
+        this.fileManager = fileManager;
         this.entry = entry;
     }
 
@@ -134,13 +133,10 @@ public final class ModelReader {
         long hash = (entry.streamResourceHash() << 4) | lod;
         int size = streamDiskLayouts.get(lod).uncompressedSize();
 
-        BetterBuffer buffer = streamLoader
-            .load(hash, size)
-            .map(BetterBuffer::wrap)
-            .orElseThrow();
+        BetterBuffer buffer = fileManager.readStream(hash, size);
         List<LodInfo> lods = lodInfos.stream()
-            .map(l -> l.get(lod))
-            .collect(Collectors.toUnmodifiableList());
+            .<LodInfo>map(l -> l.get(lod))
+            .toList();
         List<GeometryMemoryLayout> layouts = streamMemLayouts.get(lod);
 
         return new GeometryReader(false).readMeshes(buffer, lods, layouts);

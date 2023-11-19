@@ -1,6 +1,7 @@
 package be.twofold.valen;
 
 import be.twofold.valen.reader.packagemapspec.*;
+import be.twofold.valen.reader.resource.*;
 
 import java.io.*;
 import java.nio.channels.*;
@@ -25,12 +26,8 @@ public final class FileManager {
         return spec;
     }
 
-    public StreamDbManager getStreamDbManager() {
-        return streamDbManager;
-    }
-
-    public ResourcesManager getResourcesManager() {
-        return resourcesManager;
+    public ResourcesEntry getResourceEntry(String name) {
+        return resourcesManager.getEntry(name);
     }
 
     public void select(String map) {
@@ -56,6 +53,22 @@ public final class FileManager {
             System.err.println("Failed to open file: " + path);
             throw new UncheckedIOException(e);
         }
+    }
+
+    public BetterBuffer readResource(ResourcesEntry entry) {
+        try {
+            return BetterBuffer.wrap(resourcesManager.read(entry));
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    public BetterBuffer readStream(long identity, int size) {
+        return BetterBuffer.wrap(streamDbManager.load(identity, size));
+    }
+
+    public boolean streamExists(long identity) {
+        return streamDbManager.exists(identity);
     }
 
     @SuppressWarnings("resource")

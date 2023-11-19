@@ -10,6 +10,7 @@ import java.util.*;
 public final class ResourcesManager {
 
     private final Map<ResourcesEntry, String> entryToPath = new HashMap<>();
+    private final Map<String, ResourcesEntry> nameToEntry = new HashMap<>();
     private final FileManager fileManager;
 
     ResourcesManager(FileManager fileManager) {
@@ -18,6 +19,10 @@ public final class ResourcesManager {
 
     public Collection<ResourcesEntry> getEntries() {
         return entryToPath.keySet();
+    }
+
+    public ResourcesEntry getEntry(String name) {
+        return nameToEntry.get(name);
     }
 
     public byte[] read(ResourcesEntry entry) throws IOException {
@@ -43,6 +48,7 @@ public final class ResourcesManager {
             Resources resources = ResourcesReader.read(channel);
             for (ResourcesEntry entry : resources.entries()) {
                 entryToPath.putIfAbsent(entry, path);
+                nameToEntry.putIfAbsent(entry.name().toString(), entry);
             }
         }
     }

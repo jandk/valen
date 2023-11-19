@@ -7,16 +7,16 @@ import java.util.*;
 
 public final class ImageReader {
     private final BetterBuffer buffer;
-    private final StreamLoader loader;
+    private final FileManager fileManager;
     private final ResourcesEntry entry;
 
     private ImageHeader header;
     private List<ImageMip> mips;
     private byte[][] mipData;
 
-    public ImageReader(BetterBuffer buffer, StreamLoader loader, ResourcesEntry entry) {
+    public ImageReader(BetterBuffer buffer, FileManager fileManager, ResourcesEntry entry) {
         this.buffer = buffer;
-        this.loader = loader;
+        this.fileManager = fileManager;
         this.entry = entry;
     }
 
@@ -45,30 +45,31 @@ public final class ImageReader {
 
     private void loadSingleStream() {
         int uncompressedSize = mips.get(mips.size() - 1).cumulativeSizeStreamDB();
-        byte[] uncompressed = loader
-            .load(entry.streamResourceHash(), uncompressedSize)
-            .orElseThrow(() -> new IllegalStateException("Could not load single stream image"));
-
-        readMipsFromBuffer(BetterBuffer.wrap(uncompressed), 0);
+        BetterBuffer buffer = fileManager.readStream(entry.streamResourceHash(), uncompressedSize);
+        readMipsFromBuffer(buffer, 0);
     }
 
     private void loadMultiStream() {
         int minMip = Integer.parseInt(entry.name().properties().getOrDefault("minmip", "0"));
         for (int i = minMip; i < header.startMip(); i++) {
             ImageMip mip = mips.get(i);
-            int mipIndex = header.mipCount() - mip.mipLevel();
-            long hash = entry.streamResourceHash() << 4 | mipIndex;
-            Optional<byte[]> loaded = loader.load(hash, mip.decompressedSize());
-            if (loaded.isEmpty()) {
-                System.err.println("Could not load mip " + mip.mipLevel() + " of " + entry.name());
+            long hash = entry.streamResourceHash() << 4 | (header.mipCount() - mip.mipLevel());
+            if (!fileManager.streamExists(hash)) {
+                System.err.println("Stream not found: " + Long.toHexString(hash));
+                continue;
             }
-            mipData[i] = loaded.orElse(null);
+            BetterBuffer buffer = fileManager.readStream(hash, mip.decompressedSize());
+            mipData[i] = readMip(buffer, mip);
         }
     }
 
     private void readMipsFromBuffer(BetterBuffer buffer, int start) {
         for (int i = start; i < mips.size(); i++) {
-            mipData[i] = buffer.getBytes(mips.get(i).decompressedSize());
+            mipData[i] = readMip(buffer, mips.get(i));
         }
+    }
+
+    private byte[] readMip(BetterBuffer buffer, ImageMip mip) {
+        return buffer.getBytes(mip.decompressedSize());
     }
 }

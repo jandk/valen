@@ -7,29 +7,29 @@ import be.twofold.valen.reader.resource.*;
 
 import java.nio.*;
 import java.util.*;
-import java.util.stream.*;
 
 public final class Md6Reader {
     private final BetterBuffer buffer;
-    private final StreamLoader loader;
+    private final FileManager fileManager;
     private final ResourcesEntry entry;
+
     private Md6BoneInfo boneInfo;
     private List<Md6MeshInfo> meshInfos;
     private List<GeometryMemoryLayout> memoryLayouts;
     private List<GeometryDiskLayout> diskLayouts;
     private List<Mesh> meshes;
 
-    public Md6Reader(BetterBuffer buffer, StreamLoader loader, ResourcesEntry entry) {
+    public Md6Reader(BetterBuffer buffer, FileManager fileManager, ResourcesEntry entry) {
         this.buffer = buffer;
-        this.loader = loader;
+        this.fileManager = fileManager;
         this.entry = entry;
     }
 
-    public Md6 read() {
-        return read(false);
+    public static Md6 read(BetterBuffer buffer, FileManager fileManager, ResourcesEntry entry) {
+        return new Md6Reader(buffer, fileManager, entry).read();
     }
 
-    public Md6 read(boolean readMeshes) {
+    private Md6 read() {
         Md6Header header = Md6Header.read(buffer);
         boneInfo = Md6BoneInfo.read(buffer);
         meshInfos = buffer.getStructs(buffer.getInt(), Md6MeshInfo::read);
@@ -43,7 +43,7 @@ public final class Md6Reader {
 
         buffer.expectEnd();
 
-        meshes = readMeshes ? readStreamedGeometry(0) : List.of();
+        meshes = readStreamedGeometry(0);
 
         // Apply the lookup table for the joint indices
         fixJointIndices();
@@ -53,6 +53,9 @@ public final class Md6Reader {
 
     private void skipGeoDecals() {
         String geoDecalName = buffer.getString();
+        if (!geoDecalName.isEmpty()) {
+            throw new UnsupportedOperationException("GeoDecals are not supported");
+        }
         int numGeoDecalStreams = buffer.getInt();
         int numGeoDecalElements = 0;
         for (int i = 0; i < numGeoDecalStreams; i++) {
@@ -65,15 +68,13 @@ public final class Md6Reader {
         long hash = (entry.streamResourceHash() << 4) | lod;
         int size = diskLayouts.get(lod).uncompressedSize();
 
-        BetterBuffer buffer = loader.load(hash, size)
-            .map(BetterBuffer::wrap)
-            .orElseThrow();
-        List<LodInfo> lods = meshInfos.stream()
-            .map(mi -> mi.lodInfos().get(0))
-            .collect(Collectors.toUnmodifiableList());
+        BetterBuffer buffer = fileManager.readStream(hash, size);
+        List<LodInfo> lodInfos = meshInfos.stream()
+            .<LodInfo>map(mi -> mi.lodInfos().get(lod))
+            .toList();
         List<GeometryMemoryLayout> layouts = List.of(memoryLayouts.get(lod));
 
-        return new GeometryReader(true).readMeshes(buffer, lods, layouts);
+        return new GeometryReader(true).readMeshes(buffer, lodInfos, layouts);
     }
 
     private void fixJointIndices() {
