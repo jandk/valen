@@ -1,34 +1,4 @@
-struct SString {
-    uint size;
-    char value[size];
-};
-
-struct Vector2 {
-    float x;
-    float y;
-};
-
-struct Vector3 {
-    float x;
-    float y;
-    float z;
-};
-
-struct Vector4 {
-    float x;
-    float y;
-    float z;
-    float w;
-};
-
-struct Mat3x4 {
-    float values[12];
-};
-
-struct Bounds {
-    Vector3 min;
-    Vector3 max;
-};
+#include "shared.bt"
 
 struct Md6SklHeader {
     ushort size;
@@ -54,10 +24,11 @@ struct Md6Skl {
     Md6SklHeader header <style=sHeading1>;
     
     local float numJoints8 = (header.numJoints + 7) & ~7;
-    Printf("Number of joints rounded up to multiple of 8: %d", numJoints8);
+    Printf("Number of joints rounded up to multiple of 8: %d\n", numJoints8);
     
     local float numUserChannels8 = (header.numUserChannels + 7) & ~7;
-    
+    Printf("Number of user channels rounded up to multiple of 8: %d\n", numJoints8);
+
     FSeek(4 + header.basePoseOffset);
     Vector4 rotations[numJoints8] <style=sSection1>;
     Vector3 scales[numJoints8] <style=sSection1>;

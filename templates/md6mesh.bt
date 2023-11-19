@@ -1,23 +1,4 @@
-struct SString {
-    uint size;
-    char value[size];
-};
-
-struct Vector2 {
-    float x;
-    float y;
-};
-
-struct Vector3 {
-    float x;
-    float y;
-    float z;
-};
-
-struct Bounds {
-    Vector3 min;
-    Vector3 max;
-};
+#include "shared.bt"
 
 struct Md6Header {
     SString skelName;

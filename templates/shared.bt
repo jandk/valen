@@ -1,0 +1,31 @@
+struct SString {
+    uint size;
+    char value[size];
+};
+
+struct Vector2 {
+    float x;
+    float y;
+};
+
+struct Vector3 {
+    float x;
+    float y;
+    float z;
+};
+
+struct Vector4 {
+    float x;
+    float y;
+    float z;
+    float w;
+};
+
+struct Mat3x4 {
+    float values[12];
+};
+
+struct Bounds {
+    Vector3 min;
+    Vector3 max;
+};
