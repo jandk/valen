@@ -1,4 +1,4 @@
-#include "shared.bt"
+#include "common.bt"
 
 struct Md6SklHeader {
     ushort size;
