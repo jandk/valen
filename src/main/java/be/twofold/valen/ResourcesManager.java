@@ -32,7 +32,7 @@ public final class ResourcesManager {
         channel.position(entry.dataOffset());
 
         byte[] compressed = IOUtils.readBytes(channel, entry.dataSize());
-        return OodleDecompressor.decompress(compressed, entry.dataSizeUncompressed());
+        return OodleDecompressor.decompress(compressed, entry.uncompressedSize());
     }
 
     public void select(String map) {

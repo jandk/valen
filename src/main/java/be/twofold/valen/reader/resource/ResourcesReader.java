@@ -11,8 +11,8 @@ public final class ResourcesReader {
     private final SeekableByteChannel channel;
 
     private ResourcesHeader header;
-    private List<String> strings;
-    private int[] stringIndexes;
+    private String[] pathStrings;
+    private int[] pathStringIndexes;
     private List<ResourcesDependency> dependencies;
     private int[] dependencyIndexes;
 
@@ -22,16 +22,16 @@ public final class ResourcesReader {
 
     public static Resources read(SeekableByteChannel channel) {
         try {
-            return new ResourcesReader(channel).read(false);
+            return new ResourcesReader(channel).read();
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
     }
 
-    private Resources read(boolean withDeps) throws IOException {
+    private Resources read() throws IOException {
         header = IOUtils.readStruct(channel, ResourcesHeader.Size, ResourcesHeader::read);
         readStringChunk();
-        readDependencyChunk(withDeps);
+        readDependencyChunk();
         assert channel.position() == header.addrEndMarker() : "We're in the wrong place!";
 
         List<ResourcesEntry> entries = readEntryChunk();
@@ -40,32 +40,28 @@ public final class ResourcesReader {
 
     private void readStringChunk() throws IOException {
         channel.position(header.addrPathStringOffsets());
-        int numStrings = Math.toIntExact(IOUtils.readBuffer(channel, 8).getLong());
+        int numStrings = IOUtils.readBuffer(channel, 8).getLongAsInt();
         long[] stringOffsets = IOUtils.readLongs(channel, numStrings);
 
-        int bufferLength = (int) (header.addrDependencyEntries() - channel.position());
+        int bufferLength = Math.toIntExact(header.addrDependencyEntries() - channel.position());
         String buffer = new String(IOUtils.readBytes(channel, bufferLength), StandardCharsets.US_ASCII);
 
-        strings = Arrays.stream(stringOffsets)
+        pathStrings = Arrays.stream(stringOffsets)
             .mapToInt(Math::toIntExact)
             .mapToObj(i -> buffer.substring(i, buffer.indexOf('\0', i)))
-            .toList();
+            .toArray(String[]::new);
     }
 
-    private void readDependencyChunk(boolean withDeps) throws IOException {
+    private void readDependencyChunk() throws IOException {
         channel.position(header.addrDependencyEntries());
-        if (withDeps) {
-            dependencies = IOUtils.readStructs(channel, header.numDependencyEntries(), ResourcesDependency.Size,
-                buffer -> ResourcesDependency.read(buffer, strings));
-            dependencyIndexes = IOUtils.readInts(channel, header.numDependencyIndexes());
-        } else {
-            channel.position(header.addrDependencyIndexes() + header.numDependencyIndexes() * 4L);
-        }
+        dependencies = IOUtils.readStructs(channel, header.numDependencyEntries(),
+            ResourcesDependency.Size, buffer -> ResourcesDependency.read(buffer, pathStrings));
+        dependencyIndexes = IOUtils.readInts(channel, header.numDependencyIndexes());
 
         // String indices are stored in the dependency chunk for some reason...
         // My guess is that the actual filenames don't matter, and the dependency structure is used to determine
         // which files to load. The filenames are only used for debugging purposes.
-        stringIndexes = Arrays.stream(IOUtils.readLongs(channel, header.numPathStringIndexes()))
+        pathStringIndexes = Arrays.stream(IOUtils.readLongs(channel, header.numPathStringIndexes()))
             .mapToInt(Math::toIntExact)
             .toArray();
     }
@@ -73,7 +69,7 @@ public final class ResourcesReader {
     private List<ResourcesEntry> readEntryChunk() throws IOException {
         // This position is stored in the file somewhere, but the value is always 124
         channel.position(ResourcesHeader.Size);
-        return IOUtils.readStructs(channel, header.numFileEntries(), ResourcesEntry.Size,
-            buffer -> ResourcesEntry.read(buffer, stringIndexes, strings));
+        return IOUtils.readStructs(channel, header.numFileEntries(),
+            ResourcesEntry.Size, buffer -> ResourcesEntry.read(buffer, pathStrings, pathStringIndexes));
     }
 }

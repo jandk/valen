@@ -2,83 +2,81 @@ package be.twofold.valen.reader.resource;
 
 import be.twofold.valen.*;
 
-import java.util.*;
-
 public record ResourcesEntry(
     ResourcesName name,
     String type,
-    int dependencyIndexNumber,
-    int pathTupleIndex,
+    int depIndices,
+    int strings,
     int dataOffset,
     int dataSize,
-    int dataSizeUncompressed,
+    int uncompressedSize,
     long dataCheckSum,
-    long timestamp,
-    long streamResourceHash,
+    long generationTimeStamp,
+    long defaultHash,
     int version,
-    int havokFlag1,
-    short compressionMode,
-    byte havokFlag2,
-    byte havokFlag3,
+    int flags,
+    byte compMode,
+    byte reserved0,
+    short variation,
     short numDependencies
 ) {
     static final int Size = 0x90;
 
-    public static ResourcesEntry read(BetterBuffer buffer, int[] pathStringIndexes, List<String> strings) {
-        buffer.expectLong(0);
-        buffer.expectLong(1);
-        buffer.expectLong(-1);
-        int dependencyIndexNumber = buffer.getLongAsInt();
-        int pathTupleIndex = buffer.getLongAsInt();
-        buffer.expectLong(0);
-        buffer.expectLong(0);
+    public static ResourcesEntry read(BetterBuffer buffer, String[] pathStrings, int[] pathStringIndexes) {
+        buffer.expectLong(0); // resourceTypeString
+        buffer.expectLong(1); // nameString
+        buffer.expectLong(-1); // descString
+        int depIndices = buffer.getLongAsInt(); // depIndices
+        int strings = buffer.getLongAsInt();
+        buffer.expectLong(0); // specialHashes
+        buffer.expectLong(0); // metaEntries
         int dataOffset = buffer.getLongAsInt();
         int dataSize = buffer.getLongAsInt();
-        int dataSizeUncompressed = buffer.getLongAsInt();
+        int uncompressedSize = buffer.getLongAsInt();
         long dataCheckSum = buffer.getLong();
-        long timestamp = buffer.getLong();
-        long streamResourceHash = buffer.getLong();
+        long generationTimeStamp = buffer.getLong();
+        long defaultHash = buffer.getLong();
         int version = buffer.getInt();
-        int havokFlag1 = buffer.getInt();
-        short compressionMode = buffer.getShort();
-        byte havokFlag2 = buffer.getByte();
-        byte havokFlag3 = buffer.getByte();
-        buffer.expectInt(0); // padding
-        buffer.expectInt(0); // padding
-        buffer.expectInt(0); // flags
-        buffer.expectInt(2); // desired compression mode
+        int flags = buffer.getInt();
+        byte compMode = buffer.getByte();
+        byte reserved0 = buffer.getByte();
+        short variation = buffer.getShort();
+        buffer.expectInt(0); // reserved2
+        buffer.expectLong(0); // reservedForVariations
+        buffer.expectShort(2); // numStrings
+        buffer.expectShort(0); // numSources
         short numDependencies = buffer.getShort();
-        buffer.expectShort(0);
-        buffer.expectLong(0);
+        buffer.expectShort(0); // numSpecialHashes
+        buffer.expectShort(0); // numMetaEntries
+        buffer.skip(6); // padding
 
-        String type = strings.get(pathStringIndexes[pathTupleIndex]);
-        String name = strings.get(pathStringIndexes[pathTupleIndex + 1]);
+        String type = pathStrings[pathStringIndexes[strings]];
+        String name = pathStrings[pathStringIndexes[strings + 1]];
 
         return new ResourcesEntry(
             ResourcesName.parse(name),
             type,
-            dependencyIndexNumber,
-            pathTupleIndex,
+            depIndices,
+            strings,
             dataOffset,
             dataSize,
-            dataSizeUncompressed,
+            uncompressedSize,
             dataCheckSum,
-            timestamp,
-            streamResourceHash,
+            generationTimeStamp,
+            defaultHash,
             version,
-            havokFlag1,
-            compressionMode,
-            havokFlag2,
-            havokFlag3,
+            flags,
+            compMode,
+            reserved0,
+            variation,
             numDependencies
         );
     }
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj) return true;
-        if (!(obj instanceof ResourcesEntry other)) return false;
-        return name.equals(other.name);
+        return obj instanceof ResourcesEntry other
+               && name.equals(other.name);
     }
 
     @Override

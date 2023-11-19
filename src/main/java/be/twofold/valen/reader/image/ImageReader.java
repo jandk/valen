@@ -45,7 +45,7 @@ public final class ImageReader {
 
     private void loadSingleStream() {
         int uncompressedSize = mips.get(mips.size() - 1).cumulativeSizeStreamDB();
-        BetterBuffer buffer = fileManager.readStream(entry.streamResourceHash(), uncompressedSize);
+        BetterBuffer buffer = fileManager.readStream(entry.defaultHash(), uncompressedSize);
         readMipsFromBuffer(buffer, 0);
     }
 
@@ -53,7 +53,7 @@ public final class ImageReader {
         int minMip = Integer.parseInt(entry.name().properties().getOrDefault("minmip", "0"));
         for (int i = minMip; i < header.startMip(); i++) {
             ImageMip mip = mips.get(i);
-            long hash = entry.streamResourceHash() << 4 | (header.mipCount() - mip.mipLevel());
+            long hash = entry.defaultHash() << 4 | (header.mipCount() - mip.mipLevel());
             if (!fileManager.streamExists(hash)) {
                 System.err.println("Stream not found: " + Long.toHexString(hash));
                 continue;

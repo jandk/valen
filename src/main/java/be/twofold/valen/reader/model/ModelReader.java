@@ -130,7 +130,7 @@ public final class ModelReader {
     }
 
     private List<Mesh> readStreamedGeometry(int lod) {
-        long hash = (entry.streamResourceHash() << 4) | lod;
+        long hash = (entry.defaultHash() << 4) | lod;
         int size = streamDiskLayouts.get(lod).uncompressedSize();
 
         BetterBuffer buffer = fileManager.readStream(hash, size);

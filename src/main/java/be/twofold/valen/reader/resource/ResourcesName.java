@@ -41,9 +41,8 @@ public record ResourcesName(
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj) return true;
-        if (!(obj instanceof ResourcesName other)) return false;
-        return name.equals(other.name);
+        return obj instanceof ResourcesName other
+               && name.equals(other.name);
     }
 
     @Override

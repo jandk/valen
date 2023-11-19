@@ -65,7 +65,7 @@ public final class Md6Reader {
     }
 
     private List<Mesh> readStreamedGeometry(int lod) {
-        long hash = (entry.streamResourceHash() << 4) | lod;
+        long hash = (entry.defaultHash() << 4) | lod;
         int size = diskLayouts.get(lod).uncompressedSize();
 
         BetterBuffer buffer = fileManager.readStream(hash, size);
