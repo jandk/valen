@@ -33,7 +33,7 @@ public final class NormalDecoder extends BCDecoder {
         float yy = Byte.toUnsignedInt((byte) y) / 255.0f;
         float nx = (xx * 2.0f) - 1.0f;
         float ny = (yy * 2.0f) - 1.0f;
-        float nz = (float) Math.sqrt(1.0f - Math.max(0.0f, Math.min(1.0f, nx * nx + ny * ny)));
+        float nz = (float) Math.sqrt(1.0f - Math.clamp(nx * nx + ny * ny, 0.0f, 1.0f));
         return (byte) Math.round(((nz + 1.0f) / 2.0f) * 255.0f);
     }
 
