@@ -1,7 +1,7 @@
 typedef struct {
     uint size;
     char value[size];
-} SString<read=this.value>;
+} SString<read=Str("%s", size > 0 ? this.value : "")>;
 
 struct Vector2 {
     float x;

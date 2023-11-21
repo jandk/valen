@@ -1,0 +1,16 @@
+struct Vector3 {
+    float x, y, z;
+};
+
+struct Model {
+    uint vertexCount;
+    uint indexCount;
+    Vector3 vertexes[vertexCount];
+    uint indexes[indexCount];
+    ubyte pad[29];
+};
+
+struct CGR {
+    uint modelCount;
+    Model models[modelCount] <optimize=false>;
+} cgr;
