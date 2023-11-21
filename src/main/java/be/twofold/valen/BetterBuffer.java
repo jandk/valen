@@ -132,6 +132,10 @@ public final class BetterBuffer {
             .toList();
     }
 
+    public int length() {
+        return buffer.limit();
+    }
+
     public int position() {
         return buffer.position();
     }

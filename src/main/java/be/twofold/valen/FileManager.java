@@ -30,6 +30,10 @@ public final class FileManager {
         return resourcesManager.getEntry(name);
     }
 
+    public List<ResourcesEntry> getResourceEntries() {
+        return List.copyOf(resourcesManager.getEntries());
+    }
+
     public void select(String map) {
         List<String> resources = channels.keySet().stream()
             .filter(e -> e.endsWith(".resources"))
