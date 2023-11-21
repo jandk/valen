@@ -29,7 +29,7 @@ public final class ModelReader {
     }
 
     public Model read() throws IOException {
-        return read(false);
+        return read(true);
     }
 
     public Model read(boolean readMeshes) throws IOException {

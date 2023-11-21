@@ -1,12 +1,17 @@
 package be.twofold.valen.geometry;
 
+import com.fasterxml.jackson.annotation.*;
+
 import java.nio.*;
 
+@JsonFormat(shape = JsonFormat.Shape.ARRAY)
 public record Vector3(
     float x,
     float y,
     float z
 ) {
+    public static Vector3 Zero = new Vector3(0, 0, 0);
+
     public Vector3 add(Vector3 v) {
         return new Vector3(x + v.x, y + v.y, z + v.z);
     }

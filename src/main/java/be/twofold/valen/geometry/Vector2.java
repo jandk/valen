@@ -1,7 +1,10 @@
 package be.twofold.valen.geometry;
 
+import com.fasterxml.jackson.annotation.*;
+
 import java.nio.*;
 
+@JsonFormat(shape = JsonFormat.Shape.ARRAY)
 public record Vector2(
     float x,
     float y

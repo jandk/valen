@@ -2,7 +2,10 @@ package be.twofold.valen.writer.gltf;
 
 import be.twofold.valen.geometry.*;
 import be.twofold.valen.reader.md6skl.*;
-import com.google.gson.*;
+import be.twofold.valen.writer.gltf.model.*;
+import com.fasterxml.jackson.annotation.*;
+import com.fasterxml.jackson.databind.*;
+import com.fasterxml.jackson.databind.node.*;
 
 import java.io.*;
 import java.nio.*;
@@ -11,17 +14,20 @@ import java.nio.charset.*;
 import java.util.*;
 
 public final class GltfWriter {
+    private static final ObjectMapper Mapper = new ObjectMapper()
+        .setSerializationInclusion(JsonInclude.Include.NON_ABSENT);
+
     private final WritableByteChannel channel;
     private final List<Mesh> sourceMeshes;
     private final Md6Skeleton skeleton;
 
-    private final List<JsonObject> accessors = new ArrayList<>();
-    private final List<JsonObject> bufferViews = new ArrayList<>();
-    private final List<JsonObject> buffers = new ArrayList<>();
-    private final List<JsonObject> meshes = new ArrayList<>();
-    private final List<JsonObject> nodes = new ArrayList<>();
-    private final List<JsonObject> scenes = new ArrayList<>();
-    private final List<JsonObject> skins = new ArrayList<>();
+    private final List<AccessorSchema> accessors = new ArrayList<>();
+    private final List<BufferViewSchema> bufferViews = new ArrayList<>();
+    private final List<BufferSchema> buffers = new ArrayList<>();
+    private final List<MeshSchema> meshes = new ArrayList<>();
+    private final List<NodeSchema> nodes = new ArrayList<>();
+    private final List<SceneSchema> scenes = new ArrayList<>();
+    private final List<SkinSchema> skins = new ArrayList<>();
     private int bufferOffset;
     private int skeletonNode;
 
@@ -38,15 +44,15 @@ public final class GltfWriter {
         if (skeleton != null) {
             buildSkeleton();
             // Ugly little fixup
-            scenes.get(0).get("nodes").getAsJsonArray().add(skeletonNode);
+            scenes.get(0).nodes().add(skeletonNode);
         }
         buildBuffers(); // Only now we know the buffer offset
 
-        String json = buildGltf().toString();
-        byte[] rawJson = json.getBytes(StandardCharsets.US_ASCII);
-        int alignedJsonLength = alignedLength(rawJson.length);
-
         try {
+            String json = Mapper.writeValueAsString(buildGltf());
+            byte[] rawJson = json.getBytes(StandardCharsets.US_ASCII);
+            int alignedJsonLength = alignedLength(rawJson.length);
+
             int totalSize = 12 + 8 + alignedJsonLength + 8 + bufferOffset;
             channel.write(GlbHeader.of(totalSize).toBuffer());
             channel.write(GlbChunkHeader.of(GlbChunkType.Json, alignedJsonLength).toBuffer());
@@ -59,69 +65,58 @@ public final class GltfWriter {
         }
     }
 
-    private JsonObject buildGltf() {
-        JsonObject object = new JsonObject();
-        object.add("asset", buildAsset("valen", "2.0"));
-        object.add("accessors", buildArray(accessors));
-        object.add("bufferViews", buildArray(bufferViews));
-        object.add("buffers", buildArray(buffers));
-        object.add("meshes", buildArray(meshes));
-        object.add("nodes", buildArray(nodes));
-        object.add("scenes", buildArray(scenes));
-        if (skeleton != null) {
-            object.add("skins", buildArray(skins));
-        }
-        object.addProperty("scene", 0);
-        return object;
+    private GltfSchema buildGltf() {
+        AssetSchema asset = new AssetSchema("valen", "2.0");
+
+        return new GltfSchema(
+            asset,
+            accessors,
+            bufferViews,
+            buffers,
+            meshes,
+            nodes,
+            scenes,
+            skeleton != null ? skins : null,
+            0
+        );
     }
 
-    // region Done
-
-    private JsonObject buildAsset(String generator, String version) {
-        JsonObject object = new JsonObject();
-        object.addProperty("generator", generator);
-        object.addProperty("version", version);
-        return object;
-    }
 
     private void buildBuffers() {
-        JsonObject buffer = new JsonObject();
-        buffer.addProperty("byteLength", bufferOffset);
+        BufferSchema buffer = new BufferSchema(bufferOffset);
         buffers.add(buffer);
     }
 
     public void buildMeshes() {
         // First we do the meshes
-        List<JsonObject> primitives = sourceMeshes.stream()
+        List<PrimitiveSchema> primitives = sourceMeshes.stream()
             .map(this::buildMeshPrimitive)
             .toList();
 
-        JsonObject mesh = new JsonObject();
-        mesh.add("primitives", buildArray(primitives));
+        MeshSchema mesh = new MeshSchema(primitives);
         meshes.add(mesh);
     }
 
-    private JsonObject buildMeshPrimitive(Mesh mesh) {
-        JsonObject attributes = new JsonObject();
+    private PrimitiveSchema buildMeshPrimitive(Mesh mesh) {
+        ObjectNode attributes = Mapper.getNodeFactory().objectNode();
         Bounds bounds = calculateBounds(mesh.positions());
-        attributes.addProperty("POSITION", buildMeshAccessor(mesh.positions().capacity(), BufferType.Position, bounds));
-        attributes.addProperty("NORMAL", buildMeshAccessor(mesh.normals().capacity(), BufferType.Normal, null));
-        attributes.addProperty("TANGENT", buildMeshAccessor(mesh.tangents().capacity(), BufferType.Tangent, null));
-        attributes.addProperty("TEXCOORD_0", buildMeshAccessor(mesh.texCoords().capacity(), BufferType.TexCoordN, null));
+        attributes.put("POSITION", buildMeshAccessor(mesh.positions().capacity(), BufferType.Position, bounds));
+        attributes.put("NORMAL", buildMeshAccessor(mesh.normals().capacity(), BufferType.Normal, null));
+        attributes.put("TANGENT", buildMeshAccessor(mesh.tangents().capacity(), BufferType.Tangent, null));
+        attributes.put("TEXCOORD_0", buildMeshAccessor(mesh.texCoords().capacity(), BufferType.TexCoordN, null));
 
         if (skeleton != null) {
             fixJointsWithEmptyWeights(mesh.colors(), mesh.weights());
-            attributes.addProperty("JOINTS_0", buildMeshAccessor(mesh.colors().capacity(), BufferType.JointsN, null));
-            attributes.addProperty("WEIGHTS_0", buildMeshAccessor(mesh.weights().capacity(), BufferType.WeightsN, null));
+            attributes.put("JOINTS_0", buildMeshAccessor(mesh.colors().capacity(), BufferType.JointsN, null));
+            attributes.put("WEIGHTS_0", buildMeshAccessor(mesh.weights().capacity(), BufferType.WeightsN, null));
         } else {
-            attributes.addProperty("COLOR_0", buildMeshAccessor(mesh.colors().capacity(), BufferType.ColorN, null));
+            attributes.put("COLOR_0", buildMeshAccessor(mesh.colors().capacity(), BufferType.ColorN, null));
         }
 
-        JsonObject primitive = new JsonObject();
-        primitive.add("attributes", attributes);
-        primitive.addProperty("indices", buildMeshAccessor(mesh.indices().capacity(), BufferType.Indices, null));
-        primitive.addProperty("mode", 4);
-        return primitive;
+        return new PrimitiveSchema(
+            attributes,
+            buildMeshAccessor(mesh.indices().capacity(), BufferType.Indices, null)
+        );
     }
 
     private void fixJointsWithEmptyWeights(ByteBuffer joints, ByteBuffer weights) {
@@ -140,35 +135,39 @@ public final class GltfWriter {
     }
 
     private int buildMeshAccessor(int bufferView, int count, BufferType type, Bounds bounds) {
-        assert count % type.typeSize == 0 : "Count must be a multiple of " + type.typeSize;
+        int dataTypeSize = type.getDataType().getSize();
+        assert count % dataTypeSize == 0 : "Count must be a multiple of " + dataTypeSize;
 
-        JsonObject object = new JsonObject();
-        object.addProperty("bufferView", bufferView);
-        object.addProperty("componentType", type.componentType);
-        object.addProperty("count", count / type.typeSize);
-        object.addProperty("type", type.type);
-        if (type.normalized) {
-            object.addProperty("normalized", true);
-        }
-        if (bounds != null) {
-            object.add("min", map(bounds.min()));
-            object.add("max", map(bounds.max()));
-        }
-        accessors.add(object);
+        AccessorSchema accessor = new AccessorSchema(
+            bufferView,
+            type.getComponentType(),
+            count / dataTypeSize,
+            type.getDataType(),
+            bounds != null ? bounds.min() : null,
+            bounds != null ? bounds.max() : null,
+            type.isNormalized() ? true : null
+        );
+        accessors.add(accessor);
         return accessors.size() - 1;
     }
 
     private int buildMeshBufferView(int length, BufferType bufferType) {
-        int byteLength = length * bufferType.componentSize;
+        int byteLength = length * bufferType.getComponentType().getSize();
 
-        JsonObject object = new JsonObject();
-        object.addProperty("buffer", 0);
-        object.addProperty("byteOffset", bufferOffset);
-        object.addProperty("byteLength", byteLength);
-        if (bufferType != BufferType.InverseBind) {
-            object.addProperty("target", bufferType == BufferType.Indices ? 34963 : 34962);
-        }
-        bufferViews.add(object);
+        BufferViewTarget target = switch (bufferType) {
+            case InverseBind -> null;
+            case Indices -> BufferViewTarget.ELEMENT_ARRAY_BUFFER;
+            default -> BufferViewTarget.ARRAY_BUFFER;
+        };
+
+        BufferViewSchema bufferView = new BufferViewSchema(
+            0,
+            bufferOffset,
+            byteLength,
+            target
+        );
+
+        bufferViews.add(bufferView);
 
         // Round up offset to a multiple of 4
         bufferOffset = alignedLength(bufferOffset + byteLength);
@@ -176,21 +175,16 @@ public final class GltfWriter {
     }
 
     private void buildNodes() {
-        JsonObject node = new JsonObject();
-        node.addProperty("mesh", 0);
-        if (skeleton != null) {
-            node.addProperty("skin", 0);
-        }
+        Integer skin = skeleton != null ? 0 : null;
+        NodeSchema node = NodeSchema.buildMeshSkin(0, skin);
         nodes.add(node);
     }
 
     private void buildScenes() {
-        JsonArray nodes = new JsonArray();
+        List<Integer> nodes = new ArrayList<>();
         nodes.add(0);
 
-        JsonObject scene = new JsonObject();
-        scene.add("nodes", nodes);
-
+        SceneSchema scene = new SceneSchema(nodes);
         scenes.add(scene);
     }
 
@@ -222,40 +216,25 @@ public final class GltfWriter {
     }
 
     private void buildSkeletonJoint(Md6SkeletonJoint joint, List<Integer> children) {
-        JsonArray childrenArray = new JsonArray();
-        for (int child : children) {
-            childrenArray.add(child);
-        }
-
-        JsonObject node = new JsonObject();
-        node.addProperty("name", joint.name());
-        node.add("rotation", map(joint.rotation()));
-        node.add("translation", map(joint.translation()));
-        node.add("scale", map(joint.scale()));
-        if (!childrenArray.isEmpty()) {
-            node.add("children", childrenArray);
-        }
+        NodeSchema node = NodeSchema.buildSkeletonNode(
+            joint.name(),
+            joint.rotation(),
+            joint.translation(),
+            joint.scale(),
+            children.isEmpty() ? null : children
+        );
         nodes.add(node);
     }
 
     private void buildSkeletonSkin(List<Integer> jointIndices) {
-        JsonArray joints = new JsonArray();
-        for (int jointIndex : jointIndices) {
-            joints.add(jointIndex);
-        }
-
-        int inverseBindMatrices = buildMeshAccessor(joints.size() * 16, BufferType.InverseBind, null);
-
-        JsonObject skin = new JsonObject();
-        skin.addProperty("skeleton", skeletonNode);
-        skin.add("joints", joints);
-        skin.addProperty("inverseBindMatrices", inverseBindMatrices);
-        skins.add(skin);
+        int inverseBindMatrices = buildMeshAccessor(jointIndices.size() * 16, BufferType.InverseBind, null);
+        skins.add(new SkinSchema(
+            skeletonNode,
+            jointIndices,
+            inverseBindMatrices
+        ));
     }
 
-    // endregion
-
-    // region Helpers
 
     private int alignedLength(int length) {
         return (length + 3) & ~3;
@@ -322,12 +301,6 @@ public final class GltfWriter {
         align(buffer.capacity(), (byte) 0);
     }
 
-    private static JsonArray buildArray(List<JsonObject> objects) {
-        JsonArray array = new JsonArray();
-        objects.forEach(array::add);
-        return array;
-    }
-
     private static Bounds calculateBounds(FloatBuffer vertices) {
         float minX = Float.POSITIVE_INFINITY;
         float minY = Float.POSITIVE_INFINITY;
@@ -349,48 +322,4 @@ public final class GltfWriter {
         return new Bounds(new Vector3(minX, minY, minZ), new Vector3(maxX, maxY, maxZ));
     }
 
-    private JsonArray map(Vector3 v) {
-        JsonArray array = new JsonArray();
-        array.add(v.x());
-        array.add(v.y());
-        array.add(v.z());
-        return array;
-    }
-
-    private JsonArray map(Vector4 v) {
-        JsonArray array = new JsonArray();
-        array.add(v.x());
-        array.add(v.y());
-        array.add(v.z());
-        array.add(v.w());
-        return array;
-    }
-
-// endregion
-
-    private enum BufferType {
-        Position(5126, "VEC3", 4, 3, false),
-        Normal(5126, "VEC3", 4, 3, false),
-        Tangent(5126, "VEC4", 4, 4, false),
-        TexCoordN(5126, "VEC2", 4, 2, false),
-        ColorN(5121, "VEC4", 1, 4, true),
-        JointsN(5121, "VEC4", 1, 4, false),
-        WeightsN(5121, "VEC4", 1, 4, true),
-        Indices(5123, "SCALAR", 2, 1, false),
-        InverseBind(5126, "MAT4", 4, 16, false);
-
-        private final int componentType;
-        private final String type;
-        private final int componentSize;
-        private final int typeSize;
-        private final boolean normalized;
-
-        BufferType(int componentType, String type, int componentSize, int typeSize, boolean normalized) {
-            this.componentType = componentType;
-            this.type = type;
-            this.componentSize = componentSize;
-            this.typeSize = typeSize;
-            this.normalized = normalized;
-        }
-    }
 }
