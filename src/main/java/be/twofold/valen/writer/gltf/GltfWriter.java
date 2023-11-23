@@ -11,6 +11,7 @@ import java.io.*;
 import java.nio.*;
 import java.nio.channels.*;
 import java.nio.charset.*;
+import java.nio.file.*;
 import java.util.*;
 
 public final class GltfWriter {
@@ -20,6 +21,7 @@ public final class GltfWriter {
     private final WritableByteChannel channel;
     private final List<Mesh> sourceMeshes;
     private final Md6Skeleton skeleton;
+    private final Animation animation;
 
     private final List<AccessorSchema> accessors = new ArrayList<>();
     private final List<BufferViewSchema> bufferViews = new ArrayList<>();
@@ -28,13 +30,21 @@ public final class GltfWriter {
     private final List<NodeSchema> nodes = new ArrayList<>();
     private final List<SceneSchema> scenes = new ArrayList<>();
     private final List<SkinSchema> skins = new ArrayList<>();
+    private final List<AnimationSchema> animations = new ArrayList<>();
+
     private int bufferOffset;
     private int skeletonNode;
 
-    public GltfWriter(WritableByteChannel channel, List<Mesh> sourceMeshes, Md6Skeleton skeleton) {
+    public GltfWriter(
+        WritableByteChannel channel,
+        List<Mesh> sourceMeshes,
+        Md6Skeleton skeleton,
+        Animation animation
+    ) {
         this.channel = channel;
         this.sourceMeshes = sourceMeshes;
         this.skeleton = skeleton;
+        this.animation = animation;
     }
 
     public void write() {
@@ -43,13 +53,20 @@ public final class GltfWriter {
         buildScenes();
         if (skeleton != null) {
             buildSkeleton();
+            buildAnimations();
+
             // Ugly little fixup
             scenes.get(0).nodes().add(skeletonNode);
         }
         buildBuffers(); // Only now we know the buffer offset
 
         try {
-            String json = Mapper.writeValueAsString(buildGltf());
+            GltfSchema gltf = buildGltf();
+
+            String json = Mapper.writeValueAsString(gltf);
+            String prettyJson = Mapper.writer().withDefaultPrettyPrinter().writeValueAsString(gltf);
+            Files.writeString(Path.of("C:\\Temp\\gltf.json"), prettyJson);
+
             byte[] rawJson = json.getBytes(StandardCharsets.US_ASCII);
             int alignedJsonLength = alignedLength(rawJson.length);
 
@@ -77,6 +94,7 @@ public final class GltfWriter {
             nodes,
             scenes,
             skeleton != null ? skins : null,
+            animation != null ? animations : null,
             0
         );
     }
@@ -100,22 +118,22 @@ public final class GltfWriter {
     private PrimitiveSchema buildMeshPrimitive(Mesh mesh) {
         ObjectNode attributes = Mapper.getNodeFactory().objectNode();
         Bounds bounds = calculateBounds(mesh.positions());
-        attributes.put("POSITION", buildMeshAccessor(mesh.positions().capacity(), BufferType.Position, bounds));
-        attributes.put("NORMAL", buildMeshAccessor(mesh.normals().capacity(), BufferType.Normal, null));
-        attributes.put("TANGENT", buildMeshAccessor(mesh.tangents().capacity(), BufferType.Tangent, null));
-        attributes.put("TEXCOORD_0", buildMeshAccessor(mesh.texCoords().capacity(), BufferType.TexCoordN, null));
+        attributes.put("POSITION", buildAccessor(mesh.positions().capacity(), BufferType.Position, bounds.min().toArray(), bounds.max().toArray()));
+        attributes.put("NORMAL", buildAccessor(mesh.normals().capacity(), BufferType.Normal, null, null));
+        attributes.put("TANGENT", buildAccessor(mesh.tangents().capacity(), BufferType.Tangent, null, null));
+        attributes.put("TEXCOORD_0", buildAccessor(mesh.texCoords().capacity(), BufferType.TexCoordN, null, null));
 
         if (skeleton != null) {
             fixJointsWithEmptyWeights(mesh.colors(), mesh.weights());
-            attributes.put("JOINTS_0", buildMeshAccessor(mesh.colors().capacity(), BufferType.JointsN, null));
-            attributes.put("WEIGHTS_0", buildMeshAccessor(mesh.weights().capacity(), BufferType.WeightsN, null));
+            attributes.put("JOINTS_0", buildAccessor(mesh.colors().capacity(), BufferType.JointsN, null, null));
+            attributes.put("WEIGHTS_0", buildAccessor(mesh.weights().capacity(), BufferType.WeightsN, null, null));
         } else {
-            attributes.put("COLOR_0", buildMeshAccessor(mesh.colors().capacity(), BufferType.ColorN, null));
+            attributes.put("COLOR_0", buildAccessor(mesh.colors().capacity(), BufferType.ColorN, null, null));
         }
 
         return new PrimitiveSchema(
             attributes,
-            buildMeshAccessor(mesh.indices().capacity(), BufferType.Indices, null)
+            buildAccessor(mesh.indices().capacity(), BufferType.Indices, null, null)
         );
     }
 
@@ -129,12 +147,12 @@ public final class GltfWriter {
         }
     }
 
-    private int buildMeshAccessor(int capacity, BufferType bufferType, Bounds bounds) {
-        int bufferView = buildMeshBufferView(capacity, bufferType);
-        return buildMeshAccessor(bufferView, capacity, bufferType, bounds);
+    private int buildAccessor(int capacity, BufferType bufferType, float[] min, float[] max) {
+        int bufferView = buildBufferView(capacity, bufferType, bufferType.getComponentType());
+        return buildAccessor(bufferView, capacity, bufferType, min, max);
     }
 
-    private int buildMeshAccessor(int bufferView, int count, BufferType type, Bounds bounds) {
+    private int buildAccessor(int bufferView, int count, BufferType type, float[] min, float[] max) {
         int dataTypeSize = type.getDataType().getSize();
         assert count % dataTypeSize == 0 : "Count must be a multiple of " + dataTypeSize;
 
@@ -143,19 +161,19 @@ public final class GltfWriter {
             type.getComponentType(),
             count / dataTypeSize,
             type.getDataType(),
-            bounds != null ? bounds.min() : null,
-            bounds != null ? bounds.max() : null,
+            min,
+            max,
             type.isNormalized() ? true : null
         );
         accessors.add(accessor);
         return accessors.size() - 1;
     }
 
-    private int buildMeshBufferView(int length, BufferType bufferType) {
-        int byteLength = length * bufferType.getComponentType().getSize();
+    private int buildBufferView(int length, BufferType bufferType, AccessorComponentType componentType) {
+        int byteLength = length * componentType.getSize();
 
         BufferViewTarget target = switch (bufferType) {
-            case InverseBind -> null;
+            case InverseBind, KeyFrame, Rotation, ScaleTranslation -> null;
             case Indices -> BufferViewTarget.ELEMENT_ARRAY_BUFFER;
             default -> BufferViewTarget.ARRAY_BUFFER;
         };
@@ -227,12 +245,77 @@ public final class GltfWriter {
     }
 
     private void buildSkeletonSkin(List<Integer> jointIndices) {
-        int inverseBindMatrices = buildMeshAccessor(jointIndices.size() * 16, BufferType.InverseBind, null);
+        int inverseBindMatrices = buildAccessor(jointIndices.size() * 16, BufferType.InverseBind, null, null);
         skins.add(new SkinSchema(
             skeletonNode,
             jointIndices,
             inverseBindMatrices
         ));
+    }
+
+    private void buildAnimations() {
+        if (animation == null) {
+            return;
+        }
+
+        List<AnimationChannelSchema> channels = new ArrayList<>();
+        List<AnimationSamplerSchema> samplers = new ArrayList<>();
+
+        for (int i = 0; i < skeleton.joints().size(); i++) {
+            int numRotations = countNonNull(animation.rotations()[i]);
+            if (numRotations != 0) {
+                FloatBuffer buffer = buildKeyFrameBuffer(animation.rotations()[i]);
+                int rotationInput = buildAccessor(numRotations, BufferType.KeyFrame, new float[]{min(buffer)}, new float[]{max(buffer)});
+                int rotationOutput = buildAccessor(numRotations * 4, BufferType.Rotation, null, null);
+                samplers.add(new AnimationSamplerSchema(rotationInput, rotationOutput));
+                AnimationChannelTargetSchema rotationChannelTargetSchema = new AnimationChannelTargetSchema(skeletonNode + i, "rotation");
+                channels.add(new AnimationChannelSchema(samplers.size() - 1, rotationChannelTargetSchema));
+            }
+
+            int numScales = countNonNull(animation.scales()[i]);
+            if (numScales != 0) {
+                FloatBuffer buffer = buildKeyFrameBuffer(animation.scales()[i]);
+                int scaleInput = buildAccessor(numScales, BufferType.KeyFrame, new float[]{min(buffer)}, new float[]{max(buffer)});
+                int scaleOutput = buildAccessor(numScales * 3, BufferType.ScaleTranslation, null, null);
+                samplers.add(new AnimationSamplerSchema(scaleInput, scaleOutput));
+                AnimationChannelTargetSchema scaleChannelTargetSchema = new AnimationChannelTargetSchema(skeletonNode + i, "scale");
+                channels.add(new AnimationChannelSchema(samplers.size() - 1, scaleChannelTargetSchema));
+            }
+
+            int numTranslations = countNonNull(animation.translations()[i]);
+            if (numTranslations != 0) {
+                FloatBuffer buffer = buildKeyFrameBuffer(animation.translations()[i]);
+                int translationInput = buildAccessor(numTranslations, BufferType.KeyFrame, new float[]{min(buffer)}, new float[]{max(buffer)});
+                int translationOutput = buildAccessor(numTranslations * 3, BufferType.ScaleTranslation, null, null);
+                samplers.add(new AnimationSamplerSchema(translationInput, translationOutput));
+                AnimationChannelTargetSchema translationChannelTargetSchema = new AnimationChannelTargetSchema(skeletonNode + i, "translation");
+                channels.add(new AnimationChannelSchema(samplers.size() - 1, translationChannelTargetSchema));
+            }
+        }
+
+        animations.add(new AnimationSchema(animation.name(), channels, samplers));
+    }
+
+    private float min(FloatBuffer buffer) {
+        float min = Float.POSITIVE_INFINITY;
+        for (int i = 0; i < buffer.capacity(); i++) {
+            min = Math.min(min, buffer.get(i));
+        }
+        return min;
+    }
+
+    private float max(FloatBuffer buffer) {
+        float max = Float.NEGATIVE_INFINITY;
+        for (int i = 0; i < buffer.capacity(); i++) {
+            max = Math.max(max, buffer.get(i));
+        }
+        return max;
+    }
+
+    private <T> int countNonNull(T[] array) {
+        return (int) Arrays.stream(array)
+            .filter(Objects::nonNull)
+            .count();
     }
 
 
@@ -269,7 +352,50 @@ public final class GltfWriter {
                 buffer.put(joint.inverseBasePose().transpose().toArray());
             }
             writeBuffer(buffer.flip());
+
+            if (animation != null) {
+                for (int i = 0; i < joints.size(); i++) {
+                    writeBuffer(buildKeyFrameBuffer(animation.rotations()[i]));
+                    writeBuffer(buildRotationBuffer(animation.rotations()[i]));
+                    writeBuffer(buildKeyFrameBuffer(animation.scales()[i]));
+                    writeBuffer(buildScaleTranslationBuffer(animation.scales()[i]));
+                    writeBuffer(buildKeyFrameBuffer(animation.translations()[i]));
+                    writeBuffer(buildScaleTranslationBuffer(animation.translations()[i]));
+                }
+            }
         }
+    }
+
+    private <T> FloatBuffer buildKeyFrameBuffer(T[] vectors) {
+        FloatBuffer buffer = FloatBuffer.allocate(countNonNull(vectors));
+        for (int i = 0; i < vectors.length; i++) {
+            if (vectors[i] != null) {
+                buffer.put((float) i / (float) animation.frameRate());
+            }
+        }
+        return buffer.flip();
+    }
+
+    private FloatBuffer buildRotationBuffer(Vector4[] vectors) {
+        int count = countNonNull(vectors);
+        FloatBuffer buffer = FloatBuffer.allocate(count * 4);
+        for (Vector4 vector : vectors) {
+            if (vector != null) {
+                vector.put(buffer);
+            }
+        }
+        return buffer.flip();
+    }
+
+    private FloatBuffer buildScaleTranslationBuffer(Vector3[] vectors) {
+        int count = countNonNull(vectors);
+        FloatBuffer buffer = FloatBuffer.allocate(count * 3);
+        for (Vector3 vector : vectors) {
+            if (vector != null) {
+                vector.put(buffer);
+            }
+        }
+        return buffer.flip();
     }
 
     private void writeBuffer(FloatBuffer floatBuffer) throws IOException {

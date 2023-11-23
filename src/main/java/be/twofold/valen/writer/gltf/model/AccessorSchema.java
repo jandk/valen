@@ -1,7 +1,5 @@
 package be.twofold.valen.writer.gltf.model;
 
-import be.twofold.valen.geometry.*;
-
 import java.util.*;
 
 public record AccessorSchema(
@@ -9,8 +7,8 @@ public record AccessorSchema(
     AccessorComponentType componentType,
     int count,
     AccessorType type,
-    Vector3 min,
-    Vector3 max,
+    float[] min,
+    float[] max,
     Boolean normalized
 ) {
     public AccessorSchema {

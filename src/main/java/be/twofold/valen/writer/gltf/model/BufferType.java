@@ -9,7 +9,10 @@ public enum BufferType {
     JointsN(AccessorComponentType.UnsignedByte, AccessorType.VEC4, false),
     WeightsN(AccessorComponentType.UnsignedByte, AccessorType.VEC4, true),
     Indices(AccessorComponentType.UnsignedShort, AccessorType.SCALAR, false),
-    InverseBind(AccessorComponentType.Float, AccessorType.MAT4, false);
+    InverseBind(AccessorComponentType.Float, AccessorType.MAT4, false),
+    KeyFrame(AccessorComponentType.Float, AccessorType.SCALAR, false),
+    Rotation(AccessorComponentType.Float, AccessorType.VEC4, false),
+    ScaleTranslation(AccessorComponentType.Float, AccessorType.VEC3, false);
 
     private final AccessorComponentType componentType;
     private final AccessorType dataType;

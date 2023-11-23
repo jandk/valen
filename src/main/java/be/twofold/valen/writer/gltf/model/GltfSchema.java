@@ -11,6 +11,7 @@ public record GltfSchema(
     List<NodeSchema> nodes,
     List<SceneSchema> scenes,
     List<SkinSchema> skins,
+    List<AnimationSchema> animations,
     int scene
 ) {
 }
