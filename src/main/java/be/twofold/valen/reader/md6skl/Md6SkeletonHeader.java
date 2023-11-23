@@ -59,7 +59,7 @@ public record Md6SkeletonHeader(
         );
     }
 
-    public int jointPadding() {
-        return 8 - numJoints % 8;
+    public int numJoints8() {
+        return numJoints + 7 & ~7;
     }
 }
