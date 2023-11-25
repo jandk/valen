@@ -1,6 +1,6 @@
 package be.twofold.valen.reader.geometry;
 
-import be.twofold.valen.*;
+import be.twofold.valen.core.util.*;
 
 public record GeometryMemoryLayout(
     int combinedVertexMask,

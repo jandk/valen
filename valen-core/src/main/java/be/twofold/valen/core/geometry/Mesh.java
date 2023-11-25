@@ -1,4 +1,4 @@
-package be.twofold.valen.geometry;
+package be.twofold.valen.core.geometry;
 
 import java.nio.*;
 
@@ -7,8 +7,9 @@ public record Mesh(
     FloatBuffer normals,
     FloatBuffer tangents,
     FloatBuffer texCoords,
-    ByteBuffer weights,
     ByteBuffer colors,
+    ByteBuffer joints,
+    ByteBuffer weights,
     ShortBuffer indices
 ) {
 }

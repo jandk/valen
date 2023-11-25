@@ -1,6 +1,6 @@
 package be.twofold.valen.reader.image;
 
-import be.twofold.valen.*;
+import be.twofold.valen.core.util.*;
 
 public record ImageHeader(
     byte version,

@@ -1,6 +1,6 @@
 package be.twofold.valen.reader.md6;
 
-import be.twofold.valen.*;
+import be.twofold.valen.core.util.*;
 
 import java.util.*;
 

@@ -1,15 +1,13 @@
 package be.twofold.valen.converter.decoder;
 
-import java.util.*;
+import be.twofold.valen.core.util.*;
 
 public abstract class BCDecoder {
     private final int bpb;
     final int bpp;
 
     BCDecoder(int bpb, int bpp) {
-        if (bpp < 1 || bpp > 4) {
-            throw new IllegalArgumentException("bpp must be between 1 and 4");
-        }
+        Check.argument(bpp >= 1 && bpp <= 4, "bpp must be between 1 and 4");
         this.bpb = bpb;
         this.bpp = bpp;
     }
@@ -22,23 +20,14 @@ public abstract class BCDecoder {
      * @param height The height of the image. Must be a multiple of 4 for now.
      */
     public byte[] decode(byte[] src, int width, int height) {
-        Objects.requireNonNull(src, "src is null");
-        if (width <= 0) {
-            throw new IllegalArgumentException("width must be greater than 0");
-        }
-        if (height <= 0) {
-            throw new IllegalArgumentException("height must be greater than 0");
-        }
-        if (width % 4 != 0) {
-            throw new IllegalArgumentException("width must be a multiple of 4 for now");
-        }
-        if (height % 4 != 0) {
-            throw new IllegalArgumentException("height must be a multiple of 4 for now");
-        }
+        Check.notNull(src, "src is null");
+        Check.argument(width > 0, "width must be greater than 0");
+        Check.argument(height > 0, "height must be greater than 0");
+        Check.argument(width % 4 == 0, "width must be a multiple of 4 for now");
+        Check.argument(height % 4 == 0, "height must be a multiple of 4 for now");
+
         int expectedLength = ((width + 3) / 4) * ((height + 3) / 4) * bpb;
-        if (src.length != expectedLength) {
-            throw new IllegalArgumentException("src has wrong length: expected " + expectedLength + ", got " + src.length);
-        }
+        Check.argument(src.length == expectedLength, () -> String.format("src has wrong length: expected of %d, got %d", expectedLength, src.length));
 
         byte[] dst = new byte[width * height * bpp];
         for (int y = 0, srcPos = 0; y < height; y += 4) {
@@ -59,10 +48,6 @@ public abstract class BCDecoder {
      * @param bpr    The bytes per row in the destination data.
      */
     public abstract void decodeBlock(byte[] src, int srcPos, byte[] dst, int dstPos, int bpr);
-
-    static float lerp(float a, float b, float t) {
-        return a + (b - a) * t;
-    }
 
     static byte pack(float f) {
         return (byte) (f * 255f + .5f);

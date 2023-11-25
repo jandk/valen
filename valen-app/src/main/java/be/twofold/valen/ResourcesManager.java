@@ -1,5 +1,6 @@
 package be.twofold.valen;
 
+import be.twofold.valen.core.util.*;
 import be.twofold.valen.oodle.*;
 import be.twofold.valen.reader.resource.*;
 
@@ -14,7 +15,7 @@ public final class ResourcesManager {
     private final FileManager fileManager;
 
     ResourcesManager(FileManager fileManager) {
-        this.fileManager = Objects.requireNonNull(fileManager);
+        this.fileManager = Check.notNull(fileManager);
     }
 
     public Collection<ResourcesEntry> getEntries() {

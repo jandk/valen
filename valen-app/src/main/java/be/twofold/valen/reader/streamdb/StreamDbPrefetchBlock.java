@@ -1,6 +1,6 @@
 package be.twofold.valen.reader.streamdb;
 
-import be.twofold.valen.*;
+import be.twofold.valen.core.util.*;
 
 public record StreamDbPrefetchBlock(
     long name,

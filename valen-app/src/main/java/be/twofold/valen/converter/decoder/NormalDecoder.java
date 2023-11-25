@@ -1,5 +1,7 @@
 package be.twofold.valen.converter.decoder;
 
+import be.twofold.valen.core.math.*;
+
 public final class NormalDecoder extends BCDecoder {
     private static final byte[] Lut = initializeLut();
 
@@ -33,7 +35,7 @@ public final class NormalDecoder extends BCDecoder {
         float yy = Byte.toUnsignedInt((byte) y) / 255.0f;
         float nx = (xx * 2.0f) - 1.0f;
         float ny = (yy * 2.0f) - 1.0f;
-        float nz = (float) Math.sqrt(1.0f - Math.clamp(nx * nx + ny * ny, 0.0f, 1.0f));
+        float nz = MathF.sqrt(1.0f - MathF.saturate(nx * nx + ny * ny));
         return (byte) Math.round(((nz + 1.0f) / 2.0f) * 255.0f);
     }
 

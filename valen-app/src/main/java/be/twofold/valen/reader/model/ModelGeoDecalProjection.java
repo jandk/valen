@@ -1,15 +1,15 @@
 package be.twofold.valen.reader.model;
 
-import be.twofold.valen.*;
-import be.twofold.valen.geometry.*;
+import be.twofold.valen.core.math.*;
+import be.twofold.valen.core.util.*;
 
 public record ModelGeoDecalProjection(
-    Vector4 projS,
-    Vector4 projT
+    Quaternion projS,
+    Quaternion projT
 ) {
     public static ModelGeoDecalProjection read(BetterBuffer buffer) {
-        Vector4 projS = buffer.getVector4();
-        Vector4 projT = buffer.getVector4();
+        Quaternion projS = buffer.getQuaternion();
+        Quaternion projT = buffer.getQuaternion();
         return new ModelGeoDecalProjection(projS, projT);
     }
 }

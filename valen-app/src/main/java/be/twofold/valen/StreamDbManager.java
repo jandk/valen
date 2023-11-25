@@ -1,5 +1,6 @@
 package be.twofold.valen;
 
+import be.twofold.valen.core.util.*;
 import be.twofold.valen.oodle.*;
 import be.twofold.valen.reader.streamdb.*;
 
@@ -14,7 +15,7 @@ public final class StreamDbManager {
     private final Map<Long, StreamDbEntry> hashToEntry = new HashMap<>();
 
     StreamDbManager(FileManager fileManager) {
-        this.fileManager = Objects.requireNonNull(fileManager);
+        this.fileManager = Check.notNull(fileManager);
         initialize();
     }
 
@@ -43,9 +44,7 @@ public final class StreamDbManager {
 
     public byte[] load(long identity, int size) {
         String path = hashToPath.get(identity);
-        if (path == null) {
-            throw new IllegalArgumentException(String.format("Unknown stream: 0x%016x", identity));
-        }
+        Check.argument(path != null, () -> String.format("Unknown stream: 0x%016x", identity));
 
         StreamDbEntry entry = hashToEntry.get(identity);
         SeekableByteChannel channel = fileManager.open(path);

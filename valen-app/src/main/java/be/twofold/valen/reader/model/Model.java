@@ -1,6 +1,6 @@
 package be.twofold.valen.reader.model;
 
-import be.twofold.valen.geometry.*;
+import be.twofold.valen.core.geometry.*;
 import be.twofold.valen.reader.geometry.*;
 
 import java.util.*;

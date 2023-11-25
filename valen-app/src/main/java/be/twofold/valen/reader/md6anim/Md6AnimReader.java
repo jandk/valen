@@ -1,7 +1,7 @@
 package be.twofold.valen.reader.md6anim;
 
-import be.twofold.valen.*;
-import be.twofold.valen.geometry.*;
+import be.twofold.valen.core.math.*;
+import be.twofold.valen.core.util.*;
 import be.twofold.valen.reader.md6skl.*;
 
 import java.util.*;
@@ -45,7 +45,7 @@ public final class Md6AnimReader {
         }
         System.out.println(Arrays.toString(counts));
 
-        Vector4[] constR = readQuats(dataOffset + data.constROffset(), animMaps.get(0).constR().length);
+        Quaternion[] constR = readQuats(dataOffset + data.constROffset(), animMaps.get(0).constR().length);
         Vector3[] constS = readVector3s(dataOffset + data.constSOffset(), animMaps.get(0).constS().length);
         Vector3[] constT = readVector3s(dataOffset + data.constTOffset(), animMaps.get(0).constT().length);
 
@@ -60,11 +60,11 @@ public final class Md6AnimReader {
         Md6AnimFrameSet animFrameSet = Md6AnimFrameSet.read(buffer);
 
         int bytesPerBone = (animFrameSet.frameRange() + 7) >> 3;
-        Vector4[] firstR = readQuats(frameSetOffset + animFrameSet.firstROffset(), animMap.animR().length);
+        Quaternion[] firstR = readQuats(frameSetOffset + animFrameSet.firstROffset(), animMap.animR().length);
         Vector3[] firstS = readVector3s(frameSetOffset + animFrameSet.firstSOffset(), animMap.animS().length);
         Vector3[] firstT = readVector3s(frameSetOffset + animFrameSet.firstTOffset(), animMap.animT().length);
 
-        Vector4[][] rangeR = readRangeQuats(
+        Quaternion[][] rangeR = readRangeQuats(
             frameSetOffset + animFrameSet.RBitsOffset(),
             frameSetOffset + animFrameSet.rangeROffset(),
             animMap.animR().length,
@@ -93,10 +93,10 @@ public final class Md6AnimReader {
         );
     }
 
-    private Vector4[] readQuats(int offset, int count) {
+    private Quaternion[] readQuats(int offset, int count) {
         BetterBuffer buffer = readBuffer(offset, 6 * count);
 
-        Vector4[] result = new Vector4[count];
+        Quaternion[] result = new Quaternion[count];
         for (int i = 0; i < result.length; i++) {
             result[i] = decodeQuat(buffer);
         }
@@ -113,12 +113,12 @@ public final class Md6AnimReader {
         return result;
     }
 
-    private Vector4[][] readRangeQuats(int bitsOffset, int rangeOffset, int boneCount, int frameCount, int bytesPerBone) {
+    private Quaternion[][] readRangeQuats(int bitsOffset, int rangeOffset, int boneCount, int frameCount, int bytesPerBone) {
         byte[] bytes = readBytes(bitsOffset, bytesPerBone * boneCount);
         Bits bits = new Bits(bytes);
         BetterBuffer buffer = readBuffer(rangeOffset, 6 * bits.cardinality());
 
-        Vector4[][] result = new Vector4[boneCount][frameCount];
+        Quaternion[][] result = new Quaternion[boneCount][frameCount];
         for (int bone = 0; bone < boneCount; bone++) {
             int boneOffset = bone * bytesPerBone * 8;
             for (int frame = 0; frame < frameCount; frame++) {
@@ -148,7 +148,7 @@ public final class Md6AnimReader {
 
     private static int[] counts = new int[4];
 
-    private static Vector4 decodeQuat(BetterBuffer buffer) {
+    private static Quaternion decodeQuat(BetterBuffer buffer) {
         short x = buffer.getShort();
         short y = buffer.getShort();
         short z = buffer.getShort();
@@ -164,14 +164,14 @@ public final class Md6AnimReader {
         float a = (x & 0x7fff) * factor - sqrt22;
         float b = (y & 0x7fff) * factor - sqrt22;
         float c = (z & 0x7fff) * factor - sqrt22;
-        float d = (float) Math.sqrt(1 - a * a - b * b - c * c);
+        float d = MathF.sqrt(1 - a * a - b * b - c * c);
 
         return switch (index) {
-            case 0 -> new Vector4(a, b, c, d);
-            case 1 -> new Vector4(b, c, d, a);
-            case 2 -> new Vector4(c, d, a, b);
-            case 3 -> new Vector4(d, a, b, c);
-//            default ->  new Vector4(a,b,c,d);
+            case 0 -> new Quaternion(a, b, c, d);
+            case 1 -> new Quaternion(b, c, d, a);
+            case 2 -> new Quaternion(c, d, a, b);
+            case 3 -> new Quaternion(d, a, b, c);
+//            default ->  new Quaternion(a,b,c,d);
             default -> throw new IllegalStateException("Unexpected value: " + index);
         };
     }

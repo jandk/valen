@@ -1,7 +1,7 @@
 package be.twofold.valen.reader.md6;
 
-import be.twofold.valen.*;
-import be.twofold.valen.geometry.*;
+import be.twofold.valen.core.math.*;
+import be.twofold.valen.core.util.*;
 import be.twofold.valen.reader.geometry.*;
 
 public record Md6LodInfo(

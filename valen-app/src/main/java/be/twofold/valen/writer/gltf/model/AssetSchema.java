@@ -1,13 +1,13 @@
 package be.twofold.valen.writer.gltf.model;
 
-import java.util.*;
+import be.twofold.valen.core.util.*;
 
 public record AssetSchema(
     String generator,
     String version
 ) {
     public AssetSchema {
-        Objects.requireNonNull(generator, "generator must not be null");
-        Objects.requireNonNull(version, "version must not be null");
+        Check.notNull(generator, "generator must not be null");
+        Check.notNull(version, "version must not be null");
     }
 }

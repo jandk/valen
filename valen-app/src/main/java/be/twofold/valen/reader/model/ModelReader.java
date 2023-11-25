@@ -1,7 +1,8 @@
 package be.twofold.valen.reader.model;
 
 import be.twofold.valen.*;
-import be.twofold.valen.geometry.*;
+import be.twofold.valen.core.geometry.*;
+import be.twofold.valen.core.util.*;
 import be.twofold.valen.reader.geometry.*;
 import be.twofold.valen.reader.resource.*;
 
@@ -126,7 +127,7 @@ public final class ModelReader {
         }
 
         indices.put(buffer.getShorts(lodInfo.numEdges()));
-        return new Mesh(vertices, normals, tangents, texCoords, null, null, indices);
+        return new Mesh(vertices, normals, tangents, texCoords, null, null, null, indices);
     }
 
     private List<Mesh> readStreamedGeometry(int lod) {

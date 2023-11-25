@@ -1,6 +1,6 @@
 package be.twofold.valen.reader.geometry;
 
-import be.twofold.valen.geometry.*;
+import be.twofold.valen.core.math.*;
 
 public interface LodInfo {
 

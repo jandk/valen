@@ -1,5 +1,8 @@
 package be.twofold.valen.converter.decoder;
 
+import be.twofold.valen.core.math.*;
+import be.twofold.valen.core.util.*;
+
 public final class BC4UDecoder extends BCDecoder {
     private final int rOff;
 
@@ -11,9 +14,7 @@ public final class BC4UDecoder extends BCDecoder {
      */
     public BC4UDecoder(int bpp, int rOff) {
         super(8, bpp);
-        if (rOff < 0 || rOff >= bpp) {
-            throw new IllegalArgumentException("rOff must be in range [0, bpp)");
-        }
+        Check.argument(rOff >= 0 && rOff < bpp, "rOff must be in range [0, bpp)");
 
         this.rOff = rOff;
     }
@@ -34,17 +35,17 @@ public final class BC4UDecoder extends BCDecoder {
         float r1f = Byte.toUnsignedInt(r1) / 255.0f;
         byte r2, r3, r4, r5, r6, r7;
         if (r0f > r1f) {
-            r2 = pack(lerp(r0f, r1f, 1.0f / 7.0f));
-            r3 = pack(lerp(r0f, r1f, 2.0f / 7.0f));
-            r4 = pack(lerp(r0f, r1f, 3.0f / 7.0f));
-            r5 = pack(lerp(r0f, r1f, 4.0f / 7.0f));
-            r6 = pack(lerp(r0f, r1f, 5.0f / 7.0f));
-            r7 = pack(lerp(r0f, r1f, 6.0f / 7.0f));
+            r2 = pack(MathF.lerp(r0f, r1f, 1.0f / 7.0f));
+            r3 = pack(MathF.lerp(r0f, r1f, 2.0f / 7.0f));
+            r4 = pack(MathF.lerp(r0f, r1f, 3.0f / 7.0f));
+            r5 = pack(MathF.lerp(r0f, r1f, 4.0f / 7.0f));
+            r6 = pack(MathF.lerp(r0f, r1f, 5.0f / 7.0f));
+            r7 = pack(MathF.lerp(r0f, r1f, 6.0f / 7.0f));
         } else {
-            r2 = pack(lerp(r0f, r1f, 1.0f / 5.0f));
-            r3 = pack(lerp(r0f, r1f, 2.0f / 5.0f));
-            r4 = pack(lerp(r0f, r1f, 3.0f / 5.0f));
-            r5 = pack(lerp(r0f, r1f, 4.0f / 5.0f));
+            r2 = pack(MathF.lerp(r0f, r1f, 1.0f / 5.0f));
+            r3 = pack(MathF.lerp(r0f, r1f, 2.0f / 5.0f));
+            r4 = pack(MathF.lerp(r0f, r1f, 3.0f / 5.0f));
+            r5 = pack(MathF.lerp(r0f, r1f, 4.0f / 5.0f));
             r6 = (byte) 0x00;
             r7 = (byte) 0xff;
         }

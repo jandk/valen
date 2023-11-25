@@ -10,4 +10,11 @@
 
     <artifactId>valen-app</artifactId>
 
+    <dependencies>
+        <dependency>
+            <groupId>be.twofold</groupId>
+            <artifactId>valen-core</artifactId>
+        </dependency>
+    </dependencies>
+
 </project>

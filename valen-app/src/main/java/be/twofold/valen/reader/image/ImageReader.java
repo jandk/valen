@@ -1,6 +1,7 @@
 package be.twofold.valen.reader.image;
 
 import be.twofold.valen.*;
+import be.twofold.valen.core.util.*;
 import be.twofold.valen.reader.resource.*;
 
 import java.util.*;

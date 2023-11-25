@@ -1,5 +1,7 @@
 package be.twofold.valen.writer.gltf;
 
+import be.twofold.valen.core.geometry.*;
+import be.twofold.valen.core.math.*;
 import be.twofold.valen.geometry.*;
 import be.twofold.valen.reader.md6skl.*;
 import be.twofold.valen.writer.gltf.model.*;
@@ -124,8 +126,8 @@ public final class GltfWriter {
         attributes.put("TEXCOORD_0", buildAccessor(mesh.texCoords().capacity(), BufferType.TexCoordN, null, null));
 
         if (skeleton != null) {
-            fixJointsWithEmptyWeights(mesh.colors(), mesh.weights());
-            attributes.put("JOINTS_0", buildAccessor(mesh.colors().capacity(), BufferType.JointsN, null, null));
+            fixJointsWithEmptyWeights(mesh.joints(), mesh.weights());
+            attributes.put("JOINTS_0", buildAccessor(mesh.joints().capacity(), BufferType.JointsN, null, null));
             attributes.put("WEIGHTS_0", buildAccessor(mesh.weights().capacity(), BufferType.WeightsN, null, null));
         } else {
             attributes.put("COLOR_0", buildAccessor(mesh.colors().capacity(), BufferType.ColorN, null, null));
@@ -208,12 +210,12 @@ public final class GltfWriter {
 
     private void buildSkeleton() {
         int offset = nodes.size();
-        List<Md6SkeletonJoint> joints = skeleton.joints();
+        List<Bone> joints = skeleton.joints();
 
         // Calculate the parent-child relationships
         Map<Integer, List<Integer>> children = new HashMap<>();
         for (int i = 0; i < joints.size(); i++) {
-            Md6SkeletonJoint joint = joints.get(i);
+            Bone joint = joints.get(i);
             children
                 .computeIfAbsent(joint.parent(), __ -> new ArrayList<>())
                 .add(offset + i);
@@ -233,7 +235,7 @@ public final class GltfWriter {
         buildSkeletonSkin(jointIndices);
     }
 
-    private void buildSkeletonJoint(Md6SkeletonJoint joint, List<Integer> children) {
+    private void buildSkeletonJoint(Bone joint, List<Integer> children) {
         NodeSchema node = NodeSchema.buildSkeletonNode(
             joint.name(),
             joint.rotation(),
@@ -336,7 +338,7 @@ public final class GltfWriter {
             writeBuffer(mesh.tangents());
             writeBuffer(mesh.texCoords());
             if (skeleton != null) {
-                writeBuffer(mesh.colors());
+                writeBuffer(mesh.joints());
                 writeBuffer(mesh.weights());
             } else {
                 writeBuffer(mesh.colors());
@@ -346,10 +348,10 @@ public final class GltfWriter {
 
         // Write inverse bind matrices
         if (skeleton != null) {
-            List<Md6SkeletonJoint> joints = skeleton.joints();
+            List<Bone> joints = skeleton.joints();
             FloatBuffer buffer = FloatBuffer.allocate(joints.size() * 16);
-            for (Md6SkeletonJoint joint : joints) {
-                buffer.put(joint.inverseBasePose().transpose().toArray());
+            for (Bone joint : joints) {
+                buffer.put(joint.inverseBasePose().toArray());
             }
             writeBuffer(buffer.flip());
 
@@ -376,10 +378,10 @@ public final class GltfWriter {
         return buffer.flip();
     }
 
-    private FloatBuffer buildRotationBuffer(Vector4[] vectors) {
+    private FloatBuffer buildRotationBuffer(Quaternion[] vectors) {
         int count = countNonNull(vectors);
         FloatBuffer buffer = FloatBuffer.allocate(count * 4);
-        for (Vector4 vector : vectors) {
+        for (Quaternion vector : vectors) {
             if (vector != null) {
                 vector.put(buffer);
             }

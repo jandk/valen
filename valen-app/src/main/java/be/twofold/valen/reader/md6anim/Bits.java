@@ -1,5 +1,7 @@
 package be.twofold.valen.reader.md6anim;
 
+import be.twofold.valen.core.util.*;
+
 import java.util.*;
 
 public final class Bits {
@@ -10,7 +12,7 @@ public final class Bits {
     }
 
     public boolean get(int index) {
-        Objects.checkIndex(index, size());
+        Check.index(index, size());
 
         int byteIndex = index / 8;
         int bitIndex = 0x80 >>> (index & 7);

@@ -1,5 +1,8 @@
 package be.twofold.valen.converter.decoder;
 
+import be.twofold.valen.core.math.*;
+import be.twofold.valen.core.util.*;
+
 public final class BC1Decoder extends BCDecoder {
     private final int rOff;
     private final int gOff;
@@ -15,9 +18,9 @@ public final class BC1Decoder extends BCDecoder {
      */
     public BC1Decoder(int bpp, int rOff, int gOff, int bOff) {
         super(8, bpp);
-        if (rOff < 0 || rOff >= bpp || gOff < 0 || gOff >= bpp || bOff < 0 || bOff >= bpp) {
-            throw new IllegalArgumentException("Offsets must be in range [0, bpp)");
-        }
+        Check.argument(rOff >= 0 && rOff < bpp, "rOff must be in range [0, bpp)");
+        Check.argument(gOff >= 0 && gOff < bpp, "gOff must be in range [0, bpp)");
+        Check.argument(bOff >= 0 && bOff < bpp, "bOff must be in range [0, bpp)");
 
         this.rOff = rOff;
         this.gOff = gOff;
@@ -40,16 +43,16 @@ public final class BC1Decoder extends BCDecoder {
         byte r3, g3, b3;
 
         if (c0 > c1) {
-            r2 = pack(lerp(r0f, r1f, 1f / 3f));
-            g2 = pack(lerp(g0f, g1f, 1f / 3f));
-            b2 = pack(lerp(b0f, b1f, 1f / 3f));
-            r3 = pack(lerp(r0f, r1f, 2f / 3f));
-            g3 = pack(lerp(g0f, g1f, 2f / 3f));
-            b3 = pack(lerp(b0f, b1f, 2f / 3f));
+            r2 = pack(MathF.lerp(r0f, r1f, 1f / 3f));
+            g2 = pack(MathF.lerp(g0f, g1f, 1f / 3f));
+            b2 = pack(MathF.lerp(b0f, b1f, 1f / 3f));
+            r3 = pack(MathF.lerp(r0f, r1f, 2f / 3f));
+            g3 = pack(MathF.lerp(g0f, g1f, 2f / 3f));
+            b3 = pack(MathF.lerp(b0f, b1f, 2f / 3f));
         } else {
-            r2 = pack(lerp(r0f, r1f, .5f));
-            g2 = pack(lerp(g0f, g1f, .5f));
-            b2 = pack(lerp(b0f, b1f, .5f));
+            r2 = pack(MathF.lerp(r0f, r1f, .5f));
+            g2 = pack(MathF.lerp(g0f, g1f, .5f));
+            b2 = pack(MathF.lerp(b0f, b1f, .5f));
             r3 = 0;
             g3 = 0;
             b3 = 0;

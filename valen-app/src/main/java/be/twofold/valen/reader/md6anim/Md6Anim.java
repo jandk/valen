@@ -1,6 +1,6 @@
 package be.twofold.valen.reader.md6anim;
 
-import be.twofold.valen.geometry.*;
+import be.twofold.valen.core.math.*;
 
 import java.util.*;
 
@@ -9,7 +9,7 @@ public record Md6Anim(
     Md6AnimData data,
     AnimMap animMap,
     List<FrameSet> frameSets,
-    Vector4[] constR,
+    Quaternion[] constR,
     Vector3[] constS,
     Vector3[] constT
 ) {

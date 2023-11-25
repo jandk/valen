@@ -1,6 +1,6 @@
 package be.twofold.valen.reader.resource;
 
-import be.twofold.valen.*;
+import be.twofold.valen.core.util.*;
 
 public record ResourcesHeader(
     int numFileEntries,

@@ -1,4 +1,4 @@
-package be.twofold.valen;
+package be.twofold.valen.core.util;
 
 import java.io.*;
 import java.nio.*;

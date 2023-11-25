@@ -1,6 +1,6 @@
 package be.twofold.valen.reader.md6skl;
 
-import be.twofold.valen.*;
+import be.twofold.valen.core.util.*;
 
 public record Md6SkeletonHeader(
     short size,

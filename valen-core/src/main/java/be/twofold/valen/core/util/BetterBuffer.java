@@ -1,6 +1,6 @@
-package be.twofold.valen;
+package be.twofold.valen.core.util;
 
-import be.twofold.valen.geometry.*;
+import be.twofold.valen.core.math.*;
 
 import java.nio.*;
 import java.nio.charset.*;
@@ -13,8 +13,8 @@ public final class BetterBuffer {
     private final ByteBuffer buffer;
 
     public BetterBuffer(ByteBuffer buffer) {
-        this.buffer = Objects
-            .requireNonNull(buffer, "buffer is null")
+        this.buffer = Check
+            .notNull(buffer, "buffer is null")
             .order(ByteOrder.LITTLE_ENDIAN);
     }
 
@@ -118,12 +118,12 @@ public final class BetterBuffer {
         return new Vector3(x, y, z);
     }
 
-    public Vector4 getVector4() {
+    public Quaternion getQuaternion() {
         float x = getFloat();
         float y = getFloat();
         float z = getFloat();
         float w = getFloat();
-        return new Vector4(x, y, z, w);
+        return new Quaternion(x, y, z, w);
     }
 
     public <T> List<T> getStructs(int count, Function<BetterBuffer, T> reader) {
@@ -150,36 +150,26 @@ public final class BetterBuffer {
 
     public void expectByte(int expected) {
         byte value = getByte();
-        if (value != expected) {
-            throw new IllegalStateException("Expected " + expected + ", but got " + value);
-        }
+        Check.state(value == expected, () -> String.format("Expected %s, but got %s", expected, value));
     }
 
     public void expectShort(int expected) {
         short value = getShort();
-        if (value != expected) {
-            throw new IllegalStateException("Expected " + expected + ", but got " + value);
-        }
+        Check.state(value == expected, () -> String.format("Expected %s, but got %s", expected, value));
     }
 
     public void expectInt(int expected) {
         int value = getInt();
-        if (value != expected) {
-            throw new IllegalStateException("Expected " + expected + ", but got " + value);
-        }
+        Check.state(value == expected, () -> String.format("Expected %s, but got %s", expected, value));
     }
 
     public void expectLong(long expected) {
         long value = getLong();
-        if (value != expected) {
-            throw new IllegalStateException("Expected " + expected + ", but got " + value);
-        }
+        Check.state(value == expected, () -> String.format("Expected %s, but got %s", expected, value));
     }
 
     public void expectEnd() {
-        if (buffer.hasRemaining()) {
-            throw new IllegalStateException("Expected end of buffer, but got " + buffer.remaining() + " bytes left");
-        }
+        Check.state(!buffer.hasRemaining(), () -> "Expected end of buffer, but got " + buffer.remaining() + " bytes left");
     }
 
     public String printBitSetRanges() {

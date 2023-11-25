@@ -1,7 +1,7 @@
 package be.twofold.valen.reader.geometry;
 
-import be.twofold.valen.*;
-import be.twofold.valen.geometry.*;
+import be.twofold.valen.core.geometry.*;
+import be.twofold.valen.core.util.*;
 
 import java.nio.*;
 import java.util.*;
@@ -9,12 +9,13 @@ import java.util.stream.*;
 
 public final class GeometryReader {
     private final boolean hasWeights;
-    private final List<FloatBuffer> vertexBuffers = new ArrayList<>();
+    private final List<FloatBuffer> positionBuffers = new ArrayList<>();
     private final List<FloatBuffer> normalBuffers = new ArrayList<>();
     private final List<FloatBuffer> tangentBuffers = new ArrayList<>();
-    private final List<FloatBuffer> uvBuffers = new ArrayList<>();
-    private final List<ByteBuffer> weightBuffers = new ArrayList<>();
+    private final List<FloatBuffer> texCoordBuffers = new ArrayList<>();
     private final List<ByteBuffer> colorBuffers = new ArrayList<>();
+    private final List<ByteBuffer> jointBuffers = new ArrayList<>();
+    private final List<ByteBuffer> weightBuffers = new ArrayList<>();
     private final List<ShortBuffer> indexBuffers = new ArrayList<>();
 
     public GeometryReader(boolean hasWeights) {
@@ -36,7 +37,7 @@ public final class GeometryReader {
                     case 0x20 -> readPackedVertices(buffer, lod);
                     default -> throw new RuntimeException("Unknown position mask: " + layout.positionMask());
                 })
-                .forEach(vertexBuffers::add);
+                .forEach(positionBuffers::add);
         }
 
         for (GeometryMemoryLayout layout : layouts) {
@@ -72,7 +73,7 @@ public final class GeometryReader {
                     case 0x20000 -> readPackedUVs(buffer, lod);
                     default -> throw new RuntimeException("Unknown UV mask: " + layout.normalMask());
                 })
-                .forEach(uvBuffers::add);
+                .forEach(texCoordBuffers::add);
         }
 
         for (GeometryMemoryLayout layout : layouts) {
@@ -80,7 +81,13 @@ public final class GeometryReader {
             lods.stream()
                 .filter(lod -> lod.flags() == layout.combinedVertexMask())
                 .map(lod -> readColors(buffer, lod))
-                .forEach(colorBuffers::add);
+                .forEach(bb -> {
+                    if (hasWeights) {
+                        jointBuffers.add(bb);
+                    } else {
+                        colorBuffers.add(bb);
+                    }
+                });
         }
 
         for (GeometryMemoryLayout layout : layouts) {
@@ -172,12 +179,13 @@ public final class GeometryReader {
 
     private Mesh getMesh(int i) {
         return new Mesh(
-            vertexBuffers.get(i),
+            positionBuffers.get(i),
             normalBuffers.get(i),
             tangentBuffers.get(i),
-            uvBuffers.get(i),
-            hasWeights ? weightBuffers.get(i) : null,
-            colorBuffers.get(i),
+            texCoordBuffers.get(i),
+            colorBuffers.isEmpty() ? null : colorBuffers.get(i),
+            jointBuffers.isEmpty() ? null : jointBuffers.get(i),
+            weightBuffers.isEmpty() ? null : weightBuffers.get(i),
             indexBuffers.get(i)
         );
     }

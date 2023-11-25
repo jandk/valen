@@ -1,8 +1,9 @@
 package be.twofold.valen.writer.png;
 
+import be.twofold.valen.core.util.*;
+
 import java.io.*;
 import java.nio.*;
-import java.util.*;
 import java.util.zip.*;
 
 /**
@@ -32,8 +33,8 @@ final class PngOutputStream implements AutoCloseable {
     private int idatLength = 0;
 
     PngOutputStream(OutputStream output, PngFormat format) {
-        this.output = Objects.requireNonNull(output, "output is null");
-        this.format = Objects.requireNonNull(format, "format is null");
+        this.output = Check.notNull(output, "output is null");
+        this.format = Check.notNull(format, "format is null");
         this.filtered = new byte[5][format.bytesPerPixel() + format.bytesPerRow()];
         this.previous = new byte[format.bytesPerPixel() + format.bytesPerRow()];
 

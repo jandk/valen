@@ -1,6 +1,6 @@
 package be.twofold.valen.reader.md6anim;
 
-import be.twofold.valen.*;
+import be.twofold.valen.core.util.*;
 
 public record Md6AnimMapOffsets(
     //offset to RLE stream that specifies how many constant R joints there are and which target joint indices they map to

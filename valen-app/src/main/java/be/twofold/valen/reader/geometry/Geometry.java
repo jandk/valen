@@ -1,7 +1,7 @@
 package be.twofold.valen.reader.geometry;
 
-import be.twofold.valen.*;
-import be.twofold.valen.geometry.*;
+import be.twofold.valen.core.math.*;
+import be.twofold.valen.core.util.*;
 
 import java.nio.*;
 
@@ -20,7 +20,7 @@ public final class Geometry {
     }
 
     public static void readVertex(BetterBuffer src, FloatBuffer dst, Vector3 offset, float scale) {
-        src.getVector3().mul(scale).add(offset).put(dst);
+        src.getVector3().multiply(scale).add(offset).put(dst);
     }
 
     public static void readPackedVertex(BetterBuffer src, FloatBuffer dst, Vector3 offset, float scale) {
@@ -29,7 +29,7 @@ public final class Geometry {
         float z = toUNorm(src.getShort());
         src.skip(2);
 
-        new Vector3(x, y, z).mul(scale).add(offset).put(dst);
+        new Vector3(x, y, z).multiply(scale).add(offset).put(dst);
     }
 
     public static void readPackedNormal(BetterBuffer src, FloatBuffer nDst) {
@@ -69,14 +69,14 @@ public final class Geometry {
     }
 
     public static void readUV(BetterBuffer src, FloatBuffer dst, Vector2 offset, float scale) {
-        src.getVector2().mul(scale).add(offset).put(dst);
+        src.getVector2().multiply(scale).add(offset).put(dst);
     }
 
     public static void readPackedUV(BetterBuffer src, FloatBuffer dst, Vector2 offset, float scale) {
         float u = toUNorm(src.getShort());
         float v = toUNorm(src.getShort());
 
-        new Vector2(u, v).mul(scale).add(offset).put(dst);
+        new Vector2(u, v).multiply(scale).add(offset).put(dst);
     }
 
     private static float toSNorm(byte b) {

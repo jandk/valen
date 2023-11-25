@@ -1,7 +1,8 @@
 package be.twofold.valen.reader.md6;
 
 import be.twofold.valen.*;
-import be.twofold.valen.geometry.*;
+import be.twofold.valen.core.geometry.*;
+import be.twofold.valen.core.util.*;
 import be.twofold.valen.reader.geometry.*;
 import be.twofold.valen.reader.resource.*;
 
@@ -88,9 +89,9 @@ public final class Md6Reader {
 
         for (int i = 0; i < meshInfos.size(); i++) {
             Md6MeshInfo meshInfo = meshInfos.get(i);
-            ByteBuffer colors = meshes.get(i).colors();
+            ByteBuffer joints = meshes.get(i).joints();
 
-            byte[] array = colors.array();
+            byte[] array = joints.array();
             for (int j = 0; j < array.length; j++) {
                 array[j] = lookup[(array[j] & 0xff) + meshInfo.unknown2()];
             }

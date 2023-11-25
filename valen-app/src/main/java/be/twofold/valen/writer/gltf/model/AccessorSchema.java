@@ -1,6 +1,6 @@
 package be.twofold.valen.writer.gltf.model;
 
-import java.util.*;
+import be.twofold.valen.core.util.*;
 
 public record AccessorSchema(
     int bufferView,
@@ -12,7 +12,7 @@ public record AccessorSchema(
     Boolean normalized
 ) {
     public AccessorSchema {
-        Objects.requireNonNull(componentType, "componentType must not be null");
-        Objects.requireNonNull(type, "type must not be null");
+        Check.notNull(componentType, "componentType must not be null");
+        Check.notNull(type, "type must not be null");
     }
 }

@@ -1,19 +1,19 @@
 package be.twofold.valen.writer.gltf.model;
 
-import be.twofold.valen.geometry.*;
+import be.twofold.valen.core.math.*;
 
 import java.util.*;
 
 public record NodeSchema(
     String name,
-    Vector4 rotation,
+    Quaternion rotation,
     Vector3 translation,
     Vector3 scale,
     List<Integer> children,
     Integer mesh,
     Integer skin
 ) {
-    public static NodeSchema buildSkeletonNode(String name, Vector4 rotation, Vector3 translation, Vector3 scale, List<Integer> children) {
+    public static NodeSchema buildSkeletonNode(String name, Quaternion rotation, Vector3 translation, Vector3 scale, List<Integer> children) {
         return new NodeSchema(name, rotation, translation, scale, children, null, null);
     }
 

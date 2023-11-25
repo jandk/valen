@@ -1,5 +1,7 @@
 package be.twofold.valen.geometry;
 
+import be.twofold.valen.core.math.*;
+
 public record Bounds(
     Vector3 min,
     Vector3 max

@@ -1,5 +1,6 @@
 package be.twofold.valen;
 
+import be.twofold.valen.core.util.*;
 import be.twofold.valen.reader.packagemapspec.*;
 import be.twofold.valen.reader.resource.*;
 
@@ -16,7 +17,7 @@ public final class FileManager {
     private final ResourcesManager resourcesManager;
 
     public FileManager(Path base) {
-        this.base = Objects.requireNonNull(base);
+        this.base = Check.notNull(base);
         this.spec = PackageMapSpecReader.read(base.resolve("packagemapspec.json"));
         this.streamDbManager = new StreamDbManager(this);
         this.resourcesManager = new ResourcesManager(this);
