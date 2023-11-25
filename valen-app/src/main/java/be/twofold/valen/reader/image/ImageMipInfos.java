@@ -2,7 +2,7 @@ package be.twofold.valen.reader.image;
 
 import be.twofold.valen.core.util.*;
 
-public record ImageMip(
+public record ImageMipInfos(
     int mipLevel,
     int mipSlice,
     int mipPixelWidth,
@@ -12,7 +12,7 @@ public record ImageMip(
     int compressedSize,
     int cumulativeSizeStreamDB
 ) {
-    public static ImageMip read(BetterBuffer buffer) {
+    public static ImageMipInfos read(BetterBuffer buffer) {
         int mipLevel = buffer.getInt();
         int mipSlice = buffer.getInt();
         int mipPixelWidth = buffer.getInt();
@@ -23,7 +23,7 @@ public record ImageMip(
         int compressedSize = buffer.getInt();
         int cumulativeSizeStreamDB = buffer.getInt();
 
-        return new ImageMip(
+        return new ImageMipInfos(
             mipLevel,
             mipSlice,
             mipPixelWidth,

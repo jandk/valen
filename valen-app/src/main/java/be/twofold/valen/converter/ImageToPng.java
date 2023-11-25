@@ -17,7 +17,7 @@ public final class ImageToPng {
 
     public Png convert(Image image) {
         int minMip = image.minMip();
-        ImageMip mip = image.mips().get(minMip);
+        ImageMipInfos mip = image.mipInfos().get(minMip);
         int width = mip.mipPixelWidth();
         int height = mip.mipPixelHeight();
 

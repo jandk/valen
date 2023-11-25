@@ -1,5 +1,7 @@
 package be.twofold.valen.reader.image;
 
+import java.util.*;
+
 public enum ImageTextureMaterialKind {
     TMK_NONE(0x00),
     TMK_ALBEDO(0x01),
@@ -26,7 +28,6 @@ public enum ImageTextureMaterialKind {
     TMK_BLENDMASK(0x16),
     TMK_COUNT(0x17);
 
-    private static final ImageTextureMaterialKind[] values = values();
     private final int code;
 
     ImageTextureMaterialKind(int code) {
@@ -38,11 +39,9 @@ public enum ImageTextureMaterialKind {
     }
 
     public static ImageTextureMaterialKind fromCode(int code) {
-        for (ImageTextureMaterialKind value : values) {
-            if (value.code == code) {
-                return value;
-            }
-        }
-        throw new IllegalArgumentException("Unknown code: " + code);
+        return Arrays.stream(values())
+            .filter(value -> value.code == code)
+            .findFirst()
+            .orElseThrow(() -> new IllegalArgumentException("Unknown texture material kind: " + code));
     }
 }

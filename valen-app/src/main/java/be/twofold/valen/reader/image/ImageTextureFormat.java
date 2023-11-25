@@ -1,5 +1,7 @@
 package be.twofold.valen.reader.image;
 
+import java.util.*;
+
 public enum ImageTextureFormat {
     FMT_NONE(0x00),
     FMT_RGBA32F(0x01),
@@ -58,7 +60,6 @@ public enum ImageTextureFormat {
     FMT_BC1_ZERO_ALPHA(0x36),
     FMT_NEXTAVAILABLE(0x37);
 
-    private static final ImageTextureFormat[] values = values();
     private final int code;
 
     ImageTextureFormat(int code) {
@@ -70,11 +71,9 @@ public enum ImageTextureFormat {
     }
 
     public static ImageTextureFormat fromCode(int code) {
-        for (ImageTextureFormat value : values) {
-            if (value.code == code) {
-                return value;
-            }
-        }
-        throw new IllegalArgumentException("Unknown code: " + code);
+        return Arrays.stream(values())
+            .filter(value -> value.code == code)
+            .findFirst()
+            .orElseThrow(() -> new IllegalArgumentException("Unknown texture format: " + code));
     }
 }
