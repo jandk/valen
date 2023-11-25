@@ -6,6 +6,12 @@
     <groupId>be.twofold</groupId>
     <artifactId>valen</artifactId>
     <version>1.0-SNAPSHOT</version>
+    <packaging>pom</packaging>
+
+    <modules>
+        <module>valen-app</module>
+        <module>valen-core</module>
+    </modules>
 
     <properties>
         <maven.compiler.source>21</maven.compiler.source>
