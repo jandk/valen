@@ -10,6 +10,7 @@ public record Model(
     List<ModelMeshInfo> meshInfos,
     List<List<ModelLodInfo>> lodInfos,
     ModelSettings settings,
+    ModelGeoDecals geoDecals,
     ModelBooleans booleans,
     List<List<GeometryMemoryLayout>> streamInfos,
     List<GeometryDiskLayout> streamLayouts,

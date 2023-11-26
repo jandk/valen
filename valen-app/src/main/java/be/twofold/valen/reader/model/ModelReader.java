@@ -37,23 +37,19 @@ public final class ModelReader {
         header = ModelHeader.read(buffer);
         readMeshesAndLods();
         ModelSettings settings = ModelSettings.read(buffer);
-        readGeoDecals();
+        ModelGeoDecals geoDecals = readGeoDecals();
         ModelBooleans booleans = ModelBooleans.read(buffer);
         buffer.skip(header.numMeshes() * LodCount);
 
         List<Mesh> meshes;
         if (header.streamed()) {
-            if (readMeshes) {
-                readStreamInfo();
-                meshes = readStreamedGeometry(0);
-            } else {
-                meshes = List.of();
-            }
+            readStreamInfo();
+            meshes = readMeshes ? readStreamedGeometry(0) : List.of();
         } else {
             meshes = readEmbeddedGeometry();
         }
 
-        return new Model(header, meshInfos, lodInfos, settings, booleans, streamMemLayouts, streamDiskLayouts, meshes);
+        return new Model(header, meshInfos, lodInfos, settings, geoDecals, booleans, streamMemLayouts, streamDiskLayouts, meshes);
     }
 
     private void readMeshesAndLods() {
@@ -69,13 +65,14 @@ public final class ModelReader {
         }
     }
 
-    private void readGeoDecals() {
+    private ModelGeoDecals readGeoDecals() {
         int numGeoDecals = buffer.getInt();
-        List<ModelGeoDecalProjection> geoDecalProjections = new ArrayList<>();
+        List<ModelGeoDecalProjection> projections = new ArrayList<>();
         for (int i = 0; i < numGeoDecals; i++) {
-            geoDecalProjections.add(ModelGeoDecalProjection.read(buffer));
+            projections.add(ModelGeoDecalProjection.read(buffer));
         }
-        String geoDecalMaterialName = buffer.getString();
+        String materialName = buffer.getString();
+        return new ModelGeoDecals(materialName, projections);
     }
 
     private void readStreamInfo() {
