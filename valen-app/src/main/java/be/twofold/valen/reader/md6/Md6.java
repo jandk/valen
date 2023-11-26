@@ -10,6 +10,7 @@ public record Md6(
     Md6BoneInfo boneInfo,
     List<Md6MeshInfo> meshInfos,
     List<Md6MaterialInfo> materialInfos,
+    Md6GeoDecals geoDecals,
     List<GeometryMemoryLayout> memoryLayouts,
     List<GeometryDiskLayout> diskLayouts,
     List<Mesh> meshes

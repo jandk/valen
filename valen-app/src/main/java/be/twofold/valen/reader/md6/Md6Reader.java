@@ -26,43 +26,44 @@ public final class Md6Reader {
         this.entry = entry;
     }
 
-    public static Md6 read(BetterBuffer buffer, FileManager fileManager, ResourcesEntry entry) {
-        return new Md6Reader(buffer, fileManager, entry).read();
-    }
-
-    private Md6 read() {
+    public Md6 read(boolean streamed) {
         Md6Header header = Md6Header.read(buffer);
         boneInfo = Md6BoneInfo.read(buffer);
         meshInfos = buffer.getStructs(buffer.getInt(), Md6MeshInfo::read);
         List<Md6MaterialInfo> materialInfos = buffer.getStructs(buffer.getInt(), Md6MaterialInfo::read);
+        Md6GeoDecals geoDecals = readGeoDecals().orElse(null);
 
-        skipGeoDecals();
         buffer.expectInt(5);
-
         memoryLayouts = buffer.getStructs(5, GeometryMemoryLayout::read);
         diskLayouts = buffer.getStructs(5, GeometryDiskLayout::read);
-
         buffer.expectEnd();
 
-        meshes = readStreamedGeometry(0);
+        if (streamed) {
+            meshes = readStreamedGeometry(0);
 
-        // Apply the lookup table for the joint indices
-        fixJointIndices();
+            // Apply the lookup table for the joint indices
+            fixJointIndices();
+        } else {
+            meshes = List.of();
+        }
 
-        return new Md6(header, boneInfo, meshInfos, materialInfos, memoryLayouts, diskLayouts, meshes);
+        return new Md6(header, boneInfo, meshInfos, materialInfos, geoDecals, memoryLayouts, diskLayouts, meshes);
     }
 
-    private void skipGeoDecals() {
-        String geoDecalName = buffer.getString();
-        if (!geoDecalName.isEmpty()) {
-            throw new UnsupportedOperationException("GeoDecals are not supported");
+    private Optional<Md6GeoDecals> readGeoDecals() {
+        String materialName = buffer.getString();
+        int numStreams = buffer.getInt();
+        if (materialName.isEmpty() && numStreams == 0) {
+            return Optional.empty();
         }
-        int numGeoDecalStreams = buffer.getInt();
-        int numGeoDecalElements = 0;
-        for (int i = 0; i < numGeoDecalStreams; i++) {
-            numGeoDecalElements += buffer.getInt();
+
+        int[] counts = buffer.getInts(numStreams);
+        int[][] indices = new int[numStreams][];
+        for (int stream = 0; stream < numStreams; stream++) {
+            indices[stream] = buffer.getInts(counts[stream]);
         }
-        buffer.skip(numGeoDecalElements * 4);
+
+        return Optional.of(new Md6GeoDecals(materialName, counts, indices));
     }
 
     private List<Mesh> readStreamedGeometry(int lod) {
