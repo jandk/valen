@@ -5,7 +5,7 @@ import java.util.stream.*;
 
 public record Image(
     ImageHeader header,
-    List<ImageMipInfos> mipInfos,
+    List<ImageMipInfo> mipInfos,
     byte[][] mipData
 ) {
     public int minMip() {

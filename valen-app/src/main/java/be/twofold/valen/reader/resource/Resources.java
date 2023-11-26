@@ -10,16 +10,11 @@ public record Resources(
 ) {
     @Override
     public String toString() {
-        StringBuilder builder = new StringBuilder();
-        builder.append("Resources[");
-        builder.append("header=").append(header).append(", ");
-        builder.append("entries=").append(entries.size()).append(" entries, ");
-        if (dependencies != null) {
-            builder.append(", ");
-            builder.append("dependencies=").append(dependencies.size()).append(" entries, ");
-            builder.append("dependencyIndex=").append(dependencyIndex.length).append(" indices, ");
-        }
-        builder.append("]");
-        return builder.toString();
+        return "Resources[" +
+               "header=" + header + ", " +
+               "entries=" + entries.size() + " entries, " +
+               "dependencies=" + dependencies.size() + " entries, " +
+               "dependencyIndex=" + dependencyIndex.length + " indices" +
+               "]";
     }
 }

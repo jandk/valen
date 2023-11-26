@@ -11,17 +11,12 @@ public record StreamDb(
 ) {
     @Override
     public String toString() {
-        StringBuilder builder = new StringBuilder();
-        builder.append("StreamDb[");
-        builder.append("header=").append(header).append(", ");
-        builder.append("entries=").append(entries.size()).append(" entries");
-        if (prefetchHeader != null) {
-            builder.append(", ");
-            builder.append("prefetchHeader=").append(prefetchHeader).append(", ");
-            builder.append("prefetchBlocks=").append(prefetchBlocks.size()).append(" blocks, ");
-            builder.append("prefetchIDs=").append(prefetchIDs.length).append(" IDs");
-        }
-        builder.append("]");
-        return builder.toString();
+        return "StreamDb[" +
+               "header=" + header + ", " +
+               "entries=" + entries.size() + " entries, " +
+               "prefetchHeader=" + prefetchHeader + ", " +
+               "prefetchBlocks=" + prefetchBlocks.size() + " blocks, " +
+               "prefetchIDs=" + prefetchIDs.length + " IDs" +
+               "]";
     }
 }

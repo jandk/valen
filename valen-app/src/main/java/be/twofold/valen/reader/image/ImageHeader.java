@@ -23,9 +23,9 @@ public record ImageHeader(
     static final int Size = 0x3f;
 
     public static ImageHeader read(BetterBuffer buffer) {
-        buffer.expectByte(0x42);
-        buffer.expectByte(0x49);
-        buffer.expectByte(0x4d);
+        buffer.expectByte('B');
+        buffer.expectByte('I');
+        buffer.expectByte('M');
         byte version = buffer.getByte();
 
         ImageTextureType textureType = ImageTextureType.fromCode(buffer.getInt());

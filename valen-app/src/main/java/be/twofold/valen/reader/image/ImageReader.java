@@ -12,7 +12,7 @@ public final class ImageReader {
     private final ResourcesEntry entry;
 
     private ImageHeader header;
-    private List<ImageMipInfos> mipInfos;
+    private List<ImageMipInfo> mipInfos;
     private byte[][] mipData;
 
     public ImageReader(BetterBuffer buffer, FileManager fileManager, ResourcesEntry entry) {
@@ -23,7 +23,7 @@ public final class ImageReader {
 
     public Image read(boolean readMips) {
         header = ImageHeader.read(buffer);
-        mipInfos = buffer.getStructs(header.totalMipCount(), ImageMipInfos::read);
+        mipInfos = buffer.getStructs(header.totalMipCount(), ImageMipInfo::read);
         mipData = new byte[mipInfos.size()][];
         readMipsFromBuffer(buffer, header.startMip());
         if (readMips) {
@@ -53,7 +53,7 @@ public final class ImageReader {
     private void loadMultiStream() {
         int minMip = Integer.parseInt(entry.name().properties().getOrDefault("minmip", "0"));
         for (int i = minMip; i < header.startMip(); i++) {
-            ImageMipInfos mip = mipInfos.get(i);
+            ImageMipInfo mip = mipInfos.get(i);
             long hash = entry.defaultHash() << 4 | (header.mipCount() - mip.mipLevel());
             if (!fileManager.streamExists(hash)) {
                 System.err.println("Stream not found: " + Long.toHexString(hash));
@@ -70,7 +70,7 @@ public final class ImageReader {
         }
     }
 
-    private byte[] readMip(BetterBuffer buffer, ImageMipInfos mip) {
+    private byte[] readMip(BetterBuffer buffer, ImageMipInfo mip) {
         return buffer.getBytes(mip.decompressedSize());
     }
 }
