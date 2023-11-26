@@ -1,0 +1,90 @@
+#include "common.bt"
+
+struct ModelHeader {
+    uint always0_1;
+    uint always0_2;
+    uint always0_3;
+    uint always5;
+    uint numMeshes;
+    uint always0_4;
+    float unknown1;
+    float unknown2;
+    float unknown3;
+    uint always0_5;
+    uint streamed;
+};
+
+struct ModelLodInfo {
+    int alwaysMinus2;
+    uint numVertices;
+    uint numEdges;
+    uint flags;
+    Vector3 negBounds;
+    Vector3 posBounds;
+    Vector3 vertexOffset;
+    float vertexScale;
+    Vector2 uvOffset;
+    float uvScale;
+    uint always0;
+    float unkFloat1;
+    float unkFloat2;
+    char alwaysBLMr[4];
+};
+
+struct ModelSettings {
+    float unkFloat;
+    int unknown1;
+    int unknown2;
+    uint always0;
+};
+
+struct ModelGeoDecalProjection {
+    Vector4 projS;
+    Vector4 projT;
+};
+
+struct ModelGeoDecals {
+    uint numGeoDecals;
+    ModelGeoDecalProjection projections[numGeoDecals];
+    SString declName;
+};
+
+struct ModelBooleans {
+    ubyte unknown1;
+    ubyte unknown2;
+    ubyte unknown3;
+    ubyte unknown4;
+};
+
+struct ModelMeshInfo {
+    SString declName;
+    uint unkHash;
+    uint unknown;
+    uint always0;
+
+    local uint i;
+    for(i = 0; i < 5; i++) {
+        uint absent;
+        if(absent == 0) {
+            ModelLodInfo lodInfo <style=sHeading3>;
+        }
+    }
+};
+
+struct Layout {
+    uint numStreams;
+    GeometryMemoryLayout memoryLayout[numStreams] <optimize=false>;
+    GeometryDiskLayout diskLayout;
+};
+
+struct Model {
+    ModelHeader header <style=sHeading1>;
+    ModelMeshInfo meshInfo[header.numMeshes] <style=sHeading2, optimize=false>;
+    ModelSettings settings <style=sHeading4>;
+    ModelGeoDecals geoDecals <style=sHeading1>;
+    ModelBooleans booleans <style=sHeading2>;
+    ubyte streamedSurfaces[header.numMeshes * 5] <style=sHeading3>;
+    if (header.streamed) {
+        Layout layouts[5] <style=sHeading4, optimize=false>;
+    }
+} model;

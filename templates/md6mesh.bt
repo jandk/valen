@@ -71,37 +71,6 @@ struct Md6GeoDecal {
     uint decals[numElements];
 };
 
-struct GeometryMemoryLayout {
-    uint combinedVertexMask;
-    uint size;
-    uint numVertexStreams;
-    Assert(numVertexStreams == 4 || numVertexStreams == 5);
-    
-    uint positionMask; // 1 = unpacked, 32 = packed
-    uint normalMask; // always 20
-    if(numVertexStreams == 5) {
-        uint uvLightmapMask; // always 64
-    }
-    uint uvMask; // 131072 = unpacked, 32768 = packed
-    uint colorMask; // always 8
-    
-    uint positionOffset;
-    uint normalOffset;
-    if(numVertexStreams == 5) {
-        uint uvLightmapOffset;
-    }
-    uint uvOffset;
-    uint colorOffset;
-    uint indexOffset;
-};
-
-struct GeometryDiskLayout {
-    uint compression;
-    uint uncompressedSize;
-    uint compressedSize;
-    uint offset;
-};
-
 struct Md6Mesh {
     Md6Header header <style=sHeading1>;
     Md6BoneInfo boneInfo <style=sHeading2>;
