@@ -1,10 +1,7 @@
 package be.twofold.valen.core.math;
 
-import com.fasterxml.jackson.annotation.*;
-
 import java.nio.*;
 
-@JsonFormat(shape = JsonFormat.Shape.ARRAY)
 public record Quaternion(float x, float y, float z, float w) {
     public Quaternion add(Quaternion other) {
         return new Quaternion(x + other.x, y + other.y, z + other.z, w + other.w);

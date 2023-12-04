@@ -1,7 +1,5 @@
 package be.twofold.valen.writer.gltf.model;
 
-import com.fasterxml.jackson.annotation.*;
-
 public enum AccessorComponentType {
     SignedByte(5120, 1),
     UnsignedByte(5121, 1),
@@ -18,7 +16,6 @@ public enum AccessorComponentType {
         this.size = size;
     }
 
-    @JsonValue
     public int getId() {
         return id;
     }

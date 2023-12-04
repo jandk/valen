@@ -1,10 +1,7 @@
 package be.twofold.valen.core.math;
 
-import com.fasterxml.jackson.annotation.*;
-
 import java.nio.*;
 
-@JsonFormat(shape = JsonFormat.Shape.ARRAY)
 public record Vector2(float x, float y) {
     public Vector2 add(Vector2 other) {
         return new Vector2(x + other.x, y + other.y);

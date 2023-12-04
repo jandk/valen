@@ -1,13 +1,13 @@
 package be.twofold.valen.writer.gltf;
 
 import be.twofold.valen.core.geometry.*;
+import be.twofold.valen.core.math.QuaternionTypeAdapter;
 import be.twofold.valen.core.math.*;
 import be.twofold.valen.geometry.*;
 import be.twofold.valen.reader.md6skl.*;
+import be.twofold.valen.writer.gltf.gson.*;
 import be.twofold.valen.writer.gltf.model.*;
-import com.fasterxml.jackson.annotation.*;
-import com.fasterxml.jackson.databind.*;
-import com.fasterxml.jackson.databind.node.*;
+import com.google.gson.*;
 
 import java.io.*;
 import java.nio.*;
@@ -17,8 +17,14 @@ import java.nio.file.*;
 import java.util.*;
 
 public final class GltfWriter {
-    private static final ObjectMapper Mapper = new ObjectMapper()
-        .setSerializationInclusion(JsonInclude.Include.NON_ABSENT);
+    private static final Gson GSON = new GsonBuilder()
+        .registerTypeAdapter(AccessorComponentType.class, new AccessorComponentTypeTypeAdapter())
+        .registerTypeAdapter(BufferViewTarget.class, new BufferViewTargetTypeAdapter().nullSafe())
+        .registerTypeAdapter(Quaternion.class, new QuaternionTypeAdapter().nullSafe())
+        .registerTypeAdapter(Vector2.class, new Vector2TypeAdapter())
+        .registerTypeAdapter(Vector3.class, new Vector3TypeAdapter().nullSafe())
+        .registerTypeAdapter(Vector4.class, new Vector4TypeAdapter())
+        .create();
 
     private final WritableByteChannel channel;
     private final List<Mesh> sourceMeshes;
@@ -65,8 +71,8 @@ public final class GltfWriter {
         try {
             GltfSchema gltf = buildGltf();
 
-            String json = Mapper.writeValueAsString(gltf);
-            String prettyJson = Mapper.writer().withDefaultPrettyPrinter().writeValueAsString(gltf);
+            String json = GSON.toJson(gltf);
+            String prettyJson = GSON.newBuilder().setPrettyPrinting().create().toJson(gltf);
             Files.writeString(Path.of("C:\\Temp\\gltf.json"), prettyJson);
 
             byte[] rawJson = json.getBytes(StandardCharsets.US_ASCII);
@@ -118,19 +124,19 @@ public final class GltfWriter {
     }
 
     private PrimitiveSchema buildMeshPrimitive(Mesh mesh) {
-        ObjectNode attributes = Mapper.getNodeFactory().objectNode();
+        JsonObject attributes = new JsonObject();
         Bounds bounds = calculateBounds(mesh.positions());
-        attributes.put("POSITION", buildAccessor(mesh.positions().capacity(), BufferType.Position, bounds.min().toArray(), bounds.max().toArray()));
-        attributes.put("NORMAL", buildAccessor(mesh.normals().capacity(), BufferType.Normal, null, null));
-        attributes.put("TANGENT", buildAccessor(mesh.tangents().capacity(), BufferType.Tangent, null, null));
-        attributes.put("TEXCOORD_0", buildAccessor(mesh.texCoords().capacity(), BufferType.TexCoordN, null, null));
+        attributes.addProperty("POSITION", buildAccessor(mesh.positions().capacity(), BufferType.Position, bounds.min().toArray(), bounds.max().toArray()));
+        attributes.addProperty("NORMAL", buildAccessor(mesh.normals().capacity(), BufferType.Normal, null, null));
+        attributes.addProperty("TANGENT", buildAccessor(mesh.tangents().capacity(), BufferType.Tangent, null, null));
+        attributes.addProperty("TEXCOORD_0", buildAccessor(mesh.texCoords().capacity(), BufferType.TexCoordN, null, null));
 
         if (skeleton != null) {
             fixJointsWithEmptyWeights(mesh.joints(), mesh.weights());
-            attributes.put("JOINTS_0", buildAccessor(mesh.joints().capacity(), BufferType.JointsN, null, null));
-            attributes.put("WEIGHTS_0", buildAccessor(mesh.weights().capacity(), BufferType.WeightsN, null, null));
+            attributes.addProperty("JOINTS_0", buildAccessor(mesh.joints().capacity(), BufferType.JointsN, null, null));
+            attributes.addProperty("WEIGHTS_0", buildAccessor(mesh.weights().capacity(), BufferType.WeightsN, null, null));
         } else {
-            attributes.put("COLOR_0", buildAccessor(mesh.colors().capacity(), BufferType.ColorN, null, null));
+            attributes.addProperty("COLOR_0", buildAccessor(mesh.colors().capacity(), BufferType.ColorN, null, null));
         }
 
         return new PrimitiveSchema(
@@ -196,8 +202,11 @@ public final class GltfWriter {
 
     private void buildNodes() {
         Integer skin = skeleton != null ? 0 : null;
-        NodeSchema node = NodeSchema.buildMeshSkin(0, skin);
-        nodes.add(node);
+        NodeSchema meshSkin = NodeSchema.buildMeshSkin(0, skin);
+        nodes.add(meshSkin);
+
+        NodeSchema rst = NodeSchema.buildRST(List.of(nodes.size() - 1));
+        nodes.add(rst);
     }
 
     private void buildScenes() {

@@ -20,4 +20,9 @@ public record NodeSchema(
     public static NodeSchema buildMeshSkin(int mesh, Integer skin) {
         return new NodeSchema(null, null, null, null, null, mesh, skin);
     }
+
+    public static NodeSchema buildRST(List<Integer> children) {
+        float sqrt22 = (float) (Math.sqrt(2) / 2);
+        return new NodeSchema("RST", new Quaternion(-sqrt22, 0, 0, sqrt22), null, null, children, null, null);
+    }
 }

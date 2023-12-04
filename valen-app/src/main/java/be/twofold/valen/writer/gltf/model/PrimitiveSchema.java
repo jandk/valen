@@ -1,9 +1,9 @@
 package be.twofold.valen.writer.gltf.model;
 
-import com.fasterxml.jackson.databind.node.*;
+import com.google.gson.*;
 
 public record PrimitiveSchema(
-    ObjectNode attributes,
+    JsonObject attributes,
     int indices
 ) {
 }
