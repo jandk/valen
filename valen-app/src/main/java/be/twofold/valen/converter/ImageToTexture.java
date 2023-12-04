@@ -40,9 +40,8 @@ public final class ImageToTexture {
         // I might not be sure about all these mappings, but it's a start
         return switch (format) {
             case FMT_ALPHA -> TextureFormat.A8Unorm;
-            case FMT_BC1 -> TextureFormat.Bc1Unorm;
+            case FMT_BC1, FMT_BC1_ZERO_ALPHA -> TextureFormat.Bc1Unorm;
             case FMT_BC1_SRGB -> TextureFormat.Bc1UnormSrgb;
-            case FMT_BC1_ZERO_ALPHA -> TextureFormat.Bc1Typeless;
             case FMT_BC3 -> TextureFormat.Bc3Unorm;
             case FMT_BC3_SRGB -> TextureFormat.Bc3UnormSrgb;
             case FMT_BC4 -> TextureFormat.Bc4Unorm;
