@@ -1,0 +1,44 @@
+struct header {
+    char signature[4];
+    uint32 texture_count_maybe;
+    uint32 unknown2;
+    uint32 level_count;
+    uint32 x_resolution;
+    uint32 y_resolution;
+    uint32 block_width;
+    uint32 block_height;
+    uint32 x_resolution_;
+    uint32 y_resolution_;
+    uint32 block_width_;
+    uint32 block_height_;
+    uint32 unknown7;
+    uint32 quadtree_level_count;
+    uint64 pointer_offset;
+    uint64 quadtree_offset;
+    uint32 pointer_count;
+    uint32 quadtree_count;
+};
+
+struct quad_tree_level
+{
+    uint32 unknown1;
+    uint32 unknown2;
+    uint32 block_width;
+    uint32 block_height;
+    uint32 offset;
+    uint32 length;
+};
+
+struct pointer {
+    uint64 offset;
+    uint64 length;
+};
+
+header h <style=sHeading1>;
+quad_tree_level levels[h.quadtree_level_count] <style=sHeading2>;
+
+FSeek(h.quadtree_offset);
+uint32 quadtree[h.quadtree_count];
+
+FSeek(h.pointer_offset);
+pointer pointers[h.pointer_count];
