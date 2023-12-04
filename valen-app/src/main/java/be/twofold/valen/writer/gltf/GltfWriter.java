@@ -1,7 +1,6 @@
 package be.twofold.valen.writer.gltf;
 
 import be.twofold.valen.core.geometry.*;
-import be.twofold.valen.core.math.QuaternionTypeAdapter;
 import be.twofold.valen.core.math.*;
 import be.twofold.valen.geometry.*;
 import be.twofold.valen.reader.md6skl.*;
