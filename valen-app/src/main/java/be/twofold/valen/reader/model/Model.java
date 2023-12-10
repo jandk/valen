@@ -9,9 +9,9 @@ public record Model(
     ModelHeader header,
     List<ModelMeshInfo> meshInfos,
     List<List<ModelLodInfo>> lodInfos,
-    ModelSettings settings,
+    ModelMisc1 misc1,
     ModelGeoDecals geoDecals,
-    ModelBooleans booleans,
+    ModelMisc2 misc2,
     List<List<GeometryMemoryLayout>> streamInfos,
     List<GeometryDiskLayout> streamLayouts,
     List<Mesh> meshes

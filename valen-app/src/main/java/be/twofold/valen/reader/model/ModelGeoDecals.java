@@ -1,13 +1,17 @@
 package be.twofold.valen.reader.model;
 
+import be.twofold.valen.core.util.*;
+
 import java.util.*;
 
 public record ModelGeoDecals(
-    String materialName,
-    List<ModelGeoDecalProjection> projections
+    List<ModelGeoDecalProjection> projections,
+    String materialName
 ) {
-    public ModelGeoDecals {
-        Objects.requireNonNull(materialName, "materialName must not be null");
-        projections = List.copyOf(projections);
+    public static ModelGeoDecals read(BetterBuffer buffer) {
+        int numGeoDecals = buffer.getInt();
+        List<ModelGeoDecalProjection> projections = buffer.getStructs(numGeoDecals, ModelGeoDecalProjection::read);
+        String materialName = buffer.getString();
+        return new ModelGeoDecals(projections, materialName);
     }
 }

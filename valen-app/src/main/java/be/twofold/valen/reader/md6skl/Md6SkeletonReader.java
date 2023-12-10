@@ -18,9 +18,8 @@ public final class Md6SkeletonReader {
 
     public Md6Skeleton read() {
         header = Md6SkeletonHeader.read(buffer);
-        short[] remapTable = readRemapTable();
         List<Bone> bones = readJoints();
-        return new Md6Skeleton(header, remapTable, bones);
+        return new Md6Skeleton(header, bones);
     }
 
     private List<Bone> readJoints() {
@@ -59,13 +58,5 @@ public final class Md6SkeletonReader {
                 inverseBasePoses.get(i)
             ))
             .toList();
-    }
-
-    private short[] readRemapTable() {
-        if (header.skelRemapTblOffset() == 0) {
-            return new short[0];
-        }
-        buffer.position(header.skelRemapTblOffset() + 4);
-        return buffer.getShorts(header.numJoints());
     }
 }

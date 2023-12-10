@@ -6,7 +6,6 @@ import java.util.*;
 
 public record Md6Skeleton(
     Md6SkeletonHeader header,
-    short[] remapTable,
     List<Bone> joints
 ) {
 }

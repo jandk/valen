@@ -28,34 +28,34 @@ struct Md6AnimData {
 	ubyte pad3[8];
 };
 
-struct Md6AnimMap {
-	ushort constRRLEOffset;
-	ushort constSRLEOffset;
-	ushort constTRLEOffset;
-	ushort constURLEOffset;
-	ushort animRRLEOffset;
-	ushort animSRLEOffset;
-	ushort animTRLEOffset;
-	ushort animURLEOffset;
-
-    local uint32 position = FTell();
-
-    FSeek(startof(this) - 4 + constRRLEOffset); ubyte constRRLELength;
-    FSeek(startof(this) - 4 + constSRLEOffset); ubyte constSRLELength;
-    FSeek(startof(this) - 4 + constTRLEOffset); ubyte constTRLELength;
-    FSeek(startof(this) - 4 + constURLEOffset); ubyte constURLELength;
-    FSeek(startof(this) - 4 + animRRLEOffset);  ubyte animRRLELength;
-    FSeek(startof(this) - 4 + animSRLEOffset);  ubyte animSRLELength;
-    FSeek(startof(this) - 4 + animTRLEOffset);  ubyte animTRLELength;
-    FSeek(startof(this) - 4 + animURLEOffset);  ubyte animURLELength;
-
-    FSeek(position);
-};
-
 struct Md6AnimMaps {
+    local int start = FTell();
     ushort animMapCount;
     ushort tableCrc[animMapCount];
-    Md6AnimMap animMaps[animMapCount] <optimize=false>;
+    
+    struct Md6AnimMap {
+	    ushort constRRLEOffset;
+	    ushort constSRLEOffset;
+	    ushort constTRLEOffset;
+	    ushort constURLEOffset;
+	    ushort animRRLEOffset;
+	    ushort animSRLEOffset;
+	    ushort animTRLEOffset;
+	    ushort animURLEOffset;
+    
+        local uint32 position = FTell();
+    
+        FSeek(start + constRRLEOffset); ubyte constRRLELength;
+        FSeek(start + constSRLEOffset); ubyte constSRLELength;
+        FSeek(start + constTRLEOffset); ubyte constTRLELength;
+        FSeek(start + constURLEOffset); ubyte constURLELength;
+        FSeek(start + animRRLEOffset);  ubyte animRRLELength;
+        FSeek(start + animSRLEOffset);  ubyte animSRLELength;
+        FSeek(start + animTRLEOffset);  ubyte animTRLELength;
+        FSeek(start + animURLEOffset);  ubyte animURLELength;
+    
+        FSeek(position);
+    } animMaps[animMapCount] <optimize=false>;
 };
 
 struct FrameSet {

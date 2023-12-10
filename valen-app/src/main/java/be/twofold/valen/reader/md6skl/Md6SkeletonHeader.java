@@ -16,7 +16,6 @@ public record Md6SkeletonHeader(
     short[] jointWeightOffsets,
     short[] userWeightOffsets,
     short extraJointTblOffset,
-    short skelRemapTblOffset,
     short loadedDataSize,
     byte[] pad
 ) {
@@ -35,7 +34,7 @@ public record Md6SkeletonHeader(
         short[] jointWeightOffsets = buffer.getShorts(8);
         short[] userWeightOffsets = buffer.getShorts(8);
         short extraJointTblOffset = buffer.getShort();
-        short skelRemapTblOffset = buffer.getShort();
+        buffer.expectShort(0); // skelRemapTblOffset
         short loadedDataSize = buffer.getShort();
         byte[] pad = buffer.getBytes(6);
 
@@ -53,7 +52,6 @@ public record Md6SkeletonHeader(
             jointWeightOffsets,
             userWeightOffsets,
             extraJointTblOffset,
-            skelRemapTblOffset,
             loadedDataSize,
             pad
         );

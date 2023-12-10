@@ -100,6 +100,14 @@ public final class BetterBuffer {
         return longs;
     }
 
+    public float[] getFloats(int count) {
+        read.set(buffer.position(), buffer.position() + count * Float.BYTES);
+        float[] floats = new float[count];
+        buffer.asFloatBuffer().get(floats);
+        skip(count * Float.BYTES);
+        return floats;
+    }
+
     public String getString() {
         int size = getInt();
         return new String(getBytes(size), StandardCharsets.US_ASCII);

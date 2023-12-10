@@ -7,7 +7,7 @@ import java.util.*;
 public record Md6Anim(
     Md6AnimHeader header,
     Md6AnimData data,
-    AnimMap animMap,
+    List<AnimMap> animMaps,
     List<FrameSet> frameSets,
     Quaternion[] constR,
     Vector3[] constS,

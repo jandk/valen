@@ -4,8 +4,8 @@ import be.twofold.valen.core.util.*;
 
 public record ModelMeshInfo(
     String decl,
-    int unknown3,
-    int dummy1
+    int unkHash,
+    int unknown
 ) {
     public static ModelMeshInfo read(BetterBuffer buffer) {
         String decl = buffer.getString();

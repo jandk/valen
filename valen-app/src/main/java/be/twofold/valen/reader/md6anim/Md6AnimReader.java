@@ -2,27 +2,24 @@ package be.twofold.valen.reader.md6anim;
 
 import be.twofold.valen.core.math.*;
 import be.twofold.valen.core.util.*;
-import be.twofold.valen.reader.md6skl.*;
 
 import java.util.*;
 
 public final class Md6AnimReader {
     private final BetterBuffer buffer;
-    private final Md6Skeleton skeleton;
 
     private int dataOffset;
     private Md6AnimData data;
+    private List<AnimMap> animMaps;
+    private byte[] frameSetTable;
     private int[] frameSetOffsetTable;
 
-    private List<AnimMap> animMaps;
-
-    private Md6AnimReader(BetterBuffer buffer, Md6Skeleton skeleton) {
+    private Md6AnimReader(BetterBuffer buffer) {
         this.buffer = buffer;
-        this.skeleton = skeleton;
     }
 
-    public static Md6Anim read(BetterBuffer buffer, Md6Skeleton skeleton) {
-        return new Md6AnimReader(buffer, skeleton).read();
+    public static Md6Anim read(BetterBuffer buffer) {
+        return new Md6AnimReader(buffer).read();
     }
 
     public Md6Anim read() {
@@ -33,23 +30,22 @@ public final class Md6AnimReader {
 
         animMaps = readAnimMaps();
         if (animMaps.size() != 1) {
-            throw new UnsupportedOperationException("Expected 1 anim map, got " + animMaps.size());
+            System.out.println("Found " + animMaps.size() + " anim maps, expected 1");
         }
 
-        byte[] frameSetTable = readFrameSetTable();
+        frameSetTable = readFrameSetTable();
         frameSetOffsetTable = readFrameSetOffsetTable();
 
         List<FrameSet> frameSets = new ArrayList<>();
         for (int i = 0; i < data.numFrameSets(); i++) {
             frameSets.add(readFrameSet(i));
         }
-        System.out.println(Arrays.toString(counts));
 
         Quaternion[] constR = readQuats(dataOffset + data.constROffset(), animMaps.get(0).constR().length);
         Vector3[] constS = readVector3s(dataOffset + data.constSOffset(), animMaps.get(0).constS().length);
         Vector3[] constT = readVector3s(dataOffset + data.constTOffset(), animMaps.get(0).constT().length);
 
-        return new Md6Anim(header, data, animMaps.get(0), frameSets, constR, constS, constT);
+        return new Md6Anim(header, data, animMaps, frameSets, constR, constS, constT);
     }
 
     private FrameSet readFrameSet(int frameSetNumber) {
@@ -146,8 +142,6 @@ public final class Md6AnimReader {
         return result;
     }
 
-    private static int[] counts = new int[4];
-
     private static Quaternion decodeQuat(BetterBuffer buffer) {
         short x = buffer.getShort();
         short y = buffer.getShort();
@@ -156,7 +150,6 @@ public final class Md6AnimReader {
         int xBit = (x >>> 15) & 1;
         int yBit = (y >>> 15) & 1;
         int index = (yBit << 1 | xBit);
-        counts[index]++;
 
         float factor = (float) (Math.sqrt(2) / 0x8000);
         float sqrt22 = (float) (Math.sqrt(2) / 2);
@@ -171,7 +164,6 @@ public final class Md6AnimReader {
             case 1 -> new Quaternion(b, c, d, a);
             case 2 -> new Quaternion(c, d, a, b);
             case 3 -> new Quaternion(d, a, b, c);
-//            default ->  new Quaternion(a,b,c,d);
             default -> throw new IllegalStateException("Unexpected value: " + index);
         };
     }
@@ -216,7 +208,7 @@ public final class Md6AnimReader {
 
     private byte[] readAnimMap(int position) {
         buffer.position(position);
-        return RLEDecoder.decodeRLE(buffer, skeleton.joints().size());
+        return RLEDecoder.decodeRLE(buffer, 0xff);
     }
 
     private byte[] readFrameSetTable() {

@@ -36,9 +36,9 @@ public final class ModelReader {
     public Model read(boolean readMeshes) throws IOException {
         header = ModelHeader.read(buffer);
         readMeshesAndLods();
-        ModelSettings settings = ModelSettings.read(buffer);
-        ModelGeoDecals geoDecals = readGeoDecals();
-        ModelBooleans booleans = ModelBooleans.read(buffer);
+        ModelMisc1 misc1 = ModelMisc1.read(buffer);
+        ModelGeoDecals geoDecals = ModelGeoDecals.read(buffer);
+        ModelMisc2 misc2 = ModelMisc2.read(buffer);
         buffer.skip(header.numMeshes() * LodCount);
 
         List<Mesh> meshes;
@@ -49,7 +49,7 @@ public final class ModelReader {
             meshes = readEmbeddedGeometry();
         }
 
-        return new Model(header, meshInfos, lodInfos, settings, geoDecals, booleans, streamMemLayouts, streamDiskLayouts, meshes);
+        return new Model(header, meshInfos, lodInfos, misc1, geoDecals, misc2, streamMemLayouts, streamDiskLayouts, meshes);
     }
 
     private void readMeshesAndLods() {
@@ -63,16 +63,6 @@ public final class ModelReader {
                 }
             }
         }
-    }
-
-    private ModelGeoDecals readGeoDecals() {
-        int numGeoDecals = buffer.getInt();
-        List<ModelGeoDecalProjection> projections = new ArrayList<>();
-        for (int i = 0; i < numGeoDecals; i++) {
-            projections.add(ModelGeoDecalProjection.read(buffer));
-        }
-        String materialName = buffer.getString();
-        return new ModelGeoDecals(materialName, projections);
     }
 
     private void readStreamInfo() {

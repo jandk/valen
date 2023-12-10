@@ -31,7 +31,7 @@ public final class Md6Reader {
         boneInfo = Md6BoneInfo.read(buffer);
         meshInfos = buffer.getStructs(buffer.getInt(), Md6MeshInfo::read);
         List<Md6MaterialInfo> materialInfos = buffer.getStructs(buffer.getInt(), Md6MaterialInfo::read);
-        Md6GeoDecals geoDecals = readGeoDecals().orElse(null);
+        Md6GeoDecals geoDecals = Md6GeoDecals.read(buffer);
 
         buffer.expectInt(5);
         memoryLayouts = buffer.getStructs(5, GeometryMemoryLayout::read);
@@ -48,22 +48,6 @@ public final class Md6Reader {
         }
 
         return new Md6(header, boneInfo, meshInfos, materialInfos, geoDecals, memoryLayouts, diskLayouts, meshes);
-    }
-
-    private Optional<Md6GeoDecals> readGeoDecals() {
-        String materialName = buffer.getString();
-        int numStreams = buffer.getInt();
-        if (materialName.isEmpty() && numStreams == 0) {
-            return Optional.empty();
-        }
-
-        int[] counts = buffer.getInts(numStreams);
-        int[][] indices = new int[numStreams][];
-        for (int stream = 0; stream < numStreams; stream++) {
-            indices[stream] = buffer.getInts(counts[stream]);
-        }
-
-        return Optional.of(new Md6GeoDecals(materialName, counts, indices));
     }
 
     private List<Mesh> readStreamedGeometry(int lod) {

@@ -16,7 +16,6 @@ public record ResourcesEntry(
     int version,
     int flags,
     byte compMode,
-    byte reserved0,
     short variation,
     short numDependencies
 ) {
@@ -26,7 +25,7 @@ public record ResourcesEntry(
         buffer.expectLong(0); // resourceTypeString
         buffer.expectLong(1); // nameString
         buffer.expectLong(-1); // descString
-        int depIndices = buffer.getLongAsInt(); // depIndices
+        int depIndices = buffer.getLongAsInt();
         int strings = buffer.getLongAsInt();
         buffer.expectLong(0); // specialHashes
         buffer.expectLong(0); // metaEntries
@@ -39,7 +38,7 @@ public record ResourcesEntry(
         int version = buffer.getInt();
         int flags = buffer.getInt();
         byte compMode = buffer.getByte();
-        byte reserved0 = buffer.getByte();
+        buffer.expectByte(0); // reserved0
         short variation = buffer.getShort();
         buffer.expectInt(0); // reserved2
         buffer.expectLong(0); // reservedForVariations
@@ -67,7 +66,6 @@ public record ResourcesEntry(
             version,
             flags,
             compMode,
-            reserved0,
             variation,
             numDependencies
         );
@@ -76,7 +74,7 @@ public record ResourcesEntry(
     @Override
     public boolean equals(Object obj) {
         return obj instanceof ResourcesEntry other
-               && name.equals(other.name);
+            && name.equals(other.name);
     }
 
     @Override
