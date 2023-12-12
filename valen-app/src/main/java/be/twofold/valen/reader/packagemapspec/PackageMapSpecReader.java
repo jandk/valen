@@ -10,23 +10,29 @@ import java.util.stream.*;
 public final class PackageMapSpecReader {
     public static PackageMapSpec read(Path path) {
         try (Reader reader = Files.newBufferedReader(path)) {
-            JsonObject root = JsonParser.parseReader(reader).getAsJsonObject();
-            return mapSchema(root);
+            return read(reader);
         } catch (IOException e) {
             System.err.println("Failed to read package map spec: " + path);
             throw new UncheckedIOException(e);
         }
     }
 
+    private static PackageMapSpec read(Reader reader) {
+        var root = JsonParser
+            .parseReader(reader)
+            .getAsJsonObject();
+
+        return mapSchema(root);
+    }
+
     private static PackageMapSpec mapSchema(JsonObject root) {
-        JsonObject object = root.getAsJsonObject();
-        List<String> files = mapNames(object.getAsJsonArray("files"));
-        List<String> maps = mapNames(object.getAsJsonArray("maps"));
+        var files = mapNames(root.getAsJsonArray("files"));
+        var maps = mapNames(root.getAsJsonArray("maps"));
 
         Map<String, List<String>> mapFiles = new HashMap<>();
-        for (JsonElement element : object.getAsJsonArray("mapFileRefs")) {
-            int file = element.getAsJsonObject().get("file").getAsInt();
-            int map = element.getAsJsonObject().get("map").getAsInt();
+        for (var element : root.getAsJsonArray("mapFileRefs")) {
+            var file = element.getAsJsonObject().get("file").getAsInt();
+            var map = element.getAsJsonObject().get("map").getAsInt();
             mapFiles
                 .computeIfAbsent(maps.get(map), __ -> new ArrayList<>())
                 .add(files.get(file));

@@ -2,7 +2,8 @@ package be.twofold.valen;
 
 import be.twofold.valen.core.util.*;
 import be.twofold.valen.reader.packagemapspec.*;
-import be.twofold.valen.reader.resource.*;
+import be.twofold.valen.resource.*;
+import be.twofold.valen.stream.*;
 
 import java.io.*;
 import java.nio.channels.*;
@@ -13,36 +14,36 @@ public final class FileManager {
     private final Map<String, SeekableByteChannel> channels = new HashMap<>();
     private final Path base;
     private final PackageMapSpec spec;
-    private final StreamDbManager streamDbManager;
-    private final ResourcesManager resourcesManager;
+    private final StreamManager streamManager;
+    private final ResourceManager resourceManager;
 
-    public FileManager(Path base) {
+    public FileManager(Path base) throws IOException {
         this.base = Check.notNull(base);
         this.spec = PackageMapSpecReader.read(base.resolve("packagemapspec.json"));
-        this.streamDbManager = new StreamDbManager(this);
-        this.resourcesManager = new ResourcesManager(this);
+        this.streamManager = new StreamManager(this);
+        this.resourceManager = new ResourceManager(this);
     }
 
     public PackageMapSpec getSpec() {
         return spec;
     }
 
-    public ResourcesEntry getResourceEntry(String name) {
-        return resourcesManager.getEntry(name);
+    public Resource getResourceEntry(String name) {
+        return resourceManager.getEntry(name);
     }
 
-    public List<ResourcesEntry> getResourceEntries() {
-        return List.copyOf(resourcesManager.getEntries());
+    public List<Resource> getResourceEntries() {
+        return List.copyOf(resourceManager.getEntries());
     }
 
-    public void select(String map) {
+    public void select(String map) throws IOException {
         List<String> resources = channels.keySet().stream()
             .filter(e -> e.endsWith(".resources"))
             .toList();
 
         resources.forEach(this::close);
 
-        resourcesManager.select(map);
+        resourceManager.select(map);
     }
 
     public SeekableByteChannel open(String path) {
@@ -60,20 +61,20 @@ public final class FileManager {
         }
     }
 
-    public BetterBuffer readResource(ResourcesEntry entry) {
+    public BetterBuffer readResource(Resource entry) {
         try {
-            return BetterBuffer.wrap(resourcesManager.read(entry));
+            return BetterBuffer.wrap(resourceManager.read(entry));
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
     }
 
     public BetterBuffer readStream(long identity, int size) {
-        return BetterBuffer.wrap(streamDbManager.load(identity, size));
+        return BetterBuffer.wrap(streamManager.load(identity, size));
     }
 
     public boolean streamExists(long identity) {
-        return streamDbManager.exists(identity);
+        return streamManager.exists(identity);
     }
 
     @SuppressWarnings("resource")

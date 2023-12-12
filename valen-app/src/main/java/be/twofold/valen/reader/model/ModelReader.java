@@ -4,7 +4,6 @@ import be.twofold.valen.*;
 import be.twofold.valen.core.geometry.*;
 import be.twofold.valen.core.util.*;
 import be.twofold.valen.reader.geometry.*;
-import be.twofold.valen.reader.resource.*;
 
 import java.io.*;
 import java.nio.*;
@@ -15,7 +14,7 @@ public final class ModelReader {
 
     private final BetterBuffer buffer;
     private final FileManager fileManager;
-    private final ResourcesEntry entry;
+    private final long hash;
 
     private ModelHeader header;
     private final List<ModelMeshInfo> meshInfos = new ArrayList<>();
@@ -23,10 +22,10 @@ public final class ModelReader {
     private final List<List<GeometryMemoryLayout>> streamMemLayouts = new ArrayList<>();
     private final List<GeometryDiskLayout> streamDiskLayouts = new ArrayList<>();
 
-    public ModelReader(BetterBuffer buffer, FileManager fileManager, ResourcesEntry entry) {
+    public ModelReader(BetterBuffer buffer, FileManager fileManager, long hash) {
         this.buffer = buffer;
         this.fileManager = fileManager;
-        this.entry = entry;
+        this.hash = hash;
     }
 
     public Model read() throws IOException {
@@ -114,11 +113,11 @@ public final class ModelReader {
         }
 
         indices.put(buffer.getShorts(lodInfo.numEdges()));
-        return new Mesh(vertices, normals, tangents, texCoords, null, null, null, indices);
+        return new Mesh(vertices.flip(), normals.flip(), tangents.flip(), texCoords, null, null, null, indices);
     }
 
     private List<Mesh> readStreamedGeometry(int lod) {
-        long hash = (entry.defaultHash() << 4) | lod;
+        long hash = (this.hash << 4) | lod;
         int size = streamDiskLayouts.get(lod).uncompressedSize();
 
         BetterBuffer buffer = fileManager.readStream(hash, size);

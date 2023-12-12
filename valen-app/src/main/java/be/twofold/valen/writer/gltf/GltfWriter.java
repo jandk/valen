@@ -128,14 +128,19 @@ public final class GltfWriter {
         attributes.addProperty("POSITION", buildAccessor(mesh.positions().capacity(), BufferType.Position, bounds.min().toArray(), bounds.max().toArray()));
         attributes.addProperty("NORMAL", buildAccessor(mesh.normals().capacity(), BufferType.Normal, null, null));
         attributes.addProperty("TANGENT", buildAccessor(mesh.tangents().capacity(), BufferType.Tangent, null, null));
-        attributes.addProperty("TEXCOORD_0", buildAccessor(mesh.texCoords().capacity(), BufferType.TexCoordN, null, null));
+
+        if (mesh.texCoords() != null) {
+            attributes.addProperty("TEXCOORD_0", buildAccessor(mesh.texCoords().capacity(), BufferType.TexCoordN, null, null));
+        }
 
         if (skeleton != null) {
             fixJointsWithEmptyWeights(mesh.joints(), mesh.weights());
             attributes.addProperty("JOINTS_0", buildAccessor(mesh.joints().capacity(), BufferType.JointsN, null, null));
             attributes.addProperty("WEIGHTS_0", buildAccessor(mesh.weights().capacity(), BufferType.WeightsN, null, null));
         } else {
-            attributes.addProperty("COLOR_0", buildAccessor(mesh.colors().capacity(), BufferType.ColorN, null, null));
+            if (mesh.colors() != null) {
+                attributes.addProperty("COLOR_0", buildAccessor(mesh.colors().capacity(), BufferType.ColorN, null, null));
+            }
         }
 
         return new PrimitiveSchema(
@@ -344,12 +349,16 @@ public final class GltfWriter {
             writeBuffer(mesh.positions());
             writeBuffer(mesh.normals());
             writeBuffer(mesh.tangents());
-            writeBuffer(mesh.texCoords());
+            if (mesh.texCoords() != null) {
+                writeBuffer(mesh.texCoords());
+            }
             if (skeleton != null) {
                 writeBuffer(mesh.joints());
                 writeBuffer(mesh.weights());
             } else {
-                writeBuffer(mesh.colors());
+                if (mesh.colors() != null) {
+                    writeBuffer(mesh.colors());
+                }
             }
             writeBuffer(mesh.indices());
         }

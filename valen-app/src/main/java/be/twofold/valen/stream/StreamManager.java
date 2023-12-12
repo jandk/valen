@@ -1,5 +1,6 @@
-package be.twofold.valen;
+package be.twofold.valen.stream;
 
+import be.twofold.valen.*;
 import be.twofold.valen.core.util.*;
 import be.twofold.valen.oodle.*;
 import be.twofold.valen.reader.streamdb.*;
@@ -8,18 +9,18 @@ import java.io.*;
 import java.nio.channels.*;
 import java.util.*;
 
-public final class StreamDbManager {
+public final class StreamManager {
 
     private final FileManager fileManager;
     private final Map<Long, String> hashToPath = new HashMap<>();
     private final Map<Long, StreamDbEntry> hashToEntry = new HashMap<>();
 
-    StreamDbManager(FileManager fileManager) {
+    public StreamManager(FileManager fileManager) throws IOException {
         this.fileManager = Check.notNull(fileManager);
         initialize();
     }
 
-    private void initialize() {
+    private void initialize() throws IOException {
         List<String> paths = fileManager.getSpec().files().stream()
             .filter(file -> file.endsWith(".streamdb"))
             .toList();
@@ -34,7 +35,7 @@ public final class StreamDbManager {
             System.out.println("Loading streamdb: " + path);
             SeekableByteChannel channel = fileManager.open(path);
 
-            StreamDb db = StreamDbReader.read(channel);
+            StreamDb db = StreamDb.read(channel);
             for (StreamDbEntry entry : db.entries()) {
                 hashToPath.putIfAbsent(entry.identity(), path);
                 hashToEntry.putIfAbsent(entry.identity(), entry);

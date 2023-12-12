@@ -1,9 +1,9 @@
-package be.twofold.valen.reader.resource;
+package be.twofold.valen.resource;
 
 import java.util.*;
 import java.util.stream.*;
 
-public record ResourcesName(
+public record ResourceName(
     String name
 ) {
     public String fullPath() {

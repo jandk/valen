@@ -4,7 +4,6 @@ import be.twofold.valen.*;
 import be.twofold.valen.core.geometry.*;
 import be.twofold.valen.core.util.*;
 import be.twofold.valen.reader.geometry.*;
-import be.twofold.valen.reader.resource.*;
 
 import java.nio.*;
 import java.util.*;
@@ -12,7 +11,7 @@ import java.util.*;
 public final class Md6Reader {
     private final BetterBuffer buffer;
     private final FileManager fileManager;
-    private final ResourcesEntry entry;
+    private final long hash;
 
     private Md6BoneInfo boneInfo;
     private List<Md6MeshInfo> meshInfos;
@@ -20,10 +19,10 @@ public final class Md6Reader {
     private List<GeometryDiskLayout> diskLayouts;
     private List<Mesh> meshes;
 
-    public Md6Reader(BetterBuffer buffer, FileManager fileManager, ResourcesEntry entry) {
+    public Md6Reader(BetterBuffer buffer, FileManager fileManager, long hash) {
         this.buffer = buffer;
         this.fileManager = fileManager;
-        this.entry = entry;
+        this.hash = hash;
     }
 
     public Md6 read(boolean streamed) {
@@ -51,7 +50,7 @@ public final class Md6Reader {
     }
 
     private List<Mesh> readStreamedGeometry(int lod) {
-        long hash = (entry.defaultHash() << 4) | lod;
+        long hash = (this.hash << 4) | lod;
         int size = diskLayouts.get(lod).uncompressedSize();
 
         BetterBuffer buffer = fileManager.readStream(hash, size);

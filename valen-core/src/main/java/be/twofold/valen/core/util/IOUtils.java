@@ -31,6 +31,12 @@ public final class IOUtils {
         return readBuffer(channel, count * Long.BYTES).getLongs(count);
     }
 
+    public static int[] readLongsAsInts(ReadableByteChannel channel, int count) throws IOException {
+        return Arrays.stream(readLongs(channel, count))
+            .mapToInt(Math::toIntExact)
+            .toArray();
+    }
+
     public static <T> T readStruct(ReadableByteChannel channel, int size, Function<BetterBuffer, T> reader) throws IOException {
         return reader.apply(readBuffer(channel, size));
     }

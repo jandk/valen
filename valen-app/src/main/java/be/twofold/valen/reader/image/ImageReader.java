@@ -2,23 +2,23 @@ package be.twofold.valen.reader.image;
 
 import be.twofold.valen.*;
 import be.twofold.valen.core.util.*;
-import be.twofold.valen.reader.resource.*;
+import be.twofold.valen.resource.*;
 
 import java.util.*;
 
 public final class ImageReader {
     private final BetterBuffer buffer;
     private final FileManager fileManager;
-    private final ResourcesEntry entry;
+    private final Resource resource;
 
     private ImageHeader header;
     private List<ImageMipInfo> mipInfos;
     private byte[][] mipData;
 
-    public ImageReader(BetterBuffer buffer, FileManager fileManager, ResourcesEntry entry) {
+    public ImageReader(BetterBuffer buffer, FileManager fileManager, Resource resource) {
         this.buffer = buffer;
         this.fileManager = fileManager;
-        this.entry = entry;
+        this.resource = resource;
     }
 
     public Image read(boolean readMips) {
@@ -46,15 +46,15 @@ public final class ImageReader {
 
     private void loadSingleStream() {
         int uncompressedSize = mipInfos.get(mipInfos.size() - 1).cumulativeSizeStreamDB();
-        BetterBuffer buffer = fileManager.readStream(entry.defaultHash(), uncompressedSize);
+        BetterBuffer buffer = fileManager.readStream(resource.hash(), uncompressedSize);
         readMipsFromBuffer(buffer, 0);
     }
 
     private void loadMultiStream() {
-        int minMip = Integer.parseInt(entry.name().properties().getOrDefault("minmip", "0"));
+        int minMip = Integer.parseInt(resource.name().properties().getOrDefault("minmip", "0"));
         for (int i = minMip; i < header.startMip(); i++) {
             ImageMipInfo mip = mipInfos.get(i);
-            long hash = entry.defaultHash() << 4 | (header.mipCount() - mip.mipLevel());
+            long hash = resource.hash() << 4 | (header.mipCount() - mip.mipLevel());
             if (!fileManager.streamExists(hash)) {
                 System.err.println("Stream not found: " + Long.toHexString(hash));
                 continue;
