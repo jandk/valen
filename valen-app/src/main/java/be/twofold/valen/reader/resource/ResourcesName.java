@@ -4,50 +4,51 @@ import java.util.*;
 import java.util.stream.*;
 
 public record ResourcesName(
-    String name,
-    String path,
-    String file,
-    Map<String, String> properties
+    String name
 ) {
-    public static ResourcesName parse(String name) {
-        int dollarIndex = name.indexOf('$');
-        String fullPath = name.substring(0, dollarIndex < 0 ? name.length() : dollarIndex);
+    public String fullPath() {
+        var index = name.indexOf('$');
+        return index < 0 ? name : name.substring(0, index);
+    }
 
-        int slashIndex = fullPath.lastIndexOf('/');
-        String path = fullPath.substring(0, slashIndex < 0 ? fullPath.length() : slashIndex);
-        String file = fullPath.substring(slashIndex < 0 ? 0 : slashIndex + 1);
+    public String path() {
+        var fullPath = fullPath();
+        var index = fullPath.lastIndexOf('/');
+        return index < 0 ? "" : fullPath.substring(0, index);
+    }
 
-        Map<String, String> properties = Arrays.stream(name.split("\\$"))
-            .skip(1)
-            .map(s -> s.split("="))
-            .collect(Collectors.toUnmodifiableMap(s -> s[0], s -> s.length > 1 ? s[1] : s[0]));
-
-        return new ResourcesName(name, path, file, properties);
+    public String file() {
+        var fullPath = fullPath();
+        var index = fullPath.lastIndexOf('/');
+        return index < 0 ? fullPath : fullPath.substring(index + 1);
     }
 
     public String fileWithoutExtension() {
-        int dot = file.lastIndexOf('.');
-        return dot < 0 ? file : file.substring(0, dot);
+        var file = file();
+        var index = file.lastIndexOf('.');
+        return index < 0 ? file : file.substring(0, index);
     }
 
-    public String fileExtension() {
-        int dot = file.lastIndexOf('.');
-        return dot < 0 ? "" : file.substring(dot + 1);
+    public Map<String, String> properties() {
+        var index = name.indexOf('$');
+        if (index < 0) {
+            return Map.of();
+        }
+
+        var split = name.substring(index + 1).split("\\$");
+        return Arrays.stream(split)
+            .map(this::property)
+            .collect(Collectors.toUnmodifiableMap(
+                Map.Entry::getKey,
+                Map.Entry::getValue
+            ));
     }
 
-    public String fullPath() {
-        return path + "/" + file;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        return obj instanceof ResourcesName other
-               && name.equals(other.name);
-    }
-
-    @Override
-    public int hashCode() {
-        return name.hashCode();
+    private Map.Entry<String, String> property(String s) {
+        var index = s.indexOf('=');
+        var key = index < 0 ? s : s.substring(0, index);
+        var value = index < 0 ? s : s.substring(index + 1);
+        return Map.entry(key, value);
     }
 
     @Override

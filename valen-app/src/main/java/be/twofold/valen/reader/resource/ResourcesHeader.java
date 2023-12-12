@@ -10,12 +10,13 @@ public record ResourcesHeader(
     int sizeStrings,
     int addrPathStringOffsets,
     int addrErrorLogs,
+    int addrFileEntries,
     int addrDependencyEntries,
     int addrDependencyIndexes,
     int addrData,
     int addrEndMarker
 ) {
-    static final int Size = 0x7c;
+    public static final int BYTES = 124;
 
     public static ResourcesHeader read(BetterBuffer buffer) {
         buffer.expectInt(0x4c434449);
@@ -25,24 +26,24 @@ public record ResourcesHeader(
         buffer.expectLong(0xffffffffffL);
         buffer.expectLong(0);
 
-        int numFileEntries = buffer.getInt();
-        int numDependencyEntries = buffer.getInt();
-        int numDependencyIndexes = buffer.getInt();
-        int numPathStringIndexes = buffer.getInt();
+        var numFileEntries = buffer.getInt();
+        var numDependencyEntries = buffer.getInt();
+        var numDependencyIndexes = buffer.getInt();
+        var numPathStringIndexes = buffer.getInt();
 
         buffer.expectInt(0);
         buffer.expectInt(0);
-        int sizeStrings = buffer.getInt();
+        var sizeStrings = buffer.getInt();
         buffer.expectInt(0);
 
-        int addrPathStringOffsets = buffer.getLongAsInt();
-        int addrErrorLogs = buffer.getLongAsInt();
-        buffer.expectLong(0x7c);
-        int addrDependencyEntries = buffer.getLongAsInt();
-        int addrDependencyIndexes = buffer.getLongAsInt();
-        int addrData = buffer.getLongAsInt();
+        var addrPathStringOffsets = buffer.getLongAsInt();
+        var addrErrorLogs = buffer.getLongAsInt();
+        var addrFileEntries = buffer.getLongAsInt();
+        var addrDependencyEntries = buffer.getLongAsInt();
+        var addrDependencyIndexes = buffer.getLongAsInt();
+        var addrData = buffer.getLongAsInt();
         buffer.expectInt(0);
-        int addrEndMarker = buffer.getLongAsInt();
+        var addrEndMarker = buffer.getLongAsInt();
 
         return new ResourcesHeader(
             numFileEntries,
@@ -52,6 +53,7 @@ public record ResourcesHeader(
             sizeStrings,
             addrPathStringOffsets,
             addrErrorLogs,
+            addrFileEntries,
             addrDependencyEntries,
             addrDependencyIndexes,
             addrData,
