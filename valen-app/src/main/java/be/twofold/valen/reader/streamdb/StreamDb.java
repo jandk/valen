@@ -1,5 +1,9 @@
 package be.twofold.valen.reader.streamdb;
 
+import be.twofold.valen.core.util.*;
+
+import java.io.*;
+import java.nio.channels.*;
 import java.util.*;
 
 public record StreamDb(
@@ -9,14 +13,31 @@ public record StreamDb(
     List<StreamDbPrefetchBlock> prefetchBlocks,
     long[] prefetchIDs
 ) {
+    public static StreamDb read(SeekableByteChannel channel) throws IOException {
+        var header = IOUtils.readStruct(channel, StreamDbHeader.BYTES, StreamDbHeader::read);
+        var entries = IOUtils.readStructs(channel, header.numEntries(), StreamDbEntry.BYTES, StreamDbEntry::read);
+
+        var prefetchHeader = IOUtils.readStruct(channel, StreamDbPrefetchHeader.BYTES, StreamDbPrefetchHeader::read);
+        var prefetchBlocks = IOUtils.readStructs(channel, prefetchHeader.numPrefetchBlocks(), StreamDbPrefetchBlock.BYTES, StreamDbPrefetchBlock::read);
+
+        var numPrefetchIDs = prefetchBlocks.stream().mapToInt(StreamDbPrefetchBlock::numItems).sum();
+        var prefetchIDs = IOUtils.readLongs(channel, numPrefetchIDs);
+
+        if (channel.position() != header.length()) {
+            throw new IOException("Header length does not match position");
+        }
+
+        return new StreamDb(header, entries, prefetchHeader, prefetchBlocks, prefetchIDs);
+    }
+
     @Override
     public String toString() {
         return "StreamDb[" +
-               "header=" + header + ", " +
-               "entries=" + entries.size() + " entries, " +
-               "prefetchHeader=" + prefetchHeader + ", " +
-               "prefetchBlocks=" + prefetchBlocks.size() + " blocks, " +
-               "prefetchIDs=" + prefetchIDs.length + " IDs" +
-               "]";
+            "header=" + header + ", " +
+            "entries=(" + entries.size() + " entries), " +
+            "prefetchHeader=" + prefetchHeader + ", " +
+            "prefetchBlocks=(" + prefetchBlocks.size() + " blocks), " +
+            "prefetchIDs=(" + prefetchIDs.length + " IDs)" +
+            "]";
     }
 }

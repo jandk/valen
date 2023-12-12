@@ -7,12 +7,12 @@ public record StreamDbEntry(
     int offset16,
     int length
 ) {
-    static final int Size = 0x10;
+    public static final int BYTES = 16;
 
     public static StreamDbEntry read(BetterBuffer buffer) {
-        long identity = buffer.getLong();
-        int offset16 = buffer.getInt();
-        int length = buffer.getInt();
+        var identity = buffer.getLong();
+        var offset16 = buffer.getInt();
+        var length = buffer.getInt();
         return new StreamDbEntry(identity, offset16, length);
     }
 

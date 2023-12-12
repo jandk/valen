@@ -6,11 +6,11 @@ public record StreamDbPrefetchHeader(
     int numPrefetchBlocks,
     int totalLength
 ) {
-    static final int Size = 0x08;
+    public static final int BYTES = 8;
 
     public static StreamDbPrefetchHeader read(BetterBuffer buffer) {
-        int numPrefetchBlocks = buffer.getInt();
-        int totalLength = buffer.getInt();
+        var numPrefetchBlocks = buffer.getInt();
+        var totalLength = buffer.getInt();
         return new StreamDbPrefetchHeader(numPrefetchBlocks, totalLength);
     }
 }

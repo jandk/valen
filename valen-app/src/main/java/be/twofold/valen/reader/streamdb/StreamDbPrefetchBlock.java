@@ -7,12 +7,12 @@ public record StreamDbPrefetchBlock(
     int firstItemIndex,
     int numItems
 ) {
-    static final int Size = 0x10;
+    public static final int BYTES = 16;
 
     public static StreamDbPrefetchBlock read(BetterBuffer buffer) {
-        long name = buffer.getLong();
-        int firstItemIndex = buffer.getInt();
-        int numItems = buffer.getInt();
+        var name = buffer.getLong();
+        var firstItemIndex = buffer.getInt();
+        var numItems = buffer.getInt();
         return new StreamDbPrefetchBlock(name, firstItemIndex, numItems);
     }
 }
