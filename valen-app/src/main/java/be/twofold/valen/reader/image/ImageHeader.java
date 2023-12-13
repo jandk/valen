@@ -15,38 +15,38 @@ public record ImageHeader(
     float unkFloat3,
     ImageTextureFormat textureFormat,
     boolean streamed,
-    boolean unkBool1,
-    boolean unkBool2,
-    boolean unkBool3,
+    boolean singleStream,
+    boolean noMips,
+    boolean fftBloom,
     int streamDBMipCount
 ) {
-    static final int Size = 0x3f;
+    static final int BYTES = 63;
 
     public static ImageHeader read(BetterBuffer buffer) {
         buffer.expectByte('B');
         buffer.expectByte('I');
         buffer.expectByte('M');
-        byte version = buffer.getByte();
+        var version = buffer.getByte();
 
-        ImageTextureType textureType = ImageTextureType.fromCode(buffer.getInt());
-        ImageTextureMaterialKind textureMaterialKind = ImageTextureMaterialKind.fromCode(buffer.getInt());
-        int pixelWidth = buffer.getInt();
-        int pixelHeight = buffer.getInt();
-        int depth = buffer.getInt();
-        int mipCount = buffer.getInt();
-        float unkFloat1 = buffer.getFloat();
-        float unkFloat2 = buffer.getFloat();
-        float unkFloat3 = buffer.getFloat();
+        var textureType = ImageTextureType.fromCode(buffer.getInt());
+        var textureMaterialKind = ImageTextureMaterialKind.fromCode(buffer.getInt());
+        var pixelWidth = buffer.getInt();
+        var pixelHeight = buffer.getInt();
+        var depth = buffer.getInt();
+        var mipCount = buffer.getInt();
+        var unkFloat1 = buffer.getFloat();
+        var unkFloat2 = buffer.getFloat();
+        var unkFloat3 = buffer.getFloat();
         buffer.expectByte(0);
-        ImageTextureFormat textureFormat = ImageTextureFormat.fromCode(buffer.getInt());
-        buffer.expectInt(7); // always 7?
+        var textureFormat = ImageTextureFormat.fromCode(buffer.getInt());
+        buffer.expectInt(7); // always 7
         buffer.expectInt(0); // padding
         buffer.expectShort(0); // padding
-        boolean streamed = buffer.getByteAsBool();
-        boolean unkBool1 = buffer.getByteAsBool();
-        boolean unkBool2 = buffer.getByteAsBool();
-        boolean unkBool3 = buffer.getByteAsBool();
-        int streamDBMipCount = buffer.getInt();
+        var streamed = buffer.getByteAsBool();
+        var singleStream = buffer.getByteAsBool();
+        var noMips = buffer.getByteAsBool();
+        var fftBloom = buffer.getByteAsBool();
+        var streamDBMipCount = buffer.getInt();
 
         return new ImageHeader(
             version,
@@ -61,15 +61,15 @@ public record ImageHeader(
             unkFloat3,
             textureFormat,
             streamed,
-            unkBool1,
-            unkBool2,
-            unkBool3,
+            singleStream,
+            noMips,
+            fftBloom,
             streamDBMipCount
         );
     }
 
     public int startMip() {
-        int mask = switch (textureType) {
+        var mask = switch (textureType) {
             case TT_2D -> 0x0f;
             case TT_CUBIC -> 0xff;
             default -> throw new IllegalArgumentException("Unsupported texture type: " + textureType);
@@ -78,7 +78,7 @@ public record ImageHeader(
     }
 
     public int totalMipCount() {
-        int faces = switch (textureType) {
+        var faces = switch (textureType) {
             case TT_2D -> 1;
             case TT_CUBIC -> 6;
             default -> throw new IllegalArgumentException("Unsupported texture type: " + textureType);

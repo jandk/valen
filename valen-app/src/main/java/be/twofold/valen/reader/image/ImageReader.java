@@ -2,75 +2,61 @@ package be.twofold.valen.reader.image;
 
 import be.twofold.valen.*;
 import be.twofold.valen.core.util.*;
-import be.twofold.valen.resource.*;
 
 import java.util.*;
 
 public final class ImageReader {
-    private final BetterBuffer buffer;
     private final FileManager fileManager;
-    private final Resource resource;
 
-    private ImageHeader header;
-    private List<ImageMipInfo> mipInfos;
-    private byte[][] mipData;
-
-    public ImageReader(BetterBuffer buffer, FileManager fileManager, Resource resource) {
-        this.buffer = buffer;
+    public ImageReader(FileManager fileManager) {
         this.fileManager = fileManager;
-        this.resource = resource;
     }
 
-    public Image read(boolean readMips) {
-        header = ImageHeader.read(buffer);
-        mipInfos = buffer.getStructs(header.totalMipCount(), ImageMipInfo::read);
-        mipData = new byte[mipInfos.size()][];
-        readMipsFromBuffer(buffer, header.startMip());
-        if (readMips) {
+    public Image read(BetterBuffer buffer, boolean readStreams, long hash) {
+        var header = ImageHeader.read(buffer);
+        var mipInfos = buffer.getStructs(header.totalMipCount(), ImageMipInfo::read);
+        var mipData = new byte[mipInfos.size()][];
+
+        for (int i = header.startMip(); i < header.totalMipCount(); i++) {
+            mipData[i] = readMip(buffer, mipInfos.get(i));
+        }
+        buffer.expectEnd();
+
+        if (readStreams) {
             // Not entirely sure, but it seems to work, so I'm calling it the "single stream" format
             // Specified by a boolean at offset 0x38 in the header. Could mean something else though...
             // What is also strange is that the "single stream" format is used only for light probes.
-            // And it seems to error the oodle decompression a lot of times as well, even though the
-            // data is correct. So... yeah, I'm not sure what's going on here.
-            if (header.unkBool1()) {
-                loadSingleStream();
+            if (header.singleStream()) {
+                readSingleStream(header, mipInfos, mipData, hash);
             } else {
-                loadMultiStream();
+                readMultiStream(header, mipInfos, mipData, hash);
             }
         }
 
-        // Sanity check, if this fails, we have a misunderstanding of the format
-        buffer.expectEnd();
         return new Image(header, mipInfos, mipData);
     }
 
-    private void loadSingleStream() {
-        int uncompressedSize = mipInfos.get(mipInfos.size() - 1).cumulativeSizeStreamDB();
-        BetterBuffer buffer = fileManager.readStream(resource.hash(), uncompressedSize);
-        readMipsFromBuffer(buffer, 0);
+    private void readSingleStream(ImageHeader header, List<ImageMipInfo> mipInfos, byte[][] mipData, long hash) {
+        ImageMipInfo lastMip = mipInfos.getLast();
+        var uncompressedSize = lastMip.cumulativeSizeStreamDB() + lastMip.decompressedSize();
+        var mipBuffer = fileManager.readStream(hash, uncompressedSize);
+        for (int i = 0; i < header.mipCount(); i++) {
+            mipData[i] = readMip(mipBuffer, mipInfos.get(i));
+        }
     }
 
-    private void loadMultiStream() {
-        int minMip = Integer.parseInt(resource.name().properties().getOrDefault("minmip", "0"));
-        for (int i = minMip; i < header.startMip(); i++) {
-            ImageMipInfo mip = mipInfos.get(i);
-            long hash = resource.hash() << 4 | (header.mipCount() - mip.mipLevel());
-            if (!fileManager.streamExists(hash)) {
-                System.err.println("Stream not found: " + Long.toHexString(hash));
-                continue;
+    private void readMultiStream(ImageHeader header, List<ImageMipInfo> mipInfos, byte[][] mipData, long hash) {
+        for (var i = 0; i < header.startMip(); i++) {
+            var mip = mipInfos.get(i);
+            var mipHash = hash << 4 | (header.mipCount() - mip.mipLevel());
+            if (fileManager.streamExists(mipHash)) {
+                var mipBuffer = fileManager.readStream(mipHash, mip.decompressedSize());
+                mipData[i] = readMip(mipBuffer, mip);
             }
-            BetterBuffer buffer = fileManager.readStream(hash, mip.decompressedSize());
-            mipData[i] = readMip(buffer, mip);
         }
     }
 
-    private void readMipsFromBuffer(BetterBuffer buffer, int start) {
-        for (int i = start; i < mipInfos.size(); i++) {
-            mipData[i] = readMip(buffer, mipInfos.get(i));
-        }
-    }
-
-    private byte[] readMip(BetterBuffer buffer, ImageMipInfo mip) {
-        return buffer.getBytes(mip.decompressedSize());
+    private static byte[] readMip(BetterBuffer buffer, ImageMipInfo mipInfo) {
+        return buffer.getBytes(mipInfo.decompressedSize());
     }
 }

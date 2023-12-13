@@ -60,6 +60,7 @@ public enum ImageTextureFormat {
     FMT_BC1_ZERO_ALPHA(0x36),
     FMT_NEXTAVAILABLE(0x37);
 
+    private static final ImageTextureFormat[] VALUES = values();
     private final int code;
 
     ImageTextureFormat(int code) {
@@ -71,7 +72,7 @@ public enum ImageTextureFormat {
     }
 
     public static ImageTextureFormat fromCode(int code) {
-        return Arrays.stream(values())
+        return Arrays.stream(VALUES)
             .filter(value -> value.code == code)
             .findFirst()
             .orElseThrow(() -> new IllegalArgumentException("Unknown texture format: " + code));

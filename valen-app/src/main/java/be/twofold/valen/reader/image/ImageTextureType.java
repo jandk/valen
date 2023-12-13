@@ -7,6 +7,7 @@ public enum ImageTextureType {
     TT_3D(0x01),
     TT_CUBIC(0x02);
 
+    private static final ImageTextureType[] VALUES = values();
     private final int code;
 
     ImageTextureType(int code) {
@@ -18,7 +19,7 @@ public enum ImageTextureType {
     }
 
     public static ImageTextureType fromCode(int code) {
-        return Arrays.stream(values())
+        return Arrays.stream(VALUES)
             .filter(value -> value.code == code)
             .findFirst()
             .orElseThrow(() -> new IllegalArgumentException("Unknown texture type: " + code));

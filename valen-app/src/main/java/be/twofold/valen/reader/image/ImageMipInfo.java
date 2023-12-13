@@ -13,15 +13,15 @@ public record ImageMipInfo(
     int cumulativeSizeStreamDB
 ) {
     public static ImageMipInfo read(BetterBuffer buffer) {
-        int mipLevel = buffer.getInt();
-        int mipSlice = buffer.getInt();
-        int mipPixelWidth = buffer.getInt();
-        int mipPixelHeight = buffer.getInt();
+        var mipLevel = buffer.getInt();
+        var mipSlice = buffer.getInt();
+        var mipPixelWidth = buffer.getInt();
+        var mipPixelHeight = buffer.getInt();
         buffer.expectInt(1);
-        int decompressedSize = buffer.getInt();
-        boolean flagIsCompressed = buffer.getIntAsBool();
-        int compressedSize = buffer.getInt();
-        int cumulativeSizeStreamDB = buffer.getInt();
+        var decompressedSize = buffer.getInt();
+        var flagIsCompressed = buffer.getIntAsBool();
+        var compressedSize = buffer.getInt();
+        var cumulativeSizeStreamDB = buffer.getInt();
 
         return new ImageMipInfo(
             mipLevel,

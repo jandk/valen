@@ -28,6 +28,7 @@ public enum ImageTextureMaterialKind {
     TMK_BLENDMASK(0x16),
     TMK_COUNT(0x17);
 
+    private static final ImageTextureMaterialKind[] VALUES = values();
     private final int code;
 
     ImageTextureMaterialKind(int code) {
@@ -39,7 +40,7 @@ public enum ImageTextureMaterialKind {
     }
 
     public static ImageTextureMaterialKind fromCode(int code) {
-        return Arrays.stream(values())
+        return Arrays.stream(VALUES)
             .filter(value -> value.code == code)
             .findFirst()
             .orElseThrow(() -> new IllegalArgumentException("Unknown texture material kind: " + code));
