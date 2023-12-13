@@ -11,8 +11,8 @@ public record Md6AnimHeader(
 ) {
     public static Md6AnimHeader read(BetterBuffer buffer) {
         String skelName = buffer.getString();
-        Bounds translatedBounds = new Bounds(buffer.getVector3(), buffer.getVector3());
-        Bounds normalizedBounds = new Bounds(buffer.getVector3(), buffer.getVector3());
+        Bounds translatedBounds = Bounds.read(buffer);
+        Bounds normalizedBounds = Bounds.read(buffer);
         int size = buffer.getInt();
 
         return new Md6AnimHeader(

@@ -20,11 +20,11 @@ public record Md6LodInfo(
     public static Md6LodInfo read(BetterBuffer buffer) {
         int numVertices = buffer.getInt();
         int numFaces = buffer.getInt();
-        Vector3 negBounds = buffer.getVector3();
-        Vector3 posBounds = buffer.getVector3();
-        Vector3 vertexOffset = buffer.getVector3();
+        Vector3 negBounds = Vector3.read(buffer);
+        Vector3 posBounds = Vector3.read(buffer);
+        Vector3 vertexOffset = Vector3.read(buffer);
         float vertexScale = buffer.getFloat();
-        Vector2 uvOffset = buffer.getVector2();
+        Vector2 uvOffset = Vector2.read(buffer);
         float uvScale = buffer.getFloat();
         int flags = buffer.getInt();
         float unkFloat1 = buffer.getFloat();

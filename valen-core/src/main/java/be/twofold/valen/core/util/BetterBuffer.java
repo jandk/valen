@@ -1,7 +1,5 @@
 package be.twofold.valen.core.util;
 
-import be.twofold.valen.core.math.*;
-
 import java.nio.*;
 import java.nio.charset.*;
 import java.util.*;
@@ -113,27 +111,6 @@ public final class BetterBuffer {
         return new String(getBytes(size), StandardCharsets.US_ASCII);
     }
 
-    public Vector2 getVector2() {
-        float x = getFloat();
-        float y = getFloat();
-        return new Vector2(x, y);
-    }
-
-    public Vector3 getVector3() {
-        float x = getFloat();
-        float y = getFloat();
-        float z = getFloat();
-        return new Vector3(x, y, z);
-    }
-
-    public Quaternion getQuaternion() {
-        float x = getFloat();
-        float y = getFloat();
-        float z = getFloat();
-        float w = getFloat();
-        return new Quaternion(x, y, z, w);
-    }
-
     public <T> List<T> getStructs(int count, Function<BetterBuffer, T> reader) {
         return Stream.generate(() -> reader.apply(this))
             .limit(count)
@@ -177,7 +154,7 @@ public final class BetterBuffer {
     }
 
     public void expectEnd() {
-        Check.state(!buffer.hasRemaining(), () -> "Expected end of buffer, but got " + buffer.remaining() + " bytes left");
+        Check.state(!buffer.hasRemaining(), () -> String.format("Expected end of buffer, but got %s bytes left", buffer.remaining()));
     }
 
     public String printBitSetRanges() {

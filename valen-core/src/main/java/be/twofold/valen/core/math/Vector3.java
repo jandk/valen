@@ -1,8 +1,17 @@
 package be.twofold.valen.core.math;
 
+import be.twofold.valen.core.util.*;
+
 import java.nio.*;
 
 public record Vector3(float x, float y, float z) {
+    public static Vector3 read(BetterBuffer buffer) {
+        float x = buffer.getFloat();
+        float y = buffer.getFloat();
+        float z = buffer.getFloat();
+        return new Vector3(x, y, z);
+    }
+
     public Vector3 add(Vector3 other) {
         return new Vector3(x + other.x, y + other.y, z + other.z);
     }

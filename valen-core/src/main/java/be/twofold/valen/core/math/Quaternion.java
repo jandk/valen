@@ -1,8 +1,18 @@
 package be.twofold.valen.core.math;
 
+import be.twofold.valen.core.util.*;
+
 import java.nio.*;
 
 public record Quaternion(float x, float y, float z, float w) {
+    public static Quaternion read(BetterBuffer buffer) {
+        float x = buffer.getFloat();
+        float y = buffer.getFloat();
+        float z = buffer.getFloat();
+        float w = buffer.getFloat();
+        return new Quaternion(x, y, z, w);
+    }
+
     public Quaternion add(Quaternion other) {
         return new Quaternion(x + other.x, y + other.y, z + other.z, w + other.w);
     }

@@ -24,9 +24,9 @@ public final class Md6SkeletonReader {
 
     private List<Bone> readJoints() {
         buffer.position(header.basePoseOffset() + 4);
-        List<Quaternion> rotations = buffer.getStructs(header.numJoints8(), BetterBuffer::getQuaternion);
-        List<Vector3> scales = buffer.getStructs(header.numJoints8(), BetterBuffer::getVector3);
-        List<Vector3> translations = buffer.getStructs(header.numJoints8(), BetterBuffer::getVector3);
+        List<Quaternion> rotations = buffer.getStructs(header.numJoints8(), Quaternion::read);
+        List<Vector3> scales = buffer.getStructs(header.numJoints8(), Vector3::read);
+        List<Vector3> translations = buffer.getStructs(header.numJoints8(), Vector3::read);
 
         buffer.position(header.inverseBasePoseOffset() + 4);
         List<Matrix4x4> inverseBasePoses = new ArrayList<>();

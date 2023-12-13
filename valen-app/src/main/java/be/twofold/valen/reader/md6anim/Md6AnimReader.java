@@ -104,7 +104,7 @@ public final class Md6AnimReader {
 
         Vector3[] result = new Vector3[count];
         for (int i = 0; i < result.length; i++) {
-            result[i] = buffer.getVector3();
+            result[i] = Vector3.read(buffer);
         }
         return result;
     }
@@ -135,7 +135,7 @@ public final class Md6AnimReader {
             int boneOffset = bone * bytesPerBone * 8;
             for (int frame = 0; frame < frameCount; frame++) {
                 if (bits.get(boneOffset + frame)) {
-                    result[bone][frame] = buffer.getVector3();
+                    result[bone][frame] = Vector3.read(buffer);
                 }
             }
         }

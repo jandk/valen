@@ -8,8 +8,8 @@ public record ModelGeoDecalProjection(
     Quaternion projT
 ) {
     public static ModelGeoDecalProjection read(BetterBuffer buffer) {
-        Quaternion projS = buffer.getQuaternion();
-        Quaternion projT = buffer.getQuaternion();
+        Quaternion projS = Quaternion.read(buffer);
+        Quaternion projT = Quaternion.read(buffer);
         return new ModelGeoDecalProjection(projS, projT);
     }
 }

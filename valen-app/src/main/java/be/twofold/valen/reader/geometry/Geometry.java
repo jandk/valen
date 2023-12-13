@@ -20,7 +20,7 @@ public final class Geometry {
     }
 
     public static void readVertex(BetterBuffer src, FloatBuffer dst, Vector3 offset, float scale) {
-        src.getVector3().multiply(scale).add(offset).put(dst);
+        Vector3.read(src).multiply(scale).add(offset).put(dst);
     }
 
     public static void readPackedVertex(BetterBuffer src, FloatBuffer dst, Vector3 offset, float scale) {
@@ -69,7 +69,7 @@ public final class Geometry {
     }
 
     public static void readUV(BetterBuffer src, FloatBuffer dst, Vector2 offset, float scale) {
-        src.getVector2().multiply(scale).add(offset).put(dst);
+        Vector2.read(src).multiply(scale).add(offset).put(dst);
     }
 
     public static void readPackedUV(BetterBuffer src, FloatBuffer dst, Vector2 offset, float scale) {

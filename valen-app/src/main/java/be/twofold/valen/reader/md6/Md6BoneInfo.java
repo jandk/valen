@@ -15,8 +15,8 @@ public record Md6BoneInfo(
         int numBones = buffer.getShort();
         byte[] bones = buffer.getBytes(numBones);
 
-        Vector3 min = buffer.getVector3();
-        Vector3 max = buffer.getVector3();
+        Vector3 min = Vector3.read(buffer);
+        Vector3 max = Vector3.read(buffer);
         buffer.expectInt(5);
 
         buffer.expectInt(0);

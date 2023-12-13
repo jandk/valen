@@ -22,11 +22,11 @@ public record ModelLodInfo(
         int numVertices = buffer.getInt();
         int numEdges = buffer.getInt();
         int flags = buffer.getInt();
-        Vector3 negBounds = buffer.getVector3();
-        Vector3 posBounds = buffer.getVector3();
-        Vector3 vertexOffset = buffer.getVector3();
+        Vector3 negBounds = Vector3.read(buffer);
+        Vector3 posBounds = Vector3.read(buffer);
+        Vector3 vertexOffset = Vector3.read(buffer);
         float vertexScale = buffer.getFloat();
-        Vector2 uvOffset = buffer.getVector2();
+        Vector2 uvOffset = Vector2.read(buffer);
         float uvScale = buffer.getFloat();
         buffer.expectInt(0);
         float unkFloat1 = buffer.getFloat();
