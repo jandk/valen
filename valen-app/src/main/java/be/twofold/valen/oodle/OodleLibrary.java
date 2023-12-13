@@ -55,4 +55,6 @@ public interface OodleLibrary extends Library {
         int compressor,
         int rawLen
     );
+
+    void Oodle_GetConfigValues(int[] buffer);
 }

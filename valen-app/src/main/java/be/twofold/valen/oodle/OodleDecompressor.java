@@ -40,6 +40,16 @@ public final class OodleDecompressor {
         return rawBuf;
     }
 
+    public static String version() {
+        var values = new int[7];
+        Oodle.Oodle_GetConfigValues(values);
+
+        var version = values[6];
+        var major = version >>> 16 & 0xff;
+        var minor = version >>> 8 & 0xff;
+        return "2." + major + "." + minor;
+    }
+
     private static int scanOffset(byte[] data) {
         for (int i = 0; i < data.length; i++) {
             if (data[i] == (byte) 0x8c || data[i] == (byte) 0xcc) {
@@ -48,5 +58,4 @@ public final class OodleDecompressor {
         }
         throw new IllegalStateException("What kind of stream is this?");
     }
-
 }
