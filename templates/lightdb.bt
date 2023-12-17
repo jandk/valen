@@ -1,0 +1,103 @@
+#include "./common/image.bt"
+#include "./common/streamdb.bt"
+
+struct NameSection {
+    uint32 id;
+    uint32 count;
+    SString names[count] <optimize=false>;
+};
+
+struct Names {
+    uint32 magic;
+    uint32 count;
+    NameSection sections[count] <optimize=false>;
+};
+
+struct Header {
+    uint32 magic;
+    uint32 always2_1;
+    uint32 always2_2;
+    uint32 always1;
+    uint32 always28;
+    uint32 always2_3;
+    uint32 nameOffset;
+    uint32 hashLength;
+    uint32 numNames;
+    uint32 always21;
+    uint32 imageOffset;
+    uint32 always56;
+    uint32 hashOffset;
+    uint32 offset16;
+};
+
+struct ImageWrapper {
+    uint64 hash;
+    uint32 unk1;
+    uint32 unk2;
+    uint32 unk3;
+    uint32 unk4;
+    uint32 unk5;
+    uint32 unk6;
+    Image image;
+};
+
+struct Something {
+    uint32 unk1;
+    uint32 unk2;
+    uint32 unk3;
+    uint32 unk4;
+    uint32 unk5;
+    uint32 unk6;
+    uint32 numPart1;
+    uint32 numPart2;
+    uint32 unk7;
+};
+
+struct Part1 {
+    uint32 unk1;
+    uint32 unk2;
+    uint32 unk3;
+    int32 unk4;
+};
+
+struct Part2 {
+    uint32 unk1;
+    float unk2;
+    float unk3;
+};
+
+struct IndexMaybe {
+     ushort unk1;
+     ushort x;
+     ushort y;
+     ushort w;
+     ushort h;
+};
+
+struct LightDb {
+    Header header <style=sHeading1>;
+
+    IndexMaybe indexMaybe[header.hashLength] <style=sSection1>;
+
+    uint64 hashes[header.hashLength] <style=sSection2>;
+    uint32 hashIds[header.hashLength] <style=sSection3>;
+
+    ImageWrapper images[header.numNames] <style=sSection4, optimize=false>;
+
+    Names names <style=sSection1>;
+    
+    Something s <style=sHeading2>;
+    Part1 parts1[s.numPart1] <style=sSection2>;
+    Part2 parts2[s.numPart2] <style=sSection3>;
+    
+    FSeek(header.offset16 * 16);
+    StreamDb streamDb <style=sSection4>;
+
+    local int i;
+    for(i = 0; i < streamDb.header.numEntries; i++) {
+        FSeek(streamDb.entries[i].offset16 * 16);
+        struct {
+            byte data[streamDb.entries[i].length];
+        } compressed <style=sSection1>;
+    }
+} db;

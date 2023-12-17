@@ -45,4 +45,4 @@ struct StreamDb {
     };
 };
 
-// endif STREAMDB_H
+#endif // STREAMDB_H
