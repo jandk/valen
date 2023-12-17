@@ -1,0 +1,53 @@
+#ifndef IMAGE_H
+#define IMAGE_H
+
+#include "common.bt"
+
+struct ImageHeader {
+    uint32 magic;
+    uint32 textureType;
+    uint32 textureMaterialKind;
+    uint32 pixelWidth;
+    uint32 pixelHeight;
+    uint32 depth;
+    uint32 mipCount;
+    float unkFloat1;
+    float unkFloat2;
+    float unkFloat3;
+    ubyte padding1;
+    uint32 textureFormat;
+    uint32 always7;
+    uint32 padding2;
+    uint16 padding3;
+    ubyte streamed;
+    ubyte unkBool1;
+    ubyte unkBool2;
+    ubyte unkBool3;
+    uint streamDBMipCount;
+};
+
+struct ImageMipInfo {
+    uint32 mipLevel;
+    uint32 mipSlice;
+    uint32 mipPixelWidth;
+    uint32 mipPixelHeight;
+    uint32 always1;
+    uint32 decompressedSize;
+    uint32 flagIsCompressed;
+    uint32 compressedSize;
+    uint32 cumulativeSizeStreamDB;
+};
+
+struct Image {
+    ImageHeader header <style=sHeading1>;
+    ImageMipInfo mipInfos[header.mipCount] <style=sHeading2>;
+    
+    local int i;
+    for(i = header.streamDBMipCount; i < header.mipCount; i++) {
+        struct ImageMip {
+            byte mip[mipInfos[i].decompressedSize];
+        } mip <style=sSection1>;
+    }
+};
+
+#endif // IMAGE_H

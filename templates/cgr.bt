@@ -1,3 +1,5 @@
+#include <common/common.bt>
+
 struct Vector3 {
     float x, y, z;
 };

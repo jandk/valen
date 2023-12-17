@@ -1,4 +1,4 @@
-#include "common.bt"
+#include <common/common.bt>
 
 struct ModelHeader {
     uint always0_1;

@@ -1,3 +1,6 @@
+#ifndef COMMON_H
+#define COMMON_H
+
 typedef struct {
     uint size;
     char value[size];
@@ -60,3 +63,5 @@ struct GeometryMemoryLayout {
     uint colorOffset;
     uint indexOffset;
 };
+
+#endif // COMMON_H
