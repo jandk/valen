@@ -9,12 +9,12 @@ public record GeometryMemoryLayout(
     int positionMask,
     int normalMask,
     int uvMask,
-    int uvLightmapMask,
+    int uvLightMapMask,
     int colorMask,
     int positionOffset,
     int normalOffset,
     int uvOffset,
-    int uvLightmapOffset,
+    int uvLightMapOffset,
     int colorOffset,
     int indexOffset
 ) {
@@ -26,13 +26,13 @@ public record GeometryMemoryLayout(
 
         int positionMask = buffer.getInt(); // 1 = unpacked, 32 = packed
         int normalMask = buffer.getInt(); // always 20
-        int uvLightmapMask = numVertexStreams == 5 ? buffer.getInt() : 0; // always 64
+        int uvLightMapMask = numVertexStreams == 5 ? buffer.getInt() : 0; // always 64
         int uvMask = buffer.getInt(); // 131072 = unpacked, 32768 = packed
         int colorMask = buffer.getInt(); // always 8
 
         int positionOffset = buffer.getInt();
         int normalOffset = buffer.getInt();
-        int uvLightmapOffset = numVertexStreams == 5 ? buffer.getInt() : 0;
+        int uvLightMapOffset = numVertexStreams == 5 ? buffer.getInt() : 0;
         int uvOffset = buffer.getInt();
         int colorOffset = buffer.getInt();
 
@@ -45,12 +45,12 @@ public record GeometryMemoryLayout(
             positionMask,
             normalMask,
             uvMask,
-            uvLightmapMask,
+            uvLightMapMask,
             colorMask,
             positionOffset,
             normalOffset,
             uvOffset,
-            uvLightmapOffset,
+            uvLightMapOffset,
             colorOffset,
             indexOffset
         );
