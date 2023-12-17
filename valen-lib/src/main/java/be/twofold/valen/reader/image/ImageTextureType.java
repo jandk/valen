@@ -14,10 +14,6 @@ public enum ImageTextureType {
         this.code = code;
     }
 
-    public int getCode() {
-        return code;
-    }
-
     public static ImageTextureType fromCode(int code) {
         return Arrays.stream(VALUES)
             .filter(value -> value.code == code)

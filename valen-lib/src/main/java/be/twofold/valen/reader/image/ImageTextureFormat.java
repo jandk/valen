@@ -67,10 +67,6 @@ public enum ImageTextureFormat {
         this.code = code;
     }
 
-    public int getCode() {
-        return code;
-    }
-
     public static ImageTextureFormat fromCode(int code) {
         return Arrays.stream(VALUES)
             .filter(value -> value.code == code)

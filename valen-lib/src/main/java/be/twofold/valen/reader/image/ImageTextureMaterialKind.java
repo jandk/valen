@@ -35,10 +35,6 @@ public enum ImageTextureMaterialKind {
         this.code = code;
     }
 
-    public int getCode() {
-        return code;
-    }
-
     public static ImageTextureMaterialKind fromCode(int code) {
         return Arrays.stream(VALUES)
             .filter(value -> value.code == code)
