@@ -2,13 +2,16 @@ package be.twofold.valen.reader.geometry;
 
 import be.twofold.valen.core.util.*;
 
+import java.util.*;
+
 public record GeometryDiskLayout(
     int compression,
     int uncompressedSize,
     int compressedSize,
-    int offset
+    int offset,
+    List<GeometryMemoryLayout> memoryLayouts
 ) {
-    public static GeometryDiskLayout read(BetterBuffer buffer) {
+    public static GeometryDiskLayout read(BetterBuffer buffer, List<GeometryMemoryLayout> memoryLayouts) {
         int compression = buffer.getInt();
         int uncompressedSize = buffer.getInt();
         int compressedSize = buffer.getInt();
@@ -18,7 +21,8 @@ public record GeometryDiskLayout(
             compression,
             uncompressedSize,
             compressedSize,
-            offset
+            offset,
+            memoryLayouts
         );
     }
 }

@@ -16,7 +16,7 @@ public final class Md6Reader {
     private Md6BoneInfo boneInfo;
     private List<Md6MeshInfo> meshInfos;
     private List<GeometryMemoryLayout> memoryLayouts;
-    private List<GeometryDiskLayout> diskLayouts;
+    private List<GeometryDiskLayout> layouts;
     private List<Mesh> meshes;
 
     public Md6Reader(BetterBuffer buffer, FileManager fileManager, long hash) {
@@ -34,7 +34,12 @@ public final class Md6Reader {
 
         buffer.expectInt(5);
         memoryLayouts = buffer.getStructs(5, GeometryMemoryLayout::read);
-        diskLayouts = buffer.getStructs(5, GeometryDiskLayout::read);
+
+        var layouts = new ArrayList<GeometryDiskLayout>();
+        for (int i = 0; i < 5; i++) {
+            var subMemoryLayouts = List.copyOf(memoryLayouts.subList(i, i + 1));
+            layouts.add(GeometryDiskLayout.read(buffer, subMemoryLayouts));
+        }
         buffer.expectEnd();
 
         if (streamed) {
@@ -46,12 +51,12 @@ public final class Md6Reader {
             meshes = List.of();
         }
 
-        return new Md6(header, boneInfo, meshInfos, materialInfos, geoDecals, memoryLayouts, diskLayouts, meshes);
+        return new Md6(header, boneInfo, meshInfos, materialInfos, geoDecals, memoryLayouts, layouts, meshes);
     }
 
     private List<Mesh> readStreamedGeometry(int lod) {
         long hash = (this.hash << 4) | lod;
-        int size = diskLayouts.get(lod).uncompressedSize();
+        int size = layouts.get(lod).uncompressedSize();
 
         BetterBuffer buffer = fileManager.readStream(hash, size);
         List<LodInfo> lodInfos = meshInfos.stream()
