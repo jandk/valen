@@ -9,79 +9,58 @@ import java.nio.*;
 import java.util.*;
 
 public final class Md6Reader {
-    private final BetterBuffer buffer;
     private final FileManager fileManager;
-    private final long hash;
 
-    private Md6BoneInfo boneInfo;
-    private List<Md6MeshInfo> meshInfos;
-    private List<GeometryMemoryLayout> memoryLayouts;
-    private List<GeometryDiskLayout> layouts;
-    private List<Mesh> meshes;
-
-    public Md6Reader(BetterBuffer buffer, FileManager fileManager, long hash) {
-        this.buffer = buffer;
+    public Md6Reader(FileManager fileManager) {
         this.fileManager = fileManager;
-        this.hash = hash;
     }
 
-    public Md6 read(boolean streamed) {
-        Md6Header header = Md6Header.read(buffer);
-        boneInfo = Md6BoneInfo.read(buffer);
-        meshInfos = buffer.getStructs(buffer.getInt(), Md6MeshInfo::read);
-        List<Md6MaterialInfo> materialInfos = buffer.getStructs(buffer.getInt(), Md6MaterialInfo::read);
-        Md6GeoDecals geoDecals = Md6GeoDecals.read(buffer);
+    public Md6 read(BetterBuffer buffer) {
+        return read(buffer, false, 0);
+    }
 
-        buffer.expectInt(5);
-        memoryLayouts = buffer.getStructs(5, GeometryMemoryLayout::read);
+    public Md6 read(BetterBuffer buffer, boolean readStreams, long hash) {
+        var md6 = Md6.read(buffer);
 
-        var layouts = new ArrayList<GeometryDiskLayout>();
-        for (int i = 0; i < 5; i++) {
-            var subMemoryLayouts = List.copyOf(memoryLayouts.subList(i, i + 1));
-            layouts.add(GeometryDiskLayout.read(buffer, subMemoryLayouts));
-        }
-        buffer.expectEnd();
-
-        if (streamed) {
-            meshes = readStreamedGeometry(0);
-
-            // Apply the lookup table for the joint indices
-            fixJointIndices();
+        List<Mesh> meshes;
+        if (readStreams) {
+            meshes = readStreamedGeometry(md6, 0, hash);
+            fixJointIndices(md6, meshes);
         } else {
             meshes = List.of();
         }
-
-        return new Md6(header, boneInfo, meshInfos, materialInfos, geoDecals, memoryLayouts, layouts, meshes);
+        return md6.withMeshes(meshes);
     }
 
-    private List<Mesh> readStreamedGeometry(int lod) {
-        long hash = (this.hash << 4) | lod;
-        int size = layouts.get(lod).uncompressedSize();
+    private List<Mesh> readStreamedGeometry(Md6 md6, int lod, long hash) {
+        var streamHash = (hash << 4) | lod;
+        var size = md6.layouts().get(lod).uncompressedSize();
 
-        BetterBuffer buffer = fileManager.readStream(hash, size);
-        List<LodInfo> lodInfos = meshInfos.stream()
+        var buffer = fileManager.readStream(streamHash, size);
+        var lodInfos = md6.meshInfos().stream()
             .<LodInfo>map(mi -> mi.lodInfos().get(lod))
             .toList();
-        List<GeometryMemoryLayout> layouts = List.of(memoryLayouts.get(lod));
+        var layouts = md6.layouts().get(lod).memoryLayouts();
 
-        return new GeometryReader(true).readMeshes(buffer, lodInfos, layouts);
+        return new GeometryReader(true)
+            .readMeshes(buffer, lodInfos, layouts);
     }
 
-    private void fixJointIndices() {
-        byte[] bones = boneInfo.bones();
+    private void fixJointIndices(Md6 md6, List<Mesh> meshes) {
+        byte[] bones = md6.boneInfo().bones();
 
         // This lookup table is in reverse... Nice
-        byte[] lookup = new byte[bones.length];
-        for (int i = 0; i < bones.length; i++) {
+        var lookup = new byte[bones.length];
+        for (var i = 0; i < bones.length; i++) {
             lookup[Byte.toUnsignedInt(bones[i])] = (byte) i;
         }
 
-        for (int i = 0; i < meshInfos.size(); i++) {
-            Md6MeshInfo meshInfo = meshInfos.get(i);
+        for (var i = 0; i < md6.meshInfos().size(); i++) {
+            Md6MeshInfo meshInfo = md6.meshInfos().get(i);
             ByteBuffer joints = meshes.get(i).joints();
 
-            byte[] array = joints.array();
-            for (int j = 0; j < array.length; j++) {
+            var array = joints.array();
+            for (var j = 0; j < array.length; j++) {
                 array[j] = lookup[(array[j] & 0xff) + meshInfo.unknown2()];
             }
         }

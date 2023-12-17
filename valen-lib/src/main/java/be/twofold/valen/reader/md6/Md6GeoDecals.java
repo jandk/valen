@@ -8,15 +8,15 @@ public record Md6GeoDecals(
     int[][] geoDecalIndices
 ) {
     public static Md6GeoDecals read(BetterBuffer buffer) {
-        String materialName = buffer.getString();
-        int numStreams = buffer.getInt();
+        var materialName = buffer.getString();
+        var numStreams = buffer.getInt();
         if (materialName.isEmpty() && numStreams == 0) {
             return new Md6GeoDecals(materialName, new int[0], new int[0][]);
         }
 
-        int[] counts = buffer.getInts(numStreams);
-        int[][] indices = new int[numStreams][];
-        for (int stream = 0; stream < numStreams; stream++) {
+        var counts = buffer.getInts(numStreams);
+        var indices = new int[numStreams][];
+        for (var stream = 0; stream < numStreams; stream++) {
             indices[stream] = buffer.getInts(counts[stream]);
         }
 

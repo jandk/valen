@@ -8,7 +8,7 @@ public record ModelMeshInfo(
     String mtlDecl,
     int unkHash,
     int unknown,
-    List<ModelLodInfo> lods
+    List<ModelLodInfo> lodInfos
 ) {
     public static ModelMeshInfo read(BetterBuffer buffer) {
         var mtlDecl = buffer.getString();
@@ -16,13 +16,13 @@ public record ModelMeshInfo(
         var unknown = buffer.getInt();
         buffer.expectInt(0);
 
-        var lods = new ArrayList<ModelLodInfo>();
+        var lodInfos = new ArrayList<ModelLodInfo>();
         for (var lod = 0; lod < Model.LodCount; lod++) {
             if (!buffer.getIntAsBool()) {
-                lods.add(ModelLodInfo.read(buffer));
+                lodInfos.add(ModelLodInfo.read(buffer));
             }
         }
 
-        return new ModelMeshInfo(mtlDecl, unkHash, unknown, lods);
+        return new ModelMeshInfo(mtlDecl, unkHash, unknown, lodInfos);
     }
 }

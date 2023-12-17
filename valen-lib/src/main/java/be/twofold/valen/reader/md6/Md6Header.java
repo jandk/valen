@@ -4,18 +4,16 @@ import be.twofold.valen.core.math.*;
 import be.twofold.valen.core.util.*;
 
 public record Md6Header(
-    String sklName,
-    Vector3 min,
-    Vector3 max,
+    String skelName,
+    Bounds bounds,
     boolean regular
 ) {
     public static Md6Header read(BetterBuffer buffer) {
-        String sklName = buffer.getString();
-        Vector3 min = Vector3.read(buffer);
-        Vector3 max = Vector3.read(buffer);
-        boolean regular = buffer.getByteAsBool(); // true for md6skel, false for alembic
+        var skelName = buffer.getString();
+        var bounds = Bounds.read(buffer);
+        var regular = buffer.getByteAsBool(); // true for md6skel, false for alembic
         buffer.expectInt(0);
 
-        return new Md6Header(sklName, min, max, regular);
+        return new Md6Header(skelName, bounds, regular);
     }
 }

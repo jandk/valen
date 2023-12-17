@@ -7,8 +7,7 @@ import be.twofold.valen.reader.geometry.*;
 public record Md6LodInfo(
     int numVertices,
     int numFaces,
-    Vector3 negBounds,
-    Vector3 posBounds,
+    Bounds bounds,
     Vector3 vertexOffset,
     float vertexScale,
     Vector2 uvOffset,
@@ -18,23 +17,21 @@ public record Md6LodInfo(
     float unkFloat3
 ) implements LodInfo {
     public static Md6LodInfo read(BetterBuffer buffer) {
-        int numVertices = buffer.getInt();
-        int numFaces = buffer.getInt();
-        Vector3 negBounds = Vector3.read(buffer);
-        Vector3 posBounds = Vector3.read(buffer);
-        Vector3 vertexOffset = Vector3.read(buffer);
-        float vertexScale = buffer.getFloat();
-        Vector2 uvOffset = Vector2.read(buffer);
-        float uvScale = buffer.getFloat();
-        int flags = buffer.getInt();
-        float unkFloat1 = buffer.getFloat();
-        float unkFloat2 = buffer.getFloat();
+        var numVertices = buffer.getInt();
+        var numFaces = buffer.getInt();
+        var bounds = Bounds.read(buffer);
+        var vertexOffset = Vector3.read(buffer);
+        var vertexScale = buffer.getFloat();
+        var uvOffset = Vector2.read(buffer);
+        var uvScale = buffer.getFloat();
+        var flags = buffer.getInt();
+        var unkFloat1 = buffer.getFloat();
+        var unkFloat2 = buffer.getFloat();
 
         return new Md6LodInfo(
             numVertices,
             numFaces,
-            negBounds,
-            posBounds,
+            bounds,
             vertexOffset,
             vertexScale,
             uvOffset,
