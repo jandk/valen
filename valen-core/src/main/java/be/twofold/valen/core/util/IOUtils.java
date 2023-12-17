@@ -10,6 +10,12 @@ public final class IOUtils {
     private IOUtils() {
     }
 
+    public static void expectPosition(SeekableByteChannel channel, long position) throws IOException {
+        if (channel.position() != position) {
+            throw new IOException("Expected position " + position + ", but was " + channel.position());
+        }
+    }
+
     public static BetterBuffer readBuffer(ReadableByteChannel channel, int size) throws IOException {
         ByteBuffer buffer = ByteBuffer.allocate(size);
         int read = channel.read(buffer);

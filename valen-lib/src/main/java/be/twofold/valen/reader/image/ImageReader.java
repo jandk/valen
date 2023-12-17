@@ -20,7 +20,6 @@ public final class ImageReader {
         for (int i = header.startMip(); i < header.totalMipCount(); i++) {
             mipData[i] = readMip(buffer, mipInfos.get(i));
         }
-        buffer.expectEnd();
 
         if (readStreams) {
             // Not entirely sure, but it seems to work, so I'm calling it the "single stream" format

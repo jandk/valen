@@ -17,17 +17,16 @@ public record StreamDb(
         var header = IOUtils.readStruct(channel, StreamDbHeader.BYTES, StreamDbHeader::read);
         var entries = IOUtils.readStructs(channel, header.numEntries(), StreamDbEntry.BYTES, StreamDbEntry::read);
 
-        var prefetchHeader = IOUtils.readStruct(channel, StreamDbPrefetchHeader.BYTES, StreamDbPrefetchHeader::read);
-        var prefetchBlocks = IOUtils.readStructs(channel, prefetchHeader.numPrefetchBlocks(), StreamDbPrefetchBlock.BYTES, StreamDbPrefetchBlock::read);
+        if (header.flags().contains(StreamDbHeaderFlag.SDHF_HAS_PREFETCH_BLOCKS)) {
+            var prefetchHeader = IOUtils.readStruct(channel, StreamDbPrefetchHeader.BYTES, StreamDbPrefetchHeader::read);
+            var prefetchBlocks = IOUtils.readStructs(channel, prefetchHeader.numPrefetchBlocks(), StreamDbPrefetchBlock.BYTES, StreamDbPrefetchBlock::read);
 
-        var numPrefetchIDs = prefetchBlocks.stream().mapToInt(StreamDbPrefetchBlock::numItems).sum();
-        var prefetchIDs = IOUtils.readLongs(channel, numPrefetchIDs);
-
-        if (channel.position() != header.length()) {
-            throw new IOException("Header length does not match position");
+            var numPrefetchIDs = prefetchBlocks.stream().mapToInt(StreamDbPrefetchBlock::numItems).sum();
+            var prefetchIDs = IOUtils.readLongs(channel, numPrefetchIDs);
+            return new StreamDb(header, entries, prefetchHeader, prefetchBlocks, prefetchIDs);
         }
 
-        return new StreamDb(header, entries, prefetchHeader, prefetchBlocks, prefetchIDs);
+        return new StreamDb(header, entries, null, List.of(), new long[0]);
     }
 
     @Override
