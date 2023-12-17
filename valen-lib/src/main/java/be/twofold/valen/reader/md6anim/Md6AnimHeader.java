@@ -1,7 +1,7 @@
 package be.twofold.valen.reader.md6anim;
 
+import be.twofold.valen.core.math.*;
 import be.twofold.valen.core.util.*;
-import be.twofold.valen.geometry.*;
 
 public record Md6AnimHeader(
     String skelName,

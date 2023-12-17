@@ -13,6 +13,7 @@
         <module>valen-core</module>
         <module>valen-ui</module>
         <module>valen-lib</module>
+        <module>valen-export-gltf</module>
     </modules>
 
     <properties>
@@ -29,6 +30,11 @@
             <dependency>
                 <groupId>be.twofold</groupId>
                 <artifactId>valen-core</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>be.twofold</groupId>
+                <artifactId>valen-export-gltf</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
