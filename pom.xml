@@ -11,6 +11,8 @@
     <modules>
         <module>valen-app</module>
         <module>valen-core</module>
+        <module>valen-ui</module>
+        <module>valen-lib</module>
     </modules>
 
     <properties>
@@ -18,7 +20,7 @@
         <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-        <jackson.version>2.16.0</jackson.version>
+        <javafx.version>21.0.1</javafx.version>
     </properties>
 
     <dependencyManagement>
@@ -27,6 +29,16 @@
             <dependency>
                 <groupId>be.twofold</groupId>
                 <artifactId>valen-core</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>be.twofold</groupId>
+                <artifactId>valen-lib</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>be.twofold</groupId>
+                <artifactId>valen-ui</artifactId>
                 <version>${project.version}</version>
             </dependency>
 

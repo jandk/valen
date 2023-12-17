@@ -8,24 +8,21 @@
         <version>1.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>valen-app</artifactId>
+    <artifactId>valen-lib</artifactId>
 
     <dependencies>
-        <!-- Internal -->
         <dependency>
             <groupId>be.twofold</groupId>
             <artifactId>valen-core</artifactId>
         </dependency>
-        <dependency>
-            <groupId>be.twofold</groupId>
-            <artifactId>valen-ui</artifactId>
-        </dependency>
 
-        <!-- External -->
         <dependency>
-            <groupId>org.openjfx</groupId>
-            <artifactId>javafx-controls</artifactId>
-            <version>${javafx.version}</version>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>net.java.dev.jna</groupId>
+            <artifactId>jna-jpms</artifactId>
         </dependency>
     </dependencies>
 

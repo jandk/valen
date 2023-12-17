@@ -8,17 +8,13 @@
         <version>1.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>valen-app</artifactId>
+    <artifactId>valen-ui</artifactId>
 
     <dependencies>
         <!-- Internal -->
         <dependency>
             <groupId>be.twofold</groupId>
-            <artifactId>valen-core</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>be.twofold</groupId>
-            <artifactId>valen-ui</artifactId>
+            <artifactId>valen-lib</artifactId>
         </dependency>
 
         <!-- External -->
