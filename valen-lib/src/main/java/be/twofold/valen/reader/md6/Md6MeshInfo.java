@@ -23,7 +23,7 @@ public record Md6MeshInfo(
         var unknown3 = buffer.getInt();
         var unkHash = buffer.getInt();
 
-        List<Md6LodInfo> lodInfos = new ArrayList<>();
+        var lodInfos = new ArrayList<Md6LodInfo>();
         for (var i = 0; i < 5; i++) {
             if (!buffer.getIntAsBool()) {
                 lodInfos.add(Md6LodInfo.read(buffer));

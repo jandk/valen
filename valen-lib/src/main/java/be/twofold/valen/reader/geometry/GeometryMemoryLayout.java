@@ -19,24 +19,24 @@ public record GeometryMemoryLayout(
     int indexOffset
 ) {
     public static GeometryMemoryLayout read(BetterBuffer buffer) {
-        int combinedVertexMask = buffer.getInt();
-        int size = buffer.getInt();
-        int numVertexStreams = buffer.getInt();
+        var combinedVertexMask = buffer.getInt();
+        var size = buffer.getInt();
+        var numVertexStreams = buffer.getInt();
         assert numVertexStreams == 4 || numVertexStreams == 5;
 
-        int positionMask = buffer.getInt(); // 1 = unpacked, 32 = packed
-        int normalMask = buffer.getInt(); // always 20
-        int uvLightMapMask = numVertexStreams == 5 ? buffer.getInt() : 0; // always 64
-        int uvMask = buffer.getInt(); // 131072 = unpacked, 32768 = packed
-        int colorMask = buffer.getInt(); // always 8
+        var positionMask = buffer.getInt(); // 1 = unpacked, 32 = packed
+        var normalMask = buffer.getInt(); // always 20
+        var uvLightMapMask = numVertexStreams == 5 ? buffer.getInt() : 0; // always 64
+        var uvMask = buffer.getInt(); // 131072 = unpacked, 32768 = packed
+        var colorMask = buffer.getInt(); // always 8
 
-        int positionOffset = buffer.getInt();
-        int normalOffset = buffer.getInt();
-        int uvLightMapOffset = numVertexStreams == 5 ? buffer.getInt() : 0;
-        int uvOffset = buffer.getInt();
-        int colorOffset = buffer.getInt();
+        var positionOffset = buffer.getInt();
+        var normalOffset = buffer.getInt();
+        var uvLightMapOffset = numVertexStreams == 5 ? buffer.getInt() : 0;
+        var uvOffset = buffer.getInt();
+        var colorOffset = buffer.getInt();
 
-        int indexOffset = buffer.getInt();
+        var indexOffset = buffer.getInt();
 
         return new GeometryMemoryLayout(
             combinedVertexMask,

@@ -24,7 +24,7 @@ public record Md6(
         var memoryLayouts = buffer.getStructs(buffer.getInt(), GeometryMemoryLayout::read);
 
         var layouts = new ArrayList<GeometryDiskLayout>();
-        for (int i = 0; i < 5; i++) {
+        for (var i = 0; i < 5; i++) {
             var subMemoryLayouts = List.copyOf(memoryLayouts.subList(i, i + 1));
             layouts.add(GeometryDiskLayout.read(buffer, subMemoryLayouts));
         }

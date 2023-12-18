@@ -5,7 +5,6 @@ import be.twofold.valen.core.util.*;
 import be.twofold.valen.manager.*;
 import be.twofold.valen.reader.geometry.*;
 
-import java.nio.*;
 import java.util.*;
 
 public final class Md6Reader {
@@ -35,8 +34,8 @@ public final class Md6Reader {
     private List<Mesh> readStreamedGeometry(Md6 md6, int lod, long hash) {
         var streamHash = (hash << 4) | lod;
         var size = md6.layouts().get(lod).uncompressedSize();
-
         var buffer = fileManager.readStream(streamHash, size);
+
         var lodInfos = md6.meshInfos().stream()
             .<LodInfo>map(mi -> mi.lodInfos().get(lod))
             .toList();
@@ -47,7 +46,7 @@ public final class Md6Reader {
     }
 
     private void fixJointIndices(Md6 md6, List<Mesh> meshes) {
-        byte[] bones = md6.boneInfo().bones();
+        var bones = md6.boneInfo().bones();
 
         // This lookup table is in reverse... Nice
         var lookup = new byte[bones.length];
@@ -56,8 +55,8 @@ public final class Md6Reader {
         }
 
         for (var i = 0; i < md6.meshInfos().size(); i++) {
-            Md6MeshInfo meshInfo = md6.meshInfos().get(i);
-            ByteBuffer joints = meshes.get(i).joints();
+            var meshInfo = md6.meshInfos().get(i);
+            var joints = meshes.get(i).joints();
 
             var array = joints.array();
             for (var j = 0; j < array.length; j++) {

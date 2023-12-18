@@ -21,22 +21,22 @@ public record Md6SkeletonHeader(
 ) {
     public static Md6SkeletonHeader read(BetterBuffer buffer) {
         buffer.skip(4); // These are a copy of the size
-        short size = buffer.getShort();
-        short numJoints = buffer.getShort();
-        short numUserChannels = buffer.getShort();
-        short parentTblCrc = buffer.getShort();
-        short basePoseOffset = buffer.getShort();
-        short inverseBasePoseOffset = buffer.getShort();
-        short parentTblOffset = buffer.getShort();
-        short lastChildTblOffset = buffer.getShort();
-        short jointHandleTblOffset = buffer.getShort();
-        short userChannelHandleTblOffset = buffer.getShort();
-        short[] jointWeightOffsets = buffer.getShorts(8);
-        short[] userWeightOffsets = buffer.getShorts(8);
-        short extraJointTblOffset = buffer.getShort();
+        var size = buffer.getShort();
+        var numJoints = buffer.getShort();
+        var numUserChannels = buffer.getShort();
+        var parentTblCrc = buffer.getShort();
+        var basePoseOffset = buffer.getShort();
+        var inverseBasePoseOffset = buffer.getShort();
+        var parentTblOffset = buffer.getShort();
+        var lastChildTblOffset = buffer.getShort();
+        var jointHandleTblOffset = buffer.getShort();
+        var userChannelHandleTblOffset = buffer.getShort();
+        var jointWeightOffsets = buffer.getShorts(8);
+        var userWeightOffsets = buffer.getShorts(8);
+        var extraJointTblOffset = buffer.getShort();
         buffer.expectShort(0); // skelRemapTblOffset
-        short loadedDataSize = buffer.getShort();
-        byte[] pad = buffer.getBytes(6);
+        var loadedDataSize = buffer.getShort();
+        var pad = buffer.getBytes(6);
 
         return new Md6SkeletonHeader(
             size,

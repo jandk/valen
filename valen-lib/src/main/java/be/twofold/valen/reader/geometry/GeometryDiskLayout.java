@@ -12,10 +12,10 @@ public record GeometryDiskLayout(
     List<GeometryMemoryLayout> memoryLayouts
 ) {
     public static GeometryDiskLayout read(BetterBuffer buffer, List<GeometryMemoryLayout> memoryLayouts) {
-        int compression = buffer.getInt();
-        int uncompressedSize = buffer.getInt();
-        int compressedSize = buffer.getInt();
-        int offset = buffer.getInt();
+        var compression = buffer.getInt();
+        var uncompressedSize = buffer.getInt();
+        var compressedSize = buffer.getInt();
+        var offset = buffer.getInt();
 
         return new GeometryDiskLayout(
             compression,
