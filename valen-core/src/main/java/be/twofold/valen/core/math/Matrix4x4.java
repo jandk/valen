@@ -8,10 +8,10 @@ public record Matrix4x4(
 ) {
     public static Matrix4x4 fromArray(float[] array) {
         return new Matrix4x4(
-            array[0], array[4], array[+8], array[12],
-            array[1], array[5], array[+9], array[13],
-            array[2], array[6], array[10], array[14],
-            array[3], array[7], array[11], array[15]
+            array[+0], array[+1], array[+2], array[+3],
+            array[+4], array[+5], array[+6], array[+7],
+            array[+8], array[+9], array[10], array[11],
+            array[12], array[13], array[14], array[15]
         );
     }
 
@@ -26,11 +26,11 @@ public record Matrix4x4(
 
     @Override
     public String toString() {
-        return "(\n" +
-               "  " + m00 + ", " + m01 + ", " + m02 + ", " + m03 + ",\n" +
-               "  " + m10 + ", " + m11 + ", " + m12 + ", " + m13 + ",\n" +
-               "  " + m20 + ", " + m21 + ", " + m22 + ", " + m23 + ",\n" +
-               "  " + m30 + ", " + m31 + ", " + m32 + ", " + m33 + "\n" +
-               ")";
+        return "(" +
+            m00 + ", " + m01 + ", " + m02 + ", " + m03 + ", " +
+            m10 + ", " + m11 + ", " + m12 + ", " + m13 + ", " +
+            m20 + ", " + m21 + ", " + m22 + ", " + m23 + ", " +
+            m30 + ", " + m31 + ", " + m32 + ", " + m33 +
+            ")";
     }
 }

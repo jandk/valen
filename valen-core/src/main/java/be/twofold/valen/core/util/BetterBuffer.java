@@ -157,6 +157,10 @@ public final class BetterBuffer {
         Check.state(!buffer.hasRemaining(), () -> String.format("Expected end of buffer, but got %s bytes left", buffer.remaining()));
     }
 
+    public void expectPosition(long position) {
+        Check.state(position() == position, () -> String.format("Expected position %s, but was %s", position, position()));
+    }
+
     public String printBitSetRanges() {
         StringBuilder builder = new StringBuilder();
         int startIndex = read.nextSetBit(0);
