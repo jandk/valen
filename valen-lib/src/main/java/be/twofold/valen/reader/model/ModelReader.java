@@ -37,8 +37,8 @@ public final class ModelReader {
     private static List<Mesh> readEmbeddedGeometry(Model model, BetterBuffer buffer) {
         List<Mesh> meshes = new ArrayList<>();
         for (var meshInfo : model.meshInfos()) {
-            assert meshInfo.lods().size() == 1;
-            meshes.add(readEmbeddedMesh(meshInfo.lods().getFirst(), buffer));
+            assert meshInfo.lodInfos().size() == 1;
+            meshes.add(readEmbeddedMesh(meshInfo.lodInfos().getFirst(), buffer));
         }
         return meshes;
     }
@@ -79,7 +79,7 @@ public final class ModelReader {
 
         var buffer = fileManager.readStream(streamHash, uncompressedSize);
         var lods = model.meshInfos().stream()
-            .<LodInfo>map(mi -> mi.lods().get(lod))
+            .<LodInfo>map(mi -> mi.lodInfos().get(lod))
             .toList();
         var layouts = model.streamDiskLayouts().get(lod).memoryLayouts();
 
