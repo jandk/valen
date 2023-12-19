@@ -1,12 +1,11 @@
-package be.twofold.valen.converter;
+package be.twofold.valen.reader.image;
 
 import be.twofold.valen.core.texture.*;
-import be.twofold.valen.reader.image.*;
 
 import java.util.*;
 
-public final class ImageToTexture {
-    public Texture convert(Image image) {
+public final class ImageMapper {
+    public Texture map(Image image) {
         int minMip = image.minMip();
         int width = image.mipInfos().get(minMip).mipPixelWidth();
         int height = image.mipInfos().get(minMip).mipPixelHeight();

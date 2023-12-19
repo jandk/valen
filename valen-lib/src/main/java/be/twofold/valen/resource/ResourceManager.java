@@ -1,56 +1,69 @@
 package be.twofold.valen.resource;
 
 import be.twofold.valen.core.util.*;
-import be.twofold.valen.manager.*;
-import be.twofold.valen.oodle.*;
-import be.twofold.valen.reader.resource.*;
+import be.twofold.valen.reader.packagemapspec.*;
 
 import java.io.*;
+import java.nio.file.*;
 import java.util.*;
 
-public final class ResourceManager {
+public final class ResourceManager implements AutoCloseable {
+    private final Path base;
+    private final PackageMapSpec spec;
+    private List<ResourcesFile> files;
+    private Map<String, ResourcesFile> index;
 
-    private final Map<Resource, String> resourceToPath = new HashMap<>();
-    private final Map<String, Resource> nameToResource = new HashMap<>();
-    private final FileManager fileManager;
-
-    public ResourceManager(FileManager fileManager) {
-        this.fileManager = Check.notNull(fileManager);
-    }
-
-    public Collection<Resource> getEntries() {
-        return resourceToPath.keySet();
+    public ResourceManager(Path base, PackageMapSpec spec) {
+        this.base = Check.notNull(base, "base must not be null");
+        this.spec = Check.notNull(spec, "spec must not be null");
     }
 
     public Resource getEntry(String name) {
-        return nameToResource.get(name);
+        ResourcesFile file = index.get(name);
+        Check.argument(file != null, () -> String.format("Unknown resource: %s", name));
+
+        return file.getEntry(name);
     }
 
-    public byte[] read(Resource entry) throws IOException {
-        var channel = fileManager.open(resourceToPath.get(entry));
-        channel.position(entry.offset());
+    public byte[] read(String name) {
+        var file = index.get(name);
+        Check.argument(file != null, () -> String.format("Unknown resource: %s", name));
 
-        var compressed = IOUtils.readBytes(channel, entry.size());
-        return OodleDecompressor.decompress(compressed, entry.uncompressedSize());
+        return file.read(name);
     }
 
     public void select(String map) throws IOException {
-        var paths = fileManager.getSpec().mapFiles().get(map).stream()
-            .filter(p -> p.endsWith(".resources"))
+        var mapFiles = spec.mapFiles().get(map);
+        Check.argument(mapFiles != null, () -> "Unknown map: " + map);
+
+        close();
+
+        var paths = mapFiles.stream()
+            .filter(s -> s.endsWith(".resources"))
+            .map(base::resolve)
             .toList();
 
-        resourceToPath.clear();
-        nameToResource.clear();
+        var files = new ArrayList<ResourcesFile>();
+        var index = new HashMap<String, ResourcesFile>();
         for (var path : paths) {
-            System.out.println("Loading resources: " + path);
-
-            var channel = fileManager.open(path);
-            var resources = ResourceMapper.map(Resources.read(channel));
-            for (var entry : resources) {
-                resourceToPath.putIfAbsent(entry, path);
-                nameToResource.putIfAbsent(entry.name().toString(), entry);
+            var file = new ResourcesFile(path);
+            files.add(file);
+            for (var entry : file.getEntries()) {
+                index.put(entry.name().name(), file);
             }
         }
+        this.files = List.copyOf(files);
+        this.index = Map.copyOf(index);
     }
 
+    @Override
+    public void close() throws IOException {
+        if (files != null) {
+            for (var file : files) {
+                file.close();
+            }
+            files = null;
+            index = null;
+        }
+    }
 }

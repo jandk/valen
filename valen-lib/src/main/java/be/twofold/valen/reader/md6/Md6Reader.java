@@ -2,20 +2,23 @@ package be.twofold.valen.reader.md6;
 
 import be.twofold.valen.core.geometry.*;
 import be.twofold.valen.core.util.*;
-import be.twofold.valen.manager.*;
+import be.twofold.valen.reader.*;
 import be.twofold.valen.reader.geometry.*;
+import be.twofold.valen.stream.*;
 
 import java.util.*;
 
-public final class Md6Reader {
-    private final FileManager fileManager;
+public final class Md6Reader implements ResourceReader<Model> {
+    private final StreamManager streamManager;
 
-    public Md6Reader(FileManager fileManager) {
-        this.fileManager = fileManager;
+    public Md6Reader(StreamManager streamManager) {
+        this.streamManager = streamManager;
     }
 
-    public Md6 read(BetterBuffer buffer) {
-        return read(buffer, false, 0);
+    @Override
+    public Model read(BetterBuffer buffer) {
+        Md6 md6 = read(buffer, false, 0);
+        return new Model(md6.meshes(), null);
     }
 
     public Md6 read(BetterBuffer buffer, boolean readStreams, long hash) {
@@ -32,9 +35,9 @@ public final class Md6Reader {
     }
 
     private List<Mesh> readStreamedGeometry(Md6 md6, int lod, long hash) {
-        var streamHash = (hash << 4) | lod;
-        var size = md6.layouts().get(lod).uncompressedSize();
-        var buffer = fileManager.readStream(streamHash, size);
+        var identity = (hash << 4) | lod;
+        var uncompressedSize = md6.layouts().get(lod).uncompressedSize();
+        var buffer = BetterBuffer.wrap(streamManager.read(identity, uncompressedSize));
 
         var lodInfos = md6.meshInfos().stream()
             .<LodInfo>map(mi -> mi.lodInfos().get(lod))

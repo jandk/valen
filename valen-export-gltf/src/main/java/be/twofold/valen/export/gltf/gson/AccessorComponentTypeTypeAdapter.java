@@ -13,7 +13,7 @@ public final class AccessorComponentTypeTypeAdapter extends TypeAdapter<Accessor
     }
 
     @Override
-    public AccessorComponentType read(JsonReader in) throws IOException {
+    public AccessorComponentType read(JsonReader in) {
         throw new UnsupportedOperationException();
     }
 }

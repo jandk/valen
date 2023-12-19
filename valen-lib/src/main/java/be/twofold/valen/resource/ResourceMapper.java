@@ -6,17 +6,13 @@ import java.time.*;
 import java.util.*;
 
 public final class ResourceMapper {
-    private ResourceMapper() {
-        throw new UnsupportedOperationException();
-    }
-
-    public static List<Resource> map(Resources resources) {
+    public List<Resource> map(Resources resources) {
         return resources.entries().stream()
             .map(entry -> map(resources, entry))
             .toList();
     }
 
-    private static Resource map(Resources resources, ResourcesEntry entry) {
+    private Resource map(Resources resources, ResourcesEntry entry) {
         var type = resources.pathStrings().get(resources.pathStringIndex()[entry.strings()]);
         var name = resources.pathStrings().get(resources.pathStringIndex()[entry.strings() + 1]);
         var dependencies = mapDependencies(resources, entry);
@@ -33,13 +29,13 @@ public final class ResourceMapper {
         );
     }
 
-    private static List<ResourceDependency> mapDependencies(Resources resources, ResourcesEntry entry) {
+    private List<ResourceDependency> mapDependencies(Resources resources, ResourcesEntry entry) {
         return Arrays.stream(resources.dependencyIndex(), entry.depIndices(), entry.depIndices() + entry.numDependencies())
             .mapToObj(index -> mapDependency(resources, resources.dependencies().get(index)))
             .toList();
     }
 
-    private static ResourceDependency mapDependency(Resources resources, ResourcesDependency dependency) {
+    private ResourceDependency mapDependency(Resources resources, ResourcesDependency dependency) {
         var type = resources.pathStrings().get(dependency.type());
         var name = resources.pathStrings().get(dependency.name());
 

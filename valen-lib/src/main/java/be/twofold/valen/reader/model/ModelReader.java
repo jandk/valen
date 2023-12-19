@@ -2,25 +2,27 @@ package be.twofold.valen.reader.model;
 
 import be.twofold.valen.core.geometry.*;
 import be.twofold.valen.core.util.*;
-import be.twofold.valen.manager.*;
+import be.twofold.valen.reader.*;
 import be.twofold.valen.reader.geometry.*;
+import be.twofold.valen.stream.*;
 
-import java.io.*;
 import java.nio.*;
 import java.util.*;
 
-public final class ModelReader {
-    private final FileManager fileManager;
+public final class ModelReader implements ResourceReader<be.twofold.valen.core.geometry.Model> {
+    private final StreamManager streamManager;
 
-    public ModelReader(FileManager fileManager) {
-        this.fileManager = fileManager;
+    public ModelReader(StreamManager streamManager) {
+        this.streamManager = streamManager;
     }
 
-    public Model read(BetterBuffer buffer) throws IOException {
-        return read(buffer, false, 0);
+    @Override
+    public be.twofold.valen.core.geometry.Model read(BetterBuffer buffer) {
+        Model model = read(buffer, false, 0);
+        return new be.twofold.valen.core.geometry.Model(model.meshes(), null);
     }
 
-    public Model read(BetterBuffer buffer, boolean readStreams, long hash) throws IOException {
+    public Model read(BetterBuffer buffer, boolean readStreams, long hash) {
         var model = Model.read(buffer);
 
         List<Mesh> meshes;
@@ -77,7 +79,7 @@ public final class ModelReader {
         var diskLayout = model.streamDiskLayouts().get(lod);
         var uncompressedSize = diskLayout.uncompressedSize();
 
-        var buffer = fileManager.readStream(streamHash, uncompressedSize);
+        var buffer = BetterBuffer.wrap(streamManager.read(streamHash, uncompressedSize));
         var lods = model.meshInfos().stream()
             .<LodInfo>map(mi -> mi.lodInfos().get(lod))
             .toList();

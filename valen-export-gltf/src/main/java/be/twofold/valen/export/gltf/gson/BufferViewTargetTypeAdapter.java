@@ -13,7 +13,7 @@ public final class BufferViewTargetTypeAdapter extends TypeAdapter<BufferViewTar
     }
 
     @Override
-    public BufferViewTarget read(JsonReader in) throws IOException {
+    public BufferViewTarget read(JsonReader in) {
         throw new UnsupportedOperationException();
     }
 }

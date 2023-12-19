@@ -1,68 +1,50 @@
 package be.twofold.valen.stream;
 
 import be.twofold.valen.core.util.*;
-import be.twofold.valen.manager.*;
-import be.twofold.valen.oodle.*;
-import be.twofold.valen.reader.streamdb.*;
+import be.twofold.valen.reader.packagemapspec.*;
 
 import java.io.*;
-import java.nio.channels.*;
+import java.nio.file.*;
 import java.util.*;
 
 public final class StreamManager {
 
-    private final FileManager fileManager;
-    private final Map<Long, String> hashToPath = new HashMap<>();
-    private final Map<Long, StreamDbEntry> hashToEntry = new HashMap<>();
+    private final Path base;
+    private final PackageMapSpec spec;
+    private Map<Long, StreamDbFile> index;
 
-    public StreamManager(FileManager fileManager) throws IOException {
-        this.fileManager = Check.notNull(fileManager);
-        initialize();
+    public StreamManager(Path base, PackageMapSpec spec) throws IOException {
+        this.base = Check.notNull(base, "base must not be null");
+        this.spec = Check.notNull(spec, "spec must not be null");
+
+        loadFiles();
     }
 
-    public Collection<StreamDbEntry> getEntries() {
-        return hashToEntry.values();
+    public boolean contains(long identity) {
+        return index.containsKey(identity);
     }
 
-    private void initialize() throws IOException {
-        List<String> paths = fileManager.getSpec().files().stream()
-            .filter(file -> file.endsWith(".streamdb"))
+    public byte[] read(long identity, int uncompressedSize) {
+        var file = index.get(identity);
+        Check.argument(file != null, () -> String.format("Unknown stream: 0x%016x", identity));
+
+        return file.read(identity, uncompressedSize);
+    }
+
+    private void loadFiles() throws IOException {
+        var paths = spec.files().stream()
+            .filter(s -> s.endsWith(".streamdb"))
+            .map(base::resolve)
             .toList();
 
-        /*
-         * We can actually get away with loading all streamdb files into memory.
-         * The order in packagemapspec.json is consistent across all maps, so
-         * we can just load them in order and then use the first one that has
-         * the entry we're looking for.
-         */
-        for (String path : paths) {
-            System.out.println("Loading streamdb: " + path);
-            SeekableByteChannel channel = fileManager.open(path);
-
-            StreamDb db = StreamDb.read(channel);
-            for (StreamDbEntry entry : db.entries()) {
-                hashToPath.putIfAbsent(entry.identity(), path);
-                hashToEntry.putIfAbsent(entry.identity(), entry);
+        var index = new HashMap<Long, StreamDbFile>();
+        for (var path : paths) {
+            var file = new StreamDbFile(path);
+            for (var entry : file.getEntries()) {
+                index.put(entry.identity(), file);
             }
         }
-    }
 
-    public byte[] load(long identity, int size) {
-        String path = hashToPath.get(identity);
-        Check.argument(path != null, () -> String.format("Unknown stream: 0x%016x", identity));
-
-        StreamDbEntry entry = hashToEntry.get(identity);
-        SeekableByteChannel channel = fileManager.open(path);
-        try {
-            channel.position(entry.offset());
-            byte[] compressed = IOUtils.readBytes(channel, entry.length());
-            return OodleDecompressor.decompress(compressed, size);
-        } catch (IOException e) {
-            throw new UncheckedIOException(String.format("Failed to read stream: 0x%016x", entry.identity()), e);
-        }
-    }
-
-    public boolean exists(long identity) {
-        return hashToPath.containsKey(identity);
+        this.index = Map.copyOf(index);
     }
 }
