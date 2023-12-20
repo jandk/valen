@@ -22,7 +22,7 @@ public class LoadResourcesTask extends Task<Collection<Resource>> {
         try {
             FileManager manager = new FileManager(base);
             manager.select("game/tutorials/tutorial_sp");
-            return manager.getResourceEntries();
+            return manager.getEntries();
         } catch (IOException e) {
             System.err.println("Failed to open file: " + base);
             throw new UncheckedIOException(e);

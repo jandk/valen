@@ -18,6 +18,13 @@ public final class ResourceManager implements AutoCloseable {
         this.spec = Check.notNull(spec, "spec must not be null");
     }
 
+    public Collection<Resource> getEntries() {
+        return index.values().stream()
+            .flatMap(resourcesFile -> resourcesFile.getEntries().stream())
+            .distinct()
+            .toList();
+    }
+
     public Resource getEntry(String name) {
         ResourcesFile file = index.get(name);
         Check.argument(file != null, () -> String.format("Unknown resource: %s", name));

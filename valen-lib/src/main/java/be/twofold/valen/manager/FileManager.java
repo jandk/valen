@@ -40,6 +40,10 @@ public final class FileManager {
         return spec;
     }
 
+    public Collection<Resource> getEntries() {
+        return resourceManager.getEntries();
+    }
+
     public void select(String map) throws IOException {
         resourceManager.select(map);
     }
