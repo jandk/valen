@@ -13,18 +13,14 @@ public final class DeclParser {
     public DeclValue parse() {
         DeclValue result;
         try {
-            while (true) {
-                if (lexer.nextToken().type() == DeclTokenType.ObjectStart) {
-                    break;
-                }
-            }
+            test(lexer.nextToken(), DeclTokenType.ObjectStart);
             result = parseObject();
         } catch (StackOverflowError e) {
             throw new RuntimeException("Stack overflow");
         }
         DeclToken token = lexer.nextToken();
         if (token.type() != DeclTokenType.Eof) {
-            throw new RuntimeException("Not a single JSON document");
+            throw new RuntimeException("Not a single DECL document");
         }
         return result;
     }
@@ -37,6 +33,7 @@ public final class DeclParser {
             case Number -> new DeclNumber(token.value());
             case True -> DeclBoolean.True;
             case False -> DeclBoolean.False;
+            case Null -> DeclNull.Null;
             default -> throw new RuntimeException("Unexpected " + token);
         };
     }
@@ -48,27 +45,22 @@ public final class DeclParser {
             if (token.type() == DeclTokenType.ObjectEnd) {
                 break;
             }
-            if (object.size() > 0) {
-                if (token.type() == DeclTokenType.Semicolon) {
-                    token = lexer.nextToken();
-                }
-                if (token.type() == DeclTokenType.ObjectEnd) {
-                    break;
-                }
-            }
-            if (token.type() != DeclTokenType.String) {
-                throw new RuntimeException("Expected string, got " + token);
-            }
-            String key = token.value();
-            if ("entityDef".equals(key)) {
-                key = "entityDef--" + lexer.nextToken().value();
-            }
-            if (lexer.peekToken().type() == DeclTokenType.Equals) {
+            String key = test(token, DeclTokenType.Name).value();
+            test(lexer.nextToken(), DeclTokenType.Equals);
+
+            DeclValue value = parseValue();
+            if (lexer.peekToken().type() == DeclTokenType.Semicolon) {
                 lexer.nextToken();
             }
-            DeclValue value = parseValue();
             object.put(key, value);
         }
         return object;
+    }
+
+    private DeclToken test(DeclToken actual, DeclTokenType expected) {
+        if (actual.type() != expected) {
+            throw new RuntimeException("Expected " + expected + ", got " + actual);
+        }
+        return actual;
     }
 }

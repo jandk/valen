@@ -37,7 +37,7 @@ public final class DeclBoolean extends DeclValue {
 
     @Override
     public String toString() {
-        return String.valueOf(value);
+        return "Boolean(" + value + ")";
     }
 
 }

@@ -71,7 +71,7 @@ public final class DeclObject extends DeclValue implements Iterable<Map.Entry<St
 
     @Override
     public String toString() {
-        return "JsonObject(" + values + ")";
+        return "Object(" + values + ")";
     }
 
     // Recursively merge objects, by key.

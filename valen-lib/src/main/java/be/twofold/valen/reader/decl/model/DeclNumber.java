@@ -37,7 +37,7 @@ public final class DeclNumber extends DeclValue {
 
     @Override
     public String toString() {
-        return String.valueOf(value);
+        return "Number(" + value + ")";
     }
 
 }

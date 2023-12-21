@@ -36,7 +36,7 @@ public final class DeclString extends DeclValue {
 
     @Override
     public String toString() {
-        return "'" + value + "'";
+        return "String(" + value + ")";
     }
 
 }

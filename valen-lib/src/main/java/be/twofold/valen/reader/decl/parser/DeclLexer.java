@@ -3,6 +3,7 @@ package be.twofold.valen.reader.decl.parser;
 import be.twofold.valen.core.util.*;
 
 public final class DeclLexer {
+    private static final int EOF = -1;
     private final String source;
     private int index = 0;
 
@@ -11,50 +12,88 @@ public final class DeclLexer {
     }
 
     public DeclToken peekToken() {
-        int oldIndex = index;
+        int start = index;
         DeclToken token = nextToken();
-        index = oldIndex;
+        index = start;
         return token;
     }
 
     public DeclToken nextToken() {
+        skipWhitespace();
         if (isEof()) {
             return token(DeclTokenType.Eof, null);
         }
-        skipWhitespace();
-        switch (peek()) {
-            case '{' -> {
-                read();
+
+        int ch = peek();
+        switch (ch) {
+            case '{':
+                skip();
                 return token(DeclTokenType.ObjectStart, null);
-            }
-            case '}' -> {
-                read();
+            case '}':
+                skip();
                 return token(DeclTokenType.ObjectEnd, null);
-            }
-            case '=' -> {
-                read();
+            case '=':
+                skip();
                 return token(DeclTokenType.Equals, null);
-            }
-            case ';' -> {
-                read();
+            case '"':
+                skip();
+                return token(DeclTokenType.String, parseQuotedString());
+            case ';':
+                skip();
                 return token(DeclTokenType.Semicolon, null);
-            }
-            case '"' -> {
-                return token(DeclTokenType.String, parseString(true));
-            }
-            default -> {
-                if (isAlpha(peek()) || peek() == '_') {
-                    String value = parseString(false);
+            case '/':
+                skipComment();
+                return nextToken();
+            default:
+                if (isAlpha(ch) || ch == '_') {
+                    String value = parseUnquotedString();
                     return switch (value) {
+                        case "NULL" -> token(DeclTokenType.Null, null);
                         case "true" -> token(DeclTokenType.True, null);
                         case "false" -> token(DeclTokenType.False, null);
-                        default -> token(DeclTokenType.String, value);
+                        default -> token(DeclTokenType.Name, value);
                     };
                 }
-                if (isDigit(peek()) || peek() == '-') {
+                if (isDigit(ch) || ch == '-' || ch == '.') {
                     return token(DeclTokenType.Number, parseNumber());
                 }
-                throw new RuntimeException("Unexpected character '" + (char) peek() + "'");
+                throw new RuntimeException("Unexpected character '" + (char) ch + "'");
+        }
+    }
+
+    private void skipComment() {
+        skip();
+        int peek = peek();
+        if (peek == '/') {
+            skipLineComment();
+        } else if (peek == '*') {
+            skipBlockComment();
+        } else {
+            throw new RuntimeException("Unexpected character '/'");
+        }
+    }
+
+    private void skipLineComment() {
+        while (true) {
+            int ch = read();
+            if (ch == '\n' || ch == EOF) {
+                break;
+            }
+        }
+    }
+
+    private void skipBlockComment() {
+        skip();
+        while (true) {
+            int ch = read();
+            if (ch == EOF) {
+                throw new RuntimeException("Unexpected end of input");
+            }
+            if (ch == '*') {
+                if (peek() == '/') {
+                    skip();
+                    break;
+                }
             }
         }
     }
@@ -64,59 +103,70 @@ public final class DeclLexer {
     }
 
 
-    private String parseString(boolean quoted) {
+    private String parseUnquotedString() {
         var builder = new StringBuilder();
 
-        if (quoted) {
-            index++; // skip first quote
-        }
-
-        while (!isEof()) {
-            if (quoted) {
-                if (peek() == '"') {
-                    break;
-                }
-            } else if (!isIdentifier(peek())) {
-                break;
-            }
+        while (isIdentifier(peek())) {
             builder.append((char) read());
         }
 
-        if (quoted) {
-            index++; // skip last quote
-        }
-
         return builder.toString();
+    }
+
+    private String parseQuotedString() {
+        var builder = new StringBuilder();
+
+        while (true) {
+            int ch = read();
+            switch (ch) {
+                case EOF -> throw new RuntimeException("Unexpected end of input");
+                case '"' -> {
+                    return builder.toString();
+                }
+                case '\\' -> {
+                    builder.append(readEscape());
+                }
+                default -> builder.append((char) ch);
+            }
+        }
+    }
+
+    private char readEscape() {
+        int c = read();
+        return switch (c) {
+            case '"' -> '"';
+            case '?' -> '?';
+            case '\'' -> '\'';
+            case '\\' -> '\\';
+            case 'a' -> 'a';
+            case 'n' -> '\n';
+            default -> throw new RuntimeException("Unexpected escape character '" + (char) c + "'");
+        };
     }
 
 
     private String parseNumber() {
         int start = index;
         if (peek() == '-') {
-            index++;
+            skip();
         }
 
         // integer part
-        if (peek() == '0') {
-            index++;
-        } else {
-            if (peek() < '1' || peek() > '9') {
-                throw new RuntimeException();
-            }
+        if (isDigit(peek())) {
             digits();
         }
 
         // decimal part
         if (peek() == '.') {
-            index++;
+            skip();
             digits();
         }
 
         // exponent part
         if (peek() == 'e') {
-            index++;
-            if (peek() == '-') {
-                index++;
+            skip();
+            if (peek() == '+' || peek() == '-') {
+                skip();
             }
             digits();
         }
@@ -128,21 +178,21 @@ public final class DeclLexer {
         if (!isDigit(peek())) {
             throw new RuntimeException("Expected a digit");
         }
+        skip();
         while (isDigit(peek())) {
-            index++;
+            skip();
         }
     }
 
 
     private void skipWhitespace() {
         while (isWhitespace(peek())) {
-            index++;
+            skip();
         }
     }
 
     private boolean isAlpha(int c) {
-        return c >= 'a' && c <= 'z'
-            || c >= 'A' && c <= 'Z';
+        return c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z';
     }
 
     private boolean isDigit(int c) {
@@ -150,28 +200,31 @@ public final class DeclLexer {
     }
 
     private boolean isIdentifier(int c) {
-        return isAlpha(c) || isDigit(c) || c == '_' || c == '[' || c == ']';
+        return isAlpha(c) || isDigit(c) || c == '[' || c == ']' || c == '_';
     }
 
     private boolean isWhitespace(int c) {
-        return switch (c) {
-            case ' ', '\n', '\r', '\t' -> true;
-            default -> false;
-        };
+        return c == '\t' || c == ' ' || c == '\n' || c == '\r';
     }
 
     // Low level methods
 
     private int peek() {
+        if (isEof()) {
+            return EOF;
+        }
         return source.charAt(index);
     }
 
     private int read() {
+        if (isEof()) {
+            return EOF;
+        }
         return source.charAt(index++);
     }
 
-    private int next() {
-        return source.charAt(++index);
+    private void skip() {
+        index++;
     }
 
     private boolean isEof() {

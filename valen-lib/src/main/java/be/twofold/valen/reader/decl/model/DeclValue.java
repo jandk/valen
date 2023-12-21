@@ -9,6 +9,10 @@ public abstract class DeclValue {
     public abstract DeclValue copy();
 
 
+    public boolean isNull() {
+        return this instanceof DeclNull;
+    }
+
     public boolean isBoolean() {
         return this instanceof DeclBoolean;
     }
