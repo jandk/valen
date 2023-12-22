@@ -19,7 +19,7 @@ public final class ResourceManager implements AutoCloseable {
     }
 
     public Collection<Resource> getEntries() {
-        return index.values().stream()
+        return files.stream()
             .flatMap(resourcesFile -> resourcesFile.getEntries().stream())
             .distinct()
             .toList();

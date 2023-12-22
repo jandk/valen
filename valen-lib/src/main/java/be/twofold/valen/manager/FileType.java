@@ -12,4 +12,5 @@ public record FileType<T>(
     public static final FileType<Model> StaticModel = new FileType<>(Model.class, ResourceType.Model);
     public static final FileType<Model> AnimatedModel = new FileType<>(Model.class, ResourceType.BaseModel);
     public static final FileType<Skeleton> Skeleton = new FileType<>(Skeleton.class, ResourceType.Skeleton);
+    public static final FileType<byte[]> CompFile = new FileType<>(byte[].class, ResourceType.CompFile);
 }

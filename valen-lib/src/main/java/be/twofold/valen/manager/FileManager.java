@@ -2,6 +2,7 @@ package be.twofold.valen.manager;
 
 import be.twofold.valen.core.util.*;
 import be.twofold.valen.reader.*;
+import be.twofold.valen.reader.compfile.*;
 import be.twofold.valen.reader.image.*;
 import be.twofold.valen.reader.md6.*;
 import be.twofold.valen.reader.md6skl.*;
@@ -29,7 +30,8 @@ public final class FileManager {
                 ResourceType.Image, new ImageReader(streamManager),
                 ResourceType.Model, new ModelReader(streamManager),
                 ResourceType.BaseModel, new Md6Reader(streamManager),
-                ResourceType.Skeleton, new Md6SkeletonReader()
+                ResourceType.Skeleton, new Md6SkeletonReader(),
+                ResourceType.CompFile, new CompFileReader()
             );
         } catch (IOException e) {
             throw new UncheckedIOException(e);
@@ -46,6 +48,10 @@ public final class FileManager {
 
     public void select(String map) throws IOException {
         resourceManager.select(map);
+    }
+
+    public byte[] readRawResource(String name) {
+        return resourceManager.read(name);
     }
 
     public <T> T readResource(FileType<T> type, String name) {
