@@ -16,11 +16,11 @@ public final class DeclParser {
             test(lexer.nextToken(), DeclTokenType.ObjectStart);
             result = parseObject();
         } catch (StackOverflowError e) {
-            throw new RuntimeException("Stack overflow");
+            throw new DeclParseException("Stack overflow");
         }
         DeclToken token = lexer.nextToken();
         if (token.type() != DeclTokenType.Eof) {
-            throw new RuntimeException("Not a single DECL document");
+            throw new DeclParseException("Not a single DECL document");
         }
         return result;
     }
@@ -34,7 +34,7 @@ public final class DeclParser {
             case True -> DeclBoolean.True;
             case False -> DeclBoolean.False;
             case Null -> DeclNull.Null;
-            default -> throw new RuntimeException("Unexpected " + token);
+            default -> throw new DeclParseException("Unexpected " + token);
         };
     }
 
@@ -59,7 +59,7 @@ public final class DeclParser {
 
     private DeclToken test(DeclToken actual, DeclTokenType expected) {
         if (actual.type() != expected) {
-            throw new RuntimeException("Expected " + expected + ", got " + actual);
+            throw new DeclParseException("Expected " + expected + ", got " + actual.type());
         }
         return actual;
     }

@@ -41,6 +41,9 @@ public final class DeclLexer {
             case ';':
                 skip();
                 return token(DeclTokenType.Semicolon, null);
+            case ',':
+                skip();
+                return token(DeclTokenType.Comma, null);
             case '/':
                 skipComment();
                 return nextToken();
@@ -57,7 +60,7 @@ public final class DeclLexer {
                 if (isDigit(ch) || ch == '-' || ch == '.') {
                     return token(DeclTokenType.Number, parseNumber());
                 }
-                throw new RuntimeException("Unexpected character '" + (char) ch + "'");
+                throw new DeclParseException("Unexpected character '" + (char) ch + "'");
         }
     }
 
@@ -69,7 +72,7 @@ public final class DeclLexer {
         } else if (peek == '*') {
             skipBlockComment();
         } else {
-            throw new RuntimeException("Unexpected character '/'");
+            throw new DeclParseException("Unexpected character '/'");
         }
     }
 
@@ -87,7 +90,7 @@ public final class DeclLexer {
         while (true) {
             int ch = read();
             if (ch == EOF) {
-                throw new RuntimeException("Unexpected end of input");
+                throw new DeclParseException("Unexpected end of input");
             }
             if (ch == '*') {
                 if (peek() == '/') {
@@ -119,7 +122,7 @@ public final class DeclLexer {
         while (true) {
             int ch = read();
             switch (ch) {
-                case EOF -> throw new RuntimeException("Unexpected end of input");
+                case EOF -> throw new DeclParseException("Unexpected end of input");
                 case '"' -> {
                     return builder.toString();
                 }
@@ -140,7 +143,7 @@ public final class DeclLexer {
             case '\\' -> '\\';
             case 'a' -> 'a';
             case 'n' -> '\n';
-            default -> throw new RuntimeException("Unexpected escape character '" + (char) c + "'");
+            default -> throw new DeclParseException("Unexpected escape character '" + (char) c + "'");
         };
     }
 
@@ -176,7 +179,7 @@ public final class DeclLexer {
 
     private void digits() {
         if (!isDigit(peek())) {
-            throw new RuntimeException("Expected a digit");
+            throw new DeclParseException("Expected a digit");
         }
         skip();
         while (isDigit(peek())) {

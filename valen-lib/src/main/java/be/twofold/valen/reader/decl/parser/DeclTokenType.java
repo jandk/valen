@@ -5,6 +5,7 @@ public enum DeclTokenType {
     ObjectEnd,
     Equals,
     Semicolon,
+    Comma,
     Name,
     String,
     Number,
