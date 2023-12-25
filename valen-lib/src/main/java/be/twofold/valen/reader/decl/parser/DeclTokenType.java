@@ -1,16 +1,24 @@
 package be.twofold.valen.reader.decl.parser;
 
 public enum DeclTokenType {
-    ObjectStart,
-    ObjectEnd,
-    Equals,
-    Semicolon,
+    // Punctuation
+    LeftShift,
+    Assign,
     Comma,
-    Name,
+    Semicolon,
+    OpenParen,
+    CloseParen,
+    OpenBrace,
+    CloseBrace,
+    OpenBracket,
+    CloseBracket,
+    Dollar,
+
+    // Values
     String,
     Number,
-    True,
-    False,
-    Null,
+    Name,
+
+    // End of file
     Eof,
 }
