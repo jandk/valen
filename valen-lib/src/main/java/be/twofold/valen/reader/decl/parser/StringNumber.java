@@ -1,4 +1,4 @@
-package be.twofold.valen.reader.decl.model;
+package be.twofold.valen.reader.decl.parser;
 
 import be.twofold.valen.core.util.*;
 

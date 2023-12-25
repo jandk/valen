@@ -1,6 +1,6 @@
 package be.twofold.valen.reader.decl.parser;
 
-import be.twofold.valen.reader.decl.model.*;
+import com.google.gson.*;
 
 public final class DeclParser {
     private final DeclLexer lexer;
@@ -9,8 +9,8 @@ public final class DeclParser {
         this.lexer = new DeclLexer(source);
     }
 
-    public DeclValue parse() {
-        DeclValue result;
+    public JsonObject parse() {
+        JsonObject result;
         try {
             test(lexer.nextToken(), DeclTokenType.OpenBrace);
             result = parseObject();
@@ -24,24 +24,24 @@ public final class DeclParser {
         return result;
     }
 
-    private DeclValue parseValue() {
+    private JsonElement parseValue() {
         var token = lexer.nextToken();
         return switch (token.type()) {
             case OpenBrace -> parseObject();
-            case String -> new DeclString(token.value());
-            case Number -> new DeclNumber(token.value());
+            case String -> new JsonPrimitive(token.value());
+            case Number -> new JsonPrimitive(new StringNumber(token.value()));
             case Name -> switch (token.value()) {
-                case "true" -> DeclBoolean.True;
-                case "false" -> DeclBoolean.False;
-                case "NULL" -> DeclNull.Null;
-                default -> new DeclString(token.value());
+                case "true" -> new JsonPrimitive(true);
+                case "false" -> new JsonPrimitive(false);
+                case "NULL" -> JsonNull.INSTANCE;
+                default -> new JsonPrimitive(token.value());
             };
             default -> throw new DeclParseException("Unexpected " + token);
         };
     }
 
-    private DeclObject parseObject() {
-        var object = new DeclObject();
+    private JsonObject parseObject() {
+        var object = new JsonObject();
         while (true) {
             DeclToken token = lexer.nextToken();
             if (token.type() == DeclTokenType.CloseBrace) {
@@ -63,7 +63,7 @@ public final class DeclParser {
             var value = parseValue();
 
             // TODO: Extract function
-            if (value instanceof DeclObject) {
+            if (value instanceof JsonObject) {
                 token = lexer.peekToken();
                 if (token.type() == DeclTokenType.Semicolon) {
                     lexer.nextToken();
@@ -71,7 +71,7 @@ public final class DeclParser {
             } else {
                 test(lexer.nextToken(), DeclTokenType.Semicolon);
             }
-            object.put(key, value);
+            object.add(key, value);
         }
         return object;
     }
