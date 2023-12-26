@@ -5,11 +5,15 @@ import com.google.gson.*;
 public final class DeclParser {
     private final DeclLexer lexer;
 
-    public DeclParser(String source) {
+    private DeclParser(String source) {
         this.lexer = new DeclLexer(source);
     }
 
-    public JsonObject parse() {
+    public static JsonObject parse(String source) {
+        return new DeclParser(source).parse();
+    }
+
+    private JsonObject parse() {
         JsonObject result;
         try {
             test(lexer.nextToken(), DeclTokenType.OpenBrace);

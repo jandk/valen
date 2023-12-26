@@ -15,6 +15,7 @@ module valen.lib {
     exports be.twofold.valen.reader.resource;
     exports be.twofold.valen.reader.streamdb;
     exports be.twofold.valen.resource;
+    exports be.twofold.valen.writer.dds;
 
     exports be.twofold.valen.reader.decl.entities to com.google.gson;
 }

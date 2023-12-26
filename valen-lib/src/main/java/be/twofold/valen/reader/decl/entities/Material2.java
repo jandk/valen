@@ -6,6 +6,8 @@ import java.util.*;
 
 public record Material2(
     @SerializedName("Passes")
-    Map<MaterialPassType, MaterialPass> passes
+    Map<MaterialPassType, MaterialPass> passes,
+    @SerializedName("RenderLayers")
+    List<RenderLayer> renderLayers
 ) {
 }

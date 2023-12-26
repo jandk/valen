@@ -4,6 +4,7 @@ import be.twofold.valen.core.util.*;
 import be.twofold.valen.reader.*;
 import be.twofold.valen.reader.binaryfile.*;
 import be.twofold.valen.reader.compfile.*;
+import be.twofold.valen.reader.decl.*;
 import be.twofold.valen.reader.image.*;
 import be.twofold.valen.reader.md6.*;
 import be.twofold.valen.reader.md6skl.*;
@@ -11,6 +12,7 @@ import be.twofold.valen.reader.model.*;
 import be.twofold.valen.reader.packagemapspec.*;
 import be.twofold.valen.resource.*;
 import be.twofold.valen.stream.*;
+import com.google.gson.*;
 
 import java.io.*;
 import java.nio.file.*;
@@ -19,12 +21,14 @@ import java.util.*;
 public final class FileManager {
     private final PackageMapSpec spec;
     private final ResourceManager resourceManager;
+    private final DeclManager declManager;
     private final Map<ResourceType, ResourceReader<?>> readers;
 
     public FileManager(Path base) {
         this.spec = PackageMapSpecReader.read(base.resolve("packagemapspec.json"));
         try {
             this.resourceManager = new ResourceManager(base, spec);
+            this.declManager = new DeclManager(resourceManager);
 
             var streamManager = new StreamManager(base, spec);
             this.readers = Map.of(
@@ -50,6 +54,10 @@ public final class FileManager {
 
     public void select(String map) throws IOException {
         resourceManager.select(map);
+    }
+
+    public JsonObject readDecl(String name) {
+        return declManager.load(name);
     }
 
     public byte[] readRawResource(String name) {
