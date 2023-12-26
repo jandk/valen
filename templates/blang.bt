@@ -1,0 +1,17 @@
+#include <common/common.bt>
+
+// TODO: There's another version of this format
+
+struct BlangEntry {
+    uint32 fnv32aHashOfKey;
+    SString key;
+    SString value;
+};
+
+struct Blang {
+    BigEndian();
+    uint32 numEntries;
+    
+    LittleEndian();
+    BlangEntry entries[numEntries] <optimize=false>;
+} blang;
