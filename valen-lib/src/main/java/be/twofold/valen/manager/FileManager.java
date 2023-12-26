@@ -2,6 +2,7 @@ package be.twofold.valen.manager;
 
 import be.twofold.valen.core.util.*;
 import be.twofold.valen.reader.*;
+import be.twofold.valen.reader.binaryfile.*;
 import be.twofold.valen.reader.compfile.*;
 import be.twofold.valen.reader.image.*;
 import be.twofold.valen.reader.md6.*;
@@ -27,11 +28,12 @@ public final class FileManager {
 
             var streamManager = new StreamManager(base, spec);
             this.readers = Map.of(
+                ResourceType.BinaryFile, new BinaryFileReader(),
+                ResourceType.CompFile, new CompFileReader(),
                 ResourceType.Image, new ImageReader(streamManager),
                 ResourceType.Model, new ModelReader(streamManager),
                 ResourceType.BaseModel, new Md6Reader(streamManager),
-                ResourceType.Skeleton, new Md6SkeletonReader(),
-                ResourceType.CompFile, new CompFileReader()
+                ResourceType.Skeleton, new Md6SkeletonReader()
             );
         } catch (IOException e) {
             throw new UncheckedIOException(e);
@@ -55,8 +57,9 @@ public final class FileManager {
     }
 
     public <T> T readResource(FileType<T> type, String name) {
+        var entry = resourceManager.getEntry(name);
         var buffer = BetterBuffer.wrap(resourceManager.read(name));
-        var result = readers.get(type.resourceType()).read(buffer);
+        var result = readers.get(type.resourceType()).read(buffer, entry);
         return type.instanceType().cast(result);
     }
 }

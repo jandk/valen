@@ -4,6 +4,7 @@ import be.twofold.valen.core.geometry.*;
 import be.twofold.valen.core.util.*;
 import be.twofold.valen.reader.*;
 import be.twofold.valen.reader.geometry.*;
+import be.twofold.valen.resource.*;
 import be.twofold.valen.stream.*;
 
 import java.util.*;
@@ -16,8 +17,8 @@ public final class Md6Reader implements ResourceReader<Model> {
     }
 
     @Override
-    public Model read(BetterBuffer buffer) {
-        Md6 md6 = read(buffer, false, 0);
+    public Model read(BetterBuffer buffer, Resource resource) {
+        Md6 md6 = read(buffer, true, resource.hash());
         return new Model(md6.meshes(), null);
     }
 

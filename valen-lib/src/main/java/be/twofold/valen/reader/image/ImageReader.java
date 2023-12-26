@@ -3,6 +3,7 @@ package be.twofold.valen.reader.image;
 import be.twofold.valen.core.texture.*;
 import be.twofold.valen.core.util.*;
 import be.twofold.valen.reader.*;
+import be.twofold.valen.resource.*;
 import be.twofold.valen.stream.*;
 
 public final class ImageReader implements ResourceReader<Texture> {
@@ -13,8 +14,8 @@ public final class ImageReader implements ResourceReader<Texture> {
     }
 
     @Override
-    public Texture read(BetterBuffer buffer) {
-        Image image = read(buffer, false, 0);
+    public Texture read(BetterBuffer buffer, Resource resource) {
+        Image image = read(buffer, true, resource.hash());
         return new ImageMapper().map(image);
     }
 
