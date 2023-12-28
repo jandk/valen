@@ -27,8 +27,6 @@ public record Model(
         var streamedLods = buffer.getStructs(header.numMeshes() * LodCount, BetterBuffer::getByteAsBool);
         var layouts = header.streamed() ? readLayouts(buffer) : List.<GeometryDiskLayout>of();
 
-        buffer.expectEnd();
-
         return new Model(
             header,
             meshInfos,

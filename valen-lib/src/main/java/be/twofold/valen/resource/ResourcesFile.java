@@ -12,7 +12,7 @@ import java.util.function.*;
 import java.util.stream.*;
 
 public final class ResourcesFile implements AutoCloseable {
-    private final Map<String, Resource> entries;
+    private final Map<Long, Resource> entries;
     private SeekableByteChannel channel;
 
     public ResourcesFile(Path path) throws IOException {
@@ -22,7 +22,7 @@ public final class ResourcesFile implements AutoCloseable {
         List<Resource> resources = new ResourceMapper().map(Resources.read(channel));
         this.entries = resources.stream()
             .collect(Collectors.toUnmodifiableMap(
-                resource -> resource.name().toString(),
+                Resource::hash,
                 Function.identity(),
                 (first, second) -> first
             ));
@@ -32,20 +32,20 @@ public final class ResourcesFile implements AutoCloseable {
         return entries.values();
     }
 
-    public Resource getEntry(String name) {
-        return entries.get(name);
+    public Resource getEntry(long hash) {
+        return entries.get(hash);
     }
 
-    public byte[] read(String name) {
-        var entry = entries.get(name);
-        Check.argument(entry != null, () -> String.format("Unknown resource: %s", name));
+    public byte[] read(long hash) {
+        var entry = entries.get(hash);
+        Check.argument(entry != null, () -> String.format("Unknown resource: %s", hash));
 
         try {
             channel.position(entry.offset());
             var compressed = IOUtils.readBytes(channel, entry.size());
             return OodleDecompressor.decompress(compressed, entry.uncompressedSize());
         } catch (IOException e) {
-            System.out.println("Error reading resource: " + name);
+            System.out.println("Error reading resource: " + hash);
             throw new UncheckedIOException(e);
         }
     }

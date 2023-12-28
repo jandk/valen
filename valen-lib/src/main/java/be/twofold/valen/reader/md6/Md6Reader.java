@@ -58,7 +58,7 @@ public final class Md6Reader implements ResourceReader<Model> {
             lookup[Byte.toUnsignedInt(bones[i])] = (byte) i;
         }
 
-        for (var i = 0; i < md6.meshInfos().size(); i++) {
+        for (var i = 0; i < meshes.size(); i++) {
             var meshInfo = md6.meshInfos().get(i);
             var joints = meshes.get(i).joints();
 

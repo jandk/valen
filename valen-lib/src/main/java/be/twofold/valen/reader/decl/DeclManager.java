@@ -70,7 +70,7 @@ public final class DeclManager {
     }
 
     private JsonObject getJsonObject(String name) {
-        var read = manager.read(name);
+        var read = manager.read(manager.getEntry(name));
         var source = decode(read);
         return DeclParser.parse(source);
     }

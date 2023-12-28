@@ -8,10 +8,20 @@ import java.nio.file.*;
 import java.util.*;
 
 public final class ResourceManager implements AutoCloseable {
+    private static final Set<ResourceType> ResourceTypes = EnumSet.of(
+        ResourceType.BaseModel,
+        ResourceType.BinaryFile,
+        ResourceType.CompFile,
+        ResourceType.Image,
+        ResourceType.Model,
+        ResourceType.Skeleton
+    );
+
     private final Path base;
     private final PackageMapSpec spec;
     private List<ResourcesFile> files;
-    private Map<String, ResourcesFile> index;
+    private Map<Long, ResourcesFile> hashIndex;
+    private Map<String, Resource> nameIndex;
 
     public ResourceManager(Path base, PackageMapSpec spec) {
         this.base = Check.notNull(base, "base must not be null");
@@ -26,17 +36,24 @@ public final class ResourceManager implements AutoCloseable {
     }
 
     public Resource getEntry(String name) {
-        ResourcesFile file = index.get(name);
-        Check.argument(file != null, () -> String.format("Unknown resource: %s", name));
+        Resource resource = nameIndex.get(name);
+        Check.argument(resource != null, () -> String.format("Unknown resource: %s", name));
 
-        return file.getEntry(name);
+        return getEntry(resource.hash());
     }
 
-    public byte[] read(String name) {
-        var file = index.get(name);
-        Check.argument(file != null, () -> String.format("Unknown resource: %s", name));
+    public Resource getEntry(long hash) {
+        ResourcesFile file = hashIndex.get(hash);
+        Check.argument(file != null, () -> String.format("Unknown resource: %s", hash));
 
-        return file.read(name);
+        return file.getEntry(hash);
+    }
+
+    public byte[] read(Resource entry) {
+        var file = hashIndex.get(entry.hash());
+        Check.argument(file != null, () -> String.format("Unknown resource: %s", entry.name()));
+
+        return file.read(entry.hash());
     }
 
     public void select(String map) throws IOException {
@@ -51,16 +68,21 @@ public final class ResourceManager implements AutoCloseable {
             .toList();
 
         var files = new ArrayList<ResourcesFile>();
-        var index = new HashMap<String, ResourcesFile>();
+        var hashIndex = new HashMap<Long, ResourcesFile>();
+        var nameIndex = new HashMap<String, Resource>();
         for (var path : paths) {
             var file = new ResourcesFile(path);
             files.add(file);
             for (var entry : file.getEntries()) {
-                index.put(entry.name().name(), file);
+                hashIndex.put(entry.hash(), file);
+                if (ResourceTypes.contains(entry.type())) {
+                    nameIndex.put(entry.name().name(), entry);
+                }
             }
         }
         this.files = List.copyOf(files);
-        this.index = Map.copyOf(index);
+        this.hashIndex = Map.copyOf(hashIndex);
+        this.nameIndex = Map.copyOf(nameIndex);
     }
 
     @Override
@@ -70,7 +92,7 @@ public final class ResourceManager implements AutoCloseable {
                 file.close();
             }
             files = null;
-            index = null;
+            hashIndex = null;
         }
     }
 }
