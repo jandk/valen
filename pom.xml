@@ -21,6 +21,7 @@
         <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
+        <flatlaf.version>3.2.5</flatlaf.version>
         <javafx.version>21.0.1</javafx.version>
     </properties>
 
@@ -50,6 +51,11 @@
 
             <!-- External -->
             <dependency>
+                <groupId>com.formdev</groupId>
+                <artifactId>flatlaf</artifactId>
+                <version>${flatlaf.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>com.google.code.gson</groupId>
                 <artifactId>gson</artifactId>
                 <version>2.10.1</version>
@@ -58,6 +64,11 @@
                 <groupId>net.java.dev.jna</groupId>
                 <artifactId>jna-jpms</artifactId>
                 <version>5.13.0</version>
+            </dependency>
+            <dependency>
+                <groupId>org.openjfx</groupId>
+                <artifactId>javafx-controls</artifactId>
+                <version>${javafx.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

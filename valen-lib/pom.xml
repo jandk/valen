@@ -11,11 +11,13 @@
     <artifactId>valen-lib</artifactId>
 
     <dependencies>
+        <!-- Internal -->
         <dependency>
             <groupId>be.twofold</groupId>
             <artifactId>valen-core</artifactId>
         </dependency>
 
+        <!-- External -->
         <dependency>
             <groupId>com.google.code.gson</groupId>
             <artifactId>gson</artifactId>
