@@ -1,0 +1,32 @@
+#include <common/common.bt>
+
+struct StaticStreamTreeEntry {
+    uint32 id;
+    uint32 strCount;
+    SString names[strCount] <optimize=false>;
+};
+
+struct StaticStreamTree {
+    uint32 magic;
+    uint32 entryCount;
+    StaticStreamTreeEntry entries[entryCount] <style=sSection1, optimize=false>;
+    
+    uint32 unk1;
+    uint32 unk2;
+    uint32 unk3;
+    uint32 unk4;
+    uint32 unk5;
+    uint32 unk6;
+    
+    uint32 count;
+    struct {
+        uint32 unk1;
+        uint32 unk2;
+        uint32 unk3;
+        uint32 unk4;
+    } structs[count] <style=sSection2>;
+    uint32 unk7;
+    uint32 unk8;
+    uint32 unk9;
+    local uint32 unk9mask = unk9 >> 8;
+} sst;

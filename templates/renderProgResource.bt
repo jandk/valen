@@ -1,0 +1,8 @@
+#include <common/common.bt>
+
+struct RenderProgResource {
+    uint32 headerSize;
+    char pad[13];
+    uint32 numStrings;
+    SString strings[numStrings] <optimize=false, style=sSection1>;
+} renderProgResource;

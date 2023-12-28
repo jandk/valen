@@ -1,0 +1,18 @@
+#include <common/common.bt>
+
+struct MeshInfo {
+    SString name;
+    uint32 always1;
+    uint32 alwaysNeg1;
+    uint32 always0;
+    uint32 unkIndex;
+    uint32 always0;
+    uint32 always0;
+    uint32 unkCount1;
+    uint32 unkCount2;
+};
+
+struct DiscreteAnimation2 {
+    uint32 numMeshes;
+    MeshInfo meshInfos[numMeshes] <style=sHeading1, optimize=false>;
+} animation;

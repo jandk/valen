@@ -1,0 +1,22 @@
+#include <common/common.bt>
+
+struct StaticLightProbeStreamWorldHeader {
+    uint32 magic;
+    uint32 count;
+};
+
+struct StaticLightProbeStreamWorld {
+    StaticLightProbeStreamWorldHeader header <style=sHeading1>;
+    struct {
+        uint32 hash1;
+        uint32 hash2;
+        uint32 hash3;
+        uint32 hash4;
+        uint32 hash5;
+        uint32 hash6;
+        uint32 hash7;
+        uint32 hash8;
+        uint32 hash9;
+        SString name <style=sSection2>;
+    } entries[header.count] <style=sSection1, optimize=false>;
+} bsplworld;

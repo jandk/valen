@@ -1,0 +1,27 @@
+#include <common/common.bt>
+
+struct Entry {
+    uint32 id;
+    SString name;
+};
+
+struct HeaderString {
+    SString name;
+    uint32 offset;
+    uint32 length;
+};
+
+struct StaticGeoStreamTree {
+    uint32 numStrings;
+    HeaderString strings[numStrings] <optimize=false, style=sHeading1>;
+    uint32 total;
+
+    uint32 numEntries;
+    Entry entries[numEntries] <optimize=false, style=sHeading2>;
+
+    uint32 groupCount;
+    struct {
+        float floats[44];
+        uint32 indices[4];
+    } groups[groupCount];  
+} t;
