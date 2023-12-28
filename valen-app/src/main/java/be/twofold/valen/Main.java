@@ -1,24 +1,24 @@
 package be.twofold.valen;
 
 import be.twofold.valen.ui.*;
-import javafx.application.*;
-import javafx.scene.*;
-import javafx.stage.*;
+import com.formdev.flatlaf.*;
+import com.formdev.flatlaf.extras.*;
 
-public final class Main extends Application {
+import javax.swing.*;
 
-    public static void main(String[] args) {
-        launch(args);
-    }
+public final class Main {
 
-    @Override
-    public void start(Stage primaryStage) {
-        Scene scene = new Scene(
-            new MainWindow(primaryStage),
-            1024, 768
-        );
-        primaryStage.setScene(scene);
-        primaryStage.show();
+    public static void main(String[] args) throws InterruptedException {
+        FlatLightLaf.setup();
+        FlatInspector.install("ctrl shift alt X");
+        FlatUIDefaultsInspector.install("ctrl shift alt Y");
+
+        SwingUtilities.invokeLater(() -> {
+            var frame = new MainFrame();
+            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+            frame.setLocationRelativeTo(null);
+            frame.setVisible(true);
+        });
     }
 
 }
