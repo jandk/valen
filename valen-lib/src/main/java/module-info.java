@@ -4,6 +4,7 @@ module valen.lib {
     requires java.sql;
     requires valen.core;
 
+    exports be.twofold.valen.hash;
     exports be.twofold.valen.manager;
     exports be.twofold.valen.oodle;
     exports be.twofold.valen.reader.image;
