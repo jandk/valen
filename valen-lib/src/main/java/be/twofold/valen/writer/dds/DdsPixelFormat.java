@@ -2,7 +2,7 @@ package be.twofold.valen.writer.dds;
 
 import java.nio.*;
 
-public record DdsPixelFormat(
+record DdsPixelFormat(
     int flags,
     int fourCC,
     int rgbBitCount,
@@ -19,12 +19,12 @@ public record DdsPixelFormat(
     public static final int DDPF_YUV = 0x200;
     public static final int DDPF_LUMINANCE = 0x20000;
 
-    private static final int Size = 0x20;
+    public static final int SIZE = 32;
 
-    ByteBuffer toBuffer() {
-        return ByteBuffer.allocate(Size)
+    public ByteBuffer toBuffer() {
+        return ByteBuffer.allocate(SIZE)
             .order(ByteOrder.LITTLE_ENDIAN)
-            .putInt(Size)
+            .putInt(SIZE)
             .putInt(flags)
             .putInt(fourCC)
             .putInt(rgbBitCount)

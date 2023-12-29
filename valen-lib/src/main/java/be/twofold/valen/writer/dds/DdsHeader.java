@@ -2,7 +2,7 @@ package be.twofold.valen.writer.dds;
 
 import java.nio.*;
 
-public record DdsHeader(
+record DdsHeader(
     int flags,
     int height,
     int width,
@@ -44,13 +44,16 @@ public record DdsHeader(
         DDSCAPS2_CUBEMAP_POSITIVEZ | DDSCAPS2_CUBEMAP_NEGATIVEZ;
     public static final int DDSCAPS2_VOLUME = 0x200000;
 
-    private static final int Size = 0x7c;
+    public static final int SIZE = 124;
 
-    ByteBuffer toBuffer() {
-        return ByteBuffer.allocate(4 + Size + (header10 == null ? 0 : DdsHeaderDxt10.Size))
+    public ByteBuffer toBuffer() {
+        var dxt10Size = header10 == null ? 0 : DdsHeaderDxt10.SIZE;
+        var dxt10Buffer = header10 == null ? ByteBuffer.allocate(0) : header10.toBuffer();
+
+        return ByteBuffer.allocate(4 + SIZE + dxt10Size)
             .order(ByteOrder.LITTLE_ENDIAN)
             .putInt(0x20534444) // "DDS "
-            .putInt(Size) // size
+            .putInt(SIZE) // size
             .putInt(flags)
             .putInt(height)
             .putInt(width)
@@ -64,7 +67,7 @@ public record DdsHeader(
             .putInt(0) // caps3
             .putInt(0) // caps4
             .putInt(0) // reserved
-            .put(header10.toBuffer())
+            .put(dxt10Buffer)
             .flip();
     }
 }
