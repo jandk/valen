@@ -11,6 +11,6 @@ public final class CompFileReader implements ResourceReader<byte[]> {
         CompFileHeader header = CompFileHeader.read(buffer);
 
         byte[] compressed = buffer.getBytes(header.compressedSize());
-        return OodleDecompressor.decompress(compressed, header.uncompressedSize());
+        return OozDecompressor.decompress(compressed, header.uncompressedSize());
     }
 }
