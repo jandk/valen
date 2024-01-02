@@ -60,11 +60,14 @@ public final class Md6Reader implements ResourceReader<Model> {
 
         for (var i = 0; i < meshes.size(); i++) {
             var meshInfo = md6.meshInfos().get(i);
-            var joints = meshes.get(i).joints();
+            var joints = meshes.get(i)
+                .getBuffer(Semantic.Joints)
+                .orElseThrow();
 
-            var array = joints.array();
+            // Just assume it's a byte buffer, because we read it as such
+            var array = joints.buffer().array();
             for (var j = 0; j < array.length; j++) {
-                array[j] = lookup[(array[j] & 0xff) + meshInfo.unknown2()];
+                array[j] = lookup[Byte.toUnsignedInt(array[j]) + meshInfo.unknown2()];
             }
         }
     }

@@ -1,15 +1,19 @@
 package be.twofold.valen.core.geometry;
 
-import java.nio.*;
+import be.twofold.valen.core.util.*;
+
+import java.util.*;
 
 public record Mesh(
-    FloatBuffer positions,
-    FloatBuffer normals,
-    FloatBuffer tangents,
-    FloatBuffer texCoords,
-    ByteBuffer colors,
-    ByteBuffer joints,
-    ByteBuffer weights,
-    ShortBuffer indices
+    VertexBuffer faceBuffer,
+    Map<Semantic, VertexBuffer> vertexBuffers
 ) {
+    public Mesh {
+        Check.notNull(faceBuffer, "faceBuffer must not be null");
+        vertexBuffers = Map.copyOf(vertexBuffers);
+    }
+
+    public Optional<VertexBuffer> getBuffer(Semantic semantic) {
+        return Optional.ofNullable(vertexBuffers.get(semantic));
+    }
 }

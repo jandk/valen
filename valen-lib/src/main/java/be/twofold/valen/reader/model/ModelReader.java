@@ -7,7 +7,6 @@ import be.twofold.valen.reader.geometry.*;
 import be.twofold.valen.resource.*;
 import be.twofold.valen.stream.*;
 
-import java.nio.*;
 import java.util.*;
 
 public final class ModelReader implements ResourceReader<be.twofold.valen.core.geometry.Model> {
@@ -47,20 +46,20 @@ public final class ModelReader implements ResourceReader<be.twofold.valen.core.g
     }
 
     private static Mesh readEmbeddedMesh(ModelLodInfo lodInfo, BetterBuffer buffer) {
-        var vertices = FloatBuffer.allocate(lodInfo.numVertices() * 3);
-        var texCoords = lodInfo.flags() != 0x0801d ? FloatBuffer.allocate(lodInfo.numVertices() * 2) : null;
-        var normals = FloatBuffer.allocate(lodInfo.numVertices() * 3);
-        var tangents = FloatBuffer.allocate(lodInfo.numVertices() * 4);
-        var indices = ShortBuffer.allocate(lodInfo.numEdges() * 2);
+        var vertices = Buffers.allocateFloat(lodInfo.numVertices() * 3);
+        var texCoords = lodInfo.flags() != 0x0801d ? Buffers.allocateFloat(lodInfo.numVertices() * 2) : null;
+        var normals = Buffers.allocateFloat(lodInfo.numVertices() * 3);
+        var tangents = Buffers.allocateFloat(lodInfo.numVertices() * 4);
+        var indices = Buffers.allocateShort(lodInfo.numEdges() * 2);
 
         for (var i = 0; i < lodInfo.numVertices(); i++) {
-            Geometry.readVertex(buffer, vertices, lodInfo.vertexOffset(), lodInfo.vertexScale());
+            Geometry.readVertex(buffer, vertices.asFloatBuffer(), lodInfo.vertexOffset(), lodInfo.vertexScale());
             if (lodInfo.flags() != 0x0801d) {
-                Geometry.readUV(buffer, texCoords, lodInfo.uvOffset(), lodInfo.uvScale());
+                Geometry.readUV(buffer, texCoords.asFloatBuffer(), lodInfo.uvOffset(), lodInfo.uvScale());
             }
 
-            Geometry.readPackedNormal(buffer, normals);
-            Geometry.readPackedTangent(buffer, tangents);
+            Geometry.readPackedNormal(buffer, normals.asFloatBuffer());
+            Geometry.readPackedTangent(buffer, tangents.asFloatBuffer());
             buffer.expectInt(-1);
 
             buffer.skip(8); // skip lightmap UVs
@@ -71,8 +70,19 @@ public final class ModelReader implements ResourceReader<be.twofold.valen.core.g
             }
         }
 
-        indices.put(buffer.getShorts(lodInfo.numEdges()));
-        return new Mesh(vertices.flip(), normals.flip(), tangents.flip(), texCoords, null, null, null, indices);
+        for (int i = 0; i < lodInfo.numEdges(); i++) {
+            indices.putShort(buffer.getShort());
+        }
+
+        var faceBuffer = new VertexBuffer(indices.flip(), ElementType.Scalar, ComponentType.UnsignedShort, false);
+        var vertexBuffers = new EnumMap<Semantic, VertexBuffer>(Semantic.class);
+        vertexBuffers.put(Semantic.Position, new VertexBuffer(vertices.flip(), ElementType.Vector3, ComponentType.Float, false));
+        vertexBuffers.put(Semantic.Normal, new VertexBuffer(normals.flip(), ElementType.Vector3, ComponentType.Float, false));
+        vertexBuffers.put(Semantic.Tangent, new VertexBuffer(tangents.flip(), ElementType.Vector4, ComponentType.Float, false));
+        if (texCoords != null) {
+            vertexBuffers.put(Semantic.TexCoord, new VertexBuffer(texCoords.flip(), ElementType.Vector2, ComponentType.Float, false));
+        }
+        return new Mesh(faceBuffer, vertexBuffers);
     }
 
     private List<Mesh> readStreamedGeometry(Model model, int lod, long hash) {

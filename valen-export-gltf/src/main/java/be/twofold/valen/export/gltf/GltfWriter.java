@@ -11,12 +11,12 @@ import java.io.*;
 import java.nio.*;
 import java.nio.channels.*;
 import java.nio.charset.*;
-import java.nio.file.*;
 import java.util.*;
 
 public final class GltfWriter {
     private static final Gson GSON = new GsonBuilder()
         .registerTypeAdapter(AccessorComponentType.class, new AccessorComponentTypeTypeAdapter())
+        .registerTypeAdapter(AccessorType.class, new AccessorTypeTypeAdapter())
         .registerTypeAdapter(BufferViewTarget.class, new BufferViewTargetTypeAdapter().nullSafe())
         .registerTypeAdapter(Quaternion.class, new QuaternionTypeAdapter().nullSafe())
         .registerTypeAdapter(Vector2.class, new be.twofold.valen.writer.gltf.gson.Vector2TypeAdapter())
@@ -38,6 +38,7 @@ public final class GltfWriter {
     private final List<SkinSchema> skins = new ArrayList<>();
     private final List<AnimationSchema> animations = new ArrayList<>();
 
+    private final List<ByteBuffer> writable = new ArrayList<>();
     private int bufferOffset;
     private int skeletonNode;
 
@@ -62,7 +63,7 @@ public final class GltfWriter {
             buildAnimations();
 
             // Ugly little fixup
-            scenes.get(0).nodes().add(skeletonNode);
+            scenes.getFirst().nodes().add(skeletonNode);
         }
         buildBuffers(); // Only now we know the buffer offset
 
@@ -70,10 +71,7 @@ public final class GltfWriter {
             GltfSchema gltf = buildGltf();
 
             String json = GSON.toJson(gltf);
-            String prettyJson = GSON.newBuilder().setPrettyPrinting().create().toJson(gltf);
-            Files.writeString(Path.of("C:\\Temp\\gltf.json"), prettyJson);
-
-            byte[] rawJson = json.getBytes(StandardCharsets.US_ASCII);
+            byte[] rawJson = json.getBytes(StandardCharsets.UTF_8);
             int alignedJsonLength = alignedLength(rawJson.length);
 
             int totalSize = 12 + 8 + alignedJsonLength + 8 + bufferOffset;
@@ -123,28 +121,24 @@ public final class GltfWriter {
 
     private PrimitiveSchema buildMeshPrimitive(Mesh mesh) {
         JsonObject attributes = new JsonObject();
-        Bounds bounds = calculateBounds(mesh.positions());
-        attributes.addProperty("POSITION", buildAccessor(mesh.positions().capacity(), BufferType.Position, bounds.min().toArray(), bounds.max().toArray()));
-        attributes.addProperty("NORMAL", buildAccessor(mesh.normals().capacity(), BufferType.Normal, null, null));
-        attributes.addProperty("TANGENT", buildAccessor(mesh.tangents().capacity(), BufferType.Tangent, null, null));
+        attributes.addProperty("POSITION", buildAccessor(mesh.getBuffer(Semantic.Position).orElseThrow(), Semantic.Position));
+        attributes.addProperty("NORMAL", buildAccessor(mesh.getBuffer(Semantic.Normal).orElseThrow(), Semantic.Normal));
+        attributes.addProperty("TANGENT", buildAccessor(mesh.getBuffer(Semantic.Tangent).orElseThrow(), Semantic.Tangent));
 
-        if (mesh.texCoords() != null) {
-            attributes.addProperty("TEXCOORD_0", buildAccessor(mesh.texCoords().capacity(), BufferType.TexCoordN, null, null));
-        }
-
+        mesh.getBuffer(Semantic.TexCoord).ifPresent(buffer -> attributes.addProperty("TEXCOORD_0", buildAccessor(buffer, Semantic.TexCoord)));
         if (skeleton != null) {
-            fixJointsWithEmptyWeights(mesh.joints(), mesh.weights());
-            attributes.addProperty("JOINTS_0", buildAccessor(mesh.joints().capacity(), BufferType.JointsN, null, null));
-            attributes.addProperty("WEIGHTS_0", buildAccessor(mesh.weights().capacity(), BufferType.WeightsN, null, null));
+            var joints = mesh.getBuffer(Semantic.Joints).orElseThrow();
+            var weights = mesh.getBuffer(Semantic.Weights).orElseThrow();
+            fixJointsWithEmptyWeights(joints.buffer(), weights.buffer());
+            attributes.addProperty("JOINTS_0", buildAccessor(joints, Semantic.Joints));
+            attributes.addProperty("WEIGHTS_0", buildAccessor(weights, Semantic.Weights));
         } else {
-            if (mesh.colors() != null) {
-                attributes.addProperty("COLOR_0", buildAccessor(mesh.colors().capacity(), BufferType.ColorN, null, null));
-            }
+            mesh.getBuffer(Semantic.Color).ifPresent(buffer -> attributes.addProperty("COLOR_0", buildAccessor(buffer, Semantic.Color)));
         }
 
         return new PrimitiveSchema(
             attributes,
-            buildAccessor(mesh.indices().capacity(), BufferType.Indices, null, null)
+            buildAccessor(mesh.faceBuffer(), null)
         );
     }
 
@@ -158,8 +152,48 @@ public final class GltfWriter {
         }
     }
 
+    private int buildAccessor(VertexBuffer buffer, Semantic semantic) {
+        var target = semantic == null
+            ? BufferViewTarget.ELEMENT_ARRAY_BUFFER
+            : BufferViewTarget.ARRAY_BUFFER;
+
+        int bufferView = createBufferView(buffer.length(), target);
+        return buildAccessor(bufferView, buffer, semantic == Semantic.Position);
+    }
+
+    private int buildAccessor(int bufferView, VertexBuffer buffer, boolean calculateBounds) {
+        var bounds = calculateBounds
+            ? Bounds.calculate(buffer.buffer().asFloatBuffer())
+            : null;
+
+        return createAccessor(bufferView, buffer, bounds);
+    }
+
+    private int createAccessor(int bufferView, VertexBuffer buffer, Bounds bounds) {
+        var accessor = new AccessorSchema(
+            bufferView,
+            AccessorComponentType.from(buffer.componentType()),
+            buffer.count(),
+            AccessorType.from(buffer.elementType()),
+            bounds != null ? bounds.min().toArray() : null,
+            bounds != null ? bounds.max().toArray() : null,
+            buffer.normalized() ? true : null
+        );
+        accessors.add(accessor);
+        return accessors.size() - 1;
+    }
+
+    private int createBufferView(int length, BufferViewTarget target) {
+        var bufferView = new BufferViewSchema(0, bufferOffset, length, target);
+        bufferViews.add(bufferView);
+
+        // Round up offset to a multiple of 4
+        bufferOffset = alignedLength(bufferOffset + length);
+        return bufferViews.size() - 1;
+    }
+
     private int buildAccessor(int capacity, BufferType bufferType, float[] min, float[] max) {
-        int bufferView = buildBufferView(capacity, bufferType, bufferType.getComponentType());
+        int bufferView = createBufferView(capacity * bufferType.getComponentType().getSize(), null);
         return buildAccessor(bufferView, capacity, bufferType, min, max);
     }
 
@@ -174,33 +208,10 @@ public final class GltfWriter {
             type.getDataType(),
             min,
             max,
-            type.isNormalized() ? true : null
+            null
         );
         accessors.add(accessor);
         return accessors.size() - 1;
-    }
-
-    private int buildBufferView(int length, BufferType bufferType, AccessorComponentType componentType) {
-        int byteLength = length * componentType.getSize();
-
-        BufferViewTarget target = switch (bufferType) {
-            case InverseBind, KeyFrame, Rotation, ScaleTranslation -> null;
-            case Indices -> BufferViewTarget.ELEMENT_ARRAY_BUFFER;
-            default -> BufferViewTarget.ARRAY_BUFFER;
-        };
-
-        BufferViewSchema bufferView = new BufferViewSchema(
-            0,
-            bufferOffset,
-            byteLength,
-            target
-        );
-
-        bufferViews.add(bufferView);
-
-        // Round up offset to a multiple of 4
-        bufferOffset = alignedLength(bufferOffset + byteLength);
-        return bufferViews.size() - 1;
     }
 
     private void buildNodes() {
@@ -345,21 +356,17 @@ public final class GltfWriter {
 
     private void writeBuffers() throws IOException {
         for (Mesh mesh : sourceMeshes) {
-            writeBuffer(mesh.positions());
-            writeBuffer(mesh.normals());
-            writeBuffer(mesh.tangents());
-            if (mesh.texCoords() != null) {
-                writeBuffer(mesh.texCoords());
-            }
+            writeBuffer(mesh.getBuffer(Semantic.Position).orElseThrow().buffer());
+            writeBuffer(mesh.getBuffer(Semantic.Normal).orElseThrow().buffer());
+            writeBuffer(mesh.getBuffer(Semantic.Tangent).orElseThrow().buffer());
+            mesh.getBuffer(Semantic.TexCoord).ifPresent(buffer -> writeBuffer(buffer.buffer()));
             if (skeleton != null) {
-                writeBuffer(mesh.joints());
-                writeBuffer(mesh.weights());
+                writeBuffer(mesh.getBuffer(Semantic.Joints).orElseThrow().buffer());
+                writeBuffer(mesh.getBuffer(Semantic.Weights).orElseThrow().buffer());
             } else {
-                if (mesh.colors() != null) {
-                    writeBuffer(mesh.colors());
-                }
+                mesh.getBuffer(Semantic.Color).ifPresent(buffer -> writeBuffer(buffer.buffer()));
             }
-            writeBuffer(mesh.indices());
+            writeBuffer(mesh.faceBuffer().buffer());
         }
 
         // Write inverse bind matrices
@@ -416,7 +423,7 @@ public final class GltfWriter {
         return buffer.flip();
     }
 
-    private void writeBuffer(FloatBuffer floatBuffer) throws IOException {
+    private void writeBuffer(FloatBuffer floatBuffer) {
         ByteBuffer buffer = ByteBuffer
             .allocate(floatBuffer.capacity() * 4)
             .order(ByteOrder.LITTLE_ENDIAN);
@@ -426,44 +433,12 @@ public final class GltfWriter {
         writeBuffer(buffer);
     }
 
-    private void writeBuffer(ShortBuffer shortBuffer) throws IOException {
-        ByteBuffer buffer = ByteBuffer
-            .allocate(shortBuffer.capacity() * 2)
-            .order(ByteOrder.LITTLE_ENDIAN);
-
-        for (int i = 0; i < shortBuffer.capacity(); i += 3) {
-            buffer.putShort(shortBuffer.get(i));
-            buffer.putShort(shortBuffer.get(i + 2));
-            buffer.putShort(shortBuffer.get(i + 1));
+    private void writeBuffer(ByteBuffer buffer) {
+        try {
+            channel.write(buffer);
+            align(buffer.capacity(), (byte) 0);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
         }
-
-        writeBuffer(buffer.flip());
     }
-
-    private void writeBuffer(ByteBuffer buffer) throws IOException {
-        channel.write(buffer);
-        align(buffer.capacity(), (byte) 0);
-    }
-
-    private static Bounds calculateBounds(FloatBuffer vertices) {
-        float minX = Float.POSITIVE_INFINITY;
-        float minY = Float.POSITIVE_INFINITY;
-        float minZ = Float.POSITIVE_INFINITY;
-        float maxX = Float.NEGATIVE_INFINITY;
-        float maxY = Float.NEGATIVE_INFINITY;
-        float maxZ = Float.NEGATIVE_INFINITY;
-        for (int i = 0; i < vertices.capacity(); i += 3) {
-            float x = vertices.get(i);
-            float y = vertices.get(i + 1);
-            float z = vertices.get(i + 2);
-            minX = Math.min(minX, x);
-            minY = Math.min(minY, y);
-            minZ = Math.min(minZ, z);
-            maxX = Math.max(maxX, x);
-            maxY = Math.max(maxY, y);
-            maxZ = Math.max(maxZ, z);
-        }
-        return new Bounds(new Vector3(minX, minY, minZ), new Vector3(maxX, maxY, maxZ));
-    }
-
 }
