@@ -42,7 +42,7 @@ public record Md6Skeleton(
                 floats[j] = buffer.getFloat();
             }
             floats[15] = 1;
-            inverseBasePoses.add(Matrix4x4.fromArray(floats));
+            inverseBasePoses.add(Matrix4x4.fromArray(floats).transpose());
         }
         return List.copyOf(inverseBasePoses);
     }
