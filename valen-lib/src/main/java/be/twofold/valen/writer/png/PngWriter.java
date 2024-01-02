@@ -22,7 +22,7 @@ public final class PngWriter {
     public void write(Texture texture) throws IOException {
         var format = mapPngFormat(texture);
         var decoder = mapDecoder(texture.format());
-        var data = decoder.decode(texture.surfaces().getFirst());
+        var data = decoder.decode(texture.surfaces().getFirst().data(), texture.width(), texture.height());
 
         try (var output = new PngOutputStream(Channels.newOutputStream(channel), format)) {
             output.writeImage(data);
