@@ -5,7 +5,7 @@ import com.google.gson.*;
 public final class DeclParser {
     private final DeclLexer lexer;
 
-    private DeclParser(String source) {
+    public DeclParser(String source) {
         this.lexer = new DeclLexer(source);
     }
 
@@ -13,7 +13,47 @@ public final class DeclParser {
         return new DeclParser(source).parse();
     }
 
-    private JsonObject parse() {
+    public void expect(DeclTokenType type) {
+        doExpect(type);
+    }
+
+    public String expectName() {
+        return doExpect(DeclTokenType.Name).value();
+    }
+
+    public Number expectNumber() {
+        var token = doExpect(DeclTokenType.Number);
+        return new StringNumber(token.value());
+    }
+
+    public String expectString() {
+        return doExpect(DeclTokenType.String).value();
+    }
+
+    private DeclToken doExpect(DeclTokenType type) {
+        var token = lexer.nextToken();
+        if (token.type() != type) {
+            throw new DeclParseException("Expected " + type + ", got " + token);
+        }
+        return token;
+    }
+
+    public void expect(DeclTokenType type, String value) {
+        var token = lexer.nextToken();
+        if (token.type() != type || !token.value().equals(value)) {
+            throw new DeclParseException("Expected " + type + " " + value + ", got " + token);
+        }
+    }
+
+    public boolean isEof() {
+        return lexer.peekToken().type() == DeclTokenType.Eof;
+    }
+
+    public DeclToken peekToken() {
+        return lexer.peekToken();
+    }
+
+    public JsonObject parse() {
         JsonObject result;
         try {
             test(lexer.nextToken(), DeclTokenType.OpenBrace);
@@ -28,8 +68,8 @@ public final class DeclParser {
         return result;
     }
 
-    private JsonElement parseValue() {
-        var token = lexer.nextToken();
+    public JsonElement parseValue() {
+        DeclToken token = lexer.nextToken();
         return switch (token.type()) {
             case OpenBrace -> parseObject();
             case String -> new JsonPrimitive(token.value());
