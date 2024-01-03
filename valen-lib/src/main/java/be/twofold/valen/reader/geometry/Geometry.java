@@ -20,34 +20,45 @@ public final class Geometry {
     }
 
     public static void readVertex(BetterBuffer src, FloatBuffer dst, Vector3 offset, float scale) {
-        Vector3.read(src).multiply(scale).add(offset).put(dst);
+        dst.put(Math.fma(src.getFloat(), scale, offset.x()));
+        dst.put(Math.fma(src.getFloat(), scale, offset.y()));
+        dst.put(Math.fma(src.getFloat(), scale, offset.z()));
     }
 
     public static void readPackedVertex(BetterBuffer src, FloatBuffer dst, Vector3 offset, float scale) {
-        float x = toUNorm(src.getShort());
-        float y = toUNorm(src.getShort());
-        float z = toUNorm(src.getShort());
+        dst.put(Math.fma(MathF.unpackUNorm16(src.getShort()), scale, offset.x()));
+        dst.put(Math.fma(MathF.unpackUNorm16(src.getShort()), scale, offset.y()));
+        dst.put(Math.fma(MathF.unpackUNorm16(src.getShort()), scale, offset.z()));
         src.skip(2);
-
-        new Vector3(x, y, z).multiply(scale).add(offset).put(dst);
     }
 
-    public static void readPackedNormal(BetterBuffer src, FloatBuffer nDst) {
-        float x = toSNorm(src.getByte());
-        float y = toSNorm(src.getByte());
-        float z = toSNorm(src.getByte());
-        src.skip(1);
+    public static void readPackedNormal(BetterBuffer src, FloatBuffer dst) {
+        float x = MathF.unpackSNorm8(src.getByte());
+        float y = MathF.unpackSNorm8(src.getByte());
+        float z = MathF.unpackSNorm8(src.getByte());
 
-        new Vector3(x, y, z).normalize().put(nDst);
+        float scale = 1.0f / MathF.sqrt(x * x + y * y + z * z);
+
+        dst.put(x * scale);
+        dst.put(y * scale);
+        dst.put(z * scale);
+
+        src.skip(5); // skip tangent
     }
 
     public static void readPackedTangent(BetterBuffer src, FloatBuffer dst) {
-        float x = toSNorm(src.getByte());
-        float y = toSNorm(src.getByte());
-        float z = toSNorm(src.getByte());
+        src.skip(4); // skip normal
+
+        float x = MathF.unpackSNorm8(src.getByte());
+        float y = MathF.unpackSNorm8(src.getByte());
+        float z = MathF.unpackSNorm8(src.getByte());
         float w = (src.getByte() & 0x80) == 0 ? 1 : -1;
 
-        new Vector3(x, y, z).normalize().put(dst);
+        float scale = 1.0f / MathF.sqrt(x * x + y * y + z * z);
+
+        dst.put(x * scale);
+        dst.put(y * scale);
+        dst.put(z * scale);
         dst.put(w);
     }
 
@@ -69,21 +80,12 @@ public final class Geometry {
     }
 
     public static void readUV(BetterBuffer src, FloatBuffer dst, Vector2 offset, float scale) {
-        Vector2.read(src).multiply(scale).add(offset).put(dst);
+        dst.put(Math.fma(src.getFloat(), scale, offset.x()));
+        dst.put(Math.fma(src.getFloat(), scale, offset.y()));
     }
 
     public static void readPackedUV(BetterBuffer src, FloatBuffer dst, Vector2 offset, float scale) {
-        float u = toUNorm(src.getShort());
-        float v = toUNorm(src.getShort());
-
-        new Vector2(u, v).multiply(scale).add(offset).put(dst);
-    }
-
-    private static float toSNorm(byte b) {
-        return (Byte.toUnsignedInt(b) / 255f) * 2 - 1;
-    }
-
-    private static float toUNorm(short s) {
-        return Short.toUnsignedInt(s) / 65535f;
+        dst.put(Math.fma(MathF.unpackUNorm16(src.getShort()), scale, offset.x()));
+        dst.put(Math.fma(MathF.unpackUNorm16(src.getShort()), scale, offset.y()));
     }
 }

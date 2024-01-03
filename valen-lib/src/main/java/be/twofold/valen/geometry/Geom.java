@@ -48,25 +48,25 @@ public final class Geom {
     }
 
     private static Vector3 readPackedPosition(BetterBuffer buffer) {
-        float x = unpackUNorm(buffer.getShort());
-        float y = unpackUNorm(buffer.getShort());
-        float z = unpackUNorm(buffer.getShort());
+        float x = MathF.unpackUNorm16(buffer.getShort());
+        float y = MathF.unpackUNorm16(buffer.getShort());
+        float z = MathF.unpackUNorm16(buffer.getShort());
         buffer.skip(2);
         return new Vector3(x, y, z);
     }
 
     private static Vector3 readPackedNormal(BetterBuffer buffer) {
-        float x = unpackSNorm(buffer.getByte());
-        float y = unpackSNorm(buffer.getByte());
-        float z = unpackSNorm(buffer.getByte());
+        float x = MathF.unpackSNorm8(buffer.getByte());
+        float y = MathF.unpackSNorm8(buffer.getByte());
+        float z = MathF.unpackSNorm8(buffer.getByte());
         buffer.skip(1);
         return new Vector3(x, y, z);
     }
 
     private static Vector4 readPackedTangent(BetterBuffer buffer) {
-        float x = unpackSNorm(buffer.getByte());
-        float y = unpackSNorm(buffer.getByte());
-        float z = unpackSNorm(buffer.getByte());
+        float x = MathF.unpackSNorm8(buffer.getByte());
+        float y = MathF.unpackSNorm8(buffer.getByte());
+        float z = MathF.unpackSNorm8(buffer.getByte());
         // Branch-less version of: float w = (buffer.getByte() & 0x80) != 0 ? 1.0f : -1.0f;
         float w = Float.intBitsToFloat((buffer.getByte() & 0x80) << 24 | 0x3f800000);
         return new Vector4(x, y, z, w);
@@ -79,17 +79,9 @@ public final class Geom {
     }
 
     private static Vector2 readPackedTexCoord(BetterBuffer buffer) {
-        float u = unpackUNorm(buffer.getShort());
-        float v = unpackUNorm(buffer.getShort());
+        float u = MathF.unpackUNorm16(buffer.getShort());
+        float v = MathF.unpackUNorm16(buffer.getShort());
         return new Vector2(u, v);
     }
 
-    private static float unpackSNorm(byte value) {
-        // GLSL states: clamp(f / 127.0, -1.0, 1.0)
-        return Math.clamp(value / 127.0f, -1.0f, 1.0f);
-    }
-
-    private static float unpackUNorm(short value) {
-        return Short.toUnsignedInt(value) / 65535.0f;
-    }
 }

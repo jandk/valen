@@ -31,11 +31,9 @@ public final class NormalDecoder extends BCDecoder {
     }
 
     private static byte computeZ(int x, int y) {
-        float xx = Byte.toUnsignedInt((byte) x) / 255.0f;
-        float yy = Byte.toUnsignedInt((byte) y) / 255.0f;
-        float nx = (xx * 2.0f) - 1.0f;
-        float ny = (yy * 2.0f) - 1.0f;
-        float nz = MathF.sqrt(1.0f - MathF.saturate(nx * nx + ny * ny));
+        float xx = MathF.unpackSNorm8((byte) x);
+        float yy = MathF.unpackSNorm8((byte) y);
+        float nz = MathF.sqrt(1.0f - MathF.saturate(xx * xx + yy * yy));
         return (byte) Math.round(((nz + 1.0f) / 2.0f) * 255.0f);
     }
 

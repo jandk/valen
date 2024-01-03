@@ -126,7 +126,6 @@ public final class GeometryReader {
         var dst = buffer.asFloatBuffer();
         for (var i = 0; i < lod.numVertices(); i++) {
             Geometry.readPackedNormal(src, dst);
-            src.skip(4); // skip tangents
         }
         return buffer.clear();
     }
@@ -135,7 +134,6 @@ public final class GeometryReader {
         var buffer = Buffers.allocateFloat(lod.numVertices() * 4);
         var dst = buffer.asFloatBuffer();
         for (var i = 0; i < lod.numVertices(); i++) {
-            src.skip(4); // skip normals
             Geometry.readPackedTangent(src, dst);
         }
         return buffer.clear();

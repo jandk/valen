@@ -20,4 +20,16 @@ public final class MathF {
     public static float sqrt(float a) {
         return (float) Math.sqrt(a);
     }
+
+    public static float unpackSNorm8(byte value) {
+        return Math.clamp(value / 127.0f, -1.0f, 1.0f);
+    }
+
+    public static float unpackUNorm8(byte value) {
+        return Byte.toUnsignedInt(value) / 255.0f;
+    }
+
+    public static float unpackUNorm16(short value) {
+        return Short.toUnsignedInt(value) / 65535.0f;
+    }
 }

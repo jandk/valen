@@ -31,8 +31,8 @@ public final class BC4UDecoder extends BCDecoder {
                        Byte.toUnsignedLong(src[srcPos + 3]) << 8 |
                        Byte.toUnsignedLong(src[srcPos + 2]);
 
-        float r0f = Byte.toUnsignedInt(r0) / 255.0f;
-        float r1f = Byte.toUnsignedInt(r1) / 255.0f;
+        float r0f = MathF.unpackUNorm8(r0);
+        float r1f = MathF.unpackUNorm8(r1);
         byte r2, r3, r4, r5, r6, r7;
         if (r0f > r1f) {
             r2 = pack(MathF.lerp(r0f, r1f, 1.0f / 7.0f));
