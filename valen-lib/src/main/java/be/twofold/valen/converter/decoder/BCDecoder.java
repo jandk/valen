@@ -50,7 +50,7 @@ public abstract class BCDecoder {
     public abstract void decodeBlock(byte[] src, int srcPos, byte[] dst, int dstPos, int bpr);
 
     static byte pack(float f) {
-        return (byte) (f * 255f + .5f);
+        return (byte) Math.fma(f, 255.0f, 0.5f);
     }
 
 }

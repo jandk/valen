@@ -19,7 +19,7 @@ public enum StreamDbHeaderFlag {
 
     public static EnumSet<StreamDbHeaderFlag> fromValue(int value) {
         EnumSet<StreamDbHeaderFlag> flags = EnumSet.noneOf(StreamDbHeaderFlag.class);
-        for (StreamDbHeaderFlag flag : StreamDbHeaderFlag.values()) {
+        for (StreamDbHeaderFlag flag : values()) {
             if ((value & flag.getValue()) != 0) {
                 flags.add(flag);
             }

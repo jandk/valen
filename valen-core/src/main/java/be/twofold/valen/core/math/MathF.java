@@ -9,12 +9,12 @@ public final class MathF {
         return Math.min(max, Math.max(value, min));
     }
 
-    public static float lerp(float a, float b, float t) {
-        return a + (b - a) * t;
+    public static float clamp01(float value) {
+        return clamp(value, 0.0f, 1.0f);
     }
 
-    public static float saturate(float value) {
-        return clamp(value, 0.0f, 1.0f);
+    public static float lerp(float a, float b, float t) {
+        return a + (b - a) * t;
     }
 
     public static float sqrt(float a) {
@@ -22,14 +22,14 @@ public final class MathF {
     }
 
     public static float unpackSNorm8(byte value) {
-        return Math.clamp(value / 127.0f, -1.0f, 1.0f);
+        return clamp(value * (1.0f / 127.0f), -1.0f, 1.0f);
     }
 
     public static float unpackUNorm8(byte value) {
-        return Byte.toUnsignedInt(value) / 255.0f;
+        return Byte.toUnsignedInt(value) * (1.0f / 255.0f);
     }
 
     public static float unpackUNorm16(short value) {
-        return Short.toUnsignedInt(value) / 65535.0f;
+        return Short.toUnsignedInt(value) * (1.0f / 65535.0f);
     }
 }
