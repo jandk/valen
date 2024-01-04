@@ -14,7 +14,7 @@ public final class MathF {
     }
 
     public static float lerp(float a, float b, float t) {
-        return a + (b - a) * t;
+        return Math.fma(t, b - a, a);
     }
 
     public static float sqrt(float a) {
