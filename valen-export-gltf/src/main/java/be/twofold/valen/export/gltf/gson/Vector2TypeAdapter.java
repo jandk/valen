@@ -1,4 +1,4 @@
-package be.twofold.valen.writer.gltf.gson;
+package be.twofold.valen.export.gltf.gson;
 
 import be.twofold.valen.core.math.*;
 import com.google.gson.*;

@@ -24,8 +24,8 @@ final class PngOutputStream implements AutoCloseable {
 
     // Filtering
     private final byte[][] filtered;
+    private final int[] filterCounts = new int[5];
     private byte[] previous;
-    private int[] filterCounts = new int[5];
 
     // IDAT
     private final Deflater deflater = new Deflater(Deflater.BEST_SPEED);

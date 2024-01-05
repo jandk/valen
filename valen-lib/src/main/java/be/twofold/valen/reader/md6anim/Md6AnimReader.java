@@ -41,15 +41,15 @@ public final class Md6AnimReader {
             frameSets.add(readFrameSet(i));
         }
 
-        Quaternion[] constR = readQuats(dataOffset + data.constROffset(), animMaps.get(0).constR().length);
-        Vector3[] constS = readVector3s(dataOffset + data.constSOffset(), animMaps.get(0).constS().length);
-        Vector3[] constT = readVector3s(dataOffset + data.constTOffset(), animMaps.get(0).constT().length);
+        Quaternion[] constR = readQuats(dataOffset + data.constROffset(), animMaps.getFirst().constR().length);
+        Vector3[] constS = readVector3s(dataOffset + data.constSOffset(), animMaps.getFirst().constS().length);
+        Vector3[] constT = readVector3s(dataOffset + data.constTOffset(), animMaps.getFirst().constT().length);
 
         return new Md6Anim(header, data, animMaps, frameSets, constR, constS, constT);
     }
 
     private FrameSet readFrameSet(int frameSetNumber) {
-        AnimMap animMap = animMaps.get(0);
+        AnimMap animMap = animMaps.getFirst();
 
         int frameSetOffset = dataOffset + frameSetOffsetTable[frameSetNumber] * 16;
         buffer.position(frameSetOffset);

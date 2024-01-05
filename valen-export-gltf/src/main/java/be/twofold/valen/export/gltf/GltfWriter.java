@@ -19,7 +19,7 @@ public final class GltfWriter {
         .registerTypeAdapter(AccessorType.class, new AccessorTypeTypeAdapter())
         .registerTypeAdapter(BufferViewTarget.class, new BufferViewTargetTypeAdapter().nullSafe())
         .registerTypeAdapter(Quaternion.class, new QuaternionTypeAdapter().nullSafe())
-        .registerTypeAdapter(Vector2.class, new be.twofold.valen.writer.gltf.gson.Vector2TypeAdapter())
+        .registerTypeAdapter(Vector2.class, new Vector2TypeAdapter())
         .registerTypeAdapter(Vector3.class, new Vector3TypeAdapter().nullSafe())
         .registerTypeAdapter(Vector4.class, new Vector4TypeAdapter())
         .create();
