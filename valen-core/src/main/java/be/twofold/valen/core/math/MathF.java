@@ -5,12 +5,8 @@ public final class MathF {
         throw new AssertionError();
     }
 
-    public static float clamp(float value, float min, float max) {
-        return Math.min(max, Math.max(value, min));
-    }
-
     public static float clamp01(float value) {
-        return clamp(value, 0.0f, 1.0f);
+        return Math.clamp(value, 0.0f, 1.0f);
     }
 
     public static float lerp(float a, float b, float t) {
@@ -22,7 +18,7 @@ public final class MathF {
     }
 
     public static float unpackSNorm8(byte value) {
-        return clamp(value * (1.0f / 127.0f), -1.0f, 1.0f);
+        return Math.clamp(value * (1.0f / 127.0f), -1.0f, 1.0f);
     }
 
     public static float unpackUNorm8(byte value) {
@@ -31,5 +27,9 @@ public final class MathF {
 
     public static float unpackUNorm16(short value) {
         return Short.toUnsignedInt(value) * (1.0f / 65535.0f);
+    }
+
+    public static byte packUNorm8(float value) {
+        return (byte) Math.round(clamp01(value) * 255.0f);
     }
 }

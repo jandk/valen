@@ -27,8 +27,8 @@ public final class BC1Decoder extends BCDecoder {
         this.bOff = bOff;
     }
 
-    @SuppressWarnings("PointlessArithmeticExpression")
     @Override
+    @SuppressWarnings("PointlessArithmeticExpression")
     public void decodeBlock(byte[] src, int srcPos, byte[] dst, int dstPos, int bpr) {
         int c0 = src[srcPos + 0] & 0xff | (src[srcPos + 1] & 0xff) << 8;
         int c1 = src[srcPos + 2] & 0xff | (src[srcPos + 3] & 0xff) << 8;
@@ -37,22 +37,22 @@ public final class BC1Decoder extends BCDecoder {
         float r0f = unpackR(c0), g0f = unpackG(c0), b0f = unpackB(c0);
         float r1f = unpackR(c1), g1f = unpackG(c1), b1f = unpackB(c1);
 
-        byte r0 = pack(r0f), g0 = pack(g0f), b0 = pack(b0f);
-        byte r1 = pack(r1f), g1 = pack(g1f), b1 = pack(b1f);
+        byte r0 = MathF.packUNorm8(r0f), g0 = MathF.packUNorm8(g0f), b0 = MathF.packUNorm8(b0f);
+        byte r1 = MathF.packUNorm8(r1f), g1 = MathF.packUNorm8(g1f), b1 = MathF.packUNorm8(b1f);
         byte r2, g2, b2;
         byte r3, g3, b3;
 
         if (c0 > c1) {
-            r2 = pack(MathF.lerp(r0f, r1f, 1f / 3f));
-            g2 = pack(MathF.lerp(g0f, g1f, 1f / 3f));
-            b2 = pack(MathF.lerp(b0f, b1f, 1f / 3f));
-            r3 = pack(MathF.lerp(r0f, r1f, 2f / 3f));
-            g3 = pack(MathF.lerp(g0f, g1f, 2f / 3f));
-            b3 = pack(MathF.lerp(b0f, b1f, 2f / 3f));
+            r2 = MathF.packUNorm8(MathF.lerp(r0f, r1f, 1.0f / 3.0f));
+            g2 = MathF.packUNorm8(MathF.lerp(g0f, g1f, 1.0f / 3.0f));
+            b2 = MathF.packUNorm8(MathF.lerp(b0f, b1f, 1.0f / 3.0f));
+            r3 = MathF.packUNorm8(MathF.lerp(r0f, r1f, 2.0f / 3.0f));
+            g3 = MathF.packUNorm8(MathF.lerp(g0f, g1f, 2.0f / 3.0f));
+            b3 = MathF.packUNorm8(MathF.lerp(b0f, b1f, 2.0f / 3.0f));
         } else {
-            r2 = pack(MathF.lerp(r0f, r1f, .5f));
-            g2 = pack(MathF.lerp(g0f, g1f, .5f));
-            b2 = pack(MathF.lerp(b0f, b1f, .5f));
+            r2 = MathF.packUNorm8(MathF.lerp(r0f, r1f, 1.0f / 2.0f));
+            g2 = MathF.packUNorm8(MathF.lerp(g0f, g1f, 1.0f / 2.0f));
+            b2 = MathF.packUNorm8(MathF.lerp(b0f, b1f, 1.0f / 2.0f));
             r3 = 0;
             g3 = 0;
             b3 = 0;

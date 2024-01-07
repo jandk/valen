@@ -48,9 +48,4 @@ public abstract class BCDecoder {
      * @param bpr    The bytes per row in the destination data.
      */
     public abstract void decodeBlock(byte[] src, int srcPos, byte[] dst, int dstPos, int bpr);
-
-    static byte pack(float f) {
-        return (byte) Math.fma(f, 255.0f, 0.5f);
-    }
-
 }

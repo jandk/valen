@@ -19,8 +19,8 @@ public final class BC4UDecoder extends BCDecoder {
         this.rOff = rOff;
     }
 
-    @SuppressWarnings("PointlessArithmeticExpression")
     @Override
+    @SuppressWarnings("PointlessArithmeticExpression")
     public void decodeBlock(byte[] src, int srcPos, byte[] dst, int dstPos, int bpr) {
         byte r0 = src[srcPos + 0];
         byte r1 = src[srcPos + 1];
@@ -35,17 +35,17 @@ public final class BC4UDecoder extends BCDecoder {
         float r1f = MathF.unpackUNorm8(r1);
         byte r2, r3, r4, r5, r6, r7;
         if (r0f > r1f) {
-            r2 = pack(MathF.lerp(r0f, r1f, 1.0f / 7.0f));
-            r3 = pack(MathF.lerp(r0f, r1f, 2.0f / 7.0f));
-            r4 = pack(MathF.lerp(r0f, r1f, 3.0f / 7.0f));
-            r5 = pack(MathF.lerp(r0f, r1f, 4.0f / 7.0f));
-            r6 = pack(MathF.lerp(r0f, r1f, 5.0f / 7.0f));
-            r7 = pack(MathF.lerp(r0f, r1f, 6.0f / 7.0f));
+            r2 = MathF.packUNorm8(MathF.lerp(r0f, r1f, 1.0f / 7.0f));
+            r3 = MathF.packUNorm8(MathF.lerp(r0f, r1f, 2.0f / 7.0f));
+            r4 = MathF.packUNorm8(MathF.lerp(r0f, r1f, 3.0f / 7.0f));
+            r5 = MathF.packUNorm8(MathF.lerp(r0f, r1f, 4.0f / 7.0f));
+            r6 = MathF.packUNorm8(MathF.lerp(r0f, r1f, 5.0f / 7.0f));
+            r7 = MathF.packUNorm8(MathF.lerp(r0f, r1f, 6.0f / 7.0f));
         } else {
-            r2 = pack(MathF.lerp(r0f, r1f, 1.0f / 5.0f));
-            r3 = pack(MathF.lerp(r0f, r1f, 2.0f / 5.0f));
-            r4 = pack(MathF.lerp(r0f, r1f, 3.0f / 5.0f));
-            r5 = pack(MathF.lerp(r0f, r1f, 4.0f / 5.0f));
+            r2 = MathF.packUNorm8(MathF.lerp(r0f, r1f, 1.0f / 5.0f));
+            r3 = MathF.packUNorm8(MathF.lerp(r0f, r1f, 2.0f / 5.0f));
+            r4 = MathF.packUNorm8(MathF.lerp(r0f, r1f, 3.0f / 5.0f));
+            r5 = MathF.packUNorm8(MathF.lerp(r0f, r1f, 4.0f / 5.0f));
             r6 = (byte) 0x00;
             r7 = (byte) 0xff;
         }
@@ -69,5 +69,4 @@ public final class BC4UDecoder extends BCDecoder {
             dstPos += bpr - 4 * bpp;
         }
     }
-
 }
