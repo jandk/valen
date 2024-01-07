@@ -6,21 +6,16 @@ public final class BC3Decoder extends BCDecoder {
 
     /**
      * Create a new BC1 decoder.
-     *
-     * @param bpp  The number of bytes per pixel.
-     * @param rOff The offset of the red component.
-     * @param gOff The offset of the green component.
      */
-    public BC3Decoder(int bpp, int rOff, int gOff, int bOff, int aOff) {
-        super(16, bpp);
-        this.rgbDecoder = new BC1Decoder(bpp, rOff, gOff, bOff);
-        this.aDecoder = new BC4UDecoder(bpp, aOff);
+    public BC3Decoder() {
+        super(16, 4);
+        this.rgbDecoder = new BC1Decoder(true);
+        this.aDecoder = new BC4UDecoder(4, 3);
     }
 
-    @SuppressWarnings("PointlessArithmeticExpression")
     @Override
     public void decodeBlock(byte[] src, int srcPos, byte[] dst, int dstPos, int bpr) {
-        aDecoder.decodeBlock(src, srcPos + 0, dst, dstPos, bpr);
         rgbDecoder.decodeBlock(src, srcPos + 8, dst, dstPos, bpr);
+        aDecoder.decodeBlock(src, srcPos, dst, dstPos, bpr);
     }
 }

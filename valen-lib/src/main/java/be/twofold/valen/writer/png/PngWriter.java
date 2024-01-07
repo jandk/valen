@@ -31,8 +31,8 @@ public final class PngWriter {
 
     private BCDecoder mapDecoder(TextureFormat format) {
         return switch (format) {
-            case Bc1Unorm, Bc1UnormSrgb, Bc1Typeless -> new BC1Decoder(3, 0, 1, 2);
-            case Bc3Unorm, Bc3UnormSrgb, Bc3Typeless -> new BC3Decoder(4, 0, 1, 2, 3);
+            case Bc1Unorm, Bc1UnormSrgb, Bc1Typeless -> new BC1Decoder(false);
+            case Bc3Unorm, Bc3UnormSrgb, Bc3Typeless -> new BC3Decoder();
             case Bc4Unorm, Bc4Typeless -> new BC4UDecoder(1, 0);
             case Bc5Unorm, Bc5Typeless -> new BC5UDecoder(3, 0, 1, 2, normalizeNormalMap);
             default -> throw new UnsupportedOperationException("Unsupported format: " + format);
@@ -43,12 +43,11 @@ public final class PngWriter {
         var width = texture.width();
         var height = texture.height();
         return switch (texture.format()) {
-            case Bc1Unorm, Bc1Typeless, Bc5Unorm, Bc5Typeless ->
-                new PngFormat(width, height, PngColorType.Rgb, 8, true);
-            case Bc1UnormSrgb -> new PngFormat(width, height, PngColorType.Rgb, 8, false);
-            case Bc3Unorm, Bc3Typeless -> new PngFormat(width, height, PngColorType.RgbAlpha, 8, true);
-            case Bc3UnormSrgb -> new PngFormat(width, height, PngColorType.RgbAlpha, 8, false);
+            case Bc1Unorm, Bc1Typeless, Bc3Unorm, Bc3Typeless ->
+                new PngFormat(width, height, PngColorType.RgbAlpha, 8, true);
+            case Bc1UnormSrgb, Bc3UnormSrgb -> new PngFormat(width, height, PngColorType.RgbAlpha, 8, false);
             case Bc4Unorm, Bc4Typeless -> new PngFormat(width, height, PngColorType.Gray, 8, true);
+            case Bc5Unorm, Bc5Typeless -> new PngFormat(width, height, PngColorType.Rgb, 8, true);
             default -> throw new UnsupportedOperationException("Unsupported format: " + texture.format());
         };
     }

@@ -20,16 +20,10 @@ public final class BC4UDecoder extends BCDecoder {
     }
 
     @Override
-    @SuppressWarnings("PointlessArithmeticExpression")
     public void decodeBlock(byte[] src, int srcPos, byte[] dst, int dstPos, int bpr) {
-        byte r0 = src[srcPos + 0];
+        byte r0 = src[srcPos];
         byte r1 = src[srcPos + 1];
-        long indices = Byte.toUnsignedLong(src[srcPos + 7]) << 40 |
-                       Byte.toUnsignedLong(src[srcPos + 6]) << 32 |
-                       Byte.toUnsignedLong(src[srcPos + 5]) << 24 |
-                       Byte.toUnsignedLong(src[srcPos + 4]) << 16 |
-                       Byte.toUnsignedLong(src[srcPos + 3]) << 8 |
-                       Byte.toUnsignedLong(src[srcPos + 2]);
+        long bits = read48(src, srcPos + 2);
 
         float r0f = MathF.unpackUNorm8(r0);
         float r1f = MathF.unpackUNorm8(r1);
@@ -53,7 +47,7 @@ public final class BC4UDecoder extends BCDecoder {
         dstPos += rOff;
         for (int y = 0, shift = 0; y < 4; y++) {
             for (int x = 0; x < 4; x++, shift += 3) {
-                int colorIndex = (int) ((indices >> shift) & 7);
+                int colorIndex = (int) ((bits >> shift) & 7);
                 switch (colorIndex) {
                     case 0 -> dst[dstPos] = r0;
                     case 1 -> dst[dstPos] = r1;
@@ -68,5 +62,16 @@ public final class BC4UDecoder extends BCDecoder {
             }
             dstPos += bpr - 4 * bpp;
         }
+    }
+
+    private static long read48(byte[] src, int srcPos) {
+        long b0 = Byte.toUnsignedLong(src[srcPos]);
+        long b1 = Byte.toUnsignedLong(src[srcPos + 1]);
+        long b2 = Byte.toUnsignedLong(src[srcPos + 2]);
+        long b3 = Byte.toUnsignedLong(src[srcPos + 3]);
+        long b4 = Byte.toUnsignedLong(src[srcPos + 4]);
+        long b5 = Byte.toUnsignedLong(src[srcPos + 5]);
+
+        return b0 | b1 << 8 | b2 << 16 | b3 << 24 | b4 << 32 | b5 << 40;
     }
 }

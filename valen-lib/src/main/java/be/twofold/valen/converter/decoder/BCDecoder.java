@@ -23,18 +23,35 @@ public abstract class BCDecoder {
         Check.notNull(src, "src is null");
         Check.argument(width > 0, "width must be greater than 0");
         Check.argument(height > 0, "height must be greater than 0");
-        Check.argument(width % 4 == 0, "width must be a multiple of 4 for now");
-        Check.argument(height % 4 == 0, "height must be a multiple of 4 for now");
 
-        int expectedLength = ((width + 3) / 4) * ((height + 3) / 4) * bpb;
+        int blockWidth = (width + 3) / 4;
+        int blockHeight = (height + 3) / 4;
+        int expectedLength = blockWidth * blockHeight * bpb;
         Check.argument(src.length == expectedLength, () -> String.format("src has wrong length: expected of %d, got %d", expectedLength, src.length));
 
-        byte[] dst = new byte[width * height * bpp];
+        int realWidth = blockWidth * 4;
+        int realHeight = blockHeight * 4;
+        int stride = realWidth * bpp;
+        byte[] dst = new byte[realWidth * realHeight * bpp];
         for (int y = 0, srcPos = 0; y < height; y += 4) {
             for (int x = 0; x < width; x += 4, srcPos += bpb) {
-                decodeBlock(src, srcPos, dst, (y * width + x) * bpp, width * bpp);
+                decodeBlock(src, srcPos, dst, (y * realWidth + x) * bpp, stride);
             }
         }
+
+        if (realWidth != width || realHeight != height) {
+            byte[] result = new byte[width * height * bpp];
+
+            int srcPos = 0;
+            int dstPos = 0;
+            for (int y = 0; y < height; y++) {
+                System.arraycopy(dst, srcPos, result, dstPos, width * bpp);
+                srcPos += realWidth * bpp;
+                dstPos += width * bpp;
+            }
+            return result;
+        }
+
         return dst;
     }
 
