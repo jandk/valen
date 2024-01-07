@@ -26,6 +26,7 @@ final class PngOutputStream implements AutoCloseable {
     private final byte[][] filtered;
     private final int[] filterCounts = new int[5];
     private byte[] previous;
+    private byte[] current;
 
     // IDAT
     private final Deflater deflater = new Deflater(Deflater.BEST_SPEED);
@@ -37,6 +38,7 @@ final class PngOutputStream implements AutoCloseable {
         this.format = Check.notNull(format, "format is null");
         this.filtered = new byte[5][format.bytesPerPixel() + format.bytesPerRow()];
         this.previous = new byte[format.bytesPerPixel() + format.bytesPerRow()];
+        this.current = new byte[format.bytesPerPixel() + format.bytesPerRow()];
 
         try {
             output.write(Magic);
@@ -73,16 +75,17 @@ final class PngOutputStream implements AutoCloseable {
         int bpp = format.bytesPerPixel();
         int bpr = format.bytesPerRow();
 
-        byte[] curr = filtered[0];
+        byte[] nRow = filtered[0];
         byte[] sRow = filtered[1];
         byte[] uRow = filtered[2];
         byte[] aRow = filtered[3];
         byte[] pRow = filtered[4];
 
-        System.arraycopy(row, offset, curr, bpp, bpr);
+        System.arraycopy(row, offset, current, bpp, bpr);
+        System.arraycopy(row, offset, nRow, bpp, bpr);
         for (int i = bpp; i < bpp + bpr; i++) {
-            int x = Byte.toUnsignedInt(curr[i]);
-            int a = Byte.toUnsignedInt(curr[i - bpp]);
+            int x = Byte.toUnsignedInt(current[i]);
+            int a = Byte.toUnsignedInt(current[i - bpp]);
             int b = Byte.toUnsignedInt(previous[i]);
             int c = Byte.toUnsignedInt(previous[i - bpp]);
 
@@ -94,8 +97,8 @@ final class PngOutputStream implements AutoCloseable {
 
         int best = findBest();
         byte[] temp = previous;
-        previous = filtered[0];
-        filtered[0] = temp;
+        previous = current;
+        current = temp;
         return best;
     }
 
