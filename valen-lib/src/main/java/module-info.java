@@ -1,9 +1,11 @@
 module valen.lib {
     requires com.google.gson;
     requires com.sun.jna;
-    requires java.sql;
+    requires java.desktop; // For testing only
+    requires java.sql; // For import only
     requires valen.core;
 
+    exports be.twofold.valen.converter.decoder;
     exports be.twofold.valen.hash;
     exports be.twofold.valen.manager;
     exports be.twofold.valen.oodle;

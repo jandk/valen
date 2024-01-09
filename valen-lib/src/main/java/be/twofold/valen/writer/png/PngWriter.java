@@ -31,10 +31,10 @@ public final class PngWriter {
 
     private BCDecoder mapDecoder(TextureFormat format) {
         return switch (format) {
-            case Bc1Unorm, Bc1UnormSrgb, Bc1Typeless -> new BC1Decoder(false);
+            case Bc1Unorm, Bc1UnormSrgb, Bc1Typeless -> new BC1Decoder();
             case Bc3Unorm, Bc3UnormSrgb, Bc3Typeless -> new BC3Decoder();
-            case Bc4Unorm, Bc4Typeless -> new BC4UDecoder(1, 0);
-            case Bc5Unorm, Bc5Typeless -> new BC5UDecoder(3, 0, 1, 2, normalizeNormalMap);
+            case Bc4Unorm, Bc4Typeless -> new BC4UDecoder();
+            case Bc5Unorm, Bc5Typeless -> new BC5UDecoder(normalizeNormalMap);
             default -> throw new UnsupportedOperationException("Unsupported format: " + format);
         };
     }

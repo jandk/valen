@@ -5,7 +5,11 @@ import be.twofold.valen.core.math.*;
 public final class BC1Decoder extends BCDecoder {
     private final boolean opaque;
 
-    public BC1Decoder(boolean opaque) {
+    public BC1Decoder() {
+        this(false);
+    }
+
+    BC1Decoder(boolean opaque) {
         super(8, 4);
         this.opaque = opaque;
     }

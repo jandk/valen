@@ -7,13 +7,12 @@ public final class BC5UDecoder extends BCDecoder {
 
     /**
      * Create a new BC1 decoder.
-     *
-     * @param bpp                The number of bytes per pixel.
-     * @param rOff               The offset of the red component.
-     * @param gOff               The offset of the green component.
-     * @param normalizeNormalMap Whether to add a blue component to the normal map.
      */
-    public BC5UDecoder(int bpp, int rOff, int gOff, int bOff, boolean normalizeNormalMap) {
+    public BC5UDecoder(boolean normalizeNormalMap) {
+        this(3, 0, 1, 2, normalizeNormalMap);
+    }
+
+    BC5UDecoder(int bpp, int rOff, int gOff, int bOff, boolean normalizeNormalMap) {
         super(16, bpp);
         this.rDecoder = new BC4UDecoder(bpp, rOff);
         this.gDecoder = new BC4UDecoder(bpp, gOff);

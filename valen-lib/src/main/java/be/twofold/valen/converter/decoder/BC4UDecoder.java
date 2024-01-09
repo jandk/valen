@@ -8,11 +8,12 @@ public final class BC4UDecoder extends BCDecoder {
 
     /**
      * Create a new BC4 decoder.
-     *
-     * @param bpp  The number of bytes per pixel.
-     * @param rOff The offset of the red component.
      */
-    public BC4UDecoder(int bpp, int rOff) {
+    public BC4UDecoder() {
+        this(1, 0);
+    }
+
+    BC4UDecoder(int bpp, int rOff) {
         super(8, bpp);
         Check.argument(rOff >= 0 && rOff < bpp, "rOff must be in range [0, bpp)");
 

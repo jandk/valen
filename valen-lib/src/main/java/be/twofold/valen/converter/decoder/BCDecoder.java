@@ -27,7 +27,7 @@ public abstract class BCDecoder {
         int blockWidth = (width + 3) / 4;
         int blockHeight = (height + 3) / 4;
         int expectedLength = blockWidth * blockHeight * bpb;
-        Check.argument(src.length == expectedLength, () -> String.format("src has wrong length: expected of %d, got %d", expectedLength, src.length));
+        Check.argument(src.length == expectedLength, () -> String.format("src has wrong length: expected %d, got %d", expectedLength, src.length));
 
         int realWidth = blockWidth * 4;
         int realHeight = blockHeight * 4;
