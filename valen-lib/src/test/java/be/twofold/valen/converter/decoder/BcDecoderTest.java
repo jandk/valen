@@ -52,14 +52,14 @@ class BcDecoderTest {
     }
 
     private static byte[] readResource(String path, int offset) throws IOException {
-        try (var in = TestUtils.class.getResourceAsStream(path)) {
+        try (var in = BcDecoderTest.class.getResourceAsStream(path)) {
             in.skipNBytes(offset);
             return in.readAllBytes();
         }
     }
 
     private static byte[] readPng(String path) throws IOException {
-        try (var in = TestUtils.class.getResourceAsStream(path)) {
+        try (var in = BcDecoderTest.class.getResourceAsStream(path)) {
             BufferedImage image = ImageIO.read(in);
             byte[] data = ((DataBufferByte) image.getRaster().getDataBuffer()).getData();
             if (image.getType() == BufferedImage.TYPE_4BYTE_ABGR) {
