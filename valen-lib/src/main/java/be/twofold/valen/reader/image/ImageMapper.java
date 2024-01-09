@@ -11,13 +11,13 @@ public final class ImageMapper {
         int height = image.mipInfos().get(minMip).mipPixelHeight();
         TextureFormat format = toImageFormat(image.header().textureFormat());
         List<Surface> surfaces = convertMipMaps(image);
-        boolean isCubeMap = image.header().textureType() == ImageTextureType.TT_3D;
+        boolean isCubeMap = image.header().textureType() == ImageTextureType.TT_CUBIC;
 
         return new Texture(width, height, format, surfaces, isCubeMap);
     }
 
     private List<Surface> convertMipMaps(Image image) {
-        int faces = image.header().textureType() == ImageTextureType.TT_3D ? 6 : 1;
+        int faces = image.header().textureType() == ImageTextureType.TT_CUBIC ? 6 : 1;
         int minMip = image.minMip();
         int mipCount = image.mipInfos().size() / faces;
 

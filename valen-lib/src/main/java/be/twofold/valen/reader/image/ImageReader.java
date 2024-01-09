@@ -42,7 +42,7 @@ public final class ImageReader implements ResourceReader<Texture> {
         var lastMip = image.mipInfos().getLast();
         var uncompressedSize = lastMip.cumulativeSizeStreamDB() + lastMip.decompressedSize();
         var mipBuffer = BetterBuffer.wrap(streamManager.read(hash, uncompressedSize));
-        for (var i = 0; i < image.header().mipCount(); i++) {
+        for (var i = 0; i < image.header().totalMipCount(); i++) {
             image.mipData()[i] = mipBuffer.getBytes(image.mipInfos().get(i).decompressedSize());
         }
     }
