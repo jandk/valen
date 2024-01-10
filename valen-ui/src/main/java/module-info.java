@@ -1,7 +1,9 @@
 module valen.ui {
     requires com.google.gson;
+    requires dagger;
     requires java.desktop;
     requires javafx.controls;
+    requires javax.inject;
     requires valen.core;
     requires valen.lib;
 

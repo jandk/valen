@@ -27,10 +27,8 @@ public final class Main {
                 }
             }
 
-            var frame = new MainFrame();
-            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-            frame.setLocationRelativeTo(null);
-            frame.setVisible(true);
+            var presenter = DaggerPresenterFactory.create().presenter();
+            presenter.show();
         });
     }
 }
