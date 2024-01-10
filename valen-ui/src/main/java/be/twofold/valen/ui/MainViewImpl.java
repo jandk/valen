@@ -9,8 +9,7 @@ import java.awt.*;
 
 public class MainViewImpl extends JFrame implements MainView {
 
-    private final JTree tree;
-    private final JTable table;
+    private final DefaultTreeModel treeModel;
 
     @Inject
     public MainViewImpl() {
@@ -19,9 +18,10 @@ public class MainViewImpl extends JFrame implements MainView {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
 
-        this.tree = buildTree();
-        this.table = buildTable();
-        buildMenu();
+        this.treeModel = new DefaultTreeModel(new DefaultMutableTreeNode("root"));
+        var tree = buildTree(treeModel);
+        var table = buildTable();
+        // buildMenu();
 
         var leftSplit = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
         leftSplit.setTopComponent(new JScrollPane(tree));
@@ -36,10 +36,8 @@ public class MainViewImpl extends JFrame implements MainView {
         });
     }
 
-    public JTree buildTree() {
-        var treeView = new JTree();
-        treeView.setModel(new DefaultTreeModel(new DefaultMutableTreeNode("root")));
-        return treeView;
+    public JTree buildTree(TreeModel treeModel) {
+        return new JTree(treeModel);
     }
 
     private JTable buildTable() {
@@ -63,4 +61,8 @@ public class MainViewImpl extends JFrame implements MainView {
         setJMenuBar(menuBar);
     }
 
+    @Override
+    public void setFileTree(TreeNode root) {
+        treeModel.setRoot(root);
+    }
 }

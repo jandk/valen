@@ -1,5 +1,6 @@
 package be.twofold.valen;
 
+import be.twofold.valen.manager.*;
 import be.twofold.valen.ui.*;
 import be.twofold.valen.ui.settings.*;
 import com.formdev.flatlaf.*;
@@ -7,6 +8,7 @@ import com.formdev.flatlaf.extras.*;
 
 import javax.swing.*;
 import javax.swing.filechooser.*;
+import java.io.*;
 import java.nio.file.*;
 
 public final class Main {
@@ -27,8 +29,17 @@ public final class Main {
                 }
             }
 
-            var presenter = DaggerPresenterFactory.create().presenter();
-            presenter.show();
+            try {
+                var manager = new FileManager(SettingsManager.get().getGameDirectory().get().resolve("base"));
+                manager.select("common");
+
+                var presenter = DaggerPresenterFactory.create().presenter();
+                presenter.show();
+                presenter.setResources(manager.getEntries());
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
+
         });
     }
 }
