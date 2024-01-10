@@ -74,9 +74,9 @@ public final class ResourceManager implements AutoCloseable {
             var file = new ResourcesFile(path);
             files.add(file);
             for (var entry : file.getEntries()) {
-                hashIndex.put(entry.hash(), file);
+                hashIndex.putIfAbsent(entry.hash(), file);
                 if (ResourceTypes.contains(entry.type())) {
-                    nameIndex.put(entry.name().name(), entry);
+                    nameIndex.putIfAbsent(entry.name().name(), entry);
                 }
             }
         }

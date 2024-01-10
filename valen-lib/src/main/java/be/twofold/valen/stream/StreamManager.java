@@ -41,7 +41,7 @@ public final class StreamManager {
         for (var path : paths) {
             var file = new StreamDbFile(path);
             for (var entry : file.getEntries()) {
-                index.put(entry.identity(), file);
+                index.putIfAbsent(entry.identity(), file);
             }
         }
 
