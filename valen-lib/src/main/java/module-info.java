@@ -9,6 +9,7 @@ module valen.lib {
     exports be.twofold.valen.hash;
     exports be.twofold.valen.manager;
     exports be.twofold.valen.oodle;
+    exports be.twofold.valen.reader.blang;
     exports be.twofold.valen.reader.decl.parser;
     exports be.twofold.valen.reader.image;
     exports be.twofold.valen.reader.md6;
