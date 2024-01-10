@@ -1,7 +1,6 @@
 package be.twofold.valen.ui;
 
 import be.twofold.valen.resource.*;
-import be.twofold.valen.ui.experiment.*;
 
 import javax.swing.*;
 import javax.swing.table.*;
@@ -22,14 +21,8 @@ public class MainFrame extends JFrame {
         this.table = buildTable();
         buildMenu();
 
-        var button = new PublishingButton();
-        button.subscribe(action -> {
-            System.out.println(Thread.currentThread() + ": Received");
-        });
-
         var leftSplit = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
         leftSplit.setTopComponent(new JScrollPane(tree));
-        leftSplit.setBottomComponent(button);
 
         var mainSplit = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
         mainSplit.setLeftComponent(leftSplit);
