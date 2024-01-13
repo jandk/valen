@@ -51,6 +51,16 @@ class BcDecoderTest {
         assertThat(actual).isEqualTo(expected);
     }
 
+    @Test
+    void testBc7() throws IOException {
+        byte[] src = Arrays.copyOf(readResource("/bc7.dds", 148), 65536);
+
+        byte[] actual = new BC7Decoder().decode(src, 256, 256);
+        byte[] expected = readPng("/bc7.png");
+
+        assertThat(actual).isEqualTo(expected);
+    }
+
     private static byte[] readResource(String path, int offset) throws IOException {
         try (var in = BcDecoderTest.class.getResourceAsStream(path)) {
             in.skipNBytes(offset);
