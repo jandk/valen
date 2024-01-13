@@ -26,7 +26,7 @@ public final class BC7Decoder extends BCDecoder {
         0xaaaa1414, 0xa05050a0, 0xa0a5a5a0, 0x96000000, 0x40804080, 0xa9a8a9a8, 0xaaaaaa44, 0x2a4a5254,
     };
 
-    private static final int[] ANCHOR21 = {
+    private static final int[] ANCHOR_11 = {
         15, 15, 15, 15, 15, 15, 15, 15,
         15, 15, 15, 15, 15, 15, 15, 15,
         15, +2, +8, +2, +2, +8, +8, 15,
@@ -37,7 +37,7 @@ public final class BC7Decoder extends BCDecoder {
         15, 15, 15, 15, 15, +2, +2, 15,
     };
 
-    private static final int[] ANCHOR31 = {
+    private static final int[] ANCHOR_21 = {
         +3, +3, 15, 15, +8, +3, 15, 15,
         +8, +8, +6, +6, +6, +5, +3, +3,
         +3, +3, +8, 15, +3, +3, +6, 10,
@@ -48,7 +48,7 @@ public final class BC7Decoder extends BCDecoder {
         +5, 10, +8, 13, 15, 12, +3, +3,
     };
 
-    private static final int[] ANCHOR32 = {
+    private static final int[] ANCHOR_22 = {
         15, +8, +8, +3, 15, 15, +3, +8,
         15, 15, 15, 15, 15, 15, 15, +8,
         15, +8, 15, +3, 15, +8, 15, +8,
@@ -68,143 +68,104 @@ public final class BC7Decoder extends BCDecoder {
     };
 
     private static final List<Mode> MODES = List.of(
-        new Mode(3, 4, 0, 0, 4, 0, 1, 0, 3, 0),
-        new Mode(2, 6, 0, 0, 6, 0, 0, 1, 3, 0),
-        new Mode(3, 6, 0, 0, 5, 0, 0, 0, 2, 0),
-        new Mode(2, 6, 0, 0, 7, 0, 1, 0, 2, 0),
-        new Mode(1, 0, 2, 1, 5, 6, 0, 0, 2, 3),
-        new Mode(1, 0, 2, 0, 7, 8, 0, 0, 2, 2),
-        new Mode(1, 0, 0, 0, 7, 7, 1, 0, 4, 0),
-        new Mode(2, 6, 0, 0, 5, 5, 1, 0, 2, 0)
+        new Mode(3, 4, 0, false, 4, 0, true, false, +3, 0),
+        new Mode(2, 6, 0, false, 6, 0, false, true, +3, 0),
+        new Mode(3, 6, 0, false, 5, 0, false, false, 2, 0),
+        new Mode(2, 6, 0, false, 7, 0, true, false, +2, 0),
+        new Mode(1, 0, 2, true, +5, 6, false, false, 2, 3),
+        new Mode(1, 0, 2, false, 7, 8, false, false, 2, 2),
+        new Mode(1, 0, 0, false, 7, 7, true, false, +4, 0),
+        new Mode(2, 6, 0, false, 5, 5, true, false, +2, 0)
     );
 
     public BC7Decoder() {
         super(16, 4);
     }
 
-
     @Override
     public void decodeBlock(byte[] src, int srcPos, byte[] dst, int dstPos, int bpr) {
         Bits bits = new Bits(src, srcPos);
-        Mode mode = MODES.get(getMode(bits));
+        Mode mode = MODES.get(mode(bits));
         int partition = bits.getBits(mode.pb());
         int rotation = bits.getBits(mode.rb());
-        int selection = bits.getBits(mode.isb());
+        boolean selection = mode.isb() && bits.getBit() != 0;
 
         int numColors = 2 * mode.ns();
         int[][] colors = new int[numColors][4];
-        for (int i = 0; i < 3; i++) {
-            for (int j = 0; j < numColors; j++) {
-                colors[j][i] = bits.getBits(mode.cb());
+
+        // Read colors
+        for (int c = 0; c < 3; c++) {
+            for (int[] color : colors) {
+                color[c] = bits.getBits(mode.cb());
             }
         }
 
+        // Read alphas
         if (mode.ab() != 0) {
-            for (int i = 0; i < numColors; i++) {
-                colors[i][3] = bits.getBits(mode.ab());
+            for (int[] color : colors) {
+                color[3] = bits.getBits(mode.ab());
             }
         }
 
-        if (mode.epb() != 0) {
-            for (int i = 0; i < numColors; i++) {
-                int pBit = bits.getBits(mode.epb());
-                for (int j = 0; j < 4; j++) {
-                    colors[i][j] = (colors[i][j] << 1) | pBit;
+        // Read endpoint p-bits
+        if (mode.epb()) {
+            for (int[] color : colors) {
+                int pBit = bits.getBit();
+                for (int c = 0; c < 4; c++) {
+                    color[c] = (color[c] << 1) | pBit;
                 }
             }
         }
 
-        if (mode.spb() != 0) {
-            for (int i = 0; i < 2; i++) {
-                int sBit = bits.getBits(mode.spb());
-                for (int j = 0; j < 2; j++) {
-                    int ii = i * 2 + j;
-                    for (int k = 0; k < 4; k++) {
-                        colors[ii][k] = (colors[ii][k] << 1) | sBit;
-                    }
-                }
+        // Read shared p-bits
+        if (mode.spb()) {
+            int sBit1 = bits.getBit();
+            int sBit2 = bits.getBit();
+            for (int c = 0; c < 4; c++) {
+                colors[0][c] = (colors[0][c] << 1) | sBit1;
+                colors[1][c] = (colors[1][c] << 1) | sBit1;
+                colors[2][c] = (colors[2][c] << 1) | sBit2;
+                colors[3][c] = (colors[3][c] << 1) | sBit2;
             }
         }
 
-        int colorBits = mode.cb() + mode.epb() + mode.spb();
-        int alphaBits = mode.ab() + mode.epb() + mode.spb();
-
-        for (int i = 0; i < numColors; i++) {
-            int[] color = colors[i];
-            int r = color[0];
-            int g = color[1];
-            int b = color[2];
-            int a = color[3];
-
+        // Unpack colors
+        int colorBits = mode.cb() + (mode.epb() ? 1 : 0) + (mode.spb() ? 1 : 0);
+        int alphaBits = mode.ab() + (mode.epb() ? 1 : 0) + (mode.spb() ? 1 : 0);
+        for (int[] color : colors) {
             if (colorBits < 8) {
-                switch (colorBits) {
-                    case 4:
-                        r = unpack4(r);
-                        g = unpack4(g);
-                        b = unpack4(b);
-                        break;
-                    case 5:
-                        r = unpack5(r);
-                        g = unpack5(g);
-                        b = unpack5(b);
-                        break;
-                    case 6:
-                        r = unpack6(r);
-                        g = unpack6(g);
-                        b = unpack6(b);
-                        break;
-                    case 7:
-                        r = unpack7(r);
-                        g = unpack7(g);
-                        b = unpack7(b);
-                        break;
-                    default:
-                        throw new UnsupportedOperationException();
-                }
+                color[0] = unpack(color[0], colorBits);
+                color[1] = unpack(color[1], colorBits);
+                color[2] = unpack(color[2], colorBits);
             }
-
             if (mode.ab() != 0 && alphaBits < 8) {
-                a = switch (alphaBits) {
-                    case 4 -> unpack4(a);
-                    case 5 -> unpack5(a);
-                    case 6 -> unpack6(a);
-                    case 7 -> unpack7(a);
-                    default -> throw new UnsupportedOperationException(String.valueOf(alphaBits));
-                };
+                color[3] = unpack(color[3], alphaBits);
             }
-
-            color[0] = r;
-            color[1] = g;
-            color[2] = b;
-            color[3] = a;
         }
 
+        // Opaque mode
         if (mode.ab() == 0) {
-            for (int i = 0; i < numColors; i++) {
-                colors[i][3] = 255;
+            for (int[] color : colors) {
+                color[3] = 0xff;
             }
         }
 
-        int anchor0 = 0;
-        int anchor1 = switch (mode.ns()) {
-            case 1 -> 0;
-            case 2 -> ANCHOR21[partition];
-            case 3 -> ANCHOR31[partition];
-            default -> throw new UnsupportedOperationException();
-        };
-        int anchor2 = mode.ns() == 3 ? ANCHOR32[partition] : 0;
+        int anchor1 = mode.ns() == 2 ? ANCHOR_11[partition] : mode.ns() == 3 ? ANCHOR_21[partition] : 0;
+        int anchor2 = mode.ns() == 3 ? ANCHOR_22[partition] : 0;
 
         int[] ib1 = new int[16];
         int[] ib2 = new int[16];
         for (int i = 0; i < 16; i++) {
-            boolean anchored = i == anchor0 || i == anchor1 || i == anchor2;
+            boolean anchored = i == 0 || i == anchor1 || i == anchor2;
             int numBits = mode.ib1() - (anchored ? 1 : 0);
             ib1[i] = bits.getBits(numBits);
         }
-        for (int i = 0; i < 16; i++) {
-            boolean anchored = i == anchor0 || i == anchor1 || i == anchor2;
-            int numBits = mode.ib2() != 0 ? mode.ib2() - (anchored ? 1 : 0) : 0;
-            ib2[i] = mode.ib2() != 0 ? bits.getBits(numBits) : 0;
+        if (mode.ib2() != 0) {
+            for (int i = 0; i < 16; i++) {
+                boolean anchored = i == 0 || i == anchor1 || i == anchor2;
+                int numBits = mode.ib2() - (anchored ? 1 : 0);
+                ib2[i] = bits.getBits(numBits);
+            }
         }
 
         for (int y = 0, i = 0; y < 4; y++) {
@@ -216,38 +177,24 @@ public final class BC7Decoder extends BCDecoder {
                     default -> throw new UnsupportedOperationException();
                 };
 
-                int r0 = colors[pIndex * 2][0];
-                int g0 = colors[pIndex * 2][1];
-                int b0 = colors[pIndex * 2][2];
-                int a0 = colors[pIndex * 2][3];
-
-                int r1 = colors[pIndex * 2 + 1][0];
-                int g1 = colors[pIndex * 2 + 1][1];
-                int b1 = colors[pIndex * 2 + 1][2];
-                int a1 = colors[pIndex * 2 + 1][3];
-
                 int ib1Value = ib1[i];
                 int ib2Value = ib2[i];
 
-                int cInterp = INTERP[mode.ib1()][ib1Value];
-                int aInterp = INTERP[mode.ib1()][ib1Value];
-                if (mode.ib2() != 0) {
-                    if (selection == 1) {
-                        cInterp = INTERP[mode.ib2()][ib2Value];
-                    } else {
-                        aInterp = INTERP[mode.ib2()][ib2Value];
-                    }
-                }
+                int cInterp = mode.ib2() == 0 || !selection
+                    ? INTERP[mode.ib1()][ib1Value]
+                    : INTERP[mode.ib2()][ib2Value];
 
-                int r = (r0 * (64 - cInterp) + r1 * cInterp + 32) >>> 6;
-                int g = (g0 * (64 - cInterp) + g1 * cInterp + 32) >>> 6;
-                int b = (b0 * (64 - cInterp) + b1 * cInterp + 32) >>> 6;
-                int a = (a0 * (64 - aInterp) + a1 * aInterp + 32) >>> 6;
+                int aInterp = mode.ib2() == 0 || selection
+                    ? INTERP[mode.ib1()][ib1Value]
+                    : INTERP[mode.ib2()][ib2Value];
 
-                dst[dstPos + 0] = (byte) r;
-                dst[dstPos + 1] = (byte) g;
-                dst[dstPos + 2] = (byte) b;
-                dst[dstPos + 3] = (byte) a;
+                int[] c0 = colors[pIndex * 2];
+                int[] c1 = colors[pIndex * 2 + 1];
+
+                dst[dstPos + 0] = (byte) interpolate(c0[0], c1[0], cInterp);
+                dst[dstPos + 1] = (byte) interpolate(c0[1], c1[1], cInterp);
+                dst[dstPos + 2] = (byte) interpolate(c0[2], c1[2], cInterp);
+                dst[dstPos + 3] = (byte) interpolate(c0[3], c1[3], aInterp);
 
                 if (rotation != 0) {
                     swap(dst, dstPos + 3, dstPos + rotation - 1);
@@ -258,32 +205,25 @@ public final class BC7Decoder extends BCDecoder {
         }
     }
 
-    private static int unpack4(int i) {
-        return i << 4 | i >> 0;
+    private int interpolate(int e0, int e1, int weight) {
+        return (e0 * (64 - weight) + e1 * weight + 32) >>> 6;
     }
 
-    private static int unpack5(int i) {
-        return i << 3 | i >> 2;
+    private int unpack(int i, int n) {
+        assert n >= 4 && n <= 8;
+        return i << (8 - n) | i >> (2 * n - 8);
     }
 
-    private static int unpack6(int i) {
-        return i << 2 | i >> 4;
-    }
-
-    private static int unpack7(int i) {
-        return i << 1 | i >> 6;
-    }
-
-    private static void swap(byte[] array, int a, int b) {
+    private void swap(byte[] array, int a, int b) {
         byte temp = array[a];
         array[a] = array[b];
         array[b] = temp;
     }
 
-    private int getMode(Bits bits) {
+    private int mode(Bits bits) {
         int mode = 0;
         while (true) {
-            if (bits.getBits(1) == 1) {
+            if (bits.getBit() != 0) {
                 return mode;
             }
             mode++;
@@ -294,11 +234,11 @@ public final class BC7Decoder extends BCDecoder {
         int ns,
         int pb,
         int rb,
-        int isb,
+        boolean isb,
         int cb,
         int ab,
-        int epb,
-        int spb,
+        boolean epb,
+        boolean spb,
         int ib1,
         int ib2
     ) {
@@ -341,6 +281,10 @@ public final class BC7Decoder extends BCDecoder {
             int result = peekBits(count);
             consume(count);
             return result;
+        }
+
+        int getBit() {
+            return getBits(1);
         }
     }
 
