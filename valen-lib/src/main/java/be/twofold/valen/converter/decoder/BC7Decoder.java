@@ -1,18 +1,17 @@
 package be.twofold.valen.converter.decoder;
 
-import java.math.*;
 import java.util.*;
 
 public final class BC7Decoder extends BCDecoder {
     private static final int[] SUBSET2 = {
-        0xcccc, 0x8888, 0xeeee, 0xecc8, 0xc880, 0xfeec, 0xfec8, 0xec80,
-        0xc800, 0xffec, 0xfe80, 0xe800, 0xffe8, 0xff00, 0xfff0, 0xf000,
-        0xf710, 0x008e, 0x7100, 0x08ce, 0x008c, 0x7310, 0x3100, 0x8cce,
-        0x088c, 0x3110, 0x6666, 0x366c, 0x17e8, 0x0ff0, 0x718e, 0x399c,
-        0xaaaa, 0xf0f0, 0x5a5a, 0x33cc, 0x3c3c, 0x55aa, 0x9696, 0xa55a,
-        0x73ce, 0x13c8, 0x324c, 0x3bdc, 0x6996, 0xc33c, 0x9966, 0x0660,
-        0x0272, 0x04e4, 0x4e40, 0x2720, 0xc936, 0x936c, 0x39c6, 0x639c,
-        0x9336, 0x9cc6, 0x817e, 0xe718, 0xccf0, 0x0fcc, 0x7744, 0xee22,
+        0x50505050, 0x40404040, 0x54545454, 0x54505040, 0x50404000, 0x55545450, 0x55545040, 0x54504000,
+        0x50400000, 0x55555450, 0x55544000, 0x54400000, 0x55555440, 0x55550000, 0x55555500, 0x55000000,
+        0x55150100, 0x00004054, 0x15010000, 0x00405054, 0x00004050, 0x15050100, 0x05010000, 0x40505054,
+        0x00404050, 0x05010100, 0x14141414, 0x05141450, 0x01155440, 0x00555500, 0x15014054, 0x05414150,
+        0x44444444, 0x55005500, 0x11441144, 0x05055050, 0x05500550, 0x11114444, 0x41144114, 0x44111144,
+        0x15055054, 0x01055040, 0x05041050, 0x05455150, 0x14414114, 0x50050550, 0x41411414, 0x00141400,
+        0x00041504, 0x00105410, 0x10541000, 0x04150400, 0x50410514, 0x41051450, 0x05415014, 0x14054150,
+        0x41050514, 0x41505014, 0x40011554, 0x54150140, 0x50505500, 0x00555050, 0x15151010, 0x54540404,
     };
 
     private static final int[] SUBSET3 = {
@@ -59,7 +58,7 @@ public final class BC7Decoder extends BCDecoder {
         15, 15, 15, 15, +3, 15, 15, +8,
     };
 
-    private static final int[][] INTERP = {
+    private static final int[][] WEIGHTS = {
         {},
         {},
         {0, 21, 43, 64},
@@ -90,8 +89,7 @@ public final class BC7Decoder extends BCDecoder {
         int rotation = bits.getBits(mode.rb());
         boolean selection = mode.isb() && bits.getBit() != 0;
 
-        int numColors = 2 * mode.ns();
-        int[][] colors = new int[numColors][4];
+        int[][] colors = new int[mode.ns() * 2][4];
 
         // Read colors
         for (int c = 0; c < 3; c++) {
@@ -150,51 +148,55 @@ public final class BC7Decoder extends BCDecoder {
             }
         }
 
-        int anchor1 = mode.ns() == 2 ? ANCHOR_11[partition] : mode.ns() == 3 ? ANCHOR_21[partition] : 0;
-        int anchor2 = mode.ns() == 3 ? ANCHOR_22[partition] : 0;
 
-        int[] ib1 = new int[16];
-        int[] ib2 = new int[16];
+        int a1 = 0;
+        int a2 = 0;
+        int partitionTable = 0;
+        if (mode.ns() == 2) {
+            a1 = ANCHOR_11[partition];
+            partitionTable = SUBSET2[partition];
+        } else if (mode.ns() == 3) {
+            a1 = ANCHOR_21[partition];
+            a2 = ANCHOR_22[partition];
+            partitionTable = SUBSET3[partition];
+        }
+
+        // Interleaving would have been so much nicer...
+        int[] indexBits = new int[16];
         for (int i = 0; i < 16; i++) {
-            boolean anchored = i == 0 || i == anchor1 || i == anchor2;
+            boolean anchored = i == 0 || i == a1 || i == a2;
             int numBits = mode.ib1() - (anchored ? 1 : 0);
-            ib1[i] = bits.getBits(numBits);
-        }
-        if (mode.ib2() != 0) {
-            for (int i = 0; i < 16; i++) {
-                boolean anchored = i == 0 || i == anchor1 || i == anchor2;
-                int numBits = mode.ib2() - (anchored ? 1 : 0);
-                ib2[i] = bits.getBits(numBits);
-            }
+            indexBits[i] = bits.getBits(numBits);
         }
 
+        int[] weights1 = WEIGHTS[mode.ib1()];
+        int[] weights2 = WEIGHTS[mode.ib2()];
         for (int y = 0, i = 0; y < 4; y++) {
             for (int x = 0; x < 4; x++, i++) {
-                int pIndex = switch (mode.ns()) {
-                    case 1 -> 0;
-                    case 2 -> (SUBSET2[partition] >>> i) & 1;
-                    case 3 -> (SUBSET3[partition] >>> (i * 2)) & 3;
-                    default -> throw new UnsupportedOperationException();
-                };
+                int index1 = indexBits[i];
+                int cWeight = weights1[index1];
+                int aWeight = weights1[index1];
 
-                int ib1Value = ib1[i];
-                int ib2Value = ib2[i];
+                if (mode.ib2() != 0) {
+                    boolean anchored = i == 0 || i == a1 || i == a2;
+                    int numBits = mode.ib2() - (anchored ? 1 : 0);
+                    int index2 = bits.getBits(numBits);
 
-                int cInterp = mode.ib2() == 0 || !selection
-                    ? INTERP[mode.ib1()][ib1Value]
-                    : INTERP[mode.ib2()][ib2Value];
+                    if (selection) {
+                        cWeight = weights2[index2];
+                    } else {
+                        aWeight = weights2[index2];
+                    }
+                }
 
-                int aInterp = mode.ib2() == 0 || selection
-                    ? INTERP[mode.ib1()][ib1Value]
-                    : INTERP[mode.ib2()][ib2Value];
-
+                int pIndex = partitionTable >>> (i * 2) & 3;
                 int[] c0 = colors[pIndex * 2];
                 int[] c1 = colors[pIndex * 2 + 1];
 
-                dst[dstPos + 0] = (byte) interpolate(c0[0], c1[0], cInterp);
-                dst[dstPos + 1] = (byte) interpolate(c0[1], c1[1], cInterp);
-                dst[dstPos + 2] = (byte) interpolate(c0[2], c1[2], cInterp);
-                dst[dstPos + 3] = (byte) interpolate(c0[3], c1[3], aInterp);
+                dst[dstPos + 0] = (byte) interpolate(c0[0], c1[0], cWeight);
+                dst[dstPos + 1] = (byte) interpolate(c0[1], c1[1], cWeight);
+                dst[dstPos + 2] = (byte) interpolate(c0[2], c1[2], cWeight);
+                dst[dstPos + 3] = (byte) interpolate(c0[3], c1[3], aWeight);
 
                 if (rotation != 0) {
                     swap(dst, dstPos + 3, dstPos + rotation - 1);
@@ -252,7 +254,6 @@ public final class BC7Decoder extends BCDecoder {
         private int bitCount = 0;
 
         private Bits(byte[] array, int index) {
-            new BigInteger(array, index, 16);
             this.array = array;
             this.index = index;
         }
@@ -287,5 +288,4 @@ public final class BC7Decoder extends BCDecoder {
             return getBits(1);
         }
     }
-
 }
