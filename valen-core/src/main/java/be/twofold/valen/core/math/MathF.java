@@ -17,8 +17,8 @@ public final class MathF {
         return (float) Math.sqrt(a);
     }
 
-    public static float unpackSNorm8(byte value) {
-        return Math.clamp(value * (1.0f / 127.0f), -1.0f, 1.0f);
+    public static float unpack8(byte value) {
+        return Math.fma(unpackUNorm8(value), 2.0f, -1.0f);
     }
 
     public static float unpackUNorm8(byte value) {

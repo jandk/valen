@@ -129,7 +129,7 @@ public final class GltfWriter {
         if (skeleton != null) {
             var joints = mesh.getBuffer(Semantic.Joints).orElseThrow();
             var weights = mesh.getBuffer(Semantic.Weights).orElseThrow();
-            fixJointsWithEmptyWeights(joints.buffer(), weights.buffer());
+            fixJointsWithEmptyWeights(((ByteBuffer) joints.buffer()), ((ByteBuffer) weights.buffer()));
             attributes.addProperty("JOINTS_0", buildAccessor(joints, Semantic.Joints));
             attributes.addProperty("WEIGHTS_0", buildAccessor(weights, Semantic.Weights));
         } else {
@@ -157,13 +157,14 @@ public final class GltfWriter {
             ? BufferViewTarget.ELEMENT_ARRAY_BUFFER
             : BufferViewTarget.ARRAY_BUFFER;
 
-        int bufferView = createBufferView(buffer.length(), target);
+        int length = buffer.buffer().limit() * buffer.componentType().size();
+        int bufferView = createBufferView(length, target);
         return buildAccessor(bufferView, buffer, semantic == Semantic.Position);
     }
 
     private int buildAccessor(int bufferView, VertexBuffer buffer, boolean calculateBounds) {
         var bounds = calculateBounds
-            ? Bounds.calculate(buffer.buffer().asFloatBuffer())
+            ? Bounds.calculate(((FloatBuffer) buffer.buffer()))
             : null;
 
         return createAccessor(bufferView, buffer, bounds);
@@ -423,14 +424,34 @@ public final class GltfWriter {
         return buffer.flip();
     }
 
-    private void writeBuffer(FloatBuffer floatBuffer) {
-        ByteBuffer buffer = ByteBuffer
-            .allocate(floatBuffer.capacity() * 4)
-            .order(ByteOrder.LITTLE_ENDIAN);
+    private void writeBuffer(Buffer buffer) {
+        switch (buffer) {
+            case ByteBuffer byteBuffer -> writeBuffer(byteBuffer);
+            case FloatBuffer floatBuffer -> {
+                ByteBuffer target = ByteBuffer
+                    .allocate(floatBuffer.capacity() * 4)
+                    .order(ByteOrder.LITTLE_ENDIAN);
 
-        buffer.asFloatBuffer().put(floatBuffer);
+                target.asFloatBuffer().put(floatBuffer);
+                writeBuffer(target);
+            }
+            case ShortBuffer shortBuffer -> {
+                ByteBuffer target = ByteBuffer
+                    .allocate(shortBuffer.capacity() * 2)
+                    .order(ByteOrder.LITTLE_ENDIAN);
 
-        writeBuffer(buffer);
+                short[] array = shortBuffer.array();
+                for (int i = 0; i < array.length; i += 3) {
+                    short temp = array[i];
+                    array[i] = array[i + 2];
+                    array[i + 2] = temp;
+                }
+
+                target.asShortBuffer().put(shortBuffer);
+                writeBuffer(target);
+            }
+            default -> throw new IllegalArgumentException("Unsupported buffer type: " + buffer.getClass());
+        }
     }
 
     private void writeBuffer(ByteBuffer buffer) {

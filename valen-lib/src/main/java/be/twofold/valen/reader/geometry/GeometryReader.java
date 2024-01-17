@@ -9,14 +9,14 @@ import java.util.stream.*;
 
 public final class GeometryReader {
     private final boolean hasWeights;
-    private final List<ByteBuffer> positionBuffers = new ArrayList<>();
-    private final List<ByteBuffer> normalBuffers = new ArrayList<>();
-    private final List<ByteBuffer> tangentBuffers = new ArrayList<>();
-    private final List<ByteBuffer> texCoordBuffers = new ArrayList<>();
+    private final List<FloatBuffer> positionBuffers = new ArrayList<>();
+    private final List<FloatBuffer> normalBuffers = new ArrayList<>();
+    private final List<FloatBuffer> tangentBuffers = new ArrayList<>();
+    private final List<FloatBuffer> texCoordBuffers = new ArrayList<>();
     private final List<ByteBuffer> colorBuffers = new ArrayList<>();
     private final List<ByteBuffer> jointBuffers = new ArrayList<>();
     private final List<ByteBuffer> weightBuffers = new ArrayList<>();
-    private final List<ByteBuffer> indexBuffers = new ArrayList<>();
+    private final List<ShortBuffer> indexBuffers = new ArrayList<>();
 
     public GeometryReader(boolean hasWeights) {
         this.hasWeights = hasWeights;
@@ -103,40 +103,36 @@ public final class GeometryReader {
             .toList();
     }
 
-    public ByteBuffer readVertices(BetterBuffer src, LodInfo lod) {
-        var buffer = Buffers.allocateFloat(lod.numVertices() * 3);
-        var dst = buffer.asFloatBuffer();
+    public FloatBuffer readVertices(BetterBuffer src, LodInfo lod) {
+        var dst = FloatBuffer.allocate(lod.numVertices() * 3);
         for (var i = 0; i < lod.numVertices(); i++) {
             Geometry.readVertex(src, dst, lod.vertexOffset(), lod.vertexScale());
         }
-        return buffer.clear();
+        return dst.flip();
     }
 
-    public ByteBuffer readPackedVertices(BetterBuffer src, LodInfo lod) {
-        var buffer = Buffers.allocateFloat(lod.numVertices() * 3);
-        var dst = buffer.asFloatBuffer();
+    public FloatBuffer readPackedVertices(BetterBuffer src, LodInfo lod) {
+        var dst = FloatBuffer.allocate(lod.numVertices() * 3);
         for (var i = 0; i < lod.numVertices(); i++) {
             Geometry.readPackedVertex(src, dst, lod.vertexOffset(), lod.vertexScale());
         }
-        return buffer.clear();
+        return dst.flip();
     }
 
-    public ByteBuffer readPackedNormals(BetterBuffer src, LodInfo lod) {
-        var buffer = Buffers.allocateFloat(lod.numVertices() * 3);
-        var dst = buffer.asFloatBuffer();
+    public FloatBuffer readPackedNormals(BetterBuffer src, LodInfo lod) {
+        var dst = FloatBuffer.allocate(lod.numVertices() * 3);
         for (var i = 0; i < lod.numVertices(); i++) {
             Geometry.readPackedNormal(src, dst);
         }
-        return buffer.clear();
+        return dst.flip();
     }
 
-    public ByteBuffer readPackedTangents(BetterBuffer src, LodInfo lod) {
-        var buffer = Buffers.allocateFloat(lod.numVertices() * 4);
-        var dst = buffer.asFloatBuffer();
+    public FloatBuffer readPackedTangents(BetterBuffer src, LodInfo lod) {
+        var dst = FloatBuffer.allocate(lod.numVertices() * 4);
         for (var i = 0; i < lod.numVertices(); i++) {
             Geometry.readPackedTangent(src, dst);
         }
-        return buffer.clear();
+        return dst.flip();
     }
 
     public ByteBuffer readWeights(BetterBuffer src, LodInfo lod) {
@@ -144,42 +140,39 @@ public final class GeometryReader {
         for (var i = 0; i < lod.numVertices(); i++) {
             Geometry.readWeight(src, dst);
         }
-        return dst.clear();
+        return dst.flip();
     }
 
-    public ByteBuffer readUVs(BetterBuffer src, LodInfo lod) {
-        var buffer = Buffers.allocateFloat(lod.numVertices() * 2);
-        var dst = buffer.asFloatBuffer();
+    public FloatBuffer readUVs(BetterBuffer src, LodInfo lod) {
+        var dst = FloatBuffer.allocate(lod.numVertices() * 2);
         for (var i = 0; i < lod.numVertices(); i++) {
             Geometry.readUV(src, dst, lod.uvOffset(), lod.uvScale());
         }
-        return buffer.clear();
+        return dst.flip();
     }
 
-    public ByteBuffer readPackedUVs(BetterBuffer src, LodInfo lod) {
-        var buffer = Buffers.allocateFloat(lod.numVertices() * 2);
-        var dst = buffer.asFloatBuffer();
+    public FloatBuffer readPackedUVs(BetterBuffer src, LodInfo lod) {
+        var dst = FloatBuffer.allocate(lod.numVertices() * 2);
         for (var i = 0; i < lod.numVertices(); i++) {
             Geometry.readPackedUV(src, dst, lod.uvOffset(), lod.uvScale());
         }
-        return buffer.clear();
+        return dst.flip();
     }
 
-    public ByteBuffer readColors(BetterBuffer buffer, LodInfo lod) {
+    public ByteBuffer readColors(BetterBuffer src, LodInfo lod) {
         var dst = ByteBuffer.allocate(lod.numVertices() * 4);
-        dst.put(buffer.getBytes(lod.numVertices() * 4));
-        return dst.clear();
+        dst.put(src.getBytes(lod.numVertices() * 4));
+        return dst.flip();
     }
 
-    public ByteBuffer readFaces(BetterBuffer src, LodInfo lod) {
-        var buffer = Buffers.allocateShort(lod.numFaces() * 3);
-        var dst = buffer.asShortBuffer();
+    public ShortBuffer readFaces(BetterBuffer src, LodInfo lod) {
+        var dst = ShortBuffer.allocate(lod.numFaces() * 3);
         for (var i = 0; i < lod.numFaces(); i++) {
             dst.put(src.getShort());
             dst.put(src.getShort());
             dst.put(src.getShort());
         }
-        return buffer.clear();
+        return dst.flip();
     }
 
     private Mesh getMesh(int i) {

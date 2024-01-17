@@ -33,9 +33,9 @@ public final class Geometry {
     }
 
     public static void readPackedNormal(BetterBuffer src, FloatBuffer dst) {
-        float x = MathF.unpackSNorm8(src.getByte());
-        float y = MathF.unpackSNorm8(src.getByte());
-        float z = MathF.unpackSNorm8(src.getByte());
+        float x = MathF.unpack8(src.getByte());
+        float y = MathF.unpack8(src.getByte());
+        float z = MathF.unpack8(src.getByte());
 
         float scale = 1.0f / MathF.sqrt(x * x + y * y + z * z);
 
@@ -49,9 +49,9 @@ public final class Geometry {
     public static void readPackedTangent(BetterBuffer src, FloatBuffer dst) {
         src.skip(4); // skip normal
 
-        float x = MathF.unpackSNorm8(src.getByte());
-        float y = MathF.unpackSNorm8(src.getByte());
-        float z = MathF.unpackSNorm8(src.getByte());
+        float x = MathF.unpack8(src.getByte());
+        float y = MathF.unpack8(src.getByte());
+        float z = MathF.unpack8(src.getByte());
         float w = (src.getByte() & 0x80) == 0 ? 1 : -1;
 
         float scale = 1.0f / MathF.sqrt(x * x + y * y + z * z);

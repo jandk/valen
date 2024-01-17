@@ -56,17 +56,17 @@ public final class Geom {
     }
 
     private static Vector3 readPackedNormal(BetterBuffer buffer) {
-        float x = MathF.unpackSNorm8(buffer.getByte());
-        float y = MathF.unpackSNorm8(buffer.getByte());
-        float z = MathF.unpackSNorm8(buffer.getByte());
+        float x = MathF.unpack8(buffer.getByte());
+        float y = MathF.unpack8(buffer.getByte());
+        float z = MathF.unpack8(buffer.getByte());
         buffer.skip(1);
         return new Vector3(x, y, z);
     }
 
     private static Vector4 readPackedTangent(BetterBuffer buffer) {
-        float x = MathF.unpackSNorm8(buffer.getByte());
-        float y = MathF.unpackSNorm8(buffer.getByte());
-        float z = MathF.unpackSNorm8(buffer.getByte());
+        float x = MathF.unpack8(buffer.getByte());
+        float y = MathF.unpack8(buffer.getByte());
+        float z = MathF.unpack8(buffer.getByte());
         // Branch-less version of: float w = (buffer.getByte() & 0x80) != 0 ? 1.0f : -1.0f;
         float w = Float.intBitsToFloat((buffer.getByte() & 0x80) << 24 | 0x3f800000);
         return new Vector4(x, y, z, w);

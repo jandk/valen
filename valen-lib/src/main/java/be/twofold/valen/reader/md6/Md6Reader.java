@@ -7,6 +7,7 @@ import be.twofold.valen.reader.geometry.*;
 import be.twofold.valen.resource.*;
 import be.twofold.valen.stream.*;
 
+import java.nio.*;
 import java.util.*;
 
 public final class Md6Reader implements ResourceReader<Model> {
@@ -65,7 +66,7 @@ public final class Md6Reader implements ResourceReader<Model> {
                 .orElseThrow();
 
             // Just assume it's a byte buffer, because we read it as such
-            var array = joints.buffer().array();
+            var array = ((ByteBuffer) joints.buffer()).array();
             for (var j = 0; j < array.length; j++) {
                 array[j] = lookup[Byte.toUnsignedInt(array[j]) + meshInfo.unknown2()];
             }
