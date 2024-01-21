@@ -168,9 +168,13 @@ public final class GeometryReader {
     public ShortBuffer readFaces(BetterBuffer src, LodInfo lod) {
         var dst = ShortBuffer.allocate(lod.numFaces() * 3);
         for (var i = 0; i < lod.numFaces(); i++) {
-            dst.put(src.getShort());
-            dst.put(src.getShort());
-            dst.put(src.getShort());
+            var f1 = src.getShort();
+            var f2 = src.getShort();
+            var f3 = src.getShort();
+
+            dst.put(f3);
+            dst.put(f2);
+            dst.put(f1);
         }
         return dst.flip();
     }

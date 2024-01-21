@@ -3,6 +3,7 @@ package be.twofold.valen.export.gltf;
 import be.twofold.valen.core.animation.*;
 import be.twofold.valen.core.geometry.*;
 import be.twofold.valen.core.math.*;
+import be.twofold.valen.core.util.*;
 import be.twofold.valen.export.gltf.gson.*;
 import be.twofold.valen.export.gltf.model.*;
 import com.google.gson.*;
@@ -13,7 +14,7 @@ import java.nio.channels.*;
 import java.nio.charset.*;
 import java.util.*;
 
-public final class GltfWriter {
+public final class GltfWriter implements GltfContext {
     private static final Gson GSON = new GsonBuilder()
         .registerTypeAdapter(AccessorComponentType.class, new AccessorComponentTypeTypeAdapter())
         .registerTypeAdapter(AccessorType.class, new AccessorTypeTypeAdapter())
@@ -25,7 +26,7 @@ public final class GltfWriter {
         .create();
 
     private final WritableByteChannel channel;
-    private final List<Mesh> sourceMeshes;
+    private final Model model;
     private final Skeleton skeleton;
     private final Animation animation;
 
@@ -38,28 +39,31 @@ public final class GltfWriter {
     private final List<SkinSchema> skins = new ArrayList<>();
     private final List<AnimationSchema> animations = new ArrayList<>();
 
-    private final List<ByteBuffer> writable = new ArrayList<>();
-    private int bufferOffset;
+    private final List<Buffer> writable = new ArrayList<>();
+    private int bufferLength;
     private int skeletonNode;
+
+    private final GltfModelMapper modelMapper = new GltfModelMapper(this);
+    private final GltfSkeletonMapper skeletonMapper = new GltfSkeletonMapper(this);
 
     public GltfWriter(
         WritableByteChannel channel,
-        List<Mesh> sourceMeshes,
+        Model model,
         Skeleton skeleton,
         Animation animation
     ) {
         this.channel = channel;
-        this.sourceMeshes = sourceMeshes;
+        this.model = model;
         this.skeleton = skeleton;
         this.animation = animation;
     }
 
     public void write() {
-        buildMeshes();
+        meshes.add(modelMapper.map(model));
         buildNodes();
         buildScenes();
         if (skeleton != null) {
-            buildSkeleton();
+            skins.add(skeletonMapper.map(skeleton, nodes.size()));
             buildAnimations();
 
             // Ugly little fixup
@@ -74,12 +78,15 @@ public final class GltfWriter {
             byte[] rawJson = json.getBytes(StandardCharsets.UTF_8);
             int alignedJsonLength = alignedLength(rawJson.length);
 
-            int totalSize = 12 + 8 + alignedJsonLength + 8 + bufferOffset;
+            int totalSize = 12 + 8 + alignedJsonLength + 8 + bufferLength;
             channel.write(GlbHeader.of(totalSize).toBuffer());
             channel.write(GlbChunkHeader.of(GlbChunkType.Json, alignedJsonLength).toBuffer());
             channel.write(ByteBuffer.wrap(rawJson));
             align(rawJson.length, (byte) ' ');
-            channel.write(GlbChunkHeader.of(GlbChunkType.Bin, bufferOffset).toBuffer());
+            channel.write(GlbChunkHeader.of(GlbChunkType.Bin, bufferLength).toBuffer());
+            for (Buffer buffer : writable) {
+                writeBuffer(buffer);
+            }
             writeBuffers();
         } catch (IOException e) {
             throw new UncheckedIOException(e);
@@ -105,91 +112,39 @@ public final class GltfWriter {
 
 
     private void buildBuffers() {
-        BufferSchema buffer = new BufferSchema(bufferOffset);
+        BufferSchema buffer = new BufferSchema(bufferLength);
         buffers.add(buffer);
     }
 
-    public void buildMeshes() {
-        // First we do the meshes
-        List<PrimitiveSchema> primitives = sourceMeshes.stream()
-            .map(this::buildMeshPrimitive)
-            .toList();
-
-        MeshSchema mesh = new MeshSchema(primitives);
-        meshes.add(mesh);
-    }
-
-    private PrimitiveSchema buildMeshPrimitive(Mesh mesh) {
-        JsonObject attributes = new JsonObject();
-        attributes.addProperty("POSITION", buildAccessor(mesh.getBuffer(Semantic.Position).orElseThrow(), Semantic.Position));
-        attributes.addProperty("NORMAL", buildAccessor(mesh.getBuffer(Semantic.Normal).orElseThrow(), Semantic.Normal));
-        attributes.addProperty("TANGENT", buildAccessor(mesh.getBuffer(Semantic.Tangent).orElseThrow(), Semantic.Tangent));
-
-        mesh.getBuffer(Semantic.TexCoord).ifPresent(buffer -> attributes.addProperty("TEXCOORD_0", buildAccessor(buffer, Semantic.TexCoord)));
-        if (skeleton != null) {
-            var joints = mesh.getBuffer(Semantic.Joints).orElseThrow();
-            var weights = mesh.getBuffer(Semantic.Weights).orElseThrow();
-            fixJointsWithEmptyWeights(((ByteBuffer) joints.buffer()), ((ByteBuffer) weights.buffer()));
-            attributes.addProperty("JOINTS_0", buildAccessor(joints, Semantic.Joints));
-            attributes.addProperty("WEIGHTS_0", buildAccessor(weights, Semantic.Weights));
-        } else {
-            mesh.getBuffer(Semantic.Color).ifPresent(buffer -> attributes.addProperty("COLOR_0", buildAccessor(buffer, Semantic.Color)));
-        }
-
-        return new PrimitiveSchema(
-            attributes,
-            buildAccessor(mesh.faceBuffer(), null)
-        );
-    }
-
-    private void fixJointsWithEmptyWeights(ByteBuffer bones, ByteBuffer weights) {
-        byte[] ja = bones.array();
-        byte[] wa = weights.array();
-        for (int i = 0; i < ja.length; i++) {
-            if (wa[i] == 0) {
-                ja[i] = 0;
-            }
-        }
-    }
-
-    private int buildAccessor(VertexBuffer buffer, Semantic semantic) {
-        var target = semantic == null
-            ? BufferViewTarget.ELEMENT_ARRAY_BUFFER
-            : BufferViewTarget.ARRAY_BUFFER;
-
-        int length = buffer.buffer().limit() * buffer.componentType().size();
-        int bufferView = createBufferView(length, target);
-        return buildAccessor(bufferView, buffer, semantic == Semantic.Position);
-    }
-
-    private int buildAccessor(int bufferView, VertexBuffer buffer, boolean calculateBounds) {
-        var bounds = calculateBounds
-            ? Bounds.calculate(((FloatBuffer) buffer.buffer()))
-            : null;
-
-        return createAccessor(bufferView, buffer, bounds);
-    }
-
-    private int createAccessor(int bufferView, VertexBuffer buffer, Bounds bounds) {
-        var accessor = new AccessorSchema(
-            bufferView,
-            AccessorComponentType.from(buffer.componentType()),
-            buffer.count(),
-            AccessorType.from(buffer.elementType()),
-            bounds != null ? bounds.min().toArray() : null,
-            bounds != null ? bounds.max().toArray() : null,
-            buffer.normalized() ? true : null
-        );
+    @Override
+    public int addAccessor(AccessorSchema accessor) {
         accessors.add(accessor);
         return accessors.size() - 1;
     }
 
+    @Override
+    public int addNode(NodeSchema node) {
+        nodes.add(node);
+        return nodes.size() - 1;
+    }
+
+    @Override
+    public int createBufferView(Buffer buffer, int length, BufferViewTarget target) {
+        writable.add(buffer);
+        return createBufferView(length, target);
+    }
+
+    @Override
+    public void setSkeletonNode(int skeletonNode) {
+        this.skeletonNode = skeletonNode;
+    }
+
     private int createBufferView(int length, BufferViewTarget target) {
-        var bufferView = new BufferViewSchema(0, bufferOffset, length, target);
+        var bufferView = new BufferViewSchema(0, bufferLength, length, target);
         bufferViews.add(bufferView);
 
         // Round up offset to a multiple of 4
-        bufferOffset = alignedLength(bufferOffset + length);
+        bufferLength = alignedLength(bufferLength + length);
         return bufferViews.size() - 1;
     }
 
@@ -220,8 +175,8 @@ public final class GltfWriter {
         NodeSchema meshSkin = NodeSchema.buildMeshSkin(0, skin);
         nodes.add(meshSkin);
 
-        NodeSchema rst = NodeSchema.buildRST(List.of(nodes.size() - 1));
-        nodes.add(rst);
+//        NodeSchema rst = NodeSchema.buildRST(List.of(nodes.size() - 1));
+//        nodes.add(rst);
     }
 
     private void buildScenes() {
@@ -230,53 +185,6 @@ public final class GltfWriter {
 
         SceneSchema scene = new SceneSchema(nodes);
         scenes.add(scene);
-    }
-
-    private void buildSkeleton() {
-        int offset = nodes.size();
-        List<Bone> bones = skeleton.bones();
-
-        // Calculate the parent-child relationships
-        Map<Integer, List<Integer>> children = new HashMap<>();
-        for (int i = 0; i < bones.size(); i++) {
-            Bone joint = bones.get(i);
-            children
-                .computeIfAbsent(joint.parent(), __ -> new ArrayList<>())
-                .add(offset + i);
-        }
-
-        // Build the skeleton
-        List<Integer> jointIndices = new ArrayList<>();
-        for (int i = 0; i < bones.size(); i++) {
-            if (bones.get(i).parent() == -1) {
-                skeletonNode = offset + i;
-            }
-            jointIndices.add(offset + i);
-            buildSkeletonJoint(bones.get(i), children.getOrDefault(i, List.of()));
-        }
-
-        // Build the skin
-        buildSkeletonSkin(jointIndices);
-    }
-
-    private void buildSkeletonJoint(Bone joint, List<Integer> children) {
-        NodeSchema node = NodeSchema.buildSkeletonNode(
-            joint.name(),
-            joint.rotation(),
-            joint.translation(),
-            joint.scale(),
-            children.isEmpty() ? null : children
-        );
-        nodes.add(node);
-    }
-
-    private void buildSkeletonSkin(List<Integer> jointIndices) {
-        int inverseBindMatrices = buildAccessor(jointIndices.size() * 16, BufferType.InverseBind, null, null);
-        skins.add(new SkinSchema(
-            skeletonNode,
-            jointIndices,
-            inverseBindMatrices
-        ));
     }
 
     private void buildAnimations() {
@@ -356,38 +264,14 @@ public final class GltfWriter {
     }
 
     private void writeBuffers() throws IOException {
-        for (Mesh mesh : sourceMeshes) {
-            writeBuffer(mesh.getBuffer(Semantic.Position).orElseThrow().buffer());
-            writeBuffer(mesh.getBuffer(Semantic.Normal).orElseThrow().buffer());
-            writeBuffer(mesh.getBuffer(Semantic.Tangent).orElseThrow().buffer());
-            mesh.getBuffer(Semantic.TexCoord).ifPresent(buffer -> writeBuffer(buffer.buffer()));
-            if (skeleton != null) {
-                writeBuffer(mesh.getBuffer(Semantic.Joints).orElseThrow().buffer());
-                writeBuffer(mesh.getBuffer(Semantic.Weights).orElseThrow().buffer());
-            } else {
-                mesh.getBuffer(Semantic.Color).ifPresent(buffer -> writeBuffer(buffer.buffer()));
-            }
-            writeBuffer(mesh.faceBuffer().buffer());
-        }
-
-        // Write inverse bind matrices
-        if (skeleton != null) {
-            List<Bone> bones = skeleton.bones();
-            FloatBuffer buffer = FloatBuffer.allocate(bones.size() * 16);
-            for (Bone joint : bones) {
-                buffer.put(joint.inverseBasePose().toArray());
-            }
-            writeBuffer(buffer.flip());
-
-            if (animation != null) {
-                for (int i = 0; i < bones.size(); i++) {
-                    writeBuffer(buildKeyFrameBuffer(animation.rotations()[i]));
-                    writeBuffer(buildRotationBuffer(animation.rotations()[i]));
-                    writeBuffer(buildKeyFrameBuffer(animation.scales()[i]));
-                    writeBuffer(buildScaleTranslationBuffer(animation.scales()[i]));
-                    writeBuffer(buildKeyFrameBuffer(animation.translations()[i]));
-                    writeBuffer(buildScaleTranslationBuffer(animation.translations()[i]));
-                }
+        if (skeleton != null && animation != null) {
+            for (int i = 0; i < skeleton.bones().size(); i++) {
+                writeBuffer(buildKeyFrameBuffer(animation.rotations()[i]));
+                writeBuffer(buildRotationBuffer(animation.rotations()[i]));
+                writeBuffer(buildKeyFrameBuffer(animation.scales()[i]));
+                writeBuffer(buildScaleTranslationBuffer(animation.scales()[i]));
+                writeBuffer(buildKeyFrameBuffer(animation.translations()[i]));
+                writeBuffer(buildScaleTranslationBuffer(animation.translations()[i]));
             }
         }
     }
@@ -425,41 +309,13 @@ public final class GltfWriter {
     }
 
     private void writeBuffer(Buffer buffer) {
-        switch (buffer) {
-            case ByteBuffer byteBuffer -> writeBuffer(byteBuffer);
-            case FloatBuffer floatBuffer -> {
-                ByteBuffer target = ByteBuffer
-                    .allocate(floatBuffer.capacity() * 4)
-                    .order(ByteOrder.LITTLE_ENDIAN);
-
-                target.asFloatBuffer().put(floatBuffer);
-                writeBuffer(target);
-            }
-            case ShortBuffer shortBuffer -> {
-                ByteBuffer target = ByteBuffer
-                    .allocate(shortBuffer.capacity() * 2)
-                    .order(ByteOrder.LITTLE_ENDIAN);
-
-                short[] array = shortBuffer.array();
-                for (int i = 0; i < array.length; i += 3) {
-                    short temp = array[i];
-                    array[i] = array[i + 2];
-                    array[i + 2] = temp;
-                }
-
-                target.asShortBuffer().put(shortBuffer);
-                writeBuffer(target);
-            }
-            default -> throw new IllegalArgumentException("Unsupported buffer type: " + buffer.getClass());
-        }
-    }
-
-    private void writeBuffer(ByteBuffer buffer) {
+        var byteBuffer = Buffers.toByteBuffer(buffer);
         try {
-            channel.write(buffer);
-            align(buffer.capacity(), (byte) 0);
+            channel.write(byteBuffer);
+            align(byteBuffer.capacity(), (byte) 0);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
     }
+
 }
