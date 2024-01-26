@@ -7,6 +7,7 @@ import be.twofold.valen.reader.compfile.*;
 import be.twofold.valen.reader.decl.*;
 import be.twofold.valen.reader.image.*;
 import be.twofold.valen.reader.md6.*;
+import be.twofold.valen.reader.md6anim.*;
 import be.twofold.valen.reader.md6skl.*;
 import be.twofold.valen.reader.model.*;
 import be.twofold.valen.reader.packagemapspec.*;
@@ -32,11 +33,12 @@ public final class FileManager {
 
             var streamManager = new StreamManager(base, spec);
             this.readers = Map.of(
+                ResourceType.Anim, new Md6AnimReader(),
+                ResourceType.BaseModel, new Md6Reader(streamManager),
                 ResourceType.BinaryFile, new BinaryFileReader(),
                 ResourceType.CompFile, new CompFileReader(),
                 ResourceType.Image, new ImageReader(streamManager),
                 ResourceType.Model, new ModelReader(streamManager),
-                ResourceType.BaseModel, new Md6Reader(streamManager),
                 ResourceType.Skeleton, new Md6SkeletonReader()
             );
         } catch (IOException e) {

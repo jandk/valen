@@ -1,6 +1,9 @@
 package be.twofold.valen.core.math;
 
 public final class MathF {
+    public static final float SQRT_2 = 1.4142135f;
+    public static final float SQRT1_2 = 0.70710677f;
+
     private MathF() {
         throw new AssertionError();
     }

@@ -9,6 +9,7 @@ import java.util.*;
 
 public final class ResourceManager implements AutoCloseable {
     private static final Set<ResourceType> ResourceTypes = EnumSet.of(
+        ResourceType.Anim,
         ResourceType.BaseModel,
         ResourceType.BinaryFile,
         ResourceType.CompFile,
@@ -36,14 +37,14 @@ public final class ResourceManager implements AutoCloseable {
     }
 
     public Resource getEntry(String name) {
-        Resource resource = nameIndex.get(name);
+        var resource = nameIndex.get(name);
         Check.argument(resource != null, () -> String.format("Unknown resource: %s", name));
 
         return getEntry(resource.hash());
     }
 
     public Resource getEntry(long hash) {
-        ResourcesFile file = hashIndex.get(hash);
+        var file = hashIndex.get(hash);
         Check.argument(file != null, () -> String.format("Unknown resource: %s", hash));
 
         return file.getEntry(hash);

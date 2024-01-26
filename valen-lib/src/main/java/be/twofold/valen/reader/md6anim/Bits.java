@@ -14,8 +14,8 @@ public final class Bits {
     public boolean get(int index) {
         Check.index(index, size());
 
-        int byteIndex = index / 8;
-        int bitIndex = 0x80 >>> (index & 7);
+        int byteIndex = index >> 3;
+        int bitIndex = 0x80 >> (index & 7);
         return (bytes[byteIndex] & bitIndex) != 0;
     }
 

@@ -3,21 +3,13 @@ package be.twofold.valen.reader.md6anim;
 import be.twofold.valen.core.util.*;
 
 public record Md6AnimMapOffsets(
-    //offset to RLE stream that specifies how many constant R joints there are and which target joint indices they map to
     short constRRLEOffset,
-    //offset to RLE stream that specifies how many constant S joints there are and which target joint indices they map to
     short constSRLEOffset,
-    //offset to RLE stream that specifies how many constant T joints there are and which target joint indices they map to
     short constTRLEOffset,
-    //offset to RLE stream that specifies how many constant user channels there are and which target user channel indices they map to
     short constURLEOffset,
-    //offset to RLE stream that specifies how many animated R joints there are and which target joint indices they map to
     short animRRLEOffset,
-    //offset to RLE stream that specifies how many animated S joints there are and which target joint indices they map to
     short animSRLEOffset,
-    //offset to RLE stream that specifies how many animated T joints there are and which target joint indices they map to
     short animTRLEOffset,
-    //offset to RLE stream that specifies how many animated user channels there are and which target user channel indices they map to
     short animURLEOffset
 ) {
     public static Md6AnimMapOffsets read(BetterBuffer buffer) {

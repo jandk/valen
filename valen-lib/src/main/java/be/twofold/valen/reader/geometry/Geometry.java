@@ -29,7 +29,7 @@ public final class Geometry {
         dst.put(Math.fma(MathF.unpackUNorm16(src.getShort()), scale, offset.x()));
         dst.put(Math.fma(MathF.unpackUNorm16(src.getShort()), scale, offset.y()));
         dst.put(Math.fma(MathF.unpackUNorm16(src.getShort()), scale, offset.z()));
-        src.skip(2);
+        src.expectShort(0);
     }
 
     public static void readPackedNormal(BetterBuffer src, FloatBuffer dst) {

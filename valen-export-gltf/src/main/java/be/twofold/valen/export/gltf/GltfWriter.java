@@ -45,6 +45,7 @@ public final class GltfWriter implements GltfContext {
 
     private final GltfModelMapper modelMapper = new GltfModelMapper(this);
     private final GltfSkeletonMapper skeletonMapper = new GltfSkeletonMapper(this);
+    private final GltfAnimationMapper animationMapper = new GltfAnimationMapper(this);
 
     public GltfWriter(
         WritableByteChannel channel,
@@ -64,7 +65,9 @@ public final class GltfWriter implements GltfContext {
         buildScenes();
         if (skeleton != null) {
             skins.add(skeletonMapper.map(skeleton, nodes.size()));
-            buildAnimations();
+            if (animation != null) {
+                animations.add(animationMapper.map(animation, skeletonNode));
+            }
 
             // Ugly little fixup
             scenes.getFirst().nodes().add(skeletonNode);
@@ -87,7 +90,6 @@ public final class GltfWriter implements GltfContext {
             for (Buffer buffer : writable) {
                 writeBuffer(buffer);
             }
-            writeBuffers();
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
@@ -148,28 +150,6 @@ public final class GltfWriter implements GltfContext {
         return bufferViews.size() - 1;
     }
 
-    private int buildAccessor(int capacity, BufferType bufferType, float[] min, float[] max) {
-        int bufferView = createBufferView(capacity * bufferType.getComponentType().getSize(), null);
-        return buildAccessor(bufferView, capacity, bufferType, min, max);
-    }
-
-    private int buildAccessor(int bufferView, int count, BufferType type, float[] min, float[] max) {
-        int dataTypeSize = type.getDataType().getSize();
-        assert count % dataTypeSize == 0 : "Count must be a multiple of " + dataTypeSize;
-
-        AccessorSchema accessor = new AccessorSchema(
-            bufferView,
-            type.getComponentType(),
-            count / dataTypeSize,
-            type.getDataType(),
-            min,
-            max,
-            null
-        );
-        accessors.add(accessor);
-        return accessors.size() - 1;
-    }
-
     private void buildNodes() {
         Integer skin = skeleton != null ? 0 : null;
         NodeSchema meshSkin = NodeSchema.buildMeshSkin(0, skin);
@@ -187,71 +167,6 @@ public final class GltfWriter implements GltfContext {
         scenes.add(scene);
     }
 
-    private void buildAnimations() {
-        if (animation == null) {
-            return;
-        }
-
-        List<AnimationChannelSchema> channels = new ArrayList<>();
-        List<AnimationSamplerSchema> samplers = new ArrayList<>();
-
-        for (int i = 0; i < skeleton.bones().size(); i++) {
-            int numRotations = countNonNull(animation.rotations()[i]);
-            if (numRotations != 0) {
-                FloatBuffer buffer = buildKeyFrameBuffer(animation.rotations()[i]);
-                int rotationInput = buildAccessor(numRotations, BufferType.KeyFrame, new float[]{min(buffer)}, new float[]{max(buffer)});
-                int rotationOutput = buildAccessor(numRotations * 4, BufferType.Rotation, null, null);
-                samplers.add(new AnimationSamplerSchema(rotationInput, rotationOutput));
-                AnimationChannelTargetSchema rotationChannelTargetSchema = new AnimationChannelTargetSchema(skeletonNode + i, "rotation");
-                channels.add(new AnimationChannelSchema(samplers.size() - 1, rotationChannelTargetSchema));
-            }
-
-            int numScales = countNonNull(animation.scales()[i]);
-            if (numScales != 0) {
-                FloatBuffer buffer = buildKeyFrameBuffer(animation.scales()[i]);
-                int scaleInput = buildAccessor(numScales, BufferType.KeyFrame, new float[]{min(buffer)}, new float[]{max(buffer)});
-                int scaleOutput = buildAccessor(numScales * 3, BufferType.ScaleTranslation, null, null);
-                samplers.add(new AnimationSamplerSchema(scaleInput, scaleOutput));
-                AnimationChannelTargetSchema scaleChannelTargetSchema = new AnimationChannelTargetSchema(skeletonNode + i, "scale");
-                channels.add(new AnimationChannelSchema(samplers.size() - 1, scaleChannelTargetSchema));
-            }
-
-            int numTranslations = countNonNull(animation.translations()[i]);
-            if (numTranslations != 0) {
-                FloatBuffer buffer = buildKeyFrameBuffer(animation.translations()[i]);
-                int translationInput = buildAccessor(numTranslations, BufferType.KeyFrame, new float[]{min(buffer)}, new float[]{max(buffer)});
-                int translationOutput = buildAccessor(numTranslations * 3, BufferType.ScaleTranslation, null, null);
-                samplers.add(new AnimationSamplerSchema(translationInput, translationOutput));
-                AnimationChannelTargetSchema translationChannelTargetSchema = new AnimationChannelTargetSchema(skeletonNode + i, "translation");
-                channels.add(new AnimationChannelSchema(samplers.size() - 1, translationChannelTargetSchema));
-            }
-        }
-
-        animations.add(new AnimationSchema(animation.name(), channels, samplers));
-    }
-
-    private float min(FloatBuffer buffer) {
-        float min = Float.POSITIVE_INFINITY;
-        for (int i = 0; i < buffer.capacity(); i++) {
-            min = Math.min(min, buffer.get(i));
-        }
-        return min;
-    }
-
-    private float max(FloatBuffer buffer) {
-        float max = Float.NEGATIVE_INFINITY;
-        for (int i = 0; i < buffer.capacity(); i++) {
-            max = Math.max(max, buffer.get(i));
-        }
-        return max;
-    }
-
-    private <T> int countNonNull(T[] array) {
-        return (int) Arrays.stream(array)
-            .filter(Objects::nonNull)
-            .count();
-    }
-
 
     private int alignedLength(int length) {
         return (length + 3) & ~3;
@@ -261,51 +176,6 @@ public final class GltfWriter implements GltfContext {
         byte[] padding = new byte[alignedLength(length) - length];
         Arrays.fill(padding, pad);
         channel.write(ByteBuffer.wrap(padding));
-    }
-
-    private void writeBuffers() throws IOException {
-        if (skeleton != null && animation != null) {
-            for (int i = 0; i < skeleton.bones().size(); i++) {
-                writeBuffer(buildKeyFrameBuffer(animation.rotations()[i]));
-                writeBuffer(buildRotationBuffer(animation.rotations()[i]));
-                writeBuffer(buildKeyFrameBuffer(animation.scales()[i]));
-                writeBuffer(buildScaleTranslationBuffer(animation.scales()[i]));
-                writeBuffer(buildKeyFrameBuffer(animation.translations()[i]));
-                writeBuffer(buildScaleTranslationBuffer(animation.translations()[i]));
-            }
-        }
-    }
-
-    private <T> FloatBuffer buildKeyFrameBuffer(T[] vectors) {
-        FloatBuffer buffer = FloatBuffer.allocate(countNonNull(vectors));
-        for (int i = 0; i < vectors.length; i++) {
-            if (vectors[i] != null) {
-                buffer.put((float) i / (float) animation.frameRate());
-            }
-        }
-        return buffer.flip();
-    }
-
-    private FloatBuffer buildRotationBuffer(Quaternion[] vectors) {
-        int count = countNonNull(vectors);
-        FloatBuffer buffer = FloatBuffer.allocate(count * 4);
-        for (Quaternion vector : vectors) {
-            if (vector != null) {
-                vector.put(buffer);
-            }
-        }
-        return buffer.flip();
-    }
-
-    private FloatBuffer buildScaleTranslationBuffer(Vector3[] vectors) {
-        int count = countNonNull(vectors);
-        FloatBuffer buffer = FloatBuffer.allocate(count * 3);
-        for (Vector3 vector : vectors) {
-            if (vector != null) {
-                vector.put(buffer);
-            }
-        }
-        return buffer.flip();
     }
 
     private void writeBuffer(Buffer buffer) {

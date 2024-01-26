@@ -1,13 +1,12 @@
 package be.twofold.valen.core.animation;
 
-import be.twofold.valen.core.math.*;
+import java.util.*;
 
 public record Animation(
-    String name,
     int frameRate,
-    int frameCount,
-    Quaternion[][] rotations,
-    Vector3[][] scales,
-    Vector3[][] translations
+    List<Track<?>> tracks
 ) {
+    public Animation {
+        tracks = List.copyOf(tracks);
+    }
 }
