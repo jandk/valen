@@ -20,6 +20,7 @@ public final class ResourceMapper {
         return new Resource(
             new ResourceName(name),
             ResourceType.fromName(type),
+            ResourceVariation.fromValue(entry.variation()),
             Instant.ofEpochMilli(entry.generationTimeStamp() / 1000),
             entry.dataOffset(),
             entry.dataSize(),

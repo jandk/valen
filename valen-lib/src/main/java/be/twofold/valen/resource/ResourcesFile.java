@@ -12,7 +12,7 @@ import java.util.function.*;
 import java.util.stream.*;
 
 public final class ResourcesFile implements AutoCloseable {
-    private final Map<Long, Resource> entries;
+    private final Map<ResourceKey, Resource> index;
     private SeekableByteChannel channel;
 
     public ResourcesFile(Path path) throws IOException {
@@ -20,32 +20,32 @@ public final class ResourcesFile implements AutoCloseable {
 
         this.channel = Files.newByteChannel(path, StandardOpenOption.READ);
         List<Resource> resources = new ResourceMapper().map(Resources.read(channel));
-        this.entries = resources.stream()
-            .collect(Collectors.toUnmodifiableMap(
-                Resource::hash,
-                Function.identity(),
-                (first, second) -> first
+
+        this.index = resources.stream()
+            .collect(Collectors.toMap(
+                Resource::key,
+                Function.identity()
             ));
     }
 
-    public Collection<Resource> getEntries() {
-        return entries.values();
+    public Collection<Resource> getResources() {
+        return index.values();
     }
 
-    public Resource getEntry(long hash) {
-        return entries.get(hash);
+    public Resource getEntry(ResourceKey key) {
+        return index.get(key);
     }
 
-    public byte[] read(long hash) {
-        var entry = entries.get(hash);
-        Check.argument(entry != null, () -> String.format("Unknown resource: %s", hash));
+    public byte[] read(ResourceKey key) {
+        var entry = index.get(key);
+        Check.argument(entry != null, () -> String.format("Unknown resource: %s", key));
 
         try {
             channel.position(entry.offset());
             var compressed = IOUtils.readBytes(channel, entry.size());
             return OodleDecompressor.decompress(compressed, entry.uncompressedSize());
         } catch (IOException e) {
-            System.out.println("Error reading resource: " + hash);
+            System.out.println("Error reading resource: " + key);
             throw new UncheckedIOException(e);
         }
     }

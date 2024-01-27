@@ -5,7 +5,7 @@ import java.util.stream.*;
 
 public record ResourceName(
     String name
-) {
+) implements Comparable<ResourceName> {
     public String fullPath() {
         var index = name.indexOf('$');
         return index < 0 ? name : name.substring(0, index);
@@ -49,6 +49,11 @@ public record ResourceName(
         var key = index < 0 ? s : s.substring(0, index);
         var value = index < 0 ? s : s.substring(index + 1);
         return Map.entry(key, value);
+    }
+
+    @Override
+    public int compareTo(ResourceName o) {
+        return name.compareTo(o.name);
     }
 
     @Override

@@ -21,8 +21,8 @@ public final class ResourceManager implements AutoCloseable {
     private final Path base;
     private final PackageMapSpec spec;
     private List<ResourcesFile> files;
-    private Map<Long, ResourcesFile> hashIndex;
-    private Map<String, Resource> nameIndex;
+    private Map<ResourceKey, ResourcesFile> index;
+    private Map<String, Map<ResourceKey, Resource>> names;
 
     public ResourceManager(Path base, PackageMapSpec spec) {
         this.base = Check.notNull(base, "base must not be null");
@@ -31,30 +31,28 @@ public final class ResourceManager implements AutoCloseable {
 
     public Collection<Resource> getEntries() {
         return files.stream()
-            .flatMap(resourcesFile -> resourcesFile.getEntries().stream())
+            .flatMap(file -> file.getResources().stream())
             .distinct()
             .toList();
     }
 
     public Resource getEntry(String name) {
-        var resource = nameIndex.get(name);
-        Check.argument(resource != null, () -> String.format("Unknown resource: %s", name));
+        var resources = names.get(name);
+        Check.argument(resources != null, () -> String.format("Unknown resource: %s", name));
 
-        return getEntry(resource.hash());
+        // TODO: handle multiple resources with the same name
+        ResourceKey resource = resources.keySet().iterator().next();
+        var file = index.get(resource);
+        Check.argument(file != null, () -> String.format("Unknown resource: %s", resource));
+
+        return file.getEntry(resource);
     }
 
-    public Resource getEntry(long hash) {
-        var file = hashIndex.get(hash);
-        Check.argument(file != null, () -> String.format("Unknown resource: %s", hash));
+    public byte[] read(Resource resource) {
+        var file = index.get(resource.key());
+        Check.argument(file != null, () -> String.format("Unknown resource: %s", resource.key()));
 
-        return file.getEntry(hash);
-    }
-
-    public byte[] read(Resource entry) {
-        var file = hashIndex.get(entry.hash());
-        Check.argument(file != null, () -> String.format("Unknown resource: %s", entry.name()));
-
-        return file.read(entry.hash());
+        return file.read(resource.key());
     }
 
     public void select(String map) throws IOException {
@@ -69,21 +67,26 @@ public final class ResourceManager implements AutoCloseable {
             .toList();
 
         var files = new ArrayList<ResourcesFile>();
-        var hashIndex = new HashMap<Long, ResourcesFile>();
-        var nameIndex = new HashMap<String, Resource>();
+        var index = new HashMap<ResourceKey, ResourcesFile>();
+        var names = new HashMap<String, Map<ResourceKey, Resource>>();
+
         for (var path : paths) {
             var file = new ResourcesFile(path);
             files.add(file);
-            for (var entry : file.getEntries()) {
-                hashIndex.putIfAbsent(entry.hash(), file);
-                if (ResourceTypes.contains(entry.type())) {
-                    nameIndex.putIfAbsent(entry.name().name(), entry);
-                }
-            }
+            file.getResources()
+                .forEach(e -> {
+                    var key = new ResourceKey(e.name(), e.type(), e.variation());
+                    index.putIfAbsent(key, file);
+                    names
+                        .computeIfAbsent(e.name().name(), __ -> new HashMap<>())
+                        .putIfAbsent(key, e);
+                });
         }
+
+        names.replaceAll((key, value) -> Map.copyOf(value));
         this.files = List.copyOf(files);
-        this.hashIndex = Map.copyOf(hashIndex);
-        this.nameIndex = Map.copyOf(nameIndex);
+        this.index = Map.copyOf(index);
+        this.names = Map.copyOf(names);
     }
 
     @Override
@@ -93,7 +96,8 @@ public final class ResourceManager implements AutoCloseable {
                 file.close();
             }
             files = null;
-            hashIndex = null;
+            index = null;
+            names = null;
         }
     }
 }

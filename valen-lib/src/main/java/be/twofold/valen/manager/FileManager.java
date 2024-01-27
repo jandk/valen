@@ -13,7 +13,6 @@ import be.twofold.valen.reader.model.*;
 import be.twofold.valen.reader.packagemapspec.*;
 import be.twofold.valen.resource.*;
 import be.twofold.valen.stream.*;
-import com.google.gson.*;
 
 import java.io.*;
 import java.nio.file.*;
@@ -58,18 +57,8 @@ public final class FileManager {
         resourceManager.select(map);
     }
 
-    public JsonObject readDecl(String name) {
-        return declManager.load(name);
-    }
-
-    public byte[] readRawResource(Resource entry) {
-        return resourceManager.read(entry);
-    }
-
-    public <T> T readResource(FileType<T> type, Resource resource) {
-        var buffer = BetterBuffer.wrap(resourceManager.read(resource));
-        var result = readers.get(type.resourceType()).read(buffer, resource);
-        return type.instanceType().cast(result);
+    public byte[] readRawResource(Resource resource) {
+        return resourceManager.read(resource);
     }
 
     public <T> T readResource(FileType<T> type, String name) {
