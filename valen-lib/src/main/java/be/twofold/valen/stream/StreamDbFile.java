@@ -36,7 +36,7 @@ public final class StreamDbFile implements AutoCloseable {
         try {
             channel.position(entry.offset());
             var compressed = IOUtils.readBytes(channel, entry.length());
-            return OozDecompressor.decompress(compressed, uncompressedSize);
+            return OodleDecompressor.decompress(compressed, uncompressedSize);
         } catch (IOException e) {
             System.out.println("Error reading stream: " + identity);
             throw new UncheckedIOException(e);

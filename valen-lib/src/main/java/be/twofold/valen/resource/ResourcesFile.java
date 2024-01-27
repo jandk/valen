@@ -43,7 +43,7 @@ public final class ResourcesFile implements AutoCloseable {
         try {
             channel.position(entry.offset());
             var compressed = IOUtils.readBytes(channel, entry.size());
-            return OozDecompressor.decompress(compressed, entry.uncompressedSize());
+            return OodleDecompressor.decompress(compressed, entry.uncompressedSize());
         } catch (IOException e) {
             System.out.println("Error reading resource: " + hash);
             throw new UncheckedIOException(e);
