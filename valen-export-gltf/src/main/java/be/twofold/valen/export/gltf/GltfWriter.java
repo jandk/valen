@@ -38,6 +38,7 @@ public final class GltfWriter implements GltfContext {
     private final List<SceneSchema> scenes = new ArrayList<>();
     private final List<SkinSchema> skins = new ArrayList<>();
     private final List<AnimationSchema> animations = new ArrayList<>();
+    private final List<Integer> meshNodes = new ArrayList<>();
 
     private final List<Buffer> writable = new ArrayList<>();
     private int bufferLength;
@@ -60,8 +61,10 @@ public final class GltfWriter implements GltfContext {
     }
 
     public void write() {
-        meshes.add(modelMapper.map(model));
-        buildNodes();
+        if (model != null) {
+            modelMapper.map(model);
+        }
+//        buildNodes();
         buildScenes();
         if (skeleton != null) {
             skins.add(skeletonMapper.map(skeleton, nodes.size()));
@@ -93,6 +96,16 @@ public final class GltfWriter implements GltfContext {
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
+    }
+
+    public int addMesh(Model model) {
+        meshes.add(modelMapper.map(model));
+        return meshes.size() - 1;
+    }
+
+    public void addMeshInstance(int mesh, String name, Quaternion rotation, Vector3 translation, Vector3 scale) {
+        NodeSchema node = NodeSchema.buildMesh(name, rotation, translation, scale, mesh);
+        meshNodes.add(addNode(node));
     }
 
     private GltfSchema buildGltf() {
@@ -160,11 +173,7 @@ public final class GltfWriter implements GltfContext {
     }
 
     private void buildScenes() {
-        List<Integer> nodes = new ArrayList<>();
-        nodes.add(0);
-
-        SceneSchema scene = new SceneSchema(nodes);
-        scenes.add(scene);
+        scenes.add(new SceneSchema(meshNodes));
     }
 
 

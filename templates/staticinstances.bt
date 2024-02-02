@@ -5,11 +5,11 @@ struct StaticInstances {
     uint32 numMaterials;
     SString materials[numMaterials - 1] <optimize=false, style=sSection1>;
 
-    uint32 declCount;
-    SString decls[declCount - 1] <optimize=false, style=sSection2>;
+    uint32 declRenderParamCount;
+    SString declRenderParams[declRenderParamCount - 1] <optimize=false, style=sSection2>;
     
-    uint32 list4Count;
-    SString list4[list4Count] <optimize=false, style=sSection3>;
+    uint32 renderParamCount;
+    SString renderParams[renderParamCount] <optimize=false, style=sSection3>;
     
     uint32 modelCount;
     SString models[modelCount] <optimize=false, style=sSection4>;
@@ -26,14 +26,17 @@ struct StaticInstances {
         uint32 b;
     } groups2[group2Count] <style=sSection2>;
     
-    uint32 count;
-    FSeek(FTell() + count * 8);
+    uint32 group3Count;
+    struct {
+        uint32 a;
+        uint32 b;
+    } groups3[group3Count] <style=sSection3>;
     
-    uint32 count1;
-    SString something1[count1] <optimize=false, style=sSection3>;
+    uint32 declLayerCount;
+    SString declLayer[declLayerCount] <optimize=false, style=sSection4>;
     
     uint32 count2;
-    SString something2[count2] <optimize=false, style=sSection4>;
+    SString something2[count2] <optimize=false, style=sSection3>;
     
     struct {
         byte bytes[76];
@@ -43,13 +46,13 @@ struct StaticInstances {
     struct {
         byte bytes[152];
     } unknowns3[count3] <style=sSection2>;
-    
+
     uint32 count4;
     SString something4[count4] <optimize=false, style=sSection3>;
     struct {
         byte bytes[56];
     } unknowns4[count4] <style=sSection3>;
-    
+
     uint32 count5;
     struct {
         byte bytes[96];
@@ -63,7 +66,7 @@ struct StaticInstances {
         uint32 unk3;
         byte unk4;
     } unknown6[count6] <optimize=false, style=sSection1>;
-    
+
     uint32 count7;
     struct {
         SString unk1;

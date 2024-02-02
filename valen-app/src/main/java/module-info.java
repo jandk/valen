@@ -9,5 +9,5 @@ module valen.app {
     requires valen.lib;
     requires valen.ui;
 
-    exports be.twofold.valen to javafx.graphics;
+    exports be.twofold.valen;
 }

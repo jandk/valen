@@ -24,4 +24,6 @@ module valen.lib {
     exports be.twofold.valen.writer.png;
 
     exports be.twofold.valen.reader.decl.entities to com.google.gson;
+    exports be.twofold.valen.reader.decl.specialized;
+    exports be.twofold.valen.stream;
 }
