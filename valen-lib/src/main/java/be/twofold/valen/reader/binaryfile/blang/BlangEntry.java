@@ -1,4 +1,4 @@
-package be.twofold.valen.reader.blang;
+package be.twofold.valen.reader.binaryfile.blang;
 
 import be.twofold.valen.core.util.*;
 

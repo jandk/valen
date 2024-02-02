@@ -1,4 +1,4 @@
-package be.twofold.valen;
+package be.twofold.valen.reader.file.mapresources;
 
 import be.twofold.valen.core.util.*;
 

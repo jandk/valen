@@ -1,13 +1,27 @@
-package be.twofold.valen.reader.decl.specialized;
+package be.twofold.valen.reader.compfile.entities;
 
+import be.twofold.valen.core.util.*;
+import be.twofold.valen.reader.*;
+import be.twofold.valen.reader.compfile.*;
 import be.twofold.valen.reader.decl.parser.*;
+import be.twofold.valen.resource.*;
 
+import java.nio.charset.*;
 import java.util.*;
 
-public final class EntityParser {
-    public EntityFile parse(String input) {
-        var parser = new DeclParser(input);
+public final class EntityReader implements ResourceReader<EntityFile> {
+    private final CompFileReader compFileReader;
 
+    public EntityReader(CompFileReader compFileReader) {
+        this.compFileReader = compFileReader;
+    }
+
+    @Override
+    public EntityFile read(BetterBuffer buffer, Resource resource) {
+        byte[] bytes = compFileReader.read(buffer, resource);
+        String input = new String(bytes, StandardCharsets.UTF_8);
+
+        var parser = new DeclParser(input);
         parser.expect(DeclTokenType.Name, "Version");
         var version = parser.expectNumber().intValue();
 

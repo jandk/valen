@@ -1,4 +1,4 @@
-package be.twofold.valen.reader.decl.specialized;
+package be.twofold.valen.reader.compfile.entities;
 
 import com.google.gson.*;
 

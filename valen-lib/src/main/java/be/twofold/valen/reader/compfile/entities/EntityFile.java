@@ -1,4 +1,4 @@
-package be.twofold.valen.reader.decl.specialized;
+package be.twofold.valen.reader.compfile.entities;
 
 import java.util.*;
 
@@ -12,7 +12,7 @@ public record EntityFile(
         return "EntityFile(" +
             "version=" + version + ", " +
             "hierarchyVersion=" + hierarchyVersion + ", " +
-            "entities=" + entities.size() +
+            "entities={" + entities.size() + " entities}" +
             ")";
     }
 }
