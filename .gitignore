@@ -7,3 +7,5 @@ target/
 
 # Native
 /*.dll
+/*.so
+/*.so.*

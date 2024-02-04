@@ -1,19 +1,27 @@
 package be.twofold.valen.oodle;
 
+import be.twofold.valen.core.util.*;
 import com.sun.jna.*;
 
 import java.util.*;
 
 public final class OodleDecompressor {
-    private static final OodleLibrary Oodle = Native.load("oo2core_8_win64", OodleLibrary.class);
+    private static final OodleLibrary Oodle;
     private static final Memory decoderMemory;
 
     static {
+        Oodle = switch (OperatingSystem.current()) {
+            case Linux -> Native.load("./liboo2corelinux64.so", OodleLibrary.class);
+            case Windows -> Native.load("oo2core_8_win64", OodleLibrary.class);
+            case Mac -> throw new UnsupportedOperationException("Mac is not supported");
+        };
+
         int memorySizeNeeded = Oodle.OodleLZDecoder_MemorySizeNeeded(OodleLibrary.Compressor_Invalid, -1);
         decoderMemory = new Memory(memorySizeNeeded);
     }
 
     private OodleDecompressor() {
+        System.out.println("Oodle version: " + version());
     }
 
     public static byte[] decompress(byte[] data, int uncompressedSize) {
