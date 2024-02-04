@@ -11,9 +11,10 @@
     <modules>
         <module>valen-app</module>
         <module>valen-core</module>
-        <module>valen-ui</module>
-        <module>valen-lib</module>
         <module>valen-export-gltf</module>
+        <module>valen-jlink</module>
+        <module>valen-lib</module>
+        <module>valen-ui</module>
     </modules>
 
     <properties>
@@ -21,7 +22,7 @@
         <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-        <dagger.version>2.50</dagger.version>
+        <dapper.version>2.41.2</dapper.version>
         <flatlaf.version>3.2.5</flatlaf.version>
         <javafx.version>21.0.1</javafx.version>
     </properties>
@@ -35,11 +36,26 @@
                 <configuration>
                     <annotationProcessorPaths>
                         <path>
-                            <groupId>com.google.dagger</groupId>
-                            <artifactId>dagger-compiler</artifactId>
-                            <version>${dagger.version}</version>
+                            <groupId>io.github.jbock-java</groupId>
+                            <artifactId>dapper-compiler</artifactId>
+                            <version>${dapper.version}</version>
                         </path>
                     </annotationProcessorPaths>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jlink-plugin</artifactId>
+                <version>3.2.0</version>
+                <extensions>true</extensions>
+                <configuration>
+                    <compress>zip-9</compress>
+                    <includeLocales>en</includeLocales>
+                    <launcher>valen=valen.app/be.twofold.valen.Main</launcher>
+                    <noHeaderFiles>true</noHeaderFiles>
+                    <noManPages>true</noManPages>
+                    <stripDebug>true</stripDebug>
+                    <verbose>true</verbose>
                 </configuration>
             </plugin>
         </plugins>
@@ -62,6 +78,11 @@
     <dependencyManagement>
         <dependencies>
             <!-- Project -->
+            <dependency>
+                <groupId>be.twofold</groupId>
+                <artifactId>valen-app</artifactId>
+                <version>${project.version}</version>
+            </dependency>
             <dependency>
                 <groupId>be.twofold</groupId>
                 <artifactId>valen-core</artifactId>
@@ -100,9 +121,9 @@
                 <version>2.10.1</version>
             </dependency>
             <dependency>
-                <groupId>com.google.dagger</groupId>
-                <artifactId>dagger</artifactId>
-                <version>${dagger.version}</version>
+                <groupId>io.github.jbock-java</groupId>
+                <artifactId>dapper</artifactId>
+                <version>${dapper.version}</version>
             </dependency>
             <dependency>
                 <groupId>net.java.dev.jna</groupId>

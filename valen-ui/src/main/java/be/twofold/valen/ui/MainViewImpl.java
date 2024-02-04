@@ -1,8 +1,8 @@
 package be.twofold.valen.ui;
 
 import be.twofold.valen.ui.model.*;
+import jakarta.inject.*;
 
-import javax.inject.*;
 import javax.swing.*;
 import javax.swing.tree.*;
 import java.awt.*;

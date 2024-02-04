@@ -7,29 +7,14 @@
         <artifactId>valen</artifactId>
         <version>1.0-SNAPSHOT</version>
     </parent>
+    <packaging>jlink</packaging>
 
-    <artifactId>valen-ui</artifactId>
+    <artifactId>valen-jlink</artifactId>
 
     <dependencies>
-        <!-- Internal -->
         <dependency>
             <groupId>be.twofold</groupId>
-            <artifactId>valen-lib</artifactId>
-        </dependency>
-
-        <!-- External -->
-        <dependency>
-            <groupId>com.formdev</groupId>
-            <artifactId>flatlaf</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.google.code.gson</groupId>
-            <artifactId>gson</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.github.jbock-java</groupId>
-            <artifactId>dapper</artifactId>
+            <artifactId>valen-app</artifactId>
         </dependency>
     </dependencies>
-
 </project>
