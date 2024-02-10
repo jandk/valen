@@ -13,6 +13,15 @@ public final class ResourceTableModel extends AbstractTableModel {
     }
 
     @Override
+    public Class<?> getColumnClass(int columnIndex) {
+        return switch (columnIndex) {
+            case 0, 1 -> String.class;
+            case 2, 3 -> Integer.class;
+            default -> null;
+        };
+    }
+
+    @Override
     public int getColumnCount() {
         return 4;
     }
@@ -39,21 +48,9 @@ public final class ResourceTableModel extends AbstractTableModel {
         return switch (columnIndex) {
             case 0 -> resource.name().name();
             case 1 -> resource.type().name();
-            case 2 -> formatFileSize(resource.size());
-            case 3 -> formatFileSize(resource.uncompressedSize());
+            case 2 -> resource.size();
+            case 3 -> resource.uncompressedSize();
             default -> null;
         };
-    }
-
-    private String formatFileSize(long size) {
-        if (size < 1024) {
-            return size + " B";
-        } else if (size < 1024 * 1024) {
-            return String.format("%.2f KB", size / 1024.0);
-        } else if (size < 1024 * 1024 * 1024) {
-            return String.format("%.2f MB", size / (1024.0 * 1024.0));
-        } else {
-            return String.format("%.2f GB", size / (1024.0 * 1024.0 * 1024.0));
-        }
     }
 }

@@ -14,6 +14,9 @@ import java.nio.file.*;
 public final class Main {
 
     public static void main(String[] args) {
+        // System.setProperty("sun.java2d.uiScale", "2");
+        System.setProperty("flatlaf.uiScale", "1.5");
+
         FlatLightLaf.setup();
         FlatInspector.install("ctrl shift alt X");
         FlatUIDefaultsInspector.install("ctrl shift alt Y");

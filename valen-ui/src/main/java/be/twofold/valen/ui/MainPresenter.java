@@ -8,10 +8,12 @@ import java.util.*;
 
 public class MainPresenter {
     private final MainView view;
+    private Collection<Resource> entries;
 
     @Inject
     public MainPresenter(MainView view) {
         this.view = view;
+        this.view.addListener(this::loadResources);
     }
 
     public void show() {
@@ -19,12 +21,24 @@ public class MainPresenter {
     }
 
     public void setResources(Collection<Resource> entries) {
+        this.entries = entries;
         view.setFileTree(convert(buildNodeTree(entries)));
+    }
+
+    private void loadResources(String path) {
+        if (entries == null) {
+            return;
+        }
+        var resources = entries.stream()
+            .filter(r -> r.name().path().equals(path))
+            .toList();
+
+        view.setResources(resources);
     }
 
     private MutableTreeNode convert(Node node) {
         List<Node> children = node.children.entrySet().stream()
-            .sorted(Map.Entry.comparingByKey())
+            .sorted(Map.Entry.comparingByKey(NaturalOrderComparator.instance()))
             .map(Map.Entry::getValue)
             .toList();
 
@@ -42,9 +56,6 @@ public class MainPresenter {
             String path = entry.name().path();
             if (!path.isEmpty()) {
                 for (String s : path.split("/")) {
-                    if (s.isEmpty()) {
-                        System.out.println(s);
-                    }
                     node = node.get(s);
                 }
             }
