@@ -21,6 +21,8 @@ public final class DdsWriter {
     }
 
     private DdsHeader createHeader(Texture texture) {
+        var format = toDxgiFormat(texture.format());
+
         var flags = DdsHeader.DDS_HEADER_FLAGS_TEXTURE;
         var height = texture.height();
         var width = texture.width();
@@ -36,16 +38,16 @@ public final class DdsWriter {
         }
 
         int pitchOrLinearSize;
-        if (texture.format().isCompressed()) {
+        if (format.isCompressed()) {
             flags |= DdsHeader.DDSD_LINEARSIZE;
-            pitchOrLinearSize = computeLinearSize(texture.width(), texture.height(), texture.format());
+            pitchOrLinearSize = computeLinearSize(texture.width(), texture.height(), format);
         } else {
             flags |= DdsHeader.DDSD_PITCH;
-            pitchOrLinearSize = computePitch(texture.width(), texture.format());
+            pitchOrLinearSize = computePitch(texture.width(), format);
         }
 
         var pixelFormat = createPixelFormat();
-        var header10 = createHeaderDxt10(texture);
+        var header10 = createHeaderDxt10(texture, format);
 
         var caps2 = 0;
         if (texture.isCubeMap()) {
@@ -62,11 +64,10 @@ public final class DdsWriter {
         return new DdsPixelFormat(flags, fourCC, 0, 0, 0, 0, 0);
     }
 
-    private DdsHeaderDxt10 createHeaderDxt10(Texture texture) {
-        var dxgiFormat = texture.format().getCode();
+    private DdsHeaderDxt10 createHeaderDxt10(Texture texture, DxgiFormat format) {
         var miscFlag = texture.isCubeMap() ? DdsHeaderDxt10.DDS_RESOURCE_MISC_TEXTURECUBE : 0;
         return new DdsHeaderDxt10(
-            dxgiFormat,
+            format.getCode(),
             DdsHeaderDxt10.DDS_DIMENSION_TEXTURE2D,
             miscFlag,
             1,
@@ -74,22 +75,22 @@ public final class DdsWriter {
         );
     }
 
-    private static int computeLinearSize(int width, int height, TextureFormat format) {
+    private int computeLinearSize(int width, int height, DxgiFormat format) {
         // Round up to next multiple of 4
         var blocksX = Math.max(1, (width + 3) / 4);
         var blocksY = Math.max(1, (height + 3) / 4);
 
         switch (format) {
-            case Bc1Typeless, Bc1Unorm, Bc1UnormSrgb,
-                Bc4Typeless, Bc4Unorm, Bc4Snorm -> {
+            case BC1_UNORM, BC1_UNORM_SRGB,
+                BC4_UNORM, BC4_SNORM -> {
                 var pitch = blocksX * 8;
                 return pitch * blocksY;
             }
-            case Bc2Typeless, Bc2Unorm, Bc2UnormSrgb,
-                Bc3Typeless, Bc3Unorm, Bc3UnormSrgb,
-                Bc5Typeless, Bc5Unorm, Bc5Snorm,
-                Bc6HTypeless, Bc6HUf16, Bc6HSf16,
-                Bc7Typeless, Bc7Unorm, Bc7UnormSrgb -> {
+            case BC2_UNORM, BC2_UNORM_SRGB,
+                BC3_UNORM, BC3_UNORM_SRGB,
+                BC5_UNORM, BC5_SNORM,
+                BC6H_UF16, BC6H_SF16,
+                BC7_UNORM, BC7_UNORM_SRGB -> {
                 var pitch = blocksX * 16;
                 return pitch * blocksY;
             }
@@ -97,12 +98,36 @@ public final class DdsWriter {
         }
     }
 
-    private static int computePitch(int width, TextureFormat format) {
+    private int computePitch(int width, DxgiFormat format) {
         return switch (format) {
-            case A8Unorm -> width;
-            case R16G16Float, R8G8B8A8Unorm -> width * 4;
-            case R16Float, R8G8Unorm -> width * 2;
+            case A8_UNORM -> width;
+            case R16G16_FLOAT, R8G8B8A8_UNORM -> width * 4;
+            case R16_FLOAT, R8G8_UNORM -> width * 2;
             default -> throw new UnsupportedOperationException("Unsupported format: " + format);
+        };
+    }
+
+    private DxgiFormat toDxgiFormat(TextureFormat format) {
+        return switch (format) {
+            case R8G8B8A8UNorm -> DxgiFormat.R8G8B8A8_UNORM;
+            case R16G16Float -> DxgiFormat.R16G16_FLOAT;
+            case R8G8UNorm -> DxgiFormat.R8G8_UNORM;
+            case R16Float -> DxgiFormat.R16_FLOAT;
+            case A8UNorm -> DxgiFormat.A8_UNORM;
+            case Bc1UNorm -> DxgiFormat.BC1_UNORM;
+            case Bc1UNormSrgb -> DxgiFormat.BC1_UNORM_SRGB;
+            case Bc2UNorm -> DxgiFormat.BC2_UNORM;
+            case Bc2UNormSrgb -> DxgiFormat.BC2_UNORM_SRGB;
+            case Bc3UNorm -> DxgiFormat.BC3_UNORM;
+            case Bc3UNormSrgb -> DxgiFormat.BC3_UNORM_SRGB;
+            case Bc4UNorm -> DxgiFormat.BC4_UNORM;
+            case Bc4SNorm -> DxgiFormat.BC4_SNORM;
+            case Bc5UNorm -> DxgiFormat.BC5_UNORM;
+            case Bc5SNorm -> DxgiFormat.BC5_SNORM;
+            case Bc6HUFloat16 -> DxgiFormat.BC6H_UF16;
+            case Bc6HSFloat16 -> DxgiFormat.BC6H_SF16;
+            case Bc7UNorm -> DxgiFormat.BC7_UNORM;
+            case Bc7UNormSrgb -> DxgiFormat.BC7_UNORM_SRGB;
         };
     }
 }

@@ -38,19 +38,19 @@ public final class ImageMapper {
     private TextureFormat toImageFormat(ImageTextureFormat format) {
         // I might not be sure about all these mappings, but it's a start
         return switch (format) {
-            case FMT_ALPHA -> TextureFormat.A8Unorm;
-            case FMT_BC1, FMT_BC1_ZERO_ALPHA -> TextureFormat.Bc1Unorm;
-            case FMT_BC1_SRGB -> TextureFormat.Bc1UnormSrgb;
-            case FMT_BC3 -> TextureFormat.Bc3Unorm;
-            case FMT_BC3_SRGB -> TextureFormat.Bc3UnormSrgb;
-            case FMT_BC4 -> TextureFormat.Bc4Unorm;
-            case FMT_BC5 -> TextureFormat.Bc5Unorm;
-            case FMT_BC6H_UF16 -> TextureFormat.Bc6HUf16;
-            case FMT_BC7 -> TextureFormat.Bc7Unorm;
-            case FMT_BC7_SRGB -> TextureFormat.Bc7UnormSrgb;
+            case FMT_ALPHA -> TextureFormat.A8UNorm;
+            case FMT_BC1, FMT_BC1_ZERO_ALPHA -> TextureFormat.Bc1UNorm;
+            case FMT_BC1_SRGB -> TextureFormat.Bc1UNormSrgb;
+            case FMT_BC3 -> TextureFormat.Bc3UNorm;
+            case FMT_BC3_SRGB -> TextureFormat.Bc3UNormSrgb;
+            case FMT_BC4 -> TextureFormat.Bc4UNorm;
+            case FMT_BC5 -> TextureFormat.Bc5UNorm;
+            case FMT_BC6H_UF16 -> TextureFormat.Bc6HUFloat16;
+            case FMT_BC7 -> TextureFormat.Bc7UNorm;
+            case FMT_BC7_SRGB -> TextureFormat.Bc7UNormSrgb;
             case FMT_RG16F -> TextureFormat.R16G16Float;
-            case FMT_RG8 -> TextureFormat.R8G8Unorm;
-            case FMT_RGBA8 -> TextureFormat.R8G8B8A8Unorm;
+            case FMT_RG8 -> TextureFormat.R8G8UNorm;
+            case FMT_RGBA8 -> TextureFormat.R8G8B8A8UNorm;
             case FMT_X16F -> TextureFormat.R16Float;
             default -> throw new UnsupportedOperationException("Unsupported format: " + format);
         };
