@@ -62,9 +62,10 @@ public final class GltfWriter implements GltfContext {
 
     public void write() {
         if (model != null) {
-            modelMapper.map(model);
+            MeshSchema schema = modelMapper.map(model);
+            meshes.add(schema);
         }
-//        buildNodes();
+        buildNodes();
         buildScenes();
         if (skeleton != null) {
             skins.add(skeletonMapper.map(skeleton, nodes.size()));
@@ -173,7 +174,12 @@ public final class GltfWriter implements GltfContext {
     }
 
     private void buildScenes() {
-        scenes.add(new SceneSchema(meshNodes));
+        List<Integer> nodes = new ArrayList<>();
+        nodes.add(0);
+
+        SceneSchema scene = new SceneSchema(nodes);
+        scenes.add(scene);
+        // scenes.add(new SceneSchema(meshNodes));
     }
 
 
