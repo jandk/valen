@@ -1,6 +1,5 @@
 package be.twofold.valen.export.gltf;
 
-import be.twofold.valen.core.animation.*;
 import be.twofold.valen.core.geometry.*;
 import be.twofold.valen.core.math.*;
 import be.twofold.valen.core.util.*;
@@ -16,20 +15,17 @@ import java.util.*;
 
 public final class GltfWriter implements GltfContext {
     private static final Gson GSON = new GsonBuilder()
-        .registerTypeAdapter(AccessorComponentType.class, new AccessorComponentTypeTypeAdapter())
-        .registerTypeAdapter(AccessorType.class, new AccessorTypeTypeAdapter())
-        .registerTypeAdapter(BufferViewTarget.class, new BufferViewTargetTypeAdapter().nullSafe())
-        .registerTypeAdapter(Quaternion.class, new QuaternionTypeAdapter().nullSafe())
-        .registerTypeAdapter(Vector2.class, new Vector2TypeAdapter())
-        .registerTypeAdapter(Vector3.class, new Vector3TypeAdapter().nullSafe())
-        .registerTypeAdapter(Vector4.class, new Vector4TypeAdapter())
-        .create();
+            .registerTypeAdapter(AccessorComponentType.class, new AccessorComponentTypeTypeAdapter())
+            .registerTypeAdapter(AccessorType.class, new AccessorTypeTypeAdapter())
+            .registerTypeAdapter(BufferViewTarget.class, new BufferViewTargetTypeAdapter().nullSafe())
+            .registerTypeAdapter(Quaternion.class, new QuaternionTypeAdapter().nullSafe())
+            .registerTypeAdapter(Vector2.class, new Vector2TypeAdapter())
+            .registerTypeAdapter(Vector3.class, new Vector3TypeAdapter().nullSafe())
+            .registerTypeAdapter(Vector4.class, new Vector4TypeAdapter())
+            .registerTypeAdapterFactory(new GsonAdaptersNodeSchema())
+            .create();
 
     private final WritableByteChannel channel;
-    private final Model model;
-    private final Skeleton skeleton;
-    private final Animation animation;
-
     private final List<AccessorSchema> accessors = new ArrayList<>();
     private final List<BufferViewSchema> bufferViews = new ArrayList<>();
     private final List<BufferSchema> buffers = new ArrayList<>();
@@ -38,44 +34,22 @@ public final class GltfWriter implements GltfContext {
     private final List<SceneSchema> scenes = new ArrayList<>();
     private final List<SkinSchema> skins = new ArrayList<>();
     private final List<AnimationSchema> animations = new ArrayList<>();
-    private final List<Integer> meshNodes = new ArrayList<>();
-
+    private final List<String> usedExtensions = new ArrayList<>();
+    private final List<String> requiredExtensions = new ArrayList<>();
+    private final JsonObject extensions = new JsonObject();
     private final List<Buffer> writable = new ArrayList<>();
     private int bufferLength;
-    private int skeletonNode;
-
     private final GltfModelMapper modelMapper = new GltfModelMapper(this);
     private final GltfSkeletonMapper skeletonMapper = new GltfSkeletonMapper(this);
     private final GltfAnimationMapper animationMapper = new GltfAnimationMapper(this);
 
     public GltfWriter(
-        WritableByteChannel channel,
-        Model model,
-        Skeleton skeleton,
-        Animation animation
+            WritableByteChannel channel
     ) {
         this.channel = channel;
-        this.model = model;
-        this.skeleton = skeleton;
-        this.animation = animation;
     }
 
     public void write() {
-        if (model != null) {
-            MeshSchema schema = modelMapper.map(model);
-            meshes.add(schema);
-        }
-        buildNodes();
-        buildScenes();
-        if (skeleton != null) {
-            skins.add(skeletonMapper.map(skeleton, nodes.size()));
-            if (animation != null) {
-                animations.add(animationMapper.map(animation, skeletonNode));
-            }
-
-            // Ugly little fixup
-            scenes.getFirst().nodes().add(skeletonNode);
-        }
         buildBuffers(); // Only now we know the buffer offset
 
         try {
@@ -99,30 +73,73 @@ public final class GltfWriter implements GltfContext {
         }
     }
 
+    public void addUsedExtension(String name, boolean required) {
+        if (usedExtensions.contains(name)) {
+            return;
+        }
+
+        usedExtensions.add(name);
+        if (required) {
+            requiredExtensions.add(name);
+        }
+    }
+
+    public JsonObject getExtensions() {
+        return extensions;
+    }
+
+    public SceneSchema addScene() {
+        SceneSchema scene = new SceneSchema(new ArrayList<>());
+        scenes.add(scene);
+        return scene;
+    }
+
+    public MeshSchema convertMesh(Model model) {
+        return modelMapper.map(model);
+    }
+
+    public SkinSchema convertSkeleton(Skeleton skeleton) {
+        return skeletonMapper.map(skeleton, nodes.size());
+    }
+
     public int addMesh(Model model) {
         meshes.add(modelMapper.map(model));
         return meshes.size() - 1;
     }
 
-    public void addMeshInstance(int mesh, String name, Quaternion rotation, Vector3 translation, Vector3 scale) {
-        NodeSchema node = NodeSchema.buildMesh(name, rotation, translation, scale, mesh);
-        meshNodes.add(addNode(node));
+    public int addSkeletalMesh(Model model, Skeleton skeleton, SceneSchema scene) {
+        meshes.add(modelMapper.map(model));
+        var meshId = meshes.size() - 1;
+        var skeletonRootNodeId = nodes.size();
+        var skin = skeletonMapper.map(skeleton, nodes.size());
+        skins.add(skin);
+        var skinId = skins.size() - 1;
+        var skinMeshNode = NodeSchema.buildMeshSkin(meshId, skinId);
+        nodes.add(skinMeshNode);
+        var skinMeshNodeId = nodes.size() - 1;
+        scene.addNode(skinMeshNodeId);
+        scene.addNode(skeletonRootNodeId);
+        return skinMeshNodeId;
     }
+
 
     private GltfSchema buildGltf() {
         AssetSchema asset = new AssetSchema("valen", "2.0");
 
         return new GltfSchema(
-            asset,
-            accessors,
-            bufferViews,
-            buffers,
-            meshes,
-            nodes,
-            scenes,
-            skeleton != null ? skins : null,
-            animation != null ? animations : null,
-            0
+                asset,
+                accessors,
+                bufferViews,
+                buffers,
+                meshes,
+                nodes,
+                scenes,
+                skins.isEmpty() ? null : skins,
+                animations.isEmpty() ? null : animations,
+                usedExtensions,
+                requiredExtensions,
+                extensions,
+                0
         );
     }
 
@@ -150,11 +167,6 @@ public final class GltfWriter implements GltfContext {
         return createBufferView(length, target);
     }
 
-    @Override
-    public void setSkeletonNode(int skeletonNode) {
-        this.skeletonNode = skeletonNode;
-    }
-
     private int createBufferView(int length, BufferViewTarget target) {
         var bufferView = new BufferViewSchema(0, bufferLength, length, target);
         bufferViews.add(bufferView);
@@ -162,24 +174,6 @@ public final class GltfWriter implements GltfContext {
         // Round up offset to a multiple of 4
         bufferLength = alignedLength(bufferLength + length);
         return bufferViews.size() - 1;
-    }
-
-    private void buildNodes() {
-        Integer skin = skeleton != null ? 0 : null;
-        NodeSchema meshSkin = NodeSchema.buildMeshSkin(0, skin);
-        nodes.add(meshSkin);
-
-//        NodeSchema rst = NodeSchema.buildRST(List.of(nodes.size() - 1));
-//        nodes.add(rst);
-    }
-
-    private void buildScenes() {
-        List<Integer> nodes = new ArrayList<>();
-        nodes.add(0);
-
-        SceneSchema scene = new SceneSchema(nodes);
-        scenes.add(scene);
-        // scenes.add(new SceneSchema(meshNodes));
     }
 
 
@@ -202,5 +196,4 @@ public final class GltfWriter implements GltfContext {
             throw new UncheckedIOException(e);
         }
     }
-
 }

@@ -84,7 +84,7 @@ public final class DeclParser {
         };
     }
 
-    private JsonObject parseObject() {
+    public JsonObject parseObject() {
         var object = new JsonObject();
         while (true) {
             DeclToken token = lexer.nextToken();

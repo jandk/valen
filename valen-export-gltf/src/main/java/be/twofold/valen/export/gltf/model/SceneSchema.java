@@ -5,7 +5,7 @@ import java.util.*;
 public record SceneSchema(
     List<Integer> nodes
 ) {
-    public SceneSchema {
-        // nodes = List.copyOf(nodes);
+    public void addNode(int nodeId){
+        nodes.add(nodeId);
     }
 }

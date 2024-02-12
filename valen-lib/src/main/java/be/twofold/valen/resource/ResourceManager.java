@@ -60,6 +60,9 @@ public final class ResourceManager implements AutoCloseable {
         Check.argument(mapFiles != null, () -> "Unknown map: " + map);
 
         close();
+        mapFiles = new ArrayList<>(mapFiles);
+        mapFiles.addAll(0,spec.mapFiles().get("common"));
+        mapFiles.addAll(0,spec.mapFiles().get("warehouse"));
 
         var paths = mapFiles.stream()
             .filter(s -> s.endsWith(".resources"))

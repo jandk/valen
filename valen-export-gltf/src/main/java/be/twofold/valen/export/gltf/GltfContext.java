@@ -12,6 +12,4 @@ public interface GltfContext {
 
     int createBufferView(Buffer buffer, int length, BufferViewTarget target);
 
-    void setSkeletonNode(int nodeIndex);
-
 }

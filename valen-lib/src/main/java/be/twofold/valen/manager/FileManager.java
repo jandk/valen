@@ -49,6 +49,10 @@ public final class FileManager {
         return spec;
     }
 
+    public DeclManager getDeclManager() {
+        return declManager;
+    }
+
     public Collection<Resource> getEntries() {
         return resourceManager.getEntries();
     }

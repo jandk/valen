@@ -56,7 +56,7 @@ final class GltfSkeletonMapper {
         var inverseBindMatrices = context.addAccessor(accessor);
 
         // Build the skin
-        context.setSkeletonNode(skeletonNode);
+//        context.setSkeletonNode(skeletonNode);
         return new SkinSchema(
             skeletonNode,
             jointIndices,

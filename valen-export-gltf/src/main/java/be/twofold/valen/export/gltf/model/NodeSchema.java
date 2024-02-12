@@ -1,32 +1,31 @@
 package be.twofold.valen.export.gltf.model;
-
 import be.twofold.valen.core.math.*;
+import com.google.gson.JsonObject;
+
+import org.immutables.value.Value;
+import org.immutables.gson.Gson;
 
 import java.util.*;
 
-public record NodeSchema(
-    String name,
-    Quaternion rotation,
-    Vector3 translation,
-    Vector3 scale,
-    List<Integer> children,
-    Integer mesh,
-    Integer skin
-) {
+@Value.Immutable
+@Gson.TypeAdapters
+public interface NodeSchema {
+    Optional<String> name();
+    Optional<Quaternion> rotation();
+    Optional<Vector3> translation();
+    Optional<Vector3> scale();
+    List<Integer> children();
+    Optional<Integer> mesh();
+    Optional<Integer> skin();
+    Optional<JsonObject> extras();
+    Optional<JsonObject> extensions();
+
     public static NodeSchema buildSkeletonNode(String name, Quaternion rotation, Vector3 translation, Vector3 scale, List<Integer> children) {
-        return new NodeSchema(name, rotation, translation, scale, children, null, null);
+        return ImmutableNodeSchema.builder().name(name).rotation(rotation).translation(translation).scale(scale).children(children).build();
     }
 
     public static NodeSchema buildMeshSkin(int mesh, Integer skin) {
-        return new NodeSchema(null, null, null, null, null, mesh, skin);
+        return ImmutableNodeSchema.builder().mesh(mesh).skin(skin).build();
     }
 
-    public static NodeSchema buildMesh(String name, Quaternion rotation, Vector3 translation, Vector3 scale, int mesh) {
-        return new NodeSchema(name, rotation, translation, scale, null, mesh, null);
-    }
-
-    public static NodeSchema buildRST(List<Integer> children) {
-        float sqrt22 = (float) (Math.sqrt(2) / 2);
-        return new NodeSchema("RST", new Quaternion(-sqrt22, 0, 0, sqrt22), null, null, children, null, null);
-    }
 }
