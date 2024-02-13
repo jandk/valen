@@ -1,13 +1,13 @@
 package be.twofold.valen.core.math;
 
-public record Matrix4x4(
+public record Matrix4(
     float m00, float m01, float m02, float m03,
     float m10, float m11, float m12, float m13,
     float m20, float m21, float m22, float m23,
     float m30, float m31, float m32, float m33
 ) {
-    public static Matrix4x4 fromArray(float[] array) {
-        return new Matrix4x4(
+    public static Matrix4 fromArray(float[] array) {
+        return new Matrix4(
             array[+0], array[+1], array[+2], array[+3],
             array[+4], array[+5], array[+6], array[+7],
             array[+8], array[+9], array[10], array[11],
@@ -15,8 +15,8 @@ public record Matrix4x4(
         );
     }
 
-    public Matrix4x4 transpose() {
-        return new Matrix4x4(
+    public Matrix4 transpose() {
+        return new Matrix4(
             m00, m10, m20, m30,
             m01, m11, m21, m31,
             m02, m12, m22, m32,

@@ -20,50 +20,56 @@ final class GltfModelMapper {
             .map(this::mapMesh)
             .toList();
 
-        return new MeshSchema(primitives);
+        return MeshSchema.builder()
+            .primitives(primitives)
+            .build();
     }
 
-    private PrimitiveSchema mapMesh(Mesh mesh) {
-        var attributes = new JsonObject();
-
+    private MeshPrimitiveSchema mapMesh(Mesh mesh) {
         // Have to fix up the joints and weights first
         fixJointsAndWeights(mesh);
 
+        var attributes = new JsonObject();
         for (var entry : mesh.vertexBuffers().entrySet()) {
             var semantic = mapSemantic(entry.getKey());
             var accessor = buildAccessor(entry.getValue(), entry.getKey());
-            attributes.addProperty(semantic, accessor);
+            attributes.addProperty(semantic, accessor.getId());
         }
 
-        int faceAccessor = buildAccessor(mesh.faceBuffer(), null);
-        return new PrimitiveSchema(
-            attributes,
-            faceAccessor
-        );
+        var faceAccessor = buildAccessor(mesh.faceBuffer(), null);
+        return MeshPrimitiveSchema.builder()
+            .attributes(attributes)
+            .indices(faceAccessor)
+            .build();
     }
 
-    private int buildAccessor(VertexBuffer buffer, Semantic semantic) {
+    private AccessorId buildAccessor(VertexBuffer buffer, Semantic semantic) {
         var target = semantic == null
             ? BufferViewTarget.ELEMENT_ARRAY_BUFFER
             : BufferViewTarget.ARRAY_BUFFER;
 
-        int length = buffer.buffer().limit() * buffer.componentType().size();
-        int bufferView = context.createBufferView(buffer.buffer(), length, target);
+        var length = buffer.buffer().limit() * buffer.componentType().size();
+        var bufferView = context.createBufferView(buffer.buffer(), length, target);
 
         var bounds = semantic == Semantic.Position
             ? Bounds.calculate(((FloatBuffer) buffer.buffer()))
             : null;
 
-        var accessor = new AccessorSchema(
-            bufferView,
-            AccessorComponentType.from(buffer.componentType()),
-            buffer.count(),
-            AccessorType.from(buffer.elementType()),
-            bounds != null ? bounds.min().toArray() : null,
-            bounds != null ? bounds.max().toArray() : null,
-            buffer.normalized() ? true : null
-        );
-        return context.addAccessor(accessor);
+        var accessor = AccessorSchema.builder()
+            .bufferView(bufferView)
+            .componentType(AccessorComponentType.from(buffer.componentType()))
+            .count(buffer.count())
+            .type(AccessorType.from(buffer.elementType()));
+
+        if (bounds != null) {
+            accessor.min(bounds.min().toArray());
+            accessor.max(bounds.max().toArray());
+        }
+        if (buffer.normalized()) {
+            accessor.normalized(true);
+        }
+
+        return context.addAccessor(accessor.build());
     }
 
     private void fixJointsAndWeights(Mesh mesh) {

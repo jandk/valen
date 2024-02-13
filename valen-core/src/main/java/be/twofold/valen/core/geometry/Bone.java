@@ -8,6 +8,6 @@ public record Bone(
     Quaternion rotation,
     Vector3 scale,
     Vector3 translation,
-    Matrix4x4 inverseBasePose
+    Matrix4 inverseBasePose
 ) {
 }

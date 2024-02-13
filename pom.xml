@@ -25,6 +25,7 @@
         <dapper.version>2.41.2</dapper.version>
         <flatlaf.version>3.2.5</flatlaf.version>
         <javafx.version>21.0.1</javafx.version>
+        <immutables.version>2.9.2</immutables.version>
     </properties>
 
     <build>
@@ -40,6 +41,11 @@
                             <artifactId>dapper-compiler</artifactId>
                             <version>${dapper.version}</version>
                         </path>
+                        <dependency>
+                            <groupId>org.immutables</groupId>
+                            <artifactId>value</artifactId>
+                            <version>${immutables.version}</version>
+                        </dependency>
                     </annotationProcessorPaths>
                 </configuration>
             </plugin>
@@ -129,6 +135,14 @@
                 <groupId>net.java.dev.jna</groupId>
                 <artifactId>jna-jpms</artifactId>
                 <version>5.14.0</version>
+            </dependency>
+
+            <!-- Annotations -->
+            <dependency>
+                <groupId>org.immutables</groupId>
+                <artifactId>value</artifactId>
+                <version>${immutables.version}</version>
+                <scope>provided</scope>
             </dependency>
 
             <!-- Testing -->
