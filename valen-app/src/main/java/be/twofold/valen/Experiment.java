@@ -190,8 +190,8 @@ public final class Experiment {
 //        Texture texture = manager.readResource(FileType.Image, "art/weapons/heavycannon/heavy_base_back.tga$streamed$mtlkind=albedo");
 //        System.out.println(texture);
 
-        var model = manager.readResource(FileType.AnimatedModel, "md6/characters/monsters/imp/base/assets/mesh/imp.md6mesh");
-        var skeleton = manager.readResource(FileType.Skeleton, "md6/characters/monsters/imp/base/assets/mesh/imp.md6skl");
+        var model = manager.readResource(FileType.AnimatedModel, "md6/characters/monsters/imp/base/assets/mesh/imp.md6mesh", ResourceType.Model);
+        var skeleton = manager.readResource(FileType.Skeleton, "md6/characters/monsters/imp/base/assets/mesh/imp.md6skl", ResourceType.Skeleton);
 
         try (var channel = Files.newByteChannel(Path.of("D:\\projects\\java\\valen\\playground\\test.glb"), StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING)) {
             GltfWriter writer = new GltfWriter(channel);

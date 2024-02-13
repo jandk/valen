@@ -19,6 +19,12 @@ import java.nio.file.*;
 import java.util.*;
 
 public final class MapExporter {
+    private static final Set<String> BlackList = Set.of(
+            "editors/models/gui_text.lwo",
+            "models/ca/working/bshore/darrow1.lwo",
+            "models/guis/gui_square.lwo",
+            "models/guis/gui_square_afterpost.lwo"
+    );
     static Map<String, Integer> meshCache = new HashMap<>();
     static Map<String, ImmutableNodeSchema.Builder> layersCache = new HashMap<>();
 
@@ -35,20 +41,17 @@ public final class MapExporter {
         Resource entityResource = manager.getEntries().stream()
                 .filter(e -> e.name().name().endsWith(".entities")).findFirst().orElseThrow();
         EntityReader entityReader = new EntityReader(new CompFileReader());
-        byte[] bytes = manager.readRawResource(entityResource);
-        var entities = entityReader.read(BetterBuffer.wrap(bytes), entityResource);
-
+        var entities = entityReader.read(BetterBuffer.wrap(manager.readRawResource(entityResource)), null);
         try (var channel = Files.newByteChannel(Path.of("map.glb"), StandardOpenOption.CREATE, StandardOpenOption.WRITE)) {
             GltfWriter writer = new GltfWriter(channel);
-            writer.addUsedExtension("KHR_lights_punctual", true);
             KHRLightsPunctualExtension khrLightsPunctual = new KHRLightsPunctualExtension();
             writer.addExtension("KHR_lights_punctual", khrLightsPunctual);
+            writer.addUsedExtension("KHR_lights_punctual", true);
             var scene = writer.addScene();
 
-            float sqrt22 = (float) (Math.sqrt(2) / 2);
             var rootNode = ImmutableNodeSchema.builder()
                     .name("Root")
-                    .rotation(new Quaternion(-sqrt22, 0, 0, sqrt22))
+                    .rotation(new Quaternion(-(float) (Math.sqrt(2) / 2), 0, 0, (float) (Math.sqrt(2) / 2)))
                     .scale(new Vector3(0.7f, 0.7f, 0.7f))
                     .children(new ArrayList<>());
 
@@ -56,7 +59,7 @@ public final class MapExporter {
                 var geometry = instances.modelInstanceGeometries().get(i);
                 var modelName = instances.models().get(geometry.modelIndex()).toLowerCase(Locale.ROOT);
                 int meshId = meshCache.computeIfAbsent(modelName, k -> {
-                    Model model = manager.readResource(FileType.StaticModel, modelName);
+                    Model model = manager.readResource(FileType.StaticModel, modelName, ResourceType.Model);
                     return writer.addMesh(model);
                 });
 
@@ -65,7 +68,14 @@ public final class MapExporter {
                 Vector3 translation = geometry.translation();
                 Vector3 scale = geometry.scale();
 
-                var parentLayer = layersCache.computeIfAbsent(instances.declLayers().get(geometry.declLayerIndex()), k -> ImmutableNodeSchema.builder().name(k));
+                var parentLayer = layersCache.computeIfAbsent(instances.declLayers().get(geometry.declLayerIndex()), k -> {
+                    var builder = ImmutableNodeSchema.builder();
+                    builder.name(k);
+                    JsonObject extraData = new JsonObject();
+                    extraData.addProperty("type", "collection");
+                    builder.extras(extraData);
+                    return builder;
+                });
 
                 var node = ImmutableNodeSchema.builder()
                         .name(name)
@@ -74,8 +84,8 @@ public final class MapExporter {
                         .scale(scale).mesh(meshId)
                         .build();
                 parentLayer.addChildren(writer.addNode(node));
-//                scene.addNode(writer.addNode(node));
             }
+
             entities.entities().forEach((entityName, entity) -> {
                 JsonObject entityData = entity.entityDef();
                 if (!entityData.has("inherit")) {
@@ -96,11 +106,14 @@ public final class MapExporter {
                             .extras(sourceIOData);
                     addRotation(entityNodeBuilder, entityEditData.get("spawnOrientation"));
                     addTranslation(entityNodeBuilder, entityEditData.get("spawnPosition"));
-                    switch (entityData.get("class").getAsString()) {
+                    String entityClass = entityData.get("class").getAsString();
+                    switch (entityClass) {
                         case "idLight" -> {
                             String lightType = entityEditData.has("lightType") ? entityEditData.get("lightType").getAsString() : "NO_TYPE";
                             switch (lightType) {
                                 case "LIGHT_PROBE" -> {
+                                } // Do nothing
+                                case "LIGHT_SCATTERING" -> {
                                 } // Do nothing
                                 case "LIGHT_SPOT" -> {
                                     ImmutableSpotLightSchema.Builder lightBuilder = ImmutableSpotLightSchema.builder();
@@ -147,10 +160,50 @@ public final class MapExporter {
                                 default ->
                                         System.out.println("Unhandled light type: " + lightType + " " + entityEditData);
                             }
-
-                            System.out.println(entity);
                         }
-                        default -> System.out.println("Unhandled entity: " + entityData.get("class").getAsString());
+                        case "idGuiEntity", "idDynamicEntity" -> {
+                            JsonObject modelInfo = entityEditData.getAsJsonObject("renderModelInfo");
+                            String modelName = modelInfo.get("model").getAsString();
+                            int meshId = meshCache.computeIfAbsent(modelName, k -> {
+                                try {
+                                    if (BlackList.contains(modelName)) {
+                                        return -1;
+                                    }
+                                    Model model = manager.readResource(FileType.StaticModel, modelName, ResourceType.Model);
+                                    return writer.addMesh(model);
+                                } catch (IllegalArgumentException ex) {
+                                    System.err.println("Failed to find " + modelName + " model");
+                                    return -1;
+                                }
+                            });
+                            if (meshId != -1) {
+                                entityNodeBuilder.mesh(meshId);
+                            }
+                            if (modelInfo.has("scale")) {
+                                toVec3(modelInfo.get("scale")).ifPresent(entityNodeBuilder::scale);
+                            }
+                        }
+//                        case "idAnimated" -> {
+//                            JsonObject modelInfo = entityEditData.getAsJsonObject("renderModelInfo");
+//                            String modelName = modelInfo.get("model").getAsString();
+//                            int meshId = meshCache.computeIfAbsent(modelName, k -> {
+//                                System.out.println("Loading idDynamicEntity with model " + modelName);
+//                                try {
+//                                    Model model = manager.readResource(FileType.AnimatedModel, modelName, ResourceType.BinaryMd6def);
+//                                    return writer.addMesh(model);
+//                                } catch (IllegalArgumentException ex) {
+//                                    System.err.println("Failed to find "+modelName+" model");
+//                                    return -1;
+//                                }
+//                            });
+//                            if (meshId != -1) {
+//                                entityNodeBuilder.mesh(meshId);
+//                            }
+//                            if (modelInfo.has("scale")) {
+//                                toVec3(modelInfo.get("scale")).ifPresent(entityNodeBuilder::scale);
+//                            }
+//                        }
+                        default -> System.out.println("Unhandled entity: " + entityClass);
                     }
 
 

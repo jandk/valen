@@ -84,7 +84,7 @@ public final class DeclManager {
     }
 
     private String loadSource(String name) {
-        return decode(manager.read(manager.getEntry(name)));
+        return decode(manager.read(manager.getEntry(name, ResourceType.CompFile)));
     }
 
 

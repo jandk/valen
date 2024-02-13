@@ -65,10 +65,15 @@ public final class FileManager {
         return resourceManager.read(resource);
     }
 
-    public <T> T readResource(FileType<T> type, String name) {
-        var entry = resourceManager.getEntry(name);
+    public byte[] readRawResource(String name, ResourceType resourceType) {
+        return readRawResource(resourceManager.getEntry(name, resourceType));
+    }
+
+    public <T> T readResource(FileType<T> type, String name, ResourceType resourceType) {
+        var entry = resourceManager.getEntry(name, resourceType);
         var buffer = BetterBuffer.wrap(resourceManager.read(entry));
         var result = readers.get(type.resourceType()).read(buffer, entry);
         return type.instanceType().cast(result);
     }
+
 }

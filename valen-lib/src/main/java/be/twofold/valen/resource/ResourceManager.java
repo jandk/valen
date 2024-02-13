@@ -36,12 +36,18 @@ public final class ResourceManager implements AutoCloseable {
             .toList();
     }
 
-    public Resource getEntry(String name) {
+    public Resource getEntry(String name, ResourceType resourceType) {
         var resources = names.get(name);
         Check.argument(resources != null, () -> String.format("Unknown resource: %s", name));
 
         // TODO: handle multiple resources with the same name
-        ResourceKey resource = resources.keySet().iterator().next();
+        // REDxEYE: That a temporary fix for TODO above
+        ResourceKey resource;
+        if (resourceType != null) {
+            resource = resources.keySet().stream().filter(resourceKey -> resourceKey.type() == resourceType).findFirst().orElseThrow();
+        } else {
+            resource = resources.keySet().iterator().next();
+        }
         var file = index.get(resource);
         Check.argument(file != null, () -> String.format("Unknown resource: %s", resource));
 
@@ -61,8 +67,8 @@ public final class ResourceManager implements AutoCloseable {
 
         close();
         mapFiles = new ArrayList<>(mapFiles);
-        mapFiles.addAll(0,spec.mapFiles().get("common"));
-        mapFiles.addAll(0,spec.mapFiles().get("warehouse"));
+        mapFiles.addAll(0, spec.mapFiles().get("common"));
+        mapFiles.addAll(0, spec.mapFiles().get("warehouse"));
 
         var paths = mapFiles.stream()
             .filter(s -> s.endsWith(".resources"))
