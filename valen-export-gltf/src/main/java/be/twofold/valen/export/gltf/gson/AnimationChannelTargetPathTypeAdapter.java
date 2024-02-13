@@ -6,7 +6,7 @@ import com.google.gson.stream.*;
 
 import java.io.*;
 
-public class AnimationChannelTargetPathTypeAdapter extends TypeAdapter<AnimationChannelTargetPath> {
+public final class AnimationChannelTargetPathTypeAdapter extends TypeAdapter<AnimationChannelTargetPath> {
     @Override
     public void write(JsonWriter out, AnimationChannelTargetPath value) throws IOException {
         out.value(value.getValue());

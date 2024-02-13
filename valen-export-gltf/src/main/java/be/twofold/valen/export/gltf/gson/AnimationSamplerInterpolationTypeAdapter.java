@@ -6,7 +6,7 @@ import com.google.gson.stream.*;
 
 import java.io.*;
 
-public class AnimationSamplerInterpolationTypeAdapter extends TypeAdapter<AnimationSamplerInterpolation> {
+public final class AnimationSamplerInterpolationTypeAdapter extends TypeAdapter<AnimationSamplerInterpolation> {
     @Override
     public void write(JsonWriter out, AnimationSamplerInterpolation value) throws IOException {
         out.value(value.getValue());
