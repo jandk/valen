@@ -5,6 +5,10 @@ import be.twofold.valen.core.math.*;
 import be.twofold.valen.core.util.*;
 import be.twofold.valen.export.gltf.gson.*;
 import be.twofold.valen.export.gltf.model.*;
+import be.twofold.valen.export.gltf.model.extensions.Extension;
+import be.twofold.valen.export.gltf.model.extensions.lightspunctual.GsonAdaptersKHRLightsPunctualNodeExtension;
+import be.twofold.valen.export.gltf.model.extensions.lightspunctual.GsonAdaptersPointLightSchema;
+import be.twofold.valen.export.gltf.model.extensions.lightspunctual.GsonAdaptersSpotLightSchema;
 import com.google.gson.*;
 
 import java.io.*;
@@ -14,16 +18,7 @@ import java.nio.charset.*;
 import java.util.*;
 
 public final class GltfWriter implements GltfContext {
-    private static final Gson GSON = new GsonBuilder()
-            .registerTypeAdapter(AccessorComponentType.class, new AccessorComponentTypeTypeAdapter())
-            .registerTypeAdapter(AccessorType.class, new AccessorTypeTypeAdapter())
-            .registerTypeAdapter(BufferViewTarget.class, new BufferViewTargetTypeAdapter().nullSafe())
-            .registerTypeAdapter(Quaternion.class, new QuaternionTypeAdapter().nullSafe())
-            .registerTypeAdapter(Vector2.class, new Vector2TypeAdapter())
-            .registerTypeAdapter(Vector3.class, new Vector3TypeAdapter().nullSafe())
-            .registerTypeAdapter(Vector4.class, new Vector4TypeAdapter())
-            .registerTypeAdapterFactory(new GsonAdaptersNodeSchema())
-            .create();
+    private final Gson GSON;
 
     private final WritableByteChannel channel;
     private final List<AccessorSchema> accessors = new ArrayList<>();
@@ -36,7 +31,7 @@ public final class GltfWriter implements GltfContext {
     private final List<AnimationSchema> animations = new ArrayList<>();
     private final List<String> usedExtensions = new ArrayList<>();
     private final List<String> requiredExtensions = new ArrayList<>();
-    private final JsonObject extensions = new JsonObject();
+    private final Map<String, Extension> extensions = new HashMap<>();
     private final List<Buffer> writable = new ArrayList<>();
     private int bufferLength;
     private final GltfModelMapper modelMapper = new GltfModelMapper(this);
@@ -46,6 +41,22 @@ public final class GltfWriter implements GltfContext {
     public GltfWriter(
             WritableByteChannel channel
     ) {
+        var gsonBuilder = new GsonBuilder()
+                .registerTypeAdapter(AccessorComponentType.class, new AccessorComponentTypeTypeAdapter())
+                .registerTypeAdapter(AccessorType.class, new AccessorTypeTypeAdapter())
+                .registerTypeAdapter(BufferViewTarget.class, new BufferViewTargetTypeAdapter().nullSafe())
+                .registerTypeAdapter(Quaternion.class, new QuaternionTypeAdapter().nullSafe())
+                .registerTypeAdapter(Vector2.class, new Vector2TypeAdapter())
+                .registerTypeAdapter(Vector3.class, new Vector3TypeAdapter().nullSafe())
+                .registerTypeAdapter(Vector4.class, new Vector4TypeAdapter())
+                .registerTypeAdapterFactory(new GsonAdaptersKHRLightsPunctualNodeExtension())
+                .registerTypeAdapterFactory(new GsonAdaptersSpotLightSchema())
+                .registerTypeAdapterFactory(new GsonAdaptersPointLightSchema())
+                .registerTypeAdapterFactory(new GsonAdaptersNodeSchema())
+                ;
+
+
+        GSON = gsonBuilder.create();
         this.channel = channel;
     }
 
@@ -84,8 +95,12 @@ public final class GltfWriter implements GltfContext {
         }
     }
 
-    public JsonObject getExtensions() {
+    public Map<String, Extension> getExtensions() {
         return extensions;
+    }
+
+    public void addExtension(String name, Extension extension) {
+        extensions.put(name, extension);
     }
 
     public SceneSchema addScene() {

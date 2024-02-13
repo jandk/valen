@@ -5,12 +5,12 @@ import be.twofold.valen.core.math.*;
 import be.twofold.valen.core.util.*;
 import be.twofold.valen.export.gltf.*;
 import be.twofold.valen.export.gltf.model.ImmutableNodeSchema;
+import be.twofold.valen.export.gltf.model.extensions.lightspunctual.*;
 import be.twofold.valen.manager.*;
 import be.twofold.valen.reader.compfile.CompFileReader;
 import be.twofold.valen.reader.compfile.entities.EntityReader;
 import be.twofold.valen.reader.staticinstances.*;
 import be.twofold.valen.resource.*;
-import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
@@ -41,11 +41,8 @@ public final class MapExporter {
         try (var channel = Files.newByteChannel(Path.of("map.glb"), StandardOpenOption.CREATE, StandardOpenOption.WRITE)) {
             GltfWriter writer = new GltfWriter(channel);
             writer.addUsedExtension("KHR_lights_punctual", true);
-            JsonObject extensions = writer.getExtensions();
-            JsonObject khrLightsPunctual = new JsonObject();
-            JsonArray lights = new JsonArray();
-            khrLightsPunctual.add("lights", lights);
-            extensions.add("KHR_lights_punctual", khrLightsPunctual);
+            KHRLightsPunctualExtension khrLightsPunctual = new KHRLightsPunctualExtension();
+            writer.addExtension("KHR_lights_punctual", khrLightsPunctual);
             var scene = writer.addScene();
 
             float sqrt22 = (float) (Math.sqrt(2) / 2);
@@ -106,64 +103,46 @@ public final class MapExporter {
                                 case "LIGHT_PROBE" -> {
                                 } // Do nothing
                                 case "LIGHT_SPOT" -> {
-                                    JsonObject light = new JsonObject();
-                                    light.addProperty("name", entityName);
+                                    ImmutableSpotLightSchema.Builder lightBuilder = ImmutableSpotLightSchema.builder();
+                                    lightBuilder.name(entityName);
                                     Optional<Vector3> color = toColor(entityEditData.get("lightColor"));
-                                    if (color.isPresent()) {
-                                        JsonArray jColor = new JsonArray();
-                                        jColor.add(color.get().x());
-                                        jColor.add(color.get().y());
-                                        jColor.add(color.get().z());
-                                        light.add("color", jColor);
-                                    }
+                                    color.ifPresent(lightBuilder::color);
                                     if (entityEditData.has("lightIntensity")) {
-                                        light.addProperty("intensity", entityEditData.get("lightIntensity").getAsFloat() * 100);
+                                        lightBuilder.intensity(entityEditData.get("lightIntensity").getAsFloat() * 100);
                                     } else {
-                                        light.addProperty("intensity", 1000.f);
+                                        lightBuilder.intensity(1000.f);
                                     }
-                                    light.addProperty("type", "spot");
+                                    lightBuilder.type(LightType.spot);
                                     var spotLight = entityEditData.getAsJsonObject("spotLight");
                                     if (spotLight.has("lightConeSize") && spotLight.has("lightConeLength")) {
-                                        light.addProperty("outerConeAngle",
-                                                calculateSpotlightConeAngle(spotLight.get("lightConeSize").getAsFloat(),
-                                                        spotLight.get("lightConeLength").getAsFloat()));
-                                        light.addProperty("innerConeAngle",
-                                                calculateSpotlightConeAngle(spotLight.get("lightConeSize").getAsFloat(),
-                                                        spotLight.get("lightConeLength").getAsFloat()));
+                                        lightBuilder.outerConeAngle(calculateSpotlightConeAngle(spotLight.get("lightConeSize").getAsFloat(),
+                                                spotLight.get("lightConeLength").getAsFloat()));
+                                        lightBuilder.innerConeAngle(calculateSpotlightConeAngle(spotLight.get("lightConeSize").getAsFloat(),
+                                                spotLight.get("lightConeLength").getAsFloat()));
                                     }
-                                    lights.add(light);
-                                    int lightId = lights.size() - 1;
-                                    JsonObject nodeData = new JsonObject();
-                                    JsonObject nodeLightData = new JsonObject();
-                                    nodeLightData.addProperty("light", lightId);
-                                    nodeData.add("KHR_lights_punctual", nodeLightData);
-                                    entityNodeBuilder.extensions(nodeData);
+                                    khrLightsPunctual.lights.add(lightBuilder.build());
+                                    int lightId = khrLightsPunctual.lights.size() - 1;
+                                    ImmutableKHRLightsPunctualNodeExtension.Builder nodeExtension = ImmutableKHRLightsPunctualNodeExtension.builder();
+                                    nodeExtension.light(lightId);
+                                    entityNodeBuilder.putExtensions("KHR_lights_punctual", nodeExtension.build());
 
                                 }
                                 case "NO_TYPE" -> { // Default is point light??
-                                    JsonObject light = new JsonObject();
-                                    light.addProperty("name", entityName);
+                                    ImmutablePointLightSchema.Builder lightBuilder = ImmutablePointLightSchema.builder();
+                                    lightBuilder.name(entityName);
                                     Optional<Vector3> color = toColor(entityEditData.get("lightColor"));
-                                    if (color.isPresent()) {
-                                        JsonArray jColor = new JsonArray();
-                                        jColor.add(color.get().x());
-                                        jColor.add(color.get().y());
-                                        jColor.add(color.get().z());
-                                        light.add("color", jColor);
-                                    }
+                                    color.ifPresent(lightBuilder::color);
+                                    lightBuilder.type(LightType.point);
                                     if (entityEditData.has("lightIntensity")) {
-                                        light.addProperty("intensity", entityEditData.get("lightIntensity").getAsFloat() * 100);
+                                        lightBuilder.intensity(entityEditData.get("lightIntensity").getAsFloat() * 100);
                                     } else {
-                                        light.addProperty("intensity", 1000.f);
+                                        lightBuilder.intensity(1000.f);
                                     }
-                                    light.addProperty("type", "point");
-                                    lights.add(light);
-                                    int lightId = lights.size() - 1;
-                                    JsonObject nodeData = new JsonObject();
-                                    JsonObject nodeLightData = new JsonObject();
-                                    nodeLightData.addProperty("light", lightId);
-                                    nodeData.add("KHR_lights_punctual", nodeLightData);
-                                    entityNodeBuilder.extensions(nodeData);
+                                    khrLightsPunctual.lights.add(lightBuilder.build());
+                                    int lightId = khrLightsPunctual.lights.size() - 1;
+                                    ImmutableKHRLightsPunctualNodeExtension.Builder nodeExtension = ImmutableKHRLightsPunctualNodeExtension.builder();
+                                    nodeExtension.light(lightId);
+                                    entityNodeBuilder.putExtensions("KHR_lights_punctual", nodeExtension.build());
                                 }
                                 default ->
                                         System.out.println("Unhandled light type: " + lightType + " " + entityEditData);
@@ -237,13 +216,7 @@ public final class MapExporter {
         if (width <= 0 || height <= 0) {
             throw new IllegalArgumentException("Width and height must be positive.");
         }
-
-        // Calculate radius and angle
-        float radius = width / 2;
-        float angle = (float) Math.atan(radius / height);
-
-        // Return angle in degrees by default
-        return angle;
+        return (float) Math.atan(width / 2 / height);
     }
 
 }

@@ -1,18 +1,13 @@
 package be.twofold.valen.export.gltf.model.extensions.lightspunctual;
 
-import org.immutables.gson.Gson;
-import org.immutables.value.Value;
-
-import java.util.ArrayList;
+import be.twofold.valen.core.math.Vector3;
 import java.util.Optional;
 
-@Value.Immutable
-@Gson.TypeAdapters
 public interface LightSchema {
 
     Optional<String> name();
 
-    Optional<ArrayList<Float>> color();
+    Optional<Vector3> color();
 
     Optional<Float> intensity();
 

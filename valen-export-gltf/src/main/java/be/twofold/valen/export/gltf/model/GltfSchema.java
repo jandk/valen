@@ -1,6 +1,6 @@
 package be.twofold.valen.export.gltf.model;
 
-import com.google.gson.JsonObject;
+import be.twofold.valen.export.gltf.model.extensions.Extension;
 
 import java.util.*;
 
@@ -17,7 +17,7 @@ public record GltfSchema(
     List<String> extensionsUsed,
     List<String> extensionsRequired,
 
-    JsonObject extensions,
+    Map<String, Extension> extensions,
     int scene
 ) {
 }
