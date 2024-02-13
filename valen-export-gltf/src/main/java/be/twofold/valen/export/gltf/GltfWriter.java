@@ -6,9 +6,6 @@ import be.twofold.valen.core.util.*;
 import be.twofold.valen.export.gltf.gson.*;
 import be.twofold.valen.export.gltf.model.*;
 import be.twofold.valen.export.gltf.model.extensions.Extension;
-import be.twofold.valen.export.gltf.model.extensions.lightspunctual.GsonAdaptersKHRLightsPunctualNodeExtension;
-import be.twofold.valen.export.gltf.model.extensions.lightspunctual.GsonAdaptersPointLightSchema;
-import be.twofold.valen.export.gltf.model.extensions.lightspunctual.GsonAdaptersSpotLightSchema;
 import com.google.gson.*;
 
 import java.io.*;
@@ -18,9 +15,22 @@ import java.nio.charset.*;
 import java.util.*;
 
 public final class GltfWriter implements GltfContext {
-    private final Gson GSON;
+    private static final Gson GSON = new GsonBuilder()
+        .registerTypeAdapter(AbstractId.class, new AbstractIdTypeAdapter())
+        .registerTypeAdapter(AccessorComponentType.class, new AccessorComponentTypeTypeAdapter())
+        .registerTypeAdapter(AccessorType.class, new AccessorTypeTypeAdapter())
+        .registerTypeAdapter(AnimationChannelTargetPath.class, new AnimationChannelTargetPathTypeAdapter())
+        .registerTypeAdapter(AnimationSamplerInterpolation.class, new AnimationSamplerInterpolationTypeAdapter())
+        .registerTypeAdapter(BufferViewTarget.class, new BufferViewTargetTypeAdapter())
+        .registerTypeAdapter(Matrix4.class, new Matrix4TypeAdapter())
+        .registerTypeAdapter(Quaternion.class, new QuaternionTypeAdapter())
+        .registerTypeAdapter(Vector2.class, new Vector2TypeAdapter())
+        .registerTypeAdapter(Vector3.class, new Vector3TypeAdapter())
+        .registerTypeAdapter(Vector4.class, new Vector4TypeAdapter())
+        .create();
 
     private final WritableByteChannel channel;
+
     private final List<AccessorSchema> accessors = new ArrayList<>();
     private final List<BufferViewSchema> bufferViews = new ArrayList<>();
     private final List<BufferSchema> buffers = new ArrayList<>();
@@ -29,34 +39,19 @@ public final class GltfWriter implements GltfContext {
     private final List<SceneSchema> scenes = new ArrayList<>();
     private final List<SkinSchema> skins = new ArrayList<>();
     private final List<AnimationSchema> animations = new ArrayList<>();
+    private final List<NodeId> meshNodes = new ArrayList<>();
     private final List<String> usedExtensions = new ArrayList<>();
     private final List<String> requiredExtensions = new ArrayList<>();
     private final Map<String, Extension> extensions = new HashMap<>();
+
     private final List<Buffer> writable = new ArrayList<>();
     private int bufferLength;
+
     private final GltfModelMapper modelMapper = new GltfModelMapper(this);
     private final GltfSkeletonMapper skeletonMapper = new GltfSkeletonMapper(this);
     private final GltfAnimationMapper animationMapper = new GltfAnimationMapper(this);
 
-    public GltfWriter(
-            WritableByteChannel channel
-    ) {
-        var gsonBuilder = new GsonBuilder()
-                .registerTypeAdapter(AccessorComponentType.class, new AccessorComponentTypeTypeAdapter())
-                .registerTypeAdapter(AccessorType.class, new AccessorTypeTypeAdapter())
-                .registerTypeAdapter(BufferViewTarget.class, new BufferViewTargetTypeAdapter().nullSafe())
-                .registerTypeAdapter(Quaternion.class, new QuaternionTypeAdapter().nullSafe())
-                .registerTypeAdapter(Vector2.class, new Vector2TypeAdapter())
-                .registerTypeAdapter(Vector3.class, new Vector3TypeAdapter().nullSafe())
-                .registerTypeAdapter(Vector4.class, new Vector4TypeAdapter())
-                .registerTypeAdapterFactory(new GsonAdaptersKHRLightsPunctualNodeExtension())
-                .registerTypeAdapterFactory(new GsonAdaptersSpotLightSchema())
-                .registerTypeAdapterFactory(new GsonAdaptersPointLightSchema())
-                .registerTypeAdapterFactory(new GsonAdaptersNodeSchema())
-                ;
-
-
-        GSON = gsonBuilder.create();
+    public GltfWriter(WritableByteChannel channel) {
         this.channel = channel;
     }
 
@@ -121,7 +116,6 @@ public final class GltfWriter implements GltfContext {
         meshes.add(modelMapper.map(model));
         return meshes.size() - 1;
     }
-
     public int addSkeletalMesh(Model model, Skeleton skeleton, SceneSchema scene) {
         meshes.add(modelMapper.map(model));
         var meshId = meshes.size() - 1;
@@ -137,58 +131,74 @@ public final class GltfWriter implements GltfContext {
         return skinMeshNodeId;
     }
 
+    public void addMeshInstance(int mesh, String name, Quaternion rotation, Vector3 translation, Vector3 scale) {
+        var node = NodeSchema.builder()
+            .name(name)
+            .rotation(rotation)
+            .translation(translation)
+            .scale(scale)
+            .mesh(MeshId.of(mesh))
+            .build();
+        meshNodes.add(addNode(node));
+    }
 
     private GltfSchema buildGltf() {
-        AssetSchema asset = new AssetSchema("valen", "2.0");
+        var asset = AssetSchema.builder()
+            .generator("Valen")
+            .version("2.0")
+            .build();
 
-        return new GltfSchema(
-                asset,
-                accessors,
-                bufferViews,
-                buffers,
-                meshes,
-                nodes,
-                scenes,
-                skins.isEmpty() ? null : skins,
-                animations.isEmpty() ? null : animations,
-                usedExtensions,
-                requiredExtensions,
-                extensions,
-                0
-        );
+        return GltfSchema.builder()
+            .asset(asset)
+            .accessors(accessors)
+            .animations(animations)
+            .bufferViews(bufferViews)
+            .buffers(buffers)
+            .meshes(meshes)
+            .nodes(nodes)
+            .scenes(scenes)
+            .skins(skins)
+            .build();
     }
 
 
     private void buildBuffers() {
-        BufferSchema buffer = new BufferSchema(bufferLength);
+        BufferSchema buffer = BufferSchema.builder()
+            .byteLength(bufferLength)
+            .build();
         buffers.add(buffer);
     }
 
     @Override
-    public int addAccessor(AccessorSchema accessor) {
+    public AccessorId addAccessor(AccessorSchema accessor) {
         accessors.add(accessor);
-        return accessors.size() - 1;
+        return AccessorId.of(accessors.size() - 1);
     }
 
     @Override
-    public int addNode(NodeSchema node) {
+    public NodeId addNode(NodeSchema node) {
         nodes.add(node);
-        return nodes.size() - 1;
+        return NodeId.of(nodes.size() - 1);
     }
 
     @Override
-    public int createBufferView(Buffer buffer, int length, BufferViewTarget target) {
+    public BufferViewId createBufferView(Buffer buffer, int length, BufferViewTarget target) {
         writable.add(buffer);
         return createBufferView(length, target);
     }
 
-    private int createBufferView(int length, BufferViewTarget target) {
-        var bufferView = new BufferViewSchema(0, bufferLength, length, target);
+    private BufferViewId createBufferView(int length, BufferViewTarget target) {
+        var bufferView = BufferViewSchema.builder()
+            .buffer(BufferId.of(0))
+            .byteOffset(bufferLength)
+            .byteLength(length)
+            .target(target)
+            .build();
         bufferViews.add(bufferView);
 
         // Round up offset to a multiple of 4
         bufferLength = alignedLength(bufferLength + length);
-        return bufferViews.size() - 1;
+        return BufferViewId.of(bufferViews.size() - 1);
     }
 
 

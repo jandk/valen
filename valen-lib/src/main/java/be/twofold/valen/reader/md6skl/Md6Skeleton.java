@@ -11,7 +11,7 @@ public record Md6Skeleton(
     List<Vector3> scales,
     List<Vector3> translations,
     short[] parents,
-    List<Matrix4x4> inverseBasePoses,
+    List<Matrix4> inverseBasePoses,
     List<String> names
 ) {
     public static Md6Skeleton read(BetterBuffer buffer) {
@@ -34,15 +34,15 @@ public record Md6Skeleton(
         return new Md6Skeleton(header, rotations, scales, translations, parents, inverseBasePoses, names);
     }
 
-    private static List<Matrix4x4> readInverseBasePoses(BetterBuffer buffer, Md6SkeletonHeader header) {
-        List<Matrix4x4> inverseBasePoses = new ArrayList<>();
+    private static List<Matrix4> readInverseBasePoses(BetterBuffer buffer, Md6SkeletonHeader header) {
+        List<Matrix4> inverseBasePoses = new ArrayList<>();
         for (var i = 0; i < header.numJoints8(); i++) {
             var floats = new float[16];
             for (var j = 0; j < 12; j++) {
                 floats[j] = buffer.getFloat();
             }
             floats[15] = 1;
-            inverseBasePoses.add(Matrix4x4.fromArray(floats).transpose());
+            inverseBasePoses.add(Matrix4.fromArray(floats).transpose());
         }
         return List.copyOf(inverseBasePoses);
     }

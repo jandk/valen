@@ -6,10 +6,10 @@ import java.nio.*;
 
 public interface GltfContext {
 
-    int addAccessor(AccessorSchema accessor);
+    AccessorId addAccessor(AccessorSchema accessor);
 
-    int addNode(NodeSchema node);
+    NodeId addNode(NodeSchema node);
 
-    int createBufferView(Buffer buffer, int length, BufferViewTarget target);
+    BufferViewId createBufferView(Buffer buffer, int length, BufferViewTarget target);
 
 }
