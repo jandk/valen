@@ -16,7 +16,8 @@ import java.util.*;
 
 public final class GltfWriter implements GltfContext {
     private static final Gson GSON = new GsonBuilder()
-        .registerTypeAdapter(AbstractId.class, new AbstractIdTypeAdapter())
+        .registerTypeHierarchyAdapter(AbstractId.class, new AbstractIdTypeAdapter())
+        .registerTypeHierarchyAdapter(Collection.class, new CollectionSerializer())
         .registerTypeAdapter(AccessorComponentType.class, new AccessorComponentTypeTypeAdapter())
         .registerTypeAdapter(AccessorType.class, new AccessorTypeTypeAdapter())
         .registerTypeAdapter(AnimationChannelTargetPath.class, new AnimationChannelTargetPathTypeAdapter())
