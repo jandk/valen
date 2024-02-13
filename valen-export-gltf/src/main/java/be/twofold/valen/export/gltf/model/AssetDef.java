@@ -9,7 +9,7 @@ import java.util.*;
  */
 @SchemaStyle
 @Value.Immutable(copy = false)
-public interface AssetDef extends PropertyDef {
+public interface AssetDef extends GltfProperty {
     /**
      * A copyright message suitable for display to credit the content creator.
      */

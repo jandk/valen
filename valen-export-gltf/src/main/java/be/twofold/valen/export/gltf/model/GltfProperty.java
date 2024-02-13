@@ -4,11 +4,11 @@ import com.google.gson.*;
 
 import java.util.*;
 
-public interface PropertyDef {
+public interface GltfProperty {
     /**
      * JSON object with extension-specific objects.
      */
-    Optional<JsonObject> getExtensions();
+    Map<String, Extension> getExtensions();
 
     /**
      * Application-specific data.

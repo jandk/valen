@@ -9,7 +9,7 @@ import java.util.*;
  */
 @SchemaStyle
 @Value.Immutable(copy = false)
-public interface AnimationChannelTargetDef extends PropertyDef {
+public interface AnimationChannelTargetDef extends GltfProperty {
     /**
      * The index of the node to animate.
      * <p>

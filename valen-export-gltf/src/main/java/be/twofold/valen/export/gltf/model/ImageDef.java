@@ -4,5 +4,5 @@ import org.immutables.value.*;
 
 @SchemaStyle
 @Value.Immutable(copy = false)
-public interface ImageDef extends PropertyDef {
+public interface ImageDef extends GltfProperty {
 }

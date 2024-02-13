@@ -7,7 +7,7 @@ import org.immutables.value.*;
  */
 @SchemaStyle
 @Value.Immutable(copy = false)
-public interface AnimationSamplerDef extends PropertyDef {
+public interface AnimationSamplerDef extends GltfProperty {
     /**
      * The index of the accessor containing keyframe timestamps.
      */

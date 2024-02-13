@@ -4,5 +4,5 @@ import org.immutables.value.*;
 
 @SchemaStyle
 @Value.Immutable(copy = false)
-public interface SamplerDef extends PropertyDef {
+public interface SamplerDef extends GltfProperty {
 }
