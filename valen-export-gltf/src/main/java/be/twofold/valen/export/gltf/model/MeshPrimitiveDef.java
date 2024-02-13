@@ -7,7 +7,7 @@ import java.util.*;
 
 @SchemaStyle
 @Value.Immutable(copy = false)
-public interface MeshPrimitiveDef extends PropertyDef {
+public interface MeshPrimitiveDef extends GltfProperty {
     /**
      * A plain JSON object, where each key corresponds to a mesh attribute semantic
      * and each value is the index of the accessor containing attribute’s data.

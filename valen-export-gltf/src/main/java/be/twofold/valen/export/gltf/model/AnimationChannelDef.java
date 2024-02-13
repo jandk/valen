@@ -4,7 +4,7 @@ import org.immutables.value.*;
 
 @SchemaStyle
 @Value.Immutable(copy = false)
-public interface AnimationChannelDef extends PropertyDef {
+public interface AnimationChannelDef extends GltfProperty {
     /**
      * The index of a sampler in this animation used to compute the value for the target.
      */

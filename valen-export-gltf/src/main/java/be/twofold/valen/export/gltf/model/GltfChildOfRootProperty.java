@@ -2,7 +2,7 @@ package be.twofold.valen.export.gltf.model;
 
 import java.util.*;
 
-public interface GltfChildOfRootProperty extends PropertyDef {
+public interface GltfChildOfRootProperty extends GltfProperty {
     /**
      * The user-defined name of this object.
      */

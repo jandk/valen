@@ -9,7 +9,7 @@ import java.util.*;
  */
 @SchemaStyle
 @Value.Immutable(copy = false)
-public interface GltfDef extends PropertyDef {
+public interface GltfDef extends GltfProperty {
     /**
      * The index of the default scene.
      */
