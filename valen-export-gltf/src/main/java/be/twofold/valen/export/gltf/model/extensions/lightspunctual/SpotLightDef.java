@@ -1,0 +1,11 @@
+package be.twofold.valen.export.gltf.model.extensions.lightspunctual;
+
+import be.twofold.valen.export.gltf.model.*;
+import org.immutables.value.*;
+
+@SchemaStyle
+@Value.Immutable(copy = false)
+public interface SpotLightDef extends LightSchema {
+
+    SpotSchema getSpot();
+}

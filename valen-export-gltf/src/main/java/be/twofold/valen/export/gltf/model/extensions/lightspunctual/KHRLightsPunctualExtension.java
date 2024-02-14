@@ -1,6 +1,6 @@
 package be.twofold.valen.export.gltf.model.extensions.lightspunctual;
 
-import be.twofold.valen.export.gltf.model.extensions.Extension;
+import be.twofold.valen.export.gltf.model.Extension;
 
 import java.util.ArrayList;
 import java.util.List;

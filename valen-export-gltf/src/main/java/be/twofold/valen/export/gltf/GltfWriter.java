@@ -5,7 +5,7 @@ import be.twofold.valen.core.math.*;
 import be.twofold.valen.core.util.*;
 import be.twofold.valen.export.gltf.gson.*;
 import be.twofold.valen.export.gltf.model.*;
-import be.twofold.valen.export.gltf.model.extensions.Extension;
+import be.twofold.valen.export.gltf.model.Extension;
 import com.google.gson.*;
 
 import java.io.*;
@@ -16,17 +16,17 @@ import java.util.*;
 
 public final class GltfWriter implements GltfContext {
     private static final Gson GSON = new GsonBuilder()
-        .registerTypeHierarchyAdapter(AbstractId.class, new AbstractIdTypeAdapter())
+        .registerTypeHierarchyAdapter(AbstractId.class, new AbstractIdTypeAdapter().nullSafe())
         .registerTypeHierarchyAdapter(Collection.class, new CollectionSerializer())
         .registerTypeAdapter(AccessorComponentType.class, new AccessorComponentTypeTypeAdapter())
         .registerTypeAdapter(AccessorType.class, new AccessorTypeTypeAdapter())
         .registerTypeAdapter(AnimationChannelTargetPath.class, new AnimationChannelTargetPathTypeAdapter())
         .registerTypeAdapter(AnimationSamplerInterpolation.class, new AnimationSamplerInterpolationTypeAdapter())
         .registerTypeAdapter(BufferViewTarget.class, new BufferViewTargetTypeAdapter())
-        .registerTypeAdapter(Matrix4.class, new Matrix4TypeAdapter())
-        .registerTypeAdapter(Quaternion.class, new QuaternionTypeAdapter())
+        .registerTypeAdapter(Matrix4.class, new Matrix4TypeAdapter().nullSafe())
+        .registerTypeAdapter(Quaternion.class, new QuaternionTypeAdapter().nullSafe())
         .registerTypeAdapter(Vector2.class, new Vector2TypeAdapter())
-        .registerTypeAdapter(Vector3.class, new Vector3TypeAdapter())
+        .registerTypeAdapter(Vector3.class, new Vector3TypeAdapter().nullSafe())
         .registerTypeAdapter(Vector4.class, new Vector4TypeAdapter())
         .create();
 
@@ -99,8 +99,10 @@ public final class GltfWriter implements GltfContext {
         extensions.put(name, extension);
     }
 
-    public SceneSchema addScene() {
-        SceneSchema scene = new SceneSchema(new ArrayList<>());
+    public SceneSchema addScene(List<NodeId> nodes) {
+        var scene = SceneSchema.builder()
+                .addAllNodes(nodes)
+                .build();
         scenes.add(scene);
         return scene;
     }
@@ -113,24 +115,24 @@ public final class GltfWriter implements GltfContext {
         return skeletonMapper.map(skeleton, nodes.size());
     }
 
-    public int addMesh(Model model) {
+    public MeshId addMesh(Model model) {
         meshes.add(modelMapper.map(model));
-        return meshes.size() - 1;
+        return MeshId.of(meshes.size() - 1);
     }
-    public int addSkeletalMesh(Model model, Skeleton skeleton, SceneSchema scene) {
-        meshes.add(modelMapper.map(model));
-        var meshId = meshes.size() - 1;
-        var skeletonRootNodeId = nodes.size();
-        var skin = skeletonMapper.map(skeleton, nodes.size());
-        skins.add(skin);
-        var skinId = skins.size() - 1;
-        var skinMeshNode = NodeSchema.buildMeshSkin(meshId, skinId);
-        nodes.add(skinMeshNode);
-        var skinMeshNodeId = nodes.size() - 1;
-        scene.addNode(skinMeshNodeId);
-        scene.addNode(skeletonRootNodeId);
-        return skinMeshNodeId;
-    }
+//    public int addSkeletalMesh(Model model, Skeleton skeleton, SceneSchema scene) {
+//        meshes.add(modelMapper.map(model));
+//        var meshId = meshes.size() - 1;
+//        var skeletonRootNodeId = nodes.size();
+//        var skin = skeletonMapper.map(skeleton, nodes.size());
+//        skins.add(skin);
+//        var skinId = skins.size() - 1;
+//        var skinMeshNode = NodeSchema.buildMeshSkin(meshId, skinId);
+//        nodes.add(skinMeshNode);
+//        var skinMeshNodeId = nodes.size() - 1;
+//        scene.addNode(skinMeshNodeId);
+//        scene.addNode(skeletonRootNodeId);
+//        return skinMeshNodeId;
+//    }
 
     public void addMeshInstance(int mesh, String name, Quaternion rotation, Vector3 translation, Vector3 scale) {
         var node = NodeSchema.builder()
@@ -159,6 +161,9 @@ public final class GltfWriter implements GltfContext {
             .nodes(nodes)
             .scenes(scenes)
             .skins(skins)
+            .extensionsUsed(usedExtensions)
+            .extensionsRequired(requiredExtensions)
+            .extensions(extensions)
             .build();
     }
 

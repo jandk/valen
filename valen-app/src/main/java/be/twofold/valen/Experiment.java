@@ -195,8 +195,6 @@ public final class Experiment {
 
         try (var channel = Files.newByteChannel(Path.of("D:\\projects\\java\\valen\\playground\\test.glb"), StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING)) {
             GltfWriter writer = new GltfWriter(channel);
-            var scene = writer.addScene();
-            writer.addSkeletalMesh(model, skeleton, scene);
             writer.write();
         }
 
