@@ -8,6 +8,7 @@ import be.twofold.valen.export.gltf.GltfWriter;
 import be.twofold.valen.export.gltf.model.MeshId;
 import be.twofold.valen.export.gltf.model.NodeId;
 import be.twofold.valen.export.gltf.model.NodeSchema;
+import be.twofold.valen.export.gltf.model.extensions.collections.*;
 import be.twofold.valen.export.gltf.model.extensions.lightspunctual.*;
 import be.twofold.valen.manager.FileManager;
 import be.twofold.valen.manager.FileType;
@@ -33,6 +34,8 @@ public final class MapExporter {
     );
     static Map<String, MeshId> meshCache = new LinkedHashMap<>();
     static Map<String, NodeSchema.Builder> layersCache = new LinkedHashMap<>();
+    static Map<String, NodeSchema.Builder> groupsCache = new LinkedHashMap<>();
+    static Map<String, CollectionTreeNodeSchema.Builder> collectionCache = new LinkedHashMap<>();
 
     public static void main(String[] args) throws IOException {
         var manager = new FileManager(Experiment.BASE);
@@ -52,7 +55,6 @@ public final class MapExporter {
         try (var channel = Files.newByteChannel(Path.of("map.glb"), StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING)) {
             var writer = new GltfWriter(channel);
             List<LightSchema> lights = new ArrayList<>();
-            writer.addUsedExtension("KHR_lights_punctual", true);
             var sceneNodes = new ArrayList<NodeId>();
 
             var rootNode = NodeSchema.builder()
@@ -60,6 +62,20 @@ public final class MapExporter {
                 .rotation(new Quaternion(-(float) (Math.sqrt(2) / 2), 0, 0, (float) (Math.sqrt(2) / 2)))
                 .scale(new Vector3(0.7f, 0.7f, 0.7f))
                 .children(new ArrayList<>());
+
+            var staticWorldNode = NodeSchema.builder().name("StaticWorld");
+            {
+                var extraData = new JsonObject();
+                extraData.addProperty("type", "collection");
+                staticWorldNode.extras(extraData);
+            }
+            var rootCollection = CollectionTreeNodeSchema.builder().collection("Root");
+            var staticWorldCollection = CollectionTreeNodeSchema.builder().collection("StaticWorld").parent("Root");
+            var entitiesCollection = CollectionTreeNodeSchema.builder().collection("Entities").parent("Root");
+            collectionCache.put("Root", rootCollection);
+            collectionCache.put("StaticWorld", staticWorldCollection);
+            collectionCache.put("Entities", entitiesCollection);
+            groupsCache.put("StaticWorld", staticWorldNode);
 
             for (var i = 0; i < instances.modelInstanceGeometries().size(); i++) {
                 var geometry = instances.modelInstanceGeometries().get(i);
@@ -74,7 +90,8 @@ public final class MapExporter {
                 var translation = geometry.translation();
                 var scale = geometry.scale();
 
-                var parentLayer = layersCache.computeIfAbsent(instances.declLayers().get(geometry.declLayerIndex()), k -> {
+                var layerName = instances.declLayers().get(geometry.declLayerIndex());
+                var parentLayer = layersCache.computeIfAbsent(layerName, k -> {
                     var builder = NodeSchema.builder();
                     builder.name(k);
                     var extraData = new JsonObject();
@@ -83,11 +100,14 @@ public final class MapExporter {
                     return builder;
                 });
 
+                collectionCache.computeIfAbsent(layerName, k -> CollectionTreeNodeSchema.builder().collection(k).parent("StaticWorld"));
+
                 var node = NodeSchema.builder()
                     .name(name)
                     .rotation(rotation)
                     .translation(translation)
                     .scale(scale).mesh(meshId)
+                    .putExtensions("EXT_collections", EXTCollectionNodeExtensionSchema.builder().addCollections(layerName).build())
                     .build();
                 parentLayer.addChildren(writer.addNode(node));
             }
@@ -195,6 +215,33 @@ public final class MapExporter {
                                 toVec3(modelInfo.get("scale")).ifPresent(entityNodeBuilder::scale);
                             }
                         }
+                        case "idTrigger" -> {
+                            var modelInfo = entityEditData.getAsJsonObject("clipModelInfo");
+                            var modelName = modelInfo.get("clipModelName").getAsString();
+                            var meshId = meshCache.computeIfAbsent(modelName, k -> {
+                                try {
+                                    var tmp = modelName;
+                                    if (BlackList.contains(tmp)) {
+                                        return null;
+                                    }
+                                    if (!tmp.endsWith(".lwo")) {
+                                        tmp += ".bmodel";
+                                    }
+
+                                    var model = manager.readResource(FileType.StaticModel, tmp, ResourceType.HavokShape);
+                                    return writer.addMesh(model);
+                                } catch (IllegalArgumentException ex) {
+                                    System.err.println("Failed to find " + modelName + " model");
+                                    return null;
+                                }
+                            });
+                            if (meshId != null) {
+                                entityNodeBuilder.mesh(meshId);
+                            }
+                            if (modelInfo.has("scale")) {
+                                toVec3(modelInfo.get("scale")).ifPresent(entityNodeBuilder::scale);
+                            }
+                        }
 //                        case "idAnimated" -> {
 //                            JsonObject modelInfo = entityEditData.getAsJsonObject("renderModelInfo");
 //                            String modelName = modelInfo.get("model").getAsString();
@@ -218,16 +265,37 @@ public final class MapExporter {
                         default -> System.out.println("Unhandled entity: " + entityClass);
                     }
                     rotation.ifPresent(entityNodeBuilder::rotation);
-                    rootNode.addChildren(writer.addNode(entityNodeBuilder.build()));
+                    var parentLayer = groupsCache.computeIfAbsent(entityClass, k -> {
+                        var extraData = new JsonObject();
+                        extraData.addProperty("type", "collection");
+                        return NodeSchema.builder().name(k).extras(extraData);
+                    });
+                    collectionCache.computeIfAbsent(entityClass, k -> CollectionTreeNodeSchema.builder().collection(k).parent("Entities"));
+
+                    entityNodeBuilder.putExtensions("EXT_collections", EXTCollectionNodeExtensionSchema.builder().addCollections(entityClass).build());
+                    parentLayer.addChildren(writer.addNode(entityNodeBuilder.build()));
                 }
             });
+
             layersCache.forEach((s, builder) -> {
+                staticWorldNode.addChildren(writer.addNode(builder.build()));
+            });
+            groupsCache.forEach((s, builder) -> {
                 rootNode.addChildren(writer.addNode(builder.build()));
             });
             sceneNodes.add(writer.addNode(rootNode.build()));
             writer.addScene(sceneNodes);
+
+            var extCollections = EXTCollectionExtensionSchema.builder();
+            collectionCache.forEach((s, builder) -> {
+                extCollections.addCollections(builder.build());
+            });
+
             var khrLightsPunctual = KHRLightsPunctualExtensionSchema.builder().lights(lights).build();
             writer.addExtension("KHR_lights_punctual", khrLightsPunctual);
+            writer.addExtension("EXT_collections", extCollections.build());
+            writer.addUsedExtension("KHR_lights_punctual", true);
+            writer.addUsedExtension("EXT_collections", false);
             writer.write();
         }
     }

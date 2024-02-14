@@ -9,4 +9,6 @@ module valen.export.gltf {
 
     opens be.twofold.valen.export.gltf.model to com.google.gson;
     opens be.twofold.valen.export.gltf.model.extensions.lightspunctual to com.google.gson;
+    exports be.twofold.valen.export.gltf.model.extensions.collections;
+    opens be.twofold.valen.export.gltf.model.extensions.collections to com.google.gson;
 }
