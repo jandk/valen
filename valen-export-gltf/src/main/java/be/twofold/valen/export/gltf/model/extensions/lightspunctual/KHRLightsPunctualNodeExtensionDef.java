@@ -7,5 +7,5 @@ import org.immutables.value.Value;
 @SchemaStyle
 @Value.Immutable(copy = false)
 public interface KHRLightsPunctualNodeExtensionDef extends Extension {
-    int getLight();
+    LightId getLight();
 }

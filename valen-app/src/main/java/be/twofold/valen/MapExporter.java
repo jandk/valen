@@ -51,8 +51,7 @@ public final class MapExporter {
 
         try (var channel = Files.newByteChannel(Path.of("map.glb"), StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING)) {
             var writer = new GltfWriter(channel);
-            var khrLightsPunctual = new KHRLightsPunctualExtension();
-            writer.addExtension("KHR_lights_punctual", khrLightsPunctual);
+            List<LightSchema> lights = new ArrayList<>();
             writer.addUsedExtension("KHR_lights_punctual", true);
             var sceneNodes = new ArrayList<NodeId>();
 
@@ -116,7 +115,7 @@ public final class MapExporter {
                     var entityClass = entityData.get("class").getAsString();
                     switch (entityClass) {
                         case "idLight" -> {
-                            rotation = rotation.map(quaternion -> quaternion.multiply(new Quaternion(0,-(float) (Math.sqrt(2) / 2),0, (float) (Math.sqrt(2) / 2) )));
+                            rotation = rotation.map(quaternion -> quaternion.multiply(new Quaternion(0, -(float) (Math.sqrt(2) / 2), 0, (float) (Math.sqrt(2) / 2))));
                             var lightType = entityEditData.has("lightType") ? entityEditData.get("lightType").getAsString() : "NO_TYPE";
                             switch (lightType) {
                                 case "LIGHT_PROBE", "LIGHT_SCATTERING" -> {
@@ -143,10 +142,9 @@ public final class MapExporter {
                                     } else {
                                         lightBuilder.spot(SpotSchema.builder().build());
                                     }
-                                    khrLightsPunctual.lights.add(lightBuilder.build());
-                                    var lightId = khrLightsPunctual.lights.size() - 1;
+                                    lights.add(lightBuilder.build());
                                     var nodeExtension = KHRLightsPunctualNodeExtensionSchema.builder();
-                                    nodeExtension.light(lightId);
+                                    nodeExtension.light(LightId.of(lights.size() - 1));
                                     entityNodeBuilder.putExtensions("KHR_lights_punctual", nodeExtension.build());
 
                                 }
@@ -161,10 +159,9 @@ public final class MapExporter {
                                     } else {
                                         lightBuilder.intensity(1000.f);
                                     }
-                                    khrLightsPunctual.lights.add(lightBuilder.build());
-                                    var lightId = khrLightsPunctual.lights.size() - 1;
+                                    lights.add(lightBuilder.build());
                                     var nodeExtension = KHRLightsPunctualNodeExtensionSchema.builder();
-                                    nodeExtension.light(lightId);
+                                    nodeExtension.light(LightId.of(lights.size() - 1));
                                     entityNodeBuilder.putExtensions("KHR_lights_punctual", nodeExtension.build());
                                 }
                                 default ->
@@ -229,6 +226,8 @@ public final class MapExporter {
             });
             sceneNodes.add(writer.addNode(rootNode.build()));
             writer.addScene(sceneNodes);
+            var khrLightsPunctual = KHRLightsPunctualExtensionSchema.builder().lights(lights).build();
+            writer.addExtension("KHR_lights_punctual", khrLightsPunctual);
             writer.write();
         }
     }
