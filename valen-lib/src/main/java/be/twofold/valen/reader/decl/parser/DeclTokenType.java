@@ -2,6 +2,7 @@ package be.twofold.valen.reader.decl.parser;
 
 public enum DeclTokenType {
     // Punctuation
+    NewLine,
     LeftShift,
     Assign,
     Comma,

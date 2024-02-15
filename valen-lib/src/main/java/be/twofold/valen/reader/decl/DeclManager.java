@@ -1,6 +1,7 @@
 package be.twofold.valen.reader.decl;
 
 import be.twofold.valen.reader.decl.entitydef.EntityDefParser;
+import be.twofold.valen.reader.decl.md6def.*;
 import be.twofold.valen.reader.decl.parser.*;
 import be.twofold.valen.resource.*;
 import com.google.gson.*;
@@ -35,6 +36,7 @@ public final class DeclManager {
     private final Map<String, JsonObject> declCache = new HashMap<>();
     private final ResourceManager manager;
     private final EntityDefParser entityDefParser = new EntityDefParser();
+    private final MD6DefParser md6DefParser = new MD6DefParser();
 
     public DeclManager(ResourceManager manager) {
         this.manager = manager;
@@ -51,7 +53,7 @@ public final class DeclManager {
     private JsonObject load(String basePath, String name) {
         System.out.println(basePath+"  "+ name);
         var value =  switch (basePath) {
-            case "animweb", "articulatedfigure", "breakable", "md6def", "renderprogflag", "renderparm", "renderlayerdefinition" ->
+            case "animweb", "articulatedfigure", "breakable", "renderprogflag", "renderparm", "renderlayerdefinition" ->
                     throw new UnsupportedOperationException("Unsupported decl type: " + basePath);
             case "entitydef" -> parseEntityDefDecl(name);
             default -> postProcessArrays(parseStandardDecl(name));

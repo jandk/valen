@@ -7,18 +7,20 @@ import be.twofold.valen.manager.*;
 import be.twofold.valen.oodle.*;
 import be.twofold.valen.reader.compfile.*;
 import be.twofold.valen.reader.compfile.entities.*;
+import be.twofold.valen.reader.decl.md6def.*;
 import be.twofold.valen.resource.*;
 
 import java.io.*;
 import java.nio.file.*;
 import java.util.*;
+import java.util.stream.*;
 
 public final class Experiment {
     private static final Set<String> BlackList = Set.of(
-            "editors/models/gui_text.lwo",
-            "models/ca/working/bshore/darrow1.lwo",
-            "models/guis/gui_square.lwo",
-            "models/guis/gui_square_afterpost.lwo"
+        "editors/models/gui_text.lwo",
+        "models/ca/working/bshore/darrow1.lwo",
+        "models/guis/gui_square.lwo",
+        "models/guis/gui_square_afterpost.lwo"
     );
 
     static final Path HOME = Path.of(System.getProperty("user.home"));
@@ -31,8 +33,8 @@ public final class Experiment {
     }
 
     record StaticGeometryEntry(
-            int id,
-            String name
+        int id,
+        String name
     ) {
         public static StaticGeometryEntry read(BetterBuffer buffer) {
             var id = buffer.getInt();
@@ -42,7 +44,7 @@ public final class Experiment {
     }
 
     record StaticGeometryGeom(
-            float[][] floats, int[] indices
+        float[][] floats, int[] indices
     ) {
         public static StaticGeometryGeom read(BetterBuffer buffer) {
             var tempFloats = buffer.getFloats(44);
@@ -60,14 +62,14 @@ public final class Experiment {
     }
 
     record StaticGeometryTree(
-            int unknown1,
-            String name,
-            int unknown2,
-            int count1,
-            int count2,
-            int numEntries,
-            List<StaticGeometryEntry> entries,
-            List<StaticGeometryGeom> geos
+        int unknown1,
+        String name,
+        int unknown2,
+        int count1,
+        int count2,
+        int numEntries,
+        List<StaticGeometryEntry> entries,
+        List<StaticGeometryGeom> geos
     ) {
         public static StaticGeometryTree read(BetterBuffer buffer) {
             var unknown1 = buffer.getInt();
@@ -189,14 +191,27 @@ public final class Experiment {
 
 //        Texture texture = manager.readResource(FileType.Image, "art/weapons/heavycannon/heavy_base_back.tga$streamed$mtlkind=albedo");
 //        System.out.println(texture);
+        var decls = manager.getEntries().stream().filter(resource -> resource.name().name().endsWith(".md6.decl")).map(resource -> {
+            var data = new String(manager.readRawResource(resource));
+            System.out.println(data);
+            var md6DefParser = new MD6DefParser();
+            var decl = md6DefParser.parse(data);
+            System.out.println(decl);
+            return decl;
+        }).collect(Collectors.toSet());
+        System.out.println(1);
+//        var model = manager.readRawResource("generated/decls/md6def/md6def/characters/monsters/arachnotron/base/arachnotron.md6.decl", null);
+//        var data = new String(model);
+//        System.out.println(data);
+//        var md6DefParser = new MD6DefParser();
+//        var decl = md6DefParser.parse(data);
+//        System.out.println(decl);
+        //        var skeleton = manager.readResource(FileType.Skeleton, "md6/characters/monsters/imp/base/assets/mesh/imp.md6skl", ResourceType.Skeleton);
 
-        var model = manager.readResource(FileType.AnimatedModel, "md6/characters/monsters/imp/base/assets/mesh/imp.md6mesh", ResourceType.Model);
-        var skeleton = manager.readResource(FileType.Skeleton, "md6/characters/monsters/imp/base/assets/mesh/imp.md6skl", ResourceType.Skeleton);
-
-        try (var channel = Files.newByteChannel(Path.of("D:\\projects\\java\\valen\\playground\\test.glb"), StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING)) {
-            GltfWriter writer = new GltfWriter(channel);
-            writer.write();
-        }
+//        try (var channel = Files.newByteChannel(Path.of("D:\\projects\\java\\valen\\playground\\test.glb"), StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING)) {
+//            GltfWriter writer = new GltfWriter(channel);
+//            writer.write();
+//        }
 
 //        if (true) {
 //            return;
@@ -255,8 +270,8 @@ public final class Experiment {
 
     private void doStreams() {
         fileManager.getSpec().files().stream()
-                .filter(s -> s.endsWith(".streamdb"))
-                .forEach(this::doStream);
+            .filter(s -> s.endsWith(".streamdb"))
+            .forEach(this::doStream);
     }
 
     private void doStream(String s) {
@@ -371,15 +386,15 @@ public final class Experiment {
     }
 
     private record DefEntry(
-            short unknown,
-            float unk1,
-            float unk2,
-            float unk3,
-            float unk4,
-            float unk5,
-            float unk6,
-            float unk7,
-            float unk8
+        short unknown,
+        float unk1,
+        float unk2,
+        float unk3,
+        float unk4,
+        float unk5,
+        float unk6,
+        float unk7,
+        float unk8
     ) {
         public static DefEntry read(BetterBuffer buffer) {
             var unknown = buffer.getShort();

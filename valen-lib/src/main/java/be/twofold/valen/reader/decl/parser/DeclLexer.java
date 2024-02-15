@@ -6,17 +6,19 @@ public final class DeclLexer {
     private static final char Eof = '\0';
 
     private final boolean allowFilenames;
+    private final boolean skipNewLines;
     private final String source;
     private int index = 0;
     private DeclToken current;
 
     public DeclLexer(String source) {
-        this(source, false);
+        this(source, false, true);
     }
 
-    public DeclLexer(String source, boolean allowFilenames) {
+    public DeclLexer(String source, boolean allowFilenames, boolean skipNewLines) {
         this.source = Check.notNull(source);
         this.allowFilenames = allowFilenames;
+        this.skipNewLines = skipNewLines;
     }
 
     public DeclToken peekToken() {
@@ -47,6 +49,8 @@ public final class DeclLexer {
                 } else {
                     break;
                 }
+            case '\n':
+                return punctuation(DeclTokenType.NewLine);
             case '=':
                 return punctuation(DeclTokenType.Assign);
             case ',':
@@ -159,6 +163,9 @@ public final class DeclLexer {
     private void skipWhitespace() {
         while (!isEof()) {
             char ch = peek();
+            if (ch == '\n' && !skipNewLines) {
+                break;
+            }
             if (ch <= ' ') {
                 skip();
             } else if (ch == '/') {

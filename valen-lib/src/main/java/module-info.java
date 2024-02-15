@@ -29,4 +29,5 @@ module valen.lib {
 
     exports be.twofold.valen.reader.decl.entities to com.google.gson;
     exports be.twofold.valen.reader.staticinstances;
+    exports be.twofold.valen.reader.decl.md6def;
 }
