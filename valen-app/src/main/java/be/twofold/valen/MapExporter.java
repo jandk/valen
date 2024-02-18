@@ -5,9 +5,7 @@ import be.twofold.valen.core.math.Quaternion;
 import be.twofold.valen.core.math.Vector3;
 import be.twofold.valen.core.util.BetterBuffer;
 import be.twofold.valen.export.gltf.GltfWriter;
-import be.twofold.valen.export.gltf.model.MeshId;
-import be.twofold.valen.export.gltf.model.NodeId;
-import be.twofold.valen.export.gltf.model.NodeSchema;
+import be.twofold.valen.export.gltf.model.*;
 import be.twofold.valen.export.gltf.model.extensions.collections.*;
 import be.twofold.valen.export.gltf.model.extensions.lightspunctual.*;
 import be.twofold.valen.manager.FileManager;
@@ -15,7 +13,6 @@ import be.twofold.valen.manager.FileType;
 import be.twofold.valen.reader.compfile.CompFileReader;
 import be.twofold.valen.reader.compfile.entities.EntityReader;
 import be.twofold.valen.reader.decl.md6def.*;
-import be.twofold.valen.reader.decl.parser.*;
 import be.twofold.valen.reader.staticinstances.StaticInstances;
 import be.twofold.valen.resource.ResourceType;
 import com.google.gson.JsonElement;
@@ -53,7 +50,7 @@ public final class MapExporter {
         var entityResource = manager.getEntries().stream()
             .filter(e -> e.name().name().endsWith(".entities")).findFirst().orElseThrow();
         var entityReader = new EntityReader(new CompFileReader());
-        var entities = entityReader.read(BetterBuffer.wrap(manager.readRawResource(entityResource)), null);
+        var entities = entityReader.read(BetterBuffer.wrap(manager.readRawResource(entityResource)), null, manager);
         var md6DefParser = new MD6DefParser();
 
         try (var channel = Files.newByteChannel(Path.of("map.glb"), StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING)) {
@@ -259,23 +256,25 @@ public final class MapExporter {
                     case "idAnimated" -> {
                         JsonObject modelInfo = entityEditData.getAsJsonObject("renderModelInfo");
                         String modelName = modelInfo.get("model").getAsString();
-                        MeshId meshId = meshCache.computeIfAbsent(modelName, k -> {
-                            System.out.println("Loading idDynamicEntity with model " + modelName);
-                            try {
-                                String src = new String(manager.readRawResource("generated/decls/md6def/"+modelName + ".decl", ResourceType.RsStreamFile));
-                                JsonObject md6def = md6DefParser.parse(src);
-                                String meshPath = md6def.getAsJsonObject("init").getAsJsonPrimitive("mesh").getAsString();
-                                var model = manager.readResource(FileType.AnimatedModel, meshPath, ResourceType.BaseModel);
-//                                var skeleton = manager.readResource(FileType.Skeleton, meshPath.replace(".md6mesh",".md6skl"), null);
-                                return writer.addMesh(model);
-                            } catch (IllegalArgumentException ex) {
-                                System.err.println("Failed to find " + modelName + " model");
-                                return null;
-                            }
-                        });
-                        if (meshId != null) {
+                        System.out.println("Loading idDynamicEntity with model " + modelName);
+                        String md6declName = "generated/decls/md6def/" + modelName + ".decl";
+
+                        if (manager.exist(md6declName)) {
+                            String src = new String(manager.readRawResource(md6declName, ResourceType.RsStreamFile));
+                            JsonObject md6def = md6DefParser.parse(src);
+                            String meshPath = md6def.getAsJsonObject("init").getAsJsonPrimitive("mesh").getAsString();
+                            var model = manager.readResource(FileType.AnimatedModel, meshPath, ResourceType.BaseModel);
+                            MeshId meshId = writer.addMesh(model);
                             entityNodeBuilder.mesh(meshId);
+                            if(model.skeleton()!=null) {
+                                var skeletonAndSkin = writer.addSkin(model.skeleton());
+                                sceneNodes.add(skeletonAndSkin.getKey());
+                                entityNodeBuilder.skin(skeletonAndSkin.getValue());
+                            }
+                        } else {
+                            System.err.println("Failed to resource for " + modelName);
                         }
+
                         if (modelInfo.has("scale")) {
                             toVec3(modelInfo.get("scale")).ifPresent(entityNodeBuilder::scale);
                         }

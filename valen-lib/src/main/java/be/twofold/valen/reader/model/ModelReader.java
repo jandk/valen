@@ -2,6 +2,7 @@ package be.twofold.valen.reader.model;
 
 import be.twofold.valen.core.geometry.*;
 import be.twofold.valen.core.util.*;
+import be.twofold.valen.manager.*;
 import be.twofold.valen.reader.*;
 import be.twofold.valen.reader.geometry.*;
 import be.twofold.valen.resource.*;
@@ -18,7 +19,7 @@ public final class ModelReader implements ResourceReader<be.twofold.valen.core.g
     }
 
     @Override
-    public be.twofold.valen.core.geometry.Model read(BetterBuffer buffer, Resource resource) {
+    public be.twofold.valen.core.geometry.Model read(BetterBuffer buffer, Resource resource, FileManager manager) {
         Model model = read(buffer, true, resource.hash());
         return new be.twofold.valen.core.geometry.Model(model.meshes(), null);
     }

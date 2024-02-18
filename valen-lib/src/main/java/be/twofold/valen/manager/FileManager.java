@@ -61,6 +61,10 @@ public final class FileManager {
         resourceManager.select(map);
     }
 
+    public boolean exist(String name){
+        return getEntries().stream().anyMatch(resource -> resource.name().name().equals(name));
+    }
+
     public byte[] readRawResource(Resource resource) {
         return resourceManager.read(resource);
     }
@@ -72,7 +76,7 @@ public final class FileManager {
     public <T> T readResource(FileType<T> type, String name, ResourceType resourceType) {
         var entry = resourceManager.getEntry(name, resourceType);
         var buffer = BetterBuffer.wrap(resourceManager.read(entry));
-        var result = readers.get(type.resourceType()).read(buffer, entry);
+        var result = readers.get(type.resourceType()).read(buffer, entry, this);
         return type.instanceType().cast(result);
     }
 

@@ -1,8 +1,10 @@
 package be.twofold.valen;
 
 import be.twofold.valen.core.geometry.Model;
+import be.twofold.valen.core.math.*;
 import be.twofold.valen.core.util.*;
 import be.twofold.valen.export.gltf.*;
+import be.twofold.valen.export.gltf.model.*;
 import be.twofold.valen.manager.*;
 import be.twofold.valen.oodle.*;
 import be.twofold.valen.reader.compfile.*;
@@ -136,13 +138,33 @@ public final class Experiment {
 //        Files.writeString(Path.of("C:\\Temp\\CSV\\static_geometry_geoms.csv"), csv1);
 
 //
-//        var model = manager.readResource(FileType.AnimatedModel, "md6/characters/monsters/imp/base/assets/mesh/imp.md6mesh");
+        var model = manager.readResource(FileType.AnimatedModel, "md6/characters/monsters/imp/base/assets/mesh/imp.md6mesh", null);
 //        var skeleton = manager.readResource(FileType.Skeleton, "md6/characters/monsters/imp/base/assets/mesh/imp.md6skl");
 //        var animation = manager.readResource(FileType.Animation, "md6/characters/monsters/imp/base/motion/combat/idle.md6anim");
 //
-//        try (var channel = Files.newByteChannel(Path.of("C:\\Temp\\test.glb"), StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING)) {
-//            new GltfWriter(channel, model, skeleton, animation).write();
-//        }
+        try (var channel = Files.newByteChannel(Path.of("test.glb"), StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING)) {
+            var writer = new GltfWriter(channel);
+            var nodes = new ArrayList<NodeId>();
+            MeshId meshId = writer.addMesh(model);
+            var skeletonAndSkinId = writer.addSkin(model.skeleton());
+            nodes.add(skeletonAndSkinId.getKey());
+            var builder = NodeSchema.builder()
+                .name("test")
+                .mesh(meshId)
+                .skin(skeletonAndSkinId.getValue());
+            nodes.add(writer.addNode(builder.build()));
+
+            var skeletonAndSkinId2 = writer.addSkin(model.skeleton());
+            nodes.add(skeletonAndSkinId2.getKey());
+            MeshId meshId2 = writer.addMesh(model);
+            var builder2 = NodeSchema.builder()
+                .name("test2")
+                .mesh(meshId2)
+                .skin(skeletonAndSkinId2.getValue());
+            nodes.add(writer.addNode(builder2.build()));
+            writer.addScene(nodes);
+            writer.write();
+        }
 
 //        var model = manager.readResource(FileType.AnimatedModel, "md6/characters/monsters/imp/base/assets/mesh/imp.md6mesh");
 //        var skeleton = manager.readResource(FileType.Skeleton, "md6/characters/monsters/imp/base/assets/mesh/imp.md6skl");
@@ -191,15 +213,15 @@ public final class Experiment {
 
 //        Texture texture = manager.readResource(FileType.Image, "art/weapons/heavycannon/heavy_base_back.tga$streamed$mtlkind=albedo");
 //        System.out.println(texture);
-        var decls = manager.getEntries().stream().filter(resource -> resource.name().name().endsWith(".md6.decl")).map(resource -> {
-            var data = new String(manager.readRawResource(resource));
-            System.out.println(data);
-            var md6DefParser = new MD6DefParser();
-            var decl = md6DefParser.parse(data);
-            System.out.println(decl);
-            return decl;
-        }).collect(Collectors.toSet());
-        System.out.println(1);
+//        var decls = manager.getEntries().stream().filter(resource -> resource.name().name().endsWith(".md6.decl")).map(resource -> {
+//            var data = new String(manager.readRawResource(resource));
+//            System.out.println(data);
+//            var md6DefParser = new MD6DefParser();
+//            var decl = md6DefParser.parse(data);
+//            System.out.println(decl);
+//            return decl;
+//        }).collect(Collectors.toSet());
+//        System.out.println(1);
 //        var model = manager.readRawResource("generated/decls/md6def/md6def/characters/monsters/arachnotron/base/arachnotron.md6.decl", null);
 //        var data = new String(model);
 //        System.out.println(data);
