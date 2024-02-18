@@ -41,7 +41,6 @@ public final class GltfWriter implements GltfContext {
     private final List<SceneSchema> scenes = new ArrayList<>();
     private final List<SkinSchema> skins = new ArrayList<>();
     private final List<AnimationSchema> animations = new ArrayList<>();
-    private final List<NodeId> meshNodes = new ArrayList<>();
     private final List<String> usedExtensions = new ArrayList<>();
     private final List<String> requiredExtensions = new ArrayList<>();
     private final Map<String, Extension> extensions = new HashMap<>();
@@ -102,8 +101,8 @@ public final class GltfWriter implements GltfContext {
 
     public SceneSchema addScene(List<NodeId> nodes) {
         var scene = SceneSchema.builder()
-                .addAllNodes(nodes)
-                .build();
+            .addAllNodes(nodes)
+            .build();
         scenes.add(scene);
         return scene;
     }
@@ -117,33 +116,15 @@ public final class GltfWriter implements GltfContext {
     }
 
     public MeshId addMesh(Model model) {
-        meshes.add(modelMapper.map(model));
+        meshes.add(convertMesh(model));
         return MeshId.of(meshes.size() - 1);
     }
-//    public int addSkeletalMesh(Model model, Skeleton skeleton, SceneSchema scene) {
-//        meshes.add(modelMapper.map(model));
-//        var meshId = meshes.size() - 1;
-//        var skeletonRootNodeId = nodes.size();
-//        var skin = skeletonMapper.map(skeleton, nodes.size());
-//        skins.add(skin);
-//        var skinId = skins.size() - 1;
-//        var skinMeshNode = NodeSchema.buildMeshSkin(meshId, skinId);
-//        nodes.add(skinMeshNode);
-//        var skinMeshNodeId = nodes.size() - 1;
-//        scene.addNode(skinMeshNodeId);
-//        scene.addNode(skeletonRootNodeId);
-//        return skinMeshNodeId;
-//    }
 
-    public void addMeshInstance(int mesh, String name, Quaternion rotation, Vector3 translation, Vector3 scale) {
-        var node = NodeSchema.builder()
-            .name(name)
-            .rotation(rotation)
-            .translation(translation)
-            .scale(scale)
-            .mesh(MeshId.of(mesh))
-            .build();
-        meshNodes.add(addNode(node));
+    public AbstractMap.SimpleEntry<NodeId, SkinId> addSkin(Skeleton skeleton) {
+        var skeletonRootNodeId = NodeId.of(nodes.size());
+        var skin = convertSkeleton(skeleton);
+        skins.add(skin);
+        return new AbstractMap.SimpleEntry<>(skeletonRootNodeId, SkinId.of(skins.size() - 1));
     }
 
     private GltfSchema buildGltf() {
@@ -199,7 +180,7 @@ public final class GltfWriter implements GltfContext {
             .buffer(BufferId.of(0))
             .byteOffset(bufferLength)
             .byteLength(length)
-            .target(target)
+            .target(Optional.ofNullable(target))
             .build();
         bufferViews.add(bufferView);
 
