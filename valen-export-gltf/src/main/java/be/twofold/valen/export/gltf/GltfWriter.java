@@ -23,7 +23,7 @@ public final class GltfWriter implements GltfContext {
         .registerTypeAdapter(AccessorType.class, new AccessorTypeTypeAdapter())
         .registerTypeAdapter(AnimationChannelTargetPath.class, new AnimationChannelTargetPathTypeAdapter())
         .registerTypeAdapter(AnimationSamplerInterpolation.class, new AnimationSamplerInterpolationTypeAdapter())
-        .registerTypeAdapter(BufferViewTarget.class, new BufferViewTargetTypeAdapter())
+        .registerTypeAdapter(BufferViewTarget.class, new BufferViewTargetTypeAdapter().nullSafe())
         .registerTypeAdapter(Matrix4.class, new Matrix4TypeAdapter().nullSafe())
         .registerTypeAdapter(Quaternion.class, new QuaternionTypeAdapter().nullSafe())
         .registerTypeAdapter(Vector2.class, new Vector2TypeAdapter())
