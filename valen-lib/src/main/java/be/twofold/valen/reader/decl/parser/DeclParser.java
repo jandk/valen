@@ -109,7 +109,7 @@ public final class DeclParser {
             // TODO: Extract function
             if (value instanceof JsonObject) {
                 token = lexer.peekToken();
-                if (token.type() == DeclTokenType.Semicolon) {
+                if (token.type() == DeclTokenType.Semicolon || token.type() == DeclTokenType.Comma) {
                     lexer.nextToken();
                 }
             } else {

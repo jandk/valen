@@ -13,6 +13,7 @@ import be.twofold.valen.reader.model.*;
 import be.twofold.valen.reader.packagemapspec.*;
 import be.twofold.valen.resource.*;
 import be.twofold.valen.stream.*;
+import com.google.gson.*;
 
 import java.io.*;
 import java.nio.file.*;
@@ -29,15 +30,15 @@ public final class FileManager {
         try {
             this.resourceManager = new ResourceManager(base, spec);
             this.declManager = new DeclManager(resourceManager);
-
             var streamManager = new StreamManager(base, spec);
+
             this.readers = Map.of(
                 ResourceType.Anim, new Md6AnimReader(),
                 ResourceType.BaseModel, new Md6Reader(streamManager),
                 ResourceType.BinaryFile, new BinaryFileReader(),
                 ResourceType.CompFile, new CompFileReader(),
                 ResourceType.Image, new ImageReader(streamManager),
-                ResourceType.Model, new ModelReader(streamManager),
+                ResourceType.Model, new ModelReader(resourceManager, streamManager, declManager),
                 ResourceType.Skeleton, new Md6SkeletonReader()
             );
         } catch (IOException e) {
@@ -62,9 +63,14 @@ public final class FileManager {
     }
 
     public <T> T readResource(FileType<T> type, String name) {
-        var entry = resourceManager.getEntry(name);
+        var entry = resourceManager.get(name, type.resourceType());
         var buffer = BetterBuffer.wrap(resourceManager.read(entry));
         var result = readers.get(type.resourceType()).read(buffer, entry);
         return type.instanceType().cast(result);
+    }
+
+    public JsonObject readDecl(Resource entry) {
+        var name = entry.name().name().substring("generated/decls/".length());
+        return declManager.load(name);
     }
 }
