@@ -22,7 +22,7 @@ public final class ResourcesFile implements AutoCloseable {
         List<Resource> resources = new ResourceMapper().map(Resources.read(channel));
 
         this.index = resources.stream()
-            .collect(Collectors.toMap(
+            .collect(Collectors.toUnmodifiableMap(
                 Resource::key,
                 Function.identity()
             ));

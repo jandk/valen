@@ -34,6 +34,7 @@ public final class ImageReader implements ResourceReader<Texture> {
             } else {
                 readMultiStream(image, hash);
             }
+            buffer.expectEnd();
         }
 
         return image;

@@ -18,19 +18,19 @@ public final class DeclManager {
     private static final CharsetDecoder Iso88591Decoder = StandardCharsets.ISO_8859_1.newDecoder();
 
     private static final Gson GSON = new GsonBuilder()
-            .registerTypeAdapterFactory(new NamedEnumFactory())
-            .setPrettyPrinting()
-            .create();
+        .registerTypeAdapterFactory(new NamedEnumFactory())
+        .setPrettyPrinting()
+        .create();
 
     private static final Set<String> Unsupported = Set.of(
-            "animweb",
-            "articulatedfigure",
-            "breakable",
-            "entitydef", // Custom content per entity
-            "md6def",
-            "renderlayerdefinition",
-            "renderparm", // Also filenames
-            "renderprogflag"
+        "animweb",
+        "articulatedfigure",
+        "breakable",
+        "entitydef", // Custom content per entity
+        "md6def",
+        "renderlayerdefinition",
+        "renderparm", // Also filenames
+        "renderprogflag"
     );
 
     private final Map<String, JsonObject> declCache = new HashMap<>();
@@ -44,32 +44,30 @@ public final class DeclManager {
 
     public JsonObject load(String name) {
         var basePath = name
-                .substring(RootPrefix.length())
-                .substring(0, name.indexOf('/'));
-        return load(basePath, name);
+            .substring(0, name.indexOf('/'));
 
+        if (Unsupported.contains(basePath)) {
+            throw new UnsupportedOperationException("Unsupported decl type: " + basePath);
+        }
+
+        JsonObject object = load(basePath, name);
+        postProcessArrays(object);
+        return object;
     }
 
     private JsonObject load(String basePath, String name) {
-        System.out.println(basePath+"  "+ name);
-        var value =  switch (basePath) {
-            case "animweb", "articulatedfigure", "breakable", "renderprogflag", "renderparm", "renderlayerdefinition" ->
-                    throw new UnsupportedOperationException("Unsupported decl type: " + basePath);
-            case "entitydef" -> parseEntityDefDecl(name);
-            default -> postProcessArrays(parseStandardDecl(name));
-        };
+        System.out.println("Loading decl: " + name);
+        var value = getJsonObject(name);
 
-        return postProcessDecl(basePath, value);
-    }
-
-    private JsonObject postProcessDecl(String basePath, JsonObject value) {
         JsonObject parent;
         if (value.has("inherit")) {
             var inherit = value.getAsJsonPrimitive("inherit").getAsString();
-            parent = declCache.computeIfAbsent(
-                RootPrefix+basePath + "/" + inherit + ".decl",
-                key -> load(basePath, key)
-            );
+            var key = basePath + "/" + inherit + ".decl";
+            parent = declCache.get(key);
+            if (parent == null) {
+                parent = load(basePath, key);
+                declCache.put(key, parent);
+            }
         } else {
             parent = new JsonObject();
         }
@@ -77,30 +75,34 @@ public final class DeclManager {
         return merge(parent, value);
     }
 
-    private JsonObject parseStandardDecl(String name) {
-        return DeclParser.parse(loadSource(name));
+    private JsonObject getJsonObject(String name) {
+        var read = manager.read(manager.get(RootPrefix + name, ResourceType.RsStreamFile));
+        var source = decode(read);
+
+//        var value =  switch (basePath) {
+//            case "animweb", "articulatedfigure", "breakable", "renderprogflag", "renderparm", "renderlayerdefinition" ->
+//                throw new UnsupportedOperationException("Unsupported decl type: " + basePath);
+//            case "entitydef" -> parseEntityDefDecl(name);
+//            default -> postProcessArrays(parseStandardDecl(name));
+//        }
+
+        return DeclParser.parse(source);
     }
 
-    private JsonObject parseEntityDefDecl(String name) {
-        return entityDefParser.parse(loadSource(name));
-    }
 
-    private String loadSource(String name) {
-        return decode(manager.read(manager.getEntry(name, ResourceType.CompFile)));
-    }
+    private JsonObject merge(JsonObject parent, JsonObject child) {
+        JsonObject result = parent.deepCopy();
+        for (var entry : child.entrySet()) {
+            var key = entry.getKey();
+            var value = entry.getValue();
 
-
-    public JsonObject merge(JsonObject parent, JsonObject child) {
-        for (var childEntry : child.entrySet()) {
-            var key = childEntry.getKey();
-            var childValue = childEntry.getValue();
-            var parentValue = parent.get(key);
-            if (parentValue != null && parentValue.isJsonObject() && childValue.isJsonObject()) {
-                childValue = merge(parentValue.getAsJsonObject(), childValue.getAsJsonObject());
+            var oldValue = result.get(key);
+            if (oldValue != null && oldValue.isJsonObject() && value.isJsonObject()) {
+                value = merge(oldValue.getAsJsonObject(), value.getAsJsonObject());
             }
-            parent.add(key, childValue);
+            result.add(key, value);
         }
-        return parent;
+        return result;
     }
 
 
@@ -119,7 +121,7 @@ public final class DeclManager {
         }
     }
 
-    private JsonObject postProcessArrays(JsonObject value) {
+    public static void postProcessArrays(JsonObject value) {
         for (var entry : value.entrySet()) {
             if (!entry.getValue().isJsonObject()) {
                 continue;
@@ -132,10 +134,9 @@ public final class DeclManager {
                 postProcessArrays(object);
             }
         }
-        return value;
     }
 
-    private JsonArray toArray(JsonObject object) {
+    private static JsonArray toArray(JsonObject object) {
         var size = object.get("num").getAsInt();
         var array = new JsonArray(size);
         for (var i = 0; i < size; i++) {
