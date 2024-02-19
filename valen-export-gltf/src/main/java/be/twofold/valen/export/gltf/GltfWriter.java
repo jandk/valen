@@ -143,7 +143,7 @@ public final class GltfWriter implements GltfContext {
             .buffer(BufferId.of(0))
             .byteOffset(bufferLength)
             .byteLength(length)
-            .target(target)
+            .target(Optional.ofNullable(target))
             .build();
         bufferViews.add(bufferView);
 
