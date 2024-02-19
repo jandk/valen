@@ -29,7 +29,7 @@ public record ResourceName(
         return index < 0 ? file : file.substring(0, index);
     }
 
-    public Map<String, String> properties() {
+    public Map<String, String> attributes() {
         var index = name.indexOf('$');
         if (index < 0) {
             return Map.of();

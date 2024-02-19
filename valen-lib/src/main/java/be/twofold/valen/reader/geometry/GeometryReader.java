@@ -192,6 +192,6 @@ public final class GeometryReader {
         } else {
             vertexBuffers.put(Semantic.Color, new VertexBuffer(colorBuffers.get(i), ElementType.Vector4, ComponentType.UnsignedByte, true));
         }
-        return new Mesh(faceBuffer, vertexBuffers);
+        return new Mesh(faceBuffer, vertexBuffers, -1);
     }
 }

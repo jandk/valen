@@ -1,6 +1,7 @@
 package be.twofold.valen.reader.model;
 
 import be.twofold.valen.core.geometry.*;
+import be.twofold.valen.core.material.*;
 import be.twofold.valen.core.util.*;
 import be.twofold.valen.reader.geometry.*;
 
@@ -14,7 +15,8 @@ public record Model(
     ModelMisc2 misc2,
     List<Boolean> streamedLods,
     List<GeometryDiskLayout> streamDiskLayouts,
-    List<Mesh> meshes
+    List<Mesh> meshes,
+    List<Material> materials
 ) {
     public static final int LodCount = 5;
 
@@ -35,6 +37,7 @@ public record Model(
             misc2,
             streamedLods,
             layouts,
+            List.of(),
             List.of()
         );
     }
@@ -57,7 +60,22 @@ public record Model(
             misc2,
             streamedLods,
             streamDiskLayouts,
-            meshes
+            meshes,
+            materials
+        );
+    }
+
+    public Model withMaterials(List<Material> materials) {
+        return new Model(
+            header,
+            meshInfos,
+            misc1,
+            geoDecals,
+            misc2,
+            streamedLods,
+            streamDiskLayouts,
+            meshes,
+            materials
         );
     }
 }

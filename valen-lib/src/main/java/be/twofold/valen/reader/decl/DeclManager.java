@@ -40,28 +40,30 @@ public final class DeclManager {
 
     public JsonObject load(String name) {
         var basePath = name
-            .substring(RootPrefix.length())
             .substring(0, name.indexOf('/'));
 
         if (Unsupported.contains(basePath)) {
             throw new UnsupportedOperationException("Unsupported decl type: " + basePath);
         }
 
-        JsonObject object = load(RootPrefix + basePath, name);
+        JsonObject object = load(basePath, name);
         postProcessArrays(object);
         return object;
     }
 
     private JsonObject load(String basePath, String name) {
+        System.out.println("Loading decl: " + name);
         var value = getJsonObject(name);
 
         JsonObject parent;
         if (value.has("inherit")) {
             var inherit = value.getAsJsonPrimitive("inherit").getAsString();
-            parent = declCache.computeIfAbsent(
-                basePath + "/" + inherit + ".decl",
-                key -> load(basePath, key)
-            );
+            var key = basePath + "/" + inherit + ".decl";
+            parent = declCache.get(key);
+            if (parent == null) {
+                parent = load(basePath, key);
+                declCache.put(key, parent);
+            }
         } else {
             parent = new JsonObject();
         }
@@ -70,23 +72,25 @@ public final class DeclManager {
     }
 
     private JsonObject getJsonObject(String name) {
-        var read = manager.read(manager.getEntry(name));
+        var read = manager.read(manager.get(RootPrefix + name, ResourceType.RsStreamFile));
         var source = decode(read);
         return DeclParser.parse(source);
     }
 
 
     private JsonObject merge(JsonObject parent, JsonObject child) {
-        for (var childEntry : child.entrySet()) {
-            var key = childEntry.getKey();
-            var childValue = childEntry.getValue();
-            var parentValue = parent.get(key);
-            if (parentValue != null && parentValue.isJsonObject() && childValue.isJsonObject()) {
-                childValue = merge(parentValue.getAsJsonObject(), childValue.getAsJsonObject());
+        JsonObject result = parent.deepCopy();
+        for (var entry : child.entrySet()) {
+            var key = entry.getKey();
+            var value = entry.getValue();
+
+            var oldValue = result.get(key);
+            if (oldValue != null && oldValue.isJsonObject() && value.isJsonObject()) {
+                value = merge(oldValue.getAsJsonObject(), value.getAsJsonObject());
             }
-            parent.add(key, childValue);
+            result.add(key, value);
         }
-        return parent;
+        return result;
     }
 
 
@@ -105,7 +109,7 @@ public final class DeclManager {
         }
     }
 
-    private void postProcessArrays(JsonObject value) {
+    public static void postProcessArrays(JsonObject value) {
         for (var entry : value.entrySet()) {
             if (!entry.getValue().isJsonObject()) {
                 continue;
@@ -120,7 +124,7 @@ public final class DeclManager {
         }
     }
 
-    private JsonArray toArray(JsonObject object) {
+    private static JsonArray toArray(JsonObject object) {
         var size = object.get("num").getAsInt();
         var array = new JsonArray(size);
         for (var i = 0; i < size; i++) {
