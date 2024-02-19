@@ -3,12 +3,14 @@ package be.twofold.valen.reader.decl;
 import be.twofold.valen.reader.decl.parser.*;
 import be.twofold.valen.resource.*;
 import com.google.gson.*;
+import jakarta.inject.*;
 
 import java.nio.*;
 import java.nio.charset.*;
 import java.util.*;
 import java.util.regex.*;
 
+@Singleton
 public final class DeclManager {
     private static final String RootPrefix = "generated/decls/";
     private static final Pattern ItemPattern = Pattern.compile("^\\w+\\[(\\d+)]$");
@@ -32,10 +34,11 @@ public final class DeclManager {
     );
 
     private final Map<String, JsonObject> declCache = new HashMap<>();
-    private final ResourceManager manager;
+    private final ResourceManager resourceManager;
 
-    public DeclManager(ResourceManager manager) {
-        this.manager = manager;
+    @Inject
+    public DeclManager(ResourceManager resourceManager) {
+        this.resourceManager = resourceManager;
     }
 
     public JsonObject load(String name) {
@@ -72,8 +75,8 @@ public final class DeclManager {
     }
 
     private JsonObject getJsonObject(String name) {
-        var read = manager.read(manager.get(RootPrefix + name, ResourceType.RsStreamFile));
-        var source = decode(read);
+        var resource = resourceManager.get(RootPrefix + name, ResourceType.RsStreamFile);
+        var source = decode(resourceManager.read(resource));
         return DeclParser.parse(source);
     }
 

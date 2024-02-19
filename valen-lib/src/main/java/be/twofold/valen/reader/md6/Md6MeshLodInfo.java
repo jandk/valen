@@ -4,7 +4,7 @@ import be.twofold.valen.core.math.*;
 import be.twofold.valen.core.util.*;
 import be.twofold.valen.reader.geometry.*;
 
-public record Md6LodInfo(
+public record Md6MeshLodInfo(
     int numVertices,
     int numFaces,
     Bounds bounds,
@@ -16,7 +16,7 @@ public record Md6LodInfo(
     float unkFloat2,
     float unkFloat3
 ) implements LodInfo {
-    public static Md6LodInfo read(BetterBuffer buffer) {
+    public static Md6MeshLodInfo read(BetterBuffer buffer) {
         var numVertices = buffer.getInt();
         var numFaces = buffer.getInt();
         var bounds = Bounds.read(buffer);
@@ -28,7 +28,7 @@ public record Md6LodInfo(
         var unkFloat1 = buffer.getFloat();
         var unkFloat2 = buffer.getFloat();
 
-        return new Md6LodInfo(
+        return new Md6MeshLodInfo(
             numVertices,
             numFaces,
             bounds,

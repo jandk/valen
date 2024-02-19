@@ -6,25 +6,32 @@ import be.twofold.valen.reader.*;
 import be.twofold.valen.reader.geometry.*;
 import be.twofold.valen.resource.*;
 import be.twofold.valen.stream.*;
+import jakarta.inject.*;
 
 import java.nio.*;
 import java.util.*;
 
-public final class Md6Reader implements ResourceReader<Model> {
+public final class Md6MeshReader implements ResourceReader<Model> {
     private final StreamManager streamManager;
 
-    public Md6Reader(StreamManager streamManager) {
+    @Inject
+    public Md6MeshReader(StreamManager streamManager) {
         this.streamManager = streamManager;
     }
 
     @Override
+    public boolean canRead(Resource entry) {
+        return entry.type() == ResourceType.BaseModel;
+    }
+
+    @Override
     public Model read(BetterBuffer buffer, Resource resource) {
-        Md6 md6 = read(buffer, true, resource.hash());
+        Md6Mesh md6 = read(buffer, true, resource.hash());
         return new Model(md6.meshes(), null);
     }
 
-    public Md6 read(BetterBuffer buffer, boolean readStreams, long hash) {
-        var md6 = Md6.read(buffer);
+    public Md6Mesh read(BetterBuffer buffer, boolean readStreams, long hash) {
+        var md6 = Md6Mesh.read(buffer);
 
         List<Mesh> meshes;
         if (readStreams) {
@@ -36,7 +43,7 @@ public final class Md6Reader implements ResourceReader<Model> {
         return md6.withMeshes(meshes);
     }
 
-    private List<Mesh> readStreamedGeometry(Md6 md6, int lod, long hash) {
+    private List<Mesh> readStreamedGeometry(Md6Mesh md6, int lod, long hash) {
         var identity = (hash << 4) | lod;
         var uncompressedSize = md6.layouts().get(lod).uncompressedSize();
         var buffer = BetterBuffer.wrap(streamManager.read(identity, uncompressedSize));
@@ -50,7 +57,7 @@ public final class Md6Reader implements ResourceReader<Model> {
             .readMeshes(buffer, lodInfos, layouts);
     }
 
-    private void fixJointIndices(Md6 md6, List<Mesh> meshes) {
+    private void fixJointIndices(Md6Mesh md6, List<Mesh> meshes) {
         var bones = md6.boneInfo().bones();
 
         // This lookup table is in reverse... Nice

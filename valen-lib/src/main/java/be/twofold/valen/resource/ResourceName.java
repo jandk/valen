@@ -29,6 +29,12 @@ public record ResourceName(
         return index < 0 ? file : file.substring(0, index);
     }
 
+    public String extension() {
+        var file = file();
+        var index = file.lastIndexOf('.');
+        return index < 0 ? "" : file.substring(index + 1);
+    }
+
     public Map<String, String> attributes() {
         var index = name.indexOf('$');
         if (index < 0) {

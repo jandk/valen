@@ -9,6 +9,7 @@ import be.twofold.valen.reader.geometry.*;
 import be.twofold.valen.reader.image.*;
 import be.twofold.valen.resource.*;
 import be.twofold.valen.stream.*;
+import jakarta.inject.*;
 
 import java.nio.*;
 import java.util.*;
@@ -18,6 +19,7 @@ public final class ModelReader implements ResourceReader<be.twofold.valen.core.g
     private final StreamManager streamManager;
     private final DeclManager declManager;
 
+    @Inject
     public ModelReader(
         ResourceManager resourceManager,
         StreamManager streamManager,
@@ -26,6 +28,11 @@ public final class ModelReader implements ResourceReader<be.twofold.valen.core.g
         this.resourceManager = resourceManager;
         this.streamManager = streamManager;
         this.declManager = declManager;
+    }
+
+    @Override
+    public boolean canRead(Resource entry) {
+        return entry.type() == ResourceType.Model;
     }
 
     @Override

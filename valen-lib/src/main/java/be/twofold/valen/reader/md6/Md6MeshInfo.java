@@ -11,7 +11,7 @@ public record Md6MeshInfo(
     int unknown2,
     int unknown3,
     int unkHash,
-    List<Md6LodInfo> lodInfos
+    List<Md6MeshLodInfo> lodInfos
 ) {
     public static Md6MeshInfo read(BetterBuffer buffer) {
         var meshName = buffer.getString();
@@ -23,10 +23,10 @@ public record Md6MeshInfo(
         var unknown3 = buffer.getInt();
         var unkHash = buffer.getInt();
 
-        var lodInfos = new ArrayList<Md6LodInfo>();
+        var lodInfos = new ArrayList<Md6MeshLodInfo>();
         for (var i = 0; i < 5; i++) {
             if (!buffer.getIntAsBool()) {
-                lodInfos.add(Md6LodInfo.read(buffer));
+                lodInfos.add(Md6MeshLodInfo.read(buffer));
             }
         }
 

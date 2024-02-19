@@ -5,12 +5,19 @@ import be.twofold.valen.core.math.*;
 import be.twofold.valen.core.util.*;
 import be.twofold.valen.reader.*;
 import be.twofold.valen.resource.*;
+import jakarta.inject.*;
 
 import java.util.*;
 import java.util.stream.*;
 
 public final class Md6AnimReader implements ResourceReader<Animation> {
+    @Inject
     public Md6AnimReader() {
+    }
+
+    @Override
+    public boolean canRead(Resource entry) {
+        return entry.type() == ResourceType.Anim;
     }
 
     @Override
