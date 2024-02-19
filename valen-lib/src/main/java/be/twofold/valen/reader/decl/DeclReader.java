@@ -1,26 +1,25 @@
 package be.twofold.valen.reader.decl;
 
+import be.twofold.valen.core.util.*;
+import be.twofold.valen.reader.*;
 import be.twofold.valen.reader.decl.entitydef.EntityDefParser;
 import be.twofold.valen.reader.decl.md6def.*;
 import be.twofold.valen.reader.decl.parser.*;
 import be.twofold.valen.resource.*;
 import com.google.gson.*;
+import jakarta.inject.*;
 
 import java.nio.*;
 import java.nio.charset.*;
 import java.util.*;
 import java.util.regex.*;
 
-public final class DeclManager {
+@Singleton
+public final class DeclReader implements ResourceReader<JsonObject> {
     private static final String RootPrefix = "generated/decls/";
     private static final Pattern ItemPattern = Pattern.compile("^\\w+\\[(\\d+)]$");
     private static final CharsetDecoder Utf8Decoder = StandardCharsets.UTF_8.newDecoder();
     private static final CharsetDecoder Iso88591Decoder = StandardCharsets.ISO_8859_1.newDecoder();
-
-    private static final Gson GSON = new GsonBuilder()
-        .registerTypeAdapterFactory(new NamedEnumFactory())
-        .setPrettyPrinting()
-        .create();
 
     private static final Set<String> Unsupported = Set.of(
         "animweb",
@@ -34,12 +33,28 @@ public final class DeclManager {
     );
 
     private final Map<String, JsonObject> declCache = new HashMap<>();
-    private final ResourceManager manager;
-    private final EntityDefParser entityDefParser = new EntityDefParser();
-    private final MD6DefParser md6DefParser = new MD6DefParser();
+    private final ResourceManager resourceManager;
 
-    public DeclManager(ResourceManager manager) {
-        this.manager = manager;
+    @Inject
+    public DeclReader(ResourceManager resourceManager) {
+        this.resourceManager = resourceManager;
+    }
+
+    @Override
+    public boolean canRead(Resource entry) {
+        if (entry.type() != ResourceType.RsStreamFile) {
+            return false;
+        }
+
+        var name = entry.name().name().substring(RootPrefix.length());
+        var basePath = name.substring(0, name.indexOf('/'));
+        return !Unsupported.contains(basePath);
+    }
+
+    @Override
+    public JsonObject read(BetterBuffer buffer, Resource resource) {
+        byte[] bytes = buffer.getBytes(buffer.length());
+        return DeclParser.parse(decode(bytes));
     }
 
     public JsonObject load(String name) {
@@ -76,17 +91,16 @@ public final class DeclManager {
     }
 
     private JsonObject getJsonObject(String name) {
-        var read = manager.read(manager.get(RootPrefix + name, ResourceType.RsStreamFile));
-        var source = decode(read);
+        var resource = resourceManager.get(RootPrefix + name, ResourceType.RsStreamFile);
+        byte[] bytes = resourceManager.read(resource);
 
-//        var value =  switch (basePath) {
+        //        var value =  switch (basePath) {
 //            case "animweb", "articulatedfigure", "breakable", "renderprogflag", "renderparm", "renderlayerdefinition" ->
 //                throw new UnsupportedOperationException("Unsupported decl type: " + basePath);
 //            case "entitydef" -> parseEntityDefDecl(name);
 //            default -> postProcessArrays(parseStandardDecl(name));
 //        }
-
-        return DeclParser.parse(source);
+        return DeclParser.parse(decode(bytes));
     }
 
 

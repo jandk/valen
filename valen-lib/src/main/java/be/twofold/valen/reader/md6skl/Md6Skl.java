@@ -5,8 +5,8 @@ import be.twofold.valen.core.util.*;
 
 import java.util.*;
 
-public record Md6Skeleton(
-    Md6SkeletonHeader header,
+public record Md6Skl(
+    Md6SklHeader header,
     List<Quaternion> rotations,
     List<Vector3> scales,
     List<Vector3> translations,
@@ -14,8 +14,8 @@ public record Md6Skeleton(
     List<Matrix4> inverseBasePoses,
     List<String> names
 ) {
-    public static Md6Skeleton read(BetterBuffer buffer) {
-        var header = Md6SkeletonHeader.read(buffer);
+    public static Md6Skl read(BetterBuffer buffer) {
+        var header = Md6SklHeader.read(buffer);
 
         buffer.expectPosition(header.basePoseOffset() + 4);
         var rotations = buffer.getStructs(header.numJoints8(), Quaternion::read);
@@ -31,10 +31,10 @@ public record Md6Skeleton(
         buffer.expectPosition(header.size() + 4); // names are tacked on the end
         var names = buffer.getStructs(header.numJoints8(), BetterBuffer::getString);
 
-        return new Md6Skeleton(header, rotations, scales, translations, parents, inverseBasePoses, names);
+        return new Md6Skl(header, rotations, scales, translations, parents, inverseBasePoses, names);
     }
 
-    private static List<Matrix4> readInverseBasePoses(BetterBuffer buffer, Md6SkeletonHeader header) {
+    private static List<Matrix4> readInverseBasePoses(BetterBuffer buffer, Md6SklHeader header) {
         List<Matrix4> inverseBasePoses = new ArrayList<>();
         for (var i = 0; i < header.numJoints8(); i++) {
             var floats = new float[16];

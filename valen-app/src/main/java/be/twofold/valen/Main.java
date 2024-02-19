@@ -1,6 +1,6 @@
 package be.twofold.valen;
 
-import be.twofold.valen.manager.*;
+import be.twofold.valen.reader.*;
 import be.twofold.valen.ui.*;
 import be.twofold.valen.ui.settings.*;
 import com.formdev.flatlaf.*;
@@ -33,7 +33,8 @@ public final class Main {
             }
 
             try {
-                var manager = new FileManager(SettingsManager.get().getGameDirectory().get().resolve("base"));
+                var manager = DaggerManagerFactory.create().fileManager();
+                manager.load(SettingsManager.get().getGameDirectory().get().resolve("base"));
                 manager.select("common");
 
                 var presenter = DaggerPresenterFactory.create().presenter();

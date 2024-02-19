@@ -3,6 +3,7 @@ package be.twofold.valen.reader.binaryfile;
 import be.twofold.valen.core.util.*;
 import be.twofold.valen.reader.*;
 import be.twofold.valen.resource.*;
+import jakarta.inject.*;
 
 import javax.crypto.*;
 import javax.crypto.spec.*;
@@ -10,6 +11,15 @@ import java.security.*;
 import java.util.*;
 
 public final class BinaryFileReader implements ResourceReader<byte[]> {
+    @Inject
+    public BinaryFileReader() {
+    }
+
+    @Override
+    public boolean canRead(Resource entry) {
+        return entry.type() == ResourceType.BinaryFile;
+    }
+
     @Override
     public byte[] read(BetterBuffer buffer, Resource resource) {
         try {

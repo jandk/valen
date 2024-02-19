@@ -2,18 +2,23 @@ package be.twofold.valen.stream;
 
 import be.twofold.valen.core.util.*;
 import be.twofold.valen.reader.packagemapspec.*;
+import jakarta.inject.*;
 
 import java.io.*;
 import java.nio.file.*;
 import java.util.*;
 
+@Singleton
 public final class StreamManager {
-
-    private final Path base;
-    private final PackageMapSpec spec;
+    private Path base;
+    private PackageMapSpec spec;
     private Map<Long, StreamDbFile> index;
 
-    public StreamManager(Path base, PackageMapSpec spec) throws IOException {
+    @Inject
+    public StreamManager() {
+    }
+
+    public void load(Path base, PackageMapSpec spec) throws IOException {
         this.base = Check.notNull(base, "base must not be null");
         this.spec = Check.notNull(spec, "spec must not be null");
 

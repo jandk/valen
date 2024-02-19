@@ -2,24 +2,29 @@ package be.twofold.valen.resource;
 
 import be.twofold.valen.core.util.*;
 import be.twofold.valen.reader.packagemapspec.*;
+import jakarta.inject.*;
 
 import java.io.*;
 import java.nio.file.*;
 import java.util.*;
 
+@Singleton
 public final class ResourceManager implements AutoCloseable {
     private final List<ResourcesFile> files = new ArrayList<>();
     private final Map<ResourceKey, ResourcesFile> keyIndex = new HashMap<>();
     private final NavigableMap<String, Map<ResourceKey, Resource>> nameIndex = new TreeMap<>();
 
-    private final Path base;
-    private final PackageMapSpec spec;
+    private Path base;
+    private PackageMapSpec spec;
 
-    public ResourceManager(Path base, PackageMapSpec spec) {
+    @Inject
+    public ResourceManager() {
+    }
+
+    public void load(Path base, PackageMapSpec spec) throws IOException {
         this.base = Check.notNull(base, "base must not be null");
         this.spec = Check.notNull(spec, "spec must not be null");
     }
-
 
     public Resource get(String name, ResourceType type) {
         return get(name, type, ResourceVariation.None, Map.of(), Map.of());

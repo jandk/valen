@@ -2,16 +2,16 @@ package be.twofold.valen.reader.md6;
 
 import be.twofold.valen.core.util.*;
 
-public record Md6GeoDecals(
+public record Md6MeshGeoDecals(
     String materialName,
     int[] geoDecalCounts,
     int[][] geoDecalIndices
 ) {
-    public static Md6GeoDecals read(BetterBuffer buffer) {
+    public static Md6MeshGeoDecals read(BetterBuffer buffer) {
         var materialName = buffer.getString();
         var numStreams = buffer.getInt();
         if (materialName.isEmpty() && numStreams == 0) {
-            return new Md6GeoDecals(materialName, new int[0], new int[0][]);
+            return new Md6MeshGeoDecals(materialName, new int[0], new int[0][]);
         }
 
         var counts = buffer.getInts(numStreams);
@@ -20,6 +20,6 @@ public record Md6GeoDecals(
             indices[stream] = buffer.getInts(counts[stream]);
         }
 
-        return new Md6GeoDecals(materialName, counts, indices);
+        return new Md6MeshGeoDecals(materialName, counts, indices);
     }
 }

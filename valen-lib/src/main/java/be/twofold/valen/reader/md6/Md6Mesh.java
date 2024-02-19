@@ -6,21 +6,21 @@ import be.twofold.valen.reader.geometry.*;
 
 import java.util.*;
 
-public record Md6(
-    Md6Header header,
-    Md6BoneInfo boneInfo,
+public record Md6Mesh(
+    Md6MeshHeader header,
+    Md6MeshBoneInfo boneInfo,
     List<Md6MeshInfo> meshInfos,
-    List<Md6MaterialInfo> materialInfos,
-    Md6GeoDecals geoDecals,
+    List<Md6MeshMaterialInfo> materialInfos,
+    Md6MeshGeoDecals geoDecals,
     List<GeometryDiskLayout> layouts,
     List<Mesh> meshes
 ) {
-    public static Md6 read(BetterBuffer buffer) {
-        var header = Md6Header.read(buffer);
-        var boneInfo = Md6BoneInfo.read(buffer);
+    public static Md6Mesh read(BetterBuffer buffer) {
+        var header = Md6MeshHeader.read(buffer);
+        var boneInfo = Md6MeshBoneInfo.read(buffer);
         var meshInfos = buffer.getStructs(buffer.getInt(), Md6MeshInfo::read);
-        var materialInfos = buffer.getStructs(buffer.getInt(), Md6MaterialInfo::read);
-        var geoDecals = Md6GeoDecals.read(buffer);
+        var materialInfos = buffer.getStructs(buffer.getInt(), Md6MeshMaterialInfo::read);
+        var geoDecals = Md6MeshGeoDecals.read(buffer);
         var memoryLayouts = buffer.getStructs(buffer.getInt(), GeometryMemoryLayout::read);
 
         var layouts = new ArrayList<GeometryDiskLayout>();
@@ -30,10 +30,10 @@ public record Md6(
         }
 
         buffer.expectEnd();
-        return new Md6(header, boneInfo, meshInfos, materialInfos, geoDecals, layouts, List.of());
+        return new Md6Mesh(header, boneInfo, meshInfos, materialInfos, geoDecals, layouts, List.of());
     }
 
-    public Md6 withMeshes(List<Mesh> meshes) {
-        return new Md6(header, boneInfo, meshInfos, materialInfos, geoDecals, layouts, meshes);
+    public Md6Mesh withMeshes(List<Mesh> meshes) {
+        return new Md6Mesh(header, boneInfo, meshInfos, materialInfos, geoDecals, layouts, meshes);
     }
 }

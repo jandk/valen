@@ -2,7 +2,7 @@ package be.twofold.valen.reader.md6skl;
 
 import be.twofold.valen.core.util.*;
 
-public record Md6SkeletonHeader(
+public record Md6SklHeader(
     short size,
     short numJoints,
     short numUserChannels,
@@ -19,7 +19,7 @@ public record Md6SkeletonHeader(
     short loadedDataSize,
     byte[] pad
 ) {
-    public static Md6SkeletonHeader read(BetterBuffer buffer) {
+    public static Md6SklHeader read(BetterBuffer buffer) {
         buffer.skip(4); // These are a copy of the size
         var size = buffer.getShort();
         var numJoints = buffer.getShort();
@@ -38,7 +38,7 @@ public record Md6SkeletonHeader(
         var loadedDataSize = buffer.getShort();
         var pad = buffer.getBytes(6);
 
-        return new Md6SkeletonHeader(
+        return new Md6SklHeader(
             size,
             numJoints,
             numUserChannels,

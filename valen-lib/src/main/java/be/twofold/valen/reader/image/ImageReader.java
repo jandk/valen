@@ -5,12 +5,19 @@ import be.twofold.valen.core.util.*;
 import be.twofold.valen.reader.*;
 import be.twofold.valen.resource.*;
 import be.twofold.valen.stream.*;
+import jakarta.inject.*;
 
 public final class ImageReader implements ResourceReader<Texture> {
     private final StreamManager streamManager;
 
+    @Inject
     public ImageReader(StreamManager streamManager) {
         this.streamManager = streamManager;
+    }
+
+    @Override
+    public boolean canRead(Resource entry) {
+        return entry.type() == ResourceType.Image;
     }
 
     @Override

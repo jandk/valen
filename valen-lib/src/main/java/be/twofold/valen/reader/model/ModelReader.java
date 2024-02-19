@@ -9,6 +9,7 @@ import be.twofold.valen.reader.geometry.*;
 import be.twofold.valen.reader.image.*;
 import be.twofold.valen.resource.*;
 import be.twofold.valen.stream.*;
+import jakarta.inject.*;
 
 import java.nio.*;
 import java.util.*;
@@ -16,22 +17,28 @@ import java.util.*;
 public final class ModelReader implements ResourceReader<be.twofold.valen.core.geometry.Model> {
     private final ResourceManager resourceManager;
     private final StreamManager streamManager;
-    private final DeclManager declManager;
+    private final DeclReader declReader;
 
+    @Inject
     public ModelReader(
         ResourceManager resourceManager,
         StreamManager streamManager,
-        DeclManager declManager
+        DeclReader declReader
     ) {
         this.resourceManager = resourceManager;
         this.streamManager = streamManager;
-        this.declManager = declManager;
+        this.declReader = declReader;
+    }
+
+    @Override
+    public boolean canRead(Resource entry) {
+        return entry.type() == ResourceType.Model;
     }
 
     @Override
     public be.twofold.valen.core.geometry.Model read(BetterBuffer buffer, Resource resource) {
         var model = read(buffer, true, resource.hash());
-        return new be.twofold.valen.core.geometry.Model(model.meshes(), null);
+        return new be.twofold.valen.core.geometry.Model(model.meshes(), model.materials(), null);
     }
 
     public Model read(BetterBuffer buffer, boolean readStreams, long hash) {
@@ -148,7 +155,7 @@ public final class ModelReader implements ResourceReader<be.twofold.valen.core.g
     }
 
     private Material readMaterial(String materialName) {
-        var object = declManager.load("material2/" + materialName + ".decl");
+        var object = declReader.load("material2/" + materialName + ".decl");
         var parms = object
             .getAsJsonObject("edit")
             .getAsJsonArray("RenderLayers")
