@@ -1,7 +1,6 @@
 package be.twofold.valen.reader.binaryfile;
 
 import be.twofold.valen.core.util.*;
-import be.twofold.valen.manager.*;
 import be.twofold.valen.reader.*;
 import be.twofold.valen.resource.*;
 
@@ -12,7 +11,7 @@ import java.util.*;
 
 public final class BinaryFileReader implements ResourceReader<byte[]> {
     @Override
-    public byte[] read(BetterBuffer buffer, Resource resource, FileManager manager) {
+    public byte[] read(BetterBuffer buffer, Resource resource) {
         try {
             var salt = buffer.getBytes(12);
             var iVec = buffer.getBytes(16);

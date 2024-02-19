@@ -1,7 +1,6 @@
 package be.twofold.valen.reader.compfile.entities;
 
 import be.twofold.valen.core.util.*;
-import be.twofold.valen.manager.*;
 import be.twofold.valen.reader.*;
 import be.twofold.valen.reader.compfile.*;
 import be.twofold.valen.reader.decl.parser.*;
@@ -18,8 +17,8 @@ public final class EntityReader implements ResourceReader<EntityFile> {
     }
 
     @Override
-    public EntityFile read(BetterBuffer buffer, Resource resource, FileManager manager) {
-        byte[] bytes = compFileReader.read(buffer, resource, manager);
+    public EntityFile read(BetterBuffer buffer, Resource resource) {
+        byte[] bytes = compFileReader.read(buffer, resource);
         String input = new String(bytes, StandardCharsets.UTF_8);
 
         var parser = new DeclParser(input);

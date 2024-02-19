@@ -24,11 +24,11 @@ public final class GltfWriter implements GltfContext {
         .registerTypeAdapter(AnimationChannelTargetPath.class, new AnimationChannelTargetPathTypeAdapter())
         .registerTypeAdapter(AnimationSamplerInterpolation.class, new AnimationSamplerInterpolationTypeAdapter())
         .registerTypeAdapter(BufferViewTarget.class, new BufferViewTargetTypeAdapter().nullSafe())
-        .registerTypeAdapter(Matrix4.class, new Matrix4TypeAdapter())
-        .registerTypeAdapter(Quaternion.class, new QuaternionTypeAdapter())
-        .registerTypeAdapter(Vector2.class, new Vector2TypeAdapter())
-        .registerTypeAdapter(Vector3.class, new Vector3TypeAdapter())
-        .registerTypeAdapter(Vector4.class, new Vector4TypeAdapter())
+        .registerTypeAdapter(Matrix4.class, new Matrix4TypeAdapter().nullSafe())
+        .registerTypeAdapter(Quaternion.class, new QuaternionTypeAdapter().nullSafe())
+        .registerTypeAdapter(Vector2.class, new Vector2TypeAdapter().nullSafe())
+        .registerTypeAdapter(Vector3.class, new Vector3TypeAdapter().nullSafe())
+        .registerTypeAdapter(Vector4.class, new Vector4TypeAdapter().nullSafe())
         .create();
 
     private final WritableByteChannel channel;
@@ -180,7 +180,7 @@ public final class GltfWriter implements GltfContext {
             .buffer(BufferId.of(0))
             .byteOffset(bufferLength)
             .byteLength(length)
-            .target(target)
+            .target(Optional.ofNullable(target))
             .build();
         bufferViews.add(bufferView);
 

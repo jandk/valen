@@ -90,7 +90,7 @@ public final class DeclManager {
     }
 
 
-    private JsonObject merge(JsonObject parent, JsonObject child) {
+    public JsonObject merge(JsonObject parent, JsonObject child) {
         JsonObject result = parent.deepCopy();
         for (var entry : child.entrySet()) {
             var key = entry.getKey();

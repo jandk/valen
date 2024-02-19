@@ -138,7 +138,7 @@ public final class Experiment {
 //        Files.writeString(Path.of("C:\\Temp\\CSV\\static_geometry_geoms.csv"), csv1);
 
 //
-        var model = manager.readResource(FileType.AnimatedModel, "md6/characters/monsters/imp/base/assets/mesh/imp.md6mesh", null);
+        var model = manager.readResource(FileType.AnimatedModel, "md6/characters/monsters/imp/base/assets/mesh/imp.md6mesh");
 //        var skeleton = manager.readResource(FileType.Skeleton, "md6/characters/monsters/imp/base/assets/mesh/imp.md6skl");
 //        var animation = manager.readResource(FileType.Animation, "md6/characters/monsters/imp/base/motion/combat/idle.md6anim");
 //

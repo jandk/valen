@@ -34,7 +34,7 @@ public final class FileManager {
 
             this.readers = Map.of(
                 ResourceType.Anim, new Md6AnimReader(),
-                ResourceType.BaseModel, new Md6Reader(streamManager),
+                ResourceType.BaseModel, new Md6Reader(this, streamManager),
                 ResourceType.BinaryFile, new BinaryFileReader(),
                 ResourceType.CompFile, new CompFileReader(),
                 ResourceType.Image, new ImageReader(streamManager),
@@ -54,11 +54,15 @@ public final class FileManager {
         return resourceManager.getEntries();
     }
 
+    public DeclManager getDeclManager() {
+        return declManager;
+    }
+
     public void select(String map) throws IOException {
         resourceManager.select(map);
     }
 
-    public boolean exist(String name){
+    public boolean exist(String name) {
         return getEntries().stream().anyMatch(resource -> resource.name().name().equals(name));
     }
 

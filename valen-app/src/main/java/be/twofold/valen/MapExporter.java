@@ -50,7 +50,7 @@ public final class MapExporter {
         var entityResource = manager.getEntries().stream()
             .filter(e -> e.name().name().endsWith(".entities")).findFirst().orElseThrow();
         var entityReader = new EntityReader(new CompFileReader());
-        var entities = entityReader.read(BetterBuffer.wrap(manager.readRawResource(entityResource)), null, manager);
+        var entities = entityReader.read(BetterBuffer.wrap(manager.readRawResource(entityResource)), null);
         var md6DefParser = new MD6DefParser();
 
         try (var channel = Files.newByteChannel(Path.of("map.glb"), StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING)) {
@@ -83,7 +83,7 @@ public final class MapExporter {
                 var modelName = instances.models().get(geometry.modelIndex()).toLowerCase(Locale.ROOT);
                 var meshId = meshCache.computeIfAbsent(modelName, k -> {
                     try {
-                        var model = manager.readResource(FileType.StaticModel, modelName, ResourceType.Model);
+                        var model = manager.readResource(FileType.StaticModel, modelName);
                         return writer.addMesh(model);
 
                     } catch (IllegalArgumentException ex) {
@@ -215,7 +215,7 @@ public final class MapExporter {
                                     tmp += ".bmodel";
                                 }
 
-                                var model = manager.readResource(FileType.StaticModel, tmp, ResourceType.Model);
+                                var model = manager.readResource(FileType.StaticModel, tmp);
                                 return writer.addMesh(model);
                             } catch (IllegalArgumentException ex) {
                                 System.err.println("Failed to find " + modelName + " model");
@@ -253,32 +253,32 @@ public final class MapExporter {
 //                            toVec3(modelInfo.get("scale")).ifPresent(entityNodeBuilder::scale);
 //                        }
 //                    }
-                    case "idAnimated" -> {
-                        JsonObject modelInfo = entityEditData.getAsJsonObject("renderModelInfo");
-                        String modelName = modelInfo.get("model").getAsString();
-                        System.out.println("Loading idDynamicEntity with model " + modelName);
-                        String md6declName = "generated/decls/md6def/" + modelName + ".decl";
-
-                        if (manager.exist(md6declName)) {
-                            String src = new String(manager.readRawResource(md6declName, ResourceType.RsStreamFile));
-                            JsonObject md6def = md6DefParser.parse(src);
-                            String meshPath = md6def.getAsJsonObject("init").getAsJsonPrimitive("mesh").getAsString();
-                            var model = manager.readResource(FileType.AnimatedModel, meshPath, ResourceType.BaseModel);
-                            MeshId meshId = writer.addMesh(model);
-                            entityNodeBuilder.mesh(meshId);
-                            if(model.skeleton()!=null) {
-                                var skeletonAndSkin = writer.addSkin(model.skeleton());
-                                sceneNodes.add(skeletonAndSkin.getKey());
-                                entityNodeBuilder.skin(skeletonAndSkin.getValue());
-                            }
-                        } else {
-                            System.err.println("Failed to resource for " + modelName);
-                        }
-
-                        if (modelInfo.has("scale")) {
-                            toVec3(modelInfo.get("scale")).ifPresent(entityNodeBuilder::scale);
-                        }
-                    }
+//                    case "idAnimated" -> {
+//                        JsonObject modelInfo = entityEditData.getAsJsonObject("renderModelInfo");
+//                        String modelName = modelInfo.get("model").getAsString();
+//                        System.out.println("Loading idDynamicEntity with model " + modelName);
+//                        String md6declName = "generated/decls/md6def/" + modelName + ".decl";
+//
+//                        if (manager.exist(md6declName)) {
+//                            String src = new String(manager.readRawResource(md6declName, ResourceType.RsStreamFile));
+//                            JsonObject md6def = md6DefParser.parse(src);
+//                            String meshPath = md6def.getAsJsonObject("init").getAsJsonPrimitive("mesh").getAsString();
+//                            var model = manager.readResource(FileType.AnimatedModel, meshPath, ResourceType.BaseModel);
+//                            MeshId meshId = writer.addMesh(model);
+//                            entityNodeBuilder.mesh(meshId);
+//                            if(model.skeleton()!=null) {
+//                                var skeletonAndSkin = writer.addSkin(model.skeleton());
+//                                sceneNodes.add(skeletonAndSkin.getKey());
+//                                entityNodeBuilder.skin(skeletonAndSkin.getValue());
+//                            }
+//                        } else {
+//                            System.err.println("Failed to resource for " + modelName);
+//                        }
+//
+//                        if (modelInfo.has("scale")) {
+//                            toVec3(modelInfo.get("scale")).ifPresent(entityNodeBuilder::scale);
+//                        }
+//                    }
                     default -> System.out.println("Unhandled entity: " + entityClass);
                 }
                 entityNodeBuilder.rotation(rotation);

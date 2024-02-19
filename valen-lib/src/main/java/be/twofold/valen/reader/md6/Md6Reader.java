@@ -5,7 +5,6 @@ import be.twofold.valen.core.util.*;
 import be.twofold.valen.manager.*;
 import be.twofold.valen.reader.*;
 import be.twofold.valen.reader.geometry.*;
-import be.twofold.valen.reader.md6skl.*;
 import be.twofold.valen.resource.*;
 import be.twofold.valen.stream.*;
 
@@ -14,15 +13,17 @@ import java.util.*;
 
 public final class Md6Reader implements ResourceReader<Model> {
     private final StreamManager streamManager;
+    private final FileManager fileManager;
 
-    public Md6Reader(StreamManager streamManager) {
+    public Md6Reader(FileManager fileManager,StreamManager streamManager) {
         this.streamManager = streamManager;
+        this.fileManager = fileManager;
     }
 
     @Override
-    public Model read(BetterBuffer buffer, Resource resource, FileManager manager) {
+    public Model read(BetterBuffer buffer, Resource resource) {
         Md6 md6 = read(buffer, true, resource.hash());
-        Skeleton skeleton = manager.readResource(FileType.Skeleton,md6.header().skelName(),ResourceType.Skeleton);
+        Skeleton skeleton = fileManager.readResource(FileType.Skeleton,md6.header().skelName());
         return new Model(md6.meshes(), skeleton);
     }
 
