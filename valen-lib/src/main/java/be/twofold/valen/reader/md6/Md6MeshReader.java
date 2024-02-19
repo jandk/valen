@@ -27,7 +27,7 @@ public final class Md6MeshReader implements ResourceReader<Model> {
     @Override
     public Model read(BetterBuffer buffer, Resource resource) {
         Md6Mesh md6 = read(buffer, true, resource.hash());
-        return new Model(md6.meshes(), null);
+        return new Model(md6.meshes(), null, null);
     }
 
     public Md6Mesh read(BetterBuffer buffer, boolean readStreams, long hash) {

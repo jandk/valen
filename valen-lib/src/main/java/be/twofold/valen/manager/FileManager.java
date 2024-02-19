@@ -2,11 +2,9 @@ package be.twofold.valen.manager;
 
 import be.twofold.valen.core.util.*;
 import be.twofold.valen.reader.*;
-import be.twofold.valen.reader.decl.*;
 import be.twofold.valen.reader.packagemapspec.*;
 import be.twofold.valen.resource.*;
 import be.twofold.valen.stream.*;
-import com.google.gson.*;
 import jakarta.inject.*;
 
 import java.io.*;
@@ -17,7 +15,6 @@ import java.util.*;
 public final class FileManager {
     private final ResourceManager resourceManager;
     private final StreamManager streamManager;
-    private final DeclManager declManager;
     private final Set<ResourceReader<?>> readers;
 
     private PackageMapSpec spec;
@@ -26,12 +23,10 @@ public final class FileManager {
     public FileManager(
         ResourceManager resourceManager,
         StreamManager streamManager,
-        DeclManager declManager,
         Set<ResourceReader<?>> readers
     ) {
         this.resourceManager = resourceManager;
         this.streamManager = streamManager;
-        this.declManager = declManager;
         this.readers = Set.copyOf(readers);
     }
 
@@ -75,10 +70,5 @@ public final class FileManager {
             .filter(r -> r.canRead(entry))
             .findFirst()
             .orElseThrow(() -> new IllegalArgumentException("No reader found for " + entry));
-    }
-
-    public JsonObject readDecl(Resource entry) {
-        var name = entry.name().name().substring("generated/decls/".length());
-        return declManager.load(name);
     }
 }
