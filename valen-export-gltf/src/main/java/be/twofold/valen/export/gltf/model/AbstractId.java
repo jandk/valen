@@ -3,7 +3,7 @@ package be.twofold.valen.export.gltf.model;
 public abstract class AbstractId {
     private final int id;
 
-    AbstractId(int id) {
+    protected AbstractId(int id) {
         this.id = id;
     }
 
