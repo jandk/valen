@@ -15,13 +15,13 @@ import java.util.*;
 
 public final class GltfWriter implements GltfContext {
     private static final Gson GSON = new GsonBuilder()
-        .registerTypeHierarchyAdapter(AbstractId.class, new AbstractIdTypeAdapter())
+        .registerTypeHierarchyAdapter(AbstractId.class, new AbstractIdTypeAdapter().nullSafe())
         .registerTypeHierarchyAdapter(Collection.class, new CollectionSerializer())
         .registerTypeAdapter(AccessorComponentType.class, new AccessorComponentTypeTypeAdapter())
         .registerTypeAdapter(AccessorType.class, new AccessorTypeTypeAdapter())
         .registerTypeAdapter(AnimationChannelTargetPath.class, new AnimationChannelTargetPathTypeAdapter())
         .registerTypeAdapter(AnimationSamplerInterpolation.class, new AnimationSamplerInterpolationTypeAdapter())
-        .registerTypeAdapter(BufferViewTarget.class, new BufferViewTargetTypeAdapter())
+        .registerTypeAdapter(BufferViewTarget.class, new BufferViewTargetTypeAdapter().nullSafe())
         .registerTypeAdapter(Matrix4.class, new Matrix4TypeAdapter())
         .registerTypeAdapter(Quaternion.class, new QuaternionTypeAdapter())
         .registerTypeAdapter(Vector2.class, new Vector2TypeAdapter())

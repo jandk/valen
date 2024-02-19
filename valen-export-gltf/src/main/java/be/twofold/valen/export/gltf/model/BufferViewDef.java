@@ -33,5 +33,5 @@ public interface BufferViewDef extends GltfChildOfRootProperty {
     /**
      * The hint representing the intended GPU buffer type to use with this buffer view.
      */
-    BufferViewTarget getTarget();
+    Optional<BufferViewTarget> getTarget();
 }

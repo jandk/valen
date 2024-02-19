@@ -33,7 +33,7 @@ final class GltfSkeletonMapper {
                 skeletonNode = NodeId.of(offset + i);
             }
             jointIndices.add(NodeId.of(offset + i));
-            buildSkeletonJoint(bones.get(i), children.getOrDefault(i, List.of()));
+            buildSkeletonJoint(bones.get(i), children.getOrDefault(NodeId.of(i), List.of()));
         }
 
         var buffer = FloatBuffer.allocate(bones.size() * 16);
