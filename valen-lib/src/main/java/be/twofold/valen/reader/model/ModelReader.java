@@ -3,10 +3,9 @@ package be.twofold.valen.reader.model;
 import be.twofold.valen.core.geometry.*;
 import be.twofold.valen.core.material.*;
 import be.twofold.valen.core.util.*;
+import be.twofold.valen.manager.*;
 import be.twofold.valen.reader.*;
-import be.twofold.valen.reader.decl.*;
 import be.twofold.valen.reader.geometry.*;
-import be.twofold.valen.reader.image.*;
 import be.twofold.valen.resource.*;
 import be.twofold.valen.stream.*;
 import jakarta.inject.*;
@@ -15,19 +14,16 @@ import java.nio.*;
 import java.util.*;
 
 public final class ModelReader implements ResourceReader<be.twofold.valen.core.geometry.Model> {
-    private final ResourceManager resourceManager;
     private final StreamManager streamManager;
-    private final DeclReader declReader;
+    private final Provider<FileManager> fileManagerProvider;
 
     @Inject
     public ModelReader(
-        ResourceManager resourceManager,
         StreamManager streamManager,
-        DeclReader declReader
+        Provider<FileManager> fileManagerProvider
     ) {
-        this.resourceManager = resourceManager;
         this.streamManager = streamManager;
-        this.declReader = declReader;
+        this.fileManagerProvider = fileManagerProvider;
     }
 
     @Override
@@ -53,8 +49,9 @@ public final class ModelReader implements ResourceReader<be.twofold.valen.core.g
         for (int i = 0; i < meshes.size(); i++) {
             var meshInfo = model.meshInfos().get(i);
             var materialName = meshInfo.mtlDecl();
+            var materialFile = "generated/decls/material2/" + materialName + ".decl";
             var materialIndex = materialIndices.computeIfAbsent(materialName, k -> materials.size());
-            materials.computeIfAbsent(materialName, this::readMaterial);
+            materials.computeIfAbsent(materialName, name -> fileManagerProvider.get().readResource(FileType.Material, materialFile));
             finalMeshes.add(meshes.get(i).withMaterialIndex(materialIndex));
         }
 
@@ -137,104 +134,6 @@ public final class ModelReader implements ResourceReader<be.twofold.valen.core.g
         var layouts = model.streamDiskLayouts().get(lod).memoryLayouts();
 
         return new GeometryReader(false).readMeshes(buffer, lods, layouts);
-    }
-
-    // endregion
-
-
-    // region Textures
-
-    private Map<String, Material> readMaterials(List<ModelMeshInfo> meshInfos) {
-        var materials = new TreeMap<String, Material>();
-        for (var meshInfo : meshInfos) {
-            var key = meshInfo.mtlDecl();
-            var value = readMaterial(key);
-            materials.putIfAbsent(key, value);
-        }
-        return materials;
-    }
-
-    private Material readMaterial(String materialName) {
-        var object = declReader.load("material2/" + materialName + ".decl");
-        var parms = object
-            .getAsJsonObject("edit")
-            .getAsJsonArray("RenderLayers")
-            .get(0).getAsJsonObject()
-            .getAsJsonObject("parms");
-
-        var references = new ArrayList<TextureReference>();
-        for (var entry : parms.entrySet()) {
-            var type = mapTexture(entry.getKey());
-            var filename = entry.getValue().getAsJsonObject()
-                .get("filePath").getAsString();
-            var options = entry.getValue().getAsJsonObject()
-                .getAsJsonObject("options");
-
-            if (filename.isEmpty()) {
-                continue;
-            }
-
-            var requiredAttributes = new HashMap<String, String>();
-            if (type == TextureType.Smoothness) {
-                String normal = parms
-                    .getAsJsonObject("normal")
-                    .get("filePath").getAsString();
-                requiredAttributes.put("smoothnessnormal", normal);
-            }
-
-            requiredAttributes.put("mtlkind", mapMtlKind(entry.getKey()));
-
-            var optionalAttributes = new HashMap<String, String>();
-            var format = mapFormat(options.get("format").getAsString());
-            optionalAttributes.put(format, format);
-
-            var resource = resourceManager.get(filename, ResourceType.Image, requiredAttributes, optionalAttributes);
-            references.add(new TextureReference(type, resource.name().name()));
-        }
-
-        return new Material(materialName, references);
-    }
-
-    private String mapFormat(String format) {
-        return switch (ImageTextureFormat.valueOf(format)) {
-            case FMT_RGBA16F -> "float";
-            case FMT_RGBA8 -> "rgba8";
-            case FMT_ALPHA -> "alpha";
-            case FMT_RG8 -> "rg8";
-            case FMT_BC1 -> "bc1";
-            case FMT_BC3 -> "bc3";
-            case FMT_R8 -> "r8";
-            case FMT_BC6H_UF16 -> "bc6huf16";
-            case FMT_BC7 -> "bc7";
-            case FMT_BC4 -> "bc4";
-            case FMT_BC5 -> "bc5";
-            case FMT_RG16F -> "rg16f";
-            case FMT_RG32F -> "rg32f";
-            case FMT_RGBA8_SRGB -> "rgba8srgb";
-            case FMT_BC1_SRGB -> "bc1srgb";
-            case FMT_BC3_SRGB -> "bc3srgb";
-            case FMT_BC7_SRGB -> "bc7srgb";
-            case FMT_BC6H_SF16 -> "bc6hsf16";
-            case FMT_BC1_ZERO_ALPHA -> "bc1za";
-            default -> throw new IllegalArgumentException("Unknown format: " + format);
-        };
-    }
-
-    private String mapMtlKind(String name) {
-        return switch (name) {
-            case "bloommaskmap" -> "bloommask";
-            default -> name;
-        };
-    }
-
-    private TextureType mapTexture(String key) {
-        return switch (key) {
-            case "albedo" -> TextureType.Albedo;
-            case "specular" -> TextureType.Specular;
-            case "normal" -> TextureType.Normal;
-            case "smoothness" -> TextureType.Smoothness;
-            default -> TextureType.Unknown;
-        };
     }
 
     // endregion
