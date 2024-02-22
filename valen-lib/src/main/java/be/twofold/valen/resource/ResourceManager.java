@@ -50,7 +50,7 @@ public final class ResourceManager implements AutoCloseable {
             name,
             name.substring(0, name.length() - 1) + (char) (name.charAt(name.length() - 1) + 1)
         );
-        if (matches.size() == 1) {
+        if (matches.size() == 1 || (requiredAttributes.isEmpty() && optionalAttributes.isEmpty())) {
             Map<ResourceKey, Resource> resources = matches.firstEntry().getValue();
             return match(resources, name, type, variation);
         }
