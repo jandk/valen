@@ -79,23 +79,15 @@ public final class GltfWriter implements GltfContext {
             throw new UncheckedIOException(e);
         }
     }
-
-    public void addUsedExtension(String name, boolean required) {
-        if (usedExtensions.contains(name)) {
-            return;
-        }
-
-        usedExtensions.add(name);
-        if (required) {
-            requiredExtensions.add(name);
-        }
-    }
-
     public Map<String, Extension> getExtensions() {
         return extensions;
     }
 
-    public void addExtension(String name, Extension extension) {
+    public void addExtension(String name, Extension extension, boolean required) {
+        usedExtensions.add(name);
+        if (required) {
+            requiredExtensions.add(name);
+        }
         extensions.put(name, extension);
     }
 
