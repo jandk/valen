@@ -156,6 +156,13 @@ public final class ModelReader implements ResourceReader<be.twofold.valen.core.g
 
     private Material readMaterial(String materialName) {
         var object = declReader.load("material2/" + materialName + ".decl");
+        if (!object.has("edit")) {
+            return new Material(materialName, List.of());
+        }
+        var editData = object.getAsJsonObject("edit");
+        if (!editData.has("RenderLayers")) {
+            return new Material(materialName, List.of());
+        }
         var parms = object
             .getAsJsonObject("edit")
             .getAsJsonArray("RenderLayers")
@@ -167,8 +174,6 @@ public final class ModelReader implements ResourceReader<be.twofold.valen.core.g
             var type = mapTexture(entry.getKey());
             var filename = entry.getValue().getAsJsonObject()
                 .get("filePath").getAsString();
-            var options = entry.getValue().getAsJsonObject()
-                .getAsJsonObject("options");
 
             if (filename.isEmpty()) {
                 continue;
@@ -185,8 +190,12 @@ public final class ModelReader implements ResourceReader<be.twofold.valen.core.g
             requiredAttributes.put("mtlkind", mapMtlKind(entry.getKey()));
 
             var optionalAttributes = new HashMap<String, String>();
-            var format = mapFormat(options.get("format").getAsString());
-            optionalAttributes.put(format, format);
+            if(entry.getValue().getAsJsonObject().has("options")) {
+                var options = entry.getValue().getAsJsonObject().getAsJsonObject("options");
+
+                var format = mapFormat(options.get("format").getAsString());
+                optionalAttributes.put(format, format);
+            }
 
             var resource = resourceManager.get(filename, ResourceType.Image, requiredAttributes, optionalAttributes);
             references.add(new TextureReference(type, resource.name().name()));
