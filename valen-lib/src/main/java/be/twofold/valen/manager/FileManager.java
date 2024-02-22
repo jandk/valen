@@ -49,10 +49,6 @@ public final class FileManager {
         return resourceManager.getEntries();
     }
 
-    public DeclManager getDeclManager() {
-        return declManager;
-    }
-
     public void select(String map) throws IOException {
         resourceManager.select(map);
     }
