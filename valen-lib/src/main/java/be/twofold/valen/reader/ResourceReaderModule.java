@@ -11,6 +11,7 @@ import be.twofold.valen.reader.md6.*;
 import be.twofold.valen.reader.md6anim.*;
 import be.twofold.valen.reader.md6skl.*;
 import be.twofold.valen.reader.model.*;
+import be.twofold.valen.reader.staticinstances.*;
 import dagger.Module;
 import dagger.*;
 import dagger.multibindings.*;
@@ -81,6 +82,18 @@ abstract class ResourceReaderModule {
     @IntoSet
     @Provides
     static ResourceReader<?> provideModelReader(ModelReader reader) {
+        return reader;
+    }
+
+    @IntoSet
+    @Provides
+    static ResourceReader<?> provideStaticInstanceReader(StaticInstancesReader reader) {
+        return reader;
+    }
+
+    @IntoSet
+    @Provides
+    static ResourceReader<?> provideEntitiesReader(EntityReader reader) {
         return reader;
     }
 

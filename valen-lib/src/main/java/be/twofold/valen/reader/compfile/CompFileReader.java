@@ -6,7 +6,13 @@ import be.twofold.valen.reader.*;
 import be.twofold.valen.resource.*;
 import jakarta.inject.*;
 
+import java.util.*;
+
 public final class CompFileReader implements ResourceReader<byte[]> {
+
+    static Set<String> BlacklistedExtensions = Set.of(
+        "entities"
+    );
 
     @Inject
     public CompFileReader() {
@@ -14,7 +20,7 @@ public final class CompFileReader implements ResourceReader<byte[]> {
 
     @Override
     public boolean canRead(Resource entry) {
-        return entry.type() == ResourceType.CompFile;
+        return entry.type() == ResourceType.CompFile && !BlacklistedExtensions.contains(entry.name().extension());
     }
 
     @Override

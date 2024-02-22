@@ -3,8 +3,10 @@ package be.twofold.valen.reader.compfile.entities;
 import be.twofold.valen.core.util.*;
 import be.twofold.valen.reader.*;
 import be.twofold.valen.reader.compfile.*;
+import be.twofold.valen.reader.decl.*;
 import be.twofold.valen.reader.decl.parser.*;
 import be.twofold.valen.resource.*;
+import com.google.gson.*;
 import jakarta.inject.*;
 
 import java.nio.charset.*;
@@ -12,20 +14,23 @@ import java.util.*;
 
 public final class EntityReader implements ResourceReader<EntityFile> {
     private final CompFileReader compFileReader;
+    private final DeclReader declReader;
 
     @Inject
-    public EntityReader(CompFileReader compFileReader) {
+    public EntityReader(CompFileReader compFileReader, DeclReader declReader) {
         this.compFileReader = compFileReader;
+        this.declReader = declReader;
     }
 
     @Override
     public boolean canRead(Resource entry) {
         return entry.type() == ResourceType.CompFile
-               && entry.name().extension().equals("entities");
+            && entry.name().extension().equals("entities");
     }
 
     @Override
     public EntityFile read(BetterBuffer buffer, Resource resource) {
+        final Map<String, JsonObject> parentCache = new HashMap<>();
         byte[] bytes = compFileReader.read(buffer, resource);
         String input = new String(bytes, StandardCharsets.UTF_8);
 
@@ -70,6 +75,12 @@ public final class EntityReader implements ResourceReader<EntityFile> {
             parser.expect(DeclTokenType.Name, "entityDef");
             var name = parser.expectName();
             var entityDef = parser.parseValue().getAsJsonObject();
+
+            if (entityDef.has("inherit")) {
+                var parentName = entityDef.get("inherit").getAsString();
+                var inhObject = parentCache.computeIfAbsent(parentName, s -> declReader.load("entitydef/" + parentName + ".decl"));
+                entityDef = declReader.merge(inhObject, entityDef);
+            }
 
             var entity = new Entity(layers, instanceId, originalName, entityDef);
             entities.put(name, entity);
