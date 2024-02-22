@@ -10,9 +10,8 @@ import com.google.gson.JsonPrimitive;
 public class EntityDefParser {
 
     public JsonObject parse(String source) {
-        var parser = new DeclParser(source);
 
-        return parseObject(parser);
+        return parseObject(new DeclParser(source));
     }
 
     private JsonObject parseObject(DeclParser parser) {

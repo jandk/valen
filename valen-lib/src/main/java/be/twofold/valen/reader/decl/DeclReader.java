@@ -3,7 +3,6 @@ package be.twofold.valen.reader.decl;
 import be.twofold.valen.core.util.*;
 import be.twofold.valen.reader.*;
 import be.twofold.valen.reader.decl.entitydef.EntityDefParser;
-import be.twofold.valen.reader.decl.md6def.*;
 import be.twofold.valen.reader.decl.parser.*;
 import be.twofold.valen.resource.*;
 import com.google.gson.*;
@@ -21,11 +20,13 @@ public final class DeclReader implements ResourceReader<JsonObject> {
     private static final CharsetDecoder Utf8Decoder = StandardCharsets.UTF_8.newDecoder();
     private static final CharsetDecoder Iso88591Decoder = StandardCharsets.ISO_8859_1.newDecoder();
 
+    private static final EntityDefParser entityDefParser = new EntityDefParser();
+
     private static final Set<String> Unsupported = Set.of(
         "animweb",
         "articulatedfigure",
         "breakable",
-        "entitydef", // Custom content per entity
+        //"entitydef", // Custom content per entity
         "md6def",
         "renderlayerdefinition",
         "renderparm", // Also filenames
@@ -72,7 +73,7 @@ public final class DeclReader implements ResourceReader<JsonObject> {
 
     private JsonObject load(String basePath, String name) {
         System.out.println("Loading decl: " + name);
-        var value = getJsonObject(name);
+        var value = getJsonObject(name, basePath);
 
         JsonObject parent;
         if (value.has("inherit")) {
@@ -90,19 +91,14 @@ public final class DeclReader implements ResourceReader<JsonObject> {
         return merge(parent, value);
     }
 
-    private JsonObject getJsonObject(String name) {
+    private JsonObject getJsonObject(String name, String basePath) {
         var resource = resourceManager.get(RootPrefix + name, ResourceType.RsStreamFile);
         byte[] bytes = resourceManager.read(resource);
-
-        //        var value =  switch (basePath) {
-//            case "animweb", "articulatedfigure", "breakable", "renderprogflag", "renderparm", "renderlayerdefinition" ->
-//                throw new UnsupportedOperationException("Unsupported decl type: " + basePath);
-//            case "entitydef" -> parseEntityDefDecl(name);
-//            default -> postProcessArrays(parseStandardDecl(name));
-//        }
-        return DeclParser.parse(decode(bytes));
+        return switch (basePath) {
+            case "entitydef" -> entityDefParser.parse(decode(bytes));
+            default -> DeclParser.parse(decode(bytes));
+        };
     }
-
 
     public JsonObject merge(JsonObject parent, JsonObject child) {
         JsonObject result = parent.deepCopy();
