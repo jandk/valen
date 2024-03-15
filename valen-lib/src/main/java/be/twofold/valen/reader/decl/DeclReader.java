@@ -51,23 +51,18 @@ public final class DeclReader implements ResourceReader<JsonObject> {
         return !Unsupported.contains(basePath);
     }
 
-    private static String getBasePath(String name) {
-        if (!name.startsWith(RootPrefix)) {
-            throw new IllegalArgumentException("Invalid decl name: " + name);
-        }
-
-        name = name.substring(RootPrefix.length());
-        return name.substring(0, name.indexOf('/'));
-    }
-
     @Override
     public JsonObject read(BetterBuffer buffer, Resource resource) {
         var bytes = buffer.getBytes(buffer.length());
         var object = DeclParser.parse(decode(bytes));
 
         var result = loadInherit(object, resource.nameString());
+        result = result.deepCopy();
         postProcessArrays(result);
 
+        if (!result.has("edit")) {
+            return new JsonObject();
+        }
         return result.getAsJsonObject("edit");
     }
 
@@ -100,21 +95,15 @@ public final class DeclReader implements ResourceReader<JsonObject> {
         return merge(parent, object);
     }
 
-
-    private JsonObject merge(JsonObject parent, JsonObject child) {
-        var result = parent.deepCopy();
-        for (var entry : child.entrySet()) {
-            var key = entry.getKey();
-            var value = entry.getValue();
-
-            var oldValue = result.get(key);
-            if (oldValue != null && oldValue.isJsonObject() && value.isJsonObject()) {
-                value = merge(oldValue.getAsJsonObject(), value.getAsJsonObject());
-            }
-            result.add(key, value);
+    private String getBasePath(String name) {
+        if (!name.startsWith(RootPrefix)) {
+            throw new IllegalArgumentException("Invalid decl name: " + name);
         }
-        return result;
+
+        name = name.substring(RootPrefix.length());
+        return name.substring(0, name.indexOf('/'));
     }
+
 
     private String decode(byte[] bytes) {
         // Either UTF-8 or ISO-8859-1, so out is always smaller
@@ -131,6 +120,21 @@ public final class DeclReader implements ResourceReader<JsonObject> {
         }
     }
 
+
+    private JsonObject merge(JsonObject parent, JsonObject child) {
+        var result = parent.deepCopy();
+        for (var entry : child.entrySet()) {
+            var key = entry.getKey();
+            var value = entry.getValue();
+
+            var oldValue = result.get(key);
+            if (oldValue != null && oldValue.isJsonObject() && value.isJsonObject()) {
+                value = merge(oldValue.getAsJsonObject(), value.getAsJsonObject());
+            }
+            result.add(key, value);
+        }
+        return result;
+    }
 
     private void postProcessArrays(JsonObject value) {
         for (var entry : value.entrySet()) {

@@ -2,25 +2,26 @@ package be.twofold.valen.reader.decl.material2;
 
 import be.twofold.valen.core.material.*;
 import be.twofold.valen.core.util.*;
-import be.twofold.valen.manager.*;
 import be.twofold.valen.reader.*;
+import be.twofold.valen.reader.decl.*;
 import be.twofold.valen.reader.image.*;
 import be.twofold.valen.resource.*;
+import com.google.gson.*;
 import jakarta.inject.*;
 
 import java.util.*;
 
 public final class MaterialReader implements ResourceReader<Material> {
-    private final Provider<FileManager> fileManager;
     private final ResourceManager resourceManager;
+    private final DeclReader declReader;
 
     @Inject
     public MaterialReader(
-        Provider<FileManager> fileManager,
-        ResourceManager resourceManager
+        ResourceManager resourceManager,
+        DeclReader declReader
     ) {
-        this.fileManager = fileManager;
         this.resourceManager = resourceManager;
+        this.declReader = declReader;
     }
 
     @Override
@@ -31,20 +32,18 @@ public final class MaterialReader implements ResourceReader<Material> {
 
     @Override
     public Material read(BetterBuffer buffer, Resource resource) {
-        var name = resource.nameString()
-            .replace("generated/decls/material2/", "")
-            .replace(".decl", "");
-        return readMaterial(name);
+        JsonObject object = declReader.read(buffer, resource);
+        return readMaterial(object, resource.nameString());
     }
 
 
-    private Material readMaterial(String materialName) {
-        String name = "generated/decls/material2/" + materialName + ".decl";
-        var object = fileManager.get()
-            .readResource(FileType.Declaration, name);
+    private Material readMaterial(JsonObject object, String name) {
+        var materialName = name
+            .replace("generated/decls/material2/", "")
+            .replace(".decl", "");
 
         if (!object.has("RenderLayers")) {
-            return new Material(materialName, new ArrayList<>());
+            return new Material(materialName, List.of());
         }
 
         var parms = object
@@ -60,7 +59,7 @@ public final class MaterialReader implements ResourceReader<Material> {
             var options = entry.getValue().getAsJsonObject()
                 .getAsJsonObject("options");
 
-            if (filename.isEmpty()) {
+            if (filename.isEmpty() || options == null) {
                 continue;
             }
 
@@ -78,8 +77,8 @@ public final class MaterialReader implements ResourceReader<Material> {
             var format = mapFormat(options.get("format").getAsString());
             optionalAttributes.put(format, format);
 
-            var resource = resourceManager.get(filename, ResourceType.Image, requiredAttributes, optionalAttributes);
-            references.add(new TextureReference(type, resource.nameString()));
+            // var resource = resourceManager.get(filename, ResourceType.Image, requiredAttributes, optionalAttributes);
+            references.add(new TextureReference(type, ""));
         }
 
         return new Material(materialName, references);
