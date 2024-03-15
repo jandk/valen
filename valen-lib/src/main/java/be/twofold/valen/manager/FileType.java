@@ -4,7 +4,10 @@ import be.twofold.valen.core.animation.*;
 import be.twofold.valen.core.geometry.*;
 import be.twofold.valen.core.material.*;
 import be.twofold.valen.core.texture.*;
+import be.twofold.valen.reader.compfile.entities.*;
+import be.twofold.valen.reader.decl.renderparm.*;
 import be.twofold.valen.resource.*;
+import com.google.gson.*;
 
 public record FileType<T>(
     Class<T> instanceType,
@@ -18,4 +21,7 @@ public record FileType<T>(
     public static final FileType<byte[]> BinaryFile = new FileType<>(byte[].class, ResourceType.BinaryFile);
     public static final FileType<byte[]> CompFile = new FileType<>(byte[].class, ResourceType.CompFile);
     public static final FileType<Material> Material = new FileType<>(Material.class, ResourceType.RsStreamFile);
+    public static final FileType<RenderParm> RenderParm = new FileType<>(RenderParm.class, ResourceType.RsStreamFile);
+    public static final FileType<EntityFile> Entities = new FileType<>(EntityFile.class, ResourceType.CompFile);
+    public static final FileType<JsonObject> Declaration = new FileType<>(JsonObject.class, ResourceType.RsStreamFile);
 }

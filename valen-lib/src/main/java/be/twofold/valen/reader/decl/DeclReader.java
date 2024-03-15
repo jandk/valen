@@ -43,60 +43,66 @@ public final class DeclReader implements ResourceReader<JsonObject> {
         if (entry.type() != ResourceType.RsStreamFile) {
             return false;
         }
+        if (!entry.nameString().startsWith(RootPrefix)) {
+            return false;
+        }
 
-        var name = entry.name().name().substring(RootPrefix.length());
-        var basePath = name.substring(0, name.indexOf('/'));
+        var basePath = getBasePath(entry.nameString());
         return !Unsupported.contains(basePath);
+    }
+
+    private static String getBasePath(String name) {
+        if (!name.startsWith(RootPrefix)) {
+            throw new IllegalArgumentException("Invalid decl name: " + name);
+        }
+
+        name = name.substring(RootPrefix.length());
+        return name.substring(0, name.indexOf('/'));
     }
 
     @Override
     public JsonObject read(BetterBuffer buffer, Resource resource) {
-        byte[] bytes = buffer.getBytes(buffer.length());
-        return DeclParser.parse(decode(bytes));
+        var bytes = buffer.getBytes(buffer.length());
+        var object = DeclParser.parse(decode(bytes));
+
+        var result = loadInherit(object, resource.nameString());
+        postProcessArrays(result);
+
+        return result.getAsJsonObject("edit");
     }
 
-    public JsonObject load(String name) {
-        var basePath = name
-            .substring(0, name.indexOf('/'));
-
-        if (Unsupported.contains(basePath)) {
-            throw new UnsupportedOperationException("Unsupported decl type: " + basePath);
+    private JsonObject loadInherit(JsonObject object, String name) {
+        if (!object.has("inherit")) {
+            return object;
         }
 
-        JsonObject object = load(basePath, name);
-        postProcessArrays(object);
-        return object;
-    }
+        System.out.println("Loading inherited decl: " + name);
+        var inherit = object.getAsJsonPrimitive("inherit").getAsString();
+        var basePath = getBasePath(name);
+        var key = basePath + "/" + inherit;
 
-    private JsonObject load(String basePath, String name) {
-        System.out.println("Loading decl: " + name);
-        var value = getJsonObject(name);
-
-        JsonObject parent;
-        if (value.has("inherit")) {
-            var inherit = value.getAsJsonPrimitive("inherit").getAsString();
-            var key = basePath + "/" + inherit + ".decl";
-            parent = declCache.get(key);
-            if (parent == null) {
-                parent = load(basePath, key);
-                declCache.put(key, parent);
-            }
-        } else {
-            parent = new JsonObject();
+        var parent = declCache.get(key);
+        if (parent != null) {
+            return parent;
         }
 
-        return merge(parent, value);
-    }
+        var fullName = RootPrefix + key + ".decl";
+        var resource = resourceManager.get(fullName, ResourceType.RsStreamFile);
+        if (resource == null) {
+            System.err.println("Missing decl: " + fullName);
+            return object;
+        }
 
-    private JsonObject getJsonObject(String name) {
-        var resource = resourceManager.get(RootPrefix + name, ResourceType.RsStreamFile);
-        byte[] bytes = resourceManager.read(resource);
-        return DeclParser.parse(decode(bytes));
+        var bytes = resourceManager.read(resource);
+        parent = DeclParser.parse(decode(bytes));
+        parent = loadInherit(parent, fullName);
+        declCache.put(key, parent);
+        return merge(parent, object);
     }
 
 
     private JsonObject merge(JsonObject parent, JsonObject child) {
-        JsonObject result = parent.deepCopy();
+        var result = parent.deepCopy();
         for (var entry : child.entrySet()) {
             var key = entry.getKey();
             var value = entry.getValue();
@@ -109,7 +115,6 @@ public final class DeclReader implements ResourceReader<JsonObject> {
         }
         return result;
     }
-
 
     private String decode(byte[] bytes) {
         // Either UTF-8 or ISO-8859-1, so out is always smaller
@@ -126,7 +131,8 @@ public final class DeclReader implements ResourceReader<JsonObject> {
         }
     }
 
-    public static void postProcessArrays(JsonObject value) {
+
+    private void postProcessArrays(JsonObject value) {
         for (var entry : value.entrySet()) {
             if (!entry.getValue().isJsonObject()) {
                 continue;
@@ -141,7 +147,7 @@ public final class DeclReader implements ResourceReader<JsonObject> {
         }
     }
 
-    private static JsonArray toArray(JsonObject object) {
+    private JsonArray toArray(JsonObject object) {
         var size = object.get("num").getAsInt();
         var array = new JsonArray(size);
         for (var i = 0; i < size; i++) {
@@ -156,6 +162,10 @@ public final class DeclReader implements ResourceReader<JsonObject> {
                 throw new IllegalArgumentException("Invalid key: " + entry.getKey());
             }
             var index = Integer.parseInt(matcher.group(1));
+            if (index >= size) {
+                continue;
+            }
+
             array.set(index, entry.getValue());
         }
         return array;

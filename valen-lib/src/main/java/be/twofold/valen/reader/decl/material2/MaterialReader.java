@@ -2,8 +2,8 @@ package be.twofold.valen.reader.decl.material2;
 
 import be.twofold.valen.core.material.*;
 import be.twofold.valen.core.util.*;
+import be.twofold.valen.manager.*;
 import be.twofold.valen.reader.*;
-import be.twofold.valen.reader.decl.*;
 import be.twofold.valen.reader.image.*;
 import be.twofold.valen.resource.*;
 import jakarta.inject.*;
@@ -11,24 +11,27 @@ import jakarta.inject.*;
 import java.util.*;
 
 public final class MaterialReader implements ResourceReader<Material> {
+    private final Provider<FileManager> fileManager;
     private final ResourceManager resourceManager;
-    private final DeclReader declReader;
 
     @Inject
-    public MaterialReader(ResourceManager resourceManager, DeclReader declReader) {
+    public MaterialReader(
+        Provider<FileManager> fileManager,
+        ResourceManager resourceManager
+    ) {
+        this.fileManager = fileManager;
         this.resourceManager = resourceManager;
-        this.declReader = declReader;
     }
 
     @Override
     public boolean canRead(Resource entry) {
         return entry.type() == ResourceType.RsStreamFile
-               && entry.name().name().startsWith("generated/decls/material2/");
+               && entry.nameString().startsWith("generated/decls/material2/");
     }
 
     @Override
     public Material read(BetterBuffer buffer, Resource resource) {
-        var name = resource.name().name()
+        var name = resource.nameString()
             .replace("generated/decls/material2/", "")
             .replace(".decl", "");
         return readMaterial(name);
@@ -36,9 +39,15 @@ public final class MaterialReader implements ResourceReader<Material> {
 
 
     private Material readMaterial(String materialName) {
-        var object = declReader.load("material2/" + materialName + ".decl");
+        String name = "generated/decls/material2/" + materialName + ".decl";
+        var object = fileManager.get()
+            .readResource(FileType.Declaration, name);
+
+        if (!object.has("RenderLayers")) {
+            return new Material(materialName, new ArrayList<>());
+        }
+
         var parms = object
-            .getAsJsonObject("edit")
             .getAsJsonArray("RenderLayers")
             .get(0).getAsJsonObject()
             .getAsJsonObject("parms");
@@ -70,7 +79,7 @@ public final class MaterialReader implements ResourceReader<Material> {
             optionalAttributes.put(format, format);
 
             var resource = resourceManager.get(filename, ResourceType.Image, requiredAttributes, optionalAttributes);
-            references.add(new TextureReference(type, resource.name().name()));
+            references.add(new TextureReference(type, resource.nameString()));
         }
 
         return new Material(materialName, references);

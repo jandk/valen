@@ -14,6 +14,7 @@ module valen.lib {
     exports be.twofold.valen.reader.compfile.entities;
     exports be.twofold.valen.reader.compfile;
     exports be.twofold.valen.reader.decl.parser;
+    exports be.twofold.valen.reader.decl.renderparm;
     exports be.twofold.valen.reader.decl;
     exports be.twofold.valen.reader.image;
     exports be.twofold.valen.reader.md6;
@@ -28,4 +29,5 @@ module valen.lib {
     exports be.twofold.valen.stream;
     exports be.twofold.valen.writer.dds;
     exports be.twofold.valen.writer.png;
+    exports be.twofold.valen.reader.file;
 }

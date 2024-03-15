@@ -4,7 +4,8 @@ import be.twofold.valen.reader.binaryfile.*;
 import be.twofold.valen.reader.binaryfile.blang.*;
 import be.twofold.valen.reader.compfile.*;
 import be.twofold.valen.reader.compfile.entities.*;
-import be.twofold.valen.reader.decl.material2.*;
+import be.twofold.valen.reader.decl.*;
+import be.twofold.valen.reader.decl.renderparm.*;
 import be.twofold.valen.reader.file.*;
 import be.twofold.valen.reader.file.mapresources.*;
 import be.twofold.valen.reader.image.*;
@@ -39,6 +40,12 @@ abstract class ResourceReaderModule {
 
     @IntoSet
     @Provides
+    static ResourceReader<?> provideDeclReader(DeclReader reader) {
+        return reader;
+    }
+
+    @IntoSet
+    @Provides
     static ResourceReader<?> provideEntityReader(EntityReader reader) {
         return reader;
     }
@@ -61,11 +68,11 @@ abstract class ResourceReaderModule {
         return reader;
     }
 
-    @IntoSet
-    @Provides
-    static ResourceReader<?> provideMaterialReader(MaterialReader reader) {
-        return reader;
-    }
+//    @IntoSet
+//    @Provides
+//    static ResourceReader<?> provideMaterialReader(MaterialReader reader) {
+//        return reader;
+//    }
 
     @IntoSet
     @Provides
@@ -88,6 +95,12 @@ abstract class ResourceReaderModule {
     @IntoSet
     @Provides
     static ResourceReader<?> provideModelReader(ModelReader reader) {
+        return reader;
+    }
+
+    @IntoSet
+    @Provides
+    static ResourceReader<?> provideRenderParmReader(RenderParmReader reader) {
         return reader;
     }
 

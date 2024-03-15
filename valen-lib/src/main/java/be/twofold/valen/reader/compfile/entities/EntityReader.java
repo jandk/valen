@@ -30,44 +30,41 @@ public final class EntityReader implements ResourceReader<EntityFile> {
         String input = new String(bytes, StandardCharsets.UTF_8);
 
         var parser = new DeclParser(input);
-        parser.expect(DeclTokenType.Name, "Version");
+        parser.expectName("Version");
         var version = parser.expectNumber().intValue();
 
-        parser.expect(DeclTokenType.Name, "HierarchyVersion");
+        parser.expectName("HierarchyVersion");
         var hierarchyVersion = parser.expectNumber().intValue();
 
         var entities = new LinkedHashMap<String, Entity>();
-        while (!parser.isEof()) {
-            parser.expect(DeclTokenType.Name, "entity");
+        while (!parser.match(DeclTokenType.Eof)) {
+            parser.expectName("entity");
             parser.expect(DeclTokenType.OpenBrace);
 
             var layers = new ArrayList<String>();
-            if (parser.peekToken().value().equals("layers")) {
-                parser.expect(DeclTokenType.Name, "layers");
+            if (parser.matchName("layers")) {
                 parser.expect(DeclTokenType.OpenBrace);
-                while (parser.peekToken().type() != DeclTokenType.CloseBrace) {
+                while (parser.match(DeclTokenType.CloseBrace)) {
                     layers.add(parser.expectString());
                 }
                 parser.expect(DeclTokenType.CloseBrace);
             }
 
             Integer instanceId = null;
-            if (parser.peekToken().value().equals("instanceId")) {
-                parser.expect(DeclTokenType.Name, "instanceId");
+            if (parser.matchName("instanceId")) {
                 parser.expect(DeclTokenType.Assign);
                 instanceId = parser.expectNumber().intValue();
                 parser.expect(DeclTokenType.Semicolon);
             }
 
             String originalName = null;
-            if (parser.peekToken().value().equals("originalName")) {
-                parser.expect(DeclTokenType.Name, "originalName");
+            if (parser.matchName("originalName")) {
                 parser.expect(DeclTokenType.Assign);
                 originalName = parser.expectString();
                 parser.expect(DeclTokenType.Semicolon);
             }
 
-            parser.expect(DeclTokenType.Name, "entityDef");
+            parser.expectName("entityDef");
             var name = parser.expectName();
             var entityDef = parser.parseValue().getAsJsonObject();
 

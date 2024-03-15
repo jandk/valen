@@ -14,7 +14,8 @@ public final class CompFileReader implements ResourceReader<byte[]> {
 
     @Override
     public boolean canRead(Resource entry) {
-        return entry.type() == ResourceType.CompFile;
+        return entry.type() == ResourceType.CompFile
+               && !entry.name().extension().equals("entities");
     }
 
     @Override

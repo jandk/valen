@@ -29,7 +29,7 @@ public final class ImageReader implements ResourceReader<Texture> {
     public Image read(BetterBuffer buffer, boolean readStreams, long hash) {
         var image = Image.read(buffer);
 
-        if (readStreams) {
+        if (readStreams && streamManager != null) {
             /*
              * Not entirely sure, but it seems to work, so I'm calling it the "single stream" format
              * Specified by a boolean at offset 0x38 in the header. Could mean something else though...

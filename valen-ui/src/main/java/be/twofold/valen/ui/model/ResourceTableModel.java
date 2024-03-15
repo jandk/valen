@@ -46,7 +46,7 @@ public final class ResourceTableModel extends AbstractTableModel {
     public Object getValueAt(int rowIndex, int columnIndex) {
         var resource = data.get(rowIndex);
         return switch (columnIndex) {
-            case 0 -> resource.name().name();
+            case 0 -> resource.nameString();
             case 1 -> resource.type().name();
             case 2 -> resource.size();
             case 3 -> resource.uncompressedSize();

@@ -31,7 +31,7 @@ public final class BinaryFileReader implements ResourceReader<byte[]> {
             var digest = MessageDigest.getInstance("SHA-256");
             digest.update(salt);
             digest.update("swapTeam\n\0".getBytes());
-            digest.update(resource.name().name().getBytes());
+            digest.update(resource.nameString().getBytes());
             var key = digest.digest();
 
             var mac = Mac.getInstance("HmacSHA256");

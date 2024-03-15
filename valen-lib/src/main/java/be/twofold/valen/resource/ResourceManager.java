@@ -46,10 +46,15 @@ public final class ResourceManager implements AutoCloseable {
         Map<String, String> requiredAttributes,
         Map<String, String> optionalAttributes
     ) {
+        name = name.toLowerCase(Locale.ROOT);
         var matches = nameIndex.subMap(
             name,
             name.substring(0, name.length() - 1) + (char) (name.charAt(name.length() - 1) + 1)
         );
+        if (matches.isEmpty()) {
+            // Sometimes files are straight up missing
+            return null;
+        }
         if (matches.size() == 1) {
             Map<ResourceKey, Resource> resources = matches.firstEntry().getValue();
             return match(resources, name, type, variation);
@@ -144,7 +149,7 @@ public final class ResourceManager implements AutoCloseable {
         var key = resource.key();
         keyIndex.putIfAbsent(key, file);
         nameIndex
-            .computeIfAbsent(resource.name().name(), __ -> new HashMap<>())
+            .computeIfAbsent(resource.nameString(), __ -> new HashMap<>())
             .putIfAbsent(key, resource);
     }
 

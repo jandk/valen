@@ -18,6 +18,10 @@ public record Resource(
         return new ResourceKey(name, type, variation);
     }
 
+    public String nameString() {
+        return name.toString();
+    }
+
     @Override
     public boolean equals(Object obj) {
         return obj instanceof Resource other
