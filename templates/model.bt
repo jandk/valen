@@ -1,23 +1,17 @@
 #include <common/common.bt>
 
 struct ModelHeader {
-    uint always0_1;
-    uint always0_2;
-    uint always0_3;
-    uint always5;
-    uint numMeshes;
-    uint always0_4;
-    float unknown1;
-    float unknown2;
-    float unknown3;
-    uint always0_5;
-    uint streamed;
+    Vector3 referencePosition;
+    uint numLods;
+    uint numSurfaces;
+    float maxLodDeviations[numLods];
+    uint streamable;
 };
 
 struct ModelLodInfo {
     int alwaysMinus2;
-    uint numVertices;
-    uint numEdges;
+    uint numVerts;
+    uint numIndices;
     uint flags;
     Vector3 negBounds;
     Vector3 posBounds;
@@ -79,12 +73,12 @@ struct Layout {
 
 struct Model {
     ModelHeader header <style=sHeading1>;
-    ModelMeshInfo meshInfo[header.numMeshes] <style=sHeading2, optimize=false>;
+    ModelMeshInfo meshInfo[header.numSurfaces] <style=sHeading2, optimize=false>;
     ModelSettings settings <style=sHeading4>;
     ModelGeoDecals geoDecals <style=sHeading1>;
     ModelBooleans booleans <style=sHeading2>;
-    ubyte streamedSurfaces[header.numMeshes * 5] <style=sHeading3>;
-    if (header.streamed) {
+    ubyte streamedSurfaces[header.numSurfaces * 5] <style=sHeading3>;
+    if (header.streamable) {
         Layout layouts[5] <style=sHeading4, optimize=false>;
     }
 } model;
