@@ -43,30 +43,30 @@ public final class DeclLexer {
             case '<':
                 skip();
                 if (peek() == '<') {
-                    return punctuation(DeclTokenType.LeftShift);
+                    return punctuation(DeclTokenType.LeftShift, "<<");
                 } else {
                     break;
                 }
             case '=':
-                return punctuation(DeclTokenType.Assign);
+                return punctuation(DeclTokenType.Assign, "=");
             case ',':
-                return punctuation(DeclTokenType.Comma);
+                return punctuation(DeclTokenType.Comma, ",");
             case ';':
-                return punctuation(DeclTokenType.Semicolon);
+                return punctuation(DeclTokenType.Semicolon, ";");
             case '(':
-                return punctuation(DeclTokenType.OpenParen);
+                return punctuation(DeclTokenType.OpenParen, "(");
             case ')':
-                return punctuation(DeclTokenType.CloseParen);
+                return punctuation(DeclTokenType.CloseParen, ")");
             case '{':
-                return punctuation(DeclTokenType.OpenBrace);
+                return punctuation(DeclTokenType.OpenBrace, "{");
             case '}':
-                return punctuation(DeclTokenType.CloseBrace);
+                return punctuation(DeclTokenType.CloseBrace, "}");
             case '[':
-                return punctuation(DeclTokenType.OpenBracket);
+                return punctuation(DeclTokenType.OpenBracket, "[");
             case ']':
-                return punctuation(DeclTokenType.CloseBracket);
+                return punctuation(DeclTokenType.CloseBracket, "]");
             case '$':
-                return punctuation(DeclTokenType.Dollar);
+                return punctuation(DeclTokenType.Dollar, "$");
             case '"':
                 return new DeclToken(DeclTokenType.String, parseString());
             default:
@@ -80,9 +80,9 @@ public final class DeclLexer {
         throw new DeclParseException("Unexpected character: " + ch);
     }
 
-    private DeclToken punctuation(DeclTokenType type) {
+    private DeclToken punctuation(DeclTokenType type, String value) {
         skip();
-        return new DeclToken(type, null);
+        return new DeclToken(type, value);
     }
 
     private String parseString() {

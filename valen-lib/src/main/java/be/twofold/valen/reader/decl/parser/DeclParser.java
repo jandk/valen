@@ -6,7 +6,11 @@ public final class DeclParser {
     private final DeclLexer lexer;
 
     public DeclParser(String source) {
-        this.lexer = new DeclLexer(source);
+        this(source, false);
+    }
+
+    public DeclParser(String source, boolean allowFilenames) {
+        this.lexer = new DeclLexer(source, allowFilenames);
     }
 
     public static JsonObject parse(String source) {
@@ -31,6 +35,15 @@ public final class DeclParser {
         if (token.type() != DeclTokenType.Name || !token.value().equals(value)) {
             throw new DeclParseException("Expected " + DeclTokenType.Name + " " + value + ", got " + token);
         }
+    }
+
+    public boolean expectBoolean() {
+        var name = expectName();
+        return switch (name) {
+            case "true" -> true;
+            case "false" -> false;
+            default -> throw new DeclParseException("Expected boolean, got " + name);
+        };
     }
 
     public Number expectNumber() {
@@ -58,6 +71,22 @@ public final class DeclParser {
             return true;
         }
         return false;
+    }
+
+    public DeclToken next() {
+        return lexer.nextToken();
+    }
+
+    public DeclToken peek() {
+        return lexer.peekToken();
+    }
+
+    public String peekName() {
+        var token = lexer.peekToken();
+        if (token.type() != DeclTokenType.Name) {
+            throw new DeclParseException("Expected " + DeclTokenType.Name + ", got " + token);
+        }
+        return token.value();
     }
 
 
@@ -94,11 +123,7 @@ public final class DeclParser {
 
     private JsonObject parseObject() {
         var object = new JsonObject();
-        while (true) {
-            if (match(DeclTokenType.CloseBrace)) {
-                break;
-            }
-
+        while (!match(DeclTokenType.CloseBrace)) {
             var key = expectName();
             if (match(DeclTokenType.OpenBracket)) {
                 var index = expectNumber().intValue();
