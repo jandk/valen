@@ -1,16 +1,16 @@
 struct header {
-    char signature[4];
-    uint32 texture_count_maybe;
+    uint signature;
+    uint32 version;
     uint32 unknown2;
     uint32 level_count;
-    uint32 x_resolution;
-    uint32 y_resolution;
-    uint32 block_width;
-    uint32 block_height;
-    uint32 x_resolution_;
-    uint32 y_resolution_;
-    uint32 block_width_;
-    uint32 block_height_;
+    uint32 totalXRes;
+    uint32 totalYRes;
+    uint32 totalXBlocks;
+    uint32 totalYBlocks;
+    uint32 xRes;
+    uint32 yRes;
+    uint32 xBlocks;
+    uint32 yBlocks;
     uint32 unknown7;
     uint32 quadtree_level_count;
     uint64 pointer_offset;
