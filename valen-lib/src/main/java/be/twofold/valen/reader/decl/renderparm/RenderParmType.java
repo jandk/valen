@@ -1,7 +1,5 @@
 package be.twofold.valen.reader.decl.renderparm;
 
-import java.util.*;
-
 public enum RenderParmType {
     PT_F32_VEC4(0),
     PT_F32_VEC3(1),
@@ -40,17 +38,13 @@ public enum RenderParmType {
     PT_IMAGE3D_BUFFER(34),
     PT_ACCELERATION_STRUCTURE(35);
 
-    private static final RenderParmType[] VALUES = values();
     private final int code;
 
     RenderParmType(int code) {
         this.code = code;
     }
 
-    public static RenderParmType fromCode(int code) {
-        return Arrays.stream(VALUES)
-            .filter(type -> type.code == code)
-            .findFirst()
-            .orElseThrow(() -> new IllegalArgumentException("Unknown code: " + code));
+    public int getCode() {
+        return code;
     }
 }

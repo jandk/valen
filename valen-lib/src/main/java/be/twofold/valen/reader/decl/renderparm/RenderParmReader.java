@@ -1,6 +1,5 @@
 package be.twofold.valen.reader.decl.renderparm;
 
-import be.twofold.valen.core.math.*;
 import be.twofold.valen.core.util.*;
 import be.twofold.valen.reader.*;
 import be.twofold.valen.reader.decl.parser.*;
@@ -27,31 +26,19 @@ public final class RenderParmReader implements ResourceReader<RenderParm> {
         var bytes = buffer.getBytes(buffer.length());
         var parser = new DeclParser(new String(bytes), true);
 
+        var result = new RenderParm();
         parser.expect(DeclTokenType.OpenBrace);
-        var parmType = parseRenderParmType(parser.expectName());
-        var value = parseValue(parser, parmType);
-        var extras = parseExtras(parser);
+        result.parmType = parseParmType(parser.expectName());
+        result.declaredValue = parseValue(parser, result);
+        parseExtras(parser, result);
         parser.expect(DeclTokenType.CloseBrace);
         return null;
     }
 
-    final class ParmExtras {
-        ParmEdit parmEdit;
-        ParmScope parmScope;
-        boolean cubeFilterTexture;
-        boolean streamed;
-        boolean globallyIndexed;
-        boolean editable;
-        boolean envNoInterpolation;
-        boolean fftBloom;
-    }
-
-    private ParmExtras parseExtras(DeclParser parser) {
+    private void parseExtras(DeclParser parser, RenderParm result) {
         if (parser.peek().type() == DeclTokenType.CloseBrace) {
-            return null;
+            return;
         }
-
-        var result = new ParmExtras();
 
         while (parser.peek().type() != DeclTokenType.CloseBrace) {
             var edit = parseParmEdit(parser);
@@ -74,44 +61,41 @@ public final class RenderParmReader implements ResourceReader<RenderParm> {
             var token = parser.expectName();
             if (token.equalsIgnoreCase("materialKind")) {
                 parser.expect(DeclTokenType.Assign);
-                var kind = parseImageTextureMaterialKind(parser.expectName());
+                result.materialKind = parseImageTextureMaterialKind(parser.expectName());
                 continue;
             }
 
             if (token.equalsIgnoreCase("smoothnessNormalParm")) {
                 parser.expect(DeclTokenType.Assign);
-                var name = parser.expectName();
+                result.smoothnessNormalParm = parser.expectName();
                 continue;
             }
         }
-
-
-        return result;
     }
 
-    private boolean parseFlags(DeclParser parser, ParmExtras extras) {
+    private boolean parseFlags(DeclParser parser, RenderParm result) {
         var token = parser.peek();
         if (token.type() == DeclTokenType.CloseBrace) {
             return false;
         }
 
-        var result = switch (token.value()) {
+        var read = switch (token.value()) {
             case "streamed" -> {
-                extras.streamed = true;
-                extras.globallyIndexed = true;
+                result.streamed = true;
+                result.globallyIndexed = true;
                 yield true;
             }
-            case "globallyindexed" -> extras.globallyIndexed = true;
-            case "material", "edit" -> extras.editable = true;
-            case "env_nointerp" -> extras.envNoInterpolation = true;
-            case "fftBloom" -> extras.fftBloom = true;
+            case "globallyindexed" -> result.globallyIndexed = true;
+            case "material", "edit" -> result.editable = true;
+            case "env_nointerp" -> result.envNoInterpolation = true;
+            case "fftBloom" -> result.fftBloom = true;
             default -> false;
         };
 
-        if (result) {
+        if (read) {
             parser.expectName();
         }
-        return result;
+        return read;
     }
 
     private ParmScope parseParmScope(DeclParser parser) {
@@ -150,50 +134,42 @@ public final class RenderParmReader implements ResourceReader<RenderParm> {
     }
 
 
-    private RenderParm parseValue(DeclParser parser, RenderParmType type) {
-        return switch (type) {
-            case PT_F32_VEC4 -> {
-                var values = readVector(parser, 4);
-                yield new RenderParm.F32Vec4(new Vector4(values[0], values[1], values[2], values[3]));
-            }
-            case PT_F32_VEC3 -> {
-                var values = readVector(parser, 3);
-                yield new RenderParm.F32Vec3(new Vector3(values[0], values[1], values[2]));
-            }
-            case PT_F32_VEC2 -> {
-                var values = readVector(parser, 2);
-                yield new RenderParm.F32Vec2(new Vector2(values[0], values[1]));
-            }
-            case PT_F32 -> new RenderParm.F32(parser.expectNumber().floatValue());
-            case PT_UI32, PT_SI32 -> new RenderParm.I32(parser.expectNumber().intValue());
-            case PT_BOOL -> new RenderParm.Bool(parser.expectBoolean());
-
-            case PT_TEXTURE_2D, PT_TEXTURE_3D, PT_TEXTURE_CUBE, PT_TEXTURE_ARRAY_2D, PT_TEXTURE_ARRAY_CUBE,
-                 PT_TEXTURE_MULTISAMPLE_2D, PT_TEXTURE_STENCIL -> {
+    private Object parseValue(DeclParser parser, RenderParm renderParm) {
+        switch (renderParm.parmType) {
+            case PT_F32_VEC4:
+                return readVector(parser, 4);
+            case PT_F32_VEC3:
+                return readVector(parser, 3);
+            case PT_F32_VEC2:
+                return readVector(parser, 2);
+            case PT_F32:
+                return parser.expectNumber().floatValue();
+            case PT_UI32:
+            case PT_SI32:
+                return parser.expectNumber().intValue();
+            case PT_BOOL:
+                return parser.expectBoolean();
+            case PT_TEXTURE_2D:
+            case PT_TEXTURE_3D:
+            case PT_TEXTURE_CUBE:
+            case PT_TEXTURE_ARRAY_2D:
+            case PT_TEXTURE_ARRAY_CUBE:
+            case PT_TEXTURE_MULTISAMPLE_2D:
+            case PT_TEXTURE_STENCIL:
                 var props = parseImageProperties(parser);
-                var name = parser.expectName();
-                if (type == RenderParmType.PT_TEXTURE_CUBE) {
-                    props.type = ImageTextureType.TT_CUBIC;
-                }
-                // TODO: Random shit for environment renderparm
-                yield new RenderParm.Texture(props, name);
-            }
-
-            case PT_SAMPLER, PT_SAMPLER_SHADOW_2D, PT_SAMPLER_SHADOW_3D, PT_SAMPLER_SHADOW_CUBE -> {
+                props.name = parser.expectName();
+                return props;
+            case PT_SAMPLER:
+            case PT_SAMPLER_SHADOW_2D:
+            case PT_SAMPLER_SHADOW_3D:
+            case PT_SAMPLER_SHADOW_CUBE:
+            case PT_PROGRAM: {
                 var value = parser.next().value();
-                value = value.equals("0") ? null : value;
-                yield new RenderParm.Sampler(value);
+                return value.equals("0") ? null : value;
             }
-
-            case PT_PROGRAM -> {
-                var value = parser.next().value();
-                value = value.equals("0") ? null : value;
-                yield new RenderParm.Program(value);
-            }
-
-            case PT_STRING -> {
+            case PT_STRING:
                 DeclToken token = parser.peek();
-                String value = switch (token.type()) {
+                return switch (token.type()) {
                     case String, Name -> {
                         String result = token.value();
                         parser.next();
@@ -202,34 +178,30 @@ public final class RenderParmReader implements ResourceReader<RenderParm> {
                     case CloseBrace -> null;
                     default -> throw new UnsupportedOperationException();
                 };
-                yield new RenderParm.Str(value);
-            }
-
-            case PT_STORAGE_BUFFER -> {
+            case PT_STORAGE_BUFFER:
                 Set<BufferViewFlag> flags = readStorageBufferFlags(parser);
                 String name = parser.expectName();
-                yield new RenderParm.StorageBuffer(flags, name);
-            }
-
-            case PT_TYPE -> new RenderParm.Type(parseType(parser));
-            case PT_UNIFORM_BUFFER -> new RenderParm.UniformBuffer(parser.expectNumber().intValue());
-
-            case PT_IMAGE2D_STORE_BUFFER, PT_IMAGE2D_STORE_ARRAY_BUFFER, PT_IMAGE3D_STORE_BUFFER, PT_IMAGE2D_BUFFER,
-                 PT_IMAGE2D_ARRAY_BUFFER, PT_IMAGE3D_BUFFER -> {
-                var format = parseImageBufferFormat(parser.expectName());
-                yield new RenderParm.ImageBuffer(format);
-            }
-
-            case PT_UNIFORM_TEXEL_BUFFER, PT_STORAGE_TEXEL_BUFFER -> {
-                var format = parseImageBufferFormat(parser.expectName());
-                yield new RenderParm.TexelBuffer(format);
-            }
-
-            case PT_COLOR_LUT -> new RenderParm.ColorLut(parser.next().value());
-            case PT_ACCELERATION_STRUCTURE -> new RenderParm.AccelerationStructure();
-
-            default -> throw new UnsupportedOperationException("Unsupported type: " + type);
-        };
+                return new RenderParmStorageBuffer(flags, name);
+            case PT_TYPE:
+                return parseType(parser);
+            case PT_UNIFORM_BUFFER:
+                return parser.expectNumber().intValue();
+            case PT_IMAGE2D_STORE_BUFFER:
+            case PT_IMAGE2D_STORE_ARRAY_BUFFER:
+            case PT_IMAGE3D_STORE_BUFFER:
+            case PT_IMAGE2D_BUFFER:
+            case PT_IMAGE2D_ARRAY_BUFFER:
+            case PT_IMAGE3D_BUFFER:
+            case PT_UNIFORM_TEXEL_BUFFER:
+            case PT_STORAGE_TEXEL_BUFFER:
+                return parseImageBufferFormat(parser.expectName());
+            case PT_COLOR_LUT:
+                return parser.next().value();
+            case PT_ACCELERATION_STRUCTURE:
+                return null;
+            default:
+                throw new UnsupportedOperationException("Unsupported type: " + renderParm);
+        }
     }
 
     private static final Set<String> Skipped = Set.of(
@@ -243,7 +215,7 @@ public final class RenderParmReader implements ResourceReader<RenderParm> {
     );
 
     private ImageProperties parseImageProperties(DeclParser parser) {
-        var props = new ImageProperties();
+        var result = new ImageProperties();
         while (true) {
             String name = parser.peekName().toLowerCase();
             if (Skipped.contains(name)) {
@@ -251,33 +223,34 @@ public final class RenderParmReader implements ResourceReader<RenderParm> {
                 continue;
             }
 
+
             ImageTextureFormat imageTextureFormat = parseImageTextureFormat(name);
             if (imageTextureFormat != null) {
-                props.format = imageTextureFormat;
+                result.format = imageTextureFormat;
                 parser.expectName();
                 continue;
             }
 
             Integer padding = parsePadding(name);
             if (padding != null) {
-                props.padding = padding;
+                result.padding = padding;
                 parser.expectName();
                 continue;
             }
 
             switch (name) {
                 case "fullscalebias" -> {
-                    props.fullScaleBias = true;
+                    result.fullScaleBias = true;
                     parser.expectName();
                     continue;
                 }
                 case "fftbloom" -> {
-                    props.fftBloom = true;
+                    result.fftBloom = true;
                     parser.expectName();
                     continue;
                 }
                 case "nomips" -> {
-                    props.noMips = true;
+                    result.noMips = true;
                     parser.expectName();
                     continue;
                 }
@@ -285,7 +258,7 @@ public final class RenderParmReader implements ResourceReader<RenderParm> {
 
             break;
         }
-        return props;
+        return result;
     }
 
     private Integer parsePadding(String token) {
@@ -341,25 +314,6 @@ public final class RenderParmReader implements ResourceReader<RenderParm> {
         return a.equalsIgnoreCase(b);
     }
 
-    private static ImageTextureFormat parseImageTextureFormat(String token) {
-        return switch (token) {
-            case "alpha" -> ImageTextureFormat.FMT_ALPHA;
-            case "bc4" -> ImageTextureFormat.FMT_BC4;
-            case "bc5" -> ImageTextureFormat.FMT_BC5;
-            case "bc6h", "bc6huf16" -> ImageTextureFormat.FMT_BC6H_UF16;
-            case "bc6hsf16" -> ImageTextureFormat.FMT_BC6H_SF16;
-            case "bc7" -> ImageTextureFormat.FMT_BC7;
-            case "float" -> ImageTextureFormat.FMT_RGBA16F;
-            case "hqcompress", "hqcompressnormal" -> ImageTextureFormat.FMT_BC3;
-            case "r8" -> ImageTextureFormat.FMT_R8;
-            case "rg16f" -> ImageTextureFormat.FMT_RG16F;
-            case "rg32f" -> ImageTextureFormat.FMT_RG32F;
-            case "rg8" -> ImageTextureFormat.FMT_RG8;
-            case "uncompressed" -> ImageTextureFormat.FMT_RGBA8;
-            default -> null;
-        };
-    }
-
     private float[] readVector(DeclParser parser, int n) {
         var values = new float[n];
         if (!parser.match(DeclTokenType.OpenBrace)) {
@@ -381,44 +335,8 @@ public final class RenderParmReader implements ResourceReader<RenderParm> {
         return values;
     }
 
-    private RenderParmType parseRenderParmType(String name) {
-        return switch (name.toLowerCase()) {
-            case "tex", "tex2d" -> RenderParmType.PT_TEXTURE_2D;
-            case "tex3d" -> RenderParmType.PT_TEXTURE_3D;
-            case "texcube", "environment" -> RenderParmType.PT_TEXTURE_CUBE;
-            case "texarray2d" -> RenderParmType.PT_TEXTURE_ARRAY_2D;
-            case "texarraycube" -> RenderParmType.PT_TEXTURE_ARRAY_CUBE;
-            case "texmultisample2d" -> RenderParmType.PT_TEXTURE_MULTISAMPLE_2D;
-            case "texstencil" -> RenderParmType.PT_TEXTURE_STENCIL;
-            case "sampler" -> RenderParmType.PT_SAMPLER;
-            case "samplershadow2d" -> RenderParmType.PT_SAMPLER_SHADOW_2D;
-            case "samplershadow3d" -> RenderParmType.PT_SAMPLER_SHADOW_3D;
-            case "samplershadowcube" -> RenderParmType.PT_SAMPLER_SHADOW_CUBE;
-            case "program" -> RenderParmType.PT_PROGRAM;
-            case "f32vec4", "vec" -> RenderParmType.PT_F32_VEC4;
-            case "f32vec3" -> RenderParmType.PT_F32_VEC3;
-            case "f32vec2" -> RenderParmType.PT_F32_VEC2;
-            case "f32", "scalar" -> RenderParmType.PT_F32;
-            case "ui32" -> RenderParmType.PT_UI32;
-            case "si32" -> RenderParmType.PT_SI32;
-            case "bool" -> RenderParmType.PT_BOOL;
-            case "string" -> RenderParmType.PT_STRING;
-            case "structuredbuffer" -> RenderParmType.PT_STORAGE_BUFFER;
-            case "uniformbuffer" -> RenderParmType.PT_UNIFORM_BUFFER;
-            case "imagebuffer2d" -> RenderParmType.PT_IMAGE2D_BUFFER;
-            case "imagebuffer2darray" -> RenderParmType.PT_IMAGE2D_ARRAY_BUFFER;
-            case "imagebuffer3d" -> RenderParmType.PT_IMAGE3D_BUFFER;
-            case "imagestorebuffer2d" -> RenderParmType.PT_IMAGE2D_STORE_BUFFER;
-            case "imagestorebuffer2darray" -> RenderParmType.PT_IMAGE2D_STORE_ARRAY_BUFFER;
-            case "imagestorebuffer3d" -> RenderParmType.PT_IMAGE3D_STORE_BUFFER;
-            case "uniformtexelbuffer" -> RenderParmType.PT_UNIFORM_TEXEL_BUFFER;
-            case "storagetexelbuffer" -> RenderParmType.PT_STORAGE_TEXEL_BUFFER;
-            case "accelerationstructure" -> RenderParmType.PT_ACCELERATION_STRUCTURE;
-            case "struct" -> RenderParmType.PT_TYPE;
-            case "colorlut" -> RenderParmType.PT_COLOR_LUT;
-            default -> throw new IllegalArgumentException("Unknown render parm type: " + name);
-        };
-    }
+
+    // region Helpers
 
     private ImageBufferFormat parseImageBufferFormat(String name) {
         return switch (name.toLowerCase()) {
@@ -468,8 +386,27 @@ public final class RenderParmReader implements ResourceReader<RenderParm> {
         };
     }
 
-    private static ImageTextureMaterialKind parseImageTextureMaterialKind(String name) {
-        return switch (name) {
+    private ImageTextureFormat parseImageTextureFormat(String name) {
+        return switch (name.toLowerCase()) {
+            case "alpha" -> ImageTextureFormat.FMT_ALPHA;
+            case "bc4" -> ImageTextureFormat.FMT_BC4;
+            case "bc5" -> ImageTextureFormat.FMT_BC5;
+            case "bc6h", "bc6huf16" -> ImageTextureFormat.FMT_BC6H_UF16;
+            case "bc6hsf16" -> ImageTextureFormat.FMT_BC6H_SF16;
+            case "bc7" -> ImageTextureFormat.FMT_BC7;
+            case "float" -> ImageTextureFormat.FMT_RGBA16F;
+            case "hqcompress", "hqcompressnormal" -> ImageTextureFormat.FMT_BC3;
+            case "r8" -> ImageTextureFormat.FMT_R8;
+            case "rg16f" -> ImageTextureFormat.FMT_RG16F;
+            case "rg32f" -> ImageTextureFormat.FMT_RG32F;
+            case "rg8" -> ImageTextureFormat.FMT_RG8;
+            case "uncompressed" -> ImageTextureFormat.FMT_RGBA8;
+            default -> null;
+        };
+    }
+
+    private ImageTextureMaterialKind parseImageTextureMaterialKind(String name) {
+        return switch (name.toLowerCase()) {
             case "albedo" -> ImageTextureMaterialKind.TMK_ALBEDO;
             case "specular" -> ImageTextureMaterialKind.TMK_SPECULAR;
             case "normal" -> ImageTextureMaterialKind.TMK_NORMAL;
@@ -490,4 +427,46 @@ public final class RenderParmReader implements ResourceReader<RenderParm> {
             default -> ImageTextureMaterialKind.TMK_NONE;
         };
     }
+
+    private RenderParmType parseParmType(String name) {
+        return switch (name.toLowerCase()) {
+            case "tex", "tex2d" -> RenderParmType.PT_TEXTURE_2D;
+            case "tex3d" -> RenderParmType.PT_TEXTURE_3D;
+            case "texcube", "environment" -> RenderParmType.PT_TEXTURE_CUBE;
+            case "texarray2d" -> RenderParmType.PT_TEXTURE_ARRAY_2D;
+            case "texarraycube" -> RenderParmType.PT_TEXTURE_ARRAY_CUBE;
+            case "texmultisample2d" -> RenderParmType.PT_TEXTURE_MULTISAMPLE_2D;
+            case "texstencil" -> RenderParmType.PT_TEXTURE_STENCIL;
+            case "sampler" -> RenderParmType.PT_SAMPLER;
+            case "samplershadow2d" -> RenderParmType.PT_SAMPLER_SHADOW_2D;
+            case "samplershadow3d" -> RenderParmType.PT_SAMPLER_SHADOW_3D;
+            case "samplershadowcube" -> RenderParmType.PT_SAMPLER_SHADOW_CUBE;
+            case "program" -> RenderParmType.PT_PROGRAM;
+            case "f32vec4", "vec" -> RenderParmType.PT_F32_VEC4;
+            case "f32vec3" -> RenderParmType.PT_F32_VEC3;
+            case "f32vec2" -> RenderParmType.PT_F32_VEC2;
+            case "f32", "scalar" -> RenderParmType.PT_F32;
+            case "ui32" -> RenderParmType.PT_UI32;
+            case "si32" -> RenderParmType.PT_SI32;
+            case "bool" -> RenderParmType.PT_BOOL;
+            case "string" -> RenderParmType.PT_STRING;
+            case "structuredbuffer" -> RenderParmType.PT_STORAGE_BUFFER;
+            case "uniformbuffer" -> RenderParmType.PT_UNIFORM_BUFFER;
+            case "imagebuffer2d" -> RenderParmType.PT_IMAGE2D_BUFFER;
+            case "imagebuffer2darray" -> RenderParmType.PT_IMAGE2D_ARRAY_BUFFER;
+            case "imagebuffer3d" -> RenderParmType.PT_IMAGE3D_BUFFER;
+            case "imagestorebuffer2d" -> RenderParmType.PT_IMAGE2D_STORE_BUFFER;
+            case "imagestorebuffer2darray" -> RenderParmType.PT_IMAGE2D_STORE_ARRAY_BUFFER;
+            case "imagestorebuffer3d" -> RenderParmType.PT_IMAGE3D_STORE_BUFFER;
+            case "uniformtexelbuffer" -> RenderParmType.PT_UNIFORM_TEXEL_BUFFER;
+            case "storagetexelbuffer" -> RenderParmType.PT_STORAGE_TEXEL_BUFFER;
+            case "accelerationstructure" -> RenderParmType.PT_ACCELERATION_STRUCTURE;
+            case "struct" -> RenderParmType.PT_TYPE;
+            case "colorlut" -> RenderParmType.PT_COLOR_LUT;
+            default -> throw new IllegalArgumentException("Unknown render parm type: " + name);
+        };
+    }
+
+    // endregion
+
 }
