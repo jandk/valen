@@ -32,7 +32,7 @@ public final class RenderParmReader implements ResourceReader<RenderParm> {
         result.declaredValue = parseValue(parser, result);
         parseExtras(parser, result);
         parser.expect(DeclTokenType.CloseBrace);
-        return null;
+        return result;
     }
 
     private void parseExtras(DeclParser parser, RenderParm result) {
