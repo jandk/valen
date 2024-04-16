@@ -71,7 +71,6 @@ public final class DeclReader implements ResourceReader<JsonObject> {
             return object;
         }
 
-        System.out.println("Loading inherited decl: " + name);
         var inherit = object.getAsJsonPrimitive("inherit").getAsString();
         var basePath = getBasePath(name);
         var key = basePath + "/" + inherit;

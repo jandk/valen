@@ -67,7 +67,7 @@ public final class RenderParmReader implements ResourceReader<RenderParm> {
 
             if (token.equalsIgnoreCase("smoothnessNormalParm")) {
                 parser.expect(DeclTokenType.Assign);
-                result.smoothnessNormalParm = parser.expectName();
+                result.smoothnessNormalParm = parseImageTextureMaterialKind(parser.expectName());
                 continue;
             }
         }

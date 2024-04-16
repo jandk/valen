@@ -12,7 +12,7 @@ import java.util.*;
 public final class ResourceManager implements AutoCloseable {
     private final List<ResourcesFile> files = new ArrayList<>();
     private final Map<ResourceKey, ResourcesFile> keyIndex = new HashMap<>();
-    private final NavigableMap<String, Map<ResourceKey, Resource>> nameIndex = new TreeMap<>();
+    private final Map<String, Map<ResourceKey, Resource>> nameIndex = new TreeMap<>();
 
     private Path base;
     private PackageMapSpec spec;
@@ -26,76 +26,30 @@ public final class ResourceManager implements AutoCloseable {
         this.spec = Check.notNull(spec, "spec must not be null");
     }
 
+    public boolean exists(String name, ResourceType type) {
+        var map = nameIndex.get(name);
+        return map != null && map.values().stream()
+            .anyMatch(r -> r.type() == type);
+    }
+
     public Resource get(String name, ResourceType type) {
-        return get(name, type, ResourceVariation.None, Map.of(), Map.of());
+        return get(name, type, ResourceVariation.None);
     }
 
     public Resource get(
         String name,
         ResourceType type,
-        Map<String, String> requiredAttributes,
-        Map<String, String> optionalAttributes
+        ResourceVariation variation
     ) {
-        return get(name, type, ResourceVariation.None, requiredAttributes, optionalAttributes);
-    }
-
-    public Resource get(
-        String name,
-        ResourceType type,
-        ResourceVariation variation,
-        Map<String, String> requiredAttributes,
-        Map<String, String> optionalAttributes
-    ) {
-        name = name.toLowerCase(Locale.ROOT);
-        var matches = nameIndex.subMap(
-            name,
-            name.substring(0, name.length() - 1) + (char) (name.charAt(name.length() - 1) + 1)
-        );
-        if (matches.isEmpty()) {
+        var matches = nameIndex.get(name.toLowerCase());
+        if (matches == null) {
             // Sometimes files are straight up missing
             return null;
         }
-        if (matches.size() == 1) {
-            Map<ResourceKey, Resource> resources = matches.firstEntry().getValue();
-            return match(resources, name, type, variation);
-        }
-
-        // Now we have to check the attributes
-        var nameMatches = new ArrayList<String>();
-        for (String match : matches.keySet()) {
-            var attributes = new ResourceName(match).attributes();
-            boolean attributesMatch = requiredAttributes.entrySet().stream()
-                .allMatch(e -> Objects.equals(attributes.get(e.getKey()), e.getValue()));
-            if (attributesMatch) {
-                nameMatches.add(match);
-            }
-        }
-        if (nameMatches.isEmpty()) {
-            throw new IllegalArgumentException("No resource found with matching attributes: " + name);
-        }
-        if (nameMatches.size() > 1) {
-            var newNameMatches = new ArrayList<String>();
-            for (String match : nameMatches) {
-                var attributes = new ResourceName(match).attributes();
-                boolean attributesMatch = optionalAttributes.entrySet().stream()
-                    .allMatch(e -> Objects.equals(attributes.get(e.getKey()), e.getValue()));
-                if (attributesMatch) {
-                    newNameMatches.add(match);
-                }
-            }
-
-            // This is a hack
-            var minmipLess = newNameMatches.stream()
-                .filter(match -> !match.contains("minmip"))
-                .toList();
-            if (minmipLess.size() == 1) {
-                return get(minmipLess.getFirst(), type, variation, requiredAttributes, optionalAttributes);
-            }
-            throw new IllegalArgumentException("Multiple resources found with matching attributes: " + name);
-        }
-
-        var resources = matches.firstEntry().getValue();
-        return match(resources, name, type, variation);
+        return matches.values().stream()
+            .filter(e -> e.type() == type && e.variation() == variation)
+            .findFirst()
+            .orElseThrow(() -> new IllegalArgumentException("Resource found with wrong type or variation: " + name));
     }
 
 
@@ -120,8 +74,8 @@ public final class ResourceManager implements AutoCloseable {
 
         close();
         mapFiles = new ArrayList<>(mapFiles);
-//        mapFiles.addAll(0, spec.mapFiles().get("common"));
-//        mapFiles.addAll(0, spec.mapFiles().get("warehouse"));
+        mapFiles.addAll(0, spec.mapFiles().get("common"));
+        mapFiles.addAll(0, spec.mapFiles().get("warehouse"));
 
         var paths = mapFiles.stream()
             .filter(s -> s.endsWith(".resources"))
@@ -151,13 +105,6 @@ public final class ResourceManager implements AutoCloseable {
         nameIndex
             .computeIfAbsent(resource.nameString(), __ -> new HashMap<>())
             .putIfAbsent(key, resource);
-    }
-
-    private Resource match(Map<ResourceKey, Resource> resources, String name, ResourceType type, ResourceVariation variation) {
-        return resources.values().stream()
-            .filter(e -> e.type() == type && e.variation() == variation)
-            .findFirst()
-            .orElseThrow(() -> new IllegalArgumentException("Resource found with wrong type or variation: " + name));
     }
 
     @Override
