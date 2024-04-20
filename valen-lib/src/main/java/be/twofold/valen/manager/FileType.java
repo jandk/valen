@@ -4,8 +4,8 @@ import be.twofold.valen.core.animation.*;
 import be.twofold.valen.core.geometry.*;
 import be.twofold.valen.core.material.*;
 import be.twofold.valen.core.texture.*;
-import be.twofold.valen.reader.compfile.entities.*;
 import be.twofold.valen.reader.decl.renderparm.*;
+import be.twofold.valen.reader.filecompressed.entities.*;
 import be.twofold.valen.resource.*;
 import com.google.gson.*;
 
