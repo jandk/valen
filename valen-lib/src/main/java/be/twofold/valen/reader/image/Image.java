@@ -26,6 +26,6 @@ public record Image(
         return IntStream.range(0, mipData.length)
             .filter(i -> mipData[i] != null)
             .findFirst()
-            .orElseThrow(() -> new IllegalStateException("No mipmaps found"));
+            .orElse(-1);
     }
 }

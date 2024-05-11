@@ -7,8 +7,8 @@ import java.util.*;
 public final class ImageMapper {
     public Texture map(Image image) {
         int minMip = image.minMip();
-        int width = image.mipInfos().get(minMip).mipPixelWidth();
-        int height = image.mipInfos().get(minMip).mipPixelHeight();
+        int width = minMip < 0 ? image.header().pixelWidth() : image.mipInfos().get(minMip).mipPixelWidth();
+        int height = minMip < 0 ? image.header().pixelHeight() : image.mipInfos().get(minMip).mipPixelHeight();
         TextureFormat format = toImageFormat(image.header().textureFormat());
         List<Surface> surfaces = convertMipMaps(image);
         boolean isCubeMap = image.header().textureType() == ImageTextureType.TT_CUBIC;
@@ -18,8 +18,8 @@ public final class ImageMapper {
 
     private List<Surface> convertMipMaps(Image image) {
         int faces = image.header().textureType() == ImageTextureType.TT_CUBIC ? 6 : 1;
-        int minMip = image.minMip();
         int mipCount = image.mipInfos().size() / faces;
+        int minMip = image.minMip() < 0 ? mipCount : image.minMip();
 
         List<Surface> surfaces = new ArrayList<>();
         for (int face = 0; face < faces; face++) {
