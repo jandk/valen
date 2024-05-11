@@ -1,6 +1,8 @@
 package be.twofold.valen.reader.streamdb;
 
-import be.twofold.valen.core.util.*;
+import be.twofold.valen.core.io.*;
+
+import java.io.*;
 
 public record StreamDbEntry(
     long identity,
@@ -9,10 +11,10 @@ public record StreamDbEntry(
 ) {
     public static final int BYTES = 16;
 
-    public static StreamDbEntry read(BetterBuffer buffer) {
-        var identity = buffer.getLong();
-        var offset16 = buffer.getInt();
-        var length = buffer.getInt();
+    public static StreamDbEntry read(DataSource source) throws IOException {
+        var identity = source.readLong();
+        var offset16 = source.readInt();
+        var length = source.readInt();
         return new StreamDbEntry(identity, offset16, length);
     }
 

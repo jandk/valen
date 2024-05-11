@@ -1,5 +1,6 @@
 package be.twofold.valen.resource;
 
+import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.util.*;
 import be.twofold.valen.oodle.*;
 import be.twofold.valen.reader.resource.*;
@@ -19,7 +20,8 @@ public final class ResourcesFile implements AutoCloseable {
         System.out.println("Loading resources: " + path);
 
         this.channel = Files.newByteChannel(path, StandardOpenOption.READ);
-        List<Resource> resources = new ResourceMapper().map(Resources.read(channel));
+        var reader = new ChannelDataSource(channel);
+        List<Resource> resources = new ResourceMapper().map(Resources.read(reader));
 
         this.index = resources.stream()
             .collect(Collectors.toUnmodifiableMap(

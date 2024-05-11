@@ -1,6 +1,8 @@
 package be.twofold.valen.reader.resource;
 
-import be.twofold.valen.core.util.*;
+import be.twofold.valen.core.io.*;
+
+import java.io.*;
 
 public record ResourcesHeader(
     int numFileEntries,
@@ -18,32 +20,32 @@ public record ResourcesHeader(
 ) {
     public static final int BYTES = 124;
 
-    public static ResourcesHeader read(BetterBuffer buffer) {
-        buffer.expectInt(0x4c434449);
-        buffer.expectInt(12);
-        buffer.expectInt(0);
-        buffer.expectInt(1);
-        buffer.expectLong(0xffffffffffL);
-        buffer.expectLong(0);
+    public static ResourcesHeader read(DataSource source) throws IOException {
+        source.expectInt(0x4c434449);
+        source.expectInt(12);
+        source.expectInt(0);
+        source.expectInt(1);
+        source.expectLong(0xffffffffffL);
+        source.expectLong(0);
 
-        var numFileEntries = buffer.getInt();
-        var numDependencyEntries = buffer.getInt();
-        var numDependencyIndexes = buffer.getInt();
-        var numPathStringIndexes = buffer.getInt();
+        var numFileEntries = source.readInt();
+        var numDependencyEntries = source.readInt();
+        var numDependencyIndexes = source.readInt();
+        var numPathStringIndexes = source.readInt();
 
-        buffer.expectInt(0);
-        buffer.expectInt(0);
-        var sizeStrings = buffer.getInt();
-        buffer.expectInt(0);
+        source.expectInt(0);
+        source.expectInt(0);
+        var sizeStrings = source.readInt();
+        source.expectInt(0);
 
-        var addrPathStringOffsets = buffer.getLongAsInt();
-        var addrErrorLogs = buffer.getLongAsInt();
-        var addrFileEntries = buffer.getLongAsInt();
-        var addrDependencyEntries = buffer.getLongAsInt();
-        var addrDependencyIndexes = buffer.getLongAsInt();
-        var addrData = buffer.getLongAsInt();
-        buffer.expectInt(0);
-        var addrEndMarker = buffer.getLongAsInt();
+        var addrPathStringOffsets = source.readLongAsInt();
+        var addrErrorLogs = source.readLongAsInt();
+        var addrFileEntries = source.readLongAsInt();
+        var addrDependencyEntries = source.readLongAsInt();
+        var addrDependencyIndexes = source.readLongAsInt();
+        var addrData = source.readLongAsInt();
+        source.expectInt(0);
+        var addrEndMarker = source.readLongAsInt();
 
         return new ResourcesHeader(
             numFileEntries,

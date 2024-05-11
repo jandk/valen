@@ -1,5 +1,6 @@
 package be.twofold.valen.stream;
 
+import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.util.*;
 import be.twofold.valen.oodle.*;
 import be.twofold.valen.reader.streamdb.*;
@@ -19,7 +20,7 @@ public final class StreamDbFile implements AutoCloseable {
         System.out.println("Loading streamdb: " + path);
 
         this.channel = Files.newByteChannel(path, StandardOpenOption.READ);
-        this.entries = StreamDb.read(channel).entries().stream()
+        this.entries = StreamDb.read(new ChannelDataSource(channel)).entries().stream()
             .collect(Collectors.toUnmodifiableMap(
                 StreamDbEntry::identity,
                 Function.identity()
