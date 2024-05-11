@@ -1,8 +1,9 @@
 package be.twofold.valen.reader.geometry;
 
+import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.math.*;
-import be.twofold.valen.core.util.*;
 
+import java.io.*;
 import java.nio.*;
 
 public final class Geometry {
@@ -19,23 +20,23 @@ public final class Geometry {
     private Geometry() {
     }
 
-    public static void readVertex(BetterBuffer src, FloatBuffer dst, Vector3 offset, float scale) {
-        dst.put(Math.fma(src.getFloat(), scale, offset.x()));
-        dst.put(Math.fma(src.getFloat(), scale, offset.y()));
-        dst.put(Math.fma(src.getFloat(), scale, offset.z()));
+    public static void readVertex(DataSource source, FloatBuffer dst, Vector3 offset, float scale) throws IOException {
+        dst.put(Math.fma(source.readFloat(), scale, offset.x()));
+        dst.put(Math.fma(source.readFloat(), scale, offset.y()));
+        dst.put(Math.fma(source.readFloat(), scale, offset.z()));
     }
 
-    public static void readPackedVertex(BetterBuffer src, FloatBuffer dst, Vector3 offset, float scale) {
-        dst.put(Math.fma(MathF.unpackUNorm16(src.getShort()), scale, offset.x()));
-        dst.put(Math.fma(MathF.unpackUNorm16(src.getShort()), scale, offset.y()));
-        dst.put(Math.fma(MathF.unpackUNorm16(src.getShort()), scale, offset.z()));
-        src.expectShort(0);
+    public static void readPackedVertex(DataSource source, FloatBuffer dst, Vector3 offset, float scale) throws IOException {
+        dst.put(Math.fma(MathF.unpackUNorm16(source.readShort()), scale, offset.x()));
+        dst.put(Math.fma(MathF.unpackUNorm16(source.readShort()), scale, offset.y()));
+        dst.put(Math.fma(MathF.unpackUNorm16(source.readShort()), scale, offset.z()));
+        source.expectShort((short) 0);
     }
 
-    public static void readPackedNormal(BetterBuffer src, FloatBuffer dst) {
-        float x = MathF.unpack8(src.getByte());
-        float y = MathF.unpack8(src.getByte());
-        float z = MathF.unpack8(src.getByte());
+    public static void readPackedNormal(DataSource source, FloatBuffer dst) throws IOException {
+        float x = MathF.unpack8(source.readByte());
+        float y = MathF.unpack8(source.readByte());
+        float z = MathF.unpack8(source.readByte());
 
         float scale = 1.0f / MathF.sqrt(x * x + y * y + z * z);
 
@@ -43,16 +44,16 @@ public final class Geometry {
         dst.put(y * scale);
         dst.put(z * scale);
 
-        src.skip(5); // skip tangent
+        source.skip(5); // skip tangent
     }
 
-    public static void readPackedTangent(BetterBuffer src, FloatBuffer dst) {
-        src.skip(4); // skip normal
+    public static void readPackedTangent(DataSource source, FloatBuffer dst) throws IOException {
+        source.skip(4); // skip normal
 
-        float x = MathF.unpack8(src.getByte());
-        float y = MathF.unpack8(src.getByte());
-        float z = MathF.unpack8(src.getByte());
-        float w = (src.getByte() & 0x80) == 0 ? 1 : -1;
+        float x = MathF.unpack8(source.readByte());
+        float y = MathF.unpack8(source.readByte());
+        float z = MathF.unpack8(source.readByte());
+        float w = (source.readByte() & 0x80) == 0 ? 1 : -1;
 
         float scale = 1.0f / MathF.sqrt(x * x + y * y + z * z);
 
@@ -62,11 +63,11 @@ public final class Geometry {
         dst.put(w);
     }
 
-    public static void readWeight(BetterBuffer src, ByteBuffer dst) {
-        src.skip(3); // skip normal
-        byte wn = src.getByte();
-        src.skip(3); // skip tangent
-        byte wt = src.getByte();
+    public static void readWeight(DataSource source, ByteBuffer dst) throws IOException {
+        source.skip(3); // skip normal
+        byte wn = source.readByte();
+        source.skip(3); // skip tangent
+        byte wt = source.readByte();
 
         byte y = (byte) (wt & 0x7f);
         byte z = WeightTableZ[(wn & 0xf0) >>> 4];
@@ -79,13 +80,13 @@ public final class Geometry {
         dst.put(w);
     }
 
-    public static void readUV(BetterBuffer src, FloatBuffer dst, Vector2 offset, float scale) {
-        dst.put(Math.fma(src.getFloat(), scale, offset.x()));
-        dst.put(Math.fma(src.getFloat(), scale, offset.y()));
+    public static void readUV(DataSource source, FloatBuffer dst, Vector2 offset, float scale) throws IOException {
+        dst.put(Math.fma(source.readFloat(), scale, offset.x()));
+        dst.put(Math.fma(source.readFloat(), scale, offset.y()));
     }
 
-    public static void readPackedUV(BetterBuffer src, FloatBuffer dst, Vector2 offset, float scale) {
-        dst.put(Math.fma(MathF.unpackUNorm16(src.getShort()), scale, offset.x()));
-        dst.put(Math.fma(MathF.unpackUNorm16(src.getShort()), scale, offset.y()));
+    public static void readPackedUV(DataSource source, FloatBuffer dst, Vector2 offset, float scale) throws IOException {
+        dst.put(Math.fma(MathF.unpackUNorm16(source.readShort()), scale, offset.x()));
+        dst.put(Math.fma(MathF.unpackUNorm16(source.readShort()), scale, offset.y()));
     }
 }

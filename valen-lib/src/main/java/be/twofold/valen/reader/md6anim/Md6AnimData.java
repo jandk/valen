@@ -1,6 +1,8 @@
 package be.twofold.valen.reader.md6anim;
 
-import be.twofold.valen.core.util.*;
+import be.twofold.valen.core.io.*;
+
+import java.io.*;
 
 public record Md6AnimData(
     int totalSize,
@@ -20,32 +22,26 @@ public record Md6AnimData(
     float[] startDelta,
     float[] endDelta
 ) {
-    public static Md6AnimData read(BetterBuffer buffer) {
-        buffer.expectLong(0);
-        int totalSize = buffer.getInt();
-        short size = buffer.getShort();
-        short flags = buffer.getShort();
-        short numFrames = buffer.getShort();
-        short frameRate = buffer.getShort();
-        short numFrameSets = buffer.getShort();
-        short frameSetTblOffset = buffer.getShort();
-        short frameSetOffsetTblOffset = buffer.getShort();
-        short constROffset = buffer.getShort();
-        short constSOffset = buffer.getShort();
-        short constTOffset = buffer.getShort();
-        short constUOffset = buffer.getShort();
-        short nextSize = buffer.getShort();
-        short jointWeightsOffset = buffer.getShort();
-        buffer.expectShort(0);
-        float[] startDelta = new float[12];
-        for (int i = 0; i < 12; i++) {
-            startDelta[i] = buffer.getFloat();
-        }
-        float[] endDelta = new float[12];
-        for (int i = 0; i < 12; i++) {
-            endDelta[i] = buffer.getFloat();
-        }
-        buffer.expectLong(0);
+    public static Md6AnimData read(DataSource source) throws IOException {
+        source.expectLong(0);
+        int totalSize = source.readInt();
+        short size = source.readShort();
+        short flags = source.readShort();
+        short numFrames = source.readShort();
+        short frameRate = source.readShort();
+        short numFrameSets = source.readShort();
+        short frameSetTblOffset = source.readShort();
+        short frameSetOffsetTblOffset = source.readShort();
+        short constROffset = source.readShort();
+        short constSOffset = source.readShort();
+        short constTOffset = source.readShort();
+        short constUOffset = source.readShort();
+        short nextSize = source.readShort();
+        short jointWeightsOffset = source.readShort();
+        source.expectShort((short) 0);
+        float[] startDelta = source.readFloats(12);
+        float[] endDelta = source.readFloats(12);
+        source.expectLong(0);
 
         return new Md6AnimData(
             totalSize,

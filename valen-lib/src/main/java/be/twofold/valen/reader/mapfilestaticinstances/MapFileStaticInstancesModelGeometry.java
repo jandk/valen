@@ -1,7 +1,9 @@
 package be.twofold.valen.reader.mapfilestaticinstances;
 
+import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.math.*;
-import be.twofold.valen.core.util.*;
+
+import java.io.*;
 
 public record MapFileStaticInstancesModelGeometry(
     short declLayerIndex,
@@ -13,16 +15,16 @@ public record MapFileStaticInstancesModelGeometry(
     int flagsMaybe,
     int extraIndex
 ) {
-    public static MapFileStaticInstancesModelGeometry read(BetterBuffer buffer) {
-        var declLayerIndex = buffer.getShort();
-        var modelIndex = buffer.getShort();
-        var modelIndexVPaint = buffer.getShort();
-        buffer.expectShort(0);
-        var translation = Vector3.read(buffer);
-        var rotation = Matrix3.read(buffer);
-        var scale = Vector3.read(buffer);
-        var flagsMaybe = buffer.getInt();
-        var extraIndex = buffer.getInt();
+    public static MapFileStaticInstancesModelGeometry read(DataSource source) throws IOException {
+        var declLayerIndex = source.readShort();
+        var modelIndex = source.readShort();
+        var modelIndexVPaint = source.readShort();
+        source.expectShort((short) 0);
+        var translation = Vector3.read(source);
+        var rotation = Matrix3.read(source);
+        var scale = Vector3.read(source);
+        var flagsMaybe = source.readInt();
+        var extraIndex = source.readInt();
         return new MapFileStaticInstancesModelGeometry(
             declLayerIndex,
             modelIndex,

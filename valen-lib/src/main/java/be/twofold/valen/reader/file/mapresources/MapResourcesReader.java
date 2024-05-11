@@ -1,10 +1,13 @@
 package be.twofold.valen.reader.file.mapresources;
 
+import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.util.*;
 import be.twofold.valen.reader.*;
-import be.twofold.valen.reader.file.*;
+import be.twofold.valen.reader.file.FileReader;
 import be.twofold.valen.resource.*;
 import jakarta.inject.*;
+
+import java.io.*;
 
 public final class MapResourcesReader implements ResourceReader<MapResources> {
 
@@ -22,8 +25,8 @@ public final class MapResourcesReader implements ResourceReader<MapResources> {
     }
 
     @Override
-    public MapResources read(BetterBuffer buffer, Resource resource) {
-        var file = fileReader.read(buffer, resource);
+    public MapResources read(DataSource source, Resource resource) throws IOException {
+        var file = fileReader.read(source, resource);
         return MapResources.read(BetterBuffer.wrap(file.data()));
     }
 

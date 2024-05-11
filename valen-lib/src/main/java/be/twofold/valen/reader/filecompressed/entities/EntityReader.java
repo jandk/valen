@@ -1,12 +1,13 @@
 package be.twofold.valen.reader.filecompressed.entities;
 
-import be.twofold.valen.core.util.*;
+import be.twofold.valen.core.io.*;
 import be.twofold.valen.reader.*;
 import be.twofold.valen.reader.decl.parser.*;
 import be.twofold.valen.reader.filecompressed.*;
 import be.twofold.valen.resource.*;
 import jakarta.inject.*;
 
+import java.io.*;
 import java.nio.charset.*;
 import java.util.*;
 
@@ -25,8 +26,8 @@ public final class EntityReader implements ResourceReader<EntityFile> {
     }
 
     @Override
-    public EntityFile read(BetterBuffer buffer, Resource resource) {
-        byte[] bytes = fileCompressedReader.read(buffer, resource);
+    public EntityFile read(DataSource source, Resource resource) throws IOException {
+        byte[] bytes = fileCompressedReader.read(source, resource);
         String input = new String(bytes, StandardCharsets.UTF_8);
 
         var parser = new DeclParser(input);

@@ -1,6 +1,6 @@
 package be.twofold.valen.manager;
 
-import be.twofold.valen.core.util.*;
+import be.twofold.valen.core.io.*;
 import be.twofold.valen.hash.*;
 import be.twofold.valen.reader.*;
 import be.twofold.valen.reader.packagemapspec.*;
@@ -67,8 +67,12 @@ public final class FileManager {
 
         byte[] bytes = resourceManager.read(entry);
         long hash = MurmurHash2.hash64B(bytes, 0, bytes.length, 0xdeadbeefL);
-        var buffer = BetterBuffer.wrap(bytes);
-        var result = reader.read(buffer, entry);
+        Object result;
+        try {
+            result = reader.read(new ByteArrayDataSource(bytes), entry);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
         return type.instanceType().cast(result);
     }
 

@@ -1,7 +1,8 @@
 package be.twofold.valen.reader.mapfilestaticinstances;
 
-import be.twofold.valen.core.util.*;
+import be.twofold.valen.core.io.*;
 
+import java.io.*;
 import java.util.*;
 
 public record MapFileStaticInstances(
@@ -22,30 +23,30 @@ public record MapFileStaticInstances(
     List<MapFileStaticInstancesPlayerStart> playerStarts,
     List<MapFileStaticInstancesLayerStateChange> layerStateChanges
 ) {
-    public static MapFileStaticInstances read(BetterBuffer buffer) {
-        buffer.expectInt(1);
+    public static MapFileStaticInstances read(DataSource source) throws IOException {
+        source.expectInt(1);
 
-        var materials = buffer.getStructs(buffer.getInt() - 1, BetterBuffer::getString);
-        var declRenderParams = buffer.getStructs(buffer.getInt() - 1, BetterBuffer::getString);
-        var renderParams = buffer.getStructs(buffer.getInt(), BetterBuffer::getString);
-        var models = buffer.getStructs(buffer.getInt(), BetterBuffer::getString);
-        var materialGroups = buffer.getStructs(buffer.getInt(), MapFileStaticInstancesMaterialGroup::read);
-        var group2 = buffer.getStructs(buffer.getInt(), MapFileStaticInstancesGroup2::read);
-        var group3 = buffer.getStructs(buffer.getInt(), MapFileStaticInstancesGroup3::read);
-        var declLayers = buffer.getStructs(buffer.getInt(), BetterBuffer::getString);
+        var materials = source.readStructs(source.readInt() - 1, DataSource::readPString);
+        var declRenderParams = source.readStructs(source.readInt() - 1, DataSource::readPString);
+        var renderParams = source.readStructs(source.readInt(), DataSource::readPString);
+        var models = source.readStructs(source.readInt(), DataSource::readPString);
+        var materialGroups = source.readStructs(source.readInt(), MapFileStaticInstancesMaterialGroup::read);
+        var group2 = source.readStructs(source.readInt(), MapFileStaticInstancesGroup2::read);
+        var group3 = source.readStructs(source.readInt(), MapFileStaticInstancesGroup3::read);
+        var declLayers = source.readStructs(source.readInt(), DataSource::readPString);
 
-        var modelInstanceCount = buffer.getInt();
-        var modelInstanceNames = buffer.getStructs(modelInstanceCount, BetterBuffer::getString);
-        var modelInstanceGeometries = buffer.getStructs(modelInstanceCount, MapFileStaticInstancesModelGeometry::read);
-        var modelInstanceExtras = buffer.getStructs(buffer.getInt(), MapFileStaticInstancesModelExtra::read);
+        var modelInstanceCount = source.readInt();
+        var modelInstanceNames = source.readStructs(modelInstanceCount, DataSource::readPString);
+        var modelInstanceGeometries = source.readStructs(modelInstanceCount, MapFileStaticInstancesModelGeometry::read);
+        var modelInstanceExtras = source.readStructs(source.readInt(), MapFileStaticInstancesModelExtra::read);
 
-        var decalInstanceCount = buffer.getInt();
-        var decalInstanceNames = buffer.getStructs(decalInstanceCount, BetterBuffer::getString);
-        var decalInstanceGeometries = buffer.getStructs(decalInstanceCount, MapFileStaticInstancesDeclGeometry::read);
-        var decalInstanceExtras = buffer.getStructs(buffer.getInt(), MapFileStaticInstancesDeclExtra::read);
+        var decalInstanceCount = source.readInt();
+        var decalInstanceNames = source.readStructs(decalInstanceCount, DataSource::readPString);
+        var decalInstanceGeometries = source.readStructs(decalInstanceCount, MapFileStaticInstancesDeclGeometry::read);
+        var decalInstanceExtras = source.readStructs(source.readInt(), MapFileStaticInstancesDeclExtra::read);
 
-        var playerStarts = buffer.getStructs(buffer.getInt(), MapFileStaticInstancesPlayerStart::read);
-        var layerStateChanges = buffer.getStructs(buffer.getInt(), MapFileStaticInstancesLayerStateChange::read);
+        var playerStarts = source.readStructs(source.readInt(), MapFileStaticInstancesPlayerStart::read);
+        var layerStateChanges = source.readStructs(source.readInt(), MapFileStaticInstancesLayerStateChange::read);
 
         return new MapFileStaticInstances(
             materials,

@@ -1,13 +1,14 @@
 package be.twofold.valen.reader.md6model;
 
 import be.twofold.valen.core.geometry.*;
-import be.twofold.valen.core.util.*;
+import be.twofold.valen.core.io.*;
 import be.twofold.valen.reader.*;
 import be.twofold.valen.reader.geometry.*;
 import be.twofold.valen.resource.*;
 import be.twofold.valen.stream.*;
 import jakarta.inject.*;
 
+import java.io.*;
 import java.nio.*;
 import java.util.*;
 
@@ -25,13 +26,13 @@ public final class Md6ModelReader implements ResourceReader<Model> {
     }
 
     @Override
-    public Model read(BetterBuffer buffer, Resource resource) {
-        Md6Model md6 = read(buffer, true, resource.hash());
+    public Model read(DataSource source, Resource resource) throws IOException {
+        Md6Model md6 = read(source, true, resource.hash());
         return new Model(md6.meshes(), null, null);
     }
 
-    public Md6Model read(BetterBuffer buffer, boolean readStreams, long hash) {
-        var md6 = Md6Model.read(buffer);
+    public Md6Model read(DataSource source, boolean readStreams, long hash) throws IOException {
+        var md6 = Md6Model.read(source);
 
         List<Mesh> meshes;
         if (readStreams) {
@@ -43,18 +44,18 @@ public final class Md6ModelReader implements ResourceReader<Model> {
         return md6.withMeshes(meshes);
     }
 
-    private List<Mesh> readStreamedGeometry(Md6Model md6, int lod, long hash) {
+    private List<Mesh> readStreamedGeometry(Md6Model md6, int lod, long hash) throws IOException {
         var identity = (hash << 4) | lod;
         var uncompressedSize = md6.layouts().get(lod).uncompressedSize();
-        var buffer = BetterBuffer.wrap(streamManager.read(identity, uncompressedSize));
 
         var lodInfos = md6.meshInfos().stream()
             .<LodInfo>map(mi -> mi.lodInfos().get(lod))
             .toList();
         var layouts = md6.layouts().get(lod).memoryLayouts();
 
+        var source = new ByteArrayDataSource(streamManager.read(identity, uncompressedSize));
         return new GeometryReader(true)
-            .readMeshes(buffer, lodInfos, layouts);
+            .readMeshes(source, lodInfos, layouts);
     }
 
     private void fixJointIndices(Md6Model md6, List<Mesh> meshes) {

@@ -1,22 +1,24 @@
 package be.twofold.valen.core.math;
 
-import be.twofold.valen.core.util.*;
+import be.twofold.valen.core.io.*;
+
+import java.io.*;
 
 public record Matrix3(
     float m00, float m01, float m02,
     float m10, float m11, float m12,
     float m20, float m21, float m22
 ) {
-    public static Matrix3 read(BetterBuffer buffer) {
-        float m00 = buffer.getFloat();
-        float m01 = buffer.getFloat();
-        float m02 = buffer.getFloat();
-        float m10 = buffer.getFloat();
-        float m11 = buffer.getFloat();
-        float m12 = buffer.getFloat();
-        float m20 = buffer.getFloat();
-        float m21 = buffer.getFloat();
-        float m22 = buffer.getFloat();
+    public static Matrix3 read(DataSource source) throws IOException {
+        float m00 = source.readFloat();
+        float m01 = source.readFloat();
+        float m02 = source.readFloat();
+        float m10 = source.readFloat();
+        float m11 = source.readFloat();
+        float m12 = source.readFloat();
+        float m20 = source.readFloat();
+        float m21 = source.readFloat();
+        float m22 = source.readFloat();
         return new Matrix3(
             m00, m01, m02,
             m10, m11, m12,

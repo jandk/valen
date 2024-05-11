@@ -13,8 +13,10 @@ public final class ChannelDataSource extends DataSource {
         .limit(0);
 
     private final SeekableByteChannel channel;
+    private final long offset;
+    private final long length;
     private final long lim;
-    private long pos;
+    private long bufPos;
 
     public ChannelDataSource(SeekableByteChannel channel) throws IOException {
         this(channel, 0, channel.size());
@@ -23,12 +25,14 @@ public final class ChannelDataSource extends DataSource {
     public ChannelDataSource(SeekableByteChannel channel, long offset, long length) throws IOException {
         Objects.checkFromIndexSize(offset, length, channel.size());
         this.channel = channel;
-        this.pos = offset;
+        this.offset = offset;
+        this.length = length;
+        this.bufPos = offset;
         this.lim = offset + length;
     }
 
     @Override
-    public void readBytes(byte[] dst, int off, int len) throws IOException {
+    public void readBytes(byte[] dst, int off, int len, boolean buffered) throws IOException {
         int remaining = buffer.remaining();
         if (len <= remaining) {
             buffer.get(dst, off, len);
@@ -42,7 +46,7 @@ public final class ChannelDataSource extends DataSource {
         }
 
         // If we can fit the remaining bytes in the buffer, do a normal refill and read
-        if (len < buffer.capacity()) {
+        if (buffered && len < buffer.capacity()) {
             refill();
             if (len > buffer.remaining()) {
                 throw new EOFException();
@@ -52,13 +56,38 @@ public final class ChannelDataSource extends DataSource {
         }
 
         // If we can't fit the remaining bytes in the buffer, read directly into the destination
-        long end = pos + buffer.position() + len;
+        long end = bufPos + buffer.position() + len;
         if (end > lim) {
             throw new EOFException();
         }
         readInternal(ByteBuffer.wrap(dst, off, len));
-        pos = end;
+        bufPos = end;
         buffer.limit(0);
+    }
+
+    @Override
+    public long tell() {
+        return bufPos + buffer.position();
+    }
+
+    @Override
+    public void seek(long pos) throws IOException {
+        if (pos > lim) {
+            throw new EOFException("Seek position " + pos + " is beyond EOF");
+        }
+
+        if (pos >= bufPos && pos < bufPos + buffer.limit()) {
+            buffer.position((int) (pos - bufPos));
+            return;
+        }
+
+        bufPos = pos;
+        buffer.limit(0);
+    }
+
+    @Override
+    public long size() {
+        return length;
     }
 
     @Override
@@ -124,8 +153,8 @@ public final class ChannelDataSource extends DataSource {
 
     private void refill() {
         buffer.compact();
-        long end = Math.min(pos + buffer.remaining(), lim);
-        buffer.limit((int) (buffer.position() + end - pos));
+        long end = Math.min(bufPos + buffer.remaining(), lim);
+        buffer.limit((int) (buffer.position() + end - bufPos));
         readInternal(buffer);
         buffer.flip();
     }

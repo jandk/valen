@@ -1,6 +1,6 @@
 package be.twofold.valen.reader.decl.renderparm;
 
-import be.twofold.valen.core.util.*;
+import be.twofold.valen.core.io.*;
 import be.twofold.valen.reader.*;
 import be.twofold.valen.reader.decl.parser.*;
 import be.twofold.valen.reader.decl.renderparm.enums.*;
@@ -8,6 +8,7 @@ import be.twofold.valen.reader.image.*;
 import be.twofold.valen.resource.*;
 import jakarta.inject.*;
 
+import java.io.*;
 import java.util.*;
 
 public final class RenderParmReader implements ResourceReader<RenderParm> {
@@ -22,8 +23,8 @@ public final class RenderParmReader implements ResourceReader<RenderParm> {
     }
 
     @Override
-    public RenderParm read(BetterBuffer buffer, Resource resource) {
-        var bytes = buffer.getBytes(buffer.length());
+    public RenderParm read(DataSource source, Resource resource) throws IOException {
+        var bytes = source.readBytes(Math.toIntExact(source.size()));
         var parser = new DeclParser(new String(bytes), true);
 
         var result = new RenderParm();

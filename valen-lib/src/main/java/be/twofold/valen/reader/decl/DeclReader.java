@@ -1,12 +1,13 @@
 package be.twofold.valen.reader.decl;
 
-import be.twofold.valen.core.util.*;
+import be.twofold.valen.core.io.*;
 import be.twofold.valen.reader.*;
 import be.twofold.valen.reader.decl.parser.*;
 import be.twofold.valen.resource.*;
 import com.google.gson.*;
 import jakarta.inject.*;
 
+import java.io.*;
 import java.nio.*;
 import java.nio.charset.*;
 import java.util.*;
@@ -52,8 +53,8 @@ public final class DeclReader implements ResourceReader<JsonObject> {
     }
 
     @Override
-    public JsonObject read(BetterBuffer buffer, Resource resource) {
-        var bytes = buffer.getBytes(buffer.length());
+    public JsonObject read(DataSource source, Resource resource) throws IOException {
+        var bytes = source.readBytes(Math.toIntExact(source.size()));
         var object = DeclParser.parse(decode(bytes));
 
         var result = loadInherit(object, resource.nameString());

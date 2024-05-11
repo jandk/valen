@@ -1,7 +1,8 @@
 package be.twofold.valen.reader.md6model;
 
-import be.twofold.valen.core.util.*;
+import be.twofold.valen.core.io.*;
 
+import java.io.*;
 import java.util.*;
 
 public record Md6ModelInfo(
@@ -13,25 +14,25 @@ public record Md6ModelInfo(
     int unkHash,
     List<Md6ModelLodInfo> lodInfos
 ) {
-    public static Md6ModelInfo read(BetterBuffer buffer) {
-        var meshName = buffer.getString();
-        var materialName = buffer.getString();
-        buffer.expectByte(1);
-        buffer.expectInt(1);
-        var unknown1 = buffer.getInt();
-        var unknown2 = buffer.getInt();
-        var unknown3 = buffer.getInt();
-        var unkHash = buffer.getInt();
+    public static Md6ModelInfo read(DataSource source) throws IOException {
+        var meshName = source.readPString();
+        var materialName = source.readPString();
+        source.expectByte((byte) 1);
+        source.expectInt(1);
+        var unknown1 = source.readInt();
+        var unknown2 = source.readInt();
+        var unknown3 = source.readInt();
+        var unkHash = source.readInt();
 
         var lodInfos = new ArrayList<Md6ModelLodInfo>();
         for (var i = 0; i < 5; i++) {
-            if (!buffer.getIntAsBool()) {
-                lodInfos.add(Md6ModelLodInfo.read(buffer));
+            if (!source.readBoolInt()) {
+                lodInfos.add(Md6ModelLodInfo.read(source));
             }
         }
 
-        buffer.expectInt(0);
-        buffer.expectByte(0);
+        source.expectInt(0);
+        source.expectByte((byte) 0);
 
         return new Md6ModelInfo(
             meshName,

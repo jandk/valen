@@ -19,7 +19,7 @@ public record Resources(
 
     public static Resources read(DataSource source) throws IOException {
         // Header
-        var header = source.readStruct(ResourcesHeader::read);
+        var header = ResourcesHeader.read(source);
 
         // File Entries
         // assert channel.position() == header.addrFileEntries();

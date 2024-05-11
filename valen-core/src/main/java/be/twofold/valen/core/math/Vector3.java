@@ -1,14 +1,15 @@
 package be.twofold.valen.core.math;
 
-import be.twofold.valen.core.util.*;
+import be.twofold.valen.core.io.*;
 
+import java.io.*;
 import java.nio.*;
 
 public record Vector3(float x, float y, float z) {
-    public static Vector3 read(BetterBuffer buffer) {
-        float x = buffer.getFloat();
-        float y = buffer.getFloat();
-        float z = buffer.getFloat();
+    public static Vector3 read(DataSource source) throws IOException {
+        float x = source.readFloat();
+        float y = source.readFloat();
+        float z = source.readFloat();
         return new Vector3(x, y, z);
     }
 

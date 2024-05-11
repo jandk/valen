@@ -1,6 +1,8 @@
 package be.twofold.valen.reader.mapfilestaticinstances;
 
-import be.twofold.valen.core.util.*;
+import be.twofold.valen.core.io.*;
+
+import java.io.*;
 
 public record MapFileStaticInstancesModelExtra(
     float unknown008,
@@ -37,46 +39,46 @@ public record MapFileStaticInstancesModelExtra(
     float unknown144,
     short unknown148
 ) {
-    public static MapFileStaticInstancesModelExtra read(BetterBuffer buffer) {
-        buffer.expectInt(0);
-        buffer.expectInt(0);
-        float unknown008 = buffer.getFloat();
-        float unknown012 = buffer.getFloat();
-        float unknown016 = buffer.getFloat();
-        float unknown020 = buffer.getFloat();
-        float unknown024 = buffer.getFloat();
-        float unknown028 = buffer.getFloat();
-        float unknown032 = buffer.getFloat();
-        int unknown036 = buffer.getInt();
-        int materialGroupOffset = buffer.getInt();
-        int materialGroupCount = buffer.getInt();
-        int group2Offset = buffer.getInt();
-        int group2Count = buffer.getInt();
-        int unknown056 = buffer.getInt();
-        int unknown060 = buffer.getInt();
-        float unknown064 = buffer.getFloat();
-        float unknown068 = buffer.getFloat();
-        float unknown072 = buffer.getFloat();
-        float unknown076 = buffer.getFloat();
-        float unknown080 = buffer.getFloat();
-        float unknown084 = buffer.getFloat();
-        float unknown088 = buffer.getFloat();
-        float unknown092 = buffer.getFloat();
-        float unknown096 = buffer.getFloat();
-        float unknown100 = buffer.getFloat();
-        float unknown104 = buffer.getFloat();
-        float unknown108 = buffer.getFloat();
-        float unknown112 = buffer.getFloat();
-        float unknown116 = buffer.getFloat();
-        int unknown120 = buffer.getInt();
-        int unknown124 = buffer.getInt();
-        buffer.expectInt(0);
-        buffer.expectInt(0);
-        float unknown136 = buffer.getFloat();
-        buffer.expectInt(-1);
-        float unknown144 = buffer.getFloat();
-        short unknown148 = buffer.getShort();
-        buffer.expectShort(0);
+    public static MapFileStaticInstancesModelExtra read(DataSource source) throws IOException {
+        source.expectInt(0);
+        source.expectInt(0);
+        float unknown008 = source.readFloat();
+        float unknown012 = source.readFloat();
+        float unknown016 = source.readFloat();
+        float unknown020 = source.readFloat();
+        float unknown024 = source.readFloat();
+        float unknown028 = source.readFloat();
+        float unknown032 = source.readFloat();
+        int unknown036 = source.readInt();
+        int materialGroupOffset = source.readInt();
+        int materialGroupCount = source.readInt();
+        int group2Offset = source.readInt();
+        int group2Count = source.readInt();
+        int unknown056 = source.readInt();
+        int unknown060 = source.readInt();
+        float unknown064 = source.readFloat();
+        float unknown068 = source.readFloat();
+        float unknown072 = source.readFloat();
+        float unknown076 = source.readFloat();
+        float unknown080 = source.readFloat();
+        float unknown084 = source.readFloat();
+        float unknown088 = source.readFloat();
+        float unknown092 = source.readFloat();
+        float unknown096 = source.readFloat();
+        float unknown100 = source.readFloat();
+        float unknown104 = source.readFloat();
+        float unknown108 = source.readFloat();
+        float unknown112 = source.readFloat();
+        float unknown116 = source.readFloat();
+        int unknown120 = source.readInt();
+        int unknown124 = source.readInt();
+        source.expectInt(0);
+        source.expectInt(0);
+        float unknown136 = source.readFloat();
+        source.expectInt(-1);
+        float unknown144 = source.readFloat();
+        short unknown148 = source.readShort();
+        source.expectShort((short) 0);
 
         return new MapFileStaticInstancesModelExtra(
             unknown008,

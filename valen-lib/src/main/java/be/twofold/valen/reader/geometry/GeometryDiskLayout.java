@@ -1,7 +1,8 @@
 package be.twofold.valen.reader.geometry;
 
-import be.twofold.valen.core.util.*;
+import be.twofold.valen.core.io.*;
 
+import java.io.*;
 import java.util.*;
 
 public record GeometryDiskLayout(
@@ -11,11 +12,11 @@ public record GeometryDiskLayout(
     int offset,
     List<GeometryMemoryLayout> memoryLayouts
 ) {
-    public static GeometryDiskLayout read(BetterBuffer buffer, List<GeometryMemoryLayout> memoryLayouts) {
-        var compression = buffer.getInt();
-        var uncompressedSize = buffer.getInt();
-        var compressedSize = buffer.getInt();
-        var offset = buffer.getInt();
+    public static GeometryDiskLayout read(DataSource source, List<GeometryMemoryLayout> memoryLayouts) throws IOException {
+        var compression = source.readInt();
+        var uncompressedSize = source.readInt();
+        var compressedSize = source.readInt();
+        var offset = source.readInt();
 
         return new GeometryDiskLayout(
             compression,

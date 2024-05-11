@@ -1,14 +1,16 @@
 package be.twofold.valen.reader.mapfilestaticinstances;
 
-import be.twofold.valen.core.util.*;
+import be.twofold.valen.core.io.*;
+
+import java.io.*;
 
 public record MapFileStaticInstancesLayerStateChange(
     String checkpointName,
     String playerSpawnSpot
 ) {
-    public static MapFileStaticInstancesLayerStateChange read(BetterBuffer buffer) {
-        var checkpointName = buffer.getString();
-        var playerSpawnSpot = buffer.getString();
+    public static MapFileStaticInstancesLayerStateChange read(DataSource source) throws IOException {
+        var checkpointName = source.readPString();
+        var playerSpawnSpot = source.readPString();
         return new MapFileStaticInstancesLayerStateChange(checkpointName, playerSpawnSpot);
     }
 }

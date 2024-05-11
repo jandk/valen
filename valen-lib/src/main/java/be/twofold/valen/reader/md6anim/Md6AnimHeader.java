@@ -1,7 +1,9 @@
 package be.twofold.valen.reader.md6anim;
 
+import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.math.*;
-import be.twofold.valen.core.util.*;
+
+import java.io.*;
 
 public record Md6AnimHeader(
     String skelName,
@@ -9,11 +11,11 @@ public record Md6AnimHeader(
     Bounds normalizedBounds,
     int size
 ) {
-    public static Md6AnimHeader read(BetterBuffer buffer) {
-        String skelName = buffer.getString();
-        Bounds translatedBounds = Bounds.read(buffer);
-        Bounds normalizedBounds = Bounds.read(buffer);
-        int size = buffer.getInt();
+    public static Md6AnimHeader read(DataSource source) throws IOException {
+        String skelName = source.readPString();
+        Bounds translatedBounds = Bounds.read(source);
+        Bounds normalizedBounds = Bounds.read(source);
+        int size = source.readInt();
 
         return new Md6AnimHeader(
             skelName,

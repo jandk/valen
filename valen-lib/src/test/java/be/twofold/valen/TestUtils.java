@@ -1,6 +1,6 @@
 package be.twofold.valen;
 
-import be.twofold.valen.core.util.*;
+import be.twofold.valen.core.io.*;
 import be.twofold.valen.manager.*;
 import be.twofold.valen.reader.*;
 
@@ -34,7 +34,7 @@ public abstract class TestUtils {
 
         entries.forEach(resource -> assertThatNoException()
             .isThrownBy(() -> {
-                var buffer = BetterBuffer.wrap(manager.readRawResource(resource));
+                var buffer = new ByteArrayDataSource(manager.readRawResource(resource));
                 reader.read(buffer, resource);
             }));
     }

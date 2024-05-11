@@ -1,13 +1,28 @@
 package be.twofold.valen.core.io;
 
 import java.io.*;
+import java.nio.charset.*;
 import java.util.*;
 
 public abstract class DataSource {
 
     public abstract byte readByte() throws IOException;
 
-    public abstract void readBytes(byte[] dst, int off, int len) throws IOException;
+    public void readBytes(byte[] dst, int off, int len) throws IOException {
+        readBytes(dst, off, len, true);
+    }
+
+    public abstract void readBytes(byte[] dst, int off, int len, boolean buffered) throws IOException;
+
+    public abstract long tell();
+
+    public abstract void seek(long pos) throws IOException;
+
+    public abstract long size();
+
+    public void skip(long count) throws IOException {
+        seek(tell() + count);
+    }
 
     public byte[] readBytes(int len) throws IOException {
         var result = new byte[len];
@@ -118,6 +133,24 @@ public abstract class DataSource {
     // Custom read methods
     //
 
+    public boolean readBoolByte() throws IOException {
+        var value = readByte();
+        return switch (value) {
+            case 0 -> false;
+            case 1 -> true;
+            default -> throw new IOException("Unexpected value for bool: " + value);
+        };
+    }
+
+    public boolean readBoolInt() throws IOException {
+        var value = readInt();
+        return switch (value) {
+            case 0 -> false;
+            case 1 -> true;
+            default -> throw new IOException("Unexpected value for bool: " + value);
+        };
+    }
+
     public int readLongAsInt() throws IOException {
         return Math.toIntExact(readLong());
     }
@@ -130,14 +163,14 @@ public abstract class DataSource {
         return result;
     }
 
-    public <T> T readStruct(StructMapper<T> mapper) throws IOException {
-        return mapper.read(this);
+    public String readPString() throws IOException {
+        return new String(readBytes(readInt()), StandardCharsets.UTF_8);
     }
 
     public <T> List<T> readStructs(int count, StructMapper<T> mapper) throws IOException {
         var result = new ArrayList<T>(count);
         for (var i = 0; i < count; i++) {
-            result.add(readStruct(mapper));
+            result.add(mapper.read(this));
         }
         return result;
     }
@@ -170,4 +203,16 @@ public abstract class DataSource {
         }
     }
 
+    public void expectPosition(long expected) throws IOException {
+        var actual = tell();
+        if (actual != expected) {
+            throw new IOException("Expected position " + expected + ", but got " + actual);
+        }
+    }
+
+    public void expectEnd() throws IOException {
+        if (tell() != size()) {
+            throw new IOException("Expected end of file, but got " + tell() + " of " + size());
+        }
+    }
 }

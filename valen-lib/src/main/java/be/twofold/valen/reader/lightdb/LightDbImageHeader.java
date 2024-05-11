@@ -1,6 +1,8 @@
 package be.twofold.valen.reader.lightdb;
 
-import be.twofold.valen.core.util.*;
+import be.twofold.valen.core.io.*;
+
+import java.io.*;
 
 public record LightDbImageHeader(
     long hash,
@@ -13,14 +15,14 @@ public record LightDbImageHeader(
 ) {
     public static final int BYTES = 32;
 
-    public static LightDbImageHeader read(BetterBuffer buffer) {
-        var hash = buffer.getLong();
-        var unk1 = buffer.getInt();
-        var unk2 = buffer.getInt();
-        var unk3 = buffer.getInt();
-        var unk4 = buffer.getInt();
-        var unk5 = buffer.getInt();
-        var unk6 = buffer.getInt();
+    public static LightDbImageHeader read(DataSource source) throws IOException {
+        var hash = source.readLong();
+        var unk1 = source.readInt();
+        var unk2 = source.readInt();
+        var unk3 = source.readInt();
+        var unk4 = source.readInt();
+        var unk5 = source.readInt();
+        var unk6 = source.readInt();
 
         return new LightDbImageHeader(
             hash,

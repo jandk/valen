@@ -1,6 +1,8 @@
 package be.twofold.valen.reader.staticmodel;
 
-import be.twofold.valen.core.util.*;
+import be.twofold.valen.core.io.*;
+
+import java.io.*;
 
 public record StaticModelHeader(
     int numMeshes,
@@ -9,18 +11,18 @@ public record StaticModelHeader(
     float unknown3,
     boolean streamed
 ) {
-    public static StaticModelHeader read(BetterBuffer buffer) {
-        buffer.expectInt(0);
-        buffer.expectInt(0);
-        buffer.expectInt(0);
-        buffer.expectInt(5);
-        var numMeshes = buffer.getInt();
-        buffer.expectInt(0);
-        var unknown1 = buffer.getFloat();
-        var unknown2 = buffer.getFloat();
-        var unknown3 = buffer.getFloat();
-        buffer.expectInt(0);
-        var streamed = buffer.getIntAsBool();
+    public static StaticModelHeader read(DataSource source) throws IOException {
+        source.expectInt(0);
+        source.expectInt(0);
+        source.expectInt(0);
+        source.expectInt(5);
+        var numMeshes = source.readInt();
+        source.expectInt(0);
+        var unknown1 = source.readFloat();
+        var unknown2 = source.readFloat();
+        var unknown3 = source.readFloat();
+        source.expectInt(0);
+        var streamed = source.readBoolInt();
         return new StaticModelHeader(
             numMeshes,
             unknown1,

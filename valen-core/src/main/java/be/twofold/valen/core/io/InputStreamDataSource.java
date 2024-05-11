@@ -20,7 +20,7 @@ public final class InputStreamDataSource extends DataSource {
     }
 
     @Override
-    public void readBytes(byte[] dst, int off, int len) throws IOException {
+    public void readBytes(byte[] dst, int off, int len, boolean buffered) throws IOException {
         Objects.checkFromIndexSize(off, len, dst.length);
 
         while (len > 0) {
@@ -31,5 +31,20 @@ public final class InputStreamDataSource extends DataSource {
             off += read;
             len -= read;
         }
+    }
+
+    @Override
+    public long tell() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void seek(long pos) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public long size() {
+        throw new UnsupportedOperationException();
     }
 }

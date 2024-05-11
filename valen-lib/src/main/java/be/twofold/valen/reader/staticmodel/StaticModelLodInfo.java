@@ -1,8 +1,10 @@
 package be.twofold.valen.reader.staticmodel;
 
+import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.math.*;
-import be.twofold.valen.core.util.*;
 import be.twofold.valen.reader.geometry.*;
+
+import java.io.*;
 
 public record StaticModelLodInfo(
     int numVertices,
@@ -17,21 +19,21 @@ public record StaticModelLodInfo(
     float unkFloat2,
     float unkFloat3
 ) implements LodInfo {
-    public static StaticModelLodInfo read(BetterBuffer buffer) {
-        buffer.expectInt(-2);
-        var numVertices = buffer.getInt();
-        var numEdges = buffer.getInt();
-        var flags = buffer.getInt();
-        var negBounds = Vector3.read(buffer);
-        var posBounds = Vector3.read(buffer);
-        var vertexOffset = Vector3.read(buffer);
-        var vertexScale = buffer.getFloat();
-        var uvOffset = Vector2.read(buffer);
-        var uvScale = buffer.getFloat();
-        buffer.expectInt(0);
-        var unkFloat1 = buffer.getFloat();
-        var unkFloat2 = buffer.getFloat();
-        buffer.expectInt(0x724c4d42);
+    public static StaticModelLodInfo read(DataSource source) throws IOException {
+        source.expectInt(-2);
+        var numVertices = source.readInt();
+        var numEdges = source.readInt();
+        var flags = source.readInt();
+        var negBounds = Vector3.read(source);
+        var posBounds = Vector3.read(source);
+        var vertexOffset = Vector3.read(source);
+        var vertexScale = source.readFloat();
+        var uvOffset = Vector2.read(source);
+        var uvScale = source.readFloat();
+        source.expectInt(0);
+        var unkFloat1 = source.readFloat();
+        var unkFloat2 = source.readFloat();
+        source.expectInt(0x724c4d42);
 
         return new StaticModelLodInfo(
             numVertices,

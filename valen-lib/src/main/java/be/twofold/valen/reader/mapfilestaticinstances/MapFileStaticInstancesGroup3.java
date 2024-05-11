@@ -1,14 +1,16 @@
 package be.twofold.valen.reader.mapfilestaticinstances;
 
-import be.twofold.valen.core.util.*;
+import be.twofold.valen.core.io.*;
+
+import java.io.*;
 
 public record MapFileStaticInstancesGroup3(
     int unknown1,
     int unknown2
 ) {
-    public static MapFileStaticInstancesGroup3 read(BetterBuffer buffer) {
-        var unknown1 = buffer.getInt();
-        var unknown2 = buffer.getInt();
+    public static MapFileStaticInstancesGroup3 read(DataSource source) throws IOException {
+        var unknown1 = source.readInt();
+        var unknown2 = source.readInt();
         return new MapFileStaticInstancesGroup3(unknown1, unknown2);
     }
 }

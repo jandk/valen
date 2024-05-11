@@ -18,12 +18,18 @@ public final class ByteArrayDataSource extends DataSource {
         MethodHandles.byteArrayViewVarHandle(double[].class, ByteOrder.LITTLE_ENDIAN);
 
     private final byte[] bytes;
-    final int lim;
-    int pos;
+    private final int offset;
+    private final int lim;
+    private int pos;
+
+    public ByteArrayDataSource(byte[] bytes) {
+        this(bytes, 0, bytes.length);
+    }
 
     public ByteArrayDataSource(byte[] bytes, int offset, int length) {
         Objects.checkFromIndexSize(offset, length, bytes.length);
         this.bytes = bytes;
+        this.offset = offset;
         this.pos = offset;
         this.lim = offset + length;
     }
@@ -37,13 +43,34 @@ public final class ByteArrayDataSource extends DataSource {
     }
 
     @Override
-    public void readBytes(byte[] dst, int off, int len) throws IOException {
+    public void readBytes(byte[] dst, int off, int len, boolean buffered) throws IOException {
         Objects.checkFromIndexSize(off, len, dst.length);
         if (pos + len > lim) {
             throw new EOFException();
         }
         System.arraycopy(bytes, pos, dst, off, len);
         pos += len;
+    }
+
+    @Override
+    public long tell() {
+        return pos - offset;
+    }
+
+    @Override
+    public void seek(long pos) {
+        Objects.checkIndex(pos, lim - offset);
+        this.pos = (int) (this.offset + pos);
+    }
+
+    @Override
+    public long size() {
+        return lim - offset;
+    }
+
+    public ByteArrayDataSource slice(int offset, int length) {
+        Objects.checkFromIndexSize(offset, length, lim - this.offset);
+        return new ByteArrayDataSource(bytes, this.offset + offset, length);
     }
 
     @Override

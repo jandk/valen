@@ -1,7 +1,7 @@
 package be.twofold.valen.reader.decl.material2;
 
+import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.material.*;
-import be.twofold.valen.core.util.*;
 import be.twofold.valen.manager.*;
 import be.twofold.valen.reader.*;
 import be.twofold.valen.reader.decl.*;
@@ -11,6 +11,7 @@ import be.twofold.valen.resource.*;
 import com.google.gson.*;
 import jakarta.inject.*;
 
+import java.io.*;
 import java.util.*;
 
 public final class MaterialReader implements ResourceReader<Material> {
@@ -41,8 +42,8 @@ public final class MaterialReader implements ResourceReader<Material> {
     }
 
     @Override
-    public Material read(BetterBuffer buffer, Resource resource) {
-        JsonObject object = declReader.read(buffer, resource);
+    public Material read(DataSource source, Resource resource) throws IOException {
+        JsonObject object = declReader.read(source, resource);
         return parseMaterial(object, resource.nameString());
     }
 

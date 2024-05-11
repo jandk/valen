@@ -1,6 +1,8 @@
 package be.twofold.valen.reader.md6skel;
 
-import be.twofold.valen.core.util.*;
+import be.twofold.valen.core.io.*;
+
+import java.io.*;
 
 public record Md6SkelHeader(
     short size,
@@ -19,24 +21,24 @@ public record Md6SkelHeader(
     short loadedDataSize,
     byte[] pad
 ) {
-    public static Md6SkelHeader read(BetterBuffer buffer) {
-        buffer.skip(4); // These are a copy of the size
-        var size = buffer.getShort();
-        var numJoints = buffer.getShort();
-        var numUserChannels = buffer.getShort();
-        var parentTblCrc = buffer.getShort();
-        var basePoseOffset = buffer.getShort();
-        var inverseBasePoseOffset = buffer.getShort();
-        var parentTblOffset = buffer.getShort();
-        var lastChildTblOffset = buffer.getShort();
-        var jointHandleTblOffset = buffer.getShort();
-        var userChannelHandleTblOffset = buffer.getShort();
-        var jointWeightOffsets = buffer.getShorts(8);
-        var userWeightOffsets = buffer.getShorts(8);
-        var extraJointTblOffset = buffer.getShort();
-        buffer.expectShort(0); // skelRemapTblOffset
-        var loadedDataSize = buffer.getShort();
-        var pad = buffer.getBytes(6);
+    public static Md6SkelHeader read(DataSource source) throws IOException {
+        source.skip(4); // These are a copy of the size
+        var size = source.readShort();
+        var numJoints = source.readShort();
+        var numUserChannels = source.readShort();
+        var parentTblCrc = source.readShort();
+        var basePoseOffset = source.readShort();
+        var inverseBasePoseOffset = source.readShort();
+        var parentTblOffset = source.readShort();
+        var lastChildTblOffset = source.readShort();
+        var jointHandleTblOffset = source.readShort();
+        var userChannelHandleTblOffset = source.readShort();
+        var jointWeightOffsets = source.readShorts(8);
+        var userWeightOffsets = source.readShorts(8);
+        var extraJointTblOffset = source.readShort();
+        source.expectShort((short) 0); // skelRemapTblOffset
+        var loadedDataSize = source.readShort();
+        var pad = source.readBytes(6);
 
         return new Md6SkelHeader(
             size,

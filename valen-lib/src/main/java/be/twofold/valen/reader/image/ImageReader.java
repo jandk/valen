@@ -1,11 +1,14 @@
 package be.twofold.valen.reader.image;
 
+import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.texture.*;
 import be.twofold.valen.core.util.*;
 import be.twofold.valen.reader.*;
 import be.twofold.valen.resource.*;
 import be.twofold.valen.stream.*;
 import jakarta.inject.*;
+
+import java.io.*;
 
 public final class ImageReader implements ResourceReader<Texture> {
     private final StreamManager streamManager;
@@ -21,13 +24,13 @@ public final class ImageReader implements ResourceReader<Texture> {
     }
 
     @Override
-    public Texture read(BetterBuffer buffer, Resource resource) {
-        Image image = read(buffer, true, resource.hash());
+    public Texture read(DataSource source, Resource resource) throws IOException {
+        Image image = read(source, true, resource.hash());
         return new ImageMapper().map(image);
     }
 
-    public Image read(BetterBuffer buffer, boolean readStreams, long hash) {
-        var image = Image.read(buffer);
+    public Image read(DataSource source, boolean readStreams, long hash) throws IOException {
+        var image = Image.read(source);
 
         if (readStreams && streamManager != null) {
             /*
@@ -40,7 +43,8 @@ public final class ImageReader implements ResourceReader<Texture> {
             } else {
                 readMultiStream(image, hash);
             }
-            buffer.expectEnd();
+            // TODO: Implement
+            // source.expectEnd();
         }
 
         return image;

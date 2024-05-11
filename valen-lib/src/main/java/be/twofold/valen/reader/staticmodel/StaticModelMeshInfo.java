@@ -1,7 +1,8 @@
 package be.twofold.valen.reader.staticmodel;
 
-import be.twofold.valen.core.util.*;
+import be.twofold.valen.core.io.*;
 
+import java.io.*;
 import java.util.*;
 
 public record StaticModelMeshInfo(
@@ -10,16 +11,16 @@ public record StaticModelMeshInfo(
     int unknown,
     List<StaticModelLodInfo> lodInfos
 ) {
-    public static StaticModelMeshInfo read(BetterBuffer buffer) {
-        var mtlDecl = buffer.getString();
-        var unkHash = buffer.getInt();
-        var unknown = buffer.getInt();
-        buffer.expectInt(0);
+    public static StaticModelMeshInfo read(DataSource source) throws IOException {
+        var mtlDecl = source.readPString();
+        var unkHash = source.readInt();
+        var unknown = source.readInt();
+        source.expectInt(0);
 
         var lodInfos = new ArrayList<StaticModelLodInfo>();
         for (var lod = 0; lod < StaticModel.LodCount; lod++) {
-            if (!buffer.getIntAsBool()) {
-                lodInfos.add(StaticModelLodInfo.read(buffer));
+            if (!source.readBoolInt()) {
+                lodInfos.add(StaticModelLodInfo.read(source));
             }
         }
 

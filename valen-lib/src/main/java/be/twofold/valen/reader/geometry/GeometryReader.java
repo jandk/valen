@@ -1,8 +1,9 @@
 package be.twofold.valen.reader.geometry;
 
 import be.twofold.valen.core.geometry.*;
-import be.twofold.valen.core.util.*;
+import be.twofold.valen.core.io.*;
 
+import java.io.*;
 import java.nio.*;
 import java.util.*;
 import java.util.stream.*;
@@ -22,80 +23,88 @@ public final class GeometryReader {
         this.hasWeights = hasWeights;
     }
 
-    public List<Mesh> readMeshes(BetterBuffer buffer, List<LodInfo> lods, List<GeometryMemoryLayout> layouts) {
+    public List<Mesh> readMeshes(DataSource source, List<LodInfo> lods, List<GeometryMemoryLayout> layouts) throws IOException {
         for (var layout : layouts) {
             assert layout.normalMask() == 0x14 : "Unknown normal mask: " + layout.normalMask();
             assert layout.colorMask() == 0x08 : "Unknown color mask: " + layout.colorMask();
         }
 
         for (var layout : layouts) {
-            buffer.position(layout.positionOffset());
-            lods.stream()
-                .filter(lod -> lod.flags() == layout.combinedVertexMask())
-                .map(lod -> switch (layout.positionMask()) {
-                    case 0x01 -> readVertices(buffer, lod);
-                    case 0x20 -> readPackedVertices(buffer, lod);
-                    default -> throw new RuntimeException("Unknown position mask: " + layout.positionMask());
-                })
-                .forEach(positionBuffers::add);
+            source.seek(layout.positionOffset());
+            for (var lod : lods) {
+                if (lod.flags() == layout.combinedVertexMask()) {
+                    var buffer = switch (layout.positionMask()) {
+                        case 0x01 -> readVertices(source, lod);
+                        case 0x20 -> readPackedVertices(source, lod);
+                        default -> throw new RuntimeException("Unknown position mask: " + layout.positionMask());
+                    };
+                    positionBuffers.add(buffer);
+                }
+            }
         }
 
         for (var layout : layouts) {
-            buffer.position(layout.normalOffset());
-            lods.stream()
-                .filter(lod -> lod.flags() == layout.combinedVertexMask())
-                .map(lod -> readPackedNormals(buffer, lod))
-                .forEach(normalBuffers::add);
+            source.seek(layout.normalOffset());
+            for (var lod : lods) {
+                if (lod.flags() == layout.combinedVertexMask()) {
+                    normalBuffers.add(readPackedNormals(source, lod));
+                }
+            }
         }
 
         for (var layout : layouts) {
-            buffer.position(layout.normalOffset());
-            lods.stream()
-                .filter(lod -> lod.flags() == layout.combinedVertexMask())
-                .map(lod -> readPackedTangents(buffer, lod))
-                .forEach(tangentBuffers::add);
+            source.seek(layout.normalOffset());
+            for (LodInfo lod : lods) {
+                if (lod.flags() == layout.combinedVertexMask()) {
+                    tangentBuffers.add(readPackedTangents(source, lod));
+                }
+            }
         }
 
         for (var layout : layouts) {
-            buffer.position(layout.normalOffset());
-            lods.stream()
-                .filter(lod -> lod.flags() == layout.combinedVertexMask())
-                .map(lod -> readWeights(buffer, lod))
-                .forEach(weightBuffers::add);
+            source.seek(layout.normalOffset());
+            for (LodInfo lod : lods) {
+                if (lod.flags() == layout.combinedVertexMask()) {
+                    weightBuffers.add(readWeights(source, lod));
+                }
+            }
         }
 
         for (var layout : layouts) {
-            buffer.position(layout.uvOffset());
-            lods.stream()
-                .filter(lod -> lod.flags() == layout.combinedVertexMask())
-                .map(lod -> switch (layout.uvMask()) {
-                    case 0x08000 -> readUVs(buffer, lod);
-                    case 0x20000 -> readPackedUVs(buffer, lod);
-                    default -> throw new RuntimeException("Unknown UV mask: " + layout.normalMask());
-                })
-                .forEach(texCoordBuffers::add);
+            source.seek(layout.uvOffset());
+            for (LodInfo lod : lods) {
+                if (lod.flags() == layout.combinedVertexMask()) {
+                    var buffer = switch (layout.uvMask()) {
+                        case 0x08000 -> readUVs(source, lod);
+                        case 0x20000 -> readPackedUVs(source, lod);
+                        default -> throw new RuntimeException("Unknown UV mask: " + layout.normalMask());
+                    };
+                    texCoordBuffers.add(buffer);
+                }
+            }
         }
 
         for (var layout : layouts) {
-            buffer.position(layout.colorOffset());
-            lods.stream()
-                .filter(lod -> lod.flags() == layout.combinedVertexMask())
-                .map(lod -> readColors(buffer, lod))
-                .forEach(bb -> {
+            source.seek(layout.colorOffset());
+            for (LodInfo lod : lods) {
+                if (lod.flags() == layout.combinedVertexMask()) {
+                    ByteBuffer bb = readColors(source, lod);
                     if (hasWeights) {
                         jointBuffers.add(bb);
                     } else {
                         colorBuffers.add(bb);
                     }
-                });
+                }
+            }
         }
 
         for (var layout : layouts) {
-            buffer.position(layout.indexOffset());
-            lods.stream()
-                .filter(lod -> lod.flags() == layout.combinedVertexMask())
-                .map(lod -> readFaces(buffer, lod))
-                .forEach(indexBuffers::add);
+            source.seek(layout.indexOffset());
+            for (LodInfo lod : lods) {
+                if (lod.flags() == layout.combinedVertexMask()) {
+                    indexBuffers.add(readFaces(source, lod));
+                }
+            }
         }
 
         return IntStream.range(0, lods.size())
@@ -103,74 +112,74 @@ public final class GeometryReader {
             .toList();
     }
 
-    public FloatBuffer readVertices(BetterBuffer src, LodInfo lod) {
+    public FloatBuffer readVertices(DataSource source, LodInfo lod) throws IOException {
         var dst = FloatBuffer.allocate(lod.numVertices() * 3);
         for (var i = 0; i < lod.numVertices(); i++) {
-            Geometry.readVertex(src, dst, lod.vertexOffset(), lod.vertexScale());
+            Geometry.readVertex(source, dst, lod.vertexOffset(), lod.vertexScale());
         }
         return dst.flip();
     }
 
-    public FloatBuffer readPackedVertices(BetterBuffer src, LodInfo lod) {
+    public FloatBuffer readPackedVertices(DataSource source, LodInfo lod) throws IOException {
         var dst = FloatBuffer.allocate(lod.numVertices() * 3);
         for (var i = 0; i < lod.numVertices(); i++) {
-            Geometry.readPackedVertex(src, dst, lod.vertexOffset(), lod.vertexScale());
+            Geometry.readPackedVertex(source, dst, lod.vertexOffset(), lod.vertexScale());
         }
         return dst.flip();
     }
 
-    public FloatBuffer readPackedNormals(BetterBuffer src, LodInfo lod) {
+    public FloatBuffer readPackedNormals(DataSource source, LodInfo lod) throws IOException {
         var dst = FloatBuffer.allocate(lod.numVertices() * 3);
         for (var i = 0; i < lod.numVertices(); i++) {
-            Geometry.readPackedNormal(src, dst);
+            Geometry.readPackedNormal(source, dst);
         }
         return dst.flip();
     }
 
-    public FloatBuffer readPackedTangents(BetterBuffer src, LodInfo lod) {
+    public FloatBuffer readPackedTangents(DataSource source, LodInfo lod) throws IOException {
         var dst = FloatBuffer.allocate(lod.numVertices() * 4);
         for (var i = 0; i < lod.numVertices(); i++) {
-            Geometry.readPackedTangent(src, dst);
+            Geometry.readPackedTangent(source, dst);
         }
         return dst.flip();
     }
 
-    public ByteBuffer readWeights(BetterBuffer src, LodInfo lod) {
+    public ByteBuffer readWeights(DataSource source, LodInfo lod) throws IOException {
         var dst = ByteBuffer.allocate(lod.numVertices() * 4);
         for (var i = 0; i < lod.numVertices(); i++) {
-            Geometry.readWeight(src, dst);
+            Geometry.readWeight(source, dst);
         }
         return dst.flip();
     }
 
-    public FloatBuffer readUVs(BetterBuffer src, LodInfo lod) {
+    public FloatBuffer readUVs(DataSource source, LodInfo lod) throws IOException {
         var dst = FloatBuffer.allocate(lod.numVertices() * 2);
         for (var i = 0; i < lod.numVertices(); i++) {
-            Geometry.readUV(src, dst, lod.uvOffset(), lod.uvScale());
+            Geometry.readUV(source, dst, lod.uvOffset(), lod.uvScale());
         }
         return dst.flip();
     }
 
-    public FloatBuffer readPackedUVs(BetterBuffer src, LodInfo lod) {
+    public FloatBuffer readPackedUVs(DataSource source, LodInfo lod) throws IOException {
         var dst = FloatBuffer.allocate(lod.numVertices() * 2);
         for (var i = 0; i < lod.numVertices(); i++) {
-            Geometry.readPackedUV(src, dst, lod.uvOffset(), lod.uvScale());
+            Geometry.readPackedUV(source, dst, lod.uvOffset(), lod.uvScale());
         }
         return dst.flip();
     }
 
-    public ByteBuffer readColors(BetterBuffer src, LodInfo lod) {
+    public ByteBuffer readColors(DataSource source, LodInfo lod) throws IOException {
         var dst = ByteBuffer.allocate(lod.numVertices() * 4);
-        dst.put(src.getBytes(lod.numVertices() * 4));
+        dst.put(source.readBytes(lod.numVertices() * 4));
         return dst.flip();
     }
 
-    public ShortBuffer readFaces(BetterBuffer src, LodInfo lod) {
+    public ShortBuffer readFaces(DataSource source, LodInfo lod) throws IOException {
         var dst = ShortBuffer.allocate(lod.numFaces() * 3);
         for (var i = 0; i < lod.numFaces(); i++) {
-            var f1 = src.getShort();
-            var f2 = src.getShort();
-            var f3 = src.getShort();
+            var f1 = source.readShort();
+            var f2 = source.readShort();
+            var f3 = source.readShort();
 
             dst.put(f3);
             dst.put(f2);

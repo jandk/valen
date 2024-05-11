@@ -1,6 +1,8 @@
 package be.twofold.valen.reader.lightdb;
 
-import be.twofold.valen.core.util.*;
+import be.twofold.valen.core.io.*;
+
+import java.io.*;
 
 public record LightDbHeader(
     int nameOffset,
@@ -13,21 +15,21 @@ public record LightDbHeader(
 ) {
     public static final int BYTES = 56;
 
-    public static LightDbHeader read(BetterBuffer buffer) {
-        buffer.expectInt(0x4c444202);
-        buffer.expectInt(2);
-        buffer.expectInt(2);
-        buffer.expectInt(1);
-        buffer.expectInt(28);
-        buffer.expectInt(2);
-        var nameOffset = buffer.getInt();
-        var hashLength = buffer.getInt();
-        var imageCount = buffer.getInt();
-        buffer.expectInt(21);
-        var imageOffset = buffer.getInt();
-        var indexOffset = buffer.getInt();
-        var hashOffset = buffer.getInt();
-        var dbOffset16 = buffer.getInt();
+    public static LightDbHeader read(DataSource source) throws IOException {
+        source.expectInt(0x4c444202);
+        source.expectInt(2);
+        source.expectInt(2);
+        source.expectInt(1);
+        source.expectInt(28);
+        source.expectInt(2);
+        var nameOffset = source.readInt();
+        var hashLength = source.readInt();
+        var imageCount = source.readInt();
+        source.expectInt(21);
+        var imageOffset = source.readInt();
+        var indexOffset = source.readInt();
+        var hashOffset = source.readInt();
+        var dbOffset16 = source.readInt();
 
         return new LightDbHeader(
             nameOffset,

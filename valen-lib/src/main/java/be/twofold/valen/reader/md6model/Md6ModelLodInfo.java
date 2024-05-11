@@ -1,8 +1,10 @@
 package be.twofold.valen.reader.md6model;
 
+import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.math.*;
-import be.twofold.valen.core.util.*;
 import be.twofold.valen.reader.geometry.*;
+
+import java.io.*;
 
 public record Md6ModelLodInfo(
     int numVertices,
@@ -16,17 +18,17 @@ public record Md6ModelLodInfo(
     float unkFloat2,
     float unkFloat3
 ) implements LodInfo {
-    public static Md6ModelLodInfo read(BetterBuffer buffer) {
-        var numVertices = buffer.getInt();
-        var numFaces = buffer.getInt();
-        var bounds = Bounds.read(buffer);
-        var vertexOffset = Vector3.read(buffer);
-        var vertexScale = buffer.getFloat();
-        var uvOffset = Vector2.read(buffer);
-        var uvScale = buffer.getFloat();
-        var flags = buffer.getInt();
-        var unkFloat1 = buffer.getFloat();
-        var unkFloat2 = buffer.getFloat();
+    public static Md6ModelLodInfo read(DataSource source) throws IOException {
+        var numVertices = source.readInt();
+        var numFaces = source.readInt();
+        var bounds = Bounds.read(source);
+        var vertexOffset = Vector3.read(source);
+        var vertexScale = source.readFloat();
+        var uvOffset = Vector2.read(source);
+        var uvScale = source.readFloat();
+        var flags = source.readInt();
+        var unkFloat1 = source.readFloat();
+        var unkFloat2 = source.readFloat();
 
         return new Md6ModelLodInfo(
             numVertices,

@@ -1,10 +1,12 @@
 package be.twofold.valen.reader.filecompressed;
 
-import be.twofold.valen.core.util.*;
+import be.twofold.valen.core.io.*;
 import be.twofold.valen.oodle.*;
 import be.twofold.valen.reader.*;
 import be.twofold.valen.resource.*;
 import jakarta.inject.*;
+
+import java.io.*;
 
 public final class FileCompressedReader implements ResourceReader<byte[]> {
 
@@ -19,10 +21,10 @@ public final class FileCompressedReader implements ResourceReader<byte[]> {
     }
 
     @Override
-    public byte[] read(BetterBuffer buffer, Resource resource) {
-        FileCompressedHeader header = FileCompressedHeader.read(buffer);
+    public byte[] read(DataSource source, Resource resource) throws IOException {
+        FileCompressedHeader header = FileCompressedHeader.read(source);
 
-        byte[] compressed = buffer.getBytes(header.compressedSize());
+        byte[] compressed = source.readBytes(header.compressedSize());
         return OodleDecompressor.decompress(compressed, header.uncompressedSize());
     }
 

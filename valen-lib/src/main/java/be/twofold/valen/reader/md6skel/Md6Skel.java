@@ -1,8 +1,9 @@
 package be.twofold.valen.reader.md6skel;
 
+import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.math.*;
-import be.twofold.valen.core.util.*;
 
+import java.io.*;
 import java.util.*;
 
 public record Md6Skel(
@@ -14,33 +15,31 @@ public record Md6Skel(
     List<Matrix4> inverseBasePoses,
     List<String> names
 ) {
-    public static Md6Skel read(BetterBuffer buffer) {
-        var header = Md6SkelHeader.read(buffer);
+    public static Md6Skel read(DataSource source) throws IOException {
+        var header = Md6SkelHeader.read(source);
 
-        buffer.expectPosition(header.basePoseOffset() + 4);
-        var rotations = buffer.getStructs(header.numJoints8(), Quaternion::read);
-        var scales = buffer.getStructs(header.numJoints8(), Vector3::read);
-        var translations = buffer.getStructs(header.numJoints8(), Vector3::read);
+        source.expectPosition(header.basePoseOffset() + 4);
+        var rotations = source.readStructs(header.numJoints8(), Quaternion::read);
+        var scales = source.readStructs(header.numJoints8(), Vector3::read);
+        var translations = source.readStructs(header.numJoints8(), Vector3::read);
 
-        buffer.position(header.parentTblOffset() + 4);
-        var parents = buffer.getShorts(header.numJoints8());
+        source.seek(header.parentTblOffset() + 4);
+        var parents = source.readShorts(header.numJoints8());
 
-        buffer.position(header.inverseBasePoseOffset() + 4);
-        var inverseBasePoses = readInverseBasePoses(buffer, header);
+        source.seek(header.inverseBasePoseOffset() + 4);
+        var inverseBasePoses = readInverseBasePoses(source, header);
 
-        buffer.expectPosition(header.size() + 4); // names are tacked on the end
-        var names = buffer.getStructs(header.numJoints8(), BetterBuffer::getString);
+        source.expectPosition(header.size() + 4); // names are tacked on the end
+        var names = source.readStructs(header.numJoints8(), DataSource::readPString);
 
         return new Md6Skel(header, rotations, scales, translations, parents, inverseBasePoses, names);
     }
 
-    private static List<Matrix4> readInverseBasePoses(BetterBuffer buffer, Md6SkelHeader header) {
+    private static List<Matrix4> readInverseBasePoses(DataSource source, Md6SkelHeader header) throws IOException {
         List<Matrix4> inverseBasePoses = new ArrayList<>();
         for (var i = 0; i < header.numJoints8(); i++) {
             var floats = new float[16];
-            for (var j = 0; j < 12; j++) {
-                floats[j] = buffer.getFloat();
-            }
+            source.readFloats(floats, 0, 12);
             floats[15] = 1;
             inverseBasePoses.add(Matrix4.fromArray(floats).transpose());
         }

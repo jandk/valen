@@ -1,10 +1,11 @@
 package be.twofold.valen.reader.staticmodel;
 
 import be.twofold.valen.core.geometry.*;
+import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.material.*;
-import be.twofold.valen.core.util.*;
 import be.twofold.valen.reader.geometry.*;
 
+import java.io.*;
 import java.util.*;
 
 public record StaticModel(
@@ -20,14 +21,14 @@ public record StaticModel(
 ) {
     public static final int LodCount = 5;
 
-    public static StaticModel read(BetterBuffer buffer) {
-        var header = StaticModelHeader.read(buffer);
-        var meshInfos = buffer.getStructs(header.numMeshes(), StaticModelMeshInfo::read);
-        var misc1 = StaticModelMisc1.read(buffer);
-        var geoDecals = StaticModelGeoDecals.read(buffer);
-        var misc2 = StaticModelMisc2.read(buffer);
-        var streamedLods = buffer.getStructs(header.numMeshes() * LodCount, BetterBuffer::getByteAsBool);
-        var layouts = header.streamed() ? readLayouts(buffer) : List.<GeometryDiskLayout>of();
+    public static StaticModel read(DataSource source) throws IOException {
+        var header = StaticModelHeader.read(source);
+        var meshInfos = source.readStructs(header.numMeshes(), StaticModelMeshInfo::read);
+        var misc1 = StaticModelMisc1.read(source);
+        var geoDecals = StaticModelGeoDecals.read(source);
+        var misc2 = StaticModelMisc2.read(source);
+        var streamedLods = source.readStructs(header.numMeshes() * LodCount, DataSource::readBoolByte);
+        var layouts = header.streamed() ? readLayouts(source) : List.<GeometryDiskLayout>of();
 
         return new StaticModel(
             header,
@@ -42,11 +43,11 @@ public record StaticModel(
         );
     }
 
-    private static List<GeometryDiskLayout> readLayouts(BetterBuffer buffer) {
+    private static List<GeometryDiskLayout> readLayouts(DataSource source) throws IOException {
         var layouts = new ArrayList<GeometryDiskLayout>();
         for (var lod = 0; lod < LodCount; lod++) {
-            var memoryLayouts = buffer.getStructs(buffer.getInt(), GeometryMemoryLayout::read);
-            layouts.add(GeometryDiskLayout.read(buffer, memoryLayouts));
+            var memoryLayouts = source.readStructs(source.readInt(), GeometryMemoryLayout::read);
+            layouts.add(GeometryDiskLayout.read(source, memoryLayouts));
         }
         return layouts;
     }

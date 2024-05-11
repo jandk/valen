@@ -1,6 +1,8 @@
 package be.twofold.valen.reader.md6anim;
 
-import be.twofold.valen.core.util.*;
+import be.twofold.valen.core.io.*;
+
+import java.io.*;
 
 public record Md6AnimMapOffsets(
     short constRRLEOffset,
@@ -12,15 +14,15 @@ public record Md6AnimMapOffsets(
     short animTRLEOffset,
     short animURLEOffset
 ) {
-    public static Md6AnimMapOffsets read(BetterBuffer buffer) {
-        short constRRLEOffset = buffer.getShort();
-        short constSRLEOffset = buffer.getShort();
-        short constTRLEOffset = buffer.getShort();
-        short constURLEOffset = buffer.getShort();
-        short animRRLEOffset = buffer.getShort();
-        short animSRLEOffset = buffer.getShort();
-        short animTRLEOffset = buffer.getShort();
-        short animURLEOffset = buffer.getShort();
+    public static Md6AnimMapOffsets read(DataSource source) throws IOException {
+        short constRRLEOffset = source.readShort();
+        short constSRLEOffset = source.readShort();
+        short constTRLEOffset = source.readShort();
+        short constURLEOffset = source.readShort();
+        short animRRLEOffset = source.readShort();
+        short animSRLEOffset = source.readShort();
+        short animTRLEOffset = source.readShort();
+        short animURLEOffset = source.readShort();
 
         return new Md6AnimMapOffsets(
             constRRLEOffset,
