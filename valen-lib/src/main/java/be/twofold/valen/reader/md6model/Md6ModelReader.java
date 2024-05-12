@@ -45,14 +45,17 @@ public final class Md6ModelReader implements ResourceReader<Model> {
     }
 
     private List<Mesh> readStreamedGeometry(Md6Model md6, int lod, long hash) throws IOException {
-        var identity = (hash << 4) | lod;
         var uncompressedSize = md6.layouts().get(lod).uncompressedSize();
+        if (uncompressedSize == 0) {
+            return List.of();
+        }
 
         var lodInfos = md6.meshInfos().stream()
             .<LodInfo>map(mi -> mi.lodInfos().get(lod))
             .toList();
         var layouts = md6.layouts().get(lod).memoryLayouts();
 
+        var identity = (hash << 4) | lod;
         var source = new ByteArrayDataSource(streamManager.read(identity, uncompressedSize));
         return new GeometryReader(true)
             .readMeshes(source, lodInfos, layouts);

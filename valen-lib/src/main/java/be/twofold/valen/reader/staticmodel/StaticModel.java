@@ -11,9 +11,8 @@ import java.util.*;
 public record StaticModel(
     StaticModelHeader header,
     List<StaticModelMeshInfo> meshInfos,
-    StaticModelMisc1 misc1,
+    StaticModelSettings settings,
     StaticModelGeoDecals geoDecals,
-    StaticModelMisc2 misc2,
     List<Boolean> streamedLods,
     List<GeometryDiskLayout> streamDiskLayouts,
     List<Mesh> meshes,
@@ -23,19 +22,17 @@ public record StaticModel(
 
     public static StaticModel read(DataSource source) throws IOException {
         var header = StaticModelHeader.read(source);
-        var meshInfos = source.readStructs(header.numMeshes(), StaticModelMeshInfo::read);
-        var misc1 = StaticModelMisc1.read(source);
+        var meshInfos = source.readStructs(header.numSurfaces(), StaticModelMeshInfo::read);
+        var settings = StaticModelSettings.read(source);
         var geoDecals = StaticModelGeoDecals.read(source);
-        var misc2 = StaticModelMisc2.read(source);
-        var streamedLods = source.readStructs(header.numMeshes() * LodCount, DataSource::readBoolByte);
-        var layouts = header.streamed() ? readLayouts(source) : List.<GeometryDiskLayout>of();
+        var streamedLods = source.readStructs(header.numSurfaces() * LodCount, DataSource::readBoolByte);
+        var layouts = header.streamable() ? readLayouts(source) : List.<GeometryDiskLayout>of();
 
         return new StaticModel(
             header,
             meshInfos,
-            misc1,
+            settings,
             geoDecals,
-            misc2,
             streamedLods,
             layouts,
             List.of(),
@@ -56,9 +53,8 @@ public record StaticModel(
         return new StaticModel(
             header,
             meshInfos,
-            misc1,
+            settings,
             geoDecals,
-            misc2,
             streamedLods,
             streamDiskLayouts,
             meshes,
@@ -70,9 +66,8 @@ public record StaticModel(
         return new StaticModel(
             header,
             meshInfos,
-            misc1,
+            settings,
             geoDecals,
-            misc2,
             streamedLods,
             streamDiskLayouts,
             meshes,

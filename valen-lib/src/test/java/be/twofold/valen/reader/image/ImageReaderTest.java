@@ -9,7 +9,6 @@ class ImageReaderTest {
 
     @Test
     void testCanReadAll() throws IOException {
-        System.out.println(System.getProperty("user.dir"));
         TestUtils.testReader(manager -> new ImageReader(null));
     }
 

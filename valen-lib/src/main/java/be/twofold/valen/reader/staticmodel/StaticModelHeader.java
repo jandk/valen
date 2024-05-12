@@ -1,34 +1,30 @@
 package be.twofold.valen.reader.staticmodel;
 
 import be.twofold.valen.core.io.*;
+import be.twofold.valen.core.math.*;
 
 import java.io.*;
 
 public record StaticModelHeader(
-    int numMeshes,
-    float unknown1,
-    float unknown2,
-    float unknown3,
-    boolean streamed
+    Vector3 referencePosition,
+    int numLods,
+    int numSurfaces,
+    float[] maxLodDeviations,
+    boolean streamable
 ) {
     public static StaticModelHeader read(DataSource source) throws IOException {
-        source.expectInt(0);
-        source.expectInt(0);
-        source.expectInt(0);
-        source.expectInt(5);
-        var numMeshes = source.readInt();
-        source.expectInt(0);
-        var unknown1 = source.readFloat();
-        var unknown2 = source.readFloat();
-        var unknown3 = source.readFloat();
-        source.expectInt(0);
-        var streamed = source.readBoolInt();
+        Vector3 referencePosition = Vector3.read(source);
+        var numLods = source.readInt();
+        var numSurfaces = source.readInt();
+        var maxLodDeviations = source.readFloats(numLods);
+        var streamable = source.readBoolInt();
+
         return new StaticModelHeader(
-            numMeshes,
-            unknown1,
-            unknown2,
-            unknown3,
-            streamed
+            referencePosition,
+            numLods,
+            numSurfaces,
+            maxLodDeviations,
+            streamable
         );
     }
 }

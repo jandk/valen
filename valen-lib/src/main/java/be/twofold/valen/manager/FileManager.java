@@ -15,7 +15,7 @@ import java.util.*;
 @Singleton
 public final class FileManager {
     public final ResourceManager resourceManager;
-    private final StreamManager streamManager;
+    public final StreamManager streamManager;
     private final Set<ResourceReader<?>> readers;
 
     private PackageMapSpec spec;

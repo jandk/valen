@@ -13,9 +13,9 @@ public final class GeometryReader {
     private final List<FloatBuffer> positionBuffers = new ArrayList<>();
     private final List<FloatBuffer> normalBuffers = new ArrayList<>();
     private final List<FloatBuffer> tangentBuffers = new ArrayList<>();
-    private final List<FloatBuffer> texCoordBuffers = new ArrayList<>();
+    private final List<FloatBuffer> texCoord0Buffers = new ArrayList<>();
+    private final List<FloatBuffer> texCoord1Buffers = new ArrayList<>();
     private final List<ByteBuffer> colorBuffers = new ArrayList<>();
-    private final List<ByteBuffer> jointBuffers = new ArrayList<>();
     private final List<ByteBuffer> weightBuffers = new ArrayList<>();
     private final List<ShortBuffer> indexBuffers = new ArrayList<>();
 
@@ -25,74 +25,14 @@ public final class GeometryReader {
 
     public List<Mesh> readMeshes(DataSource source, List<LodInfo> lods, List<GeometryMemoryLayout> layouts) throws IOException {
         for (var layout : layouts) {
-            assert layout.normalMask() == 0x14 : "Unknown normal mask: " + layout.normalMask();
-            assert layout.colorMask() == 0x08 : "Unknown color mask: " + layout.colorMask();
-        }
+            for (int i = 0; i < layout.numVertexStreams(); i++) {
+                var mask = layout.vertexMasks()[i];
+                var offset = layout.vertexOffsets()[i];
 
-        for (var layout : layouts) {
-            source.seek(layout.positionOffset());
-            for (var lod : lods) {
-                if (lod.flags() == layout.combinedVertexMask()) {
-                    var buffer = switch (layout.positionMask()) {
-                        case 0x01 -> readVertices(source, lod);
-                        case 0x20 -> readPackedVertices(source, lod);
-                        default -> throw new RuntimeException("Unknown position mask: " + layout.positionMask());
-                    };
-                    positionBuffers.add(buffer);
-                }
-            }
-        }
-
-        for (var layout : layouts) {
-            source.seek(layout.normalOffset());
-            for (var lod : lods) {
-                if (lod.flags() == layout.combinedVertexMask()) {
-                    normalBuffers.add(readPackedNormals(source, lod));
-                }
-            }
-        }
-
-        for (var layout : layouts) {
-            source.seek(layout.normalOffset());
-            for (LodInfo lod : lods) {
-                if (lod.flags() == layout.combinedVertexMask()) {
-                    tangentBuffers.add(readPackedTangents(source, lod));
-                }
-            }
-        }
-
-        for (var layout : layouts) {
-            source.seek(layout.normalOffset());
-            for (LodInfo lod : lods) {
-                if (lod.flags() == layout.combinedVertexMask()) {
-                    weightBuffers.add(readWeights(source, lod));
-                }
-            }
-        }
-
-        for (var layout : layouts) {
-            source.seek(layout.uvOffset());
-            for (LodInfo lod : lods) {
-                if (lod.flags() == layout.combinedVertexMask()) {
-                    var buffer = switch (layout.uvMask()) {
-                        case 0x08000 -> readUVs(source, lod);
-                        case 0x20000 -> readPackedUVs(source, lod);
-                        default -> throw new RuntimeException("Unknown UV mask: " + layout.normalMask());
-                    };
-                    texCoordBuffers.add(buffer);
-                }
-            }
-        }
-
-        for (var layout : layouts) {
-            source.seek(layout.colorOffset());
-            for (LodInfo lod : lods) {
-                if (lod.flags() == layout.combinedVertexMask()) {
-                    ByteBuffer bb = readColors(source, lod);
-                    if (hasWeights) {
-                        jointBuffers.add(bb);
-                    } else {
-                        colorBuffers.add(bb);
+                source.seek(offset);
+                for (LodInfo lod : lods) {
+                    if (lod.flags() == layout.combinedVertexMask()) {
+                        readVertexBuffer(source, lod, GeometryVertexMask.from(mask));
                     }
                 }
             }
@@ -102,7 +42,7 @@ public final class GeometryReader {
             source.seek(layout.indexOffset());
             for (LodInfo lod : lods) {
                 if (lod.flags() == layout.combinedVertexMask()) {
-                    indexBuffers.add(readFaces(source, lod));
+                    indexBuffers.add(readIndexBuffer(source, lod));
                 }
             }
         }
@@ -110,6 +50,29 @@ public final class GeometryReader {
         return IntStream.range(0, lods.size())
             .mapToObj(this::getMesh)
             .toList();
+    }
+
+    private void readVertexBuffer(DataSource source, LodInfo lod, GeometryVertexMask mask) throws IOException {
+        switch (mask) {
+            case WGVS_POSITION_SHORT -> positionBuffers.add(readPackedVertices(source, lod));
+            case WGVS_POSITION -> positionBuffers.add(readVertices(source, lod));
+            case WGVS_NORMAL_TANGENT -> {
+                // TODO: Merge this reading
+                long start = source.tell();
+                normalBuffers.add(readPackedNormals(source, lod));
+                source.seek(start);
+                tangentBuffers.add(readPackedTangents(source, lod));
+                source.seek(start);
+                weightBuffers.add(readWeights(source, lod));
+            }
+            case WGVS_LIGHTMAP_UV_SHORT -> texCoord1Buffers.add(readPackedUVs(source, lod));
+            case WGVS_LIGHTMAP_UV -> texCoord1Buffers.add(readUVs(source, lod));
+            case WGVS_MATERIAL_UV_SHORT -> texCoord0Buffers.add(readPackedUVs(source, lod));
+            case WGVS_MATERIAL_UV -> texCoord0Buffers.add(readUVs(source, lod));
+            case WGVS_COLOR -> colorBuffers.add(readColors(source, lod));
+            // case WGVS_MATERIALS -> null;
+            default -> throw new RuntimeException("Unknown mask: " + mask);
+        }
     }
 
     public FloatBuffer readVertices(DataSource source, LodInfo lod) throws IOException {
@@ -174,7 +137,7 @@ public final class GeometryReader {
         return dst.flip();
     }
 
-    public ShortBuffer readFaces(DataSource source, LodInfo lod) throws IOException {
+    public ShortBuffer readIndexBuffer(DataSource source, LodInfo lod) throws IOException {
         var dst = ShortBuffer.allocate(lod.numFaces() * 3);
         for (var i = 0; i < lod.numFaces(); i++) {
             var f1 = source.readShort();
@@ -194,9 +157,9 @@ public final class GeometryReader {
         vertexBuffers.put(Semantic.Position, new VertexBuffer(positionBuffers.get(i), ElementType.Vector3, ComponentType.Float, false));
         vertexBuffers.put(Semantic.Normal, new VertexBuffer(normalBuffers.get(i), ElementType.Vector3, ComponentType.Float, false));
         vertexBuffers.put(Semantic.Tangent, new VertexBuffer(tangentBuffers.get(i), ElementType.Vector4, ComponentType.Float, false));
-        vertexBuffers.put(Semantic.TexCoord, new VertexBuffer(texCoordBuffers.get(i), ElementType.Vector2, ComponentType.Float, false));
+        vertexBuffers.put(Semantic.TexCoord, new VertexBuffer(texCoord0Buffers.get(i), ElementType.Vector2, ComponentType.Float, false));
         if (hasWeights) {
-            vertexBuffers.put(Semantic.Joints, new VertexBuffer(jointBuffers.get(i), ElementType.Vector4, ComponentType.UnsignedByte, false));
+            vertexBuffers.put(Semantic.Joints, new VertexBuffer(colorBuffers.get(i), ElementType.Vector4, ComponentType.UnsignedByte, false));
             vertexBuffers.put(Semantic.Weights, new VertexBuffer(weightBuffers.get(i), ElementType.Vector4, ComponentType.UnsignedByte, true));
         } else {
             vertexBuffers.put(Semantic.Color, new VertexBuffer(colorBuffers.get(i), ElementType.Vector4, ComponentType.UnsignedByte, true));

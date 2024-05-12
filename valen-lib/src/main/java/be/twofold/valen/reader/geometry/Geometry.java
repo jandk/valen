@@ -7,15 +7,15 @@ import java.io.*;
 import java.nio.*;
 
 public final class Geometry {
-    private static final byte[] WeightTableZ = {
-        0x00, 0x06, 0x0b, 0x11, 0x17, 0x1c, 0x22, 0x28,
-        0x2d, 0x33, 0x39, 0x3e, 0x44, 0x4a, 0x4f, 0x55
-    };
+    private static final byte[] WeightTableZ = new byte[16];
+    private static final byte[] WeightTableW = new byte[16];
 
-    private static final byte[] WeightTableW = {
-        0x00, 0x04, 0x09, 0x0d, 0x11, 0x15, 0x1a, 0x1e,
-        0x22, 0x26, 0x2b, 0x2f, 0x33, 0x37, 0x3c, 0x40
-    };
+    static {
+        for (int i = 0; i < 16; i++) {
+            WeightTableZ[i] = MathF.packUNorm8(i / 45.0f);
+            WeightTableW[i] = MathF.packUNorm8(i / 60.0f);
+        }
+    }
 
     private Geometry() {
     }
@@ -71,7 +71,7 @@ public final class Geometry {
 
         byte y = (byte) (wt & 0x7f);
         byte z = WeightTableZ[(wn & 0xf0) >>> 4];
-        byte w = WeightTableW[wn & 0xf];
+        byte w = WeightTableW[(wn & 0x0f)];
         byte x = (byte) (255 - y - z - w);
 
         dst.put(x);

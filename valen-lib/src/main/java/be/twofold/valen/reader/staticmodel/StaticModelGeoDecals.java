@@ -7,12 +7,18 @@ import java.util.*;
 
 public record StaticModelGeoDecals(
     List<StaticModelGeoDecalProjection> projections,
-    String materialName
+    String materialName,
+    int tintStartOffset
 ) {
     public static StaticModelGeoDecals read(DataSource source) throws IOException {
-        var numGeoDecals = source.readInt();
-        var projections = source.readStructs(numGeoDecals, StaticModelGeoDecalProjection::read);
+        var projections = source.readStructs(source.readInt(), StaticModelGeoDecalProjection::read);
         var materialName = source.readPString();
-        return new StaticModelGeoDecals(projections, materialName);
+        var tintStartOffset = source.readInt();
+
+        return new StaticModelGeoDecals(
+            projections,
+            materialName,
+            tintStartOffset
+        );
     }
 }
