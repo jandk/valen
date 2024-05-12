@@ -6,7 +6,6 @@ import be.twofold.valen.oodle.*;
 import be.twofold.valen.reader.resource.*;
 
 import java.io.*;
-import java.nio.channels.*;
 import java.nio.file.*;
 import java.util.*;
 import java.util.function.*;
@@ -14,14 +13,13 @@ import java.util.stream.*;
 
 public final class ResourcesFile implements AutoCloseable {
     private final Map<ResourceKey, Resource> index;
-    private SeekableByteChannel channel;
+    private DataSource source;
 
     public ResourcesFile(Path path) throws IOException {
         System.out.println("Loading resources: " + path);
 
-        this.channel = Files.newByteChannel(path, StandardOpenOption.READ);
-        var reader = new ChannelDataSource(channel);
-        List<Resource> resources = new ResourceMapper().map(Resources.read(reader));
+        this.source = new ChannelDataSource(Files.newByteChannel(path, StandardOpenOption.READ));
+        List<Resource> resources = new ResourceMapper().map(Resources.read(source));
 
         this.index = resources.stream()
             .collect(Collectors.toUnmodifiableMap(
@@ -43,8 +41,8 @@ public final class ResourcesFile implements AutoCloseable {
         Check.argument(entry != null, () -> String.format("Unknown resource: %s", key));
 
         try {
-            channel.position(entry.offset());
-            var compressed = IOUtils.readBytes(channel, entry.size());
+            source.seek(entry.offset());
+            var compressed = source.readBytes(entry.size());
             return OodleDecompressor.decompress(compressed, entry.uncompressedSize());
         } catch (IOException e) {
             System.out.println("Error reading resource: " + key);
@@ -54,9 +52,10 @@ public final class ResourcesFile implements AutoCloseable {
 
     @Override
     public void close() throws IOException {
-        if (channel != null) {
-            channel.close();
-            channel = null;
+        if (source != null) {
+            // TODO: Implement autocloseable
+            // source.close();
+            source = null;
         }
     }
 }

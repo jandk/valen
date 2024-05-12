@@ -2,7 +2,6 @@ package be.twofold.valen.reader.image;
 
 import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.texture.*;
-import be.twofold.valen.core.util.*;
 import be.twofold.valen.reader.*;
 import be.twofold.valen.resource.*;
 import be.twofold.valen.stream.*;
@@ -50,12 +49,12 @@ public final class ImageReader implements ResourceReader<Texture> {
         return image;
     }
 
-    private void readSingleStream(Image image, long hash) {
+    private void readSingleStream(Image image, long hash) throws IOException {
         var lastMip = image.mipInfos().getLast();
         var uncompressedSize = lastMip.cumulativeSizeStreamDB() + lastMip.decompressedSize();
-        var mipBuffer = BetterBuffer.wrap(streamManager.read(hash, uncompressedSize));
+        var mipSource = new ByteArrayDataSource(streamManager.read(hash, uncompressedSize));
         for (var i = 0; i < image.header().totalMipCount(); i++) {
-            image.mipData()[i] = mipBuffer.getBytes(image.mipInfos().get(i).decompressedSize());
+            image.mipData()[i] = mipSource.readBytes(image.mipInfos().get(i).decompressedSize());
         }
     }
 

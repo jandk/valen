@@ -1,16 +1,16 @@
 package be.twofold.valen.geometry;
 
+import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.math.*;
-import be.twofold.valen.core.util.*;
 
-import java.util.function.*;
+import java.io.*;
 
 @SuppressWarnings("SwitchStatementWithTooFewBranches")
 public final class Geom {
     private Geom() {
     }
 
-    public static Function<BetterBuffer, Vector3> positionReader(int mask) {
+    public static StructMapper<Vector3> positionReader(int mask) {
         return switch (mask) {
             case 0x01 -> Geom::readPosition;
             case 0x20 -> Geom::readPackedPosition;
@@ -18,21 +18,21 @@ public final class Geom {
         };
     }
 
-    public static Function<BetterBuffer, Vector3> normalReader(int mask) {
+    public static StructMapper<Vector3> normalReader(int mask) {
         return switch (mask) {
             case 0x14 -> Geom::readPackedNormal;
             default -> throw new IllegalArgumentException("Unknown normal mask: " + mask);
         };
     }
 
-    public static Function<BetterBuffer, Vector4> tangentReader(int mask) {
+    public static StructMapper<Vector4> tangentReader(int mask) {
         return switch (mask) {
             case 0x14 -> Geom::readPackedTangent;
             default -> throw new IllegalArgumentException("Unknown tangent mask: " + mask);
         };
     }
 
-    public static Function<BetterBuffer, Vector2> texCoordReader(int mask) {
+    public static StructMapper<Vector2> texCoordReader(int mask) {
         return switch (mask) {
             case 0x08000 -> Geom::readTexCoord;
             case 0x20000 -> Geom::readPackedTexCoord;
@@ -40,47 +40,47 @@ public final class Geom {
         };
     }
 
-    private static Vector3 readPosition(BetterBuffer buffer) {
-        float x = buffer.getFloat();
-        float y = buffer.getFloat();
-        float z = buffer.getFloat();
+    private static Vector3 readPosition(DataSource source) throws IOException {
+        float x = source.readFloat();
+        float y = source.readFloat();
+        float z = source.readFloat();
         return new Vector3(x, y, z);
     }
 
-    private static Vector3 readPackedPosition(BetterBuffer buffer) {
-        float x = MathF.unpackUNorm16(buffer.getShort());
-        float y = MathF.unpackUNorm16(buffer.getShort());
-        float z = MathF.unpackUNorm16(buffer.getShort());
-        buffer.skip(2);
+    private static Vector3 readPackedPosition(DataSource source) throws IOException {
+        float x = MathF.unpackUNorm16(source.readShort());
+        float y = MathF.unpackUNorm16(source.readShort());
+        float z = MathF.unpackUNorm16(source.readShort());
+        source.skip(2);
         return new Vector3(x, y, z);
     }
 
-    private static Vector3 readPackedNormal(BetterBuffer buffer) {
-        float x = MathF.unpack8(buffer.getByte());
-        float y = MathF.unpack8(buffer.getByte());
-        float z = MathF.unpack8(buffer.getByte());
-        buffer.skip(1);
+    private static Vector3 readPackedNormal(DataSource source) throws IOException {
+        float x = MathF.unpack8(source.readByte());
+        float y = MathF.unpack8(source.readByte());
+        float z = MathF.unpack8(source.readByte());
+        source.skip(1);
         return new Vector3(x, y, z);
     }
 
-    private static Vector4 readPackedTangent(BetterBuffer buffer) {
-        float x = MathF.unpack8(buffer.getByte());
-        float y = MathF.unpack8(buffer.getByte());
-        float z = MathF.unpack8(buffer.getByte());
-        // Branch-less version of: float w = (buffer.getByte() & 0x80) != 0 ? 1.0f : -1.0f;
-        float w = Float.intBitsToFloat((buffer.getByte() & 0x80) << 24 | 0x3f800000);
+    private static Vector4 readPackedTangent(DataSource source) throws IOException {
+        float x = MathF.unpack8(source.readByte());
+        float y = MathF.unpack8(source.readByte());
+        float z = MathF.unpack8(source.readByte());
+        // Branch-less version of: float w = (source.readByte() & 0x80) != 0 ? 1.0f : -1.0f;
+        float w = Float.intBitsToFloat((source.readByte() & 0x80) << 24 | 0x3f800000);
         return new Vector4(x, y, z, w);
     }
 
-    private static Vector2 readTexCoord(BetterBuffer buffer) {
-        float u = buffer.getFloat();
-        float v = buffer.getFloat();
+    private static Vector2 readTexCoord(DataSource source) throws IOException {
+        float u = source.readFloat();
+        float v = source.readFloat();
         return new Vector2(u, v);
     }
 
-    private static Vector2 readPackedTexCoord(BetterBuffer buffer) {
-        float u = MathF.unpackUNorm16(buffer.getShort());
-        float v = MathF.unpackUNorm16(buffer.getShort());
+    private static Vector2 readPackedTexCoord(DataSource source) throws IOException {
+        float u = MathF.unpackUNorm16(source.readShort());
+        float v = MathF.unpackUNorm16(source.readShort());
         return new Vector2(u, v);
     }
 

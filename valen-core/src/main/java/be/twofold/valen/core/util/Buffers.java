@@ -45,7 +45,7 @@ public final class Buffers {
         }
     }
 
-    public static ByteBuffer allocate(int capacity) {
+    private static ByteBuffer allocate(int capacity) {
         return ByteBuffer.allocate(capacity)
             .order(ByteOrder.LITTLE_ENDIAN);
     }
