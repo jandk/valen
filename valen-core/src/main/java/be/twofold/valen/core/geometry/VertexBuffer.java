@@ -30,8 +30,5 @@ public record VertexBuffer(
         ComponentType componentType,
         boolean normalized
     ) {
-        public int size() {
-            return elementType.size();
-        }
     }
 }

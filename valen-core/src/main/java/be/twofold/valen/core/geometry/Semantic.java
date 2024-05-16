@@ -13,54 +13,24 @@ public sealed interface Semantic {
     Semantic Weights0 = new Weights(0);
     Semantic Weights1 = new Weights(1);
 
-    ElementType elementType();
-
     record Position() implements Semantic {
-        @Override
-        public ElementType elementType() {
-            return ElementType.Vector3;
-        }
     }
 
     record Normal() implements Semantic {
-        @Override
-        public ElementType elementType() {
-            return ElementType.Vector3;
-        }
     }
 
     record Tangent() implements Semantic {
-        @Override
-        public ElementType elementType() {
-            return ElementType.Vector4;
-        }
     }
 
     record TexCoord(int n) implements Semantic {
-        @Override
-        public ElementType elementType() {
-            return ElementType.Vector2;
-        }
     }
 
     record Color(int n) implements Semantic {
-        @Override
-        public ElementType elementType() {
-            return ElementType.Vector4;
-        }
     }
 
     record Joints(int n) implements Semantic {
-        @Override
-        public ElementType elementType() {
-            return ElementType.Vector4;
-        }
     }
 
     record Weights(int n) implements Semantic {
-        @Override
-        public ElementType elementType() {
-            return ElementType.Vector4;
-        }
     }
 }

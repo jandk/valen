@@ -9,7 +9,7 @@ class StaticModelReaderTest {
 
     @Test
     void testCanReadAll() throws IOException {
-        TestUtils.testReader(manager -> new StaticModelReader(manager.streamManager, () -> manager, false, false));
+        TestUtils.testReader(manager -> new StaticModelReader(manager.streamManager, () -> manager, true, false));
     }
 
 }

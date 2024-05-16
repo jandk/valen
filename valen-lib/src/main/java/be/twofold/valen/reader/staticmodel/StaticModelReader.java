@@ -55,7 +55,6 @@ public final class StaticModelReader implements ResourceReader<Model> {
         var model = StaticModel.read(source);
 
         model = model.withMeshes(readMeshes(model, source, hash));
-        source.expectEnd();
 
         if (readMaterials) {
             var materials = new LinkedHashMap<String, Material>();
@@ -91,78 +90,9 @@ public final class StaticModelReader implements ResourceReader<Model> {
         List<Mesh> meshes = new ArrayList<>();
         for (var meshInfo : model.meshInfos()) {
             Check.state(meshInfo.lodInfos().size() == 1);
-            meshes.add(readEmbeddedMesh(meshInfo.lodInfos().getFirst(), source));
+            meshes.add(GeometryReader.readEmbeddedMesh(source, meshInfo.lodInfos().getFirst()));
         }
         return meshes;
-    }
-
-    private Mesh readEmbeddedMesh(StaticModelLodInfo lodInfo, DataSource source) throws IOException {
-        var masks = GeometryVertexMask.FixedOrder.stream()
-            .filter(mask -> (lodInfo.flags() & mask.mask()) == mask.mask())
-            .toList();
-
-        var stride = masks.stream()
-            .mapToInt(GeometryVertexMask::size)
-            .sum();
-
-        var offset = 0;
-        var accessors = new ArrayList<Geo.Accessor>();
-
-        for (GeometryVertexMask mask : masks) {
-            var finalOffset = offset;
-            buildAccessor(mask).stream()
-                .map(info -> {
-                    var reader = reader(mask, info.semantic(), lodInfo);
-                    return new Geo.Accessor(finalOffset, lodInfo.numVertices(), stride, info, reader);
-                })
-                .forEach(accessors::add);
-            offset += mask.size();
-        }
-
-        offset += stride * (lodInfo.numVertices() - 1);
-        var faceInfo = new VertexBuffer.Info(null, ElementType.Scalar, ComponentType.UnsignedShort, false);
-        var faceAccessor = new Geo.Accessor(offset, lodInfo.numEdges(), 2, faceInfo, Geometry.readFace());
-
-        return Geo.readMesh(source, accessors, faceAccessor);
-    }
-
-    private List<VertexBuffer.Info> buildAccessor(GeometryVertexMask mask) {
-        return switch (mask) {
-            case WGVS_POSITION_SHORT, WGVS_POSITION -> List.of(
-                new VertexBuffer.Info(Semantic.Position, ElementType.Vector3, ComponentType.Float, false)
-            );
-            case WGVS_NORMAL_TANGENT -> List.of(
-                new VertexBuffer.Info(Semantic.Normal, ElementType.Vector3, ComponentType.Float, false),
-                new VertexBuffer.Info(Semantic.Tangent, ElementType.Vector4, ComponentType.Float, false)
-            );
-            case WGVS_LIGHTMAP_UV_SHORT, WGVS_LIGHTMAP_UV -> List.of(
-                new VertexBuffer.Info(Semantic.TexCoord1, ElementType.Vector2, ComponentType.Float, false)
-            );
-            case WGVS_MATERIAL_UV_SHORT, WGVS_MATERIAL_UV -> List.of(
-                new VertexBuffer.Info(Semantic.TexCoord0, ElementType.Vector2, ComponentType.Float, false)
-            );
-            case WGVS_COLOR -> List.of(
-                new VertexBuffer.Info(Semantic.Color0, ElementType.Vector4, ComponentType.UnsignedByte, true)
-            );
-            case WGVS_MATERIALS -> List.of();
-        };
-    }
-
-    private Geo.Reader reader(GeometryVertexMask mask, Semantic semantic, LodInfo lodInfo) {
-        return switch (mask) {
-            case WGVS_POSITION_SHORT -> Geometry.readPackedPosition(lodInfo.vertexOffset(), lodInfo.vertexScale());
-            case WGVS_POSITION -> Geometry.readPosition(lodInfo.vertexOffset(), lodInfo.vertexScale());
-            case WGVS_NORMAL_TANGENT -> switch (semantic) {
-                case Semantic.Normal() -> Geometry.readPackedNormal();
-                case Semantic.Tangent() -> Geometry.readPackedTangent();
-                case Semantic.Weights(int ignored) -> Geometry.readWeight();
-                default -> throw new IllegalStateException("Unexpected value: " + semantic);
-            };
-            case WGVS_LIGHTMAP_UV_SHORT, WGVS_MATERIAL_UV_SHORT -> Geometry.readPackedUV(lodInfo.uvOffset(), lodInfo.uvScale());
-            case WGVS_LIGHTMAP_UV, WGVS_MATERIAL_UV -> Geometry.readUV(lodInfo.uvOffset(), lodInfo.uvScale());
-            case WGVS_COLOR -> Geometry.readColor();
-            case WGVS_MATERIALS -> throw new UnsupportedOperationException();
-        };
     }
 
     private List<Mesh> readStreamedGeometry(StaticModel model, int lod, long hash) throws IOException {
@@ -176,8 +106,7 @@ public final class StaticModelReader implements ResourceReader<Model> {
         var layouts = model.streamDiskLayouts().get(lod).memoryLayouts();
 
         var source = new ByteArrayDataSource(streamManager.read(streamHash, uncompressedSize));
-        return new GeometryReader(false)
-            .readStreamedMeshes(source, lods, layouts);
+        return GeometryReader.readStreamedMesh(source, lods, layouts);
     }
 
 }

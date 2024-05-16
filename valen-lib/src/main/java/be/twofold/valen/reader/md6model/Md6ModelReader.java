@@ -57,8 +57,7 @@ public final class Md6ModelReader implements ResourceReader<Model> {
 
         var identity = (hash << 4) | lod;
         var source = new ByteArrayDataSource(streamManager.read(identity, uncompressedSize));
-        return new GeometryReader(true)
-            .readStreamedMeshes(source, lodInfos, layouts);
+        return GeometryReader.readStreamedMesh(source, lodInfos, layouts);
     }
 
     private void fixJointIndices(Md6Model md6, List<Mesh> meshes) {

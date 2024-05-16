@@ -24,6 +24,7 @@ public final class Geo {
         var buffer = read(source, faceAccessor);
         var faceBuffer = new VertexBuffer(buffer, faceAccessor.info());
 
+        source.seek(startPos);
         return new Mesh(faceBuffer, vertexBuffers, -1);
     }
 
