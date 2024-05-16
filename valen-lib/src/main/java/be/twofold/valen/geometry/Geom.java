@@ -56,17 +56,17 @@ public final class Geom {
     }
 
     private static Vector3 readPackedNormal(DataSource source) throws IOException {
-        float x = MathF.unpack8(source.readByte());
-        float y = MathF.unpack8(source.readByte());
-        float z = MathF.unpack8(source.readByte());
+        float x = MathF.unpackUNorm8Normal(source.readByte());
+        float y = MathF.unpackUNorm8Normal(source.readByte());
+        float z = MathF.unpackUNorm8Normal(source.readByte());
         source.skip(1);
         return new Vector3(x, y, z);
     }
 
     private static Vector4 readPackedTangent(DataSource source) throws IOException {
-        float x = MathF.unpack8(source.readByte());
-        float y = MathF.unpack8(source.readByte());
-        float z = MathF.unpack8(source.readByte());
+        float x = MathF.unpackUNorm8Normal(source.readByte());
+        float y = MathF.unpackUNorm8Normal(source.readByte());
+        float z = MathF.unpackUNorm8Normal(source.readByte());
         // Branch-less version of: float w = (source.readByte() & 0x80) != 0 ? 1.0f : -1.0f;
         float w = Float.intBitsToFloat((source.readByte() & 0x80) << 24 | 0x3f800000);
         return new Vector4(x, y, z, w);

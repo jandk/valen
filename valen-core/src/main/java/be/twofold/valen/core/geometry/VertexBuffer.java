@@ -16,7 +16,22 @@ public record VertexBuffer(
         Check.argument(buffer.limit() % elementType.size() == 0, () -> "length must be a multiple of " + elementType.size());
     }
 
+    public VertexBuffer(Buffer buffer, VertexBuffer.Info info) {
+        this(buffer, info.elementType(), info.componentType(), info.normalized());
+    }
+
     public int count() {
         return buffer.limit() / elementType.size();
+    }
+
+    public record Info(
+        Semantic semantic,
+        ElementType elementType,
+        ComponentType componentType,
+        boolean normalized
+    ) {
+        public int size() {
+            return elementType.size();
+        }
     }
 }

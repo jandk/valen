@@ -6,19 +6,24 @@ import be.twofold.valen.oodle.*;
 import be.twofold.valen.reader.resource.*;
 
 import java.io.*;
+import java.nio.channels.*;
 import java.nio.file.*;
 import java.util.*;
 import java.util.function.*;
 import java.util.stream.*;
 
 public final class ResourcesFile implements AutoCloseable {
+    private final Path path;
     private final Map<ResourceKey, Resource> index;
+    private SeekableByteChannel channel;
     private DataSource source;
 
     public ResourcesFile(Path path) throws IOException {
         System.out.println("Loading resources: " + path);
 
-        this.source = new ChannelDataSource(Files.newByteChannel(path, StandardOpenOption.READ));
+        this.path = path;
+        this.channel = Files.newByteChannel(path, StandardOpenOption.READ);
+        this.source = new ChannelDataSource(this.channel);
         List<Resource> resources = new ResourceMapper().map(Resources.read(source));
 
         this.index = resources.stream()
@@ -41,8 +46,7 @@ public final class ResourcesFile implements AutoCloseable {
         Check.argument(entry != null, () -> String.format("Unknown resource: %s", key));
 
         try {
-            source.seek(entry.offset());
-            var compressed = source.readBytes(entry.size());
+            var compressed = IOUtils.read(channel, entry.offset(), entry.size());
             return OodleDecompressor.decompress(compressed, entry.uncompressedSize());
         } catch (IOException e) {
             System.out.println("Error reading resource: " + key);

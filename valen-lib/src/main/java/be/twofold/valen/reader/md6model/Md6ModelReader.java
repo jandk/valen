@@ -58,7 +58,7 @@ public final class Md6ModelReader implements ResourceReader<Model> {
         var identity = (hash << 4) | lod;
         var source = new ByteArrayDataSource(streamManager.read(identity, uncompressedSize));
         return new GeometryReader(true)
-            .readMeshes(source, lodInfos, layouts);
+            .readStreamedMeshes(source, lodInfos, layouts);
     }
 
     private void fixJointIndices(Md6Model md6, List<Mesh> meshes) {
@@ -73,7 +73,7 @@ public final class Md6ModelReader implements ResourceReader<Model> {
         for (var i = 0; i < meshes.size(); i++) {
             var meshInfo = md6.meshInfos().get(i);
             var joints = meshes.get(i)
-                .getBuffer(Semantic.Joints)
+                .getBuffer(Semantic.Joints0)
                 .orElseThrow();
 
             // Just assume it's a byte buffer, because we read it as such

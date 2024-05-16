@@ -3,6 +3,7 @@ package be.twofold.valen.reader.staticmodel;
 import be.twofold.valen.core.geometry.*;
 import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.material.*;
+import be.twofold.valen.core.util.*;
 import be.twofold.valen.manager.*;
 import be.twofold.valen.reader.*;
 import be.twofold.valen.reader.geometry.*;
@@ -11,7 +12,6 @@ import be.twofold.valen.stream.*;
 import jakarta.inject.*;
 
 import java.io.*;
-import java.nio.*;
 import java.util.*;
 
 public final class StaticModelReader implements ResourceReader<Model> {
@@ -53,11 +53,9 @@ public final class StaticModelReader implements ResourceReader<Model> {
 
     public StaticModel read(DataSource source, long hash) throws IOException {
         var model = StaticModel.read(source);
-        if (readStreams) {
-            var meshes = readMeshes(model, source, hash);
-            model = model.withMeshes(meshes);
-            source.expectEnd();
-        }
+
+        model = model.withMeshes(readMeshes(model, source, hash));
+        source.expectEnd();
 
         if (readMaterials) {
             var materials = new LinkedHashMap<String, Material>();
@@ -79,63 +77,92 @@ public final class StaticModelReader implements ResourceReader<Model> {
         return model;
     }
 
-    // region Meshes
-
     private List<Mesh> readMeshes(StaticModel model, DataSource source, long hash) throws IOException {
         if (!model.header().streamable()) {
             return readEmbeddedGeometry(model, source);
         }
-        return readStreamedGeometry(model, 0, hash);
+        if (readStreams) {
+            return readStreamedGeometry(model, 0, hash);
+        }
+        return List.of();
     }
 
     private List<Mesh> readEmbeddedGeometry(StaticModel model, DataSource source) throws IOException {
         List<Mesh> meshes = new ArrayList<>();
         for (var meshInfo : model.meshInfos()) {
-            assert meshInfo.lodInfos().size() == 1;
+            Check.state(meshInfo.lodInfos().size() == 1);
             meshes.add(readEmbeddedMesh(meshInfo.lodInfos().getFirst(), source));
         }
         return meshes;
     }
 
     private Mesh readEmbeddedMesh(StaticModelLodInfo lodInfo, DataSource source) throws IOException {
-        var vertices = FloatBuffer.allocate(lodInfo.numVertices() * 3);
-        var texCoords = lodInfo.flags() != 0x0801d ? FloatBuffer.allocate(lodInfo.numVertices() * 2) : null;
-        var normals = FloatBuffer.allocate(lodInfo.numVertices() * 3);
-        var tangents = FloatBuffer.allocate(lodInfo.numVertices() * 4);
-        var indices = ShortBuffer.allocate(lodInfo.numEdges());
+        var masks = GeometryVertexMask.FixedOrder.stream()
+            .filter(mask -> (lodInfo.flags() & mask.mask()) == mask.mask())
+            .toList();
 
-        for (var i = 0; i < lodInfo.numVertices(); i++) {
-            Geometry.readVertex(source, vertices, lodInfo.vertexOffset(), lodInfo.vertexScale());
-            if (lodInfo.flags() != 0x0801d) {
-                Geometry.readUV(source, texCoords, lodInfo.uvOffset(), lodInfo.uvScale());
-            }
+        var stride = masks.stream()
+            .mapToInt(GeometryVertexMask::size)
+            .sum();
 
-            Geometry.readPackedNormal(source, normals);
-            source.skip(-8);
-            Geometry.readPackedTangent(source, tangents);
-            source.expectInt(-1);
+        var offset = 0;
+        var accessors = new ArrayList<Geo.Accessor>();
 
-            source.skip(8); // skip lightmap UVs
-
-            if (lodInfo.flags() == 0x1801f) {
-                source.expectInt(-1);
-                source.expectInt(0);
-            }
+        for (GeometryVertexMask mask : masks) {
+            var finalOffset = offset;
+            buildAccessor(mask).stream()
+                .map(info -> {
+                    var reader = reader(mask, info.semantic(), lodInfo);
+                    return new Geo.Accessor(finalOffset, lodInfo.numVertices(), stride, info, reader);
+                })
+                .forEach(accessors::add);
+            offset += mask.size();
         }
 
-        for (var i = 0; i < lodInfo.numEdges(); i++) {
-            indices.put(source.readShort());
-        }
+        offset += stride * (lodInfo.numVertices() - 1);
+        var faceInfo = new VertexBuffer.Info(null, ElementType.Scalar, ComponentType.UnsignedShort, false);
+        var faceAccessor = new Geo.Accessor(offset, lodInfo.numEdges(), 2, faceInfo, Geometry.readFace());
 
-        var faceBuffer = new VertexBuffer(indices.flip(), ElementType.Scalar, ComponentType.UnsignedShort, false);
-        var vertexBuffers = new EnumMap<Semantic, VertexBuffer>(Semantic.class);
-        vertexBuffers.put(Semantic.Position, new VertexBuffer(vertices.flip(), ElementType.Vector3, ComponentType.Float, false));
-        vertexBuffers.put(Semantic.Normal, new VertexBuffer(normals.flip(), ElementType.Vector3, ComponentType.Float, false));
-        vertexBuffers.put(Semantic.Tangent, new VertexBuffer(tangents.flip(), ElementType.Vector4, ComponentType.Float, false));
-        if (texCoords != null) {
-            vertexBuffers.put(Semantic.TexCoord, new VertexBuffer(texCoords.flip(), ElementType.Vector2, ComponentType.Float, false));
-        }
-        return new Mesh(faceBuffer, vertexBuffers, -1);
+        return Geo.readMesh(source, accessors, faceAccessor);
+    }
+
+    private List<VertexBuffer.Info> buildAccessor(GeometryVertexMask mask) {
+        return switch (mask) {
+            case WGVS_POSITION_SHORT, WGVS_POSITION -> List.of(
+                new VertexBuffer.Info(Semantic.Position, ElementType.Vector3, ComponentType.Float, false)
+            );
+            case WGVS_NORMAL_TANGENT -> List.of(
+                new VertexBuffer.Info(Semantic.Normal, ElementType.Vector3, ComponentType.Float, false),
+                new VertexBuffer.Info(Semantic.Tangent, ElementType.Vector4, ComponentType.Float, false)
+            );
+            case WGVS_LIGHTMAP_UV_SHORT, WGVS_LIGHTMAP_UV -> List.of(
+                new VertexBuffer.Info(Semantic.TexCoord1, ElementType.Vector2, ComponentType.Float, false)
+            );
+            case WGVS_MATERIAL_UV_SHORT, WGVS_MATERIAL_UV -> List.of(
+                new VertexBuffer.Info(Semantic.TexCoord0, ElementType.Vector2, ComponentType.Float, false)
+            );
+            case WGVS_COLOR -> List.of(
+                new VertexBuffer.Info(Semantic.Color0, ElementType.Vector4, ComponentType.UnsignedByte, true)
+            );
+            case WGVS_MATERIALS -> List.of();
+        };
+    }
+
+    private Geo.Reader reader(GeometryVertexMask mask, Semantic semantic, LodInfo lodInfo) {
+        return switch (mask) {
+            case WGVS_POSITION_SHORT -> Geometry.readPackedPosition(lodInfo.vertexOffset(), lodInfo.vertexScale());
+            case WGVS_POSITION -> Geometry.readPosition(lodInfo.vertexOffset(), lodInfo.vertexScale());
+            case WGVS_NORMAL_TANGENT -> switch (semantic) {
+                case Semantic.Normal() -> Geometry.readPackedNormal();
+                case Semantic.Tangent() -> Geometry.readPackedTangent();
+                case Semantic.Weights(int ignored) -> Geometry.readWeight();
+                default -> throw new IllegalStateException("Unexpected value: " + semantic);
+            };
+            case WGVS_LIGHTMAP_UV_SHORT, WGVS_MATERIAL_UV_SHORT -> Geometry.readPackedUV(lodInfo.uvOffset(), lodInfo.uvScale());
+            case WGVS_LIGHTMAP_UV, WGVS_MATERIAL_UV -> Geometry.readUV(lodInfo.uvOffset(), lodInfo.uvScale());
+            case WGVS_COLOR -> Geometry.readColor();
+            case WGVS_MATERIALS -> throw new UnsupportedOperationException();
+        };
     }
 
     private List<Mesh> readStreamedGeometry(StaticModel model, int lod, long hash) throws IOException {
@@ -150,9 +177,7 @@ public final class StaticModelReader implements ResourceReader<Model> {
 
         var source = new ByteArrayDataSource(streamManager.read(streamHash, uncompressedSize));
         return new GeometryReader(false)
-            .readMeshes(source, lods, layouts);
+            .readStreamedMeshes(source, lods, layouts);
     }
-
-    // endregion
 
 }

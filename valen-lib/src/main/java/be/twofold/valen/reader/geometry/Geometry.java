@@ -1,5 +1,6 @@
 package be.twofold.valen.reader.geometry;
 
+import be.twofold.valen.core.geometry.*;
 import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.math.*;
 
@@ -20,13 +21,49 @@ public final class Geometry {
     private Geometry() {
     }
 
-    public static void readVertex(DataSource source, FloatBuffer dst, Vector3 offset, float scale) throws IOException {
+    public static Geo.Reader readPosition(Vector3 offset, float scale) {
+        return (source, dst) -> readPosition(source, (FloatBuffer) dst, offset, scale);
+    }
+
+    public static Geo.Reader readPackedPosition(Vector3 offset, float scale) {
+        return (source, dst) -> readPackedPosition(source, (FloatBuffer) dst, offset, scale);
+    }
+
+    public static Geo.Reader readPackedNormal() {
+        return (source, dst) -> readPackedNormal(source, (FloatBuffer) dst);
+    }
+
+    public static Geo.Reader readPackedTangent() {
+        return (source, dst) -> readPackedTangent(source, (FloatBuffer) dst);
+    }
+
+    public static Geo.Reader readWeight() {
+        return (source, dst) -> readWeight(source, (ByteBuffer) dst);
+    }
+
+    public static Geo.Reader readUV(Vector2 offset, float scale) {
+        return (source, dst) -> readUV(source, (FloatBuffer) dst, offset, scale);
+    }
+
+    public static Geo.Reader readPackedUV(Vector2 offset, float scale) {
+        return (source, dst) -> readPackedUV(source, (FloatBuffer) dst, offset, scale);
+    }
+
+    public static Geo.Reader readColor() {
+        return (source, dst) -> readColor(source, (ByteBuffer) dst);
+    }
+
+    public static Geo.Reader readFace() {
+        return (source, dst) -> readFace(source, (ShortBuffer) dst);
+    }
+
+    public static void readPosition(DataSource source, FloatBuffer dst, Vector3 offset, float scale) throws IOException {
         dst.put(Math.fma(source.readFloat(), scale, offset.x()));
         dst.put(Math.fma(source.readFloat(), scale, offset.y()));
         dst.put(Math.fma(source.readFloat(), scale, offset.z()));
     }
 
-    public static void readPackedVertex(DataSource source, FloatBuffer dst, Vector3 offset, float scale) throws IOException {
+    public static void readPackedPosition(DataSource source, FloatBuffer dst, Vector3 offset, float scale) throws IOException {
         dst.put(Math.fma(MathF.unpackUNorm16(source.readShort()), scale, offset.x()));
         dst.put(Math.fma(MathF.unpackUNorm16(source.readShort()), scale, offset.y()));
         dst.put(Math.fma(MathF.unpackUNorm16(source.readShort()), scale, offset.z()));
@@ -34,9 +71,9 @@ public final class Geometry {
     }
 
     public static void readPackedNormal(DataSource source, FloatBuffer dst) throws IOException {
-        float x = MathF.unpack8(source.readByte());
-        float y = MathF.unpack8(source.readByte());
-        float z = MathF.unpack8(source.readByte());
+        float x = MathF.unpackUNorm8Normal(source.readByte());
+        float y = MathF.unpackUNorm8Normal(source.readByte());
+        float z = MathF.unpackUNorm8Normal(source.readByte());
 
         float scale = 1.0f / MathF.sqrt(x * x + y * y + z * z);
 
@@ -50,9 +87,9 @@ public final class Geometry {
     public static void readPackedTangent(DataSource source, FloatBuffer dst) throws IOException {
         source.skip(4); // skip normal
 
-        float x = MathF.unpack8(source.readByte());
-        float y = MathF.unpack8(source.readByte());
-        float z = MathF.unpack8(source.readByte());
+        float x = MathF.unpackUNorm8Normal(source.readByte());
+        float y = MathF.unpackUNorm8Normal(source.readByte());
+        float z = MathF.unpackUNorm8Normal(source.readByte());
         float w = (source.readByte() & 0x80) == 0 ? 1 : -1;
 
         float scale = 1.0f / MathF.sqrt(x * x + y * y + z * z);
@@ -88,5 +125,16 @@ public final class Geometry {
     public static void readPackedUV(DataSource source, FloatBuffer dst, Vector2 offset, float scale) throws IOException {
         dst.put(Math.fma(MathF.unpackUNorm16(source.readShort()), scale, offset.x()));
         dst.put(Math.fma(MathF.unpackUNorm16(source.readShort()), scale, offset.y()));
+    }
+
+    public static void readFace(DataSource source, ShortBuffer dst) throws IOException {
+        dst.put(source.readShort());
+    }
+
+    public static void readColor(DataSource source, ByteBuffer dst) throws IOException {
+        dst.put(source.readByte());
+        dst.put(source.readByte());
+        dst.put(source.readByte());
+        dst.put(source.readByte());
     }
 }

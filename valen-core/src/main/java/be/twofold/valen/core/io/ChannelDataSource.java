@@ -3,7 +3,6 @@ package be.twofold.valen.core.io;
 import java.io.*;
 import java.nio.*;
 import java.nio.channels.*;
-import java.nio.file.*;
 import java.util.*;
 
 public final class ChannelDataSource extends DataSource {
@@ -157,29 +156,5 @@ public final class ChannelDataSource extends DataSource {
         buffer.limit((int) (buffer.position() + end - bufPos));
         readInternal(buffer);
         buffer.flip();
-    }
-
-    public static void main(String[] args) {
-        try {
-            Path path = Path.of("test.bin");
-            Files.write(path, new byte[]{
-                1,
-                2, 0,
-                3, 0, 0, 0,
-                4, 0, 0, 0, 0, 0, 0, 0,
-                0, 0, (byte) 128, 63,
-                0, 0, 0, 0, 0, 0, -16, 63
-            });
-            var channel = FileChannel.open(path, StandardOpenOption.READ);
-            var dataSource = new ChannelDataSource(channel);
-            System.out.println(dataSource.readByte());
-            System.out.println(dataSource.readShort());
-            System.out.println(dataSource.readInt());
-            System.out.println(dataSource.readLong());
-            System.out.println(dataSource.readFloat());
-            System.out.println(dataSource.readDouble());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 }

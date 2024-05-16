@@ -73,8 +73,9 @@ final class GltfModelMapper {
     }
 
     private void fixJointsAndWeights(Mesh mesh) {
-        mesh.getBuffer(Semantic.Joints).ifPresent(joints -> mesh
-            .getBuffer(Semantic.Weights).ifPresent(weights -> {
+        // TODO: Loop over joints and weights and fix them
+        mesh.getBuffer(Semantic.Joints0).ifPresent(joints -> mesh
+            .getBuffer(Semantic.Weights0).ifPresent(weights -> {
                 var ja = ((ByteBuffer) joints.buffer()).array();
                 var wa = ((ByteBuffer) weights.buffer()).array();
                 for (var i = 0; i < ja.length; i++) {
@@ -87,13 +88,13 @@ final class GltfModelMapper {
 
     private String mapSemantic(Semantic semantic) {
         return switch (semantic) {
-            case Position -> "POSITION";
-            case Normal -> "NORMAL";
-            case Tangent -> "TANGENT";
-            case TexCoord -> "TEXCOORD_0";
-            case Color -> "COLOR_0";
-            case Joints -> "JOINTS_0";
-            case Weights -> "WEIGHTS_0";
+            case Semantic.Position() -> "POSITION";
+            case Semantic.Normal() -> "NORMAL";
+            case Semantic.Tangent() -> "TANGENT";
+            case Semantic.TexCoord(var n) -> "TEXCOORD_" + n;
+            case Semantic.Color(var n) -> "COLOR_" + n;
+            case Semantic.Joints(var n) -> "JOINTS_" + n;
+            case Semantic.Weights(var n) -> "WEIGHTS_" + n;
         };
     }
 }

@@ -20,7 +20,7 @@ public final class MathF {
         return (float) Math.sqrt(a);
     }
 
-    public static float unpack8(byte value) {
+    public static float unpackUNorm8Normal(byte value) {
         return Math.fma(unpackUNorm8(value), 2.0f, -1.0f);
     }
 
