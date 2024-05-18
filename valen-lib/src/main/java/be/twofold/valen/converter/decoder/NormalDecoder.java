@@ -5,15 +5,8 @@ import be.twofold.valen.core.math.*;
 public final class NormalDecoder extends BCDecoder {
     private static final byte[] Lut = initializeLut();
 
-    private final int rOff;
-    private final int gOff;
-    private final int bOff;
-
-    public NormalDecoder(int bpb, int bpp, int rOff, int gOff, int bOff) {
+    public NormalDecoder(int bpb, int bpp) {
         super(bpb, bpp);
-        this.rOff = rOff;
-        this.gOff = gOff;
-        this.bOff = bOff;
     }
 
     static byte lookup(byte r, byte g) {
@@ -21,30 +14,25 @@ public final class NormalDecoder extends BCDecoder {
     }
 
     private static byte[] initializeLut() {
-        byte[] lut = new byte[256 * 256];
-        for (int y = 0; y < 256; y++) {
-            for (int x = 0; x < 256; x++) {
-                lut[y * 256 + x] = computeZ(x, y);
+        var lut = new byte[256 * 256];
+        for (var y = 0; y < 256; y++) {
+            for (var x = 0; x < 256; x++) {
+                var xx = MathF.unpackUNorm8Normal((byte) x);
+                var yy = MathF.unpackUNorm8Normal((byte) y);
+                var nz = MathF.sqrt(1.0f - MathF.clamp01(xx * xx + yy * yy));
+                lut[y * 256 + x] = MathF.packUNorm8Normal(nz);
             }
         }
         return lut;
     }
 
-    private static byte computeZ(int x, int y) {
-        float xx = MathF.unpackUNorm8Normal((byte) x);
-        float yy = MathF.unpackUNorm8Normal((byte) y);
-        float nz = MathF.sqrt(1.0f - MathF.clamp01(xx * xx + yy * yy));
-        return (byte) Math.round(((nz + 1.0f) / 2.0f) * 255.0f);
-    }
-
     @Override
     public void decodeBlock(byte[] src, int srcPos, byte[] dst, int dstPos, int bpr) {
         for (int y = 0, shift = 0; y < 4; y++) {
-            for (int x = 0; x < 4; x++, shift += 3) {
-                byte r = dst[dstPos + rOff];
-                byte g = dst[dstPos + gOff];
-                byte b = lookup(r, g);
-                dst[dstPos + bOff] = b;
+            for (var x = 0; x < 4; x++, shift += 3) {
+                var r = dst[dstPos];
+                var g = dst[dstPos + 1];
+                dst[dstPos + 2] = lookup(r, g);
                 dstPos += bpp;
             }
             dstPos += bpr - 4 * bpp;

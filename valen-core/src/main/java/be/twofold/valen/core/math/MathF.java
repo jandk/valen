@@ -24,6 +24,10 @@ public final class MathF {
         return Math.fma(unpackUNorm8(value), 2.0f, -1.0f);
     }
 
+    public static byte packUNorm8Normal(float value) {
+        return packUNorm8(Math.fma(value, 0.5f, 0.5f));
+    }
+
     public static float unpackUNorm8(byte value) {
         return Byte.toUnsignedInt(value) * (1.0f / 255.0f);
     }

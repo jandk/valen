@@ -3,7 +3,7 @@ package be.twofold.valen.converter.decoder;
 import java.util.*;
 
 public final class BC7Decoder extends BCDecoder {
-    private static final int[] SUBSET2 = {
+    static final int[] SUBSET2 = {
         0x50505050, 0x40404040, 0x54545454, 0x54505040, 0x50404000, 0x55545450, 0x55545040, 0x54504000,
         0x50400000, 0x55555450, 0x55544000, 0x54400000, 0x55555440, 0x55550000, 0x55555500, 0x55000000,
         0x55150100, 0x00004054, 0x15010000, 0x00405054, 0x00004050, 0x15050100, 0x05010000, 0x40505054,
@@ -14,7 +14,7 @@ public final class BC7Decoder extends BCDecoder {
         0x41050514, 0x41505014, 0x40011554, 0x54150140, 0x50505500, 0x00555050, 0x15151010, 0x54540404,
     };
 
-    private static final int[] SUBSET3 = {
+    static final int[] SUBSET3 = {
         0xaa685050, 0x6a5a5040, 0x5a5a4200, 0x5450a0a8, 0xa5a50000, 0xa0a05050, 0x5555a0a0, 0x5a5a5050,
         0xaa550000, 0xaa555500, 0xaaaa5500, 0x90909090, 0x94949494, 0xa4a4a4a4, 0xa9a59450, 0x2a0a4250,
         0xa5945040, 0x0a425054, 0xa5a5a500, 0x55a0a0a0, 0xa8a85454, 0x6a6a4040, 0xa4a45000, 0x1a1a0500,
@@ -25,7 +25,7 @@ public final class BC7Decoder extends BCDecoder {
         0xaaaa1414, 0xa05050a0, 0xa0a5a5a0, 0x96000000, 0x40804080, 0xa9a8a9a8, 0xaaaaaa44, 0x2a4a5254,
     };
 
-    private static final int[] ANCHOR_11 = {
+    static final int[] ANCHOR_11 = {
         15, 15, 15, 15, 15, 15, 15, 15,
         15, 15, 15, 15, 15, 15, 15, 15,
         15, +2, +8, +2, +2, +8, +8, 15,
@@ -36,7 +36,7 @@ public final class BC7Decoder extends BCDecoder {
         15, 15, 15, 15, 15, +2, +2, 15,
     };
 
-    private static final int[] ANCHOR_21 = {
+    static final int[] ANCHOR_21 = {
         +3, +3, 15, 15, +8, +3, 15, 15,
         +8, +8, +6, +6, +6, +5, +3, +3,
         +3, +3, +8, 15, +3, +3, +6, 10,
@@ -47,7 +47,7 @@ public final class BC7Decoder extends BCDecoder {
         +5, 10, +8, 13, 15, 12, +3, +3,
     };
 
-    private static final int[] ANCHOR_22 = {
+    static final int[] ANCHOR_22 = {
         15, +8, +8, +3, 15, 15, +3, +8,
         15, 15, 15, 15, 15, 15, 15, +8,
         15, +8, 15, +3, 15, +8, 15, +8,
@@ -58,7 +58,7 @@ public final class BC7Decoder extends BCDecoder {
         15, 15, 15, 15, +3, 15, 15, +8,
     };
 
-    private static final int[][] WEIGHTS = {
+    static final int[][] WEIGHTS = {
         {},
         {},
         {0, 21, 43, 64},
@@ -66,7 +66,7 @@ public final class BC7Decoder extends BCDecoder {
         {0, 4, 9, 13, 17, 21, 26, 30, 34, 38, 43, 47, 51, 55, 60, 64}
     };
 
-    private static final List<Mode> MODES = List.of(
+    static final List<Mode> MODES = List.of(
         new Mode(3, 4, 0, false, 4, 0, true, false, +3, 0),
         new Mode(2, 6, 0, false, 6, 0, false, true, +3, 0),
         new Mode(3, 6, 0, false, 5, 0, false, false, 2, 0),
@@ -83,7 +83,7 @@ public final class BC7Decoder extends BCDecoder {
 
     @Override
     public void decodeBlock(byte[] src, int srcPos, byte[] dst, int dstPos, int bpr) {
-        Bits bits = new Bits(src, srcPos);
+        Bits bits = Bits.from(src, srcPos);
         Mode mode = MODES.get(mode(bits));
         int partition = bits.getBits(mode.pb());
         int rotation = bits.getBits(mode.rb());
@@ -207,7 +207,7 @@ public final class BC7Decoder extends BCDecoder {
         }
     }
 
-    private int interpolate(int e0, int e1, int weight) {
+    static int interpolate(int e0, int e1, int weight) {
         return (e0 * (64 - weight) + e1 * weight + 32) >>> 6;
     }
 
@@ -244,48 +244,5 @@ public final class BC7Decoder extends BCDecoder {
         int ib1,
         int ib2
     ) {
-    }
-
-    private static final class Bits {
-        private final byte[] array;
-        private int index;
-
-        private int bitBuffer = 0;
-        private int bitCount = 0;
-
-        private Bits(byte[] array, int index) {
-            this.array = array;
-            this.index = index;
-        }
-
-        void refill(int count) {
-            assert count >= 0 && count <= (32 - 7);
-            while (bitCount < count) {
-                bitBuffer |= Byte.toUnsignedInt(array[index++]) << bitCount;
-                bitCount += 8;
-            }
-        }
-
-        int peekBits(int count) {
-            assert bitCount >= count;
-            return bitBuffer & ((1 << count) - 1);
-        }
-
-        void consume(int count) {
-            assert bitCount >= count;
-            bitBuffer >>>= count;
-            bitCount -= count;
-        }
-
-        int getBits(int count) {
-            refill(count);
-            int result = peekBits(count);
-            consume(count);
-            return result;
-        }
-
-        int getBit() {
-            return getBits(1);
-        }
     }
 }
