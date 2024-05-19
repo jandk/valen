@@ -1,8 +1,6 @@
-package be.twofold.valen.converter.decoder;
+package be.twofold.valen.core.texture.decoder;
 
 import java.util.*;
-
-import static be.twofold.valen.converter.decoder.BC7Decoder.*;
 
 public final class BC6Decoder extends BCDecoder {
     private static final List<Mode> MODES = List.of(
@@ -85,8 +83,8 @@ public final class BC6Decoder extends BCDecoder {
         int partitionTable = 0;
         if (numPartitions == 2) {
             ib = 3;
-            anchor = ANCHOR_11[partition];
-            partitionTable = SUBSET2[partition];
+            anchor = BC7Decoder.ANCHOR_11[partition];
+            partitionTable = BC7Decoder.SUBSET2[partition];
         }
 
         // Interleaving would have been so much nicer...
@@ -97,7 +95,7 @@ public final class BC6Decoder extends BCDecoder {
             indexBits[i] = bits.getBits(numBits);
         }
 
-        int[] weights1 = WEIGHTS[ib];
+        int[] weights1 = BC7Decoder.WEIGHTS[ib];
         for (int y = 0, i = 0; y < 4; y++) {
             for (int x = 0; x < 4; x++, i++) {
                 int pIndex = partitionTable >>> (i * 2) & 3;

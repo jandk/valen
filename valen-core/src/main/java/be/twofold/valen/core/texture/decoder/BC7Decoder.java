@@ -1,4 +1,4 @@
-package be.twofold.valen.converter.decoder;
+package be.twofold.valen.core.texture.decoder;
 
 import java.util.*;
 

@@ -5,7 +5,7 @@ import be.twofold.valen.core.util.*;
 public final class DeclLexer {
     private static final char Eof = '\0';
 
-    private final boolean allowFilenames;
+    private final boolean lenient;
     private final boolean skipNewLines;
     private final String source;
     private int index = 0;
@@ -15,9 +15,9 @@ public final class DeclLexer {
         this(source, false, true);
     }
 
-    public DeclLexer(String source, boolean allowFilenames, boolean skipNewLines) {
+    public DeclLexer(String source, boolean lenient, boolean skipNewLines) {
         this.source = Check.notNull(source);
-        this.allowFilenames = allowFilenames;
+        this.lenient = lenient;
         this.skipNewLines = skipNewLines;
     }
 
@@ -216,7 +216,7 @@ public final class DeclLexer {
 
     private boolean isIdentifier(char ch) {
         return isAlpha(ch) || isDigit(ch) || ch == '_' ||
-            allowFilenames && (ch == '.' || ch == '/' || ch == ':' || ch == '\\');
+            lenient && (ch == '.' || ch == '/' || ch == ':' || ch == '\\');
     }
 
     // Low level methods

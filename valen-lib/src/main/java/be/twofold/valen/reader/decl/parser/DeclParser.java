@@ -4,15 +4,18 @@ import com.google.gson.*;
 
 import java.util.function.*;
 
+
 public final class DeclParser {
     private final DeclLexer lexer;
+    private final boolean lenient;
 
     public DeclParser(String source) {
         this(source, false, true);
     }
 
-    public DeclParser(String source, boolean allowFilenames, boolean skipNewlines) {
-        this.lexer = new DeclLexer(source, allowFilenames, skipNewlines);
+    public DeclParser(String source, boolean lenient, boolean skipNewlines) {
+        this.lexer = new DeclLexer(source, lenient, skipNewlines);
+        this.lenient = lenient;
     }
 
     public static JsonObject parse(String source) {
@@ -111,6 +114,7 @@ public final class DeclParser {
         DeclToken token = lexer.nextToken();
         return switch (token.type()) {
             case OpenBrace -> parseObject();
+            case OpenParen -> parseArray();
             case String -> new JsonPrimitive(token.value());
             case Number -> new JsonPrimitive(new StringNumber(token.value()));
             case Name -> switch (token.value()) {
@@ -123,7 +127,7 @@ public final class DeclParser {
         };
     }
 
-    public JsonObject parseObject() {
+    private JsonObject parseObject() {
         var object = new JsonObject();
         while (!match(DeclTokenType.CloseBrace)) {
             var key = expectName();
@@ -132,7 +136,12 @@ public final class DeclParser {
                 key += "[" + index + "]";
                 expect(DeclTokenType.CloseBracket);
             }
-            expect(DeclTokenType.Assign);
+
+            if (lenient) {
+                match(DeclTokenType.Assign);
+            } else {
+                expect(DeclTokenType.Assign);
+            }
 
             var value = parseValue();
 
@@ -147,6 +156,20 @@ public final class DeclParser {
             object.add(key, value);
         }
         return object;
+    }
+
+    private JsonArray parseArray() {
+        if (!lenient) {
+            throw new DeclParseException("Arrays are not allowed in strict mode");
+        }
+        var array = new JsonArray();
+        while (!match(DeclTokenType.CloseParen)) {
+            if (!array.isEmpty()) {
+                expect(DeclTokenType.Comma);
+            }
+            array.add(parseValue());
+        }
+        return array;
     }
 
     public JsonArray collectUntil(Supplier<JsonElement> supplier, DeclTokenType terminator) {

@@ -57,16 +57,16 @@ public final class Md6ModelReader implements ResourceReader<Model> {
 
         var identity = (hash << 4) | lod;
         var source = new ByteArrayDataSource(streamManager.read(identity, uncompressedSize));
-        return GeometryReader.readStreamedMesh(source, lodInfos, layouts);
+        return GeometryReader.readStreamedMesh(source, lodInfos, layouts, true);
     }
 
     private void fixJointIndices(Md6Model md6, List<Mesh> meshes) {
-        var bones = md6.boneInfo().bones();
+        var jointRemap = md6.boneInfo().jointRemap();
 
         // This lookup table is in reverse... Nice
-        var lookup = new byte[bones.length];
-        for (var i = 0; i < bones.length; i++) {
-            lookup[Byte.toUnsignedInt(bones[i])] = (byte) i;
+        var lookup = new byte[jointRemap.length];
+        for (var i = 0; i < jointRemap.length; i++) {
+            lookup[Byte.toUnsignedInt(jointRemap[i])] = (byte) i;
         }
 
         for (var i = 0; i < meshes.size(); i++) {

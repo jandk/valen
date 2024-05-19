@@ -1,7 +1,7 @@
-package be.twofold.valen.writer.png;
+package be.twofold.valen.core.texture.writer.png;
 
-import be.twofold.valen.converter.decoder.*;
 import be.twofold.valen.core.texture.*;
+import be.twofold.valen.core.texture.decoder.*;
 
 import java.io.*;
 import java.nio.channels.*;

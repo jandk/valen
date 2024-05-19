@@ -1,4 +1,4 @@
-package be.twofold.valen.converter.decoder;
+package be.twofold.valen.core.texture.decoder;
 
 public final class EmptyDecoder extends BCDecoder {
     public EmptyDecoder(int bpb, int bpp) {
