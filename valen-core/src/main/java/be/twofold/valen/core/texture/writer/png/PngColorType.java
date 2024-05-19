@@ -1,4 +1,4 @@
-package be.twofold.valen.writer.png;
+package be.twofold.valen.core.texture.writer.png;
 
 public enum PngColorType {
     Gray(0, 1),

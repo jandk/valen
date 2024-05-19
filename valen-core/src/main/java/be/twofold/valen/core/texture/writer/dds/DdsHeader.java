@@ -1,4 +1,4 @@
-package be.twofold.valen.writer.dds;
+package be.twofold.valen.core.texture.writer.dds;
 
 import java.nio.*;
 

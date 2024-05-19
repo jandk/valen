@@ -1,4 +1,4 @@
-package be.twofold.valen.writer.png;
+package be.twofold.valen.core.texture.writer.png;
 
 import be.twofold.valen.core.util.*;
 
