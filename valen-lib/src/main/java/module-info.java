@@ -11,6 +11,7 @@ module valen.lib {
     exports be.twofold.valen.hash;
     exports be.twofold.valen.manager;
     exports be.twofold.valen.reader.binaryfile.blang;
+    exports be.twofold.valen.reader.decl.md6def;
     exports be.twofold.valen.reader.decl.parser;
     exports be.twofold.valen.reader.decl.renderparm;
     exports be.twofold.valen.reader.decl;
@@ -31,8 +32,5 @@ module valen.lib {
     exports be.twofold.valen.util;
     exports be.twofold.valen.writer.dds;
     exports be.twofold.valen.writer.png;
-
-    exports be.twofold.valen.reader.decl.entities to com.google.gson;
-    exports be.twofold.valen.reader.staticinstances;
-    exports be.twofold.valen.reader.decl.md6def;
+    exports be.twofold.valen.reader.mapfilestaticinstances;
 }

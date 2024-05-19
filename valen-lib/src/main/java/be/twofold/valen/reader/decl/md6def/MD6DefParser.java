@@ -77,7 +77,7 @@ public class MD6DefParser {
 
     private JsonObject parseProp(DeclParser parser) {
         var prop = new JsonObject();
-        parser.expect(DeclTokenType.Name, "prop");
+        parser.expectName("prop");
         prop.addProperty("name", parser.expectString());
         var propProperties = new JsonObject();
         parser.expect(DeclTokenType.OpenBrace);
@@ -110,7 +110,7 @@ public class MD6DefParser {
     }
 
     private JsonObject parseAlias(DeclParser parser) {
-        parser.expect(DeclTokenType.Name, "alias");
+        parser.expectName("alias");
         parser.expect(DeclTokenType.OpenBrace);
         var alias = new JsonObject();
         parser.runUntil(() -> {
@@ -175,12 +175,12 @@ public class MD6DefParser {
                 return col;
             });
             JsonArray groupData;
-            if (parser.peekToken().type() == DeclTokenType.OpenBrace) {
+            if (parser.peek().type() == DeclTokenType.OpenBrace) {
                 parser.expect(DeclTokenType.OpenBrace);
                 groupData = parser.collectUntil(() -> {
                     var name = parser.expectName();
                     JsonObject data;
-                    if (parser.peekToken().type() == DeclTokenType.OpenBrace) {
+                    if (parser.peek().type() == DeclTokenType.OpenBrace) {
                         data = parseObject(parser);
                     } else {
                         data = new JsonObject();
@@ -188,7 +188,7 @@ public class MD6DefParser {
                     data.addProperty("name", name);
                     return data;
                 }, DeclTokenType.CloseBrace);
-            } else if (parser.peekToken().type() == DeclTokenType.Assign) {
+            } else if (parser.peek().type() == DeclTokenType.Assign) {
                 parser.expect(DeclTokenType.Assign);
                 var parentType = parser.expectName();
                 var parentName = parser.expectString();
@@ -212,11 +212,11 @@ public class MD6DefParser {
         parser.expect(DeclTokenType.OpenBrace);
         parser.runUntil(() -> {
             var key = parser.expectName();
-            JsonElement value = switch (parser.peekToken().type()) {
+            JsonElement value = switch (parser.peek().type()) {
                 case String -> {
                     var res = parser.collectUntil(() -> {
                         var item = new JsonPrimitive(parser.expectString());
-                        if (parser.peekToken().type() == DeclTokenType.Comma) {
+                        if (parser.peek().type() == DeclTokenType.Comma) {
                             parser.expect(DeclTokenType.Comma);
                         }
                         return item;
@@ -230,7 +230,7 @@ public class MD6DefParser {
                 case Name -> {
                     var res = parser.collectUntil(() -> {
                         var item = new JsonPrimitive(parser.expectName());
-                        if (parser.peekToken().type() == DeclTokenType.Comma) {
+                        if (parser.peek().type() == DeclTokenType.Comma) {
                             parser.expect(DeclTokenType.Comma);
                         }
                         return item;

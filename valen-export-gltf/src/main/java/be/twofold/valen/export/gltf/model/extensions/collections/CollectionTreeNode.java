@@ -8,6 +8,9 @@ import java.util.*;
 @SchemaStyle
 @Value.Immutable
 public interface CollectionTreeNode {
+
     String getCollection();
+
     Optional<String> getParent();
+
 }

@@ -1,30 +1,23 @@
 package be.twofold.valen;
 
-import be.twofold.valen.core.math.Matrix3;
-import be.twofold.valen.core.math.Quaternion;
-import be.twofold.valen.core.math.Vector3;
-import be.twofold.valen.export.gltf.GltfWriter;
+import be.twofold.valen.core.math.*;
+import be.twofold.valen.export.gltf.*;
 import be.twofold.valen.export.gltf.model.*;
 import be.twofold.valen.export.gltf.model.extensions.collections.*;
 import be.twofold.valen.export.gltf.model.extensions.lightspunctual.*;
 import be.twofold.valen.manager.*;
 import be.twofold.valen.reader.*;
-import be.twofold.valen.reader.compfile.entities.*;
-import be.twofold.valen.reader.decl.*;
-import be.twofold.valen.reader.staticinstances.*;
+import be.twofold.valen.reader.filecompressed.entities.*;
+import be.twofold.valen.reader.mapfilestaticinstances.*;
 import be.twofold.valen.ui.settings.*;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
+import com.google.gson.*;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
+import java.io.*;
+import java.nio.file.*;
 import java.util.*;
 
-import static be.twofold.valen.Experiment.BASE;
-
 public final class MapExporter {
+    static final Path BASE = Path.of("D:\\SteamLibrary\\steamapps\\common\\DOOMEternal\\base");
 
     public static void main(String[] args) throws IOException {
         SettingsManager.get().setGameDirectory(BASE);
@@ -34,12 +27,6 @@ public final class MapExporter {
         exporter.export("game/dlc/hub/hub");
     }
 
-    private static final Set<String> BlackList = Set.of(
-        "editors/models/gui_text.lwo",
-        "models/ca/working/bshore/darrow1.lwo",
-        "models/guis/gui_square.lwo",
-        "models/guis/gui_square_afterpost.lwo"
-    );
     private final Map<String, MeshId> meshCache = new LinkedHashMap<>();
     private final Map<String, NodeSchema.Builder> layersCache = new LinkedHashMap<>();
     private final Map<String, NodeSchema.Builder> groupsCache = new LinkedHashMap<>();
@@ -194,9 +181,6 @@ public final class MapExporter {
         var meshId = meshCache.computeIfAbsent(modelName, k -> {
             try {
                 var tmp = modelName;
-                if (BlackList.contains(tmp)) {
-                    return null;
-                }
                 if (!tmp.endsWith(".lwo")) {
                     tmp += ".bmodel";
                 }
@@ -275,7 +259,7 @@ public final class MapExporter {
         entityNodeBuilder.translation(toVec3(entityEditData.get("spawnPosition")));
     }
 
-    private void exportStaticInstances(StaticInstances instances, GltfWriter writer) {
+    private void exportStaticInstances(MapFileStaticInstances instances, GltfWriter writer) {
         collectionCache.put("StaticWorld", CollectionTreeNodeSchema.builder().collection("StaticWorld").parent("Root"));
         for (var i = 0; i < instances.modelInstanceGeometries().size(); i++) {
             var geometry = instances.modelInstanceGeometries().get(i);

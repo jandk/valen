@@ -25,7 +25,7 @@ public final class RenderParmReader implements ResourceReader<RenderParm> {
     @Override
     public RenderParm read(DataSource source, Resource resource) throws IOException {
         var bytes = source.readBytes(Math.toIntExact(source.size()));
-        var parser = new DeclParser(new String(bytes), true);
+        var parser = new DeclParser(new String(bytes), true, true);
 
         var result = new RenderParm();
         parser.expect(DeclTokenType.OpenBrace);
@@ -69,7 +69,6 @@ public final class RenderParmReader implements ResourceReader<RenderParm> {
             if (token.equalsIgnoreCase("smoothnessNormalParm")) {
                 parser.expect(DeclTokenType.Assign);
                 result.smoothnessNormalParm = parseImageTextureMaterialKind(parser.expectName());
-                continue;
             }
         }
     }

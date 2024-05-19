@@ -9,10 +9,8 @@ import be.twofold.valen.reader.file.mapresources.*;
 import be.twofold.valen.reader.filecompressed.*;
 import be.twofold.valen.reader.filecompressed.entities.*;
 import be.twofold.valen.reader.image.*;
+import be.twofold.valen.reader.mapfilestaticinstances.*;
 import be.twofold.valen.reader.md6anim.*;
-import be.twofold.valen.reader.md6skl.*;
-import be.twofold.valen.reader.model.*;
-import be.twofold.valen.reader.staticinstances.*;
 import be.twofold.valen.reader.md6model.*;
 import be.twofold.valen.reader.md6skel.*;
 import be.twofold.valen.reader.staticmodel.*;
@@ -109,7 +107,7 @@ abstract class ResourceReaderModule {
 
     @IntoSet
     @Provides
-    static ResourceReader<?> provideStaticInstanceReader(StaticInstancesReader reader) {
+    static ResourceReader<?> provideMapFileStaticInstancesReader(MapFileStaticInstancesReader reader) {
         return reader;
     }
 

@@ -2,15 +2,17 @@ package be.twofold.valen.reader.decl.parser;
 
 import com.google.gson.*;
 
+import java.util.function.*;
+
 public final class DeclParser {
     private final DeclLexer lexer;
 
     public DeclParser(String source) {
-        this(source, false);
+        this(source, false, false);
     }
 
-    public DeclParser(String source, boolean allowFilenames) {
-        this.lexer = new DeclLexer(source, allowFilenames);
+    public DeclParser(String source, boolean allowFilenames, boolean skipNewlines) {
+        this.lexer = new DeclLexer(source, allowFilenames, skipNewlines);
     }
 
     public static JsonObject parse(String source) {
@@ -147,4 +149,37 @@ public final class DeclParser {
         return object;
     }
 
+    public JsonArray collectUntil(Supplier<JsonElement> supplier, DeclTokenType terminator) {
+        var arr = new JsonArray();
+        if (terminator != DeclTokenType.NewLine) {
+            skipNewLines();
+        }
+        while (peek().type() != terminator) {
+            arr.add(supplier.get());
+            if (terminator != DeclTokenType.NewLine) {
+                skipNewLines();
+            }
+        }
+        expect(terminator);
+        return arr;
+    }
+
+    public void runUntil(Runnable runnable, DeclTokenType terminator) {
+        if (terminator != DeclTokenType.NewLine) {
+            skipNewLines();
+        }
+        while (peek().type() != terminator) {
+            runnable.run();
+            if (terminator != DeclTokenType.NewLine) {
+                skipNewLines();
+            }
+        }
+        expect(terminator);
+    }
+
+    private void skipNewLines() {
+        while (peek().type() == DeclTokenType.NewLine) {
+            expect(DeclTokenType.NewLine);
+        }
+    }
 }

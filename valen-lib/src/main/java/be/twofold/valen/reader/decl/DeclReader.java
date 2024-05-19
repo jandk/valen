@@ -121,7 +121,7 @@ public final class DeclReader implements ResourceReader<JsonObject> {
     }
 
 
-    private JsonObject merge(JsonObject parent, JsonObject child) {
+    public static JsonObject merge(JsonObject parent, JsonObject child) {
         var result = parent.deepCopy();
         for (var entry : child.entrySet()) {
             var key = entry.getKey();

@@ -1,8 +1,9 @@
 package be.twofold.valen.reader.filecompressed.entities;
 
 import be.twofold.valen.core.io.*;
+import be.twofold.valen.manager.*;
 import be.twofold.valen.reader.*;
-import be.twofold.valen.reader.compfile.*;
+import be.twofold.valen.reader.decl.*;
 import be.twofold.valen.reader.decl.parser.*;
 import be.twofold.valen.reader.filecompressed.*;
 import be.twofold.valen.resource.*;
@@ -14,13 +15,16 @@ import java.nio.charset.*;
 import java.util.*;
 
 public final class EntityReader implements ResourceReader<EntityFile> {
+    private final Provider<FileManager> fileManagerProvider;
     private final FileCompressedReader fileCompressedReader;
-    private final DeclParser declParser;
 
     @Inject
-    public EntityReader(FileCompressedReader fileCompressedReader, DeclParser parser) {
+    public EntityReader(
+        Provider<FileManager> fileManagerProvider,
+        FileCompressedReader fileCompressedReader
+    ) {
+        this.fileManagerProvider = fileManagerProvider;
         this.fileCompressedReader = fileCompressedReader;
-        this.declParser = declParser;
     }
 
     @Override
@@ -31,6 +35,7 @@ public final class EntityReader implements ResourceReader<EntityFile> {
 
     @Override
     public EntityFile read(DataSource source, Resource resource) throws IOException {
+        var parentCache = new HashMap<String, JsonObject>();
         byte[] bytes = fileCompressedReader.read(source, resource);
         String input = new String(bytes, StandardCharsets.UTF_8);
 
@@ -75,8 +80,9 @@ public final class EntityReader implements ResourceReader<EntityFile> {
 
             if (entityDef.has("inherit")) {
                 var parentName = entityDef.get("inherit").getAsString();
-                var inhObject = parentCache.computeIfAbsent(parentName, s -> declParser.load("entitydef/" + parentName + ".decl"));
-                entityDef = declParser.merge(inhObject, entityDef);
+                var inhObject = parentCache.computeIfAbsent(parentName, s -> fileManagerProvider.get()
+                    .readResource(FileType.Declaration, "entitydef/" + s + ".decl"));
+                entityDef = DeclReader.merge(inhObject, entityDef);
             }
 
             var entity = new Entity(layers, instanceId, originalName, entityDef);

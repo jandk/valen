@@ -50,7 +50,7 @@ public final class DeclLexer {
                     break;
                 }
             case '\n':
-                return punctuation(DeclTokenType.NewLine);
+                return punctuation(DeclTokenType.NewLine, "\n");
             case '=':
                 return punctuation(DeclTokenType.Assign, "=");
             case ',':

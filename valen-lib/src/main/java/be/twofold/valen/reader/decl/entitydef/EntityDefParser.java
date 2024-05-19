@@ -1,25 +1,19 @@
 package be.twofold.valen.reader.decl.entitydef;
 
-import be.twofold.valen.reader.decl.parser.DeclParser;
-import be.twofold.valen.reader.decl.parser.DeclTokenType;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
+import be.twofold.valen.reader.decl.parser.*;
+import com.google.gson.*;
 
 public class EntityDefParser {
-
     public JsonObject parse(String source) {
-
         return parseObject(new DeclParser(source));
     }
 
     private JsonObject parseObject(DeclParser parser) {
         var object = new JsonObject();
         parser.expect(DeclTokenType.OpenBrace);
-        while (parser.peekToken().type() != DeclTokenType.CloseBrace) {
+        while (parser.peek().type() != DeclTokenType.CloseBrace) {
             var key = parser.expectName();
-            if (parser.peekToken().type() == DeclTokenType.Assign) {
+            if (parser.peek().type() == DeclTokenType.Assign) {
                 parser.expect(DeclTokenType.Assign);
                 object.add(key, parseValue(parser, key));
             } else {
@@ -33,9 +27,9 @@ public class EntityDefParser {
     private JsonElement parseValue(DeclParser parser, String key) {
         if (key.equals("edit")) {
             parser.expect(DeclTokenType.OpenBrace);
-            return parser.parseObject();
+            return parser.parse();
         }
-        var peeked = parser.peekToken();
+        var peeked = parser.peek();
         switch (peeked.type()) {
             case OpenParen -> {
                 JsonArray value = parseArray(parser);
@@ -67,10 +61,10 @@ public class EntityDefParser {
     private JsonArray parseArray(DeclParser parser) {
         parser.expect(DeclTokenType.OpenParen);
         var arr = new JsonArray();
-        if (parser.peekToken().type() != DeclTokenType.CloseParen) {
+        if (parser.peek().type() != DeclTokenType.CloseParen) {
             while (true) {
                 arr.add(parser.expectNumber());
-                if (parser.peekToken().type() == DeclTokenType.CloseParen) {
+                if (parser.peek().type() == DeclTokenType.CloseParen) {
                     break;
                 }
                 parser.expect(DeclTokenType.Comma);
