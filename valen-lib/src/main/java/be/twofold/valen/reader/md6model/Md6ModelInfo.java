@@ -31,8 +31,8 @@ public record Md6ModelInfo(
             }
         }
 
-        source.expectInt(0);
         source.expectByte((byte) 0);
+        source.expectInt(0);
 
         return new Md6ModelInfo(
             meshName,

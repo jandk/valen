@@ -12,16 +12,17 @@ public record Md6ModelGeoDecals(
     public static Md6ModelGeoDecals read(DataSource source) throws IOException {
         var materialName = source.readPString();
         var numStreams = source.readInt();
-        if (materialName.isEmpty() && numStreams == 0) {
-            return new Md6ModelGeoDecals(materialName, new int[0], new int[0][]);
-        }
+        var geoDecalCounts = source.readInts(numStreams);
 
-        var counts = source.readInts(numStreams);
-        var indices = new int[numStreams][];
+        var geoDecalIndices = new int[numStreams][];
         for (var stream = 0; stream < numStreams; stream++) {
-            indices[stream] = source.readInts(counts[stream]);
+            geoDecalIndices[stream] = source.readInts(geoDecalCounts[stream]);
         }
 
-        return new Md6ModelGeoDecals(materialName, counts, indices);
+        return new Md6ModelGeoDecals(
+            materialName,
+            geoDecalCounts,
+            geoDecalIndices
+        );
     }
 }

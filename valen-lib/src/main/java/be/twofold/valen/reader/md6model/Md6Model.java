@@ -30,8 +30,7 @@ public record Md6Model(
             layouts.add(GeometryDiskLayout.read(source, subMemoryLayouts));
         }
 
-        // TODO: Implement this
-        // source.expectEnd();
+        source.expectEnd();
         return new Md6Model(header, boneInfo, meshInfos, materialInfos, geoDecals, layouts, List.of());
     }
 
