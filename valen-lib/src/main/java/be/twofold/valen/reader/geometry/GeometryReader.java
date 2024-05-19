@@ -32,7 +32,7 @@ public final class GeometryReader {
         var faceInfo = new VertexBuffer.Info(null, ElementType.Scalar, ComponentType.UnsignedShort, false);
         var faceAccessor = new Geo.Accessor(offset, lodInfo.numFaces() * 3, 2, faceInfo, Geometry.readFace());
 
-        return Geo.readMesh(source, accessors, faceAccessor);
+        return new Geo(true).readMesh(source, accessors, faceAccessor);
     }
 
     public static List<Mesh> readStreamedMesh(
@@ -66,7 +66,7 @@ public final class GeometryReader {
                 var faceAccessor = new Geo.Accessor(indexOffset, lodInfo.numFaces() * 3, 2, faceInfo, Geometry.readFace());
                 indexOffset += lodInfo.numFaces() * 3 * Short.BYTES;
 
-                meshes.add(Geo.readMesh(source, vertexAccessors, faceAccessor));
+                meshes.add(new Geo(true).readMesh(source, vertexAccessors, faceAccessor));
             }
         }
         return meshes;
