@@ -65,6 +65,11 @@ public final class FileManager {
             .findFirst()
             .orElseThrow(() -> new IllegalArgumentException("No reader found for " + entry));
 
+        Class<?> readType = reader.getReadType();
+        if (readType != null && !readType.isAssignableFrom(type.instanceType())) {
+            throw new IllegalArgumentException("Reader " + reader.getClass() + " cannot read " + type.instanceType());
+        }
+
         byte[] bytes = resourceManager.read(entry);
         long hash = MurmurHash2.hash64B(bytes, 0, bytes.length, 0xdeadbeefL);
         Object result;

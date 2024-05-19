@@ -25,9 +25,10 @@ public final class DeclReader implements ResourceReader<JsonObject> {
         "articulatedfigure",
         "breakable",
         "entitydef", // Custom content per entity
+        "material2", // Has a custom reader
         "md6def",
         "renderlayerdefinition",
-        "renderparm", // Also filenames
+        "renderparm", // Has a custom reader
         "renderprogflag"
     );
 
