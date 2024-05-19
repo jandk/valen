@@ -38,7 +38,7 @@ public final class MaterialReader implements ResourceReader<Material> {
     @Override
     public boolean canRead(Resource entry) {
         return entry.type() == ResourceType.RsStreamFile
-               && entry.nameString().startsWith("generated/decls/material2/");
+            && entry.nameString().startsWith("generated/decls/material2/");
     }
 
     @Override

@@ -41,6 +41,10 @@ public final class StreamManager {
 
         try {
             var compressed = file.read(identity);
+            if (compressed.length == uncompressedSize) {
+                return compressed;
+            }
+
             var decompressed = new byte[uncompressedSize];
             decompressorService.decompress(ByteBuffer.wrap(compressed), ByteBuffer.wrap(decompressed), CompressionType.Kraken);
             return decompressed;
