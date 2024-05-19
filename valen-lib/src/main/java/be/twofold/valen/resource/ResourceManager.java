@@ -1,10 +1,12 @@
 package be.twofold.valen.resource;
 
+import be.twofold.valen.compression.*;
 import be.twofold.valen.core.util.*;
 import be.twofold.valen.reader.packagemapspec.*;
 import jakarta.inject.*;
 
 import java.io.*;
+import java.nio.*;
 import java.nio.file.*;
 import java.util.*;
 
@@ -12,13 +14,16 @@ import java.util.*;
 public final class ResourceManager implements AutoCloseable {
     private final List<ResourcesFile> files = new ArrayList<>();
     private final Map<ResourceKey, ResourcesFile> keyIndex = new HashMap<>();
-    private final NavigableMap<String, Map<ResourceKey, Resource>> nameIndex = new TreeMap<>();
+    private final Map<String, Map<ResourceKey, Resource>> nameIndex = new TreeMap<>();
+
+    private final DecompressorService decompressorService;
 
     private Path base;
     private PackageMapSpec spec;
 
     @Inject
-    public ResourceManager() {
+    public ResourceManager(DecompressorService decompressorService) {
+        this.decompressorService = decompressorService;
     }
 
     public void load(Path base, PackageMapSpec spec) throws IOException {
@@ -26,71 +31,30 @@ public final class ResourceManager implements AutoCloseable {
         this.spec = Check.notNull(spec, "spec must not be null");
     }
 
+    public boolean exists(String name, ResourceType type) {
+        var map = nameIndex.get(name);
+        return map != null && map.values().stream()
+            .anyMatch(r -> r.type() == type);
+    }
+
     public Resource get(String name, ResourceType type) {
-        return get(name, type, ResourceVariation.None, Map.of(), Map.of());
+        return get(name, type, ResourceVariation.None);
     }
 
     public Resource get(
         String name,
         ResourceType type,
-        Map<String, String> requiredAttributes,
-        Map<String, String> optionalAttributes
+        ResourceVariation variation
     ) {
-        return get(name, type, ResourceVariation.None, requiredAttributes, optionalAttributes);
-    }
-
-    public Resource get(
-        String name,
-        ResourceType type,
-        ResourceVariation variation,
-        Map<String, String> requiredAttributes,
-        Map<String, String> optionalAttributes
-    ) {
-        var matches = nameIndex.subMap(
-            name,
-            name.substring(0, name.length() - 1) + (char) (name.charAt(name.length() - 1) + 1)
-        );
-        if (matches.size() == 1 || (requiredAttributes.isEmpty() && optionalAttributes.isEmpty())) {
-            Map<ResourceKey, Resource> resources = matches.firstEntry().getValue();
-            return match(resources, name, type, variation);
+        var matches = nameIndex.get(name.toLowerCase());
+        if (matches == null) {
+            // Sometimes files are straight up missing
+            return null;
         }
-
-        // Now we have to check the attributes
-        var nameMatches = new ArrayList<String>();
-        for (String match : matches.keySet()) {
-            var attributes = new ResourceName(match).attributes();
-            boolean attributesMatch = requiredAttributes.entrySet().stream()
-                .allMatch(e -> Objects.equals(attributes.get(e.getKey()), e.getValue()));
-            if (attributesMatch) {
-                nameMatches.add(match);
-            }
-        }
-        if (nameMatches.isEmpty()) {
-            throw new IllegalArgumentException("No resource found with matching attributes: " + name);
-        }
-        if (nameMatches.size() > 1) {
-            var newNameMatches = new ArrayList<String>();
-            for (String match : nameMatches) {
-                var attributes = new ResourceName(match).attributes();
-                boolean attributesMatch = optionalAttributes.entrySet().stream()
-                    .allMatch(e -> Objects.equals(attributes.get(e.getKey()), e.getValue()));
-                if (attributesMatch) {
-                    newNameMatches.add(match);
-                }
-            }
-
-            // This is a hack
-            var minmipLess = newNameMatches.stream()
-                .filter(match -> !match.contains("minmip"))
-                .toList();
-            if (minmipLess.size() == 1) {
-                return get(minmipLess.getFirst(), type, variation, requiredAttributes, optionalAttributes);
-            }
-            throw new IllegalArgumentException("Multiple resources found with matching attributes: " + name);
-        }
-
-        var resources = matches.firstEntry().getValue();
-        return match(resources, name, type, variation);
+        return matches.values().stream()
+            .filter(e -> e.type() == type && e.variation() == variation)
+            .findFirst()
+            .orElseThrow(() -> new IllegalArgumentException("Resource found with wrong type or variation: " + name));
     }
 
 
@@ -106,7 +70,15 @@ public final class ResourceManager implements AutoCloseable {
         var file = keyIndex.get(resource.key());
         Check.argument(file != null, () -> "Unknown resource: " + resource.key());
 
-        return file.read(resource.key());
+        try {
+            var compressed = file.read(resource.key());
+            var decompressed = new byte[resource.uncompressedSize()];
+            decompressorService.decompress(ByteBuffer.wrap(compressed), ByteBuffer.wrap(decompressed), resource.compression());
+            return decompressed;
+        } catch (IOException e) {
+            System.out.println("Error reading resource: " + resource.key());
+            throw new UncheckedIOException(e);
+        }
     }
 
     public void select(String map) throws IOException {
@@ -144,15 +116,8 @@ public final class ResourceManager implements AutoCloseable {
         var key = resource.key();
         keyIndex.putIfAbsent(key, file);
         nameIndex
-            .computeIfAbsent(resource.name().name(), __ -> new HashMap<>())
+            .computeIfAbsent(resource.nameString(), __ -> new HashMap<>())
             .putIfAbsent(key, resource);
-    }
-
-    private Resource match(Map<ResourceKey, Resource> resources, String name, ResourceType type, ResourceVariation variation) {
-        return resources.values().stream()
-            .filter(e -> e.type() == type && e.variation() == variation)
-            .findFirst()
-            .orElseThrow(() -> new IllegalArgumentException("Resource found with wrong type or variation: " + name));
     }
 
     @Override

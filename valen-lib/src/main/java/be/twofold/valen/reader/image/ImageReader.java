@@ -1,11 +1,13 @@
 package be.twofold.valen.reader.image;
 
+import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.texture.*;
-import be.twofold.valen.core.util.*;
 import be.twofold.valen.reader.*;
 import be.twofold.valen.resource.*;
 import be.twofold.valen.stream.*;
 import jakarta.inject.*;
+
+import java.io.*;
 
 public final class ImageReader implements ResourceReader<Texture> {
     private final StreamManager streamManager;
@@ -21,15 +23,15 @@ public final class ImageReader implements ResourceReader<Texture> {
     }
 
     @Override
-    public Texture read(BetterBuffer buffer, Resource resource) {
-        Image image = read(buffer, true, resource.hash());
+    public Texture read(DataSource source, Resource resource) throws IOException {
+        Image image = read(source, true, resource.hash());
         return new ImageMapper().map(image);
     }
 
-    public Image read(BetterBuffer buffer, boolean readStreams, long hash) {
-        var image = Image.read(buffer);
+    public Image read(DataSource source, boolean readStreams, long hash) throws IOException {
+        var image = Image.read(source);
 
-        if (readStreams) {
+        if (readStreams && streamManager != null) {
             /*
              * Not entirely sure, but it seems to work, so I'm calling it the "single stream" format
              * Specified by a boolean at offset 0x38 in the header. Could mean something else though...
@@ -40,18 +42,19 @@ public final class ImageReader implements ResourceReader<Texture> {
             } else {
                 readMultiStream(image, hash);
             }
-            buffer.expectEnd();
+            // TODO: Implement
+            // source.expectEnd();
         }
 
         return image;
     }
 
-    private void readSingleStream(Image image, long hash) {
+    private void readSingleStream(Image image, long hash) throws IOException {
         var lastMip = image.mipInfos().getLast();
         var uncompressedSize = lastMip.cumulativeSizeStreamDB() + lastMip.decompressedSize();
-        var mipBuffer = BetterBuffer.wrap(streamManager.read(hash, uncompressedSize));
+        var mipSource = new ByteArrayDataSource(streamManager.read(hash, uncompressedSize));
         for (var i = 0; i < image.header().totalMipCount(); i++) {
-            image.mipData()[i] = mipBuffer.getBytes(image.mipInfos().get(i).decompressedSize());
+            image.mipData()[i] = mipSource.readBytes(image.mipInfos().get(i).decompressedSize());
         }
     }
 

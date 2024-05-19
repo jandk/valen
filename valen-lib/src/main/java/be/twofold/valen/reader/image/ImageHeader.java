@@ -1,6 +1,8 @@
 package be.twofold.valen.reader.image;
 
-import be.twofold.valen.core.util.*;
+import be.twofold.valen.core.io.*;
+
+import java.io.*;
 
 public record ImageHeader(
     byte version,
@@ -22,31 +24,31 @@ public record ImageHeader(
 ) {
     public static final int BYTES = 63;
 
-    public static ImageHeader read(BetterBuffer buffer) {
-        buffer.expectByte('B');
-        buffer.expectByte('I');
-        buffer.expectByte('M');
-        var version = buffer.getByte();
+    public static ImageHeader read(DataSource source) throws IOException {
+        source.expectByte((byte) 'B');
+        source.expectByte((byte) 'I');
+        source.expectByte((byte) 'M');
+        var version = source.readByte();
 
-        var textureType = ImageTextureType.fromCode(buffer.getInt());
-        var textureMaterialKind = ImageTextureMaterialKind.fromCode(buffer.getInt());
-        var pixelWidth = buffer.getInt();
-        var pixelHeight = buffer.getInt();
-        var depth = buffer.getInt();
-        var mipCount = buffer.getInt();
-        var unkFloat1 = buffer.getFloat();
-        var unkFloat2 = buffer.getFloat();
-        var unkFloat3 = buffer.getFloat();
-        buffer.expectByte(0);
-        var textureFormat = ImageTextureFormat.fromCode(buffer.getInt());
-        buffer.expectInt(7); // always 7
-        buffer.expectInt(0); // padding
-        buffer.expectShort(0); // padding
-        var streamed = buffer.getByteAsBool();
-        var singleStream = buffer.getByteAsBool();
-        var noMips = buffer.getByteAsBool();
-        var fftBloom = buffer.getByteAsBool();
-        var streamDBMipCount = buffer.getInt();
+        var textureType = ImageTextureType.fromCode(source.readInt());
+        var textureMaterialKind = ImageTextureMaterialKind.fromCode(source.readInt());
+        var pixelWidth = source.readInt();
+        var pixelHeight = source.readInt();
+        var depth = source.readInt();
+        var mipCount = source.readInt();
+        var unkFloat1 = source.readFloat();
+        var unkFloat2 = source.readFloat();
+        var unkFloat3 = source.readFloat();
+        source.expectByte((byte) 0);
+        var textureFormat = ImageTextureFormat.fromCode(source.readInt());
+        source.expectInt(7); // always 7
+        source.expectInt(0); // padding
+        source.expectShort((short) 0); // padding
+        var streamed = source.readBoolByte();
+        var singleStream = source.readBoolByte();
+        var noMips = source.readBoolByte();
+        var fftBloom = source.readBoolByte();
+        var streamDBMipCount = source.readInt();
 
         return new ImageHeader(
             version,

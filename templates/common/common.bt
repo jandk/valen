@@ -24,8 +24,12 @@ struct Vector4 {
     float w;
 };
 
+struct Mat3 {
+    Vector3 mat[3];
+};
+
 struct Mat3x4 {
-    float values[12];
+    float mat[12];
 };
 
 struct Bounds {
@@ -44,23 +48,8 @@ struct GeometryMemoryLayout {
     uint combinedVertexMask;
     uint size;
     uint numVertexStreams;
-    Assert(numVertexStreams == 4 || numVertexStreams == 5);
-
-    uint positionMask; // 1 = unpacked, 32 = packed
-    uint normalMask; // always 20
-    if(numVertexStreams == 5) {
-        uint uvLightmapMask; // always 64
-    }
-    uint uvMask; // 131072 = unpacked, 32768 = packed
-    uint colorMask; // always 8
-
-    uint positionOffset;
-    uint normalOffset;
-    if(numVertexStreams == 5) {
-        uint uvLightmapOffset;
-    }
-    uint uvOffset;
-    uint colorOffset;
+    uint vertexMasks[numVertexStreams];
+    uint vertexOffsets[numVertexStreams];
     uint indexOffset;
 };
 

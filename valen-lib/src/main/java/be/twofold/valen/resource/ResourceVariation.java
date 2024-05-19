@@ -1,6 +1,10 @@
 package be.twofold.valen.resource;
 
-public enum ResourceVariation {
+import be.twofold.valen.core.util.*;
+
+import java.util.*;
+
+public enum ResourceVariation implements ValueEnum<Integer> {
     None(0),
     RenderProgVulkanPcBase(33),
     RenderProgVulkanPcAmd(34),
@@ -39,23 +43,21 @@ public enum ResourceVariation {
     PlatformProspero(242),
     PlatformReservedDoNotUse(299);
 
-    private static final ResourceVariation[] VALUES = values();
+    private static final Map<Integer, ResourceVariation> MAP = ValueEnum.valueMap(ResourceVariation.class);
+
     private final int value;
 
     ResourceVariation(int value) {
         this.value = value;
     }
 
-    public int getValue() {
+    @Override
+    public Integer value() {
         return value;
     }
 
     public static ResourceVariation fromValue(int value) {
-        for (ResourceVariation variation : VALUES) {
-            if (variation.value == value) {
-                return variation;
-            }
-        }
-        throw new IllegalArgumentException("Unknown variation: " + value);
+        return ValueEnum.fromValue(MAP, value)
+            .orElseThrow(() -> new IllegalArgumentException("Unknown variation: " + value));
     }
 }

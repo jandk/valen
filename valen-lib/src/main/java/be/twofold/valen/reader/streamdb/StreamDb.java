@@ -1,9 +1,8 @@
 package be.twofold.valen.reader.streamdb;
 
-import be.twofold.valen.core.util.*;
+import be.twofold.valen.core.io.*;
 
 import java.io.*;
-import java.nio.channels.*;
 import java.util.*;
 
 public record StreamDb(
@@ -13,20 +12,21 @@ public record StreamDb(
     List<StreamDbPrefetchBlock> prefetchBlocks,
     long[] prefetchIDs
 ) {
-    public static StreamDb read(SeekableByteChannel channel) throws IOException {
-        var header = IOUtils.readStruct(channel, StreamDbHeader.BYTES, StreamDbHeader::read);
-        var entries = IOUtils.readStructs(channel, header.numEntries(), StreamDbEntry.BYTES, StreamDbEntry::read);
-
-        if (header.flags().contains(StreamDbHeaderFlag.SDHF_HAS_PREFETCH_BLOCKS)) {
-            var prefetchHeader = IOUtils.readStruct(channel, StreamDbPrefetchHeader.BYTES, StreamDbPrefetchHeader::read);
-            var prefetchBlocks = IOUtils.readStructs(channel, prefetchHeader.numPrefetchBlocks(), StreamDbPrefetchBlock.BYTES, StreamDbPrefetchBlock::read);
-
-            var numPrefetchIDs = prefetchBlocks.stream().mapToInt(StreamDbPrefetchBlock::numItems).sum();
-            var prefetchIDs = IOUtils.readLongs(channel, numPrefetchIDs);
-            return new StreamDb(header, entries, prefetchHeader, prefetchBlocks, prefetchIDs);
+    public static StreamDb read(DataSource source) throws IOException {
+        var header = StreamDbHeader.read(source);
+        var entries = source.readStructs(header.numEntries(), StreamDbEntry::read);
+        if (!header.flags().contains(StreamDbHeaderFlag.SDHF_HAS_PREFETCH_BLOCKS)) {
+            return new StreamDb(header, entries, null, List.of(), new long[0]);
         }
 
-        return new StreamDb(header, entries, null, List.of(), new long[0]);
+        var prefetchHeader = StreamDbPrefetchHeader.read(source);
+        var prefetchBlocks = source.readStructs(prefetchHeader.numPrefetchBlocks(), StreamDbPrefetchBlock::read);
+
+        var numPrefetchIDs = prefetchBlocks.stream()
+            .mapToInt(StreamDbPrefetchBlock::numItems)
+            .sum();
+        var prefetchIDs = source.readLongs(numPrefetchIDs);
+        return new StreamDb(header, entries, prefetchHeader, prefetchBlocks, prefetchIDs);
     }
 
     @Override

@@ -1,6 +1,8 @@
 package be.twofold.valen.reader.lightdb;
 
-import be.twofold.valen.core.util.*;
+import be.twofold.valen.core.io.*;
+
+import java.io.*;
 
 public record LightDbIndexEntry(
     short imageIndex,
@@ -11,12 +13,12 @@ public record LightDbIndexEntry(
 ) {
     public static final int BYTES = 10;
 
-    public static LightDbIndexEntry read(BetterBuffer buffer) {
-        var imageIndex = buffer.getShort();
-        var x = buffer.getShort();
-        var y = buffer.getShort();
-        var width = buffer.getShort();
-        var height = buffer.getShort();
+    public static LightDbIndexEntry read(DataSource source) throws IOException {
+        var imageIndex = source.readShort();
+        var x = source.readShort();
+        var y = source.readShort();
+        var width = source.readShort();
+        var height = source.readShort();
 
         return new LightDbIndexEntry(
             imageIndex,

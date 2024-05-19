@@ -1,6 +1,8 @@
 package be.twofold.valen.reader.image;
 
-import be.twofold.valen.core.util.*;
+import be.twofold.valen.core.io.*;
+
+import java.io.*;
 
 public record ImageMipInfo(
     int mipLevel,
@@ -14,16 +16,16 @@ public record ImageMipInfo(
 ) {
     public static final int BYTES = 36;
 
-    public static ImageMipInfo read(BetterBuffer buffer) {
-        var mipLevel = buffer.getInt();
-        var mipSlice = buffer.getInt();
-        var mipPixelWidth = buffer.getInt();
-        var mipPixelHeight = buffer.getInt();
-        buffer.expectInt(1);
-        var decompressedSize = buffer.getInt();
-        var flagIsCompressed = buffer.getIntAsBool();
-        var compressedSize = buffer.getInt();
-        var cumulativeSizeStreamDB = buffer.getInt();
+    public static ImageMipInfo read(DataSource source) throws IOException {
+        var mipLevel = source.readInt();
+        var mipSlice = source.readInt();
+        var mipPixelWidth = source.readInt();
+        var mipPixelHeight = source.readInt();
+        source.expectInt(1);
+        var decompressedSize = source.readInt();
+        var flagIsCompressed = source.readBoolInt();
+        var compressedSize = source.readInt();
+        var cumulativeSizeStreamDB = source.readInt();
 
         return new ImageMipInfo(
             mipLevel,

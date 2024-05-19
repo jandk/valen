@@ -1,6 +1,8 @@
 package be.twofold.valen.reader.streamdb;
 
-import be.twofold.valen.core.util.*;
+import be.twofold.valen.core.io.*;
+
+import java.io.*;
 
 public record StreamDbPrefetchBlock(
     long name,
@@ -9,10 +11,10 @@ public record StreamDbPrefetchBlock(
 ) {
     public static final int BYTES = 16;
 
-    public static StreamDbPrefetchBlock read(BetterBuffer buffer) {
-        var name = buffer.getLong();
-        var firstItemIndex = buffer.getInt();
-        var numItems = buffer.getInt();
+    public static StreamDbPrefetchBlock read(DataSource source) throws IOException {
+        var name = source.readLong();
+        var firstItemIndex = source.readInt();
+        var numItems = source.readInt();
         return new StreamDbPrefetchBlock(name, firstItemIndex, numItems);
     }
 }

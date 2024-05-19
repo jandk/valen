@@ -7,7 +7,7 @@ public abstract class BCDecoder {
     final int bpp;
 
     BCDecoder(int bpb, int bpp) {
-        Check.argument(bpp >= 1 && bpp <= 4, "bpp must be between 1 and 4");
+        Check.argument(bpp >= 1 && bpp <= 6, "bpp must be between 1 and 6");
         this.bpb = bpb;
         this.bpp = bpp;
     }

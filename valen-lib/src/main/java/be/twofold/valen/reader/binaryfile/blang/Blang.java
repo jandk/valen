@@ -1,7 +1,8 @@
 package be.twofold.valen.reader.binaryfile.blang;
 
-import be.twofold.valen.core.util.*;
+import be.twofold.valen.core.io.*;
 
+import java.io.*;
 import java.util.*;
 
 public record Blang(
@@ -10,12 +11,11 @@ public record Blang(
     int numEntries,
     List<BlangEntry> entries
 ) {
-    // TODO: Support the other blang format
-    public static Blang read(BetterBuffer buffer) {
-        var versionMaybe = buffer.getInt();
-        var unknownHash = buffer.getInt();
-        var numEntries = Integer.reverseBytes(buffer.getInt()); // Big endian all of a sudden?
-        var entries = buffer.getStructs(numEntries, BlangEntry::read);
+    public static Blang read(DataSource source) throws IOException {
+        var versionMaybe = source.readInt();
+        var unknownHash = source.readInt();
+        var numEntries = Integer.reverseBytes(source.readInt()); // Big endian all of a sudden?
+        var entries = source.readStructs(numEntries, BlangEntry::read);
         return new Blang(versionMaybe, unknownHash, numEntries, entries);
     }
 }

@@ -1,8 +1,8 @@
 package be.twofold.valen.reader.md6anim;
 
-import be.twofold.valen.core.util.*;
+import be.twofold.valen.core.io.*;
 
-import java.nio.charset.*;
+import java.io.*;
 
 public record Md6AnimFrameSet(
     short firstROffset,
@@ -26,27 +26,27 @@ public record Md6AnimFrameSet(
     short frameRange,
     String pad
 ) {
-    public static Md6AnimFrameSet read(BetterBuffer buffer) {
-        short firstROffset = buffer.getShort();
-        short firstSOffset = buffer.getShort();
-        short firstTOffset = buffer.getShort();
-        short firstUOffset = buffer.getShort();
-        short rangeROffset = buffer.getShort();
-        short rangeSOffset = buffer.getShort();
-        short rangeTOffset = buffer.getShort();
-        short rangeUOffset = buffer.getShort();
-        short RBitsOffset = buffer.getShort();
-        short SBitsOffset = buffer.getShort();
-        short TBitsOffset = buffer.getShort();
-        short UBitsOffset = buffer.getShort();
-        short nextROffset = buffer.getShort();
-        short nextSOffset = buffer.getShort();
-        short nextTOffset = buffer.getShort();
-        short nextUOffset = buffer.getShort();
-        short totalSize = buffer.getShort();
-        short frameStart = buffer.getShort();
-        short frameRange = buffer.getShort();
-        String pad = new String(buffer.getBytes(10), StandardCharsets.US_ASCII);
+    public static Md6AnimFrameSet read(DataSource source) throws IOException {
+        short firstROffset = source.readShort();
+        short firstSOffset = source.readShort();
+        short firstTOffset = source.readShort();
+        short firstUOffset = source.readShort();
+        short rangeROffset = source.readShort();
+        short rangeSOffset = source.readShort();
+        short rangeTOffset = source.readShort();
+        short rangeUOffset = source.readShort();
+        short RBitsOffset = source.readShort();
+        short SBitsOffset = source.readShort();
+        short TBitsOffset = source.readShort();
+        short UBitsOffset = source.readShort();
+        short nextROffset = source.readShort();
+        short nextSOffset = source.readShort();
+        short nextTOffset = source.readShort();
+        short nextUOffset = source.readShort();
+        short totalSize = source.readShort();
+        short frameStart = source.readShort();
+        short frameRange = source.readShort();
+        String pad = new String(source.readBytes(10));
 
         return new Md6AnimFrameSet(
             firstROffset,

@@ -1,7 +1,8 @@
 package be.twofold.valen.reader.file.mapresources;
 
-import be.twofold.valen.core.util.*;
+import be.twofold.valen.core.io.*;
 
+import java.io.*;
 import java.util.*;
 
 public record MapResources(
@@ -11,19 +12,19 @@ public record MapResources(
     List<MapResourcesAsset> assets,
     List<String> mapNames
 ) {
-    public static MapResources read(BetterBuffer buffer) {
-        var numLayerNames = Integer.reverseBytes(buffer.getInt());
-        var layerNames = buffer.getStructs(numLayerNames, BetterBuffer::getString);
-        var unknown = buffer.getInt();
+    public static MapResources read(DataSource source) throws IOException {
+        var numLayerNames = Integer.reverseBytes(source.readInt());
+        var layerNames = source.readStructs(numLayerNames, DataSource::readPString);
+        var unknown = source.readInt();
 
-        var numAssetTypes = Integer.reverseBytes(buffer.getInt());
-        var assetTypes = buffer.getStructs(numAssetTypes, BetterBuffer::getString);
+        var numAssetTypes = Integer.reverseBytes(source.readInt());
+        var assetTypes = source.readStructs(numAssetTypes, DataSource::readPString);
 
-        var numAssets = Integer.reverseBytes(buffer.getInt());
-        var assets = buffer.getStructs(numAssets, MapResourcesAsset::read);
+        var numAssets = Integer.reverseBytes(source.readInt());
+        var assets = source.readStructs(numAssets, MapResourcesAsset::read);
 
-        var numMapNames = Integer.reverseBytes(buffer.getInt());
-        var mapNames = buffer.getStructs(numMapNames, BetterBuffer::getString);
+        var numMapNames = Integer.reverseBytes(source.readInt());
+        var mapNames = source.readStructs(numMapNames, DataSource::readPString);
 
         return new MapResources(
             layerNames,

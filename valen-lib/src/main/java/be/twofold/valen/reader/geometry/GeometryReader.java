@@ -1,197 +1,106 @@
 package be.twofold.valen.reader.geometry;
 
 import be.twofold.valen.core.geometry.*;
-import be.twofold.valen.core.util.*;
+import be.twofold.valen.core.io.*;
 
-import java.nio.*;
+import java.io.*;
 import java.util.*;
-import java.util.stream.*;
 
 public final class GeometryReader {
-    private final boolean hasWeights;
-    private final List<FloatBuffer> positionBuffers = new ArrayList<>();
-    private final List<FloatBuffer> normalBuffers = new ArrayList<>();
-    private final List<FloatBuffer> tangentBuffers = new ArrayList<>();
-    private final List<FloatBuffer> texCoordBuffers = new ArrayList<>();
-    private final List<ByteBuffer> colorBuffers = new ArrayList<>();
-    private final List<ByteBuffer> jointBuffers = new ArrayList<>();
-    private final List<ByteBuffer> weightBuffers = new ArrayList<>();
-    private final List<ShortBuffer> indexBuffers = new ArrayList<>();
-
-    public GeometryReader(boolean hasWeights) {
-        this.hasWeights = hasWeights;
-    }
-
-    public List<Mesh> readMeshes(BetterBuffer buffer, List<LodInfo> lods, List<GeometryMemoryLayout> layouts) {
-        for (var layout : layouts) {
-            assert layout.normalMask() == 0x14 : "Unknown normal mask: " + layout.normalMask();
-            assert layout.colorMask() == 0x08 : "Unknown color mask: " + layout.colorMask();
-        }
-
-        for (var layout : layouts) {
-            buffer.position(layout.positionOffset());
-            lods.stream()
-                .filter(lod -> lod.flags() == layout.combinedVertexMask())
-                .map(lod -> switch (layout.positionMask()) {
-                    case 0x01 -> readVertices(buffer, lod);
-                    case 0x20 -> readPackedVertices(buffer, lod);
-                    default -> throw new RuntimeException("Unknown position mask: " + layout.positionMask());
-                })
-                .forEach(positionBuffers::add);
-        }
-
-        for (var layout : layouts) {
-            buffer.position(layout.normalOffset());
-            lods.stream()
-                .filter(lod -> lod.flags() == layout.combinedVertexMask())
-                .map(lod -> readPackedNormals(buffer, lod))
-                .forEach(normalBuffers::add);
-        }
-
-        for (var layout : layouts) {
-            buffer.position(layout.normalOffset());
-            lods.stream()
-                .filter(lod -> lod.flags() == layout.combinedVertexMask())
-                .map(lod -> readPackedTangents(buffer, lod))
-                .forEach(tangentBuffers::add);
-        }
-
-        for (var layout : layouts) {
-            buffer.position(layout.normalOffset());
-            lods.stream()
-                .filter(lod -> lod.flags() == layout.combinedVertexMask())
-                .map(lod -> readWeights(buffer, lod))
-                .forEach(weightBuffers::add);
-        }
-
-        for (var layout : layouts) {
-            buffer.position(layout.uvOffset());
-            lods.stream()
-                .filter(lod -> lod.flags() == layout.combinedVertexMask())
-                .map(lod -> switch (layout.uvMask()) {
-                    case 0x08000 -> readUVs(buffer, lod);
-                    case 0x20000 -> readPackedUVs(buffer, lod);
-                    default -> throw new RuntimeException("Unknown UV mask: " + layout.normalMask());
-                })
-                .forEach(texCoordBuffers::add);
-        }
-
-        for (var layout : layouts) {
-            buffer.position(layout.colorOffset());
-            lods.stream()
-                .filter(lod -> lod.flags() == layout.combinedVertexMask())
-                .map(lod -> readColors(buffer, lod))
-                .forEach(bb -> {
-                    if (hasWeights) {
-                        jointBuffers.add(bb);
-                    } else {
-                        colorBuffers.add(bb);
-                    }
-                });
-        }
-
-        for (var layout : layouts) {
-            buffer.position(layout.indexOffset());
-            lods.stream()
-                .filter(lod -> lod.flags() == layout.combinedVertexMask())
-                .map(lod -> readFaces(buffer, lod))
-                .forEach(indexBuffers::add);
-        }
-
-        return IntStream.range(0, lods.size())
-            .mapToObj(this::getMesh)
+    public static Mesh readEmbeddedMesh(DataSource source, LodInfo lodInfo) throws IOException {
+        var masks = GeometryVertexMask.FixedOrder.stream()
+            .filter(mask -> (lodInfo.vertexMask() & mask.mask()) == mask.mask())
             .toList();
-    }
 
-    public FloatBuffer readVertices(BetterBuffer src, LodInfo lod) {
-        var dst = FloatBuffer.allocate(lod.numVertices() * 3);
-        for (var i = 0; i < lod.numVertices(); i++) {
-            Geometry.readVertex(src, dst, lod.vertexOffset(), lod.vertexScale());
+        var stride = masks.stream()
+            .mapToInt(GeometryVertexMask::size)
+            .sum();
+
+        var offset = 0;
+        var accessors = new ArrayList<Geo.Accessor>();
+
+        for (var mask : masks) {
+            for (var info : buildAccessor(mask)) {
+                var reader = reader(mask, info.semantic(), lodInfo);
+                var accessor = new Geo.Accessor(offset, lodInfo.numVertices(), stride, info, reader);
+                accessors.add(accessor);
+            }
+            offset += mask.size();
         }
-        return dst.flip();
+
+        offset += stride * (lodInfo.numVertices() - 1);
+        var faceInfo = new VertexBuffer.Info(null, ElementType.Scalar, ComponentType.UnsignedShort, false);
+        var faceAccessor = new Geo.Accessor(offset, lodInfo.numFaces() * 3, 2, faceInfo, Geometry.readFace());
+
+        return Geo.readMesh(source, accessors, faceAccessor);
     }
 
-    public FloatBuffer readPackedVertices(BetterBuffer src, LodInfo lod) {
-        var dst = FloatBuffer.allocate(lod.numVertices() * 3);
-        for (var i = 0; i < lod.numVertices(); i++) {
-            Geometry.readPackedVertex(src, dst, lod.vertexOffset(), lod.vertexScale());
+    public static List<Mesh> readStreamedMesh(DataSource source, List<LodInfo> lods, List<GeometryMemoryLayout> layouts) throws IOException {
+        var meshes = new ArrayList<Mesh>();
+        for (var layout : layouts) {
+            var offsets = Arrays.copyOf(layout.vertexOffsets(), layout.numVertexStreams());
+
+            for (var lodInfo : lods) {
+                if (lodInfo.vertexMask() != layout.combinedVertexMask()) {
+                    continue;
+                }
+
+                var vertexAccessors = new ArrayList<Geo.Accessor>();
+                for (var v = 0; v < layout.numVertexStreams(); v++) {
+                    var mask = GeometryVertexMask.from(layout.vertexMasks()[v]);
+                    for (var info : buildAccessor(mask)) {
+                        var reader = reader(mask, info.semantic(), lodInfo);
+                        var accessor = new Geo.Accessor(offsets[v], lodInfo.numVertices(), mask.size(), info, reader);
+                        vertexAccessors.add(accessor);
+                    }
+                    offsets[v] += mask.size() * lodInfo.numVertices();
+                }
+
+                var faceInfo = new VertexBuffer.Info(null, ElementType.Scalar, ComponentType.UnsignedShort, false);
+                var faceAccessor = new Geo.Accessor(layout.indexOffset(), lodInfo.numFaces() * 3, 2, faceInfo, Geometry.readFace());
+
+                meshes.add(Geo.readMesh(source, vertexAccessors, faceAccessor));
+            }
         }
-        return dst.flip();
+        return meshes;
     }
 
-    public FloatBuffer readPackedNormals(BetterBuffer src, LodInfo lod) {
-        var dst = FloatBuffer.allocate(lod.numVertices() * 3);
-        for (var i = 0; i < lod.numVertices(); i++) {
-            Geometry.readPackedNormal(src, dst);
-        }
-        return dst.flip();
+    private static List<VertexBuffer.Info> buildAccessor(GeometryVertexMask mask) {
+        return switch (mask) {
+            case WGVS_POSITION_SHORT, WGVS_POSITION -> List.of(
+                new VertexBuffer.Info(Semantic.Position, ElementType.Vector3, ComponentType.Float, false)
+            );
+            case WGVS_NORMAL_TANGENT -> List.of(
+                new VertexBuffer.Info(Semantic.Normal, ElementType.Vector3, ComponentType.Float, false),
+                new VertexBuffer.Info(Semantic.Tangent, ElementType.Vector4, ComponentType.Float, false)
+            );
+            case WGVS_LIGHTMAP_UV_SHORT, WGVS_LIGHTMAP_UV -> List.of(
+                new VertexBuffer.Info(Semantic.TexCoord1, ElementType.Vector2, ComponentType.Float, false)
+            );
+            case WGVS_MATERIAL_UV_SHORT, WGVS_MATERIAL_UV -> List.of(
+                new VertexBuffer.Info(Semantic.TexCoord0, ElementType.Vector2, ComponentType.Float, false)
+            );
+            case WGVS_COLOR -> List.of(
+                new VertexBuffer.Info(Semantic.Color0, ElementType.Vector4, ComponentType.UnsignedByte, true)
+            );
+            case WGVS_MATERIALS -> List.of();
+        };
     }
 
-    public FloatBuffer readPackedTangents(BetterBuffer src, LodInfo lod) {
-        var dst = FloatBuffer.allocate(lod.numVertices() * 4);
-        for (var i = 0; i < lod.numVertices(); i++) {
-            Geometry.readPackedTangent(src, dst);
-        }
-        return dst.flip();
-    }
-
-    public ByteBuffer readWeights(BetterBuffer src, LodInfo lod) {
-        var dst = ByteBuffer.allocate(lod.numVertices() * 4);
-        for (var i = 0; i < lod.numVertices(); i++) {
-            Geometry.readWeight(src, dst);
-        }
-        return dst.flip();
-    }
-
-    public FloatBuffer readUVs(BetterBuffer src, LodInfo lod) {
-        var dst = FloatBuffer.allocate(lod.numVertices() * 2);
-        for (var i = 0; i < lod.numVertices(); i++) {
-            Geometry.readUV(src, dst, lod.uvOffset(), lod.uvScale());
-        }
-        return dst.flip();
-    }
-
-    public FloatBuffer readPackedUVs(BetterBuffer src, LodInfo lod) {
-        var dst = FloatBuffer.allocate(lod.numVertices() * 2);
-        for (var i = 0; i < lod.numVertices(); i++) {
-            Geometry.readPackedUV(src, dst, lod.uvOffset(), lod.uvScale());
-        }
-        return dst.flip();
-    }
-
-    public ByteBuffer readColors(BetterBuffer src, LodInfo lod) {
-        var dst = ByteBuffer.allocate(lod.numVertices() * 4);
-        dst.put(src.getBytes(lod.numVertices() * 4));
-        return dst.flip();
-    }
-
-    public ShortBuffer readFaces(BetterBuffer src, LodInfo lod) {
-        var dst = ShortBuffer.allocate(lod.numFaces() * 3);
-        for (var i = 0; i < lod.numFaces(); i++) {
-            var f1 = src.getShort();
-            var f2 = src.getShort();
-            var f3 = src.getShort();
-
-            dst.put(f3);
-            dst.put(f2);
-            dst.put(f1);
-        }
-        return dst.flip();
-    }
-
-    private Mesh getMesh(int i) {
-        var faceBuffer = new VertexBuffer(indexBuffers.get(i), ElementType.Scalar, ComponentType.UnsignedShort, false);
-        var vertexBuffers = new HashMap<Semantic, VertexBuffer>();
-        vertexBuffers.put(Semantic.Position, new VertexBuffer(positionBuffers.get(i), ElementType.Vector3, ComponentType.Float, false));
-        vertexBuffers.put(Semantic.Normal, new VertexBuffer(normalBuffers.get(i), ElementType.Vector3, ComponentType.Float, false));
-        vertexBuffers.put(Semantic.Tangent, new VertexBuffer(tangentBuffers.get(i), ElementType.Vector4, ComponentType.Float, false));
-        vertexBuffers.put(Semantic.TexCoord, new VertexBuffer(texCoordBuffers.get(i), ElementType.Vector2, ComponentType.Float, false));
-        if (hasWeights) {
-            vertexBuffers.put(Semantic.Joints, new VertexBuffer(jointBuffers.get(i), ElementType.Vector4, ComponentType.UnsignedByte, false));
-            vertexBuffers.put(Semantic.Weights, new VertexBuffer(weightBuffers.get(i), ElementType.Vector4, ComponentType.UnsignedByte, true));
-        } else {
-            vertexBuffers.put(Semantic.Color, new VertexBuffer(colorBuffers.get(i), ElementType.Vector4, ComponentType.UnsignedByte, true));
-        }
-        return new Mesh(faceBuffer, vertexBuffers, -1);
+    private static Geo.Reader reader(GeometryVertexMask mask, Semantic semantic, LodInfo lodInfo) {
+        return switch (mask) {
+            case WGVS_POSITION_SHORT -> Geometry.readPackedPosition(lodInfo.vertexOffset(), lodInfo.vertexScale());
+            case WGVS_POSITION -> Geometry.readPosition(lodInfo.vertexOffset(), lodInfo.vertexScale());
+            case WGVS_NORMAL_TANGENT -> switch (semantic) {
+                case Semantic.Normal() -> Geometry.readPackedNormal();
+                case Semantic.Tangent() -> Geometry.readPackedTangent();
+                case Semantic.Weights(var ignored) -> Geometry.readWeight();
+                default -> throw new IllegalStateException("Unexpected value: " + semantic);
+            };
+            case WGVS_LIGHTMAP_UV_SHORT, WGVS_MATERIAL_UV_SHORT -> Geometry.readPackedUV(lodInfo.uvOffset(), lodInfo.uvScale());
+            case WGVS_LIGHTMAP_UV, WGVS_MATERIAL_UV -> Geometry.readUV(lodInfo.uvOffset(), lodInfo.uvScale());
+            case WGVS_COLOR -> Geometry.readColor();
+            case WGVS_MATERIALS -> throw new UnsupportedOperationException();
+        };
     }
 }

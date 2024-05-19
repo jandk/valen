@@ -1,12 +1,13 @@
 package be.twofold.valen.reader.binaryfile;
 
-import be.twofold.valen.core.util.*;
+import be.twofold.valen.core.io.*;
 import be.twofold.valen.reader.*;
 import be.twofold.valen.resource.*;
 import jakarta.inject.*;
 
 import javax.crypto.*;
 import javax.crypto.spec.*;
+import java.io.*;
 import java.security.*;
 import java.util.*;
 
@@ -21,17 +22,17 @@ public final class BinaryFileReader implements ResourceReader<byte[]> {
     }
 
     @Override
-    public byte[] read(BetterBuffer buffer, Resource resource) {
+    public byte[] read(DataSource source, Resource resource) throws IOException {
         try {
-            var salt = buffer.getBytes(12);
-            var iVec = buffer.getBytes(16);
-            var text = buffer.getBytes(buffer.length() - (12 + 16 + 32));
-            var hmac = buffer.getBytes(32);
+            var salt = source.readBytes(12);
+            var iVec = source.readBytes(16);
+            var text = source.readBytes(Math.toIntExact(source.size() - (12 + 16 + 32)));
+            var hmac = source.readBytes(32);
 
             var digest = MessageDigest.getInstance("SHA-256");
             digest.update(salt);
             digest.update("swapTeam\n\0".getBytes());
-            digest.update(resource.name().name().getBytes());
+            digest.update(resource.nameString().getBytes());
             var key = digest.digest();
 
             var mac = Mac.getInstance("HmacSHA256");

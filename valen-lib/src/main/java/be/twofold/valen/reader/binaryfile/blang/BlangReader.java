@@ -1,10 +1,12 @@
 package be.twofold.valen.reader.binaryfile.blang;
 
-import be.twofold.valen.core.util.*;
+import be.twofold.valen.core.io.*;
 import be.twofold.valen.reader.*;
 import be.twofold.valen.reader.binaryfile.*;
 import be.twofold.valen.resource.*;
 import jakarta.inject.*;
+
+import java.io.*;
 
 public final class BlangReader implements ResourceReader<Blang> {
     private final BinaryFileReader binaryFileReader;
@@ -17,12 +19,12 @@ public final class BlangReader implements ResourceReader<Blang> {
     @Override
     public boolean canRead(Resource entry) {
         return entry.type() == ResourceType.BinaryFile
-               && entry.name().extension().equals("blang");
+            && entry.name().extension().equals("blang");
     }
 
     @Override
-    public Blang read(BetterBuffer buffer, Resource resource) {
-        byte[] bytes = binaryFileReader.read(buffer, resource);
-        return Blang.read(BetterBuffer.wrap(bytes));
+    public Blang read(DataSource source, Resource resource) throws IOException {
+        byte[] bytes = binaryFileReader.read(source, resource);
+        return Blang.read(new ByteArrayDataSource(bytes));
     }
 }

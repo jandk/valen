@@ -1,12 +1,13 @@
 package be.twofold.valen.reader.md6anim;
 
 import be.twofold.valen.core.animation.*;
+import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.math.*;
-import be.twofold.valen.core.util.*;
 import be.twofold.valen.reader.*;
 import be.twofold.valen.resource.*;
 import jakarta.inject.*;
 
+import java.io.*;
 import java.util.*;
 import java.util.stream.*;
 
@@ -21,8 +22,8 @@ public final class Md6AnimReader implements ResourceReader<Animation> {
     }
 
     @Override
-    public Animation read(BetterBuffer buffer, Resource resource) {
-        var anim = Md6Anim.read(buffer);
+    public Animation read(DataSource source, Resource resource) throws IOException {
+        var anim = Md6Anim.read(source);
 
         List<Track<?>> tracks = new ArrayList<>();
         tracks.addAll(mapRotations(anim));

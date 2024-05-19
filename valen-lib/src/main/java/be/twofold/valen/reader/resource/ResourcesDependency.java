@@ -1,6 +1,8 @@
 package be.twofold.valen.reader.resource;
 
-import be.twofold.valen.core.util.*;
+import be.twofold.valen.core.io.*;
+
+import java.io.*;
 
 public record ResourcesDependency(
     int type,
@@ -10,12 +12,12 @@ public record ResourcesDependency(
 ) {
     public static final int BYTES = 32;
 
-    public static ResourcesDependency read(BetterBuffer buffer) {
-        var type = buffer.getLongAsInt();
-        var name = buffer.getLongAsInt();
-        var depType = buffer.getInt();
-        buffer.expectInt(1); // depSubType
-        var hashOrTimestamp = buffer.getLong();
+    public static ResourcesDependency read(DataSource source) throws IOException {
+        var type = source.readLongAsInt();
+        var name = source.readLongAsInt();
+        var depType = source.readInt();
+        source.expectInt(1); // depSubType
+        var hashOrTimestamp = source.readLong();
 
         return new ResourcesDependency(
             type,

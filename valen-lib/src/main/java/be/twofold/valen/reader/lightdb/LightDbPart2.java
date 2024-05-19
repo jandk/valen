@@ -1,6 +1,8 @@
 package be.twofold.valen.reader.lightdb;
 
-import be.twofold.valen.core.util.*;
+import be.twofold.valen.core.io.*;
+
+import java.io.*;
 
 public record LightDbPart2(
     int id,
@@ -9,10 +11,10 @@ public record LightDbPart2(
 ) {
     public static final int BYTES = 12;
 
-    public static LightDbPart2 read(BetterBuffer buffer) {
-        var id = buffer.getInt();
-        var unk1 = buffer.getFloat();
-        var unk2 = buffer.getFloat();
+    public static LightDbPart2 read(DataSource source) throws IOException {
+        var id = source.readInt();
+        var unk1 = source.readFloat();
+        var unk2 = source.readFloat();
 
         return new LightDbPart2(
             id,

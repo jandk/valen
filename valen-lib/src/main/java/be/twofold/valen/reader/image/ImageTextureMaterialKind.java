@@ -25,14 +25,17 @@ public enum ImageTextureMaterialKind {
     TMK_FONT(0x13),
     TMK_LEGACY_FLASH_UI(0x14),
     TMK_LIGHTMAP_DIRECTIONAL(0x15),
-    TMK_BLENDMASK(0x16),
-    TMK_COUNT(0x17);
+    TMK_BLENDMASK(0x16);
 
     private static final ImageTextureMaterialKind[] VALUES = values();
     private final int code;
 
     ImageTextureMaterialKind(int code) {
         this.code = code;
+    }
+
+    public int getCode() {
+        return code;
     }
 
     public static ImageTextureMaterialKind fromCode(int code) {

@@ -8,7 +8,7 @@ public interface LodInfo {
 
     int numFaces();
 
-    int flags();
+    int vertexMask();
 
     Vector3 vertexOffset();
 
