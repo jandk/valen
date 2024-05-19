@@ -44,6 +44,7 @@ public final class GeometryReader {
         var meshes = new ArrayList<Mesh>();
         for (var layout : layouts) {
             var offsets = Arrays.copyOf(layout.vertexOffsets(), layout.numVertexStreams());
+            var indexOffset = layout.indexOffset();
 
             for (var lodInfo : lods) {
                 if (lodInfo.vertexMask() != layout.combinedVertexMask()) {
@@ -62,7 +63,8 @@ public final class GeometryReader {
                 }
 
                 var faceInfo = new VertexBuffer.Info(null, ElementType.Scalar, ComponentType.UnsignedShort, false);
-                var faceAccessor = new Geo.Accessor(layout.indexOffset(), lodInfo.numFaces() * 3, 2, faceInfo, Geometry.readFace());
+                var faceAccessor = new Geo.Accessor(indexOffset, lodInfo.numFaces() * 3, 2, faceInfo, Geometry.readFace());
+                indexOffset += lodInfo.numFaces() * 3 * Short.BYTES;
 
                 meshes.add(Geo.readMesh(source, vertexAccessors, faceAccessor));
             }
