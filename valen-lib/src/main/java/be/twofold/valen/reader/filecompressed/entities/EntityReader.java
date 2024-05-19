@@ -54,10 +54,9 @@ public final class EntityReader implements ResourceReader<EntityFile> {
             var layers = new ArrayList<String>();
             if (parser.matchName("layers")) {
                 parser.expect(DeclTokenType.OpenBrace);
-                while (parser.match(DeclTokenType.CloseBrace)) {
+                while (!parser.match(DeclTokenType.CloseBrace)) {
                     layers.add(parser.expectString());
                 }
-                parser.expect(DeclTokenType.CloseBrace);
             }
 
             Integer instanceId = null;
@@ -81,7 +80,7 @@ public final class EntityReader implements ResourceReader<EntityFile> {
             if (entityDef.has("inherit")) {
                 var parentName = entityDef.get("inherit").getAsString();
                 var inhObject = parentCache.computeIfAbsent(parentName, s -> fileManagerProvider.get()
-                    .readResource(FileType.Declaration, "entitydef/" + s + ".decl"));
+                    .readResource(FileType.Declaration, "generated/decls/entitydef/" + s + ".decl"));
                 entityDef = DeclReader.merge(inhObject, entityDef);
             }
 

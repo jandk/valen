@@ -8,7 +8,7 @@ public final class DeclParser {
     private final DeclLexer lexer;
 
     public DeclParser(String source) {
-        this(source, false, false);
+        this(source, false, true);
     }
 
     public DeclParser(String source, boolean allowFilenames, boolean skipNewlines) {
@@ -123,7 +123,7 @@ public final class DeclParser {
         };
     }
 
-    private JsonObject parseObject() {
+    public JsonObject parseObject() {
         var object = new JsonObject();
         while (!match(DeclTokenType.CloseBrace)) {
             var key = expectName();

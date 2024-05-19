@@ -1,11 +1,31 @@
 package be.twofold.valen.reader.decl.entitydef;
 
+import be.twofold.valen.core.io.*;
+import be.twofold.valen.reader.*;
 import be.twofold.valen.reader.decl.parser.*;
+import be.twofold.valen.resource.*;
 import com.google.gson.*;
+import jakarta.inject.*;
 
-public class EntityDefParser {
-    public JsonObject parse(String source) {
-        return parseObject(new DeclParser(source));
+import java.io.*;
+
+public final class EntityDefReader implements ResourceReader<JsonObject> {
+
+    @Inject
+    public EntityDefReader() {
+    }
+
+    @Override
+    public boolean canRead(Resource entry) {
+        return entry.type() == ResourceType.RsStreamFile
+            && entry.nameString().startsWith("generated/decls/entitydef/");
+    }
+
+    @Override
+    public JsonObject read(DataSource source, Resource resource) throws IOException {
+        var bytes = source.readBytes(Math.toIntExact(source.size()));
+        var parser = new DeclParser(new String(bytes), true, true);
+        return parseObject(parser);
     }
 
     private JsonObject parseObject(DeclParser parser) {
@@ -27,7 +47,7 @@ public class EntityDefParser {
     private JsonElement parseValue(DeclParser parser, String key) {
         if (key.equals("edit")) {
             parser.expect(DeclTokenType.OpenBrace);
-            return parser.parse();
+            return parser.parseObject();
         }
         var peeked = parser.peek();
         switch (peeked.type()) {
