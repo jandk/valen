@@ -9,7 +9,7 @@ import java.io.*;
 public record StaticModelLodInfo(
     int numVertices,
     int numEdges,
-    int flags,
+    int vertexMask,
     Vector3 negBounds,
     Vector3 posBounds,
     Vector3 vertexOffset,

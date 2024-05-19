@@ -6,10 +6,10 @@ module valen.lib {
     requires java.sql; // For import only
     requires valen.core;
 
+    exports be.twofold.valen.compression;
     exports be.twofold.valen.converter.decoder;
     exports be.twofold.valen.hash;
     exports be.twofold.valen.manager;
-    exports be.twofold.valen.oodle;
     exports be.twofold.valen.reader.binaryfile.blang;
     exports be.twofold.valen.reader.decl.parser;
     exports be.twofold.valen.reader.decl.renderparm;
@@ -28,6 +28,7 @@ module valen.lib {
     exports be.twofold.valen.reader;
     exports be.twofold.valen.resource;
     exports be.twofold.valen.stream;
+    exports be.twofold.valen.util;
     exports be.twofold.valen.writer.dds;
     exports be.twofold.valen.writer.png;
 }

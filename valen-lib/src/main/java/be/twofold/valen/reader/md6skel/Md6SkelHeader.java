@@ -22,7 +22,7 @@ public record Md6SkelHeader(
     byte[] pad
 ) {
     public static Md6SkelHeader read(DataSource source) throws IOException {
-        source.skip(4); // These are a copy of the size
+        source.skip(4); // These are a copy of the compressedSize
         var size = source.readShort();
         var numJoints = source.readShort();
         var numUserChannels = source.readShort();

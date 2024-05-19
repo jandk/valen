@@ -15,7 +15,7 @@ public record ResourcesEntry(
     long defaultHash,
     int version,
     int flags,
-    byte compMode,
+    ResourceCompressionMode compMode,
     short variation,
     short numDependencies
 ) {
@@ -37,7 +37,7 @@ public record ResourcesEntry(
         var defaultHash = source.readLong();
         var version = source.readInt();
         var flags = source.readInt();
-        var compMode = source.readByte();
+        var compMode = ResourceCompressionMode.fromValue((int) source.readByte());
         source.expectByte((byte) 0); // reserved0
         var variation = source.readShort();
         source.expectInt(0); // reserved2
@@ -47,10 +47,7 @@ public record ResourcesEntry(
         var numDependencies = source.readShort();
         source.expectShort((short) 0); // numSpecialHashes
         source.expectShort((short) 0); // numMetaEntries
-
-        // TODO: Add skipBytes method to DataSource
-        source.readInt();
-        source.readShort();
+        source.skip(6); // padding
 
         return new ResourcesEntry(
             depIndices,

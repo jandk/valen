@@ -48,7 +48,7 @@ public final class ResourceTableModel extends AbstractTableModel {
         return switch (columnIndex) {
             case 0 -> resource.nameString();
             case 1 -> resource.type().name();
-            case 2 -> resource.size();
+            case 2 -> resource.compressedSize();
             case 3 -> resource.uncompressedSize();
             default -> null;
         };

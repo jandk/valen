@@ -1,18 +1,14 @@
 package be.twofold.valen.resource;
 
-import java.time.*;
-import java.util.*;
-
 public record Resource(
     ResourceName name,
     ResourceType type,
     ResourceVariation variation,
-    Instant creationTime,
     int offset,
-    int size,
+    int compressedSize,
     int uncompressedSize,
-    long hash,
-    List<ResourceDependency> dependencies
+    CompressionType compression,
+    long hash
 ) {
     public ResourceKey key() {
         return new ResourceKey(name, type, variation);
@@ -45,12 +41,10 @@ public record Resource(
             "name=" + name + ", " +
             "type=" + type + ", " +
             "variation=" + variation + ", " +
-            "creationTime=" + creationTime + ", " +
             "offset=" + offset + ", " +
-            "size=" + size + ", " +
+            "compressedSize=" + compressedSize + ", " +
             "uncompressedSize=" + uncompressedSize + ", " +
-            "hash=" + hash + ", " +
-            "dependencies=[" + dependencies.size() + " dependencies]" +
+            "hash=" + hash +
             "]";
     }
 }

@@ -14,7 +14,7 @@ public record Md6ModelLodInfo(
     float vertexScale,
     Vector2 uvOffset,
     float uvScale,
-    int flags,
+    int vertexMask,
     float unkFloat2,
     float unkFloat3
 ) implements LodInfo {

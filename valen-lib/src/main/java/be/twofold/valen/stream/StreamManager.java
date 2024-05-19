@@ -1,21 +1,27 @@
 package be.twofold.valen.stream;
 
+import be.twofold.valen.compression.*;
 import be.twofold.valen.core.util.*;
 import be.twofold.valen.reader.packagemapspec.*;
+import be.twofold.valen.resource.*;
 import jakarta.inject.*;
 
 import java.io.*;
+import java.nio.*;
 import java.nio.file.*;
 import java.util.*;
 
 @Singleton
 public final class StreamManager {
+    private final DecompressorService decompressorService;
+
     private Path base;
     private PackageMapSpec spec;
     private Map<Long, StreamDbFile> index;
 
     @Inject
-    public StreamManager() {
+    public StreamManager(DecompressorService decompressorService) {
+        this.decompressorService = decompressorService;
     }
 
     public void load(Path base, PackageMapSpec spec) throws IOException {
@@ -33,7 +39,15 @@ public final class StreamManager {
         var file = index.get(identity);
         Check.argument(file != null, () -> String.format("Unknown stream: 0x%016x", identity));
 
-        return file.read(identity, uncompressedSize);
+        try {
+            var compressed = file.read(identity);
+            var decompressed = new byte[uncompressedSize];
+            decompressorService.decompress(ByteBuffer.wrap(compressed), ByteBuffer.wrap(decompressed), CompressionType.Kraken);
+            return decompressed;
+        } catch (IOException e) {
+            System.out.println("Error reading stream: " + identity);
+            throw new UncheckedIOException(e);
+        }
     }
 
     private void loadFiles() throws IOException {

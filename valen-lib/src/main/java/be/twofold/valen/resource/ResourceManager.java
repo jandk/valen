@@ -1,10 +1,12 @@
 package be.twofold.valen.resource;
 
+import be.twofold.valen.compression.*;
 import be.twofold.valen.core.util.*;
 import be.twofold.valen.reader.packagemapspec.*;
 import jakarta.inject.*;
 
 import java.io.*;
+import java.nio.*;
 import java.nio.file.*;
 import java.util.*;
 
@@ -14,11 +16,14 @@ public final class ResourceManager implements AutoCloseable {
     private final Map<ResourceKey, ResourcesFile> keyIndex = new HashMap<>();
     private final Map<String, Map<ResourceKey, Resource>> nameIndex = new TreeMap<>();
 
+    private final DecompressorService decompressorService;
+
     private Path base;
     private PackageMapSpec spec;
 
     @Inject
-    public ResourceManager() {
+    public ResourceManager(DecompressorService decompressorService) {
+        this.decompressorService = decompressorService;
     }
 
     public void load(Path base, PackageMapSpec spec) throws IOException {
@@ -65,7 +70,15 @@ public final class ResourceManager implements AutoCloseable {
         var file = keyIndex.get(resource.key());
         Check.argument(file != null, () -> "Unknown resource: " + resource.key());
 
-        return file.read(resource.key());
+        try {
+            var compressed = file.read(resource.key());
+            var decompressed = new byte[resource.uncompressedSize()];
+            decompressorService.decompress(ByteBuffer.wrap(compressed), ByteBuffer.wrap(decompressed), resource.compression());
+            return decompressed;
+        } catch (IOException e) {
+            System.out.println("Error reading resource: " + resource.key());
+            throw new UncheckedIOException(e);
+        }
     }
 
     public void select(String map) throws IOException {

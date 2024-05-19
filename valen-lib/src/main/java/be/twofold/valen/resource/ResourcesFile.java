@@ -2,7 +2,6 @@ package be.twofold.valen.resource;
 
 import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.util.*;
-import be.twofold.valen.oodle.*;
 import be.twofold.valen.reader.resource.*;
 
 import java.io.*;
@@ -24,7 +23,7 @@ public final class ResourcesFile implements AutoCloseable {
         this.path = path;
         this.channel = Files.newByteChannel(path, StandardOpenOption.READ);
         this.source = new ChannelDataSource(this.channel);
-        List<Resource> resources = new ResourceMapper().map(Resources.read(source));
+        var resources = mapResources(Resources.read(source));
 
         this.index = resources.stream()
             .collect(Collectors.toUnmodifiableMap(
@@ -41,17 +40,41 @@ public final class ResourcesFile implements AutoCloseable {
         return index.get(key);
     }
 
-    public byte[] read(ResourceKey key) {
+    public byte[] read(ResourceKey key) throws IOException {
         var entry = index.get(key);
         Check.argument(entry != null, () -> String.format("Unknown resource: %s", key));
+        return IOUtils.read(channel, entry.offset(), entry.compressedSize());
+    }
 
-        try {
-            var compressed = IOUtils.read(channel, entry.offset(), entry.size());
-            return OodleDecompressor.decompress(compressed, entry.uncompressedSize());
-        } catch (IOException e) {
-            System.out.println("Error reading resource: " + key);
-            throw new UncheckedIOException(e);
-        }
+    private List<Resource> mapResources(Resources resources) {
+        return resources.entries().stream()
+            .map(entry -> mapResourceEntry(resources, entry))
+            .toList();
+    }
+
+    private Resource mapResourceEntry(Resources resources, ResourcesEntry entry) {
+        var type = resources.pathStrings().get(resources.pathStringIndex()[entry.strings()]);
+        var name = resources.pathStrings().get(resources.pathStringIndex()[entry.strings() + 1]);
+
+        return new Resource(
+            new ResourceName(name),
+            ResourceType.fromName(type),
+            ResourceVariation.fromValue(entry.variation()),
+            entry.dataOffset(),
+            entry.dataSize(),
+            entry.uncompressedSize(),
+            mapCompressionType(entry.compMode()),
+            entry.defaultHash()
+        );
+    }
+
+    private CompressionType mapCompressionType(ResourceCompressionMode mode) {
+        return switch (mode) {
+            case RES_COMP_MODE_NONE -> CompressionType.None;
+            case RES_COMP_MODE_KRAKEN -> CompressionType.Kraken;
+            case RES_COMP_MODE_KRAKEN_CHUNKED -> CompressionType.KrakenChunked;
+            default -> throw new UnsupportedOperationException("Unsupported compression mode: " + mode);
+        };
     }
 
     @Override

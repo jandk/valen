@@ -1,23 +1,26 @@
 package be.twofold.valen.reader.filecompressed;
 
+import be.twofold.valen.compression.*;
 import be.twofold.valen.core.io.*;
-import be.twofold.valen.oodle.*;
 import be.twofold.valen.reader.*;
 import be.twofold.valen.resource.*;
 import jakarta.inject.*;
 
 import java.io.*;
+import java.nio.*;
 
 public final class FileCompressedReader implements ResourceReader<byte[]> {
+    private final DecompressorService decompressorService;
 
     @Inject
-    public FileCompressedReader() {
+    public FileCompressedReader(DecompressorService decompressorService) {
+        this.decompressorService = decompressorService;
     }
 
     @Override
     public boolean canRead(Resource entry) {
         return entry.type() == ResourceType.CompFile
-               && !entry.name().extension().equals("entities");
+            && !entry.name().extension().equals("entities");
     }
 
     @Override
@@ -25,7 +28,8 @@ public final class FileCompressedReader implements ResourceReader<byte[]> {
         FileCompressedHeader header = FileCompressedHeader.read(source);
 
         byte[] compressed = source.readBytes(header.compressedSize());
-        return OodleDecompressor.decompress(compressed, header.uncompressedSize());
+        byte[] decompressed = new byte[header.uncompressedSize()];
+        decompressorService.decompress(ByteBuffer.wrap(compressed), ByteBuffer.wrap(decompressed), CompressionType.Kraken);
+        return decompressed;
     }
-
 }

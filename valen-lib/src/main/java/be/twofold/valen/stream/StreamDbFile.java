@@ -2,7 +2,6 @@ package be.twofold.valen.stream;
 
 import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.util.*;
-import be.twofold.valen.oodle.*;
 import be.twofold.valen.reader.streamdb.*;
 
 import java.io.*;
@@ -33,16 +32,9 @@ public final class StreamDbFile implements AutoCloseable {
         return entries.values();
     }
 
-    public byte[] read(long identity, int uncompressedSize) {
+    public byte[] read(long identity) throws IOException {
         var entry = entries.get(identity);
-
-        try {
-            var compressed = IOUtils.read(channel, entry.offset(), entry.length());
-            return OodleDecompressor.decompress(compressed, uncompressedSize);
-        } catch (IOException e) {
-            System.out.println("Error reading stream: " + identity);
-            throw new UncheckedIOException(e);
-        }
+        return IOUtils.read(channel, entry.offset(), entry.length());
     }
 
     @Override

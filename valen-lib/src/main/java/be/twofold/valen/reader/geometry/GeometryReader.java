@@ -9,7 +9,7 @@ import java.util.*;
 public final class GeometryReader {
     public static Mesh readEmbeddedMesh(DataSource source, LodInfo lodInfo) throws IOException {
         var masks = GeometryVertexMask.FixedOrder.stream()
-            .filter(mask -> (lodInfo.flags() & mask.mask()) == mask.mask())
+            .filter(mask -> (lodInfo.vertexMask() & mask.mask()) == mask.mask())
             .toList();
 
         var stride = masks.stream()
@@ -41,7 +41,7 @@ public final class GeometryReader {
             var offsets = Arrays.copyOf(layout.vertexOffsets(), layout.numVertexStreams());
 
             for (var lodInfo : lods) {
-                if (lodInfo.flags() != layout.combinedVertexMask()) {
+                if (lodInfo.vertexMask() != layout.combinedVertexMask()) {
                     continue;
                 }
 
