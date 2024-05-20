@@ -79,7 +79,7 @@ public final class DeclReader implements ResourceReader<JsonObject> {
 
         var parent = declCache.get(key);
         if (parent != null) {
-            return parent;
+            return merge(parent, object);
         }
 
         var fullName = RootPrefix + key + ".decl";

@@ -18,8 +18,8 @@ final class BcUtils {
     }
 
     static void colorBlock(byte[] src, int srcPos, byte[] dst, int dstPos, int stride, boolean opaque) {
-        int c0 = (short) ShortVarHandle.get(src, srcPos);
-        int c1 = (short) ShortVarHandle.get(src, srcPos + 2);
+        int c0 = Short.toUnsignedInt((short) ShortVarHandle.get(src, srcPos));
+        int c1 = Short.toUnsignedInt((short) ShortVarHandle.get(src, srcPos + 2));
         int bits = (int) IntVarHandle.get(src, srcPos + 4);
 
         int r0 = expand5to8((c0 >>> 11) & 0x1f);
