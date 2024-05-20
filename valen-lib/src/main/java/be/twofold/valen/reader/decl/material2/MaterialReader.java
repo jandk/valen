@@ -85,10 +85,25 @@ public final class MaterialReader implements ResourceReader<Material> {
                 MissingImages.merge(builder.toString(), 1, Integer::sum);
             }
             MaterialKindCounts.merge(kind, 1, Integer::sum);
-            references.add(new TextureReference(TextureType.Albedo, builder.toString()));
+            references.add(new TextureReference(mapTextureType(kind), builder.toString()));
         }
 
         return new Material(materialName, references);
+    }
+
+    private TextureType mapTextureType(ImageTextureMaterialKind kind) {
+        return switch (kind) {
+            case TMK_ALBEDO -> TextureType.Albedo;
+            case TMK_SPECULAR -> TextureType.Specular;
+            case TMK_NORMAL -> TextureType.Normal;
+            case TMK_SMOOTHNESS -> TextureType.Smoothness;
+            // case TMK_COVER -> TextureType.Unknown;
+            // case TMK_SSSMASK -> TextureType.Unknown;
+            // case TMK_COLORMASK -> TextureType.Unknown;
+            case TMK_BLOOMMASK -> TextureType.Emissive;
+            case TMK_HEIGHTMAP -> TextureType.Height;
+            default -> TextureType.Unknown;
+        };
     }
 
     private void mapOptions(StringBuilder builder, ImageTextureMaterialKind kind, RenderParm renderParm, MaterialImageOpts opts) {
