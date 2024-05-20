@@ -24,6 +24,15 @@ class MaterialReaderTest {
             }
 
             writer.newLine();
+            writer.write("Materials with missing images:");
+            writer.newLine();
+
+            for (var s : MaterialReader.MaterialsWithMissingImages) {
+                writer.write(s);
+                writer.newLine();
+            }
+
+            writer.newLine();
             writer.write("Material kind counts:");
             writer.newLine();
 
