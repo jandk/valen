@@ -1,23 +1,28 @@
 package be.twofold.valen.export.gltf;
 
 import be.twofold.valen.core.geometry.*;
+import be.twofold.valen.core.material.*;
 import be.twofold.valen.core.math.*;
 import be.twofold.valen.export.gltf.model.*;
 import com.google.gson.*;
 
 import java.nio.*;
+import java.util.*;
+import java.util.stream.*;
 
 final class GltfModelMapper {
     private final GltfContext context;
+    private final GltfMaterialMapper materialMapper;
 
     GltfModelMapper(GltfContext context) {
         this.context = context;
+        this.materialMapper = new GltfMaterialMapper(context);
     }
 
     MeshSchema map(Model model) {
         // First we do the meshes
         var primitives = model.meshes().stream()
-            .map(this::mapMesh)
+            .map(mesh -> this.mapMesh(mesh, model.materials()))
             .toList();
 
         return MeshSchema.builder()
@@ -25,9 +30,14 @@ final class GltfModelMapper {
             .build();
     }
 
-    private MeshPrimitiveSchema mapMesh(Mesh mesh) {
+    private MeshPrimitiveSchema mapMesh(Mesh mesh, List<Material> materials) {
         // Have to fix up the joints and weights first
         fixJointsAndWeights(mesh);
+        Material material = materials.get(mesh.materialIndex());
+        var materialId = context.findMaterial(material.name());
+        if (materialId.getId() == -1) {
+            materialId = context.addMaterial(materialMapper.map(material));
+        }
 
         var attributes = new JsonObject();
         for (var entry : mesh.vertexBuffers().entrySet()) {
@@ -35,11 +45,12 @@ final class GltfModelMapper {
             var accessor = buildAccessor(entry.getValue(), entry.getKey());
             attributes.addProperty(semantic, accessor.getId());
         }
-
+        assert IntStream.range(0, mesh.faceBuffer().count()).map(operand -> ((ShortBuffer) mesh.faceBuffer().buffer()).get(operand)).max().getAsInt() < mesh.vertexBuffers().get(Semantic.Position).count();
         var faceAccessor = buildAccessor(mesh.faceBuffer(), null);
         return MeshPrimitiveSchema.builder()
             .attributes(attributes)
             .indices(faceAccessor)
+            .material(materialId)
             .build();
     }
 

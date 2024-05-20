@@ -36,6 +36,7 @@ public final class MapExporter {
     private final List<LightSchema> lights = new ArrayList<>();
 
     private final FileManager fileManager;
+    private Path contentPath;
 
     public MapExporter(FileManager fileManager) {
         this.fileManager = fileManager;
@@ -53,9 +54,11 @@ public final class MapExporter {
 
         var instances = fileManager.readResource(FileType.StaticInstances, "generated/staticinstances/maps/" + mapPackage + ".staticinstances");
         var entities = fileManager.readResource(FileType.Entities, "maps/" + mapPackage + ".entities");
-//        var md6DefParser = new MD6DefParser();
 
-        try (var channel = Files.newByteChannel(Path.of("map.glb"), StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING)) {
+        Path outputPath = Path.of("playground");
+        Path mapPath = outputPath.resolve("/map.glb");
+        this.contentPath = outputPath.resolve("/map");
+        try (var channel = Files.newByteChannel(mapPath, StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING)) {
             var writer = new GltfWriter(channel);
 
             var rootNode = NodeSchema.builder()
@@ -77,7 +80,7 @@ public final class MapExporter {
             layersCache.forEach((s, layerNode) -> staticWorldNode.addChildren(writer.addNode(layerNode.build())));
             groupsCache.forEach((s, groupNode) -> rootNode.addChildren(writer.addNode(groupNode.build())));
             collectionCache.forEach((s, collection) -> extCollections.addCollections(collection.build()));
-
+            writer.getAllocatedTextures().forEach(this::exportTexture);
             var khrLightsPunctual = KHRLightsPunctualExtensionSchema.builder().lights(lights);
             sceneNodes.add(writer.addNode(rootNode.build()));
             writer.addScene(sceneNodes);
@@ -86,6 +89,17 @@ public final class MapExporter {
             writer.write();
         }
 
+    }
+
+    private void exportTexture(String texturePath) {
+        System.out.println("Exporting " + texturePath);
+        if (fileManager.exist(texturePath)) {
+
+        } else {
+
+        }
+//        var texture = fileManager.readResource(FileType.Image, texturePath);
+//        System.out.println("  " + texture.toString());
     }
 
     private void exportEntities(EntityFile entities, GltfWriter writer) {

@@ -24,7 +24,7 @@ public final class EntityDefReader implements ResourceReader<JsonObject> {
     @Override
     public JsonObject read(DataSource source, Resource resource) throws IOException {
         var bytes = source.readBytes(Math.toIntExact(source.size()));
-        var parser = new DeclParser(new String(bytes), true);
+        var parser = new DeclParser(new String(bytes), true, true);
         return parser.parse();
     }
 }

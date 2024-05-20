@@ -5,7 +5,6 @@ import be.twofold.valen.reader.binaryfile.blang.*;
 import be.twofold.valen.reader.decl.*;
 import be.twofold.valen.reader.decl.entitydef.*;
 import be.twofold.valen.reader.decl.material2.*;
-import be.twofold.valen.reader.decl.entitydef.*;
 import be.twofold.valen.reader.decl.renderparm.*;
 import be.twofold.valen.reader.file.*;
 import be.twofold.valen.reader.file.mapresources.*;
@@ -123,12 +122,6 @@ abstract class ResourceReaderModule {
     @IntoSet
     @Provides
     static ResourceReader<?> provideEntitiesReader(EntityReader reader) {
-        return reader;
-    }
-
-    @IntoSet
-    @Provides
-    static ResourceReader<?> provideEntityDefReader(EntityDefReader reader) {
         return reader;
     }
 

@@ -5,7 +5,6 @@ import be.twofold.valen.core.math.*;
 import be.twofold.valen.core.util.*;
 import be.twofold.valen.export.gltf.gson.*;
 import be.twofold.valen.export.gltf.model.*;
-import be.twofold.valen.export.gltf.model.Extension;
 import com.google.gson.*;
 
 import java.io.*;
@@ -44,6 +43,8 @@ public final class GltfWriter implements GltfContext {
     private final List<String> usedExtensions = new ArrayList<>();
     private final List<String> requiredExtensions = new ArrayList<>();
     private final Map<String, Extension> extensions = new HashMap<>();
+    private final List<MaterialSchema> materials = new ArrayList<>();
+    private final List<String> allocatedTextures = new ArrayList<>();
 
     private final List<Buffer> writable = new ArrayList<>();
     private int bufferLength;
@@ -79,6 +80,7 @@ public final class GltfWriter implements GltfContext {
             throw new UncheckedIOException(e);
         }
     }
+
     public Map<String, Extension> getExtensions() {
         return extensions;
     }
@@ -138,6 +140,7 @@ public final class GltfWriter implements GltfContext {
             .extensionsUsed(usedExtensions)
             .extensionsRequired(requiredExtensions)
             .extensions(extensions)
+            .materials(materials)
             .build();
     }
 
@@ -167,6 +170,39 @@ public final class GltfWriter implements GltfContext {
         return createBufferView(length, target);
     }
 
+    @Override
+    public TextureId allocateTextureId(String textureName) {
+        var textureId = allocatedTextures.indexOf(textureName);
+        if (textureId == -1) {
+            allocatedTextures.add(textureName);
+            return TextureId.of(allocatedTextures.size() - 1);
+        } else {
+            return TextureId.of(textureId);
+        }
+    }
+
+    @Override
+    public List<String> getAllocatedTextures() {
+        return allocatedTextures;
+    }
+
+    @Override
+    public MaterialId addMaterial(MaterialSchema material) {
+        materials.add(material);
+        return MaterialId.of(materials.size() - 1);
+    }
+
+    @Override
+    public MaterialId findMaterial(String materialName) {
+        for (int i = 0; i < materials.size(); i++) {
+            MaterialSchema materialSchema = materials.get(i);
+            if (materialSchema.getName().isPresent() && materialSchema.getName().get().equals(materialName)) {
+                return MaterialId.of(i);
+            }
+        }
+        return MaterialId.of(-1);
+    }
+
     private BufferViewId createBufferView(int length, BufferViewTarget target) {
         var bufferView = BufferViewSchema.builder()
             .buffer(BufferId.of(0))
@@ -180,7 +216,6 @@ public final class GltfWriter implements GltfContext {
         bufferLength = alignedLength(bufferLength + length);
         return BufferViewId.of(bufferViews.size() - 1);
     }
-
 
     private int alignedLength(int length) {
         return (length + 3) & ~3;
