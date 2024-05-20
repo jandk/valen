@@ -16,6 +16,7 @@ import java.util.*;
 
 public final class MaterialReader implements ResourceReader<Material> {
     public static final Map<String, Integer> MissingImages = new TreeMap<>();
+    public static final Set<String> MaterialsWithMissingImages = new TreeSet<>();
     public static final Map<ImageTextureMaterialKind, Integer> MaterialKindCounts = new EnumMap<>(ImageTextureMaterialKind.class);
 
     private static final Map<String, RenderParm> RenderParmCache = new HashMap<>();
@@ -69,24 +70,25 @@ public final class MaterialReader implements ResourceReader<Material> {
 
         var references = new ArrayList<TextureReference>();
 
-        for (var kind : renderParms.keySet()) {
-            var renderParm = renderParms.get(kind);
+        renderParms.forEach((kind, parm) -> {
             var opts = options.get(kind);
 
             var builder = new StringBuilder(filenames.get(kind));
             if (kind == ImageTextureMaterialKind.TMK_SMOOTHNESS) {
                 builder
                     .append("$smoothnessnormal=")
-                    .append(filenames.get(renderParm.smoothnessNormalParm));
+                    .append(filenames.get(parm.smoothnessNormalParm));
             }
-            mapOptions(builder, kind, renderParm, opts);
+            mapOptions(builder, kind, parm, opts);
 
             if (!resourceManager.exists(builder.toString(), ResourceType.Image)) {
                 MissingImages.merge(builder.toString(), 1, Integer::sum);
+                MaterialsWithMissingImages.add(materialName);
+            } else {
+                MaterialKindCounts.merge(kind, 1, Integer::sum);
+                references.add(new TextureReference(mapTextureType(kind), builder.toString()));
             }
-            MaterialKindCounts.merge(kind, 1, Integer::sum);
-            references.add(new TextureReference(mapTextureType(kind), builder.toString()));
-        }
+        });
 
         return new Material(materialName, references);
     }
