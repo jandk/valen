@@ -37,7 +37,7 @@ public record LightDb(
         var images = new ArrayList<Image>();
         for (var i = 0; i < header.imageCount(); i++) {
             imageHeaders.add(LightDbImageHeader.read(source));
-            images.add(imageReader.read(source, false, 0));
+            images.add(imageReader.read(source, 0));
         }
 
         source.expectPosition(header.nameOffset());

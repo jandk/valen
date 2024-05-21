@@ -11,8 +11,8 @@ class MaterialReaderTest {
     @Test
     void testCanReadAll() throws IOException {
         TestUtils.testReader(manager -> {
-            var declReader = new DeclReader(manager.resourceManager);
-            return new MaterialReader(() -> manager, manager.resourceManager, declReader);
+            var declReader = new DeclReader(() -> manager);
+            return new MaterialReader(() -> manager, declReader);
         });
 
         try (var writer = Files.newBufferedWriter(Path.of("D:\\missing.txt"))) {

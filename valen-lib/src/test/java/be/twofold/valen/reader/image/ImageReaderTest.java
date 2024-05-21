@@ -9,7 +9,7 @@ class ImageReaderTest {
 
     @Test
     void testCanReadAll() throws IOException {
-        TestUtils.testReader(manager -> new ImageReader(null));
+        TestUtils.testReader(manager -> new ImageReader(() -> manager));
     }
 
 }

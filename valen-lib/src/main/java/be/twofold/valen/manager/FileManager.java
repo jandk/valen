@@ -46,6 +46,10 @@ public final class FileManager {
         return spec;
     }
 
+    public boolean exists(String name, ResourceType type) {
+        return resourceManager.exists(name, type);
+    }
+
     public Collection<Resource> getEntries() {
         return resourceManager.getEntries();
     }
@@ -79,6 +83,14 @@ public final class FileManager {
             throw new RuntimeException(e);
         }
         return type.instanceType().cast(result);
+    }
+
+    public boolean containsStream(long identity) {
+        return streamManager.contains(identity);
+    }
+
+    public byte[] readStream(long identity, int uncompressedSize) {
+        return streamManager.read(identity, uncompressedSize);
     }
 
 }
