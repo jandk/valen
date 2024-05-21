@@ -37,6 +37,7 @@ public final class DeclReader implements ResourceReader<JsonObject> {
     private final Map<String, JsonObject> declCache = new HashMap<>();
     private final Lazy<FileManager> fileManager;
 
+    // TODO: This constructor should not be public
     @Inject
     public DeclReader(Lazy<FileManager> fileManager) {
         this.fileManager = fileManager;

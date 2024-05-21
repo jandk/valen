@@ -17,7 +17,7 @@ public final class Md6ModelReader implements ResourceReader<Model> {
     private final Lazy<FileManager> fileManager;
 
     @Inject
-    public Md6ModelReader(Lazy<FileManager> fileManager) {
+    Md6ModelReader(Lazy<FileManager> fileManager) {
         this.fileManager = fileManager;
     }
 

@@ -15,7 +15,7 @@ public final class ImageReader implements ResourceReader<Texture> {
     private final boolean readStreams;
 
     @Inject
-    public ImageReader(Lazy<FileManager> fileManager) {
+    ImageReader(Lazy<FileManager> fileManager) {
         this(fileManager, true);
     }
 

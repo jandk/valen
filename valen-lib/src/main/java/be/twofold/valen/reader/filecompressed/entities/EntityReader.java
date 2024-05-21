@@ -15,7 +15,7 @@ public final class EntityReader implements ResourceReader<EntityFile> {
     private final FileCompressedReader fileCompressedReader;
 
     @Inject
-    public EntityReader(FileCompressedReader fileCompressedReader) {
+    EntityReader(FileCompressedReader fileCompressedReader) {
         this.fileCompressedReader = fileCompressedReader;
     }
 

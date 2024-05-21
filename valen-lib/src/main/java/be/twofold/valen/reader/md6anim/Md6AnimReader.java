@@ -13,7 +13,7 @@ import java.util.stream.*;
 
 public final class Md6AnimReader implements ResourceReader<Animation> {
     @Inject
-    public Md6AnimReader() {
+    Md6AnimReader() {
     }
 
     @Override

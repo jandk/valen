@@ -26,7 +26,7 @@ public final class MaterialReader implements ResourceReader<Material> {
     private final DeclReader declReader;
 
     @Inject
-    public MaterialReader(
+    MaterialReader(
         Lazy<FileManager> fileManager,
         DeclReader declReader
     ) {

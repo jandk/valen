@@ -21,7 +21,7 @@ public final class FileManager {
     private PackageMapSpec spec;
 
     @Inject
-    public FileManager(
+    FileManager(
         ResourceManager resourceManager,
         StreamManager streamManager,
         Set<ResourceReader<?>> readers

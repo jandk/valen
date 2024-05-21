@@ -10,7 +10,7 @@ import java.io.*;
 
 public final class Md6SkelReader implements ResourceReader<Skeleton> {
     @Inject
-    public Md6SkelReader() {
+    Md6SkelReader() {
     }
 
     @Override

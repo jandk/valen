@@ -13,7 +13,7 @@ import java.util.*;
 
 public final class RenderParmReader implements ResourceReader<RenderParm> {
     @Inject
-    public RenderParmReader() {
+    RenderParmReader() {
     }
 
     @Override

@@ -16,7 +16,7 @@ public final class DecompressorService {
     );
 
     @Inject
-    public DecompressorService() {
+    DecompressorService() {
     }
 
     public void decompress(ByteBuffer src, ByteBuffer dst, CompressionType compressionType) throws IOException {

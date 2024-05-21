@@ -10,7 +10,7 @@ import java.io.*;
 public final class FileReader implements ResourceReader<File> {
 
     @Inject
-    public FileReader() {
+    FileReader() {
     }
 
     @Override

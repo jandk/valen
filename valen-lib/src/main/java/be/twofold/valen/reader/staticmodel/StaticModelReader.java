@@ -20,7 +20,7 @@ public final class StaticModelReader implements ResourceReader<Model> {
     private final boolean readMaterials;
 
     @Inject
-    public StaticModelReader(Lazy<FileManager> fileManager) {
+    StaticModelReader(Lazy<FileManager> fileManager) {
         this(fileManager, true, true);
     }
 

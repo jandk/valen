@@ -13,7 +13,7 @@ public final class MapResourcesReader implements ResourceReader<MapResources> {
     private final FileReader fileReader;
 
     @Inject
-    public MapResourcesReader(FileReader fileReader) {
+    MapResourcesReader(FileReader fileReader) {
         this.fileReader = fileReader;
     }
 

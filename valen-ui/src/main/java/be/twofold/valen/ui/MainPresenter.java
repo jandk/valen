@@ -11,7 +11,7 @@ public class MainPresenter {
     private Collection<Resource> entries;
 
     @Inject
-    public MainPresenter(MainView view) {
+    MainPresenter(MainView view) {
         this.view = view;
         this.view.addListener(this::loadResources);
     }
