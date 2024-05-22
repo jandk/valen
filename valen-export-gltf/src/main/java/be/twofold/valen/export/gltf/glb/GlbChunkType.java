@@ -1,4 +1,4 @@
-package be.twofold.valen.export.gltf;
+package be.twofold.valen.export.gltf.glb;
 
 public enum GlbChunkType {
     Json(0x4e4f534a),
