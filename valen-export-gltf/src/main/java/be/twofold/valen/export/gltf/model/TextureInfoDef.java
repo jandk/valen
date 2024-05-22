@@ -4,10 +4,11 @@ import org.immutables.value.*;
 
 import java.util.*;
 
+
 @SchemaStyle
 @Value.Immutable(copy = false)
-public interface TextureDef extends GltfChildOfRootProperty {
-    Optional<SamplerSchema> getSampler();
+public interface TextureInfoDef extends GltfChildOfRootProperty {
+    TextureId getIndex();
 
-    Optional<ImageId> getSource();
+    Optional<Integer> getTexCoord();
 }

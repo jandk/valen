@@ -1,20 +1,21 @@
-package be.twofold.valen.export.gltf;
+package be.twofold.valen.export.gltf.mappers;
 
 import be.twofold.valen.core.geometry.*;
 import be.twofold.valen.core.math.*;
+import be.twofold.valen.export.gltf.*;
 import be.twofold.valen.export.gltf.model.*;
 import com.google.gson.*;
 
 import java.nio.*;
 
-final class GltfModelMapper {
+public final class GltfModelMapper {
     private final GltfContext context;
 
-    GltfModelMapper(GltfContext context) {
+    public GltfModelMapper(GltfContext context) {
         this.context = context;
     }
 
-    MeshSchema map(Model model) {
+    public MeshSchema map(Model model) {
         // First we do the meshes
         var primitives = model.meshes().stream()
             .map(this::mapMesh)
