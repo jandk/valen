@@ -21,7 +21,7 @@ public final class FileManager {
     private PackageMapSpec spec;
 
     @Inject
-    public FileManager(
+    FileManager(
         ResourceManager resourceManager,
         StreamManager streamManager,
         Set<ResourceReader<?>> readers
@@ -44,6 +44,10 @@ public final class FileManager {
 
     public PackageMapSpec getSpec() {
         return spec;
+    }
+
+    public boolean exists(String name, ResourceType type) {
+        return resourceManager.exists(name, type);
     }
 
     public Collection<Resource> getEntries() {
@@ -83,6 +87,14 @@ public final class FileManager {
             throw new RuntimeException(e);
         }
         return type.instanceType().cast(result);
+    }
+
+    public boolean containsStream(long identity) {
+        return streamManager.contains(identity);
+    }
+
+    public byte[] readStream(long identity, int uncompressedSize) {
+        return streamManager.read(identity, uncompressedSize);
     }
 
 }

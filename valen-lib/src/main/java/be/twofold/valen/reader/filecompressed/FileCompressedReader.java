@@ -13,7 +13,7 @@ public final class FileCompressedReader implements ResourceReader<byte[]> {
     private final DecompressorService decompressorService;
 
     @Inject
-    public FileCompressedReader(DecompressorService decompressorService) {
+    FileCompressedReader(DecompressorService decompressorService) {
         this.decompressorService = decompressorService;
     }
 

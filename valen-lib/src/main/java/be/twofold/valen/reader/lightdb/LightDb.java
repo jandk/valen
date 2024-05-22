@@ -32,12 +32,11 @@ public record LightDb(
         var hashIds = source.readInts(header.hashLength());
 
         source.expectPosition(header.imageOffset());
-        var imageReader = new ImageReader(null);
         var imageHeaders = new ArrayList<LightDbImageHeader>();
         var images = new ArrayList<Image>();
         for (var i = 0; i < header.imageCount(); i++) {
             imageHeaders.add(LightDbImageHeader.read(source));
-            images.add(imageReader.read(source, false, 0));
+            images.add(Image.read(source));
         }
 
         source.expectPosition(header.nameOffset());

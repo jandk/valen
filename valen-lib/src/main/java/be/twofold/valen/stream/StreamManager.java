@@ -20,7 +20,7 @@ public final class StreamManager {
     private Map<Long, StreamDbFile> index;
 
     @Inject
-    public StreamManager(DecompressorService decompressorService) {
+    StreamManager(DecompressorService decompressorService) {
         this.decompressorService = decompressorService;
     }
 

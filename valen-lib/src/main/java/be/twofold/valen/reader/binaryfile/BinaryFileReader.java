@@ -13,7 +13,7 @@ import java.util.*;
 
 public final class BinaryFileReader implements ResourceReader<byte[]> {
     @Inject
-    public BinaryFileReader() {
+    BinaryFileReader() {
     }
 
     @Override

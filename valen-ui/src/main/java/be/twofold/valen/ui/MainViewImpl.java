@@ -21,7 +21,7 @@ public class MainViewImpl extends JFrame implements MainView {
     private final ResourceTableModel tableModel = new ResourceTableModel();
 
     @Inject
-    public MainViewImpl() {
+    MainViewImpl() {
         build();
     }
 

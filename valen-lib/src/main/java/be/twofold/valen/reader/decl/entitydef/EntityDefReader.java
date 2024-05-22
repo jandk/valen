@@ -12,7 +12,7 @@ import java.io.*;
 public final class EntityDefReader implements ResourceReader<JsonObject> {
 
     @Inject
-    public EntityDefReader() {
+    EntityDefReader() {
     }
 
     @Override

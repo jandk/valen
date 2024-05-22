@@ -1,10 +1,12 @@
 package be.twofold.valen.reader.decl;
 
 import be.twofold.valen.core.io.*;
+import be.twofold.valen.manager.*;
 import be.twofold.valen.reader.*;
 import be.twofold.valen.reader.decl.parser.*;
 import be.twofold.valen.resource.*;
 import com.google.gson.*;
+import dagger.*;
 import jakarta.inject.*;
 
 import java.io.*;
@@ -33,11 +35,12 @@ public final class DeclReader implements ResourceReader<JsonObject> {
     );
 
     private final Map<String, JsonObject> declCache = new HashMap<>();
-    private final ResourceManager resourceManager;
+    private final Lazy<FileManager> fileManager;
 
+    // TODO: This constructor should not be public
     @Inject
-    public DeclReader(ResourceManager resourceManager) {
-        this.resourceManager = resourceManager;
+    public DeclReader(Lazy<FileManager> fileManager) {
+        this.fileManager = fileManager;
     }
 
     @Override
@@ -83,14 +86,7 @@ public final class DeclReader implements ResourceReader<JsonObject> {
         }
 
         var fullName = RootPrefix + key + ".decl";
-        var resource = resourceManager.get(fullName, ResourceType.RsStreamFile);
-        if (resource == null) {
-            System.err.println("Missing decl: " + fullName);
-            return object;
-        }
-
-        var bytes = resourceManager.read(resource);
-        parent = DeclParser.parse(decode(bytes));
+        parent = fileManager.get().readResource(FileType.Declaration, fullName);
         parent = loadInherit(parent, fullName);
         declCache.put(key, parent);
         return merge(parent, object);

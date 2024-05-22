@@ -22,7 +22,7 @@ public final class ResourceManager implements AutoCloseable {
     private PackageMapSpec spec;
 
     @Inject
-    public ResourceManager(DecompressorService decompressorService) {
+    ResourceManager(DecompressorService decompressorService) {
         this.decompressorService = decompressorService;
     }
 

@@ -12,7 +12,7 @@ public final class BlangReader implements ResourceReader<Blang> {
     private final BinaryFileReader binaryFileReader;
 
     @Inject
-    public BlangReader(BinaryFileReader binaryFileReader) {
+    BlangReader(BinaryFileReader binaryFileReader) {
         this.binaryFileReader = binaryFileReader;
     }
 

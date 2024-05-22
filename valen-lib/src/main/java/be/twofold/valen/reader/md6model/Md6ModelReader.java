@@ -2,10 +2,11 @@ package be.twofold.valen.reader.md6model;
 
 import be.twofold.valen.core.geometry.*;
 import be.twofold.valen.core.io.*;
+import be.twofold.valen.manager.*;
 import be.twofold.valen.reader.*;
 import be.twofold.valen.reader.geometry.*;
 import be.twofold.valen.resource.*;
-import be.twofold.valen.stream.*;
+import dagger.*;
 import jakarta.inject.*;
 
 import java.io.*;
@@ -13,11 +14,11 @@ import java.nio.*;
 import java.util.*;
 
 public final class Md6ModelReader implements ResourceReader<Model> {
-    private final StreamManager streamManager;
+    private final Lazy<FileManager> fileManager;
 
     @Inject
-    public Md6ModelReader(StreamManager streamManager) {
-        this.streamManager = streamManager;
+    Md6ModelReader(Lazy<FileManager> fileManager) {
+        this.fileManager = fileManager;
     }
 
     @Override
@@ -56,7 +57,7 @@ public final class Md6ModelReader implements ResourceReader<Model> {
         var layouts = md6.layouts().get(lod).memoryLayouts();
 
         var identity = (hash << 4) | lod;
-        var source = new ByteArrayDataSource(streamManager.read(identity, uncompressedSize));
+        var source = new ByteArrayDataSource(fileManager.get().readStream(identity, uncompressedSize));
         return GeometryReader.readStreamedMesh(source, lodInfos, layouts, true);
     }
 

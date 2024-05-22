@@ -9,6 +9,7 @@ import be.twofold.valen.reader.decl.renderparm.*;
 import be.twofold.valen.reader.image.*;
 import be.twofold.valen.resource.*;
 import com.google.gson.*;
+import dagger.*;
 import jakarta.inject.*;
 
 import java.io.*;
@@ -21,18 +22,15 @@ public final class MaterialReader implements ResourceReader<Material> {
 
     private static final Map<String, RenderParm> RenderParmCache = new HashMap<>();
 
-    private final Provider<FileManager> fileManagerProvider;
-    private final ResourceManager resourceManager;
+    private final Lazy<FileManager> fileManager;
     private final DeclReader declReader;
 
     @Inject
-    public MaterialReader(
-        Provider<FileManager> fileManagerProvider,
-        ResourceManager resourceManager,
+    MaterialReader(
+        Lazy<FileManager> fileManager,
         DeclReader declReader
     ) {
-        this.fileManagerProvider = fileManagerProvider;
-        this.resourceManager = resourceManager;
+        this.fileManager = fileManager;
         this.declReader = declReader;
     }
 
@@ -81,7 +79,7 @@ public final class MaterialReader implements ResourceReader<Material> {
             }
             mapOptions(builder, kind, parm, opts);
 
-            if (!resourceManager.exists(builder.toString(), ResourceType.Image)) {
+            if (!fileManager.get().exists(builder.toString(), ResourceType.Image)) {
                 MissingImages.merge(builder.toString(), 1, Integer::sum);
                 MaterialsWithMissingImages.add(materialName);
             } else {
@@ -165,7 +163,7 @@ public final class MaterialReader implements ResourceReader<Material> {
 
     private RenderParm loadRenderParm(String name) {
         var fullName = "generated/decls/renderparm/" + name + ".decl";
-        return fileManagerProvider.get().readResource(FileType.RenderParm, fullName);
+        return fileManager.get().readResource(FileType.RenderParm, fullName);
     }
 
     private MaterialImageOpts parseOptions(JsonObject options) {

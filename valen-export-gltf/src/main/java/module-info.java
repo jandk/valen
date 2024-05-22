@@ -3,9 +3,7 @@ module valen.export.gltf {
     requires valen.core;
 
     requires static org.immutables.value;
-    requires java.desktop;
 
-    exports be.twofold.valen.export.gltf.model to com.google.gson, org.immutables.value, valen.app;
     exports be.twofold.valen.export.gltf;
     exports be.twofold.valen.export.gltf.model.extensions.lightspunctual;
 
@@ -14,4 +12,5 @@ module valen.export.gltf {
     exports be.twofold.valen.export.gltf.model.extensions.collections;
     opens be.twofold.valen.export.gltf.model.extensions.collections to com.google.gson;
     exports be.twofold.valen.export.gltf.glb;
+    exports be.twofold.valen.export.gltf.model;
 }

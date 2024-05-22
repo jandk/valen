@@ -1,0 +1,41 @@
+#include <common/common.bt>
+
+struct Layer {
+    SString layerName;
+};
+
+struct Header {
+    uint magic;
+    BigEndian();
+    uint numLayers;
+    LittleEndian();
+};
+
+Header header <style=sHeading1>;
+SString layerNames[header.numLayers] <optimize=false, style=sSection1>;
+
+uint unknown;
+BigEndian();
+uint numAssetTypes;
+LittleEndian();
+
+SString assetNames[numAssetTypes] <optimize=false, style=sSection2>;
+
+BigEndian();
+uint numAssets;
+LittleEndian();
+
+struct Asset {
+    BigEndian();
+    uint type;
+    LittleEndian();
+    SString name;
+    byte unknown[24];
+};
+
+Asset assets[numAssets] <optimize=false, style=sSection3>;
+
+BigEndian();
+uint numMaps;
+LittleEndian();
+SString maps[numMaps] <optimize=false, style=sSection4>;
