@@ -1,10 +1,13 @@
 package be.twofold.valen.reader.filecompressed.entities;
 
 import be.twofold.valen.core.io.*;
+import be.twofold.valen.manager.*;
 import be.twofold.valen.reader.*;
+import be.twofold.valen.reader.decl.*;
 import be.twofold.valen.reader.decl.parser.*;
 import be.twofold.valen.reader.filecompressed.*;
 import be.twofold.valen.resource.*;
+import com.google.gson.*;
 import jakarta.inject.*;
 
 import java.io.*;
@@ -12,10 +15,15 @@ import java.nio.charset.*;
 import java.util.*;
 
 public final class EntityReader implements ResourceReader<EntityFile> {
+    private final Provider<FileManager> fileManagerProvider;
     private final FileCompressedReader fileCompressedReader;
 
     @Inject
-    EntityReader(FileCompressedReader fileCompressedReader) {
+    public EntityReader(
+        Provider<FileManager> fileManagerProvider,
+        FileCompressedReader fileCompressedReader
+    ) {
+        this.fileManagerProvider = fileManagerProvider;
         this.fileCompressedReader = fileCompressedReader;
     }
 
