@@ -1,16 +1,17 @@
-package be.twofold.valen.export.gltf;
+package be.twofold.valen.export.gltf.mappers;
 
 import be.twofold.valen.core.animation.*;
 import be.twofold.valen.core.math.*;
+import be.twofold.valen.export.gltf.*;
 import be.twofold.valen.export.gltf.model.*;
 
 import java.nio.*;
 import java.util.*;
 
-final class GltfAnimationMapper {
+public final class GltfAnimationMapper {
     private final GltfContext context;
 
-    GltfAnimationMapper(GltfContext context) {
+    public GltfAnimationMapper(GltfContext context) {
         this.context = context;
     }
 

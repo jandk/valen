@@ -1,19 +1,20 @@
-package be.twofold.valen.export.gltf;
+package be.twofold.valen.export.gltf.mappers;
 
 import be.twofold.valen.core.geometry.*;
+import be.twofold.valen.export.gltf.*;
 import be.twofold.valen.export.gltf.model.*;
 
 import java.nio.*;
 import java.util.*;
 
-final class GltfSkeletonMapper {
+public final class GltfSkeletonMapper {
     private final GltfContext context;
 
-    GltfSkeletonMapper(GltfContext context) {
+    public GltfSkeletonMapper(GltfContext context) {
         this.context = context;
     }
 
-    SkinSchema map(Skeleton skeleton, int offset) {
+    public SkinSchema map(Skeleton skeleton, int offset) {
         var bones = skeleton.bones();
 
         // Calculate the parent-child relationships

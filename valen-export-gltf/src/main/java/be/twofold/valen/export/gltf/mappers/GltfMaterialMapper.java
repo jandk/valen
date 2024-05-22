@@ -1,6 +1,7 @@
-package be.twofold.valen.export.gltf;
+package be.twofold.valen.export.gltf.mappers;
 
 import be.twofold.valen.core.material.*;
+import be.twofold.valen.export.gltf.*;
 import be.twofold.valen.export.gltf.model.*;
 
 final class GltfMaterialMapper {
@@ -20,6 +21,9 @@ final class GltfMaterialMapper {
             } else if (texture.type() == TextureType.Normal) {
                 var textureId = context.allocateTextureId(texture.filename());
                 builder.normalTexture(NormalTextureInfoSchema.builder().index(textureId).build());
+            } else if (texture.type() == TextureType.Smoothness) {
+                var textureId = context.allocateTextureId(texture.filename());
+                pbrBuilder.metallicRoughnessTexture(TextureInfoSchema.builder().index(textureId).build());
             }
         }
         builder.pbrMetallicRoughness(pbrBuilder.build());

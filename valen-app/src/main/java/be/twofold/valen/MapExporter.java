@@ -1,6 +1,7 @@
 package be.twofold.valen;
 
 import be.twofold.valen.core.math.*;
+import be.twofold.valen.core.texture.writer.png.*;
 import be.twofold.valen.export.gltf.*;
 import be.twofold.valen.export.gltf.model.*;
 import be.twofold.valen.export.gltf.model.extensions.collections.*;
@@ -15,6 +16,7 @@ import com.google.gson.*;
 import java.io.*;
 import java.nio.file.*;
 import java.util.*;
+import java.util.zip.*;
 
 public final class MapExporter {
     static final Path BASE = Path.of("D:\\SteamLibrary\\steamapps\\common\\DOOMEternal\\base");
@@ -37,6 +39,7 @@ public final class MapExporter {
 
     private final FileManager fileManager;
     private Path contentPath;
+    private Path outputPath;
 
     public MapExporter(FileManager fileManager) {
         this.fileManager = fileManager;
@@ -55,54 +58,82 @@ public final class MapExporter {
         var instances = fileManager.readResource(FileType.StaticInstances, "generated/staticinstances/maps/" + mapPackage + ".staticinstances");
         var entities = fileManager.readResource(FileType.Entities, "maps/" + mapPackage + ".entities");
 
-        Path outputPath = Path.of("playground");
-        Path mapPath = outputPath.resolve("/map.glb");
-        this.contentPath = outputPath.resolve("/map");
-        try (var channel = Files.newByteChannel(mapPath, StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING)) {
-            var writer = new GltfWriter(channel);
+        outputPath = Path.of("playground");
+        Path mapPath = outputPath.resolve("map.glb");
+        this.contentPath = outputPath.resolve("map.glb_data");
+        GltfContext gltfContext = new GltfContext();
 
-            var rootNode = NodeSchema.builder()
-                .name("Root")
-                .rotation(new Quaternion(-(float) (Math.sqrt(2) / 2), 0, 0, (float) (Math.sqrt(2) / 2)))
-                .scale(new Vector3(0.7f, 0.7f, 0.7f))
-                .children(new ArrayList<>());
+        var rootNode = NodeSchema.builder()
+            .name("Root")
+            .rotation(new Quaternion(-(float) (Math.sqrt(2) / 2), 0, 0, (float) (Math.sqrt(2) / 2)))
+            .scale(new Vector3(0.7f, 0.7f, 0.7f))
+            .children(new ArrayList<>());
 
-            collectionCache.put("Root", CollectionTreeNodeSchema.builder().collection("Root"));
-            collectionCache.put("Entities", CollectionTreeNodeSchema.builder().collection("Entities").parent("Root"));
-            var staticWorldNode = NodeSchema.builder().name("StaticWorld");
-            groupsCache.put("StaticWorld", staticWorldNode);
+        collectionCache.put("Root", CollectionTreeNodeSchema.builder().collection("Root"));
+        collectionCache.put("Entities", CollectionTreeNodeSchema.builder().collection("Entities").parent("Root"));
+        var staticWorldNode = NodeSchema.builder().name("StaticWorld");
+        groupsCache.put("StaticWorld", staticWorldNode);
 
-            exportStaticInstances(instances, writer);
+        exportStaticInstances(instances, gltfContext);
 
-            exportEntities(entities, writer);
+        exportEntities(entities, gltfContext);
 
-            var extCollections = EXTCollectionExtensionSchema.builder();
-            layersCache.forEach((s, layerNode) -> staticWorldNode.addChildren(writer.addNode(layerNode.build())));
-            groupsCache.forEach((s, groupNode) -> rootNode.addChildren(writer.addNode(groupNode.build())));
-            collectionCache.forEach((s, collection) -> extCollections.addCollections(collection.build()));
-            writer.getAllocatedTextures().forEach(this::exportTexture);
-            var khrLightsPunctual = KHRLightsPunctualExtensionSchema.builder().lights(lights);
-            sceneNodes.add(writer.addNode(rootNode.build()));
-            writer.addScene(sceneNodes);
-            writer.addExtension("KHR_lights_punctual", khrLightsPunctual.build(), true);
-            writer.addExtension("EXT_collections", extCollections.build(), false);
-            writer.write();
+        var extCollections = EXTCollectionExtensionSchema.builder();
+        layersCache.forEach((s, layerNode) -> staticWorldNode.addChildren(gltfContext.addNode(layerNode.build())));
+        groupsCache.forEach((s, groupNode) -> rootNode.addChildren(gltfContext.addNode(groupNode.build())));
+        collectionCache.forEach((s, collection) -> extCollections.addCollections(collection.build()));
+
+        var khrLightsPunctual = KHRLightsPunctualExtensionSchema.builder().lights(lights);
+        sceneNodes.add(gltfContext.addNode(rootNode.build()));
+        gltfContext.addScene(sceneNodes);
+        gltfContext.addExtension("KHR_lights_punctual", khrLightsPunctual.build(), true);
+        gltfContext.addExtension("EXT_collections", extCollections.build(), false);
+
+        for (String s : gltfContext.getAllocatedTextures()) {
+            this.exportTexture(s, gltfContext);
         }
+
+//        try (var channel = Files.newByteChannel(mapPath, StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING)) {
+//            var writer = new GlbWriter(gltfContext);
+//            writer.write(channel);
+//        }
+
+        GltfWriter writer = new GltfWriter(gltfContext);
+        writer.write(outputPath, "map");
 
     }
 
-    private void exportTexture(String texturePath) {
+    private void exportTexture(String texturePath, GltfContext context) throws IOException {
         System.out.println("Exporting " + texturePath);
-        if (fileManager.exist(texturePath)) {
+        var imageId = context.getImage(texturePath);
+        var clean_name = texturePath.substring(0, texturePath.indexOf("$"));
 
-        } else {
+        if (imageId.getId() == -1) {
+            var meta_data = texturePath.substring(texturePath.indexOf("$"));
 
+            CRC32 crc = new CRC32();
+            crc.update(meta_data.getBytes());
+
+            var fullTexturePath = contentPath.resolve(clean_name.replace(".tga", "_" + Long.toHexString(crc.getValue()) + ".png"));
+            Files.createDirectories(fullTexturePath.getParent());
+            if (!Files.exists(fullTexturePath)) {
+                var texture = fileManager.readResource(FileType.Image, texturePath);
+                try (var channel = Files.newByteChannel(fullTexturePath, StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING)) {
+                    PngWriter pngWriter = new PngWriter(channel, meta_data.contains("mtlkind=normal"));
+                    pngWriter.write(texture);
+                }
+            }
+            var image = ImageSchema.builder().name(clean_name).uri(outputPath.relativize(fullTexturePath).toString());
+            imageId = context.addImage(image.build());
         }
-//        var texture = fileManager.readResource(FileType.Image, texturePath);
-//        System.out.println("  " + texture.toString());
+
+        var textureBuilder = TextureSchema.builder().name(clean_name).source(imageId);
+
+        context.addTexture(textureBuilder.build());
+
     }
 
-    private void exportEntities(EntityFile entities, GltfWriter writer) {
+    private void exportEntities(EntityFile entities, GltfContext context) {
         entities.entities().forEach((entityName, entity) -> {
             var entityData = entity.entityDef();
             var entityEditData = entityData.getAsJsonObject("edit");
@@ -121,7 +152,7 @@ public final class MapExporter {
                     handleLight(entityName, entityEditData, entityNodeBuilder);
                 }
                 case "idGuiEntity", "idDynamicEntity", "idMover" -> {
-                    handleStaticModelEntity(writer, entityEditData, entityNodeBuilder);
+                    handleStaticModelEntity(context, entityEditData, entityNodeBuilder);
                 }
 //                    case "idTrigger" -> {
 //                        var modelInfo = entityEditData.getAsJsonObject("clipModelInfo");
@@ -153,8 +184,8 @@ public final class MapExporter {
 //                        System.out.println("Loading idDynamicEntity with model " + modelName);
 //                        String md6declName = "generated/decls/md6def/" + modelName + ".decl";
 //
-//                        if (manager.exist(md6declName)) {
-//                            String src = new String(manager.readRawResource(md6declName, ResourceType.RsStreamFile));
+//                        if (fileManager.exist(md6declName)) {
+//                            String src = new String(fileManager.readRawResource(md6declName, ResourceType.RsStreamFile));
 //                            JsonObject md6def = md6DefParser.parse(src);
 //                            String meshPath = md6def.getAsJsonObject("init").getAsJsonPrimitive("mesh").getAsString();
 //                            var model = manager.readResource(FileType.AnimatedModel, meshPath, ResourceType.BaseModel);
@@ -174,7 +205,7 @@ public final class MapExporter {
 //                        }
 //                    }
                 default -> {
-                    System.out.println("Unhandled entity: " + entityClass);
+//                    System.out.println("Unhandled entity: " + entityClass);
                     entityNodeBuilder.rotation(toQuaternion(entityEditData.get("spawnOrientation")).orElse(new Quaternion(0, 0, 0, 1)));
                     entityNodeBuilder.translation(toVec3(entityEditData.get("spawnPosition")).orElse(new Vector3(0, 0, 0)));
                 }
@@ -185,11 +216,11 @@ public final class MapExporter {
             collectionCache.computeIfAbsent(entityClass, k -> CollectionTreeNodeSchema.builder().collection(k).parent("Entities"));
 
             entityNodeBuilder.putExtensions("EXT_collections", EXTCollectionNodeExtensionSchema.builder().addCollections(entityClass).build());
-            parentLayer.addChildren(writer.addNode(entityNodeBuilder.build()));
+            parentLayer.addChildren(context.addNode(entityNodeBuilder.build()));
         });
     }
 
-    private void handleStaticModelEntity(GltfWriter writer, JsonObject entityEditData, NodeSchema.Builder entityNodeBuilder) {
+    private void handleStaticModelEntity(GltfContext context, JsonObject entityEditData, NodeSchema.Builder entityNodeBuilder) {
         var modelInfo = entityEditData.getAsJsonObject("renderModelInfo");
         var modelName = modelInfo.get("model").getAsString();
         var meshId = meshCache.computeIfAbsent(modelName, k -> {
@@ -200,7 +231,7 @@ public final class MapExporter {
                 }
 
                 var model = fileManager.readResource(FileType.StaticModel, tmp);
-                return writer.addMesh(model);
+                return context.addMesh(model);
             } catch (IllegalArgumentException ex) {
                 System.err.println("Failed to find " + modelName + " model, due to " + ex);
                 ex.printStackTrace();
@@ -273,7 +304,7 @@ public final class MapExporter {
         entityNodeBuilder.translation(toVec3(entityEditData.get("spawnPosition")));
     }
 
-    private void exportStaticInstances(MapFileStaticInstances instances, GltfWriter writer) {
+    private void exportStaticInstances(MapFileStaticInstances instances, GltfContext context) {
         collectionCache.put("StaticWorld", CollectionTreeNodeSchema.builder().collection("StaticWorld").parent("Root"));
         for (var i = 0; i < instances.modelInstanceGeometries().size(); i++) {
             var geometry = instances.modelInstanceGeometries().get(i);
@@ -281,11 +312,10 @@ public final class MapExporter {
             var meshId = meshCache.computeIfAbsent(modelName, k -> {
                 try {
                     var model = fileManager.readResource(FileType.StaticModel, modelName);
-                    return writer.addMesh(model);
+                    return context.addMesh(model);
 
                 } catch (IllegalArgumentException ex) {
                     System.err.println("Failed to find " + modelName + " model, due to " + ex);
-                    ex.printStackTrace();
                     return null;
                 }
             });
@@ -314,7 +344,7 @@ public final class MapExporter {
                 .scale(scale).mesh(meshId)
                 .putExtensions("EXT_collections", EXTCollectionNodeExtensionSchema.builder().addCollections(layerName).build())
                 .build();
-            parentLayer.addChildren(writer.addNode(node));
+            parentLayer.addChildren(context.addNode(node));
         }
     }
 
