@@ -112,6 +112,11 @@
 
             <!-- External -->
             <dependency>
+                <groupId>be.twofold</groupId>
+                <artifactId>tinybcdec</artifactId>
+                <version>0.1.1</version>
+            </dependency>
+            <dependency>
                 <groupId>com.formdev</groupId>
                 <artifactId>flatlaf</artifactId>
                 <version>${flatlaf.version}</version>

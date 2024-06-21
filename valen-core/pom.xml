@@ -10,4 +10,11 @@
 
     <artifactId>valen-core</artifactId>
 
+    <dependencies>
+        <dependency>
+            <groupId>be.twofold</groupId>
+            <artifactId>tinybcdec</artifactId>
+        </dependency>
+    </dependencies>
+
 </project>

@@ -1,4 +1,6 @@
 module valen.core {
+    requires be.twofold.tinybcdec;
+
     exports be.twofold.valen.core.animation;
     exports be.twofold.valen.core.geometry;
     exports be.twofold.valen.core.io;
