@@ -9,6 +9,5 @@ public final class OodleDecompressor implements Decompressor {
     @Override
     public void decompress(ByteBuffer src, ByteBuffer dst) throws IOException {
         Oodle.decompress(src, dst);
-        dst.flip();
     }
 }

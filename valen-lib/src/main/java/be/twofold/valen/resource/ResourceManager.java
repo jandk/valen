@@ -14,7 +14,7 @@ import java.util.*;
 public final class ResourceManager implements AutoCloseable {
     private final List<ResourcesFile> files = new ArrayList<>();
     private final Map<ResourceKey, ResourcesFile> keyIndex = new HashMap<>();
-    private final Map<String, Map<ResourceKey, Resource>> nameIndex = new TreeMap<>();
+    private final Map<String, Map<ResourceKey, Resource>> nameIndex = new HashMap<>();
 
     private final DecompressorService decompressorService;
 

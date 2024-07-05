@@ -6,6 +6,8 @@ import java.io.*;
 import java.nio.*;
 
 public record Quaternion(float x, float y, float z, float w) {
+    public static final Quaternion Identity = new Quaternion(0, 0, 0, 1);
+
     public static Quaternion read(DataSource source) throws IOException {
         float x = source.readFloat();
         float y = source.readFloat();

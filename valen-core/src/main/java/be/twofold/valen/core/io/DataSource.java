@@ -163,8 +163,12 @@ public abstract class DataSource {
         return result;
     }
 
+    public String readString(int length) throws IOException {
+        return new String(readBytes(length), StandardCharsets.UTF_8);
+    }
+
     public String readPString() throws IOException {
-        return new String(readBytes(readInt()), StandardCharsets.UTF_8);
+        return readString(readInt());
     }
 
     public <T> List<T> readStructs(int count, StructMapper<T> mapper) throws IOException {

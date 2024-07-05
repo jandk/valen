@@ -6,6 +6,8 @@ import java.io.*;
 import java.nio.*;
 
 public record Vector3(float x, float y, float z) {
+    public static final int BYTES = 3 * Float.BYTES;
+
     public static Vector3 read(DataSource source) throws IOException {
         float x = source.readFloat();
         float y = source.readFloat();

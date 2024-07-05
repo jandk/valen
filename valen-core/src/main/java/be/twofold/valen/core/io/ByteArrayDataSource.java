@@ -59,7 +59,7 @@ public final class ByteArrayDataSource extends DataSource {
 
     @Override
     public void seek(long pos) {
-        Objects.checkIndex(pos, lim - offset);
+        Objects.checkIndex(pos, lim - offset + 1);
         this.pos = (int) (this.offset + pos);
     }
 

@@ -9,6 +9,5 @@ public final class OodleChunkedDecompressor implements Decompressor {
     @Override
     public void decompress(ByteBuffer src, ByteBuffer dst) throws IOException {
         Oodle.decompress(src.slice(12, src.remaining() - 12), dst);
-        dst.flip();
     }
 }
