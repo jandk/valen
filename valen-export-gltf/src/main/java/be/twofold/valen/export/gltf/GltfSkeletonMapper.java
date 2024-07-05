@@ -26,11 +26,11 @@ final class GltfSkeletonMapper {
         }
 
         // Build the skeleton
-        var skeletonNode = NodeId.of(-1);
+        var skeletonNode = -1;
         var jointIndices = new ArrayList<NodeId>();
         for (var i = 0; i < bones.size(); i++) {
             if (bones.get(i).parent() == -1) {
-                skeletonNode = NodeId.of(offset + i);
+                skeletonNode = offset + i;
             }
             jointIndices.add(NodeId.of(offset + i));
             buildSkeletonJoint(bones.get(i), children.getOrDefault(NodeId.of(i), List.of()));
@@ -53,7 +53,7 @@ final class GltfSkeletonMapper {
         var inverseBindMatrices = context.addAccessor(accessor);
 
         return SkinSchema.builder()
-            .skeleton(skeletonNode)
+            .skeleton(NodeId.of(skeletonNode))
             .joints(jointIndices)
             .inverseBindMatrices(inverseBindMatrices)
             .build();

@@ -89,11 +89,30 @@ public final class GltfWriter implements GltfContext {
             .translation(translation)
             .scale(scale)
             .mesh(MeshId.of(mesh))
+            .skin(SkinId.of(0))
             .build();
         meshNodes.add(addNode(node));
     }
 
+    public Map.Entry<NodeId, SkinId> addSkin(Skeleton skeleton) {
+        var skeletonId = NodeId.of(nodes.size());
+        var skin = skeletonMapper.map(skeleton, nodes.size());
+        skins.add(skin);
+        return Map.entry(skeletonId, SkinId.of(skins.size() - 1));
+    }
+
     private GltfSchema buildGltf() {
+        var skinnedMesh = NodeSchema.builder()
+            .mesh(MeshId.of(0))
+            .skin(SkinId.of(0))
+            .build();
+        NodeId nodeId = addNode(skinnedMesh);
+
+        var scene = SceneSchema.builder()
+            .addNodes(NodeId.of(0), nodeId)
+            .build();
+        scenes.add(scene);
+
         var asset = AssetSchema.builder()
             .generator("Valen")
             .version("2.0")
