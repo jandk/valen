@@ -77,19 +77,21 @@ public final class GeometryReader {
             case WGVS_POSITION_SHORT, WGVS_POSITION -> List.of(
                 new VertexBuffer.Info(Semantic.Position, ElementType.Vector3, ComponentType.Float, false)
             );
-            case WGVS_NORMAL_TANGENT -> List.of(
-                new VertexBuffer.Info(Semantic.Normal, ElementType.Vector3, ComponentType.Float, false),
-                new VertexBuffer.Info(Semantic.Tangent, ElementType.Vector4, ComponentType.Float, false)
-            );
+            case WGVS_NORMAL_TANGENT -> {
+                var normal = new VertexBuffer.Info(Semantic.Normal, ElementType.Vector3, ComponentType.Float, false);
+                var tangent = new VertexBuffer.Info(Semantic.Tangent, ElementType.Vector4, ComponentType.Float, false);
+                var weights0 = new VertexBuffer.Info(Semantic.Weights0, ElementType.Vector4, ComponentType.UnsignedByte, true);
+                yield animated ? List.of(normal, tangent, weights0) : List.of(normal, tangent);
+            }
             case WGVS_LIGHTMAP_UV_SHORT, WGVS_LIGHTMAP_UV -> List.of(
                 new VertexBuffer.Info(Semantic.TexCoord1, ElementType.Vector2, ComponentType.Float, false)
             );
             case WGVS_MATERIAL_UV_SHORT, WGVS_MATERIAL_UV -> List.of(
                 new VertexBuffer.Info(Semantic.TexCoord0, ElementType.Vector2, ComponentType.Float, false)
             );
-            case WGVS_COLOR -> List.of(
-                new VertexBuffer.Info(animated ? Semantic.Joints0 : Semantic.Color0, ElementType.Vector4, ComponentType.UnsignedByte, true)
-            );
+            case WGVS_COLOR -> animated ?
+                List.of(new VertexBuffer.Info(Semantic.Joints0, ElementType.Vector4, ComponentType.UnsignedByte, false)) :
+                List.of(new VertexBuffer.Info(Semantic.Color0, ElementType.Vector4, ComponentType.UnsignedByte, true));
             case WGVS_MATERIALS -> List.of();
         };
     }

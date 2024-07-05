@@ -28,8 +28,9 @@ public final class Md6ModelReader implements ResourceReader<Model> {
 
     @Override
     public Model read(DataSource source, Resource resource) throws IOException {
-        Md6Model md6 = read(source, true, resource.hash());
-        return new Model(md6.meshes(), null, null);
+        Md6Model model = read(source, true, resource.hash());
+        Skeleton skeleton = fileManager.get().readResource(FileType.Skeleton, model.header().md6SkelName());
+        return new Model(model.meshes(), null, skeleton);
     }
 
     public Md6Model read(DataSource source, boolean readStreams, long hash) throws IOException {
