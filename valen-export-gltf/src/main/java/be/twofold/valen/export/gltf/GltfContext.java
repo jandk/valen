@@ -8,32 +8,35 @@ import java.nio.*;
 import java.util.*;
 
 public class GltfContext {
+    private final List<AccessorSchema> accessors = new ArrayList<>();
+    private final List<BufferViewSchema> bufferViews = new ArrayList<>();
+    private final List<BufferSchema> buffers = new ArrayList<>();
+    private final List<MeshSchema> meshes = new ArrayList<>();
+    private final List<NodeSchema> nodes = new ArrayList<>();
+    private final List<SceneSchema> scenes = new ArrayList<>();
+    private final List<SkinSchema> skins = new ArrayList<>();
+    private final List<AnimationSchema> animations = new ArrayList<>();
+    private final List<String> usedExtensions = new ArrayList<>();
+    private final List<String> requiredExtensions = new ArrayList<>();
+    private final Map<String, Extension> extensions = new HashMap<>();
+    private final List<MaterialSchema> materials = new ArrayList<>();
+    private final List<TextureSchema> textures = new ArrayList<>();
+    private final List<ImageSchema> images = new ArrayList<>();
 
-    public final List<AccessorSchema> accessors = new ArrayList<>();
-    public final List<BufferViewSchema> bufferViews = new ArrayList<>();
-    public final List<BufferSchema> buffers = new ArrayList<>();
-    public final List<MeshSchema> meshes = new ArrayList<>();
-    public final List<NodeSchema> nodes = new ArrayList<>();
-    public final List<SceneSchema> scenes = new ArrayList<>();
-    public final List<SkinSchema> skins = new ArrayList<>();
-    public final List<AnimationSchema> animations = new ArrayList<>();
-    public final List<String> usedExtensions = new ArrayList<>();
-    public final List<String> requiredExtensions = new ArrayList<>();
-    public final Map<String, Extension> extensions = new HashMap<>();
-    public final List<MaterialSchema> materials = new ArrayList<>();
-    public final List<TextureSchema> textures = new ArrayList<>();
-    public final List<ImageSchema> images = new ArrayList<>();
+    private final List<String> allocatedTextures = new ArrayList<>();
 
-    public final List<String> allocatedTextures = new ArrayList<>();
+    private final GltfModelMapper modelMapper = new GltfModelMapper(this);
+    private final GltfSkeletonMapper skeletonMapper = new GltfSkeletonMapper(this);
+    private final GltfAnimationMapper animationMapper = new GltfAnimationMapper(this);
 
-    public final GltfModelMapper modelMapper = new GltfModelMapper(this);
-    public final GltfSkeletonMapper skeletonMapper = new GltfSkeletonMapper(this);
-    public final GltfAnimationMapper animationMapper = new GltfAnimationMapper(this);
+    final List<Buffer> writables = new ArrayList<>();
 
-    public final List<Buffer> writables = new ArrayList<>();
+    List<BufferSchema> getBuffers() {
+        return buffers;
+    }
 
-    public Map<String, Extension> getExtensions() {
-        return extensions;
+    List<BufferViewSchema> getBufferViews() {
+        return bufferViews;
     }
 
     public void addExtension(String name, Extension extension, boolean required) {
@@ -52,22 +55,14 @@ public class GltfContext {
         return scene;
     }
 
-    public MeshSchema convertMesh(Model model) {
-        return modelMapper.map(model);
-    }
-
-    public SkinSchema convertSkeleton(Skeleton skeleton) {
-        return skeletonMapper.map(skeleton, nodes.size());
-    }
-
     public MeshId addMesh(Model model) {
-        meshes.add(convertMesh(model));
+        meshes.add(modelMapper.map(model));
         return MeshId.of(meshes.size() - 1);
     }
 
     public AbstractMap.SimpleEntry<NodeId, SkinId> addSkin(Skeleton skeleton) {
         var skeletonRootNodeId = NodeId.of(nodes.size());
-        var skin = convertSkeleton(skeleton);
+        var skin = skeletonMapper.map(skeleton, nodes.size());
         skins.add(skin);
         return new AbstractMap.SimpleEntry<>(skeletonRootNodeId, SkinId.of(skins.size() - 1));
     }
@@ -91,7 +86,6 @@ public class GltfContext {
     public TextureId allocateTextureId(String textureName) {
         var textureId = allocatedTextures.indexOf(textureName);
         if (textureId == -1) {
-            System.out.println("Allocating " + textureName);
             allocatedTextures.add(textureName);
             return TextureId.of(allocatedTextures.size() - 1);
         } else {

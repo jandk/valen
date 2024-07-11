@@ -9,9 +9,9 @@ import java.util.*;
  */
 @SchemaStyle
 @Value.Immutable(copy = false)
-public interface NormalTextureInfoDef extends TextureInfoDef {
+public interface OcclusionTextureInfoDef extends TextureInfoDef {
     /**
-     * The scalar parameter applied to each normal vector of the normal texture.
+     * A scalar multiplier controlling the amount of occlusion applied.
      */
-    OptionalDouble getScale();
+    OptionalDouble getStrength();
 }

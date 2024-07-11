@@ -4,29 +4,34 @@ import be.twofold.valen.core.material.*;
 import be.twofold.valen.export.gltf.*;
 import be.twofold.valen.export.gltf.model.*;
 
-final class GltfMaterialMapper {
+public final class GltfMaterialMapper {
     private final GltfContext context;
 
-    GltfMaterialMapper(GltfContext context) {
+    public GltfMaterialMapper(GltfContext context) {
         this.context = context;
     }
 
     MaterialSchema map(Material material) {
-        MaterialSchema.Builder builder = MaterialSchema.builder().name(material.name());
-        PbrMetallicRoughnessSchema.Builder pbrBuilder = PbrMetallicRoughnessSchema.builder();
-        for (TextureReference texture : material.textures()) {
-            if (texture.type() == TextureType.Albedo) {
-                var textureId = context.allocateTextureId(texture.filename());
-                pbrBuilder.baseColorTexture(TextureInfoSchema.builder().index(textureId).build());
-            } else if (texture.type() == TextureType.Normal) {
-                var textureId = context.allocateTextureId(texture.filename());
-                builder.normalTexture(NormalTextureInfoSchema.builder().index(textureId).build());
-            } else if (texture.type() == TextureType.Smoothness) {
-                var textureId = context.allocateTextureId(texture.filename());
-                pbrBuilder.metallicRoughnessTexture(TextureInfoSchema.builder().index(textureId).build());
+        var builder = MaterialSchema.builder().name(material.name());
+        var pbrBuilder = PbrMetallicRoughnessSchema.builder();
+        for (var texture : material.textures()) {
+            switch (texture.type()) {
+                case Albedo -> {
+                    var textureId = context.allocateTextureId(texture.filename());
+                    pbrBuilder.baseColorTexture(TextureInfoSchema.builder().index(textureId).build());
+                }
+                case Normal -> {
+                    var textureId = context.allocateTextureId(texture.filename());
+                    builder.normalTexture(NormalTextureInfoSchema.builder().index(textureId).build());
+                }
+                case Smoothness -> {
+                    var textureId = context.allocateTextureId(texture.filename());
+                    pbrBuilder.metallicRoughnessTexture(TextureInfoSchema.builder().index(textureId).build());
+                }
             }
         }
-        builder.pbrMetallicRoughness(pbrBuilder.build());
-        return builder.build();
+        return builder
+            .pbrMetallicRoughness(pbrBuilder.build())
+            .build();
     }
 }

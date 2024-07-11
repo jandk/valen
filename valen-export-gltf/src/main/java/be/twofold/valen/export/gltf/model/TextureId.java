@@ -8,8 +8,4 @@ public final class TextureId extends AbstractId {
     public static TextureId of(int id) {
         return new TextureId(id);
     }
-
-    public TextureId add(int offset) {
-        return new TextureId(getId() + offset);
-    }
 }
