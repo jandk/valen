@@ -8,20 +8,22 @@ import java.nio.*;
 import java.util.*;
 
 public class GltfContext {
+    private final Map<String, Extension> extensions = new TreeMap<>();
+    private final List<String> extensionsUsed = new ArrayList<>();
+    private final List<String> extensionsRequired = new ArrayList<>();
     private final List<AccessorSchema> accessors = new ArrayList<>();
-    private final List<BufferViewSchema> bufferViews = new ArrayList<>();
+    private final List<AnimationSchema> animations = new ArrayList<>();
     private final List<BufferSchema> buffers = new ArrayList<>();
+    private final List<BufferViewSchema> bufferViews = new ArrayList<>();
+    private final List<CameraSchema> cameras = new ArrayList<>();
+    private final List<ImageSchema> images = new ArrayList<>();
+    private final List<MaterialSchema> materials = new ArrayList<>();
     private final List<MeshSchema> meshes = new ArrayList<>();
     private final List<NodeSchema> nodes = new ArrayList<>();
+    private final List<SamplerSchema> samplers = new ArrayList<>();
     private final List<SceneSchema> scenes = new ArrayList<>();
     private final List<SkinSchema> skins = new ArrayList<>();
-    private final List<AnimationSchema> animations = new ArrayList<>();
-    private final List<String> usedExtensions = new ArrayList<>();
-    private final List<String> requiredExtensions = new ArrayList<>();
-    private final Map<String, Extension> extensions = new HashMap<>();
-    private final List<MaterialSchema> materials = new ArrayList<>();
     private final List<TextureSchema> textures = new ArrayList<>();
-    private final List<ImageSchema> images = new ArrayList<>();
 
     private final List<String> allocatedTextures = new ArrayList<>();
 
@@ -40,9 +42,9 @@ public class GltfContext {
     }
 
     public void addExtension(String name, Extension extension, boolean required) {
-        usedExtensions.add(name);
+        extensionsUsed.add(name);
         if (required) {
-            requiredExtensions.add(name);
+            extensionsRequired.add(name);
         }
         extensions.put(name, extension);
     }
@@ -151,21 +153,23 @@ public class GltfContext {
             .build();
 
         return GltfSchema.builder()
-            .asset(asset)
+            .extensions(extensions)
+            .extensionsUsed(extensionsUsed)
+            .extensionsRequired(extensionsRequired)
             .accessors(accessors)
             .animations(animations)
-            .bufferViews(bufferViews)
+            .asset(asset)
             .buffers(buffers)
+            .bufferViews(bufferViews)
+            .cameras(cameras)
+            .images(images)
+            .materials(materials)
             .meshes(meshes)
             .nodes(nodes)
+            .samplers(samplers)
             .scenes(scenes)
             .skins(skins)
-            .extensionsUsed(usedExtensions)
-            .extensionsRequired(requiredExtensions)
-            .extensions(extensions)
-            .materials(materials)
             .textures(textures)
-            .images(images)
             .build();
     }
 }

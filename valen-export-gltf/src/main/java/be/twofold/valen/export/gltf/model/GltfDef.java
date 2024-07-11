@@ -11,11 +11,6 @@ import java.util.*;
 @Value.Immutable(copy = false)
 public interface GltfDef extends GltfProperty {
     /**
-     * The index of the default scene.
-     */
-    OptionalInt getDefaultScene();
-
-    /**
      * Names of glTF extensions used in this asset.
      */
     List<String> getExtensionsUsed();
@@ -79,6 +74,11 @@ public interface GltfDef extends GltfProperty {
      * An array of samplers.
      */
     List<SamplerSchema> getSamplers();
+
+    /**
+     * The index of the default scene.
+     */
+    OptionalInt getScene();
 
     /**
      * An array of scenes.

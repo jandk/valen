@@ -8,8 +8,4 @@ public final class ImageId extends AbstractId {
     public static ImageId of(int id) {
         return new ImageId(id);
     }
-
-    public ImageId add(int offset) {
-        return new ImageId(getId() + offset);
-    }
 }
