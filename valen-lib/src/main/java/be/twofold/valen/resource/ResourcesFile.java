@@ -5,24 +5,20 @@ import be.twofold.valen.core.util.*;
 import be.twofold.valen.reader.resource.*;
 
 import java.io.*;
-import java.nio.channels.*;
 import java.nio.file.*;
 import java.util.*;
 import java.util.function.*;
 import java.util.stream.*;
 
 public final class ResourcesFile implements AutoCloseable {
-    private final Path path;
     private final Map<ResourceKey, Resource> index;
-    private SeekableByteChannel channel;
     private DataSource source;
 
     public ResourcesFile(Path path) throws IOException {
         System.out.println("Loading resources: " + path);
 
-        this.path = path;
-        this.channel = Files.newByteChannel(path, StandardOpenOption.READ);
-        this.source = new ChannelDataSource(this.channel);
+        var channel = Files.newByteChannel(path, StandardOpenOption.READ);
+        this.source = new ChannelDataSource(channel);
         var resources = mapResources(Resources.read(source));
 
         this.index = resources.stream()
@@ -43,7 +39,8 @@ public final class ResourcesFile implements AutoCloseable {
     public byte[] read(ResourceKey key) throws IOException {
         var entry = index.get(key);
         Check.argument(entry != null, () -> String.format("Unknown resource: %s", key));
-        return IOUtils.read(channel, entry.offset(), entry.compressedSize());
+        source.seek(entry.offset());
+        return source.readBytes(entry.compressedSize());
     }
 
     private List<Resource> mapResources(Resources resources) {

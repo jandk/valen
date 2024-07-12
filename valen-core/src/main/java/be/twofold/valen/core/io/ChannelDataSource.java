@@ -82,6 +82,7 @@ public final class ChannelDataSource extends DataSource {
 
         bufPos = pos;
         buffer.limit(0);
+        channel.position(pos);
     }
 
     @Override
@@ -151,9 +152,12 @@ public final class ChannelDataSource extends DataSource {
     }
 
     private void refill() {
+        long start = bufPos + buffer.position();
+        long end = Math.min(start + buffer.capacity(), lim);
         buffer.compact();
-        long end = Math.min(bufPos + buffer.remaining(), lim);
-        buffer.limit((int) (buffer.position() + end - bufPos));
+
+        bufPos = start;
+        buffer.limit((int) (end - start));
         readInternal(buffer);
         buffer.flip();
     }
