@@ -77,8 +77,7 @@ public final class ResourcesFile implements AutoCloseable {
     @Override
     public void close() throws IOException {
         if (source != null) {
-            // TODO: Implement autocloseable
-            // source.close();
+            source.close();
             source = null;
         }
     }

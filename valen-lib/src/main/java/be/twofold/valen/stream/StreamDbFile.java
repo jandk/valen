@@ -11,7 +11,7 @@ import java.util.stream.*;
 
 public final class StreamDbFile implements AutoCloseable {
     private final Map<Long, StreamDbEntry> entries;
-    private final DataSource source;
+    private DataSource source;
 
     public StreamDbFile(Path path) throws IOException {
         System.out.println("Loading streamdb: " + path);
@@ -38,9 +38,8 @@ public final class StreamDbFile implements AutoCloseable {
     @Override
     public void close() throws IOException {
         if (source != null) {
-            // TODO: Implement autocloseable
-            // source.close();
-            // source = null;
+            source.close();
+            source = null;
         }
     }
 }

@@ -4,7 +4,7 @@ import java.io.*;
 import java.nio.charset.*;
 import java.util.*;
 
-public abstract class DataSource {
+public abstract class DataSource implements AutoCloseable {
 
     public abstract byte readByte() throws IOException;
 
@@ -19,6 +19,8 @@ public abstract class DataSource {
     public abstract void seek(long pos) throws IOException;
 
     public abstract long size();
+
+    public abstract void close() throws IOException;
 
     public void skip(long count) throws IOException {
         seek(tell() + count);

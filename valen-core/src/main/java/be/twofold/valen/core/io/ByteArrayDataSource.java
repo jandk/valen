@@ -68,6 +68,11 @@ public final class ByteArrayDataSource extends DataSource {
         return lim - offset;
     }
 
+    @Override
+    public void close() {
+        // Do nothing
+    }
+
     public ByteArrayDataSource slice(int offset, int length) {
         Objects.checkFromIndexSize(offset, length, lim - this.offset);
         return new ByteArrayDataSource(bytes, this.offset + offset, length);

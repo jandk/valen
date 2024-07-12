@@ -126,6 +126,11 @@ public final class ChannelDataSource extends DataSource {
         return buffer.getDouble();
     }
 
+    @Override
+    public void close() throws IOException {
+        channel.close();
+    }
+
     //
     // Helper methods
     //

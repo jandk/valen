@@ -47,4 +47,9 @@ public final class InputStreamDataSource extends DataSource {
     public long size() {
         throw new UnsupportedOperationException();
     }
+
+    @Override
+    public void close() throws IOException {
+        stream.close();
+    }
 }
