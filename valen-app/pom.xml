@@ -24,12 +24,6 @@
             <groupId>be.twofold</groupId>
             <artifactId>valen-ui</artifactId>
         </dependency>
-
-        <!-- External -->
-        <dependency>
-            <groupId>com.formdev</groupId>
-            <artifactId>flatlaf-extras</artifactId>
-        </dependency>
     </dependencies>
 
 </project>

@@ -1,61 +1,92 @@
 package be.twofold.valen.ui;
 
+import be.twofold.tinybcdec.*;
+import be.twofold.valen.core.texture.*;
+import be.twofold.valen.manager.*;
 import be.twofold.valen.resource.*;
 import jakarta.inject.*;
+import javafx.scene.control.*;
 
-import javax.swing.tree.*;
 import java.util.*;
 
-public class MainPresenter {
-    private final MainView view;
-    private Collection<Resource> entries;
+public class MainPresenter extends AbstractPresenter<MainView> {
+    private FileManager fileManager;
 
     @Inject
     MainPresenter(MainView view) {
-        this.view = view;
-        this.view.addListener(this::loadResources);
+        super(view);
+
+        getView().addListener(new MainViewListener() {
+            @Override
+            public void onPathSelected(String path) {
+                loadResources(path);
+            }
+
+            @Override
+            public void onResourceSelected(Resource resource) {
+                if (resource.type() == ResourceType.Image) {
+                    decodeImage(resource.name().name());
+                }
+            }
+        });
     }
 
-    public void show() {
-        view.show();
+    public void setFileManager(FileManager fileManager) {
+        this.fileManager = fileManager;
+        setResources(fileManager.getEntries());
+    }
+
+    private void decodeImage(String name) {
+        Texture texture = fileManager.readResource(FileType.Image, name);
+        var decoder = switch (texture.format()) {
+            case Bc1UNorm, Bc1UNormSrgb -> BlockDecoder.create(BlockFormat.BC1, PixelOrder.BGRA);
+            case Bc3UNorm, Bc3UNormSrgb -> BlockDecoder.create(BlockFormat.BC3, PixelOrder.BGRA);
+            case Bc4UNorm -> BlockDecoder.create(BlockFormat.BC4Unsigned, PixelOrder.BGRA);
+            case Bc5UNorm -> BlockDecoder.create(BlockFormat.BC5UnsignedNormalized, PixelOrder.BGRA);
+            case Bc7UNorm, Bc7UNormSrgb -> BlockDecoder.create(BlockFormat.BC7, PixelOrder.BGRA);
+            default -> null;
+        };
+
+        if (decoder != null) {
+            byte[] decoded = decoder.decode(texture.width(), texture.height(), texture.surfaces().getFirst().data(), 0);
+            getView().setImage(decoded, texture.width(), texture.height());
+        }
     }
 
     public void setResources(Collection<Resource> entries) {
-        this.entries = entries;
-        view.setFileTree(convert(buildNodeTree(entries)));
+        Node node = buildNodeTree(entries);
+        TreeItem<String> convert = convert(node);
+        getView().setFileTree(convert);
     }
 
     private void loadResources(String path) {
-        if (entries == null) {
-            return;
-        }
-        var resources = entries.stream()
+        var resources = fileManager.getEntries().stream()
             .filter(r -> r.name().path().equals(path))
             .toList();
 
-        view.setResources(resources);
+        getView().setResources(resources);
     }
 
-    private MutableTreeNode convert(Node node) {
-        List<Node> children = node.children.entrySet().stream()
+    private TreeItem<String> convert(Node node) {
+        var children = node.children.entrySet().stream()
             .sorted(Map.Entry.comparingByKey(NaturalOrderComparator.instance()))
             .map(Map.Entry::getValue)
             .toList();
 
-        var item = new DefaultMutableTreeNode(node.name);
-        for (Node child : children) {
-            item.add(convert(child));
+        var item = new TreeItem<>(node.name);
+        for (var child : children) {
+            item.getChildren().add(convert(child));
         }
         return item;
     }
 
     private Node buildNodeTree(Collection<Resource> entries) {
-        Node root = new Node("root");
-        for (Resource entry : entries) {
-            Node node = root;
-            String path = entry.name().path();
+        var root = new Node("root");
+        for (var entry : entries) {
+            var node = root;
+            var path = entry.name().path();
             if (!path.isEmpty()) {
-                for (String s : path.split("/")) {
+                for (var s : path.split("/")) {
                     node = node.get(s);
                 }
             }

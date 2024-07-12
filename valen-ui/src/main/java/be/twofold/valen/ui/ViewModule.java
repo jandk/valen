@@ -7,6 +7,6 @@ import dagger.*;
 abstract class ViewModule {
 
     @Binds
-    abstract MainView bindMainView(MainViewImpl mainView);
+    abstract MainView bindMainView(MainViewFx mainView);
 
 }

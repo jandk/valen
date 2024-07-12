@@ -1,17 +1,17 @@
 package be.twofold.valen.ui;
 
 import be.twofold.valen.resource.*;
+import javafx.scene.control.*;
 
-import javax.swing.tree.*;
 import java.util.*;
 
-public interface MainView {
+public interface MainView extends View {
 
-    void show();
-
-    void setFileTree(TreeNode root);
+    void setFileTree(TreeItem<String> root);
 
     void setResources(List<Resource> resources);
+
+    void setImage(byte[] rgba, int width, int height);
 
     void addListener(MainViewListener listener);
 
