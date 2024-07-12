@@ -1,4 +1,4 @@
-package be.twofold.valen.export.gltf;
+package be.twofold.valen.export.gltf.glb;
 
 import java.nio.*;
 

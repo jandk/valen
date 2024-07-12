@@ -9,6 +9,7 @@ public final class NodeId extends AbstractId {
         return new NodeId(id);
     }
 
+    // TODO: Check if this is needed
     public NodeId add(int offset) {
         return new NodeId(getId() + offset);
     }
