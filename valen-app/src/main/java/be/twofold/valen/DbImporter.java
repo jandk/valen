@@ -54,11 +54,11 @@ public final class DbImporter {
             timestamp        timestamp    not null,
             version          int          not null,
             flags            int          not null,
-            compMode         int          not null
+            compMode         varchar(255) not null
         );
         """;
 
-    private static final Path BASE = Path.of("D:\\Games\\Steam\\steamapps\\common\\DOOMEternal\\base\\");
+    private static final Path BASE = Path.of("D:\\Backup\\DOOMEternal\\base\\");
     private final Connection connection;
 
     public DbImporter(Connection connection) {
