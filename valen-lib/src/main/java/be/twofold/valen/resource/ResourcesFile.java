@@ -1,7 +1,6 @@
 package be.twofold.valen.resource;
 
 import be.twofold.valen.core.io.*;
-import be.twofold.valen.core.util.*;
 import be.twofold.valen.reader.resource.*;
 
 import java.io.*;
@@ -19,8 +18,8 @@ public final class ResourcesFile implements AutoCloseable {
 
         var channel = Files.newByteChannel(path, StandardOpenOption.READ);
         this.source = new ChannelDataSource(channel);
-        var resources = mapResources(Resources.read(source));
 
+        var resources = mapResources(Resources.read(source));
         this.index = resources.stream()
             .collect(Collectors.toUnmodifiableMap(
                 Resource::key,
@@ -28,20 +27,20 @@ public final class ResourcesFile implements AutoCloseable {
             ));
     }
 
+
+    public Optional<Resource> get(ResourceKey key) {
+        return Optional.ofNullable(index.get(key));
+    }
+
+    public byte[] read(Resource resource) throws IOException {
+        source.seek(resource.offset());
+        return source.readBytes(resource.compressedSize());
+    }
+
     public Collection<Resource> getResources() {
         return index.values();
     }
 
-    public Resource getEntry(ResourceKey key) {
-        return index.get(key);
-    }
-
-    public byte[] read(ResourceKey key) throws IOException {
-        var entry = index.get(key);
-        Check.argument(entry != null, () -> String.format("Unknown resource: %s", key));
-        source.seek(entry.offset());
-        return source.readBytes(entry.compressedSize());
-    }
 
     private List<Resource> mapResources(Resources resources) {
         return resources.entries().stream()
@@ -53,10 +52,12 @@ public final class ResourcesFile implements AutoCloseable {
         var type = resources.pathStrings().get(resources.pathStringIndex()[entry.strings()]);
         var name = resources.pathStrings().get(resources.pathStringIndex()[entry.strings() + 1]);
 
+        var resourceName = new ResourceName(name);
+        var resourceType = ResourceType.fromName(type);
+        var resourceVariation = ResourceVariation.fromValue(entry.variation());
+        var resourceKey = new ResourceKey(resourceName, resourceType, resourceVariation);
         return new Resource(
-            new ResourceName(name),
-            ResourceType.fromName(type),
-            ResourceVariation.fromValue(entry.variation()),
+            resourceKey,
             entry.dataOffset(),
             entry.dataSize(),
             entry.uncompressedSize(),

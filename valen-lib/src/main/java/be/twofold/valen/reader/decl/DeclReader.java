@@ -71,7 +71,7 @@ public final class DeclReader implements ResourceReader<JsonObject> {
         return result.getAsJsonObject("edit");
     }
 
-    private JsonObject loadInherit(JsonObject object, String name) {
+    private JsonObject loadInherit(JsonObject object, String name) throws IOException {
         if (!object.has("inherit")) {
             return object;
         }
@@ -86,7 +86,7 @@ public final class DeclReader implements ResourceReader<JsonObject> {
         }
 
         var fullName = RootPrefix + key + ".decl";
-        parent = fileManager.get().readResource(FileType.Declaration, fullName);
+        parent = fileManager.get().readResource(fullName, FileType.Declaration);
         parent = loadInherit(parent, fullName);
         declCache.put(key, parent);
         return merge(parent, object);

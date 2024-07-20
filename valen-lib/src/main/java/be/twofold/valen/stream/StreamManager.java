@@ -17,7 +17,7 @@ public final class StreamManager {
 
     private Path base;
     private PackageMapSpec spec;
-    private Map<Long, StreamDbFile> index;
+    private List<StreamDbFile> files;
 
     @Inject
     StreamManager(DecompressorService decompressorService) {
@@ -31,27 +31,30 @@ public final class StreamManager {
         loadFiles();
     }
 
-    public boolean contains(long identity) {
-        return index.containsKey(identity);
+    public boolean exists(long identity) {
+        return files.stream()
+            .anyMatch(f -> f.get(identity).isPresent());
     }
 
-    public byte[] read(long identity, int uncompressedSize) {
-        var file = index.get(identity);
-        Check.argument(file != null, () -> String.format("Unknown stream: 0x%016x", identity));
-
-        try {
-            var compressed = file.read(identity);
-            if (compressed.length == uncompressedSize) {
-                return compressed;
-            }
-
-            var decompressed = new byte[uncompressedSize];
-            decompressorService.decompress(ByteBuffer.wrap(compressed), ByteBuffer.wrap(decompressed), CompressionType.Kraken);
-            return decompressed;
-        } catch (IOException e) {
-            System.out.println("Error reading stream: " + identity);
-            throw new UncheckedIOException(e);
+    public byte[] read(long identity, int uncompressedSize) throws IOException {
+        var compressed = read(identity);
+        if (compressed.length == uncompressedSize) {
+            return compressed;
         }
+
+        var decompressed = new byte[uncompressedSize];
+        decompressorService.decompress(ByteBuffer.wrap(compressed), ByteBuffer.wrap(decompressed), CompressionType.Kraken);
+        return decompressed;
+    }
+
+    private byte[] read(long identity) throws IOException {
+        for (var file : files) {
+            var entry = file.get(identity);
+            if (entry.isPresent()) {
+                return file.read(entry.get());
+            }
+        }
+        throw new IOException(String.format("Unknown stream: 0x%016x", identity));
     }
 
     private void loadFiles() throws IOException {
@@ -60,14 +63,10 @@ public final class StreamManager {
             .map(base::resolve)
             .toList();
 
-        var index = new HashMap<Long, StreamDbFile>();
+        var files = new ArrayList<StreamDbFile>();
         for (var path : paths) {
-            var file = new StreamDbFile(path);
-            for (var entry : file.getEntries()) {
-                index.putIfAbsent(entry.identity(), file);
-            }
+            files.add(new StreamDbFile(path));
         }
-
-        this.index = Map.copyOf(index);
+        this.files = List.copyOf(files);
     }
 }

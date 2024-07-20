@@ -37,8 +37,7 @@ public final class PackageMapSpecReader {
                 .computeIfAbsent(maps.get(map), __ -> new ArrayList<>())
                 .add(files.get(file));
         }
-        mapFiles.replaceAll((k, v) -> List.copyOf(v));
-        return new PackageMapSpec(files, maps, Map.copyOf(mapFiles));
+        return new PackageMapSpec(files, maps, mapFiles);
     }
 
     private static List<String> mapNames(JsonArray array) {

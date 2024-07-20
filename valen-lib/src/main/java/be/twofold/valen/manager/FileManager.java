@@ -58,12 +58,14 @@ public final class FileManager {
         resourceManager.select(map);
     }
 
-    public byte[] readRawResource(Resource resource) {
+    public byte[] readRawResource(Resource resource) throws IOException {
         return resourceManager.read(resource);
     }
 
-    public <T> T readResource(FileType<T> type, String name) {
-        var entry = resourceManager.get(name, type.resourceType());
+    public <T> T readResource(String name, FileType<T> type) throws IOException {
+        var entry = resourceManager.get(name, type.resourceType())
+            .orElseThrow(() -> new IllegalArgumentException("Resource not found: " + name));
+
         var reader = readers.stream()
             .filter(r -> r.canRead(entry))
             .findFirst()
@@ -86,10 +88,10 @@ public final class FileManager {
     }
 
     public boolean containsStream(long identity) {
-        return streamManager.contains(identity);
+        return streamManager.exists(identity);
     }
 
-    public byte[] readStream(long identity, int uncompressedSize) {
+    public byte[] readStream(long identity, int uncompressedSize) throws IOException {
         return streamManager.read(identity, uncompressedSize);
     }
 

@@ -11,11 +11,22 @@ import java.nio.file.*;
 import java.util.*;
 
 @Singleton
-public final class ResourceManager implements AutoCloseable {
-    private final List<ResourcesFile> files = new ArrayList<>();
-    private final Map<ResourceKey, ResourcesFile> keyIndex = new HashMap<>();
-    private final Map<String, Map<ResourceKey, Resource>> nameIndex = new HashMap<>();
+public final class ResourceManager {
+    private static final Map<ResourceType, Set<ResourceVariation>> Variations = new EnumMap<>(Map.of(
+        ResourceType.HavokShape, EnumSet.of(ResourceVariation.HkMsvc64),
+        ResourceType.HkNavMesh, EnumSet.of(ResourceVariation.HkMsvc64),
+        ResourceType.HkNavMeshMediator, EnumSet.of(ResourceVariation.HkMsvc64),
+        ResourceType.HkNavVolume, EnumSet.of(ResourceVariation.HkMsvc64),
+        ResourceType.HkNavVolumeMediator, EnumSet.of(ResourceVariation.HkMsvc64),
+        ResourceType.RenderProgResource, EnumSet.of(
+            ResourceVariation.RenderProgVulkanPcAmd,
+            ResourceVariation.RenderProgVulkanPcAmdRetail,
+            ResourceVariation.RenderProgVulkanPcBase,
+            ResourceVariation.RenderProgVulkanPcBaseRetail
+        )
+    ));
 
+    private final List<ResourcesFile> files = new ArrayList<>();
     private final DecompressorService decompressorService;
 
     private Path base;
@@ -32,29 +43,36 @@ public final class ResourceManager implements AutoCloseable {
     }
 
     public boolean exists(String name, ResourceType type) {
-        var map = nameIndex.get(name);
-        return map != null && map.values().stream()
-            .anyMatch(r -> r.type() == type);
+        return get(name, type).isPresent();
     }
 
-    public Resource get(String name, ResourceType type) {
-        return get(name, type, ResourceVariation.None);
+    public boolean exists(ResourceKey key) {
+        return get(key).isPresent();
     }
 
-    public Resource get(
-        String name,
-        ResourceType type,
-        ResourceVariation variation
-    ) {
-        var matches = nameIndex.get(name.toLowerCase());
-        if (matches == null) {
-            // Sometimes files are straight up missing
-            return null;
+    public Optional<Resource> get(String name, ResourceType type) {
+        return get(mapToKey(name, type));
+    }
+
+    public Optional<Resource> get(ResourceKey key) {
+        return files.stream()
+            .flatMap(f -> f.get(key).stream())
+            .findFirst();
+    }
+
+    private ResourceKey mapToKey(String name, ResourceType type) {
+        var variations = Variations
+            .getOrDefault(type, Set.of(ResourceVariation.None));
+
+        if (variations.size() > 1) {
+            throw new IllegalArgumentException("Multiple variations found for type: " + type + " (" + variations + ")");
         }
-        return matches.values().stream()
-            .filter(e -> e.type() == type && e.variation() == variation)
-            .findFirst()
-            .orElseThrow(() -> new IllegalArgumentException("Resource found with wrong type or variation: " + name));
+
+        return new ResourceKey(
+            new ResourceName(name),
+            type,
+            variations.iterator().next()
+        );
     }
 
 
@@ -65,27 +83,31 @@ public final class ResourceManager implements AutoCloseable {
             .toList();
     }
 
-
-    public byte[] read(Resource resource) {
-        var file = keyIndex.get(resource.key());
-        Check.argument(file != null, () -> "Unknown resource: " + resource.key());
-
-        try {
-            var compressed = file.read(resource.key());
-            var decompressed = new byte[resource.uncompressedSize()];
-            decompressorService.decompress(ByteBuffer.wrap(compressed), ByteBuffer.wrap(decompressed), resource.compression());
-            return decompressed;
-        } catch (IOException e) {
-            System.out.println("Error reading resource: " + resource.key());
-            throw new UncheckedIOException(e);
+    public byte[] read(Resource resource) throws IOException {
+        var compressed = read(resource.key());
+        if (compressed.length == resource.uncompressedSize()) {
+            return compressed;
         }
+
+        var decompressed = new byte[resource.uncompressedSize()];
+        decompressorService.decompress(ByteBuffer.wrap(compressed), ByteBuffer.wrap(decompressed), resource.compression());
+        return decompressed;
+    }
+
+    private byte[] read(ResourceKey key) throws IOException {
+        for (var file : files) {
+            var entry = file.get(key);
+            if (entry.isPresent()) {
+                return file.read(entry.get());
+            }
+        }
+        throw new IOException("Unknown resource: " + key);
     }
 
     public void select(String map) throws IOException {
         var mapFiles = spec.mapFiles().get(map);
         Check.argument(mapFiles != null, () -> "Unknown map: " + map);
 
-        close();
         mapFiles = new ArrayList<>(mapFiles);
         mapFiles.addAll(0, spec.mapFiles().get("common"));
         mapFiles.addAll(0, spec.mapFiles().get("warehouse"));
@@ -95,36 +117,12 @@ public final class ResourceManager implements AutoCloseable {
             .map(base::resolve)
             .toList();
 
-        files.clear();
-        keyIndex.clear();
-        nameIndex.clear();
-
-        for (var path : paths) {
-            ResourcesFile file = new ResourcesFile(path);
-
-            files.add(file);
-            for (Resource resource : file.getResources()) {
-                index(file, resource);
-            }
-        }
-
-        nameIndex.replaceAll((key, value) -> Map.copyOf(value));
-    }
-
-
-    private void index(ResourcesFile file, Resource resource) {
-        var key = resource.key();
-        keyIndex.putIfAbsent(key, file);
-        nameIndex
-            .computeIfAbsent(resource.nameString(), __ -> new HashMap<>())
-            .putIfAbsent(key, resource);
-    }
-
-    @Override
-    public void close() throws IOException {
         for (var file : files) {
             file.close();
         }
         files.clear();
+        for (var path : paths) {
+            files.add(new ResourcesFile(path));
+        }
     }
 }

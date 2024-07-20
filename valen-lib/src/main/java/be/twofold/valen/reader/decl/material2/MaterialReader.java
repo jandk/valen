@@ -46,7 +46,7 @@ public final class MaterialReader implements ResourceReader<Material> {
         return parseMaterial(object, resource.nameString());
     }
 
-    private Material parseMaterial(JsonObject object, String name) {
+    private Material parseMaterial(JsonObject object, String name) throws IOException {
         var materialName = name
             .replace("generated/decls/material2/", "")
             .replace(".decl", "");
@@ -140,10 +140,13 @@ public final class MaterialReader implements ResourceReader<Material> {
         Map<ImageTextureMaterialKind, RenderParm> renderParms,
         Map<ImageTextureMaterialKind, String> filenames,
         Map<ImageTextureMaterialKind, MaterialImageOpts> options
-    ) {
+    ) throws IOException {
         for (var entry : parms.entrySet()) {
-            var renderParm = RenderParmCache
-                .computeIfAbsent(entry.getKey(), this::loadRenderParm);
+            var renderParm = RenderParmCache.get(entry.getKey());
+            if (renderParm == null) {
+                renderParm = loadRenderParm(entry.getKey());
+                RenderParmCache.put(entry.getKey(), renderParm);
+            }
 
             renderParms.put(renderParm.materialKind, renderParm);
 
@@ -161,9 +164,9 @@ public final class MaterialReader implements ResourceReader<Material> {
         }
     }
 
-    private RenderParm loadRenderParm(String name) {
+    private RenderParm loadRenderParm(String name) throws IOException {
         var fullName = "generated/decls/renderparm/" + name + ".decl";
-        return fileManager.get().readResource(FileType.RenderParm, fullName);
+        return fileManager.get().readResource(fullName, FileType.RenderParm);
     }
 
     private MaterialImageOpts parseOptions(JsonObject options) {

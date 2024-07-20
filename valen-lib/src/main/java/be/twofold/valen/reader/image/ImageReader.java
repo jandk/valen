@@ -64,7 +64,7 @@ public final class ImageReader implements ResourceReader<Texture> {
         }
     }
 
-    private void readMultiStream(Image image, long hash) {
+    private void readMultiStream(Image image, long hash) throws IOException {
         for (var i = 0; i < image.header().startMip(); i++) {
             var mip = image.mipInfos().get(i);
             var mipHash = hash << 4 | (image.header().mipCount() - mip.mipLevel());

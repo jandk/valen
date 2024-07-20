@@ -10,7 +10,7 @@ import java.util.function.*;
 import java.util.stream.*;
 
 public final class StreamDbFile implements AutoCloseable {
-    private final Map<Long, StreamDbEntry> entries;
+    private final Map<Long, StreamDbEntry> index;
     private DataSource source;
 
     public StreamDbFile(Path path) throws IOException {
@@ -18,22 +18,25 @@ public final class StreamDbFile implements AutoCloseable {
 
         var channel = Files.newByteChannel(path, StandardOpenOption.READ);
         this.source = new ChannelDataSource(channel);
-        this.entries = StreamDb.read(source).entries().stream()
+
+        var entries = StreamDb.read(source).entries();
+        this.index = entries.stream()
             .collect(Collectors.toUnmodifiableMap(
                 StreamDbEntry::identity,
                 Function.identity()
             ));
     }
 
-    public Collection<StreamDbEntry> getEntries() {
-        return entries.values();
+
+    public Optional<StreamDbEntry> get(long identity) {
+        return Optional.ofNullable(index.get(identity));
     }
 
-    public byte[] read(long identity) throws IOException {
-        var entry = entries.get(identity);
+    public byte[] read(StreamDbEntry entry) throws IOException {
         source.seek(entry.offset());
         return source.readBytes(entry.length());
     }
+
 
     @Override
     public void close() throws IOException {

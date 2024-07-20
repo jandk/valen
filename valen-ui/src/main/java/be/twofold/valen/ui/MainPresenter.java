@@ -7,6 +7,7 @@ import be.twofold.valen.resource.*;
 import jakarta.inject.*;
 import javafx.scene.control.*;
 
+import java.io.*;
 import java.util.*;
 
 public class MainPresenter extends AbstractPresenter<MainView> {
@@ -37,7 +38,12 @@ public class MainPresenter extends AbstractPresenter<MainView> {
     }
 
     private void decodeImage(String name) {
-        Texture texture = fileManager.readResource(FileType.Image, name);
+        Texture texture = null;
+        try {
+            texture = fileManager.readResource(name, FileType.Image);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
         var decoder = switch (texture.format()) {
             case Bc1UNorm, Bc1UNormSrgb -> BlockDecoder.create(BlockFormat.BC1, PixelOrder.BGRA);
             case Bc3UNorm, Bc3UNormSrgb -> BlockDecoder.create(BlockFormat.BC3, PixelOrder.BGRA);

@@ -60,7 +60,10 @@ public final class StaticModelReader implements ResourceReader<Model> {
                 var materialName = meshInfo.mtlDecl();
                 var materialFile = "generated/decls/material2/" + materialName + ".decl";
                 var materialIndex = materialIndices.computeIfAbsent(materialName, k -> materials.size());
-                materials.computeIfAbsent(materialName, name -> fileManager.get().readResource(FileType.Material, materialFile));
+                if (!materials.containsKey(materialName)) {
+                    Material material = fileManager.get().readResource(materialFile, FileType.Material);
+                    materials.put(materialName, material);
+                }
                 meshes.add(model.meshes().get(i).withMaterialIndex(materialIndex));
             }
             model = model
