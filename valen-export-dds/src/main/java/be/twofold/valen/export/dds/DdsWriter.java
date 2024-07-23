@@ -1,4 +1,4 @@
-package be.twofold.valen.core.texture.writer.dds;
+package be.twofold.valen.export.dds;
 
 import be.twofold.valen.core.texture.*;
 
@@ -109,25 +109,25 @@ public final class DdsWriter {
 
     private DxgiFormat toDxgiFormat(TextureFormat format) {
         return switch (format) {
-            case R8G8B8A8UNorm -> DxgiFormat.R8G8B8A8_UNORM;
-            case R16G16Float -> DxgiFormat.R16G16_FLOAT;
-            case R8G8UNorm -> DxgiFormat.R8G8_UNORM;
-            case R16Float -> DxgiFormat.R16_FLOAT;
-            case A8UNorm -> DxgiFormat.A8_UNORM;
-            case Bc1UNorm -> DxgiFormat.BC1_UNORM;
-            case Bc1UNormSrgb -> DxgiFormat.BC1_UNORM_SRGB;
-            case Bc2UNorm -> DxgiFormat.BC2_UNORM;
-            case Bc2UNormSrgb -> DxgiFormat.BC2_UNORM_SRGB;
-            case Bc3UNorm -> DxgiFormat.BC3_UNORM;
-            case Bc3UNormSrgb -> DxgiFormat.BC3_UNORM_SRGB;
-            case Bc4UNorm -> DxgiFormat.BC4_UNORM;
-            case Bc4SNorm -> DxgiFormat.BC4_SNORM;
-            case Bc5UNorm -> DxgiFormat.BC5_UNORM;
-            case Bc5SNorm -> DxgiFormat.BC5_SNORM;
-            case Bc6HUFloat16 -> DxgiFormat.BC6H_UF16;
-            case Bc6HSFloat16 -> DxgiFormat.BC6H_SF16;
-            case Bc7UNorm -> DxgiFormat.BC7_UNORM;
-            case Bc7UNormSrgb -> DxgiFormat.BC7_UNORM_SRGB;
+            case TextureFormat.R8G8B8A8UNorm -> DxgiFormat.R8G8B8A8_UNORM;
+            case TextureFormat.R16G16Float -> DxgiFormat.R16G16_FLOAT;
+            case TextureFormat.R8G8UNorm -> DxgiFormat.R8G8_UNORM;
+            case TextureFormat.R16Float -> DxgiFormat.R16_FLOAT;
+            case TextureFormat.A8UNorm -> DxgiFormat.A8_UNORM;
+            case TextureFormat.Bc1UNorm -> DxgiFormat.BC1_UNORM;
+            case TextureFormat.Bc1UNormSrgb -> DxgiFormat.BC1_UNORM_SRGB;
+            case TextureFormat.Bc2UNorm -> DxgiFormat.BC2_UNORM;
+            case TextureFormat.Bc2UNormSrgb -> DxgiFormat.BC2_UNORM_SRGB;
+            case TextureFormat.Bc3UNorm -> DxgiFormat.BC3_UNORM;
+            case TextureFormat.Bc3UNormSrgb -> DxgiFormat.BC3_UNORM_SRGB;
+            case TextureFormat.Bc4UNorm -> DxgiFormat.BC4_UNORM;
+            case TextureFormat.Bc4SNorm -> DxgiFormat.BC4_SNORM;
+            case TextureFormat.Bc5UNorm -> DxgiFormat.BC5_UNORM;
+            case TextureFormat.Bc5SNorm -> DxgiFormat.BC5_SNORM;
+            case TextureFormat.Bc6HUFloat16 -> DxgiFormat.BC6H_UF16;
+            case TextureFormat.Bc6HSFloat16 -> DxgiFormat.BC6H_SF16;
+            case TextureFormat.Bc7UNorm -> DxgiFormat.BC7_UNORM;
+            case TextureFormat.Bc7UNormSrgb -> DxgiFormat.BC7_UNORM_SRGB;
         };
     }
 }

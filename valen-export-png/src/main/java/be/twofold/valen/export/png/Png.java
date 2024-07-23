@@ -1,4 +1,4 @@
-package be.twofold.valen.core.texture.writer.png;
+package be.twofold.valen.export.png;
 
 public record Png(
     PngFormat format,

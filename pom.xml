@@ -11,7 +11,9 @@
     <modules>
         <module>valen-app</module>
         <module>valen-core</module>
+        <module>valen-export-dds</module>
         <module>valen-export-gltf</module>
+        <module>valen-export-png</module>
         <module>valen-jlink</module>
         <module>valen-lib</module>
         <module>valen-ui</module>
@@ -96,7 +98,17 @@
             </dependency>
             <dependency>
                 <groupId>be.twofold</groupId>
+                <artifactId>valen-export-dds</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>be.twofold</groupId>
                 <artifactId>valen-export-gltf</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>be.twofold</groupId>
+                <artifactId>valen-export-png</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

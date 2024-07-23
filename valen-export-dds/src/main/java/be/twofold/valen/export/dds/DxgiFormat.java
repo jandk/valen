@@ -1,4 +1,4 @@
-package be.twofold.valen.core.texture.writer.dds;
+package be.twofold.valen.export.dds;
 
 public enum DxgiFormat {
     UNKNOWN(0),

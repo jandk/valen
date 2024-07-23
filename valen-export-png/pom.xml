@@ -8,6 +8,18 @@
         <version>1.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>valen-core</artifactId>
+    <artifactId>valen-export-png</artifactId>
+
+    <dependencies>
+        <dependency>
+            <groupId>be.twofold</groupId>
+            <artifactId>valen-core</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>be.twofold</groupId>
+            <artifactId>tinybcdec</artifactId>
+        </dependency>
+    </dependencies>
 
 </project>
