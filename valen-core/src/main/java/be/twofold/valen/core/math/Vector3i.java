@@ -15,6 +15,23 @@ public record Vector3i(int x, int y, int z) {
     }
 
     @Override
+    public boolean equals(Object obj) {
+        return this == obj || obj instanceof Vector3i other
+            && x == other.x
+            && y == other.y
+            && z == other.z;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = 1;
+        result = 31 * result + Integer.hashCode(x);
+        result = 31 * result + Integer.hashCode(y);
+        result = 31 * result + Integer.hashCode(z);
+        return result;
+    }
+
+    @Override
     public String toString() {
         return "(" + x + ", " + y + ", " + z + ")";
     }

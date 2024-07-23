@@ -64,6 +64,35 @@ public record Matrix3(
     }
 
     @Override
+    public boolean equals(Object obj) {
+        return this == obj || obj instanceof Matrix3 other
+            && MathF.equals(m00, other.m00)
+            && MathF.equals(m01, other.m01)
+            && MathF.equals(m02, other.m02)
+            && MathF.equals(m10, other.m10)
+            && MathF.equals(m11, other.m11)
+            && MathF.equals(m12, other.m12)
+            && MathF.equals(m20, other.m20)
+            && MathF.equals(m21, other.m21)
+            && MathF.equals(m22, other.m22);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = 1;
+        result = 31 * result + MathF.hashCode(m00);
+        result = 31 * result + MathF.hashCode(m01);
+        result = 31 * result + MathF.hashCode(m02);
+        result = 31 * result + MathF.hashCode(m10);
+        result = 31 * result + MathF.hashCode(m11);
+        result = 31 * result + MathF.hashCode(m12);
+        result = 31 * result + MathF.hashCode(m20);
+        result = 31 * result + MathF.hashCode(m21);
+        result = 31 * result + MathF.hashCode(m22);
+        return result;
+    }
+
+    @Override
     public String toString() {
         return "(" +
             m00 + ", " + m01 + ", " + m02 + ", " +

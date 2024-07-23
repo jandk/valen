@@ -6,8 +6,16 @@ import java.io.*;
 import java.nio.*;
 
 public record Vector3(float x, float y, float z) {
+    public static final Vector3 Zero = new Vector3(0.0f, 0.0f, 0.0f);
+    public static final Vector3 One = new Vector3(1.0f, 1.0f, 1.0f);
+    public static final Vector3 UnitX = new Vector3(1.0f, 0.0f, 0.0f);
+    public static final Vector3 UnitY = new Vector3(0.0f, 1.0f, 0.0f);
+    public static final Vector3 UnitZ = new Vector3(0.0f, 0.0f, 1.0f);
+
+    // TODO: Move this field somewhere else
     public static final int BYTES = 3 * Float.BYTES;
 
+    // TODO: Move this method somewhere else
     public static Vector3 read(DataSource source) throws IOException {
         float x = source.readFloat();
         float y = source.readFloat();
@@ -20,23 +28,31 @@ public record Vector3(float x, float y, float z) {
     }
 
     public Vector3 subtract(Vector3 other) {
-        return new Vector3(x - other.x, y - other.y, z - other.z);
+        return add(other.negate());
     }
 
-    public Vector3 multiply(float s) {
-        return new Vector3(x * s, y * s, z * s);
+    public Vector3 multiply(float scalar) {
+        return new Vector3(x * scalar, y * scalar, z * scalar);
     }
 
-    public Vector3 divide(float s) {
-        return new Vector3(x / s, y / s, z / s);
+    public Vector3 divide(float scalar) {
+        return multiply(1.0f / scalar);
+    }
+
+    public Vector3 negate() {
+        return new Vector3(-x, -y, -z);
+    }
+
+    public float dot(Vector3 other) {
+        return x * other.x + y * other.y + z * other.z;
+    }
+
+    public float lengthSquared() {
+        return dot(this);
     }
 
     public float length() {
         return MathF.sqrt(lengthSquared());
-    }
-
-    public float lengthSquared() {
-        return x * x + y * y + z * z;
     }
 
     public Vector3 normalize() {
@@ -53,6 +69,23 @@ public record Vector3(float x, float y, float z) {
     // TODO: Move this method somewhere else
     public float[] toArray() {
         return new float[]{x, y, z};
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return this == obj || obj instanceof Vector3 other
+            && MathF.equals(x, other.x)
+            && MathF.equals(y, other.y)
+            && MathF.equals(z, other.z);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = 1;
+        result = 31 * result + MathF.hashCode(x);
+        result = 31 * result + MathF.hashCode(y);
+        result = 31 * result + MathF.hashCode(z);
+        return result;
     }
 
     @Override

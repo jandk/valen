@@ -34,6 +34,49 @@ public record Matrix4(
     }
 
     @Override
+    public boolean equals(Object obj) {
+        return this == obj || obj instanceof Matrix4 other
+            && MathF.equals(m00, other.m00)
+            && MathF.equals(m01, other.m01)
+            && MathF.equals(m02, other.m02)
+            && MathF.equals(m03, other.m03)
+            && MathF.equals(m10, other.m10)
+            && MathF.equals(m11, other.m11)
+            && MathF.equals(m12, other.m12)
+            && MathF.equals(m13, other.m13)
+            && MathF.equals(m20, other.m20)
+            && MathF.equals(m21, other.m21)
+            && MathF.equals(m22, other.m22)
+            && MathF.equals(m23, other.m23)
+            && MathF.equals(m30, other.m30)
+            && MathF.equals(m31, other.m31)
+            && MathF.equals(m32, other.m32)
+            && MathF.equals(m33, other.m33);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = 1;
+        result = 31 * result + MathF.hashCode(m00);
+        result = 31 * result + MathF.hashCode(m01);
+        result = 31 * result + MathF.hashCode(m02);
+        result = 31 * result + MathF.hashCode(m03);
+        result = 31 * result + MathF.hashCode(m10);
+        result = 31 * result + MathF.hashCode(m11);
+        result = 31 * result + MathF.hashCode(m12);
+        result = 31 * result + MathF.hashCode(m13);
+        result = 31 * result + MathF.hashCode(m20);
+        result = 31 * result + MathF.hashCode(m21);
+        result = 31 * result + MathF.hashCode(m22);
+        result = 31 * result + MathF.hashCode(m23);
+        result = 31 * result + MathF.hashCode(m30);
+        result = 31 * result + MathF.hashCode(m31);
+        result = 31 * result + MathF.hashCode(m32);
+        result = 31 * result + MathF.hashCode(m33);
+        return result;
+    }
+
+    @Override
     public String toString() {
         return "(" +
             m00 + ", " + m01 + ", " + m02 + ", " + m03 + ", " +
