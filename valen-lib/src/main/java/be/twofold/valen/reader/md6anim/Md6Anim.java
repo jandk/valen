@@ -21,6 +21,9 @@ public record Md6Anim(
         var start = Math.toIntExact(source.tell());
         var data = Md6AnimData.read(source);
         var animMaps = readAnimMaps(source);
+        if (animMaps.size() > 1) {
+            System.out.println("Multiple animMaps found, using the first one");
+        }
 
         var animMap = animMaps.getFirst();
         var constR = readFrom(source, start + data.constROffset(), s -> s.readStructs(animMap.constR().length, Md6Anim::decodeQuat));
@@ -35,10 +38,6 @@ public record Md6Anim(
             var frameSetOffset = start + frameSetOffsetTable[i] * 16;
             var frameSet = readFrom(source, frameSetOffset, s -> readFrameSet(s, frameSetOffset, animMap));
             frameSets.add(frameSet);
-        }
-
-        if (animMaps.size() != 1) {
-            throw new UnsupportedOperationException("Only one anim map is supported");
         }
 
         return new Md6Anim(header, data, animMaps, frameSets, constR, constS, constT);
@@ -140,7 +139,7 @@ public record Md6Anim(
                 continue;
             }
 
-            int value = source.readByte();
+            int value = Byte.toUnsignedInt(source.readByte());
             for (var i = 0; i < count; i++) {
                 result[o++] = value + i;
             }

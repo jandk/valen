@@ -2,6 +2,7 @@ package be.twofold.valen.reader.md6model;
 
 import be.twofold.valen.core.geometry.*;
 import be.twofold.valen.core.io.*;
+import be.twofold.valen.core.material.*;
 import be.twofold.valen.manager.*;
 import be.twofold.valen.reader.*;
 import be.twofold.valen.reader.geometry.*;
@@ -15,10 +16,16 @@ import java.util.*;
 
 public final class Md6ModelReader implements ResourceReader<Model> {
     private final Lazy<FileManager> fileManager;
+    private final boolean readMaterials;
 
     @Inject
     Md6ModelReader(Lazy<FileManager> fileManager) {
+        this(fileManager, true);
+    }
+
+    Md6ModelReader(Lazy<FileManager> fileManager, boolean readMaterials) {
         this.fileManager = fileManager;
+        this.readMaterials = readMaterials;
     }
 
     @Override
@@ -30,7 +37,28 @@ public final class Md6ModelReader implements ResourceReader<Model> {
     public Model read(DataSource source, Resource resource) throws IOException {
         Md6Model model = read(source, true, resource.hash());
         Skeleton skeleton = fileManager.get().readResource(model.header().md6SkelName(), FileType.Skeleton);
-        return new Model(model.meshes(), null, skeleton);
+
+        if (readMaterials) {
+            var materials = new LinkedHashMap<String, Material>();
+            var materialIndices = new HashMap<String, Integer>();
+
+            var meshes = new ArrayList<Mesh>();
+            for (int i = 0; i < model.meshes().size(); i++) {
+                var meshInfo = model.meshInfos().get(i);
+                var materialName = meshInfo.materialName();
+                var materialFile = "generated/decls/material2/" + materialName + ".decl";
+                var materialIndex = materialIndices.computeIfAbsent(materialName, k -> materials.size());
+                if (!materials.containsKey(materialName)) {
+                    Material material = fileManager.get().readResource(materialFile, FileType.Material);
+                    materials.put(materialName, material);
+                }
+                meshes.add(model.meshes().get(i).withMaterialIndex(materialIndex));
+            }
+            model = model
+                .withMeshes(meshes)
+                .withMaterials(List.copyOf(materials.values()));
+        }
+        return new Model(model.meshes(), model.materials(), skeleton);
     }
 
     public Md6Model read(DataSource source, boolean readStreams, long hash) throws IOException {

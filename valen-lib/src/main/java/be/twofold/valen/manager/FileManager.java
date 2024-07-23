@@ -95,4 +95,7 @@ public final class FileManager {
         return streamManager.read(identity, uncompressedSize);
     }
 
+    public Optional<Resource> getResource(String name, ResourceType type) {
+        return resourceManager.get(name, type);
+    }
 }

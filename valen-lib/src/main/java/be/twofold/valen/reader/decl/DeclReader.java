@@ -86,7 +86,13 @@ public final class DeclReader implements ResourceReader<JsonObject> {
         }
 
         var fullName = RootPrefix + key + ".decl";
-        parent = fileManager.get().readResource(fullName, FileType.Declaration);
+        var resource = fileManager.get().getResource(fullName, ResourceType.RsStreamFile);
+        if (resource.isEmpty()) {
+            return object;
+        }
+
+        var bytes = fileManager.get().readRawResource(resource.get());
+        parent = DeclParser.parse(decode(bytes));
         parent = loadInherit(parent, fullName);
         declCache.put(key, parent);
         return merge(parent, object);

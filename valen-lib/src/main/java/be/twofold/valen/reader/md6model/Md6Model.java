@@ -2,6 +2,7 @@ package be.twofold.valen.reader.md6model;
 
 import be.twofold.valen.core.geometry.*;
 import be.twofold.valen.core.io.*;
+import be.twofold.valen.core.material.*;
 import be.twofold.valen.reader.geometry.*;
 
 import java.io.*;
@@ -14,7 +15,8 @@ public record Md6Model(
     List<Md6ModelMaterialInfo> materialInfos,
     Md6ModelGeoDecals geoDecals,
     List<GeometryDiskLayout> layouts,
-    List<Mesh> meshes
+    List<Mesh> meshes,
+    List<Material> materials
 ) {
     public static Md6Model read(DataSource source) throws IOException {
         var header = Md6ModelHeader.read(source);
@@ -31,10 +33,14 @@ public record Md6Model(
         }
 
         source.expectEnd();
-        return new Md6Model(header, boneInfo, meshInfos, materialInfos, geoDecals, layouts, List.of());
+        return new Md6Model(header, boneInfo, meshInfos, materialInfos, geoDecals, layouts, List.of(), List.of());
     }
 
     public Md6Model withMeshes(List<Mesh> meshes) {
-        return new Md6Model(header, boneInfo, meshInfos, materialInfos, geoDecals, layouts, meshes);
+        return new Md6Model(header, boneInfo, meshInfos, materialInfos, geoDecals, layouts, meshes, materials);
+    }
+
+    public Md6Model withMaterials(List<Material> materials) {
+        return new Md6Model(header, boneInfo, meshInfos, materialInfos, geoDecals, layouts, meshes, materials);
     }
 }
