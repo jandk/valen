@@ -1,8 +1,8 @@
 package be.twofold.valen.export.gltf.mappers;
 
 import be.twofold.valen.core.geometry.*;
-import be.twofold.valen.export.gltf.*;
-import be.twofold.valen.export.gltf.model.*;
+import be.twofold.valen.gltf.*;
+import be.twofold.valen.gltf.model.*;
 
 import java.nio.*;
 import java.util.*;
@@ -47,9 +47,9 @@ public final class GltfSkeletonMapper {
 
         var accessor = AccessorSchema.builder()
             .bufferView(bufferView)
-            .componentType(AccessorComponentType.Float)
+            .componentType(AccessorComponentType.FLOAT)
             .count(bones.size())
-            .type(AccessorType.Matrix4)
+            .type(AccessorType.MAT4)
             .build();
         var inverseBindMatrices = context.addAccessor(accessor);
 
@@ -63,9 +63,9 @@ public final class GltfSkeletonMapper {
     private void buildSkeletonJoint(Bone joint, List<NodeId> children) {
         var node = NodeSchema.builder()
             .name(joint.name())
-            .rotation(joint.rotation())
-            .translation(joint.translation())
-            .scale(joint.scale())
+            .rotation(GltfUtils.mapQuaternion(joint.rotation()))
+            .translation(GltfUtils.mapVector3(joint.translation()))
+            .scale(GltfUtils.mapVector3(joint.scale()))
             .children(children)
             .build();
         context.addNode(node);

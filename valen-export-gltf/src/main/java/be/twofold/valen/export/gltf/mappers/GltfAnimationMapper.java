@@ -2,8 +2,8 @@ package be.twofold.valen.export.gltf.mappers;
 
 import be.twofold.valen.core.animation.*;
 import be.twofold.valen.core.math.*;
-import be.twofold.valen.export.gltf.*;
-import be.twofold.valen.export.gltf.model.*;
+import be.twofold.valen.gltf.*;
+import be.twofold.valen.gltf.model.*;
 
 import java.nio.*;
 import java.util.*;
@@ -29,7 +29,7 @@ public final class GltfAnimationMapper {
                     var rotationBufferView = context.createBufferView(rotationBuffer, rotationBuffer.capacity() * Float.BYTES, null);
 
                     var input = buildAccessor(keyFrameBufferView, rotation.keyFrames().size(), min(keyFrameBuffer), max(keyFrameBuffer));
-                    var output = buildAccessor(rotationBufferView, rotation.keyFrames().size(), AccessorType.Vector4);
+                    var output = buildAccessor(rotationBufferView, rotation.keyFrames().size(), AccessorType.VEC4);
                     samplers.add(AnimationSamplerSchema.builder().input(input).output(output).build());
 
                     var channelTargetSchema = animationChannelTarget(skeletonNode, rotation, AnimationChannelTargetPath.Rotation);
@@ -43,7 +43,7 @@ public final class GltfAnimationMapper {
                     var scaleBufferView = context.createBufferView(scaleBuffer, scaleBuffer.capacity() * Float.BYTES, null);
 
                     var input = buildAccessor(keyFrameBufferView, scale.keyFrames().size(), min(keyFrameBuffer), max(keyFrameBuffer));
-                    var output = buildAccessor(scaleBufferView, scale.keyFrames().size(), AccessorType.Vector3);
+                    var output = buildAccessor(scaleBufferView, scale.keyFrames().size(), AccessorType.VEC3);
                     samplers.add(AnimationSamplerSchema.builder().input(input).output(output).build());
 
                     var channelTargetSchema = animationChannelTarget(skeletonNode, scale, AnimationChannelTargetPath.Scale);
@@ -57,7 +57,7 @@ public final class GltfAnimationMapper {
                     var translationBufferView = context.createBufferView(translationBuffer, translationBuffer.capacity() * Float.BYTES, null);
 
                     var input = buildAccessor(keyFrameBufferView, translation.keyFrames().size(), min(keyFrameBuffer), max(keyFrameBuffer));
-                    var output = buildAccessor(translationBufferView, translation.keyFrames().size(), AccessorType.Vector3);
+                    var output = buildAccessor(translationBufferView, translation.keyFrames().size(), AccessorType.VEC3);
                     samplers.add(AnimationSamplerSchema.builder().input(input).output(output).build());
 
                     var channelTargetSchema = animationChannelTarget(skeletonNode, translation, AnimationChannelTargetPath.Translation);
@@ -127,7 +127,7 @@ public final class GltfAnimationMapper {
     private AccessorId buildAccessor(BufferViewId bufferView, int count, AccessorType type) {
         var accessor = AccessorSchema.builder()
             .bufferView(bufferView)
-            .componentType(AccessorComponentType.Float)
+            .componentType(AccessorComponentType.FLOAT)
             .count(count)
             .type(type)
             .build();
@@ -137,9 +137,9 @@ public final class GltfAnimationMapper {
     private AccessorId buildAccessor(BufferViewId bufferView, int count, float[] min, float[] max) {
         var accessor = AccessorSchema.builder()
             .bufferView(bufferView)
-            .componentType(AccessorComponentType.Float)
+            .componentType(AccessorComponentType.FLOAT)
             .count(count)
-            .type(AccessorType.Scalar)
+            .type(AccessorType.SCALAR)
             .min(min)
             .max(max)
             .build();

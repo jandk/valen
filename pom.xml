@@ -15,6 +15,7 @@
         <module>valen-export-gltf</module>
         <module>valen-export-png</module>
         <module>valen-export</module>
+        <module>valen-gltf</module>
         <module>valen-jlink</module>
         <module>valen-lib</module>
         <module>valen-ui</module>
@@ -99,11 +100,6 @@
             </dependency>
             <dependency>
                 <groupId>be.twofold</groupId>
-                <artifactId>valen-export</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>be.twofold</groupId>
                 <artifactId>valen-export-dds</artifactId>
                 <version>${project.version}</version>
             </dependency>
@@ -115,6 +111,16 @@
             <dependency>
                 <groupId>be.twofold</groupId>
                 <artifactId>valen-export-png</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>be.twofold</groupId>
+                <artifactId>valen-export</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>be.twofold</groupId>
+                <artifactId>valen-gltf</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

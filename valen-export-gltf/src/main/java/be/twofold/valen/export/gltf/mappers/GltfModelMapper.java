@@ -2,8 +2,8 @@ package be.twofold.valen.export.gltf.mappers;
 
 import be.twofold.valen.core.geometry.*;
 import be.twofold.valen.core.math.*;
-import be.twofold.valen.export.gltf.*;
-import be.twofold.valen.export.gltf.model.*;
+import be.twofold.valen.gltf.*;
+import be.twofold.valen.gltf.model.*;
 import com.google.gson.*;
 
 import java.nio.*;
@@ -58,9 +58,9 @@ public final class GltfModelMapper {
 
         var accessor = AccessorSchema.builder()
             .bufferView(bufferView)
-            .componentType(AccessorComponentType.from(buffer.componentType()))
+            .componentType(mapComponentType(buffer.componentType()))
             .count(buffer.count())
-            .type(AccessorType.from(buffer.elementType()));
+            .type(mapElementType(buffer.elementType()));
 
         if (bounds != null) {
             accessor.min(bounds.min().toArray());
@@ -85,6 +85,29 @@ public final class GltfModelMapper {
                     }
                 }
             }));
+    }
+
+    private AccessorComponentType mapComponentType(ComponentType componentType) {
+        return switch (componentType) {
+            case Byte -> AccessorComponentType.SIGNED_BYTE;
+            case UnsignedByte -> AccessorComponentType.UNSIGNED_BYTE;
+            case Short -> AccessorComponentType.SIGNED_SHORT;
+            case UnsignedShort -> AccessorComponentType.UNSIGNED_SHORT;
+            case UnsignedInt -> AccessorComponentType.UNSIGNED_INT;
+            case Float -> AccessorComponentType.FLOAT;
+        };
+    }
+
+    public static AccessorType mapElementType(ElementType type) {
+        return switch (type) {
+            case Scalar -> AccessorType.SCALAR;
+            case Vector2 -> AccessorType.VEC2;
+            case Vector3 -> AccessorType.VEC3;
+            case Vector4 -> AccessorType.VEC4;
+            case Matrix2 -> AccessorType.MAT2;
+            case Matrix3 -> AccessorType.MAT3;
+            case Matrix4 -> AccessorType.MAT4;
+        };
     }
 
     private String mapSemantic(Semantic semantic) {

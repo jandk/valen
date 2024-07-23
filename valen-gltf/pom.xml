@@ -8,25 +8,17 @@
         <version>1.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>valen-export-gltf</artifactId>
+    <artifactId>valen-gltf</artifactId>
 
     <dependencies>
-        <!-- Internal -->
-        <dependency>
-            <groupId>be.twofold</groupId>
-            <artifactId>valen-core</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>be.twofold</groupId>
-            <artifactId>valen-gltf</artifactId>
-        </dependency>
-
-        <!-- External -->
         <dependency>
             <groupId>com.google.code.gson</groupId>
             <artifactId>gson</artifactId>
         </dependency>
-
+        <dependency>
+            <groupId>org.immutables</groupId>
+            <artifactId>value</artifactId>
+            <scope>provided</scope>
+        </dependency>
     </dependencies>
-
 </project>
