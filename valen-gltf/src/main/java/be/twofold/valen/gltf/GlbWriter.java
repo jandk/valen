@@ -5,7 +5,6 @@ import be.twofold.valen.gltf.model.*;
 
 import java.io.*;
 import java.nio.*;
-import java.nio.channels.*;
 import java.nio.charset.*;
 import java.util.*;
 
@@ -14,7 +13,7 @@ public final class GlbWriter extends GltfCommon {
         super(context);
     }
 
-    public void write(WritableByteChannel channel) throws IOException {
+    public void write(OutputStream out) throws IOException {
         int buffersTotalSize = 0;
         var visitedBuffers = new HashSet<BufferId>();
         List<BufferViewSchema> bufferViews = context.getBufferViews();
@@ -39,14 +38,14 @@ public final class GlbWriter extends GltfCommon {
         byte[] rawJson = json.getBytes(StandardCharsets.UTF_8);
         int alignedJsonLength = alignedLength(rawJson.length);
 
-        int totalSize = 12 + 8 + alignedJsonLength + 8 + buffersTotalSize;
-        channel.write(GlbHeader.of(totalSize).toBuffer());
-        channel.write(GlbChunkHeader.of(GlbChunkType.Json, alignedJsonLength).toBuffer());
-        channel.write(ByteBuffer.wrap(rawJson));
-        align(channel, rawJson.length, (byte) ' ');
-        channel.write(GlbChunkHeader.of(GlbChunkType.Bin, buffersTotalSize).toBuffer());
+        int totalSize = GlbHeader.BYTES + GlbChunkHeader.BYTES + alignedJsonLength + GlbChunkHeader.BYTES + buffersTotalSize;
+        out.write(GlbHeader.of(totalSize).toBuffer().array());
+        out.write(new GlbChunkHeader(alignedJsonLength, GlbChunkType.JSON).toBuffer().array());
+        out.write(rawJson);
+        align(out, rawJson.length, (byte) ' ');
+        out.write(new GlbChunkHeader(buffersTotalSize, GlbChunkType.BIN).toBuffer().array());
         for (Buffer buffer : context.writables) {
-            writeBuffer(channel, buffer);
+            writeBuffer(out, buffer);
         }
     }
 }

@@ -6,9 +6,7 @@ public record GlbChunkHeader(
     int length,
     GlbChunkType type
 ) {
-    public static GlbChunkHeader of(GlbChunkType type, int length) {
-        return new GlbChunkHeader(length, type);
-    }
+    public static final int BYTES = 8;
 
     public ByteBuffer toBuffer() {
         return ByteBuffer.allocate(8)

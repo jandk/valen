@@ -4,7 +4,6 @@ import be.twofold.valen.gltf.model.*;
 
 import java.io.*;
 import java.net.*;
-import java.nio.*;
 import java.nio.charset.*;
 import java.nio.file.*;
 import java.util.*;
@@ -15,7 +14,7 @@ public class GltfWriter extends GltfCommon {
     }
 
     public void write(Path outputDirectory, String filename) throws IOException {
-        try (var channel = Files.newByteChannel(outputDirectory.resolve(filename + ".bin"), StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING)) {
+        try (var channel = Files.newOutputStream(outputDirectory.resolve(filename + ".bin"))) {
             int buffersTotalSize = 0;
             var visitedBuffers = new HashSet<BufferId>();
             List<BufferViewSchema> bufferViews = context.getBufferViews();
@@ -41,10 +40,10 @@ public class GltfWriter extends GltfCommon {
 
         }
 
-        try (var channel = Files.newByteChannel(outputDirectory.resolve(filename + ".gltf"), StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING)) {
+        try (var channel = Files.newOutputStream(outputDirectory.resolve(filename + ".gltf"))) {
             GltfSchema gltf = context.buildGltf();
             String json = GltfCommon.GSON.toJson(gltf);
-            channel.write(ByteBuffer.wrap(json.getBytes(StandardCharsets.UTF_8)));
+            channel.write(json.getBytes(StandardCharsets.UTF_8));
         }
     }
 }

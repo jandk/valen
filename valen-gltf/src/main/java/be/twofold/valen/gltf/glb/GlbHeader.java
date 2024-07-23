@@ -6,7 +6,7 @@ public record GlbHeader(
     int version,
     int length
 ) {
-    private static final int Magic = 0x46546C67;
+    public static final int BYTES = 12;
 
     public static GlbHeader of(int length) {
         return new GlbHeader(2, length);
@@ -15,7 +15,7 @@ public record GlbHeader(
     public ByteBuffer toBuffer() {
         return ByteBuffer.allocate(12)
             .order(ByteOrder.LITTLE_ENDIAN)
-            .putInt(Magic)
+            .putInt(0x46546c67)
             .putInt(version)
             .putInt(length)
             .flip();

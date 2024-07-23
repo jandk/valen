@@ -45,8 +45,13 @@ public class GltfContext {
     }
 
     public SceneSchema addScene(List<NodeId> nodes) {
+        var skinNodes = skins.stream()
+            .flatMap(skin -> skin.getSkeleton().stream())
+            .toList();
+
         var scene = SceneSchema.builder()
             .addAllNodes(nodes)
+            .addAllNodes(skinNodes)
             .build();
         scenes.add(scene);
         return scene;
@@ -154,5 +159,19 @@ public class GltfContext {
             .skins(skins)
             .textures(textures)
             .build();
+    }
+
+    public MeshId addMesh(MeshSchema mesh) {
+        meshes.add(mesh);
+        return MeshId.of(meshes.size() - 1);
+    }
+
+    public SkinId addSkin(SkinSchema skin) {
+        skins.add(skin);
+        return SkinId.of(skins.size() - 1);
+    }
+
+    public NodeId nextNodeId() {
+        return NodeId.of(nodes.size());
     }
 }

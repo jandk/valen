@@ -7,12 +7,11 @@ import com.google.gson.*;
 
 import java.io.*;
 import java.nio.*;
-import java.nio.channels.*;
 import java.util.*;
 
 abstract class GltfCommon {
     static final Gson GSON = new GsonBuilder()
-        .setPrettyPrinting()
+        // .setPrettyPrinting()
         .registerTypeHierarchyAdapter(AbstractId.class, new AbstractIdTypeAdapter().nullSafe())
         .registerTypeHierarchyAdapter(Collection.class, new CollectionSerializer())
         .registerTypeHierarchyAdapter(Map.class, new MapSerializer())
@@ -39,17 +38,17 @@ abstract class GltfCommon {
         return (length + 3) & ~3;
     }
 
-    void align(WritableByteChannel channel, int length, byte pad) throws IOException {
+    void align(OutputStream output, int length, byte pad) throws IOException {
         byte[] padding = new byte[alignedLength(length) - length];
         Arrays.fill(padding, pad);
-        channel.write(ByteBuffer.wrap(padding));
+        output.write(padding);
     }
 
-    void writeBuffer(WritableByteChannel channel, Buffer buffer) {
-        var byteBuffer = toByteBuffer(buffer);
+    void writeBuffer(OutputStream output, Buffer buffer) {
+        var byteBuffer = toArray(buffer);
         try {
-            channel.write(byteBuffer);
-            align(channel, byteBuffer.capacity(), (byte) 0);
+            output.write(byteBuffer);
+            align(output, byteBuffer.length, (byte) 0);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
@@ -67,53 +66,53 @@ abstract class GltfCommon {
         };
     }
 
-    ByteBuffer toByteBuffer(Buffer buffer) {
+    byte[] toArray(Buffer buffer) {
         buffer.rewind();
         switch (buffer) {
             case ByteBuffer byteBuffer -> {
-                return byteBuffer;
+                return byteBuffer.array();
             }
             case ShortBuffer shortBuffer -> {
                 var bb = ByteBuffer
                     .allocate(shortBuffer.capacity() * Short.BYTES)
                     .order(ByteOrder.LITTLE_ENDIAN);
                 bb.asShortBuffer().put(shortBuffer);
-                return bb;
+                return bb.array();
             }
             case IntBuffer intBuffer -> {
                 var bb = ByteBuffer
                     .allocate(intBuffer.capacity() * Integer.BYTES)
                     .order(ByteOrder.LITTLE_ENDIAN);
                 bb.asIntBuffer().put(intBuffer);
-                return bb;
+                return bb.array();
             }
             case LongBuffer longBuffer -> {
                 var bb = ByteBuffer
                     .allocate(longBuffer.capacity() * Long.BYTES)
                     .order(ByteOrder.LITTLE_ENDIAN);
                 bb.asLongBuffer().put(longBuffer);
-                return bb;
+                return bb.array();
             }
             case FloatBuffer floatBuffer -> {
                 var bb = ByteBuffer
                     .allocate(floatBuffer.capacity() * Float.BYTES)
                     .order(ByteOrder.LITTLE_ENDIAN);
                 bb.asFloatBuffer().put(floatBuffer);
-                return bb;
+                return bb.array();
             }
             case DoubleBuffer doubleBuffer -> {
                 var bb = ByteBuffer
                     .allocate(doubleBuffer.capacity() * Double.BYTES)
                     .order(ByteOrder.LITTLE_ENDIAN);
                 bb.asDoubleBuffer().put(doubleBuffer);
-                return bb;
+                return bb.array();
             }
             case CharBuffer charBuffer -> {
                 var bb = ByteBuffer
                     .allocate(charBuffer.capacity() * Character.BYTES)
                     .order(ByteOrder.LITTLE_ENDIAN);
                 bb.asCharBuffer().put(charBuffer);
-                return bb;
+                return bb.array();
             }
         }
     }
