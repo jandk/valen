@@ -28,12 +28,141 @@ public class GltfContext {
 
     final List<Buffer> writables = new ArrayList<>();
 
-    List<BufferSchema> getBuffers() {
+    // region Getters
+
+    public List<AccessorSchema> getAccessors() {
+        return Collections.unmodifiableList(accessors);
+    }
+
+    public List<AnimationSchema> getAnimations() {
+        return Collections.unmodifiableList(animations);
+    }
+
+    public List<BufferSchema> getBuffers() {
+        // TODO: This needs to be an immutable return
         return buffers;
     }
 
-    List<BufferViewSchema> getBufferViews() {
+    public List<BufferViewSchema> getBufferViews() {
+        // TODO: This needs to be an immutable return
         return bufferViews;
+    }
+
+    public List<CameraSchema> getCameras() {
+        return Collections.unmodifiableList(cameras);
+    }
+
+    public List<ImageSchema> getImages() {
+        return Collections.unmodifiableList(images);
+    }
+
+    public List<MaterialSchema> getMaterials() {
+        return Collections.unmodifiableList(materials);
+    }
+
+    public List<MeshSchema> getMeshes() {
+        return Collections.unmodifiableList(meshes);
+    }
+
+    public List<NodeSchema> getNodes() {
+        return Collections.unmodifiableList(nodes);
+    }
+
+    public List<SamplerSchema> getSamplers() {
+        return Collections.unmodifiableList(samplers);
+    }
+
+    public List<SceneSchema> getScenes() {
+        return Collections.unmodifiableList(scenes);
+    }
+
+    public List<SkinSchema> getSkins() {
+        return Collections.unmodifiableList(skins);
+    }
+
+    public List<TextureSchema> getTextures() {
+        return Collections.unmodifiableList(textures);
+    }
+
+    // endregion
+
+    // region Adders
+
+    public AccessorId addAccessor(AccessorSchema accessor) {
+        accessors.add(accessor);
+        return AccessorId.of(accessors.size() - 1);
+    }
+
+    public void addAnimation(AnimationSchema animation) {
+        animations.add(animation);
+    }
+
+    public BufferId addBuffer(BufferSchema buffer) {
+        buffers.add(buffer);
+        return BufferId.of(buffers.size() - 1);
+    }
+
+    public BufferViewId addBufferView(BufferViewSchema bufferView) {
+        bufferViews.add(bufferView);
+        return BufferViewId.of(bufferViews.size() - 1);
+    }
+
+    public CameraId addCamera(CameraSchema camera) {
+        cameras.add(camera);
+        return CameraId.of(cameras.size() - 1);
+    }
+
+    public ImageId addImage(ImageSchema image) {
+        images.add(image);
+        return ImageId.of(images.size() - 1);
+    }
+
+    public MaterialId addMaterial(MaterialSchema material) {
+        materials.add(material);
+        return MaterialId.of(materials.size() - 1);
+    }
+
+    public MeshId addMesh(MeshSchema mesh) {
+        meshes.add(mesh);
+        return MeshId.of(meshes.size() - 1);
+    }
+
+    public NodeId addNode(NodeSchema node) {
+        nodes.add(node);
+        return NodeId.of(nodes.size() - 1);
+    }
+
+    public SamplerId addSampler(SamplerSchema sampler) {
+        samplers.add(sampler);
+        return SamplerId.of(samplers.size() - 1);
+    }
+
+    public void addScene(SceneSchema scene) {
+        scenes.add(scene);
+    }
+
+    public SkinId addSkin(SkinSchema skin) {
+        skins.add(skin);
+        return SkinId.of(skins.size() - 1);
+    }
+
+    public TextureId addTexture(TextureSchema texture) {
+        textures.add(texture);
+        return TextureId.of(textures.size() - 1);
+    }
+
+    // endregion
+
+    public void addScene(List<NodeId> nodes) {
+        var skinNodes = skins.stream()
+            .flatMap(skin -> skin.getSkeleton().stream())
+            .toList();
+
+        scenes.add(
+            SceneSchema.builder()
+                .addAllNodes(nodes)
+                .addAllNodes(skinNodes)
+                .build());
     }
 
     public void addExtension(String name, Extension extension, boolean required) {
@@ -42,29 +171,6 @@ public class GltfContext {
             extensionsRequired.add(name);
         }
         extensions.put(name, extension);
-    }
-
-    public SceneSchema addScene(List<NodeId> nodes) {
-        var skinNodes = skins.stream()
-            .flatMap(skin -> skin.getSkeleton().stream())
-            .toList();
-
-        var scene = SceneSchema.builder()
-            .addAllNodes(nodes)
-            .addAllNodes(skinNodes)
-            .build();
-        scenes.add(scene);
-        return scene;
-    }
-
-    public AccessorId addAccessor(AccessorSchema accessor) {
-        accessors.add(accessor);
-        return AccessorId.of(accessors.size() - 1);
-    }
-
-    public NodeId addNode(NodeSchema node) {
-        nodes.add(node);
-        return NodeId.of(nodes.size() - 1);
     }
 
     public BufferViewId createBufferView(Buffer buffer, int length, BufferViewTarget target) {
@@ -87,11 +193,6 @@ public class GltfContext {
         return allocatedTextures;
     }
 
-    public MaterialId addMaterial(MaterialSchema material) {
-        materials.add(material);
-        return MaterialId.of(materials.size() - 1);
-    }
-
     public MaterialId findMaterial(String materialName) {
         for (int i = 0; i < materials.size(); i++) {
             MaterialSchema materialSchema = materials.get(i);
@@ -109,16 +210,6 @@ public class GltfContext {
             }
         }
         return ImageId.of(-1);
-    }
-
-    public ImageId addImage(ImageSchema image) {
-        images.add(image);
-        return ImageId.of(images.size() - 1);
-    }
-
-    public TextureId addTexture(TextureSchema texture) {
-        textures.add(texture);
-        return TextureId.of(textures.size() - 1);
     }
 
     private BufferViewId createBufferView(int length, BufferViewTarget target, int bufferId) {
@@ -159,16 +250,6 @@ public class GltfContext {
             .skins(skins)
             .textures(textures)
             .build();
-    }
-
-    public MeshId addMesh(MeshSchema mesh) {
-        meshes.add(mesh);
-        return MeshId.of(meshes.size() - 1);
-    }
-
-    public SkinId addSkin(SkinSchema skin) {
-        skins.add(skin);
-        return SkinId.of(skins.size() - 1);
     }
 
     public NodeId nextNodeId() {
