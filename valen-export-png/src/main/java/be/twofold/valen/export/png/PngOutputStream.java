@@ -57,6 +57,8 @@ final class PngOutputStream implements AutoCloseable {
         }
         System.out.printf("Filter counts - None: %d, Sub: %d, Up: %d, Average: %d, Paeth: %d%n",
             filterCounts[0], filterCounts[1], filterCounts[2], filterCounts[3], filterCounts[4]);
+
+        flush();
     }
 
     private void writeRow(byte[] image, int offset) throws IOException {
@@ -207,20 +209,19 @@ final class PngOutputStream implements AutoCloseable {
 
     // endregion
 
-    @Override
-    public void close() {
-        try {
-            deflater.finish();
-            while (!deflater.finished()) {
-                deflate();
-            }
-            deflater.end();
-
-            writeIDAT();
-            writeIEND();
-            output.close();
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
+    private void flush() throws IOException {
+        deflater.finish();
+        while (!deflater.finished()) {
+            deflate();
         }
+        deflater.end();
+
+        writeIDAT();
+        writeIEND();
+    }
+
+    @Override
+    public void close() throws IOException {
+        output.close();
     }
 }

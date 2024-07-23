@@ -1,22 +1,26 @@
 package be.twofold.valen.export.dds;
 
 import be.twofold.valen.core.texture.*;
+import be.twofold.valen.export.*;
 
 import java.io.*;
-import java.nio.*;
-import java.nio.channels.*;
 
-public final class DdsWriter {
-    private final WritableByteChannel channel;
-
-    public DdsWriter(WritableByteChannel channel) {
-        this.channel = channel;
+public final class DdsExporter implements Exporter<Texture> {
+    @Override
+    public String getExtension() {
+        return "dds";
     }
 
-    public void write(Texture texture) throws IOException {
-        channel.write(createHeader(texture).toBuffer());
+    @Override
+    public Class<Texture> getSupportedType() {
+        return Texture.class;
+    }
+
+    @Override
+    public void export(Texture texture, OutputStream out) throws IOException {
+        out.write(createHeader(texture).toBuffer().array());
         for (var surface : texture.surfaces()) {
-            channel.write(ByteBuffer.wrap(surface.data()));
+            out.write(surface.data());
         }
     }
 
@@ -82,15 +86,15 @@ public final class DdsWriter {
 
         switch (format) {
             case BC1_UNORM, BC1_UNORM_SRGB,
-                BC4_UNORM, BC4_SNORM -> {
+                 BC4_UNORM, BC4_SNORM -> {
                 var pitch = blocksX * 8;
                 return pitch * blocksY;
             }
             case BC2_UNORM, BC2_UNORM_SRGB,
-                BC3_UNORM, BC3_UNORM_SRGB,
-                BC5_UNORM, BC5_SNORM,
-                BC6H_UF16, BC6H_SF16,
-                BC7_UNORM, BC7_UNORM_SRGB -> {
+                 BC3_UNORM, BC3_UNORM_SRGB,
+                 BC5_UNORM, BC5_SNORM,
+                 BC6H_UF16, BC6H_SF16,
+                 BC7_UNORM, BC7_UNORM_SRGB -> {
                 var pitch = blocksX * 16;
                 return pitch * blocksY;
             }

@@ -7,6 +7,9 @@ module valen.app {
     requires valen.export.gltf;
     requires valen.lib;
     requires valen.ui;
+    requires valen.export;
+
+    uses be.twofold.valen.export.Exporter;
 
     exports be.twofold.valen;
 }

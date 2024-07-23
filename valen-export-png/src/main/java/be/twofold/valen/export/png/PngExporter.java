@@ -2,24 +2,26 @@ package be.twofold.valen.export.png;
 
 import be.twofold.tinybcdec.*;
 import be.twofold.valen.core.texture.*;
+import be.twofold.valen.export.*;
 
 import java.io.*;
-import java.nio.channels.*;
 
-public final class PngWriter {
-    private final WritableByteChannel channel;
-    private final boolean normalizeNormalMap;
+public final class PngExporter implements Exporter<Texture> {
+    // TODO: Make this configurable
+    private final boolean normalizeNormalMap = false;
 
-    public PngWriter(WritableByteChannel channel) {
-        this(channel, false);
+    @Override
+    public String getExtension() {
+        return "png";
     }
 
-    public PngWriter(WritableByteChannel channel, boolean normalizeNormalMap) {
-        this.channel = channel;
-        this.normalizeNormalMap = normalizeNormalMap;
+    @Override
+    public Class<Texture> getSupportedType() {
+        return Texture.class;
     }
 
-    public void write(Texture texture) throws IOException {
+    @Override
+    public void export(Texture texture, OutputStream out) throws IOException {
         var format = mapPngFormat(texture);
         var decoder = mapDecoder(texture.format());
 
@@ -30,9 +32,8 @@ public final class PngWriter {
             data = texture.surfaces().getFirst().data();
         }
 
-        try (var output = new PngOutputStream(Channels.newOutputStream(channel), format)) {
-            output.writeImage(data);
-        }
+        // TODO: How to handle closing the output stream?
+        new PngOutputStream(out, format).writeImage(data);
     }
 
     private BlockDecoder mapDecoder(TextureFormat format) {
