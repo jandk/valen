@@ -8,6 +8,7 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.CLASS)
 @Value.Style(
     get = {"is*", "get*"},
+    jdk9Collections = true,
     typeAbstract = {"Abstract*", "*Def"},
     typeImmutable = "*Schema",
     visibility = Value.Style.ImplementationVisibility.PUBLIC
