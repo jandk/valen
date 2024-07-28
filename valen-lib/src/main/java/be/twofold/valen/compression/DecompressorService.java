@@ -11,15 +11,15 @@ import java.util.*;
 public final class DecompressorService {
     private final Map<CompressionType, Decompressor> decompressors = Map.of(
         CompressionType.None, new NullDecompressor(),
-        CompressionType.Kraken, new OodleDecompressor(),
-        CompressionType.KrakenChunked, new OodleChunkedDecompressor()
+        CompressionType.Kraken, new OodleDecompressor(false),
+        CompressionType.KrakenChunked, new OodleDecompressor(true)
     );
 
     @Inject
     DecompressorService() {
     }
 
-    public void decompress(ByteBuffer src, ByteBuffer dst, CompressionType compressionType) throws IOException {
-        decompressors.get(compressionType).decompress(src, dst);
+    public ByteBuffer decompress(ByteBuffer src, int dstLength, CompressionType compressionType) throws IOException {
+        return decompressors.get(compressionType).decompress(src, dstLength);
     }
 }

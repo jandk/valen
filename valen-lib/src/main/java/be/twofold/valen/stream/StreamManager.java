@@ -42,9 +42,8 @@ public final class StreamManager {
             return compressed;
         }
 
-        var decompressed = new byte[uncompressedSize];
-        decompressorService.decompress(ByteBuffer.wrap(compressed), ByteBuffer.wrap(decompressed), CompressionType.Kraken);
-        return decompressed;
+        var decompressed = decompressorService.decompress(ByteBuffer.wrap(compressed), uncompressedSize, CompressionType.Kraken);
+        return decompressed.array();
     }
 
     private byte[] read(long identity) throws IOException {

@@ -4,5 +4,5 @@ import java.io.*;
 import java.nio.*;
 
 public interface Decompressor {
-    void decompress(ByteBuffer src, ByteBuffer dst) throws IOException;
+    ByteBuffer decompress(ByteBuffer src, int dstLength) throws IOException;
 }

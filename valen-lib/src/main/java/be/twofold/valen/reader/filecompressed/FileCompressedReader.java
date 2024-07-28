@@ -25,11 +25,10 @@ public final class FileCompressedReader implements ResourceReader<byte[]> {
 
     @Override
     public byte[] read(DataSource source, Resource resource) throws IOException {
-        FileCompressedHeader header = FileCompressedHeader.read(source);
+        var header = FileCompressedHeader.read(source);
+        var compressed = source.readBytes(header.compressedSize());
 
-        byte[] compressed = source.readBytes(header.compressedSize());
-        byte[] decompressed = new byte[header.uncompressedSize()];
-        decompressorService.decompress(ByteBuffer.wrap(compressed), ByteBuffer.wrap(decompressed), CompressionType.Kraken);
-        return decompressed;
+        var decompressed = decompressorService.decompress(ByteBuffer.wrap(compressed), header.uncompressedSize(), CompressionType.Kraken);
+        return decompressed.array();
     }
 }

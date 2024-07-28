@@ -89,9 +89,8 @@ public final class ResourceManager {
             return compressed;
         }
 
-        var decompressed = new byte[resource.uncompressedSize()];
-        decompressorService.decompress(ByteBuffer.wrap(compressed), ByteBuffer.wrap(decompressed), resource.compression());
-        return decompressed;
+        var decompressed = decompressorService.decompress(ByteBuffer.wrap(compressed), resource.uncompressedSize(), resource.compression());
+        return decompressed.array();
     }
 
     private byte[] read(ResourceKey key) throws IOException {
