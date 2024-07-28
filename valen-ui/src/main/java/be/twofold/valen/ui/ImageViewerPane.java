@@ -3,7 +3,6 @@ package be.twofold.valen.ui;
 import javafx.geometry.*;
 import javafx.scene.control.*;
 import javafx.scene.image.*;
-import javafx.scene.input.*;
 import javafx.scene.layout.*;
 
 import java.util.*;
@@ -28,18 +27,16 @@ final class ImageViewerPane extends VBox {
         buttonBox.getChildren().addAll(buttons);
 
         for (ToggleButton button : buttons) {
-            button.setSelected(true);
-            button.setOnAction(e -> filterImage());
-
             button.setOnMouseClicked(e -> {
-                if (e.getButton() != MouseButton.SECONDARY) {
-                    return;
+                switch (e.getButton()) {
+                    case SECONDARY -> {
+                        for (ToggleButton toggleButton : buttons) {
+                            toggleButton.setSelected(toggleButton != button);
+                        }
+                        filterImage();
+                    }
+                    case PRIMARY -> filterImage();
                 }
-
-                for (ToggleButton toggleButton : buttons) {
-                    toggleButton.setSelected(toggleButton == button);
-                }
-                filterImage();
             });
         }
 
@@ -63,16 +60,19 @@ final class ImageViewerPane extends VBox {
     }
 
     private void filterImage() {
+        if (sourceImage == null) {
+            return;
+        }
         int width = (int) sourceImage.getWidth();
         int height = (int) sourceImage.getHeight();
 
         // Check which channels are selected
-        boolean rSelected = rButton.isSelected();
-        boolean gSelected = gButton.isSelected();
-        boolean bSelected = bButton.isSelected();
-        boolean aSelected = aButton.isSelected();
+        boolean rActive = !rButton.isSelected();
+        boolean gActive = !gButton.isSelected();
+        boolean bActive = !bButton.isSelected();
+        boolean aActive = !aButton.isSelected();
 
-        if (rSelected && gSelected && bSelected && aSelected) {
+        if (rActive && gActive && bActive && aActive) {
             targetImage.getPixelWriter().setPixels(0, 0, width, height, sourceImage.getPixelReader(), 0, 0);
             return;
         }
@@ -83,10 +83,10 @@ final class ImageViewerPane extends VBox {
         int[] targetPixels = new int[width * height];
         var writer = targetImage.getPixelWriter();
 
-        int numChannels = (rSelected ? 1 : 0) + (gSelected ? 1 : 0) + (bSelected ? 1 : 0) + (aSelected ? 1 : 0);
+        int numChannels = (rActive ? 1 : 0) + (gActive ? 1 : 0) + (bActive ? 1 : 0) + (aActive ? 1 : 0);
         if (numChannels == 1) {
             // Do gray expansion
-            int sourceChannel = rSelected ? 2 : gSelected ? 1 : bSelected ? 0 : 3;
+            int sourceChannel = rActive ? 2 : gActive ? 1 : bActive ? 0 : 3;
             for (int y = 0, i = 0; y < height; y++) {
                 for (int x = 0; x < width; x++, i++) {
                     int argb = sourcePixels[i];
@@ -100,10 +100,10 @@ final class ImageViewerPane extends VBox {
             for (int y = 0, i = 0; y < height; y++) {
                 for (int x = 0; x < width; x++, i++) {
                     int argb = sourcePixels[i];
-                    int a = aSelected ? (argb >> 24) & 0xFF : 0xFF;
-                    int r = rSelected ? (argb >> 16) & 0xFF : 0;
-                    int g = gSelected ? (argb >> +8) & 0xFF : 0;
-                    int b = bSelected ? (argb >> +0) & 0xFF : 0;
+                    int a = aActive ? (argb >> 24) & 0xFF : 0xFF;
+                    int r = rActive ? (argb >> 16) & 0xFF : 0;
+                    int g = gActive ? (argb >> +8) & 0xFF : 0;
+                    int b = bActive ? (argb >> +0) & 0xFF : 0;
                     int newArgb = (a << 24) | (r << 16) | (g << 8) | b;
 
                     targetPixels[i] = newArgb;
