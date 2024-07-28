@@ -3,7 +3,6 @@ package be.twofold.valen.gltf;
 import be.twofold.valen.gltf.model.*;
 
 import java.nio.*;
-import java.security.cert.Extension;
 import java.util.*;
 
 public class GltfContext {
@@ -232,12 +231,12 @@ public class GltfContext {
             .build();
 
         return GltfSchema.builder()
+            .asset(asset)
             // .extensions(extensions)
             .extensionsUsed(extensionsUsed)
             .extensionsRequired(extensionsRequired)
             .accessors(accessors)
             .animations(animations)
-            .asset(asset)
             .buffers(buffers)
             .bufferViews(bufferViews)
             .cameras(cameras)

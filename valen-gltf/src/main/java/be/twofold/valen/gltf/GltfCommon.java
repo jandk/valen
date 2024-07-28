@@ -17,7 +17,7 @@ abstract class GltfCommon {
         .registerTypeHierarchyAdapter(Map.class, new MapSerializer())
         .registerTypeAdapter(AccessorComponentType.class, new AccessorComponentTypeTypeAdapter())
         .registerTypeAdapter(AnimationChannelTargetPath.class, new AnimationChannelTargetPathTypeAdapter())
-        .registerTypeAdapter(AnimationSamplerInterpolation.class, new AnimationSamplerInterpolationTypeAdapter())
+        .registerTypeAdapter(AnimationSamplerInterpolation.class, new AnimationSamplerInterpolationTypeAdapter().nullSafe())
         .registerTypeAdapter(BufferViewTarget.class, new BufferViewTargetTypeAdapter().nullSafe())
         .registerTypeAdapter(MimeType.class, new MimeTypeTypeAdapter().nullSafe())
         .registerTypeAdapter(Mat2.class, new Mat2.Adapter().nullSafe())

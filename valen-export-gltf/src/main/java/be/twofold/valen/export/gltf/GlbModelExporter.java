@@ -68,7 +68,7 @@ public final class GlbModelExporter implements Exporter<Model> {
 
         return context.addNode(
             NodeSchema.builder()
-                .rotation(GltfUtils.mapQuaternion(ROTATION))
+                // .rotation(GltfUtils.mapQuaternion(ROTATION))
                 .addChildren(meshNodeId)
                 .build());
     }

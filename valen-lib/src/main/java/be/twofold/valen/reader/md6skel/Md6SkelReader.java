@@ -7,6 +7,7 @@ import be.twofold.valen.resource.*;
 import jakarta.inject.*;
 
 import java.io.*;
+import java.util.stream.*;
 
 public final class Md6SkelReader implements ResourceReader<Skeleton> {
     @Inject
@@ -21,6 +22,25 @@ public final class Md6SkelReader implements ResourceReader<Skeleton> {
     @Override
     public Skeleton read(DataSource source, Resource resource) throws IOException {
         Md6Skel skeleton = Md6Skel.read(source);
-        return Md6SkelMapper.map(skeleton);
+        return map(skeleton);
+    }
+
+    public Skeleton map(Md6Skel skeleton) {
+        var bones = IntStream.range(0, skeleton.header().numJoints())
+            .mapToObj(i -> mapBone(skeleton, i))
+            .toList();
+
+        return new Skeleton(bones);
+    }
+
+    private Bone mapBone(Md6Skel skeleton, int index) {
+        return new Bone(
+            skeleton.names().get(index),
+            skeleton.parents()[index],
+            skeleton.rotations().get(index),
+            skeleton.scales().get(index),
+            skeleton.translations().get(index),
+            skeleton.inverseBasePoses().get(index)
+        );
     }
 }

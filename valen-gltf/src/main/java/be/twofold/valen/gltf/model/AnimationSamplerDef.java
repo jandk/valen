@@ -2,6 +2,8 @@ package be.twofold.valen.gltf.model;
 
 import org.immutables.value.*;
 
+import java.util.*;
+
 /**
  * An animation sampler combines timestamps with a sequence of output values and defines an interpolation algorithm.
  */
@@ -16,7 +18,7 @@ public interface AnimationSamplerDef extends GltfProperty {
     /**
      * Interpolation algorithm.
      */
-    AnimationSamplerInterpolation getInterpolation();
+    Optional<AnimationSamplerInterpolation> getInterpolation();
 
     /**
      * The index of the accessor containing keyframe output values.

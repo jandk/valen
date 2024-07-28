@@ -15,11 +15,14 @@ public final class GltfAnimationMapper {
         this.context = context;
     }
 
-    AnimationSchema map(Animation animation, NodeId skeletonNode) {
+    public AnimationSchema map(Animation animation, int numBones) {
         List<AnimationSamplerSchema> samplers = new ArrayList<>();
         List<AnimationChannelSchema> channels = new ArrayList<>();
 
         for (var track : animation.tracks()) {
+            if (track.boneId() >= numBones) {
+                continue;
+            }
             switch (track) {
                 case Track.Rotation rotation -> {
                     var keyFrameBuffer = buildKeyFrameBuffer(rotation.keyFrames(), animation.frameRate());
@@ -32,7 +35,7 @@ public final class GltfAnimationMapper {
                     var output = buildAccessor(rotationBufferView, rotation.keyFrames().size(), AccessorType.VEC4);
                     samplers.add(AnimationSamplerSchema.builder().input(input).output(output).build());
 
-                    var channelTargetSchema = animationChannelTarget(skeletonNode, rotation, AnimationChannelTargetPath.Rotation);
+                    var channelTargetSchema = animationChannelTarget(rotation, AnimationChannelTargetPath.Rotation);
                     channels.add(AnimationChannelSchema.builder().sampler(AnimationSamplerId.of(samplers.size() - 1)).target(channelTargetSchema).build());
                 }
                 case Track.Scale scale -> {
@@ -46,7 +49,7 @@ public final class GltfAnimationMapper {
                     var output = buildAccessor(scaleBufferView, scale.keyFrames().size(), AccessorType.VEC3);
                     samplers.add(AnimationSamplerSchema.builder().input(input).output(output).build());
 
-                    var channelTargetSchema = animationChannelTarget(skeletonNode, scale, AnimationChannelTargetPath.Scale);
+                    var channelTargetSchema = animationChannelTarget(scale, AnimationChannelTargetPath.Scale);
                     channels.add(AnimationChannelSchema.builder().sampler(AnimationSamplerId.of(samplers.size() - 1)).target(channelTargetSchema).build());
                 }
                 case Track.Translation translation -> {
@@ -60,26 +63,24 @@ public final class GltfAnimationMapper {
                     var output = buildAccessor(translationBufferView, translation.keyFrames().size(), AccessorType.VEC3);
                     samplers.add(AnimationSamplerSchema.builder().input(input).output(output).build());
 
-                    var channelTargetSchema = animationChannelTarget(skeletonNode, translation, AnimationChannelTargetPath.Translation);
+                    var channelTargetSchema = animationChannelTarget(translation, AnimationChannelTargetPath.Translation);
                     channels.add(AnimationChannelSchema.builder().sampler(AnimationSamplerId.of(samplers.size() - 1)).target(channelTargetSchema).build());
                 }
             }
         }
 
         return AnimationSchema.builder()
-            .name("animation")
             .channels(channels)
             .samplers(samplers)
             .build();
     }
 
     private static AnimationChannelTargetSchema animationChannelTarget(
-        NodeId skeletonNode,
-        Track<?> translation,
+        Track<?> track,
         AnimationChannelTargetPath path
     ) {
         return AnimationChannelTargetSchema.builder()
-            .node(skeletonNode.add(translation.boneId()))
+            .node(NodeId.of(track.boneId()))
             .path(path)
             .build();
     }
