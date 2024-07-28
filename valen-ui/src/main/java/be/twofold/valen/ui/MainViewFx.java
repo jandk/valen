@@ -213,7 +213,7 @@ public final class MainViewFx extends BorderPane implements MainView {
 
     private Menu buildMenuView() {
         var menuView = new Menu("View");
-        var menuViewPreview = new MenuItem("Preview");
+        var menuViewPreview = new CheckMenuItem("Preview");
         menuViewPreview.onActionProperty().set(event -> togglePreview());
         menuView.getItems().addAll(menuViewPreview);
         return menuView;
