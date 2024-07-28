@@ -34,6 +34,13 @@ public final class ByteArrayDataSource extends DataSource {
         this.lim = offset + length;
     }
 
+    public static ByteArrayDataSource fromBuffer(ByteBuffer buffer) {
+        if (!buffer.hasArray()) {
+            throw new IllegalArgumentException("ByteBuffer must be backed by an array");
+        }
+        return new ByteArrayDataSource(buffer.array(), buffer.arrayOffset(), buffer.limit());
+    }
+
     @Override
     public byte readByte() throws IOException {
         if (pos >= lim) {

@@ -36,14 +36,13 @@ public final class StreamManager {
             .anyMatch(f -> f.get(identity).isPresent());
     }
 
-    public byte[] read(long identity, int uncompressedSize) throws IOException {
+    public ByteBuffer read(long identity, int uncompressedSize) throws IOException {
         var compressed = read(identity);
-        if (compressed.length == uncompressedSize) {
-            return compressed;
-        }
-
-        var decompressed = decompressorService.decompress(ByteBuffer.wrap(compressed), uncompressedSize, CompressionType.Kraken);
-        return decompressed.array();
+        return decompressorService.decompress(
+            ByteBuffer.wrap(compressed),
+            uncompressedSize,
+            CompressionType.Kraken
+        );
     }
 
     private byte[] read(long identity) throws IOException {

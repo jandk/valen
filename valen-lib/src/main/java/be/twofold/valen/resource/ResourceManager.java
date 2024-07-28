@@ -83,14 +83,13 @@ public final class ResourceManager {
             .toList();
     }
 
-    public byte[] read(Resource resource) throws IOException {
+    public ByteBuffer read(Resource resource) throws IOException {
         var compressed = read(resource.key());
-        if (compressed.length == resource.uncompressedSize()) {
-            return compressed;
-        }
-
-        var decompressed = decompressorService.decompress(ByteBuffer.wrap(compressed), resource.uncompressedSize(), resource.compression());
-        return decompressed.array();
+        return decompressorService.decompress(
+            ByteBuffer.wrap(compressed),
+            resource.uncompressedSize(),
+            resource.compression()
+        );
     }
 
     private byte[] read(ResourceKey key) throws IOException {

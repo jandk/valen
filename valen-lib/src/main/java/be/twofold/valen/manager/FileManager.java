@@ -1,6 +1,7 @@
 package be.twofold.valen.manager;
 
 import be.twofold.valen.core.io.*;
+import be.twofold.valen.core.util.*;
 import be.twofold.valen.reader.*;
 import be.twofold.valen.reader.packagemapspec.*;
 import be.twofold.valen.resource.*;
@@ -8,6 +9,7 @@ import be.twofold.valen.stream.*;
 import jakarta.inject.*;
 
 import java.io.*;
+import java.nio.*;
 import java.nio.file.*;
 import java.util.*;
 
@@ -58,7 +60,7 @@ public final class FileManager {
     }
 
     public byte[] readRawResource(Resource resource) throws IOException {
-        return resourceManager.read(resource);
+        return Buffers.toArray(resourceManager.read(resource));
     }
 
     public <T> T readResource(String name, FileType<T> type) throws IOException {
@@ -76,8 +78,8 @@ public final class FileManager {
             throw new IllegalArgumentException("Reader " + reader.getClass() + " cannot read " + type.instanceType());
         }
 
-        var bytes = resourceManager.read(entry);
-        var result = reader.read(new ByteArrayDataSource(bytes), entry);
+        var buffer = resourceManager.read(entry);
+        var result = reader.read(ByteArrayDataSource.fromBuffer(buffer), entry);
         return type.instanceType().cast(result);
     }
 
@@ -85,7 +87,7 @@ public final class FileManager {
         return streamManager.exists(identity);
     }
 
-    public byte[] readStream(long identity, int uncompressedSize) throws IOException {
+    public ByteBuffer readStream(long identity, int uncompressedSize) throws IOException {
         return streamManager.read(identity, uncompressedSize);
     }
 

@@ -2,6 +2,7 @@ package be.twofold.valen.reader.image;
 
 import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.texture.*;
+import be.twofold.valen.core.util.*;
 import be.twofold.valen.manager.*;
 import be.twofold.valen.reader.*;
 import be.twofold.valen.resource.*;
@@ -37,6 +38,7 @@ public final class ImageReader implements ResourceReader<Texture> {
 
     public Image read(DataSource source, long hash) throws IOException {
         var image = Image.read(source);
+        source.expectEnd();
 
         if (readStreams) {
             /*
@@ -49,7 +51,6 @@ public final class ImageReader implements ResourceReader<Texture> {
             } else {
                 readMultiStream(image, hash);
             }
-            source.expectEnd();
         }
 
         return image;
@@ -58,7 +59,8 @@ public final class ImageReader implements ResourceReader<Texture> {
     private void readSingleStream(Image image, long hash) throws IOException {
         var lastMip = image.mipInfos().getLast();
         var uncompressedSize = lastMip.cumulativeSizeStreamDB() + lastMip.decompressedSize();
-        var mipSource = new ByteArrayDataSource(fileManager.get().readStream(hash, uncompressedSize));
+        var buffer = fileManager.get().readStream(hash, uncompressedSize);
+        var mipSource = ByteArrayDataSource.fromBuffer(buffer);
         for (var i = 0; i < image.header().totalMipCount(); i++) {
             image.mipData()[i] = mipSource.readBytes(image.mipInfos().get(i).decompressedSize());
         }
@@ -70,7 +72,7 @@ public final class ImageReader implements ResourceReader<Texture> {
             var mipHash = hash << 4 | (image.header().mipCount() - mip.mipLevel());
             if (fileManager.get().containsStream(mipHash)) {
                 var mipBuffer = fileManager.get().readStream(mipHash, mip.decompressedSize());
-                image.mipData()[i] = mipBuffer;
+                image.mipData()[i] = Buffers.toArray(mipBuffer);
             }
         }
     }
