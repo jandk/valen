@@ -1,7 +1,6 @@
 package be.twofold.valen.manager;
 
 import be.twofold.valen.core.io.*;
-import be.twofold.valen.hash.*;
 import be.twofold.valen.reader.*;
 import be.twofold.valen.reader.packagemapspec.*;
 import be.twofold.valen.resource.*;
@@ -71,19 +70,14 @@ public final class FileManager {
             .findFirst()
             .orElseThrow(() -> new IllegalArgumentException("No reader found for " + entry));
 
-        Class<?> readType = reader.getReadType();
+        // TODO: Fix this, a filter would fix issues with decl sub readers
+        var readType = reader.getReadType();
         if (readType != null && !readType.isAssignableFrom(type.instanceType())) {
             throw new IllegalArgumentException("Reader " + reader.getClass() + " cannot read " + type.instanceType());
         }
 
-        byte[] bytes = resourceManager.read(entry);
-        long hash = MurmurHash2.hash64B(bytes, 0, bytes.length, 0xdeadbeefL);
-        Object result;
-        try {
-            result = reader.read(new ByteArrayDataSource(bytes), entry);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        var bytes = resourceManager.read(entry);
+        var result = reader.read(new ByteArrayDataSource(bytes), entry);
         return type.instanceType().cast(result);
     }
 
