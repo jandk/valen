@@ -10,4 +10,12 @@
 
     <artifactId>valen-core</artifactId>
 
+    <dependencies>
+        <dependency>
+            <groupId>net.java.dev.jna</groupId>
+            <artifactId>jna-jpms</artifactId>
+            <optional>true</optional>
+        </dependency>
+    </dependencies>
+
 </project>

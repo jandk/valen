@@ -1,5 +1,6 @@
 package be.twofold.valen.resource;
 
+import be.twofold.valen.core.compression.*;
 import be.twofold.valen.core.io.*;
 import be.twofold.valen.reader.resource.*;
 

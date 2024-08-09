@@ -1,16 +1,15 @@
-package be.twofold.valen.compression.oodle;
+package be.twofold.valen.core.compression.oodle;
 
-import be.twofold.valen.compression.*;
-import be.twofold.valen.compression.oodle.jna.*;
+import be.twofold.valen.core.compression.*;
+import be.twofold.valen.core.compression.oodle.jna.*;
 import be.twofold.valen.core.util.*;
-import be.twofold.valen.util.*;
 import com.sun.jna.*;
 
 import java.io.*;
 import java.nio.*;
 import java.util.*;
 
-public final class OodleDecompressor implements Decompressor {
+public final class OodleDecompressor extends Decompressor {
     private static final OodleLibrary Oodle;
     private static final Memory DecoderMemory;
 

@@ -1,6 +1,6 @@
-package be.twofold.valen.compression.oodle.jna;
+package be.twofold.valen.core.compression.oodle.jna;
 
-import be.twofold.valen.util.*;
+import be.twofold.valen.core.util.*;
 
 public enum OodleLZ_Compressor implements NativeEnum {
     Invalid(-1),

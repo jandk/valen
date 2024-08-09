@@ -1,9 +1,9 @@
-package be.twofold.valen.compression;
+package be.twofold.valen.core.compression;
 
 import java.io.*;
 import java.nio.*;
 
-public final class NullDecompressor implements Decompressor {
+final class NullDecompressor extends Decompressor {
     @Override
     public ByteBuffer decompress(ByteBuffer src, int dstLength) throws IOException {
         if (src.remaining() != dstLength) {

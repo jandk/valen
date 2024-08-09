@@ -1,9 +1,8 @@
 package be.twofold.valen.stream;
 
-import be.twofold.valen.compression.*;
+import be.twofold.valen.core.compression.*;
 import be.twofold.valen.core.util.*;
 import be.twofold.valen.reader.packagemapspec.*;
-import be.twofold.valen.resource.*;
 import jakarta.inject.*;
 
 import java.io.*;
@@ -13,15 +12,12 @@ import java.util.*;
 
 @Singleton
 public final class StreamManager {
-    private final DecompressorService decompressorService;
-
     private Path base;
     private PackageMapSpec spec;
     private List<StreamDbFile> files;
 
     @Inject
-    StreamManager(DecompressorService decompressorService) {
-        this.decompressorService = decompressorService;
+    StreamManager() {
     }
 
     public void load(Path base, PackageMapSpec spec) throws IOException {
@@ -38,11 +34,9 @@ public final class StreamManager {
 
     public ByteBuffer read(long identity, int uncompressedSize) throws IOException {
         var compressed = read(identity);
-        return decompressorService.decompress(
-            ByteBuffer.wrap(compressed),
-            uncompressedSize,
-            CompressionType.Kraken
-        );
+        return Decompressor
+            .forType(CompressionType.Kraken)
+            .decompress(ByteBuffer.wrap(compressed), uncompressedSize);
     }
 
     private byte[] read(long identity) throws IOException {

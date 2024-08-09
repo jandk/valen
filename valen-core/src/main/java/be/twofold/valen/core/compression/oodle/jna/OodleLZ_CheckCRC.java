@@ -1,6 +1,6 @@
-package be.twofold.valen.compression.oodle.jna;
+package be.twofold.valen.core.compression.oodle.jna;
 
-import be.twofold.valen.util.*;
+import be.twofold.valen.core.util.*;
 
 public enum OodleLZ_CheckCRC implements NativeEnum {
     No(0),

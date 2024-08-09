@@ -1,6 +1,5 @@
 module valen.lib {
     requires com.google.gson;
-    requires com.sun.jna;
     requires dagger;
     requires java.desktop; // For testing only
     requires java.sql; // For import only

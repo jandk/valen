@@ -32,6 +32,12 @@
             <groupId>be.twofold</groupId>
             <artifactId>valen-ui</artifactId>
         </dependency>
+
+        <!-- External -->
+        <dependency>
+            <groupId>net.java.dev.jna</groupId>
+            <artifactId>jna-jpms</artifactId>
+        </dependency>
     </dependencies>
 
 </project>

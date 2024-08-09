@@ -1,6 +1,6 @@
 package be.twofold.valen.resource;
 
-import be.twofold.valen.compression.*;
+import be.twofold.valen.core.compression.*;
 import be.twofold.valen.core.util.*;
 import be.twofold.valen.reader.packagemapspec.*;
 import jakarta.inject.*;
@@ -27,14 +27,12 @@ public final class ResourceManager {
     ));
 
     private final List<ResourcesFile> files = new ArrayList<>();
-    private final DecompressorService decompressorService;
 
     private Path base;
     private PackageMapSpec spec;
 
     @Inject
-    ResourceManager(DecompressorService decompressorService) {
-        this.decompressorService = decompressorService;
+    ResourceManager() {
     }
 
     public void load(Path base, PackageMapSpec spec) throws IOException {
@@ -85,11 +83,9 @@ public final class ResourceManager {
 
     public ByteBuffer read(Resource resource) throws IOException {
         var compressed = read(resource.key());
-        return decompressorService.decompress(
-            ByteBuffer.wrap(compressed),
-            resource.uncompressedSize(),
-            resource.compression()
-        );
+        return Decompressor
+            .forType(resource.compression())
+            .decompress(ByteBuffer.wrap(compressed), resource.uncompressedSize());
     }
 
     private byte[] read(ResourceKey key) throws IOException {
