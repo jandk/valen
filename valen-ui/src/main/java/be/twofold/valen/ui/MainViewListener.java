@@ -1,11 +1,11 @@
 package be.twofold.valen.ui;
 
-import be.twofold.valen.resource.*;
+import be.twofold.valen.core.game.*;
 
 public interface MainViewListener {
 
     void onPathSelected(String path);
 
-    void onResourceSelected(Resource resource);
+    void onAssetSelected(Asset<?> asset);
 
 }

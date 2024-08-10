@@ -17,7 +17,7 @@ public final class StreamManager {
     private List<StreamDbFile> files;
 
     @Inject
-    StreamManager() {
+    public StreamManager() {
     }
 
     public void load(Path base, PackageMapSpec spec) throws IOException {

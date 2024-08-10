@@ -11,4 +11,10 @@ module valen.lib {
     exports be.twofold.valen.reader.streamdb;
     exports be.twofold.valen.reader;
     exports be.twofold.valen.resource;
+    exports be.twofold.valen.game;
+
+    uses be.twofold.valen.core.game.GameFactory;
+
+    provides be.twofold.valen.core.game.GameFactory
+        with be.twofold.valen.game.EternalGameFactory;
 }

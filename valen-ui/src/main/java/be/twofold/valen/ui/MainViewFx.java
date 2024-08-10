@@ -1,7 +1,6 @@
 package be.twofold.valen.ui;
 
-import be.twofold.valen.resource.*;
-import be.twofold.valen.ui.model.*;
+import be.twofold.valen.core.game.*;
 import jakarta.inject.*;
 import javafx.beans.property.*;
 import javafx.geometry.*;
@@ -20,7 +19,7 @@ public final class MainViewFx extends BorderPane implements MainView {
 
     private final SplitPane splitPane = new SplitPane();
     private final TreeView<String> treeView = new TreeView<>();
-    private final TableView<Resource> tableView = new TableView<>();
+    private final TableView<Asset<?>> tableView = new TableView<>();
     private final ImageViewerPane imageViewerPane = new ImageViewerPane();
 
     @Inject
@@ -39,7 +38,7 @@ public final class MainViewFx extends BorderPane implements MainView {
     }
 
     @Override
-    public void setResources(List<Resource> resources) {
+    public void setAssets(List<Asset<?>> resources) {
         tableView.getItems().setAll(resources);
     }
 
@@ -108,29 +107,29 @@ public final class MainViewFx extends BorderPane implements MainView {
         return treeView;
     }
 
-    private TableView<Resource> buildTableView() {
+    private TableView<Asset<?>> buildTableView() {
         tableView.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
             if (newValue != null) {
-                listeners.fire().onResourceSelected(newValue);
+                listeners.fire().onAssetSelected(newValue);
             }
         });
-        TableColumn<Resource, String> nameColumn = new TableColumn<>();
+        TableColumn<Asset<?>, String> nameColumn = new TableColumn<>();
         nameColumn.setText("Name");
-        nameColumn.setCellValueFactory(param -> new ReadOnlyObjectWrapper<>(param.getValue().name().file()));
+        nameColumn.setCellValueFactory(param -> new ReadOnlyObjectWrapper<>(param.getValue().identifier().fileName()));
 
-        TableColumn<Resource, String> typeColumn = new TableColumn<>();
+        TableColumn<Asset<?>, String> typeColumn = new TableColumn<>();
         typeColumn.setText("Type");
         typeColumn.setCellValueFactory(param -> new ReadOnlyObjectWrapper<>(param.getValue().type().name()));
 
-        TableColumn<Resource, Size> compressedColumn = new TableColumn<>();
-        compressedColumn.setText("Compressed");
-        compressedColumn.setCellValueFactory(param -> new ReadOnlyObjectWrapper<>(new Size(param.getValue().compressedSize())));
+//        TableColumn<Asset<?>, Size> compressedColumn = new TableColumn<>();
+//        compressedColumn.setText("Compressed");
+//        compressedColumn.setCellValueFactory(param -> new ReadOnlyObjectWrapper<>(new Size(param.getValue().compressedSize())));
+//
+//        TableColumn<Asset<?>, Size> uncompressedColumn = new TableColumn<>();
+//        uncompressedColumn.setText("Uncompressed");
+//        uncompressedColumn.setCellValueFactory(param -> new ReadOnlyObjectWrapper<>(new Size(param.getValue().uncompressedSize())));
 
-        TableColumn<Resource, Size> uncompressedColumn = new TableColumn<>();
-        uncompressedColumn.setText("Uncompressed");
-        uncompressedColumn.setCellValueFactory(param -> new ReadOnlyObjectWrapper<>(new Size(param.getValue().uncompressedSize())));
-
-        tableView.getColumns().addAll(nameColumn, typeColumn, compressedColumn, uncompressedColumn);
+        tableView.getColumns().addAll(nameColumn, typeColumn/*, compressedColumn, uncompressedColumn*/);
         return tableView;
     }
 

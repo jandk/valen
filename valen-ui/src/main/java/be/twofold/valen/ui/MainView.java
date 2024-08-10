@@ -1,6 +1,6 @@
 package be.twofold.valen.ui;
 
-import be.twofold.valen.resource.*;
+import be.twofold.valen.core.game.*;
 import javafx.scene.control.*;
 
 import java.util.*;
@@ -9,7 +9,7 @@ public interface MainView extends View {
 
     void setFileTree(TreeItem<String> root);
 
-    void setResources(List<Resource> resources);
+    void setAssets(List<Asset<?>> resources);
 
     void setImage(byte[] rgba, int width, int height);
 

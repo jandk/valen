@@ -11,6 +11,7 @@ module valen.app {
     requires valen.export;
 
     uses be.twofold.valen.export.Exporter;
+    uses be.twofold.valen.core.game.GameFactory;
 
     exports be.twofold.valen;
 }

@@ -3,6 +3,7 @@ module valen.core {
 
     exports be.twofold.valen.core.animation;
     exports be.twofold.valen.core.compression;
+    exports be.twofold.valen.core.game;
     exports be.twofold.valen.core.geometry;
     exports be.twofold.valen.core.io;
     exports be.twofold.valen.core.material;
