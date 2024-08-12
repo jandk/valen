@@ -1,7 +1,6 @@
 package be.twofold.valen;
 
 import be.twofold.valen.core.io.*;
-import be.twofold.valen.reader.*;
 import be.twofold.valen.reader.resource.*;
 import be.twofold.valen.reader.streamdb.*;
 import be.twofold.valen.resource.*;
@@ -66,22 +65,23 @@ public final class DbImporter {
     }
 
     public static void main(String[] args) throws Exception {
-        var fileManager = DaggerManagerFactory.create().fileManager().load(BASE);
-        var spec = fileManager.getSpec();
-
-        try (var connection = DriverManager.getConnection("jdbc:postgresql://192.168.1.201:5432/doom?rewriteBatchedQueries=true", "doom", "doom")) {
-            try (var statement = connection.createStatement()) {
-                statement.execute(TABLE_SQL);
-            }
-
-            var files = spec.files();
-            var dbImport = new DbImporter(connection);
-            dbImport.insertNames("file", files);
-            dbImport.insertNames("map", spec.maps());
-            dbImport.insertMapFiles(spec.mapFiles());
-            dbImport.insertStreamDbs(files);
-            dbImport.insertResources(files);
-        }
+        // TODO: Rewrite this using Game
+//        var fileManager = DaggerManagerFactory.create().fileManager().load(BASE);
+//        var spec = fileManager.getSpec();
+//
+//        try (var connection = DriverManager.getConnection("jdbc:postgresql://192.168.1.201:5432/doom?rewriteBatchedQueries=true", "doom", "doom")) {
+//            try (var statement = connection.createStatement()) {
+//                statement.execute(TABLE_SQL);
+//            }
+//
+//            var files = spec.files();
+//            var dbImport = new DbImporter(connection);
+//            dbImport.insertNames("file", files);
+//            dbImport.insertNames("map", spec.maps());
+//            dbImport.insertMapFiles(spec.mapFiles());
+//            dbImport.insertStreamDbs(files);
+//            dbImport.insertResources(files);
+//        }
     }
 
     // region PackageMapSpec.json

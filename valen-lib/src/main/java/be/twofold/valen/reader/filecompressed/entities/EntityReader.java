@@ -5,7 +5,6 @@ import be.twofold.valen.reader.*;
 import be.twofold.valen.reader.decl.parser.*;
 import be.twofold.valen.reader.filecompressed.*;
 import be.twofold.valen.resource.*;
-import jakarta.inject.*;
 
 import java.io.*;
 import java.nio.charset.*;
@@ -14,15 +13,14 @@ import java.util.*;
 public final class EntityReader implements ResourceReader<EntityFile> {
     private final FileCompressedReader fileCompressedReader;
 
-    @Inject
-    EntityReader(FileCompressedReader fileCompressedReader) {
+    public EntityReader(FileCompressedReader fileCompressedReader) {
         this.fileCompressedReader = fileCompressedReader;
     }
 
     @Override
-    public boolean canRead(Resource entry) {
-        return entry.type() == ResourceType.CompFile
-               && entry.name().extension().equals("entities");
+    public boolean canRead(ResourceKey key) {
+        return key.type() == ResourceType.CompFile
+            && key.name().extension().equals("entities");
     }
 
     @Override

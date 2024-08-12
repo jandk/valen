@@ -1,7 +1,8 @@
 package be.twofold.valen;
 
+import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.io.*;
-import be.twofold.valen.manager.*;
+import be.twofold.valen.game.*;
 import be.twofold.valen.reader.*;
 
 import java.io.*;
@@ -12,10 +13,14 @@ import static org.assertj.core.api.Assertions.*;
 
 public abstract class TestUtils {
 
-    public static void testReader(Function<FileManager, ResourceReader<?>> readerFunction) throws IOException {
-        var manager = DaggerManagerFactory.create()
-            .fileManager()
-            .load(Path.of(Constants.BasePath));
+    public static void testReader(Function<Archive<?>, ResourceReader<?>> readerFunction) throws IOException {
+        EternalGame game = new EternalGameFactory().load(Path.of(Constants.ExecutablePath));
+
+        for (String archiveName : game.archiveNames()) {
+            var archive = game.loadArchive(archiveName);
+            var reader = readerFunction.apply(archive);
+            readAllInMap(archive, reader);
+        }
 
         var reader = readerFunction.apply(manager);
 
@@ -25,16 +30,16 @@ public abstract class TestUtils {
         }
     }
 
-    private static void readAllInMap(FileManager manager, ResourceReader<?> reader) {
-        var entries = manager.getEntries().stream()
-            .filter(entry -> entry.uncompressedSize() != 0 && reader.canRead(entry))
+    private static void readAllInMap(EternalArchive archive, ResourceReader<?> reader) {
+        var entries = archive.assets().stream()
+            .filter(asset -> asset.size() != 0 && reader.canRead(asset))
             .toList();
 
         System.out.println("Trying to read " + entries.size() + " entries");
 
         entries.forEach(resource -> assertThatNoException()
             .isThrownBy(() -> {
-                var buffer = new ByteArrayDataSource(manager.readRawResource(resource));
+                var buffer = new ByteArrayDataSource(archive.readRawResource(resource));
                 reader.read(buffer, resource);
             }));
     }

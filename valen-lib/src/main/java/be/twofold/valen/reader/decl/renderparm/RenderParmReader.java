@@ -6,20 +6,18 @@ import be.twofold.valen.reader.decl.parser.*;
 import be.twofold.valen.reader.decl.renderparm.enums.*;
 import be.twofold.valen.reader.image.*;
 import be.twofold.valen.resource.*;
-import jakarta.inject.*;
 
 import java.io.*;
 import java.util.*;
 
 public final class RenderParmReader implements ResourceReader<RenderParm> {
-    @Inject
-    RenderParmReader() {
+    public RenderParmReader() {
     }
 
     @Override
-    public boolean canRead(Resource entry) {
-        return entry.type() == ResourceType.RsStreamFile
-               && entry.nameString().startsWith("generated/decls/renderparm/");
+    public boolean canRead(ResourceKey key) {
+        return key.type() == ResourceType.RsStreamFile
+            && key.name().name().startsWith("generated/decls/renderparm/");
     }
 
     @Override

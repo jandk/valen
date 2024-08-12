@@ -2,62 +2,59 @@ package be.twofold.valen.reader.md6model;
 
 import be.twofold.valen.core.geometry.*;
 import be.twofold.valen.core.io.*;
-import be.twofold.valen.core.material.*;
-import be.twofold.valen.manager.*;
+import be.twofold.valen.game.*;
 import be.twofold.valen.reader.*;
 import be.twofold.valen.reader.geometry.*;
 import be.twofold.valen.resource.*;
-import dagger.*;
-import jakarta.inject.*;
 
 import java.io.*;
 import java.nio.*;
 import java.util.*;
 
 public final class Md6ModelReader implements ResourceReader<Model> {
-    private final Lazy<FileManager> fileManager;
+    private final EternalArchive archive;
     private final boolean readMaterials;
 
-    @Inject
-    Md6ModelReader(Lazy<FileManager> fileManager) {
-        this(fileManager, true);
+    public Md6ModelReader(EternalArchive archive) {
+        this(archive, true);
     }
 
-    Md6ModelReader(Lazy<FileManager> fileManager, boolean readMaterials) {
-        this.fileManager = fileManager;
+    Md6ModelReader(EternalArchive archive, boolean readMaterials) {
+        this.archive = archive;
         this.readMaterials = readMaterials;
     }
 
     @Override
-    public boolean canRead(Resource entry) {
-        return entry.type() == ResourceType.BaseModel;
+    public boolean canRead(ResourceKey key) {
+        return key.type() == ResourceType.BaseModel;
     }
 
     @Override
     public Model read(DataSource source, Resource resource) throws IOException {
-        Md6Model model = read(source, true, resource.hash());
-        Skeleton skeleton = fileManager.get().readResource(model.header().md6SkelName(), FileType.Skeleton);
+        var model = read(source, true, resource.hash());
+        var skeletonKey = ResourceKey.from(model.header().md6SkelName(), ResourceType.Skeleton);
+        var skeleton = (Skeleton) archive.loadAsset(skeletonKey);
 
-        if (readMaterials) {
-            var materials = new LinkedHashMap<String, Material>();
-            var materialIndices = new HashMap<String, Integer>();
-
-            var meshes = new ArrayList<Mesh>();
-            for (int i = 0; i < model.meshes().size(); i++) {
-                var meshInfo = model.meshInfos().get(i);
-                var materialName = meshInfo.materialName();
-                var materialFile = "generated/decls/material2/" + materialName + ".decl";
-                var materialIndex = materialIndices.computeIfAbsent(materialName, k -> materials.size());
-                if (!materials.containsKey(materialName)) {
-                    Material material = fileManager.get().readResource(materialFile, FileType.Material);
-                    materials.put(materialName, material);
-                }
-                meshes.add(model.meshes().get(i).withMaterialIndex(materialIndex));
-            }
-            model = model
-                .withMeshes(meshes)
-                .withMaterials(List.copyOf(materials.values()));
-        }
+//        if (readMaterials) {
+//            var materials = new LinkedHashMap<String, Material>();
+//            var materialIndices = new HashMap<String, Integer>();
+//
+//            var meshes = new ArrayList<Mesh>();
+//            for (int i = 0; i < model.meshes().size(); i++) {
+//                var meshInfo = model.meshInfos().get(i);
+//                var materialName = meshInfo.materialName();
+//                var materialFile = "generated/decls/material2/" + materialName + ".decl";
+//                var materialIndex = materialIndices.computeIfAbsent(materialName, k -> materials.size());
+//                if (!materials.containsKey(materialName)) {
+//                    Material material = fileManager.get().readResource(materialFile, FileType.Material);
+//                    materials.put(materialName, material);
+//                }
+//                meshes.add(model.meshes().get(i).withMaterialIndex(materialIndex));
+//            }
+//            model = model
+//                .withMeshes(meshes)
+//                .withMaterials(List.copyOf(materials.values()));
+//        }
         return new Model(model.meshes(), model.materials(), skeleton);
     }
 
@@ -86,9 +83,10 @@ public final class Md6ModelReader implements ResourceReader<Model> {
         var layouts = md6.layouts().get(lod).memoryLayouts();
 
         var identity = (hash << 4) | lod;
-        var buffer = fileManager.get().readStream(identity, uncompressedSize);
-        var source = ByteArrayDataSource.fromBuffer(buffer);
-        return GeometryReader.readStreamedMesh(source, lodInfos, layouts, true);
+        var buffer = archive.readStream(identity, uncompressedSize);
+        try (var source = ByteArrayDataSource.fromBuffer(buffer)) {
+            return GeometryReader.readStreamedMesh(source, lodInfos, layouts, true);
+        }
     }
 
     private void fixJointIndices(Md6Model md6, List<Mesh> meshes) {

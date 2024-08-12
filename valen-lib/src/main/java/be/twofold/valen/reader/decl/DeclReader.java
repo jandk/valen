@@ -1,13 +1,12 @@
 package be.twofold.valen.reader.decl;
 
 import be.twofold.valen.core.io.*;
-import be.twofold.valen.manager.*;
+import be.twofold.valen.core.util.*;
+import be.twofold.valen.game.*;
 import be.twofold.valen.reader.*;
 import be.twofold.valen.reader.decl.parser.*;
 import be.twofold.valen.resource.*;
 import com.google.gson.*;
-import dagger.*;
-import jakarta.inject.*;
 
 import java.io.*;
 import java.nio.*;
@@ -15,7 +14,6 @@ import java.nio.charset.*;
 import java.util.*;
 import java.util.regex.*;
 
-@Singleton
 public final class DeclReader implements ResourceReader<JsonObject> {
     private static final String RootPrefix = "generated/decls/";
     private static final Pattern ItemPattern = Pattern.compile("^\\w+\\[(\\d+)]$");
@@ -35,24 +33,22 @@ public final class DeclReader implements ResourceReader<JsonObject> {
     );
 
     private final Map<String, JsonObject> declCache = new HashMap<>();
-    private final Lazy<FileManager> fileManager;
+    private final EternalArchive archive;
 
-    // TODO: This constructor should not be public
-    @Inject
-    public DeclReader(Lazy<FileManager> fileManager) {
-        this.fileManager = fileManager;
+    public DeclReader(EternalArchive archive) {
+        this.archive = archive;
     }
 
     @Override
-    public boolean canRead(Resource entry) {
-        if (entry.type() != ResourceType.RsStreamFile) {
+    public boolean canRead(ResourceKey key) {
+        if (key.type() != ResourceType.RsStreamFile) {
             return false;
         }
-        if (!entry.nameString().startsWith(RootPrefix)) {
+        if (!key.name().name().startsWith(RootPrefix)) {
             return false;
         }
 
-        var basePath = getBasePath(entry.nameString());
+        var basePath = getBasePath(key.name().name());
         return !Unsupported.contains(basePath);
     }
 
@@ -86,12 +82,12 @@ public final class DeclReader implements ResourceReader<JsonObject> {
         }
 
         var fullName = RootPrefix + key + ".decl";
-        var resource = fileManager.get().getResource(fullName, ResourceType.RsStreamFile);
-        if (resource.isEmpty()) {
+        var resourceKey = ResourceKey.from(fullName, ResourceType.RsStreamFile);
+        if (!archive.exists(resourceKey)) {
             return object;
         }
 
-        var bytes = fileManager.get().readRawResource(resource.get());
+        var bytes = Buffers.toArray(archive.loadRawAsset(resourceKey));
         parent = DeclParser.parse(decode(bytes));
         parent = loadInherit(parent, fullName);
         declCache.put(key, parent);

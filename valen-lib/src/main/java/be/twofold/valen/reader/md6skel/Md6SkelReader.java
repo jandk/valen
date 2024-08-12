@@ -4,19 +4,14 @@ import be.twofold.valen.core.geometry.*;
 import be.twofold.valen.core.io.*;
 import be.twofold.valen.reader.*;
 import be.twofold.valen.resource.*;
-import jakarta.inject.*;
 
 import java.io.*;
 import java.util.stream.*;
 
 public final class Md6SkelReader implements ResourceReader<Skeleton> {
-    @Inject
-    Md6SkelReader() {
-    }
-
     @Override
-    public boolean canRead(Resource entry) {
-        return entry.type() == ResourceType.Skeleton;
+    public boolean canRead(ResourceKey key) {
+        return key.type() == ResourceType.Skeleton;
     }
 
     @Override

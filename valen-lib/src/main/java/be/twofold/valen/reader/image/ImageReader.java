@@ -3,31 +3,28 @@ package be.twofold.valen.reader.image;
 import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.texture.*;
 import be.twofold.valen.core.util.*;
-import be.twofold.valen.manager.*;
+import be.twofold.valen.game.*;
 import be.twofold.valen.reader.*;
 import be.twofold.valen.resource.*;
-import dagger.*;
-import jakarta.inject.*;
 
 import java.io.*;
 
 public final class ImageReader implements ResourceReader<Texture> {
-    private final Lazy<FileManager> fileManager;
+    private final StreamDbCollection streams;
     private final boolean readStreams;
 
-    @Inject
-    ImageReader(Lazy<FileManager> fileManager) {
-        this(fileManager, true);
+    public ImageReader(StreamDbCollection streams) {
+        this(streams, true);
     }
 
-    ImageReader(Lazy<FileManager> fileManager, boolean readStreams) {
-        this.fileManager = fileManager;
+    ImageReader(StreamDbCollection streams, boolean readStreams) {
+        this.streams = streams;
         this.readStreams = readStreams;
     }
 
     @Override
-    public boolean canRead(Resource entry) {
-        return entry.type() == ResourceType.Image;
+    public boolean canRead(ResourceKey key) {
+        return key.type() == ResourceType.Image;
     }
 
     @Override
@@ -59,7 +56,7 @@ public final class ImageReader implements ResourceReader<Texture> {
     private void readSingleStream(Image image, long hash) throws IOException {
         var lastMip = image.mipInfos().getLast();
         var uncompressedSize = lastMip.cumulativeSizeStreamDB() + lastMip.decompressedSize();
-        var buffer = fileManager.get().readStream(hash, uncompressedSize);
+        var buffer = streams.read(hash, uncompressedSize);
         var mipSource = ByteArrayDataSource.fromBuffer(buffer);
         for (var i = 0; i < image.header().totalMipCount(); i++) {
             image.mipData()[i] = mipSource.readBytes(image.mipInfos().get(i).decompressedSize());
@@ -70,8 +67,8 @@ public final class ImageReader implements ResourceReader<Texture> {
         for (var i = 0; i < image.header().startMip(); i++) {
             var mip = image.mipInfos().get(i);
             var mipHash = hash << 4 | (image.header().mipCount() - mip.mipLevel());
-            if (fileManager.get().containsStream(mipHash)) {
-                var mipBuffer = fileManager.get().readStream(mipHash, mip.decompressedSize());
+            if (streams.exists(mipHash)) {
+                var mipBuffer = streams.read(mipHash, mip.decompressedSize());
                 image.mipData()[i] = Buffers.toArray(mipBuffer);
             }
         }

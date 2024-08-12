@@ -8,7 +8,7 @@ import java.lang.reflect.*;
 
 public interface ResourceReader<R> {
 
-    boolean canRead(Resource entry);
+    boolean canRead(ResourceKey key);
 
     R read(DataSource source, Resource resource) throws IOException;
 

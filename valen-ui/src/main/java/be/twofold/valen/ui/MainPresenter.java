@@ -10,7 +10,7 @@ import java.io.*;
 import java.util.*;
 
 public class MainPresenter extends AbstractPresenter<MainView> {
-    private Archive<?> archive;
+    private Archive archive;
 
     @Inject
     MainPresenter(MainView view) {
@@ -23,23 +23,23 @@ public class MainPresenter extends AbstractPresenter<MainView> {
             }
 
             @Override
-            public void onAssetSelected(Asset<?> asset) {
-//                if (asset.type() == AssetType.Image) {
-//                    decodeImage((Asset<?>) asset);
-//                }
+            public void onAssetSelected(Asset asset) {
+                if (asset.type() == AssetType.Image) {
+                    decodeImage(asset);
+                }
             }
         });
     }
 
-    public void setArchive(Archive<?> archive) {
+    public void setArchive(Archive archive) {
         this.archive = archive;
-        setResources((List) archive.assets());
+        setResources(archive.assets());
     }
 
-    private void decodeImage(Asset<?> asset) {
+    private void decodeImage(Asset asset) {
         Texture texture;
         try {
-            texture = (Texture) archive.loadAsset((Asset) asset);
+            texture = (Texture) archive.loadAsset(asset.identifier());
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -58,7 +58,7 @@ public class MainPresenter extends AbstractPresenter<MainView> {
         }
     }
 
-    public void setResources(List<Asset<?>> assets) {
+    public void setResources(List<Asset> assets) {
         Node node = buildNodeTree(assets);
         TreeItem<String> convert = convert(node);
         getView().setFileTree(convert);
@@ -66,10 +66,10 @@ public class MainPresenter extends AbstractPresenter<MainView> {
 
     private void loadResources(String path) {
         var assets = archive.assets().stream()
-            .filter(r -> r.identifier().pathName().equals(path))
+            .filter(r -> ((Asset) r).identifier().pathName().equals(path))
             .toList();
 
-        getView().setAssets((List) assets);
+        getView().setAssets(assets);
     }
 
     private TreeItem<String> convert(Node node) {
@@ -85,7 +85,7 @@ public class MainPresenter extends AbstractPresenter<MainView> {
         return item;
     }
 
-    private Node buildNodeTree(List<Asset<?>> assets) {
+    private Node buildNodeTree(List<Asset> assets) {
         var root = new Node("root");
         for (var entry : assets) {
             var node = root;

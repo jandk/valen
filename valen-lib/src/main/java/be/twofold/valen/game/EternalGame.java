@@ -24,7 +24,7 @@ public final class EternalGame implements Game {
     }
 
     @Override
-    public Archive loadArchive(String name) throws IOException {
+    public EternalArchive loadArchive(String name) throws IOException {
         var resourcesCollection = ResourcesCollection.load(base, spec, name);
 
         // TODO: Cast and generic

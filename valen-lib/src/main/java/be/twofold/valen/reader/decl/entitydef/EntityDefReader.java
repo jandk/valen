@@ -5,20 +5,14 @@ import be.twofold.valen.reader.*;
 import be.twofold.valen.reader.decl.parser.*;
 import be.twofold.valen.resource.*;
 import com.google.gson.*;
-import jakarta.inject.*;
 
 import java.io.*;
 
 public final class EntityDefReader implements ResourceReader<JsonObject> {
-
-    @Inject
-    EntityDefReader() {
-    }
-
     @Override
-    public boolean canRead(Resource entry) {
-        return entry.type() == ResourceType.RsStreamFile
-            && entry.nameString().startsWith("generated/decls/entitydef/");
+    public boolean canRead(ResourceKey key) {
+        return key.type() == ResourceType.RsStreamFile
+            && key.name().name().startsWith("generated/decls/entitydef/");
     }
 
     @Override

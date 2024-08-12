@@ -11,5 +11,6 @@ public record Model(
 ) {
     public Model {
         meshes = List.copyOf(meshes);
+        materials = List.copyOf(materials);
     }
 }

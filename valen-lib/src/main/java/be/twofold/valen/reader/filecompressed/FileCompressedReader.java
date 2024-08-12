@@ -4,20 +4,15 @@ import be.twofold.valen.core.compression.*;
 import be.twofold.valen.core.io.*;
 import be.twofold.valen.reader.*;
 import be.twofold.valen.resource.*;
-import jakarta.inject.*;
 
 import java.io.*;
 import java.nio.*;
 
 public final class FileCompressedReader implements ResourceReader<byte[]> {
-    @Inject
-    FileCompressedReader() {
-    }
-
     @Override
-    public boolean canRead(Resource entry) {
-        return entry.type() == ResourceType.CompFile
-            && !entry.name().extension().equals("entities");
+    public boolean canRead(ResourceKey key) {
+        return key.type() == ResourceType.CompFile
+            && !key.name().extension().equals("entities");
     }
 
     @Override

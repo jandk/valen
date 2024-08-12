@@ -22,10 +22,6 @@
             <groupId>com.google.code.gson</groupId>
             <artifactId>gson</artifactId>
         </dependency>
-        <dependency>
-            <groupId>io.github.jbock-java</groupId>
-            <artifactId>dapper</artifactId>
-        </dependency>
     </dependencies>
 
 </project>

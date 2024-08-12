@@ -2,42 +2,35 @@ package be.twofold.valen.reader.decl.material2;
 
 import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.material.*;
-import be.twofold.valen.manager.*;
+import be.twofold.valen.game.*;
 import be.twofold.valen.reader.*;
 import be.twofold.valen.reader.decl.*;
 import be.twofold.valen.reader.decl.renderparm.*;
 import be.twofold.valen.reader.image.*;
 import be.twofold.valen.resource.*;
 import com.google.gson.*;
-import dagger.*;
-import jakarta.inject.*;
 
 import java.io.*;
 import java.util.*;
 
 public final class MaterialReader implements ResourceReader<Material> {
-    public static final Map<String, Integer> MissingImages = new TreeMap<>();
-    public static final Set<String> MaterialsWithMissingImages = new TreeSet<>();
-    public static final Map<ImageTextureMaterialKind, Integer> MaterialKindCounts = new EnumMap<>(ImageTextureMaterialKind.class);
-
     private static final Map<String, RenderParm> RenderParmCache = new HashMap<>();
 
-    private final Lazy<FileManager> fileManager;
+    private final EternalArchive archive;
     private final DeclReader declReader;
 
-    @Inject
-    MaterialReader(
-        Lazy<FileManager> fileManager,
+    public MaterialReader(
+        EternalArchive archive,
         DeclReader declReader
     ) {
-        this.fileManager = fileManager;
+        this.archive = archive;
         this.declReader = declReader;
     }
 
     @Override
-    public boolean canRead(Resource entry) {
-        return entry.type() == ResourceType.RsStreamFile
-            && entry.nameString().startsWith("generated/decls/material2/");
+    public boolean canRead(ResourceKey key) {
+        return key.type() == ResourceType.RsStreamFile
+            && key.name().name().startsWith("generated/decls/material2/");
     }
 
     @Override
@@ -79,11 +72,7 @@ public final class MaterialReader implements ResourceReader<Material> {
             }
             mapOptions(builder, kind, parm, opts);
 
-            if (!fileManager.get().exists(builder.toString(), ResourceType.Image)) {
-                MissingImages.merge(builder.toString(), 1, Integer::sum);
-                MaterialsWithMissingImages.add(materialName);
-            } else {
-                MaterialKindCounts.merge(kind, 1, Integer::sum);
+            if (archive.exists(ResourceKey.from(builder.toString(), ResourceType.Image))) {
                 references.add(new TextureReference(mapTextureType(kind), builder.toString()));
             }
         });
@@ -166,7 +155,7 @@ public final class MaterialReader implements ResourceReader<Material> {
 
     private RenderParm loadRenderParm(String name) throws IOException {
         var fullName = "generated/decls/renderparm/" + name + ".decl";
-        return fileManager.get().readResource(fullName, FileType.RenderParm);
+        return (RenderParm) archive.loadAsset(ResourceKey.from(fullName, ResourceType.RenderParm));
     }
 
     private MaterialImageOpts parseOptions(JsonObject options) {
