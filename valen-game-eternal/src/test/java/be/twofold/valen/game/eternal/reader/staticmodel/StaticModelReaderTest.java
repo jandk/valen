@@ -1,7 +1,6 @@
-package be.twofold.valen.reader.staticmodel;
+package be.twofold.valen.game.eternal.reader.staticmodel;
 
-import be.twofold.valen.*;
-import be.twofold.valen.game.eternal.reader.staticmodel.*;
+import be.twofold.valen.game.eternal.*;
 import org.junit.jupiter.api.*;
 
 import java.io.*;

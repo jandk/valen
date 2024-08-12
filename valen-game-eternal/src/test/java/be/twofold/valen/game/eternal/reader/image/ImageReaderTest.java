@@ -1,7 +1,6 @@
-package be.twofold.valen.reader.image;
+package be.twofold.valen.game.eternal.reader.image;
 
-import be.twofold.valen.*;
-import be.twofold.valen.game.eternal.reader.image.*;
+import be.twofold.valen.game.eternal.*;
 import org.junit.jupiter.api.*;
 
 import java.io.*;

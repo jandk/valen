@@ -1,7 +1,6 @@
-package be.twofold.valen;
+package be.twofold.valen.game.eternal;
 
 import be.twofold.valen.core.io.*;
-import be.twofold.valen.game.eternal.*;
 import be.twofold.valen.game.eternal.reader.*;
 
 import java.io.*;
