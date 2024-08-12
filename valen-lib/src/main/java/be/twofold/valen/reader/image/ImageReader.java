@@ -1,5 +1,6 @@
 package be.twofold.valen.reader.image;
 
+import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.texture.*;
 import be.twofold.valen.core.util.*;
@@ -10,15 +11,15 @@ import be.twofold.valen.resource.*;
 import java.io.*;
 
 public final class ImageReader implements ResourceReader<Texture> {
-    private final StreamDbCollection streams;
+    private final EternalArchive archive;
     private final boolean readStreams;
 
-    public ImageReader(StreamDbCollection streams) {
-        this(streams, true);
+    public ImageReader(EternalArchive archive) {
+        this(archive, true);
     }
 
-    ImageReader(StreamDbCollection streams, boolean readStreams) {
-        this.streams = streams;
+    ImageReader(EternalArchive archive, boolean readStreams) {
+        this.archive = archive;
         this.readStreams = readStreams;
     }
 
@@ -28,8 +29,8 @@ public final class ImageReader implements ResourceReader<Texture> {
     }
 
     @Override
-    public Texture read(DataSource source, Resource resource) throws IOException {
-        Image image = read(source, resource.hash());
+    public Texture read(DataSource source, Asset<ResourceKey> asset) throws IOException {
+        var image = read(source, (Long) asset.properties().get("hash"));
         return new ImageMapper().map(image);
     }
 
@@ -56,7 +57,7 @@ public final class ImageReader implements ResourceReader<Texture> {
     private void readSingleStream(Image image, long hash) throws IOException {
         var lastMip = image.mipInfos().getLast();
         var uncompressedSize = lastMip.cumulativeSizeStreamDB() + lastMip.decompressedSize();
-        var buffer = streams.read(hash, uncompressedSize);
+        var buffer = archive.readStream(hash, uncompressedSize);
         var mipSource = ByteArrayDataSource.fromBuffer(buffer);
         for (var i = 0; i < image.header().totalMipCount(); i++) {
             image.mipData()[i] = mipSource.readBytes(image.mipInfos().get(i).decompressedSize());
@@ -67,9 +68,9 @@ public final class ImageReader implements ResourceReader<Texture> {
         for (var i = 0; i < image.header().startMip(); i++) {
             var mip = image.mipInfos().get(i);
             var mipHash = hash << 4 | (image.header().mipCount() - mip.mipLevel());
-            if (streams.exists(mipHash)) {
-                var mipBuffer = streams.read(mipHash, mip.decompressedSize());
-                image.mipData()[i] = Buffers.toArray(mipBuffer);
+            if (archive.containsStream(mipHash)) {
+                var buffer = archive.readStream(mipHash, mip.decompressedSize());
+                image.mipData()[i] = Buffers.toArray(buffer);
             }
         }
     }

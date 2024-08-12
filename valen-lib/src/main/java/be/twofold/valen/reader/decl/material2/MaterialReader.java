@@ -1,5 +1,6 @@
 package be.twofold.valen.reader.decl.material2;
 
+import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.material.*;
 import be.twofold.valen.game.*;
@@ -34,9 +35,9 @@ public final class MaterialReader implements ResourceReader<Material> {
     }
 
     @Override
-    public Material read(DataSource source, Resource resource) throws IOException {
-        JsonObject object = declReader.read(source, resource);
-        return parseMaterial(object, resource.nameString());
+    public Material read(DataSource source, Asset<ResourceKey> asset) throws IOException {
+        JsonObject object = declReader.read(source, asset);
+        return parseMaterial(object, asset.identifier().name().name());
     }
 
     private Material parseMaterial(JsonObject object, String name) throws IOException {
@@ -155,7 +156,7 @@ public final class MaterialReader implements ResourceReader<Material> {
 
     private RenderParm loadRenderParm(String name) throws IOException {
         var fullName = "generated/decls/renderparm/" + name + ".decl";
-        return (RenderParm) archive.loadAsset(ResourceKey.from(fullName, ResourceType.RenderParm));
+        return (RenderParm) archive.loadAsset(ResourceKey.from(fullName, ResourceType.RsStreamFile));
     }
 
     private MaterialImageOpts parseOptions(JsonObject options) {

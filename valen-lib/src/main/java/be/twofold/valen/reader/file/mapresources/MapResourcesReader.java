@@ -1,5 +1,6 @@
 package be.twofold.valen.reader.file.mapresources;
 
+import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.io.*;
 import be.twofold.valen.reader.*;
 import be.twofold.valen.reader.file.FileReader;
@@ -21,8 +22,8 @@ public final class MapResourcesReader implements ResourceReader<MapResources> {
     }
 
     @Override
-    public MapResources read(DataSource source, Resource resource) throws IOException {
-        var file = fileReader.read(source, resource);
+    public MapResources read(DataSource source, Asset<ResourceKey> asset) throws IOException {
+        var file = fileReader.read(source, asset);
         return MapResources.read(new ByteArrayDataSource(file.data()));
     }
 }

@@ -1,6 +1,7 @@
 package be.twofold.valen.reader.filecompressed;
 
 import be.twofold.valen.core.compression.*;
+import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.io.*;
 import be.twofold.valen.reader.*;
 import be.twofold.valen.resource.*;
@@ -16,7 +17,7 @@ public final class FileCompressedReader implements ResourceReader<byte[]> {
     }
 
     @Override
-    public byte[] read(DataSource source, Resource resource) throws IOException {
+    public byte[] read(DataSource source, Asset<ResourceKey> asset) throws IOException {
         var header = FileCompressedHeader.read(source);
         var compressed = source.readBytes(header.compressedSize());
 

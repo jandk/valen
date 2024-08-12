@@ -1,5 +1,6 @@
 package be.twofold.valen.reader;
 
+import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.io.*;
 import be.twofold.valen.resource.*;
 
@@ -10,7 +11,7 @@ public interface ResourceReader<R> {
 
     boolean canRead(ResourceKey key);
 
-    R read(DataSource source, Resource resource) throws IOException;
+    R read(DataSource source, Asset<ResourceKey> asset) throws IOException;
 
     default Class<?> getReadType() {
         var genericInterfaces = getClass().getGenericInterfaces();

@@ -1,5 +1,6 @@
 package be.twofold.valen.reader.decl.renderparm;
 
+import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.io.*;
 import be.twofold.valen.reader.*;
 import be.twofold.valen.reader.decl.parser.*;
@@ -21,7 +22,7 @@ public final class RenderParmReader implements ResourceReader<RenderParm> {
     }
 
     @Override
-    public RenderParm read(DataSource source, Resource resource) throws IOException {
+    public RenderParm read(DataSource source, Asset<ResourceKey> asset) throws IOException {
         var bytes = source.readBytes(Math.toIntExact(source.size()));
         var parser = new DeclParser(new String(bytes), true);
 

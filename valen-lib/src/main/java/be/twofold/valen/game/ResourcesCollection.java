@@ -35,16 +35,11 @@ public final class ResourcesCollection {
         return new ResourcesCollection(files);
     }
 
-    public boolean exists(ResourceKey key) {
-        return get(key).isPresent();
-    }
-
     public Optional<Resource> get(ResourceKey key) {
         return files.stream()
             .flatMap(f -> f.get(key).stream())
             .findFirst();
     }
-
 
     public Collection<Resource> getEntries() {
         return files.stream()
@@ -54,19 +49,16 @@ public final class ResourcesCollection {
     }
 
     public ByteBuffer read(Resource resource) throws IOException {
-        var compressed = read(resource.key());
-        return Decompressor
-            .forType(resource.compression())
-            .decompress(ByteBuffer.wrap(compressed), resource.uncompressedSize());
-    }
-
-    private byte[] read(ResourceKey key) throws IOException {
         for (var file : files) {
-            var entry = file.get(key);
-            if (entry.isPresent()) {
-                return file.read(entry.get());
+            var entry = file.get(resource.key());
+            if (entry.isEmpty()) {
+                continue;
             }
+            var compressed = file.read(entry.get());
+            return Decompressor
+                .forType(resource.compression())
+                .decompress(ByteBuffer.wrap(compressed), resource.uncompressedSize());
         }
-        throw new IOException("Unknown resource: " + key);
+        throw new IOException("Unknown resource: " + resource.key());
     }
 }

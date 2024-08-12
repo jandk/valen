@@ -1,5 +1,6 @@
 package be.twofold.valen.reader.filecompressed.entities;
 
+import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.io.*;
 import be.twofold.valen.reader.*;
 import be.twofold.valen.reader.decl.parser.*;
@@ -24,8 +25,8 @@ public final class EntityReader implements ResourceReader<EntityFile> {
     }
 
     @Override
-    public EntityFile read(DataSource source, Resource resource) throws IOException {
-        byte[] bytes = fileCompressedReader.read(source, resource);
+    public EntityFile read(DataSource source, Asset<ResourceKey> asset) throws IOException {
+        byte[] bytes = fileCompressedReader.read(source, asset);
         String input = new String(bytes, StandardCharsets.UTF_8);
 
         var parser = new DeclParser(input);

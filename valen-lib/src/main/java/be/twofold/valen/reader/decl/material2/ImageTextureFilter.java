@@ -1,4 +1,4 @@
-package be.twofold.valen.reader.image;
+package be.twofold.valen.reader.decl.material2;
 
 public enum ImageTextureFilter {
     TF_LINEAR(0),

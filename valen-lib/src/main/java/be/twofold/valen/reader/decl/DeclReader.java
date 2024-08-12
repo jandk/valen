@@ -1,5 +1,6 @@
 package be.twofold.valen.reader.decl;
 
+import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.util.*;
 import be.twofold.valen.game.*;
@@ -53,11 +54,11 @@ public final class DeclReader implements ResourceReader<JsonObject> {
     }
 
     @Override
-    public JsonObject read(DataSource source, Resource resource) throws IOException {
+    public JsonObject read(DataSource source, Asset<ResourceKey> asset) throws IOException {
         var bytes = source.readBytes(Math.toIntExact(source.size()));
         var object = DeclParser.parse(decode(bytes));
 
-        var result = loadInherit(object, resource.nameString());
+        var result = loadInherit(object, asset.identifier().name().name());
         result = result.deepCopy();
         postProcessArrays(result);
 

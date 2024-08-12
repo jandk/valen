@@ -1,5 +1,6 @@
 package be.twofold.valen.reader.md6model;
 
+import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.geometry.*;
 import be.twofold.valen.core.io.*;
 import be.twofold.valen.game.*;
@@ -30,8 +31,8 @@ public final class Md6ModelReader implements ResourceReader<Model> {
     }
 
     @Override
-    public Model read(DataSource source, Resource resource) throws IOException {
-        var model = read(source, true, resource.hash());
+    public Model read(DataSource source, Asset<ResourceKey> asset) throws IOException {
+        var model = read(source, true, (Long) asset.properties().get("hash"));
         var skeletonKey = ResourceKey.from(model.header().md6SkelName(), ResourceType.Skeleton);
         var skeleton = (Skeleton) archive.loadAsset(skeletonKey);
 

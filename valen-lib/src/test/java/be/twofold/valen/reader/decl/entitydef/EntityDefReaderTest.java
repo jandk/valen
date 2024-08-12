@@ -9,7 +9,7 @@ class EntityDefReaderTest {
 
     @Test
     void testCanReadAll() throws IOException {
-        TestUtils.testReader(manager -> new EntityDefReader());
+        TestUtils.testReader(archive -> new EntityDefReader());
     }
 
 }

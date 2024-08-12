@@ -1,5 +1,6 @@
 package be.twofold.valen.reader.binaryfile;
 
+import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.io.*;
 import be.twofold.valen.reader.*;
 import be.twofold.valen.resource.*;
@@ -17,7 +18,7 @@ public final class BinaryFileReader implements ResourceReader<byte[]> {
     }
 
     @Override
-    public byte[] read(DataSource source, Resource resource) throws IOException {
+    public byte[] read(DataSource source, Asset<ResourceKey> asset) throws IOException {
         try {
             var salt = source.readBytes(12);
             var iVec = source.readBytes(16);
@@ -27,7 +28,7 @@ public final class BinaryFileReader implements ResourceReader<byte[]> {
             var digest = MessageDigest.getInstance("SHA-256");
             digest.update(salt);
             digest.update("swapTeam\n\0".getBytes());
-            digest.update(resource.nameString().getBytes());
+            digest.update(asset.identifier().name().name().getBytes());
             var key = digest.digest();
 
             var mac = Mac.getInstance("HmacSHA256");

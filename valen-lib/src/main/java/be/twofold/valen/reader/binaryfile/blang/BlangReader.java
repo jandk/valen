@@ -1,5 +1,6 @@
 package be.twofold.valen.reader.binaryfile.blang;
 
+import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.io.*;
 import be.twofold.valen.reader.*;
 import be.twofold.valen.reader.binaryfile.*;
@@ -21,8 +22,8 @@ public final class BlangReader implements ResourceReader<Blang> {
     }
 
     @Override
-    public Blang read(DataSource source, Resource resource) throws IOException {
-        byte[] bytes = binaryFileReader.read(source, resource);
+    public Blang read(DataSource source, Asset<ResourceKey> asset) throws IOException {
+        byte[] bytes = binaryFileReader.read(source, asset);
         return Blang.read(new ByteArrayDataSource(bytes));
     }
 }

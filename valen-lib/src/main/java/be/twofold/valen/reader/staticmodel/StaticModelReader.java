@@ -1,5 +1,6 @@
 package be.twofold.valen.reader.staticmodel;
 
+import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.geometry.*;
 import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.util.*;
@@ -12,20 +13,20 @@ import java.io.*;
 import java.util.*;
 
 public final class StaticModelReader implements ResourceReader<Model> {
-    private final StreamDbCollection streams;
+    private final EternalArchive archive;
     private final boolean readStreams;
     private final boolean readMaterials;
 
-    public StaticModelReader(StreamDbCollection streams) {
-        this(streams, true, true);
+    public StaticModelReader(EternalArchive archive) {
+        this(archive, true, true);
     }
 
     StaticModelReader(
-        StreamDbCollection streams,
+        EternalArchive archive,
         boolean readStreams,
         boolean readMaterials
     ) {
-        this.streams = streams;
+        this.archive = archive;
         this.readStreams = readStreams;
         this.readMaterials = readMaterials;
     }
@@ -36,8 +37,8 @@ public final class StaticModelReader implements ResourceReader<Model> {
     }
 
     @Override
-    public Model read(DataSource source, Resource resource) throws IOException {
-        var model = read(source, resource.hash());
+    public Model read(DataSource source, Asset<ResourceKey> asset) throws IOException {
+        var model = read(source, (Long) asset.properties().get("hash"));
         return new Model(model.meshes(), model.materials(), null);
     }
 
@@ -98,7 +99,7 @@ public final class StaticModelReader implements ResourceReader<Model> {
             .toList();
         var layouts = model.streamDiskLayouts().get(lod).memoryLayouts();
 
-        var buffer = streams.read(streamHash, uncompressedSize);
+        var buffer = archive.readStream(streamHash, uncompressedSize);
         var source = ByteArrayDataSource.fromBuffer(buffer);
         return GeometryReader.readStreamedMesh(source, lods, layouts, false);
     }

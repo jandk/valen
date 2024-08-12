@@ -28,22 +28,31 @@ public final class EternalArchive implements Archive<ResourceKey> {
         var declReader = new DeclReader(this);
         this.readers = List.of(
             declReader,
-            new ImageReader(streams),
+            new ImageReader(this),
             new MaterialReader(this, declReader),
             new Md6ModelReader(this),
             new Md6SkelReader(),
             new RenderParmReader(),
-            new StaticModelReader(streams)
+            new StaticModelReader(this)
         );
     }
 
     @Override
     public List<Asset<ResourceKey>> assets() {
         return resources.getEntries().stream()
-            .map(entry -> new Asset<>(entry.key(), mapType(entry.type()), entry.uncompressedSize()))
+            .map(this::toAsset)
             .distinct()
             .sorted()
             .toList();
+    }
+
+    private Asset<ResourceKey> toAsset(Resource resource) {
+        return new Asset<>(
+            resource.key(),
+            mapType(resource.type()),
+            resource.uncompressedSize(),
+            Map.of("hash", resource.hash())
+        );
     }
 
     @Override
@@ -63,7 +72,7 @@ public final class EternalArchive implements Archive<ResourceKey> {
 
         var buffer = resources.read(resource);
         try (var source = ByteArrayDataSource.fromBuffer(buffer)) {
-            return reader.read(source, resource);
+            return reader.read(source, toAsset(resource));
         }
     }
 
@@ -73,6 +82,10 @@ public final class EternalArchive implements Archive<ResourceKey> {
             .orElseThrow(() -> new IllegalArgumentException("Resource not found: " + identifier));
 
         return resources.read(resource);
+    }
+
+    public boolean containsStream(long identifier) {
+        return streams.exists(identifier);
     }
 
     public ByteBuffer readStream(long identifier, int uncompressedSize) throws IOException {

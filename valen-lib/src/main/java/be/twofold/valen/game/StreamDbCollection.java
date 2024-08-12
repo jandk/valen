@@ -42,6 +42,10 @@ public final class StreamDbCollection {
             }
 
             var compressed = file.read(entry.get());
+            if (compressed.length == uncompressedSize) {
+                return ByteBuffer.wrap(compressed);
+            }
+
             return Decompressor
                 .forType(CompressionType.Kraken)
                 .decompress(ByteBuffer.wrap(compressed), uncompressedSize);

@@ -43,6 +43,17 @@ public record ResourceKey(
         );
     }
 
+    public static ResourceKey from(String name, ResourceType type, ResourceVariation variation) {
+        if (!Variations.getOrDefault(type, Set.of(ResourceVariation.None)).contains(variation)) {
+            throw new IllegalArgumentException("Invalid variation for type: " + type + " (" + variation + ")");
+        }
+        return new ResourceKey(
+            new ResourceName(name),
+            type,
+            variation
+        );
+    }
+
     @Override
     public String pathName() {
         return name.path();
