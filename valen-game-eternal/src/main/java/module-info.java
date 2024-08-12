@@ -1,4 +1,4 @@
-module valen.lib {
+module valen.game.eternal {
     requires com.sun.jna; // For testing only
     requires com.google.gson;
     requires java.desktop; // For testing only

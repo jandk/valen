@@ -6,9 +6,9 @@ module valen.app {
     requires javafx.graphics;
     requires valen.core;
     requires valen.export.gltf;
-    requires valen.lib;
-    requires valen.ui;
     requires valen.export;
+    requires valen.game.eternal;
+    requires valen.ui;
 
     uses be.twofold.valen.export.Exporter;
     uses be.twofold.valen.core.game.GameFactory;

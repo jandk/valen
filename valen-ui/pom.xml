@@ -14,7 +14,7 @@
         <!-- Internal -->
         <dependency>
             <groupId>be.twofold</groupId>
-            <artifactId>valen-lib</artifactId>
+            <artifactId>valen-game-eternal</artifactId>
         </dependency>
 
         <!-- External -->
