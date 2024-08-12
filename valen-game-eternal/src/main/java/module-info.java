@@ -1,3 +1,5 @@
+import be.twofold.valen.game.eternal.*;
+
 module valen.game.eternal {
     requires com.sun.jna; // For testing only
     requires com.google.gson;
@@ -5,11 +7,11 @@ module valen.game.eternal {
     requires java.sql; // For import only
     requires valen.core;
 
-    exports be.twofold.valen.game;
-    exports be.twofold.valen.resource;
+    exports be.twofold.valen.game.eternal;
+    exports be.twofold.valen.game.eternal.resource;
 
     uses be.twofold.valen.core.game.GameFactory;
 
     provides be.twofold.valen.core.game.GameFactory
-        with be.twofold.valen.game.EternalGameFactory;
+        with EternalGameFactory;
 }

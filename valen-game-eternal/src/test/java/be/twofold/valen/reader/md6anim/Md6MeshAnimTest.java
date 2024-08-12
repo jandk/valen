@@ -1,6 +1,7 @@
 package be.twofold.valen.reader.md6anim;
 
 import be.twofold.valen.core.io.*;
+import be.twofold.valen.game.eternal.reader.md6anim.*;
 import org.junit.jupiter.api.*;
 
 import java.io.*;

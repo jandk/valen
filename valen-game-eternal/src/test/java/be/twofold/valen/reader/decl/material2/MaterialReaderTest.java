@@ -1,7 +1,8 @@
 package be.twofold.valen.reader.decl.material2;
 
 import be.twofold.valen.*;
-import be.twofold.valen.reader.decl.*;
+import be.twofold.valen.game.eternal.reader.decl.*;
+import be.twofold.valen.game.eternal.reader.decl.material2.*;
 import org.junit.jupiter.api.*;
 
 import java.io.*;
