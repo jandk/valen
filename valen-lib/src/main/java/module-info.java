@@ -1,15 +1,11 @@
 module valen.lib {
-    requires com.sun.jna;
+    requires com.sun.jna; // For testing only
     requires com.google.gson;
     requires java.desktop; // For testing only
     requires java.sql; // For import only
     requires valen.core;
 
     exports be.twofold.valen.game;
-    exports be.twofold.valen.reader.packagemapspec;
-    exports be.twofold.valen.reader.resource;
-    exports be.twofold.valen.reader.streamdb;
-    exports be.twofold.valen.reader;
     exports be.twofold.valen.resource;
 
     uses be.twofold.valen.core.game.GameFactory;
