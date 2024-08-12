@@ -16,7 +16,7 @@
  * Adopted from Guava's FarmHashFingerprint64.java
  */
 
-package be.twofold.valen.hash;
+package be.twofold.valen.core.util.hash;
 
 import java.util.*;
 

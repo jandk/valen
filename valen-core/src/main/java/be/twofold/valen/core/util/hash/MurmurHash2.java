@@ -1,4 +1,4 @@
-package be.twofold.valen.hash;
+package be.twofold.valen.core.util.hash;
 
 import be.twofold.valen.core.util.*;
 
