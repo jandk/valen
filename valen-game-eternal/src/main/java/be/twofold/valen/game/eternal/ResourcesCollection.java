@@ -9,10 +9,10 @@ import java.nio.*;
 import java.nio.file.*;
 import java.util.*;
 
-public final class ResourcesCollection {
+final class ResourcesCollection {
     private final List<ResourcesFile> files;
 
-    public ResourcesCollection(List<ResourcesFile> files) {
+    ResourcesCollection(List<ResourcesFile> files) {
         this.files = List.copyOf(files);
     }
 
@@ -35,20 +35,20 @@ public final class ResourcesCollection {
         return new ResourcesCollection(files);
     }
 
-    public Optional<Resource> get(ResourceKey key) {
+    Optional<Resource> get(ResourceKey key) {
         return files.stream()
             .flatMap(f -> f.get(key).stream())
             .findFirst();
     }
 
-    public Collection<Resource> getEntries() {
+    Collection<Resource> getEntries() {
         return files.stream()
             .flatMap(file -> file.getResources().stream())
             .distinct()
             .toList();
     }
 
-    public ByteBuffer read(Resource resource) throws IOException {
+    ByteBuffer read(Resource resource) throws IOException {
         for (var file : files) {
             var entry = file.get(resource.key());
             if (entry.isEmpty()) {

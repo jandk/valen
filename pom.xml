@@ -15,6 +15,7 @@
         <module>valen-export-gltf</module>
         <module>valen-export-png</module>
         <module>valen-export</module>
+        <module>valen-game-doom</module>
         <module>valen-game-eternal</module>
         <module>valen-gltf</module>
         <module>valen-jlink</module>
@@ -115,6 +116,11 @@
             <dependency>
                 <groupId>be.twofold</groupId>
                 <artifactId>valen-export</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>be.twofold</groupId>
+                <artifactId>valen-game-doom</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

@@ -9,14 +9,14 @@ import java.nio.*;
 import java.nio.file.*;
 import java.util.*;
 
-public final class StreamDbCollection {
+final class StreamDbCollection {
     private final List<StreamDbFile> files;
 
     private StreamDbCollection(List<StreamDbFile> files) {
         this.files = List.copyOf(files);
     }
 
-    public static StreamDbCollection load(Path base, PackageMapSpec spec) throws IOException {
+    static StreamDbCollection load(Path base, PackageMapSpec spec) throws IOException {
         var paths = spec.files().stream()
             .filter(s -> s.endsWith(".streamdb"))
             .map(base::resolve)
@@ -29,12 +29,12 @@ public final class StreamDbCollection {
         return new StreamDbCollection(files);
     }
 
-    public boolean exists(long identity) {
+    boolean exists(long identity) {
         return files.stream()
             .anyMatch(f -> f.get(identity).isPresent());
     }
 
-    public ByteBuffer read(long identity, int uncompressedSize) throws IOException {
+    ByteBuffer read(long identity, int uncompressedSize) throws IOException {
         for (var file : files) {
             var entry = file.get(identity);
             if (entry.isEmpty()) {

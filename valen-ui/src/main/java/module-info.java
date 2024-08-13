@@ -7,7 +7,6 @@ module valen.ui {
     requires javafx.controls;
     requires javafx.graphics;
     requires valen.core;
-    requires valen.game.eternal;
 
     exports be.twofold.valen.ui;
     exports be.twofold.valen.ui.settings;

@@ -19,17 +19,18 @@ public class MainWindow extends Application {
             fileChooser.getExtensionFilters().addAll(
                 new FileChooser.ExtensionFilter("Game executable", "DoomEternalx64vk.exe")
             );
-            File selectedFile = fileChooser.showOpenDialog(primaryStage);
+            var selectedFile = fileChooser.showOpenDialog(primaryStage);
             if (selectedFile != null) {
-                Path path = selectedFile.toPath();
+                var path = selectedFile.toPath();
                 SettingsManager.get().setGameDirectory(path.getParent());
             }
         }
 
-        var path = SettingsManager.get().getGameDirectory().get().resolve("DOOMEternalx64vk.exe");
+        // TODO: Don't hardcode this
+        var path = Path.of("D:\\Games\\Steam\\steamapps\\common\\DOOM\\DOOMx64.exe");
+        // var path = SettingsManager.get().getGameDirectory().get().resolve("DOOMEternalx64vk.exe");
         var game = resolveGameFactory(path).load(path);
-
-        Archive common = game.loadArchive("common");
+        var archive = game.loadArchive("gameresources");
 
 //        var manager = DaggerManagerFactory.create().fileManager();
 //        manager.load(SettingsManager.get().getGameDirectory().get().resolve("base"));
@@ -41,8 +42,8 @@ public class MainWindow extends Application {
 //        }
 
         var presenter = DaggerPresenterFactory.create().presenter();
-        presenter.setArchive(common);
-        Scene scene = new Scene(presenter.getView().getView());
+        presenter.setArchive(archive);
+        var scene = new Scene(presenter.getView().getView());
 //        System.out.println("Mnemonics:");
 //        scene.getMnemonics().forEach((key, value) -> System.out.println(key + " -> " + value));
 //        System.out.println("Accelerators:");
