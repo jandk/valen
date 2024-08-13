@@ -4,14 +4,12 @@ import be.twofold.valen.core.game.*;
 
 import java.io.*;
 import java.nio.file.*;
+import java.util.*;
 
 public final class EternalGameFactory implements GameFactory<EternalGame> {
-    public EternalGameFactory() {
-    }
-
     @Override
-    public String executableName() {
-        return "DOOMEternalx64vk.exe";
+    public Set<String> executableNames() {
+        return Set.of("DOOMEternalx64vk.exe");
     }
 
     @Override

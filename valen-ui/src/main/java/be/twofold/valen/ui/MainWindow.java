@@ -56,7 +56,7 @@ public class MainWindow extends Application {
     private static GameFactory<?> resolveGameFactory(Path path) {
         return ServiceLoader.load(GameFactory.class).stream()
             .map(ServiceLoader.Provider::get)
-            .filter(factory -> factory.executableName().equals(path.getFileName().toString()))
+            .filter(factory -> factory.executableNames().contains(path.getFileName().toString()))
             .findFirst()
             .orElseThrow(() -> new IllegalArgumentException("No GameFactory found for " + path));
     }
