@@ -54,11 +54,11 @@ public final class DeclReader implements ResourceReader<JsonObject> {
     }
 
     @Override
-    public JsonObject read(DataSource source, Asset<ResourceKey> asset) throws IOException {
+    public JsonObject read(DataSource source, Asset asset) throws IOException {
         var bytes = source.readBytes(Math.toIntExact(source.size()));
         var object = DeclParser.parse(decode(bytes));
 
-        var result = loadInherit(object, asset.identifier().name().name());
+        var result = loadInherit(object, asset.id().fullName());
         result = result.deepCopy();
         postProcessArrays(result);
 

@@ -14,7 +14,7 @@ public final class FileReader implements ResourceReader<File> {
     }
 
     @Override
-    public File read(DataSource source, Asset<ResourceKey> asset) throws IOException {
+    public File read(DataSource source, Asset asset) throws IOException {
         return File.read(source);
     }
 }

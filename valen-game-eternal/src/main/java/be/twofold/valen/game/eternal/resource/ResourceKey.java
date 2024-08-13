@@ -8,7 +8,7 @@ public record ResourceKey(
     ResourceName name,
     ResourceType type,
     ResourceVariation variation
-) implements Comparable<AssetIdentifier>, AssetIdentifier {
+) implements Comparable<AssetID>, AssetID {
     private static final Comparator<ResourceKey> COMPARATOR = Comparator
         .comparing(ResourceKey::name)
         .thenComparing(ResourceKey::type)
@@ -55,6 +55,11 @@ public record ResourceKey(
     }
 
     @Override
+    public String fullName() {
+        return name.name();
+    }
+
+    @Override
     public String pathName() {
         return name.path();
     }
@@ -65,7 +70,7 @@ public record ResourceKey(
     }
 
     @Override
-    public int compareTo(AssetIdentifier o) {
+    public int compareTo(AssetID o) {
         return COMPARATOR.compare(this, (ResourceKey) o);
     }
 }

@@ -17,7 +17,7 @@ public final class FileCompressedReader implements ResourceReader<byte[]> {
     }
 
     @Override
-    public byte[] read(DataSource source, Asset<ResourceKey> asset) throws IOException {
+    public byte[] read(DataSource source, Asset asset) throws IOException {
         var header = FileCompressedHeader.read(source);
         var compressed = source.readBytes(header.compressedSize());
 

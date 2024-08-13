@@ -16,7 +16,7 @@ public final class Md6SkelReader implements ResourceReader<Skeleton> {
     }
 
     @Override
-    public Skeleton read(DataSource source, Asset<ResourceKey> asset) throws IOException {
+    public Skeleton read(DataSource source, Asset asset) throws IOException {
         Md6Skel skeleton = Md6Skel.read(source);
         return map(skeleton);
     }

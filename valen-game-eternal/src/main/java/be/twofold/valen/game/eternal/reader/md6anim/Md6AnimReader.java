@@ -18,7 +18,7 @@ public final class Md6AnimReader implements ResourceReader<Animation> {
     }
 
     @Override
-    public Animation read(DataSource source, Asset<ResourceKey> asset) throws IOException {
+    public Animation read(DataSource source, Asset asset) throws IOException {
         var anim = Md6Anim.read(source);
 
         List<Track<?>> tracks = new ArrayList<>();

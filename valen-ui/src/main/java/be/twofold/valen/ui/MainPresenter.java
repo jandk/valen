@@ -39,7 +39,7 @@ public class MainPresenter extends AbstractPresenter<MainView> {
     private void decodeImage(Asset asset) {
         Texture texture;
         try {
-            texture = (Texture) archive.loadAsset(asset.identifier());
+            texture = (Texture) archive.loadAsset(asset.id());
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -66,7 +66,7 @@ public class MainPresenter extends AbstractPresenter<MainView> {
 
     private void loadResources(String path) {
         var assets = archive.assets().stream()
-            .filter(r -> ((Asset) r).identifier().pathName().equals(path))
+            .filter(r -> r.id().pathName().equals(path))
             .toList();
 
         getView().setAssets(assets);
@@ -87,9 +87,9 @@ public class MainPresenter extends AbstractPresenter<MainView> {
 
     private Node buildNodeTree(List<Asset> assets) {
         var root = new Node("root");
-        for (var entry : assets) {
+        for (var asset : assets) {
             var node = root;
-            var path = entry.identifier().pathName();
+            var path = asset.id().pathName();
             if (!path.isEmpty()) {
                 for (var s : path.split("/")) {
                     node = node.get(s);

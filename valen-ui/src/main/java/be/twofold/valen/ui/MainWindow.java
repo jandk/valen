@@ -29,7 +29,7 @@ public class MainWindow extends Application {
         var path = SettingsManager.get().getGameDirectory().get().resolve("DOOMEternalx64vk.exe");
         var game = resolveGameFactory(path).load(path);
 
-        Archive<?> common = game.loadArchive("common");
+        Archive common = game.loadArchive("common");
 
 //        var manager = DaggerManagerFactory.create().fileManager();
 //        manager.load(SettingsManager.get().getGameDirectory().get().resolve("base"));

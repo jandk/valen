@@ -2,14 +2,14 @@ package be.twofold.valen.core.game;
 
 import java.util.*;
 
-public record Asset<T extends AssetIdentifier>(
-    T identifier,
+public record Asset(
+    AssetID id,
     AssetType type,
     int size,
     Map<String, Object> properties
-) implements Comparable<Asset<T>> {
+) implements Comparable<Asset> {
     @Override
-    public int compareTo(Asset<T> o) {
-        return identifier.compareTo(o.identifier);
+    public int compareTo(Asset o) {
+        return id.compareTo(o.id);
     }
 }

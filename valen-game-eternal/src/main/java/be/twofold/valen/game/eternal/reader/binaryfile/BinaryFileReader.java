@@ -18,7 +18,7 @@ public final class BinaryFileReader implements ResourceReader<byte[]> {
     }
 
     @Override
-    public byte[] read(DataSource source, Asset<ResourceKey> asset) throws IOException {
+    public byte[] read(DataSource source, Asset asset) throws IOException {
         try {
             var salt = source.readBytes(12);
             var iVec = source.readBytes(16);
@@ -28,7 +28,7 @@ public final class BinaryFileReader implements ResourceReader<byte[]> {
             var digest = MessageDigest.getInstance("SHA-256");
             digest.update(salt);
             digest.update("swapTeam\n\0".getBytes());
-            digest.update(asset.identifier().name().name().getBytes());
+            digest.update(asset.id().fullName().getBytes());
             var key = digest.digest();
 
             var mac = Mac.getInstance("HmacSHA256");

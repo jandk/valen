@@ -31,7 +31,7 @@ public final class Md6ModelReader implements ResourceReader<Model> {
     }
 
     @Override
-    public Model read(DataSource source, Asset<ResourceKey> asset) throws IOException {
+    public Model read(DataSource source, Asset asset) throws IOException {
         var model = read(source, true, (Long) asset.properties().get("hash"));
         var skeletonKey = ResourceKey.from(model.header().md6SkelName(), ResourceType.Skeleton);
         var skeleton = (Skeleton) archive.loadAsset(skeletonKey);

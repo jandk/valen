@@ -19,7 +19,7 @@ public final class MainViewFx extends BorderPane implements MainView {
 
     private final SplitPane splitPane = new SplitPane();
     private final TreeView<String> treeView = new TreeView<>();
-    private final TableView<Asset<?>> tableView = new TableView<>();
+    private final TableView<Asset> tableView = new TableView<>();
     private final ImageViewerPane imageViewerPane = new ImageViewerPane();
 
     @Inject
@@ -38,7 +38,7 @@ public final class MainViewFx extends BorderPane implements MainView {
     }
 
     @Override
-    public void setAssets(List<Asset<?>> resources) {
+    public void setAssets(List<Asset> resources) {
         tableView.getItems().setAll(resources);
     }
 
@@ -107,17 +107,17 @@ public final class MainViewFx extends BorderPane implements MainView {
         return treeView;
     }
 
-    private TableView<Asset<?>> buildTableView() {
+    private TableView<Asset> buildTableView() {
         tableView.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
             if (newValue != null) {
                 listeners.fire().onAssetSelected(newValue);
             }
         });
-        TableColumn<Asset<?>, String> nameColumn = new TableColumn<>();
+        TableColumn<Asset, String> nameColumn = new TableColumn<>();
         nameColumn.setText("Name");
-        nameColumn.setCellValueFactory(param -> new ReadOnlyObjectWrapper<>(param.getValue().identifier().fileName()));
+        nameColumn.setCellValueFactory(param -> new ReadOnlyObjectWrapper<>(param.getValue().id().fileName()));
 
-        TableColumn<Asset<?>, String> typeColumn = new TableColumn<>();
+        TableColumn<Asset, String> typeColumn = new TableColumn<>();
         typeColumn.setText("Type");
         typeColumn.setCellValueFactory(param -> new ReadOnlyObjectWrapper<>(param.getValue().type().name()));
 

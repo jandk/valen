@@ -25,7 +25,7 @@ public final class EntityReader implements ResourceReader<EntityFile> {
     }
 
     @Override
-    public EntityFile read(DataSource source, Asset<ResourceKey> asset) throws IOException {
+    public EntityFile read(DataSource source, Asset asset) throws IOException {
         byte[] bytes = fileCompressedReader.read(source, asset);
         String input = new String(bytes, StandardCharsets.UTF_8);
 

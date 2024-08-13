@@ -9,7 +9,7 @@ public interface MainView extends View {
 
     void setFileTree(TreeItem<String> root);
 
-    void setAssets(List<Asset<?>> resources);
+    void setAssets(List<Asset> resources);
 
     void setImage(byte[] rgba, int width, int height);
 

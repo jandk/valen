@@ -6,6 +6,6 @@ public interface MainViewListener {
 
     void onPathSelected(String path);
 
-    void onAssetSelected(Asset<?> asset);
+    void onAssetSelected(Asset asset);
 
 }

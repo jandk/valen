@@ -35,9 +35,9 @@ public final class MaterialReader implements ResourceReader<Material> {
     }
 
     @Override
-    public Material read(DataSource source, Asset<ResourceKey> asset) throws IOException {
+    public Material read(DataSource source, Asset asset) throws IOException {
         JsonObject object = declReader.read(source, asset);
-        return parseMaterial(object, asset.identifier().name().name());
+        return parseMaterial(object, asset.id().fullName());
     }
 
     private Material parseMaterial(JsonObject object, String name) throws IOException {

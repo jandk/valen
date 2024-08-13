@@ -2,6 +2,7 @@ package be.twofold.valen.game.eternal;
 
 import be.twofold.valen.core.io.*;
 import be.twofold.valen.game.eternal.reader.*;
+import be.twofold.valen.game.eternal.resource.*;
 
 import java.io.*;
 import java.nio.file.*;
@@ -23,14 +24,14 @@ public abstract class TestUtils {
 
     private static void readAllInMap(EternalArchive archive, ResourceReader<?> reader) {
         var entries = archive.assets().stream()
-            .filter(asset -> asset.size() != 0 && reader.canRead(asset.identifier()))
+            .filter(asset -> asset.size() != 0 && reader.canRead((ResourceKey) asset.id()))
             .toList();
 
         System.out.println("Trying to read " + entries.size() + " entries");
 
         entries.forEach(asset -> assertThatNoException()
             .isThrownBy(() -> {
-                var buffer = archive.loadRawAsset(asset.identifier());
+                var buffer = archive.loadRawAsset(asset.id());
                 reader.read(ByteArrayDataSource.fromBuffer(buffer), asset);
             }));
     }

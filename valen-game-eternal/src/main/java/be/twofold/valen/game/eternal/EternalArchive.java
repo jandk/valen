@@ -16,7 +16,7 @@ import java.io.*;
 import java.nio.*;
 import java.util.*;
 
-public final class EternalArchive implements Archive<ResourceKey> {
+public final class EternalArchive implements Archive {
     private final StreamDbCollection streams;
     private final ResourcesCollection resources;
     private final List<ResourceReader<?>> readers;
@@ -38,7 +38,7 @@ public final class EternalArchive implements Archive<ResourceKey> {
     }
 
     @Override
-    public List<Asset<ResourceKey>> assets() {
+    public List<Asset> assets() {
         return resources.getEntries().stream()
             .map(this::toAsset)
             .distinct()
@@ -46,8 +46,8 @@ public final class EternalArchive implements Archive<ResourceKey> {
             .toList();
     }
 
-    private Asset<ResourceKey> toAsset(Resource resource) {
-        return new Asset<>(
+    private Asset toAsset(Resource resource) {
+        return new Asset(
             resource.key(),
             mapType(resource.type()),
             resource.uncompressedSize(),
@@ -56,14 +56,14 @@ public final class EternalArchive implements Archive<ResourceKey> {
     }
 
     @Override
-    public boolean exists(ResourceKey identifier) {
-        return resources.get(identifier).isPresent();
+    public boolean exists(AssetID id) {
+        return resources.get((ResourceKey) id).isPresent();
     }
 
     @Override
-    public Object loadAsset(ResourceKey identifier) throws IOException {
-        var resource = resources.get(identifier)
-            .orElseThrow(() -> new IllegalArgumentException("Resource not found: " + identifier));
+    public Object loadAsset(AssetID id) throws IOException {
+        var resource = resources.get((ResourceKey) id)
+            .orElseThrow(() -> new IllegalArgumentException("Resource not found: " + id));
 
         var reader = readers.stream()
             .filter(r -> r.canRead(resource.key()))
@@ -77,9 +77,9 @@ public final class EternalArchive implements Archive<ResourceKey> {
     }
 
     @Override
-    public ByteBuffer loadRawAsset(ResourceKey identifier) throws IOException {
-        var resource = resources.get(identifier)
-            .orElseThrow(() -> new IllegalArgumentException("Resource not found: " + identifier));
+    public ByteBuffer loadRawAsset(AssetID id) throws IOException {
+        var resource = resources.get((ResourceKey) id)
+            .orElseThrow(() -> new IllegalArgumentException("Resource not found: " + id));
 
         return resources.read(resource);
     }

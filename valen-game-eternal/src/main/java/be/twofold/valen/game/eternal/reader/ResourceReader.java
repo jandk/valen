@@ -11,7 +11,7 @@ public interface ResourceReader<R> {
 
     boolean canRead(ResourceKey key);
 
-    R read(DataSource source, Asset<ResourceKey> asset) throws IOException;
+    R read(DataSource source, Asset asset) throws IOException;
 
     default Class<?> getReadType() {
         var genericInterfaces = getClass().getGenericInterfaces();

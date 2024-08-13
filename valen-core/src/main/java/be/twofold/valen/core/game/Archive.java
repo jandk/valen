@@ -4,14 +4,14 @@ import java.io.*;
 import java.nio.*;
 import java.util.*;
 
-public interface Archive<T extends AssetIdentifier> {
+public interface Archive {
 
-    List<Asset<T>> assets();
+    List<Asset> assets();
 
-    boolean exists(T identifier);
+    boolean exists(AssetID identifier);
 
-    Object loadAsset(T identifier) throws IOException;
+    Object loadAsset(AssetID identifier) throws IOException;
 
-    ByteBuffer loadRawAsset(T identifier) throws IOException;
+    ByteBuffer loadRawAsset(AssetID identifier) throws IOException;
 
 }

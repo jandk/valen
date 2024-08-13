@@ -29,7 +29,7 @@ public final class ImageReader implements ResourceReader<Texture> {
     }
 
     @Override
-    public Texture read(DataSource source, Asset<ResourceKey> asset) throws IOException {
+    public Texture read(DataSource source, Asset asset) throws IOException {
         var image = read(source, (Long) asset.properties().get("hash"));
         return new ImageMapper().map(image);
     }
