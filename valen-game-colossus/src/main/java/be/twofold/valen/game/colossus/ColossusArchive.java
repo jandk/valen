@@ -78,9 +78,9 @@ public class ColossusArchive implements Archive {
                 continue;
             }
 
-            if (entry.get().size() != 1) {
-                throw new UnsupportedOperationException("Multiple entries for stream: " + hash);
-            }
+            // TODO: Check if getFirst is actually the correct thing to do?
+            //       It seems like the hashes resolve to the same content, but
+            //       it's not clear if that's always the case.
             var compressed = texDb.read(entry.get().getFirst(), compressedSize);
             if (compressed.length == uncompressedSize) {
                 return ByteBuffer.wrap(compressed);

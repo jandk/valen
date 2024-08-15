@@ -17,8 +17,8 @@ public final class TexDbFile implements AutoCloseable {
         this.source = new ChannelDataSource(Files.newByteChannel(path, StandardOpenOption.READ));
 
         var texDb = TexDb.read(source);
-        this.entries = texDb.entries().stream()
-            .collect(Collectors.groupingBy(TexDbEntry::hash));
+        this.entries = Map.copyOf(texDb.entries().stream()
+            .collect(Collectors.groupingBy(TexDbEntry::hash, Collectors.toUnmodifiableList())));
     }
 
     public Optional<List<TexDbEntry>> get(long hash) {

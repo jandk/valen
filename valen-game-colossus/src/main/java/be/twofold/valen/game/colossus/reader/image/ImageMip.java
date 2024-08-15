@@ -10,7 +10,7 @@ public record ImageMip(
     int mipPixelWidth,
     int mipPixelHeight,
     int decompressedSize,
-    int flagIsCompressed,
+    int compressionMode,
     int compressedSize,
     int cumulativeSizeStreamDB
 ) {
@@ -20,7 +20,7 @@ public record ImageMip(
         var mipPixelWidth = source.readInt();
         var mipPixelHeight = source.readInt();
         var decompressedSize = source.readInt();
-        var flagIsCompressed = source.readInt();
+        var compressionMode = source.readInt();
         var compressedSize = source.readInt();
         var cumulativeSizeStreamDB = source.readInt();
 
@@ -30,7 +30,7 @@ public record ImageMip(
             mipPixelWidth,
             mipPixelHeight,
             decompressedSize,
-            flagIsCompressed,
+            compressionMode,
             compressedSize,
             cumulativeSizeStreamDB
         );
