@@ -5,6 +5,7 @@ import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.io.*;
 import be.twofold.valen.game.colossus.reader.*;
 import be.twofold.valen.game.colossus.reader.image.*;
+import be.twofold.valen.game.colossus.reader.texdb.*;
 import be.twofold.valen.game.colossus.resource.*;
 import be.twofold.valen.game.colossus.texdb.*;
 
@@ -13,16 +14,16 @@ import java.nio.*;
 import java.util.*;
 
 public class ColossusArchive implements Archive {
-    private final ResourcesCollection resources;
-    private final TexDbFile texDb;
+    private final List<ResourcesFile> resources;
+    private final List<TexDbFile> texDbs;
     private final List<ResourceReader<?>> readers;
 
     public ColossusArchive(
-        ResourcesCollection resources,
-        TexDbFile texDb
+        List<ResourcesFile> resources,
+        List<TexDbFile> texDbs
     ) {
-        this.resources = resources;
-        this.texDb = texDb;
+        this.resources = List.copyOf(resources);
+        this.texDbs = List.copyOf(texDbs);
         this.readers = List.of(
             new ImageReader(this)
         );
@@ -30,19 +31,21 @@ public class ColossusArchive implements Archive {
 
     @Override
     public List<Asset> assets() {
-        return resources.getEntries().stream()
+        return resources.stream()
+            .flatMap(r -> r.getResources().stream())
             .map(this::toAsset)
+            .distinct()
             .toList();
     }
 
     @Override
     public boolean exists(AssetID id) {
-        return resources.get((ResourceKey) id).isPresent();
+        return findResource((ResourceKey) id).isPresent();
     }
 
     @Override
     public Object loadAsset(AssetID id) throws IOException {
-        var resource = resources.get((ResourceKey) id)
+        var resource = findResource((ResourceKey) id)
             .orElseThrow(() -> new IllegalArgumentException("Resource not found: " + id));
 
         var reader = readers.stream()
@@ -50,7 +53,7 @@ public class ColossusArchive implements Archive {
             .findFirst()
             .orElseThrow(() -> new IllegalArgumentException("No reader found for resource: " + resource));
 
-        var buffer = resources.read(resource);
+        var buffer = read(resource);
         try (var source = ByteArrayDataSource.fromBuffer(buffer)) {
             return reader.read(source, toAsset(resource));
         }
@@ -58,10 +61,48 @@ public class ColossusArchive implements Archive {
 
     @Override
     public ByteBuffer loadRawAsset(AssetID id) throws IOException {
-        var resource = resources.get((ResourceKey) id)
+        var resource = findResource((ResourceKey) id)
             .orElseThrow(() -> new IllegalArgumentException("Resource not found: " + id));
 
-        return resources.read(resource);
+        return read(resource);
+    }
+
+    public boolean containsStream(long hash) {
+        return texDbs.stream().anyMatch(f -> f.get(hash).isPresent());
+    }
+
+    public ByteBuffer readStream(long hash, int compressedSize, int uncompressedSize) throws IOException {
+        for (TexDbFile texDb : texDbs) {
+            var entry = texDb.get(hash);
+            if (entry.isEmpty()) {
+                continue;
+            }
+
+            if (entry.get().size() != 1) {
+                throw new UnsupportedOperationException("Multiple entries for stream: " + hash);
+            }
+            var compressed = texDb.read(entry.get().getFirst(), compressedSize);
+            if (compressed.length == uncompressedSize) {
+                return ByteBuffer.wrap(compressed);
+            }
+
+            return Decompressor
+                .forType(CompressionType.Kraken)
+                .decompress(ByteBuffer.wrap(compressed), uncompressedSize);
+        }
+        throw new IOException("Unknown stream: " + hash);
+    }
+
+    private Optional<Resource> findResource(ResourceKey id) {
+        return resources.stream()
+            .flatMap(f -> f.get(id).stream())
+            .findFirst();
+    }
+
+    private Optional<List<TexDbEntry>> findTexDbEntry(long hash) {
+        return texDbs.stream()
+            .flatMap(f -> f.get(hash).stream())
+            .findFirst();
     }
 
     private Asset toAsset(Resource r) {
@@ -80,25 +121,17 @@ public class ColossusArchive implements Archive {
         return AssetType.Binary;
     }
 
-    public boolean containsStream(long hash) {
-        return texDb.get(hash).isPresent();
-    }
-
-    public ByteBuffer readStream(long hash, int compressedSize, int uncompressedSize) throws IOException {
-        var entry = texDb.get(hash)
-            .orElseThrow(() -> new IllegalArgumentException("Stream not found: " + hash));
-
-        if (entry.size() != 1) {
-            throw new UnsupportedOperationException("Multiple entries for stream: " + hash);
+    private ByteBuffer read(Resource resource) throws IOException {
+        for (var file : resources) {
+            var entry = file.get(resource.key());
+            if (entry.isEmpty()) {
+                continue;
+            }
+            var compressed = file.read(entry.get());
+            return Decompressor
+                .forType(resource.compression())
+                .decompress(ByteBuffer.wrap(compressed), resource.uncompressedSize());
         }
-
-        byte[] compressed = texDb.read(entry.getFirst(), compressedSize);
-        if (compressed.length == uncompressedSize) {
-            return ByteBuffer.wrap(compressed);
-        }
-
-        return Decompressor
-            .forType(CompressionType.Kraken)
-            .decompress(ByteBuffer.wrap(compressed), uncompressedSize);
+        throw new IOException("Unknown resource: " + resource.key());
     }
 }

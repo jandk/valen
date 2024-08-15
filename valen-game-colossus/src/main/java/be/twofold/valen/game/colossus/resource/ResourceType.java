@@ -35,6 +35,7 @@ public enum ResourceType {
     chronicleVolumeInfo,
     cm,
     commodity,
+    compfile,
     constrainedbodies,
     credits,
     damage,
@@ -96,6 +97,7 @@ public enum ResourceType {
     mapInfo,
     material,
     md6Def,
+    medal,
     metric,
     midnightScene,
     midnightSceneGroup,
@@ -142,6 +144,7 @@ public enum ResourceType {
     spineIK,
     staticImage,
     staticParticleModel,
+    staticStreamTree,
     swfhudresource,
     swfjournalresource,
     swfresource,
@@ -155,6 +158,7 @@ public enum ResourceType {
     unlock,
     unlockable,
     upgrade,
+    videoOptionConfig,
     videoOptionPreset,
     visemeSet,
     voiceover,
@@ -165,5 +169,5 @@ public enum ResourceType {
     weaponDataLKW,
     weaponReticle,
     weaponReticleSWFInfo,
-    weaponmovement,
+    weaponmovement
 }
