@@ -88,6 +88,9 @@ public class MainPresenter extends AbstractPresenter<MainView> {
     private Node buildNodeTree(List<Asset> assets) {
         var root = new Node("root");
         for (var asset : assets) {
+            if (asset.type() == AssetType.Binary) {
+                continue;
+            }
             var node = root;
             var path = asset.id().pathName();
             if (!path.isEmpty()) {

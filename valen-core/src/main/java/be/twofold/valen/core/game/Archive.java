@@ -8,10 +8,10 @@ public interface Archive {
 
     List<Asset> assets();
 
-    boolean exists(AssetID identifier);
+    boolean exists(AssetID id);
 
-    Object loadAsset(AssetID identifier) throws IOException;
+    Object loadAsset(AssetID id) throws IOException;
 
-    ByteBuffer loadRawAsset(AssetID identifier) throws IOException;
+    ByteBuffer loadRawAsset(AssetID id) throws IOException;
 
 }

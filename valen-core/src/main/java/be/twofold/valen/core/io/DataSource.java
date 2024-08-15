@@ -173,6 +173,18 @@ public abstract class DataSource implements AutoCloseable {
         return readString(readInt());
     }
 
+    public String readCString() throws IOException {
+        var out = new ByteArrayOutputStream();
+        while (true) {
+            var b = readByte();
+            if (b == 0) {
+                break;
+            }
+            out.write(b);
+        }
+        return out.toString(StandardCharsets.UTF_8);
+    }
+
     public <T> List<T> readStructs(int count, StructMapper<T> mapper) throws IOException {
         var result = new ArrayList<T>(count);
         for (var i = 0; i < count; i++) {

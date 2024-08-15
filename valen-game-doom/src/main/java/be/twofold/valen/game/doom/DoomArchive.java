@@ -26,17 +26,17 @@ class DoomArchive implements Archive {
     }
 
     @Override
-    public boolean exists(AssetID identifier) {
+    public boolean exists(AssetID id) {
         return false;
     }
 
     @Override
-    public ByteBuffer loadRawAsset(AssetID identifier) throws IOException {
+    public ByteBuffer loadRawAsset(AssetID id) throws IOException {
         return null;
     }
 
     @Override
-    public Object loadAsset(AssetID identifier) throws IOException {
+    public Object loadAsset(AssetID id) throws IOException {
         return null;
     }
 }
