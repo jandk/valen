@@ -1,0 +1,39 @@
+//------------------------------------------------
+//      File: image.bt
+//   Authors: JanDK
+//   Version: 0.1
+//   Purpose: Template for image resources from Wolfenstein II: The New Colossus
+//  Category: Image
+//  ID Bytes: 42 49 4D 0E
+//------------------------------------------------
+struct ImageHeader {
+    uint32 magic;
+    uint32 textureType;
+    uint32 textureMaterialKind;
+    uint32 pixelWidth;
+    uint32 pixelHeight;
+    uint32 depth;
+    uint32 mipCount;
+    ubyte padding0;
+    uint textureFormat;
+    uint always5;
+    uint padding;
+    ubyte padding1;
+    ubyte padding2;
+    ubyte padding3;
+    ubyte unkBool1;
+    ubyte unkBool2;
+} header;
+
+uint streamDbMipCount;
+
+struct ImageMip {
+    uint32 mipLevel;
+    uint32 mipSlice;
+    uint32 mipPixelWidth;
+    uint32 mipPixelHeight;
+    uint32 decompressedSize;
+    uint32 flagIsCompressed;
+    uint32 compressedSize;
+    uint32 cumulativeSizeStreamDB;
+} mips[header.mipCount];

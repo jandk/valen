@@ -1,0 +1,102 @@
+//------------------------------------------------
+//      File: resources.bt
+//   Authors: JanDK
+//   Version: 0.1
+//   Purpose: Template for .resources from Wolfenstein II: The New Colossus
+//  Category: Archive
+// File Mask: *.resources
+//  ID Bytes: 49 44 43 4C
+//------------------------------------------------
+struct idResourceDiskHeader {
+    char  magic[4];
+    uint  version;
+    uquad headerHash;
+};
+
+struct idResourceHeader {
+    uint  flags;
+    uint  numSegments;
+    uquad segmentSize;
+    uquad metadataHash;
+    uint  numResources;
+    uint  numDependencies;
+    uint  numDepIndices;
+    uint  numStringIndices;
+    uint  numSpecialHashes;
+    uint  numMetaEntries;
+    uint  stringTableSize;
+    uint  metaEntriesSize;
+    uquad stringTableOffset;
+    uquad metaEntriesOffset;
+    uquad resourceEntriesOffset;
+    uquad resourceDepsOffset;
+    uquad resourceSpecialHashOffset;
+    uquad metaSize;
+};
+
+struct idResourceEntryOptions {
+    uquad  uncompressedSize;
+    uquad  dataCheckSum;
+    uquad  generationTimeStamp;
+    uquad  defaultHash;
+    uint   version;
+    uint   flags;
+    ubyte  compMode;
+    ubyte  reserved0;
+    ushort variation;
+    uint   reserved2;
+    uquad  reservedForVariations;
+};
+
+struct idResourceEntry {
+    uquad resourceTypeString;
+    uquad nameString;
+    uquad descString;
+    uquad depIndices;
+    uquad strings;
+    uquad specialHashes;
+    uquad metaEntries;
+    uquad dataOffset;
+    uquad dataSize;
+    idResourceEntryOptions options;
+    ushort numStrings;
+    ushort numSources;
+    ushort numDependencies;
+    ushort numSpecialHashes;
+    ushort numMetaEntries;
+    ubyte padding[6];
+};
+
+struct idResourceDependency {
+	uquad type;
+	uquad name;
+	uint  depType;
+	uint  depSubType;
+	uquad hashOrTimestamp;
+};
+
+typedef struct {
+    string value;
+} WrappedString <read=this.value>;
+
+struct StringChunk {
+    uquad numStrings;
+    uquad offsets[numStrings];
+    WrappedString values[numStrings] <optimize=false>;
+};
+
+struct Resources {
+    idResourceDiskHeader diskHeader <style=sHeading1>;
+    idResourceHeader     header     <style=sHeading2>;
+    
+    FSeek(header.resourceEntriesOffset);
+    idResourceEntry entries[header.numResources] <style=sSection1>;
+
+    FSeek(header.stringTableOffset);
+    StringChunk strings <style=sSection2>;
+    
+    FSeek(header.resourceDepsOffset);
+    idResourceDependency dependencies[header.numDependencies] <style=sHeading4>;
+    uint  dependencyIndex[header.numDepIndices] <style=sHeading1>;
+    uquad stringIndex[header.numStringIndices] <style=sHeading2>;
+} resources;

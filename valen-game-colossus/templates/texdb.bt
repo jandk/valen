@@ -1,0 +1,20 @@
+//------------------------------------------------
+//      File: texdb.bt
+//   Authors: JanDK
+//   Version: 0.1
+//   Purpose: Template for .texdb from Wolfenstein II: The New Colossus
+//  Category: Archive
+// File Mask: *.texdb
+//  ID Bytes: 4F A5 C2 29 2E F3 C7 61
+//------------------------------------------------
+struct TexDbHeader {
+    uquad magic;
+    uquad unkown1;
+    uquad unkown2;
+    uquad numEntries;
+} header <style=sHeading1>;
+
+struct TexDbEntry {
+    uquad hash;
+    uquad offset;
+} entries[header.numEntries] <style=sHeading2>;
