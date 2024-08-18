@@ -28,6 +28,7 @@ public final class ImageMapper {
                 surfaces.add(new Surface(
                     image.mipInfos().get(mipIndex).mipPixelWidth(),
                     image.mipInfos().get(mipIndex).mipPixelHeight(),
+                    toImageFormat(image.header().textureFormat()),
                     image.mipData()[mipIndex]
                 ));
             }

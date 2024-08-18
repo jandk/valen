@@ -3,6 +3,7 @@ package be.twofold.valen.game.colossus;
 import be.twofold.valen.core.compression.*;
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.io.*;
+import be.twofold.valen.core.util.*;
 import be.twofold.valen.game.colossus.reader.*;
 import be.twofold.valen.game.colossus.reader.image.*;
 import be.twofold.valen.game.colossus.reader.texdb.*;
@@ -11,6 +12,7 @@ import be.twofold.valen.game.colossus.texdb.*;
 
 import java.io.*;
 import java.nio.*;
+import java.nio.file.*;
 import java.util.*;
 
 public class ColossusArchive implements Archive {
@@ -21,12 +23,49 @@ public class ColossusArchive implements Archive {
     public ColossusArchive(
         List<ResourcesFile> resources,
         List<TexDbFile> texDbs
-    ) {
+    ) throws IOException {
         this.resources = List.copyOf(resources);
         this.texDbs = List.copyOf(texDbs);
         this.readers = List.of(
             new ImageReader(this)
         );
+
+        var root = Path.of("D:\\Colossus");
+        for (ResourcesFile resourcesFile : resources) {
+            for (Resource resource : resourcesFile.getResources()) {
+                if (resource.type() != ResourceType.renderProgResource || resource.variation() != ResourceVariation.RenderProgOglPc) {
+                    continue;
+                }
+                var resolved = root
+                    .resolve(resource.key().type().toString())
+                    .resolve(resource.key().pathName())
+                    .resolve(resource.key().fileName() + "." + resource.key().type());
+
+//                if (Files.exists(resolved)) {
+//                    continue;
+//                }
+
+                System.out.println("Writing: " + resolved);
+                Files.createDirectories(resolved.getParent());
+                try {
+                    Files.write(resolved, Buffers.toArray(read(resource)));
+                } catch (IOException e) {
+                    System.out.println("Failed to write: " + resolved);
+                }
+            }
+        }
+
+        Optional<Resource> resource1 = findResource(ResourceKey.from("gpuuploadtranscodewbpblockbc4", ResourceType.renderProgResource, ResourceVariation.RenderProgOglPc));
+        Optional<Resource> resource2 = findResource(ResourceKey.from("gpuuploadtranscodewbpblockbc5", ResourceType.renderProgResource, ResourceVariation.RenderProgOglPc));
+        Optional<Resource> resource3 = findResource(ResourceKey.from("gpuuploadtranscodewbpsynth", ResourceType.renderProgResource, ResourceVariation.RenderProgOglPc));
+        try {
+            System.out.println(HexFormat.of().formatHex(Buffers.toArray(read(resource1.get()))));
+            System.out.println(HexFormat.of().formatHex(Buffers.toArray(read(resource2.get()))));
+            System.out.println(HexFormat.of().formatHex(Buffers.toArray(read(resource3.get()))));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        System.out.println("Resources loaded: " + resources.size());
     }
 
     @Override
@@ -71,24 +110,26 @@ public class ColossusArchive implements Archive {
         return texDbs.stream().anyMatch(f -> f.get(hash).isPresent());
     }
 
-    public ByteBuffer readStream(long hash, int compressedSize, int uncompressedSize) throws IOException {
-        for (TexDbFile texDb : texDbs) {
+    public byte[] readStream(long hash, int compressedSize, int uncompressedSize) throws IOException {
+        var compressed = readStreamRaw(hash, compressedSize);
+        if (compressed.length == uncompressedSize) {
+            return compressed;
+        }
+
+        var buffer = Decompressor
+            .forType(CompressionType.Kraken)
+            .decompress(ByteBuffer.wrap(compressed), uncompressedSize);
+
+        return Buffers.toArray(buffer);
+    }
+
+    public byte[] readStreamRaw(long hash, int size) throws IOException {
+        for (var texDb : texDbs) {
             var entry = texDb.get(hash);
             if (entry.isEmpty()) {
                 continue;
             }
-
-            // TODO: Check if getFirst is actually the correct thing to do?
-            //       It seems like the hashes resolve to the same content, but
-            //       it's not clear if that's always the case.
-            var compressed = texDb.read(entry.get().getFirst(), compressedSize);
-            if (compressed.length == uncompressedSize) {
-                return ByteBuffer.wrap(compressed);
-            }
-
-            return Decompressor
-                .forType(CompressionType.Kraken)
-                .decompress(ByteBuffer.wrap(compressed), uncompressedSize);
+            return texDb.read(entry.get().getFirst(), size);
         }
         throw new IOException("Unknown stream: " + hash);
     }

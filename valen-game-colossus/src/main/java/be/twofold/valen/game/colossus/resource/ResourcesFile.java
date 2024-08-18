@@ -2,7 +2,6 @@ package be.twofold.valen.game.colossus.resource;
 
 import be.twofold.valen.core.compression.*;
 import be.twofold.valen.core.io.*;
-import be.twofold.valen.core.util.*;
 import be.twofold.valen.game.colossus.reader.resources.*;
 
 import java.io.*;
@@ -21,12 +20,12 @@ public final class ResourcesFile implements AutoCloseable {
 
         var resources = mapResources(Resources.read(source));
 
-        try {
-            var csv = CsvUtils.toCsv(List.of(), resources, Resource.class);
-            Files.write(Paths.get("resources.csv"), csv.getBytes());
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+//        try {
+//            var csv = CsvUtils.toCsv(List.of(), resources, Resource.class);
+//            Files.write(Paths.get("resources.csv"), csv.getBytes());
+//        } catch (Exception e) {
+//            throw new RuntimeException(e);
+//        }
 
         this.index = resources.stream()
             .collect(Collectors.toUnmodifiableMap(
