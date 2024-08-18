@@ -175,8 +175,8 @@ public final class WbpDecoder {
                 float lh3 = unpackH(coefficients[baseLHIndex + subBandOffset + subBandPitch * 1]) * weight1;
                 float lh4 = unpackH(coefficients[baseLHIndex + subBandOffset + subBandPitch * 2]) * weight1;
 
-                temp[baseLIndex + (y * 2 + 0) * outBandPitch + x] = lh0 * G1 + ll1 * H2 + lh1 * G3 + ll2 * H4 + lh2 * G5 + ll3 * H6 + lh3 * G7;
-                temp[baseLIndex + (y * 2 + 1) * outBandPitch + x] = lh0 * G0 + ll1 * H1 + lh1 * G2 + ll2 * H3 + lh2 * G4 + ll3 * H5 + lh3 * G6 + ll4 * H7 + lh4 * G8;
+                temp[baseLIndex + (y * 2 + 0) * outBandPitch + x] = f1(ll1, ll2, ll3, lh0, lh1, lh2, lh3);
+                temp[baseLIndex + (y * 2 + 1) * outBandPitch + x] = f2(ll1, ll2, ll3, ll4, lh0, lh1, lh2, lh3, lh4);
 
                 float hl1 = unpackH(coefficients[baseHLIndex + subBandOffset - subBandPitch * 1]) * weight2;
                 float hl2 = unpackH(coefficients[baseHLIndex + subBandOffset + subBandPitch * 0]) * weight2;
@@ -189,8 +189,8 @@ public final class WbpDecoder {
                 float hh3 = unpackH(coefficients[baseHHIndex + subBandOffset + subBandPitch * 1]) * weight3;
                 float hh4 = unpackH(coefficients[baseHHIndex + subBandOffset + subBandPitch * 2]) * weight3;
 
-                temp[baseHIndex + (y * 2 + 0) * outBandPitch + x] = hh0 * G1 + hl1 * H2 + hh1 * G3 + hl2 * H4 + hh2 * G5 + hl3 * H6 + hh3 * G7;
-                temp[baseHIndex + (y * 2 + 1) * outBandPitch + x] = hh0 * G0 + hl1 * H1 + hh1 * G2 + hl2 * H3 + hh2 * G4 + hl3 * H5 + hh3 * G6 + hl4 * H7 + hh4 * G8;
+                temp[baseHIndex + (y * 2 + 0) * outBandPitch + x] = f1(hl1, hl2, hl3, hh0, hh1, hh2, hh3);
+                temp[baseHIndex + (y * 2 + 1) * outBandPitch + x] = f2(hl1, hl2, hl3, hl4, hh0, hh1, hh2, hh3, hh4);
             }
         }
 
@@ -207,19 +207,20 @@ public final class WbpDecoder {
             for (int x = 0; x < subBandWidth; x++) {
                 int bandRowOffset = y * outBandPitch + 2 + x;
 
+                // float l0 = ...
                 float l1 = temp[baseLIndex + bandRowOffset - 1];
                 float l2 = temp[baseLIndex + bandRowOffset + 0];
                 float l3 = temp[baseLIndex + bandRowOffset + 1];
                 float l4 = temp[baseLIndex + bandRowOffset + 2];
 
-                float h1 = temp[baseHIndex + bandRowOffset - 2];
-                float h2 = temp[baseHIndex + bandRowOffset - 1];
-                float h3 = temp[baseHIndex + bandRowOffset + 0];
-                float h4 = temp[baseHIndex + bandRowOffset + 1];
-                float h5 = temp[baseHIndex + bandRowOffset + 2];
+                float h0 = temp[baseHIndex + bandRowOffset - 2];
+                float h1 = temp[baseHIndex + bandRowOffset - 1];
+                float h2 = temp[baseHIndex + bandRowOffset + 0];
+                float h3 = temp[baseHIndex + bandRowOffset + 1];
+                float h4 = temp[baseHIndex + bandRowOffset + 2];
 
-                float v0 = h1 * G1 + l1 * H2 + h2 * G3 + l2 * H4 + h3 * G5 + l3 * H6 + h4 * G7;
-                float v1 = h1 * G0 + l1 * H1 + h2 * G2 + l2 * H3 + h3 * G4 + l3 * H5 + h4 * G6 + l4 * H7 + h5 * G8;
+                float v0 = f1(l1, l2, l3, h0, h1, h2, h3);
+                float v1 = f2(l1, l2, l3, l4, h0, h1, h2, h3, h4);
 
                 result[y * width + x * 2 + 0] = MathF.packUNorm8(v0);
                 result[y * width + x * 2 + 1] = MathF.packUNorm8(v1);
@@ -230,6 +231,14 @@ public final class WbpDecoder {
 
         return result;
 //        return null;
+    }
+
+    private static float f1(float l1, float l2, float l3, float h0, float h1, float h2, float h3) {
+        return l1 * H2 + l2 * H4 + l3 * H6 + h0 * G1 + h1 * G3 + h2 * G5 + h3 * G7;
+    }
+
+    private static float f2(float l1, float l2, float l3, float l4, float h0, float h1, float h2, float h3, float h4) {
+        return l1 * H1 + l2 * H3 + l3 * H5 + l4 * H7 + h0 * G0 + h1 * G2 + h2 * G4 + h3 * G6 + h4 * G8;
     }
 
     private static float unpackL(byte b) {
