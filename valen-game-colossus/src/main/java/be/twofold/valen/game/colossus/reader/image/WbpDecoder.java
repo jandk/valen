@@ -31,29 +31,6 @@ public final class WbpDecoder {
     private static final float G7 = +0.016864118443f;
     private static final float G8 = +0.026748757411f;
 
-    private static final float[] h = {
-        0.0f,
-        -0.091271763114f,
-        -0.057543526229f,
-        0.591271763114f,
-        1.11508705f,
-        0.591271763114f,
-        -0.057543526229f,
-        -0.091271763114f,
-        0.0f
-    };
-    private static final float[] g = {
-        0.026748757411f,
-        0.016864118443f,
-        -0.078223266529f,
-        -0.266864118443f,
-        0.602949018236f,
-        -0.266864118443f,
-        -0.078223266529f,
-        0.016864118443f,
-        0.026748757411f
-    };
-
     public static void main(String[] args) throws IOException {
         var data = Files.readAllBytes(Path.of("D:\\Jan\\Desktop\\Untitled1"));
         var source = new ByteArrayDataSource(data);
@@ -64,7 +41,6 @@ public final class WbpDecoder {
             TextureFormat.R8G8UNorm
         );
 
-        int i = 0;
         while (source.tell() < source.size()) {
             var tile = ImageTile.read(source);
             var tileDecompressed = Buffers.toArray(Decompressor
@@ -79,11 +55,8 @@ public final class WbpDecoder {
                 decoded
             );
             surface.copyFrom(tileSurface, tile.x(), tile.y());
-            saveImage(tileSurface.data(), tileSurface.width(), tileSurface.height(), "D:\\Jan\\Desktop\\colossus\\tile%02d.png".formatted(i++));
             System.out.println(tile);
         }
-
-        saveImage3(surface.data(), surface.width(), surface.height(), "D:\\Jan\\Desktop\\colossus\\test.png");
     }
 
     private WbpDecoder() {
@@ -98,9 +71,10 @@ public final class WbpDecoder {
         int h1 = (h0 / 2 + 4);
         int h2 = (h1 / 2 + 4);
 
-        var bandLSize = h2 * w2 * 4;
-        var bandHSize = h1 * w1;
-        var l0Offset = bandLSize - bandHSize;
+        var subBandLSize = h2 * w2 * 4;
+        var subBandHSize = h1 * w1;
+        var subBandSize = subBandLSize + 3 * subBandHSize;
+        var subBandShift = subBandLSize - subBandHSize;
 
         int numBands = switch (tile.format()) {
             case 24 -> 1;
@@ -108,24 +82,14 @@ public final class WbpDecoder {
             default -> throw new IllegalArgumentException("Unsupported tile format: " + tile.format());
         };
 
-        byte[] temp = new byte[bandHSize];
-
+        byte[] temp = new byte[subBandHSize];
         byte[] output = new byte[w0 * h0 * numBands];
-        decodeTile(data, 0, temp, 1, 0, w1, h1, tile, 1);
-        System.arraycopy(temp, 0, data, l0Offset, temp.length);
-        decodeTile(data, l0Offset, output, numBands, 0, w0, h0, tile, 4);
-
-        if (numBands == 2) {
-            int subBandOffset = bandLSize + 3 * bandHSize;
+        for (int subBand = 0; subBand < numBands; subBand++) {
+            int subBandOffset = subBand * subBandSize;
             decodeTile(data, subBandOffset, temp, 1, 0, w1, h1, tile, 1);
-            System.arraycopy(temp, 0, data, subBandOffset + l0Offset, bandHSize);
-            decodeTile(data, subBandOffset + l0Offset, output, numBands, 1, w0, h0, tile, 4);
+            System.arraycopy(temp, 0, data, subBandOffset + subBandShift, temp.length);
+            decodeTile(data, subBandOffset + subBandShift, output, numBands, subBand, w0, h0, tile, 4);
         }
-
-        String filename = "D:\\Jan\\Desktop\\colossus\\transform%04d-%04d.png".formatted(tile.x(), tile.y());
-        saveImage3(output, w0, h0, filename);
-
-        // saveImage(output, w0, h0, "D:\\Jan\\Desktop\\colossus\\transform%04d-%04d.png".formatted(tile.x(), tile.y()));
 
         return output;
     }
@@ -145,13 +109,6 @@ public final class WbpDecoder {
         ImageIO.write(image, "png", new File(filename));
     }
 
-    static void saveImage(byte[] bytes, int width, int height, String filename) throws IOException {
-        var image = new BufferedImage(width, height, BufferedImage.TYPE_BYTE_GRAY);
-        image.getRaster().setDataElements(0, 0, width, height, bytes);
-        ImageIO.write(image, "png", new File(filename));
-        // Files.write(Path.of(filename), bytes);
-    }
-
     private static void decodeTile(
         byte[] src,
         int srcOffset,
@@ -162,7 +119,7 @@ public final class WbpDecoder {
         int height,
         ImageTile tile,
         int scaleOffset
-    ) throws IOException {
+    ) {
         int pageWidthBlocks = width / 4;
         int pageHeightBlocks = height / 4;
 
@@ -220,14 +177,6 @@ public final class WbpDecoder {
             }
         }
 
-        byte[] tempBytes = new byte[temp.length];
-        for (int i = 0; i < temp.length; i++) {
-            tempBytes[i] = MathF.packUNorm8(temp[i]);
-        }
-        saveImage(tempBytes, outBandPitch, outBandHeight * 2, "D:\\Jan\\Desktop\\colossus\\temp-%d-%04d-%04d.png".formatted(srcOffset == 0 ? 0 : 1, tile.x(), tile.y()));
-
-//        System.exit(1);
-
         for (int y = 0; y < outBandHeight; y++) {
             for (int x = 0; x < subBandWidth; x++) {
                 int bandRowOffset = y * outBandPitch + 2 + x;
@@ -251,8 +200,6 @@ public final class WbpDecoder {
                 dst[(y * width + x * 2) * dstPitch + dstPitch + dstOffset] = MathF.packUNorm8(v1);
             }
         }
-
-        saveImage(dst, width, height, "D:\\Jan\\Desktop\\colossus\\temp-2-%04d-%04d.png".formatted(tile.x(), tile.y()));
     }
 
     private static float f1(float l1, float l2, float l3, float h0, float h1, float h2, float h3) {

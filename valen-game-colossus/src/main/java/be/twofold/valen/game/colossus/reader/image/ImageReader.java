@@ -13,8 +13,6 @@ import java.io.*;
 import java.nio.*;
 import java.util.*;
 
-import static be.twofold.valen.game.colossus.reader.image.WbpDecoder.*;
-
 public final class ImageReader implements ResourceReader<Texture> {
     private final ColossusArchive archive;
     private final boolean readStreams;
@@ -64,7 +62,7 @@ public final class ImageReader implements ResourceReader<Texture> {
             if (archive.containsStream(mipHash)) {
                 var surface = switch (mip.compressionMode()) {
                     case 1 -> readMode1Mip(mipHash, mip, imageFormat);
-                    case 2 -> readMode2Mip(mipHash, mip);
+                    case 2 -> readMode2Mip(mipHash, mip, imageFormat);
                     default -> throw new IOException("Unknown compression mode: " + mip.compressionMode());
                 };
                 surfaces.set(i, surface);
@@ -93,40 +91,37 @@ public final class ImageReader implements ResourceReader<Texture> {
 
     private Surface readMode1Mip(long mipHash, ImageMip mip, TextureFormat format) throws IOException {
         var bytes = archive.readStream(mipHash, mip.compressedSize(), mip.decompressedSize());
-        return new Surface(
-            mip.mipPixelWidth(),
-            mip.mipPixelHeight(),
-            format,
-            bytes
-        );
+        return new Surface(mip.mipPixelWidth(), mip.mipPixelHeight(), format, bytes);
     }
 
-    private Surface readMode2Mip(long mipHash, ImageMip mip) throws IOException {
+    private Surface readMode2Mip(long mipHash, ImageMip mip, TextureFormat textureFormat) throws IOException {
         var bytes = archive.readStreamRaw(mipHash, mip.compressedSize());
         var source = new ByteArrayDataSource(bytes);
 
-        var surface = Surface.create(
-            mip.mipPixelWidth(),
-            mip.mipPixelHeight(),
-            TextureFormat.R8UNorm
-        );
+        var surfaceFormat = switch (textureFormat) {
+            case Bc4UNorm -> TextureFormat.R8UNorm;
+            case Bc5UNorm -> TextureFormat.R8G8UNorm;
+            default -> throw new UnsupportedOperationException("Unsupported texture format: " + textureFormat);
+        };
 
-        int i = 0;
+        var tileFormat = switch (textureFormat) {
+            case Bc4UNorm -> 24;
+            case Bc5UNorm -> 25;
+            default -> throw new UnsupportedOperationException("Unsupported texture format: " + textureFormat);
+        };
+
+        var surface = Surface.create(mip.mipPixelWidth(), mip.mipPixelHeight(), surfaceFormat);
         while (source.tell() < source.size()) {
             var tile = ImageTile.read(source);
-            var tileDecompressed = Buffers.toArray(Decompressor
+            Check.state(tile.format() == tileFormat, "Tile format mismatch");
+
+            var tileData = Buffers.toArray(Decompressor
                 .forType(CompressionType.Kraken)
                 .decompress(ByteBuffer.wrap(tile.data()), tile.size()));
 
-            byte[] decoded = WbpDecoder.decode(tile, tileDecompressed);
-            var tileSurface = new Surface(
-                tile.width(),
-                tile.height(),
-                TextureFormat.R8UNorm,
-                decoded
-            );
+            byte[] decoded = WbpDecoder.decode(tile, tileData);
+            var tileSurface = new Surface(tile.width(), tile.height(), surfaceFormat, decoded);
             surface.copyFrom(tileSurface, tile.x(), tile.y());
-            saveImage(tileSurface.data(), tileSurface.width(), tileSurface.height(), "D:\\Jan\\Desktop\\colossus\\tile" + i++ + ".png");
             System.out.println(tile);
         }
         return surface;

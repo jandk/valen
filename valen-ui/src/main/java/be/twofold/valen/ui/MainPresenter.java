@@ -37,13 +37,15 @@ public class MainPresenter extends AbstractPresenter<MainView> {
     }
 
     private void decodeImage(Asset asset) {
-        Texture texture;
+        Surface surface;
         try {
-            texture = (Texture) archive.loadAsset(asset.id());
+            var texture = (Texture) archive.loadAsset(asset.id());
+            surface = texture.surfaces().getFirst();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        var decoder = switch (texture.format()) {
+
+        var decoder = switch (surface.format()) {
             case Bc1UNorm, Bc1UNormSrgb -> BlockDecoder.create(BlockFormat.BC1, PixelOrder.BGRA);
             case Bc3UNorm, Bc3UNormSrgb -> BlockDecoder.create(BlockFormat.BC3, PixelOrder.BGRA);
             case Bc4UNorm -> BlockDecoder.create(BlockFormat.BC4Unsigned, PixelOrder.BGRA);
@@ -53,8 +55,8 @@ public class MainPresenter extends AbstractPresenter<MainView> {
         };
 
         if (decoder != null) {
-            byte[] decoded = decoder.decode(texture.width(), texture.height(), texture.surfaces().getFirst().data(), 0);
-            getView().setImage(decoded, texture.width(), texture.height());
+            byte[] decoded = decoder.decode(surface.width(), surface.height(), surface.data(), 0);
+            getView().setImage(decoded, surface.width(), surface.height());
         }
     }
 
