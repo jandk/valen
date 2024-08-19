@@ -13,10 +13,7 @@ public record Surface(
         Check.argument(height > 0, "height must be greater than 0");
         Check.notNull(format, "format is null");
         Check.notNull(data, "data is null");
-
-        // TODO: check data length
-        // Can't do that right now, because we might need the actual format,
-        // but even then calculating the actual length is a PITA for a lot of formats
+        Check.argument(format.surfaceSize(width, height) == data.length, "data length mismatch");
     }
 
     public static Surface create(int width, int height, TextureFormat format) {

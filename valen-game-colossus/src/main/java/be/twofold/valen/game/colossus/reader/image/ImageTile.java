@@ -3,7 +3,6 @@ package be.twofold.valen.game.colossus.reader.image;
 import be.twofold.valen.core.io.*;
 
 import java.io.*;
-import java.util.*;
 
 public record ImageTile(
     int sizeCompressed,
@@ -12,8 +11,8 @@ public record ImageTile(
     short y,
     short width,
     short height,
-    byte versionMaybe,
-    byte[] coefficients,
+    byte format,
+    byte[] scales,
     byte[] data
 ) {
     public static ImageTile read(DataSource source) throws IOException {
@@ -23,8 +22,8 @@ public record ImageTile(
         short y = source.readShort();
         short width = source.readShort();
         short height = source.readShort();
-        byte versionMaybe = source.readByte();
-        byte[] coefficients = source.readBytes(7);
+        byte format = source.readByte();
+        byte[] scales = source.readBytes(7);
         byte[] data = source.readBytes(sizeCompressed);
 
         return new ImageTile(
@@ -34,24 +33,9 @@ public record ImageTile(
             y,
             width,
             height,
-            versionMaybe,
-            coefficients,
+            format,
+            scales,
             data
         );
-    }
-
-    @Override
-    public String toString() {
-        return "ImageTile{" +
-            "sizeCompressed=" + sizeCompressed +
-            ", size=" + size +
-            ", x=" + x +
-            ", y=" + y +
-            ", width=" + width +
-            ", height=" + height +
-            ", versionMaybe=" + versionMaybe +
-            ", coefficients=" + Arrays.toString(coefficients) +
-            // ", data=" + Arrays.toString(data) +
-            '}';
     }
 }

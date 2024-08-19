@@ -39,7 +39,7 @@ public final class ImageMapper {
     private TextureFormat toImageFormat(ImageTextureFormat format) {
         // I might not be sure about all these mappings, but it's a start
         return switch (format) {
-            case FMT_ALPHA -> TextureFormat.A8UNorm;
+            case FMT_ALPHA -> TextureFormat.R8UNorm;
             case FMT_BC1, FMT_BC1_ZERO_ALPHA -> TextureFormat.Bc1UNorm;
             case FMT_BC1_SRGB -> TextureFormat.Bc1UNormSrgb;
             case FMT_BC3 -> TextureFormat.Bc3UNorm;

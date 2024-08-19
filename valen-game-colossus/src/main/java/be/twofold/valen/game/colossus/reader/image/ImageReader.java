@@ -108,7 +108,7 @@ public final class ImageReader implements ResourceReader<Texture> {
         var surface = Surface.create(
             mip.mipPixelWidth(),
             mip.mipPixelHeight(),
-            TextureFormat.A8UNorm
+            TextureFormat.R8UNorm
         );
 
         int i = 0;
@@ -122,7 +122,7 @@ public final class ImageReader implements ResourceReader<Texture> {
             var tileSurface = new Surface(
                 tile.width(),
                 tile.height(),
-                TextureFormat.A8UNorm,
+                TextureFormat.R8UNorm,
                 decoded
             );
             surface.copyFrom(tileSurface, tile.x(), tile.y());
@@ -135,7 +135,7 @@ public final class ImageReader implements ResourceReader<Texture> {
     private static TextureFormat toImageFormat(ImageTextureFormat format) {
         // I might not be sure about all these mappings, but it's a start
         return switch (format) {
-            case FMT_ALPHA -> TextureFormat.A8UNorm;
+            case FMT_ALPHA -> TextureFormat.R8UNorm;
             case FMT_BC1, FMT_BC1_ZERO_ALPHA -> TextureFormat.Bc1UNorm;
             case FMT_BC1_SRGB -> TextureFormat.Bc1UNormSrgb;
             case FMT_BC3 -> TextureFormat.Bc3UNorm;

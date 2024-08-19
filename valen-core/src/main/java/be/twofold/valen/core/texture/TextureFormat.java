@@ -1,11 +1,13 @@
 package be.twofold.valen.core.texture;
 
+import be.twofold.valen.core.util.*;
+
 public enum TextureFormat {
-    R8G8B8A8UNorm(1, 1, 4),
-    R16G16Float(1, 1, 4),
+    R8UNorm(1, 1, 1),
     R8G8UNorm(1, 1, 2),
+    R8G8B8A8UNorm(1, 1, 4),
     R16Float(1, 1, 2),
-    A8UNorm(1, 1, 1),
+    R16G16Float(1, 1, 4),
     Bc1UNorm(4, 4, 8),
     Bc1UNormSrgb(4, 4, 8),
     Bc2UNorm(4, 4, 16),
@@ -44,6 +46,8 @@ public enum TextureFormat {
     }
 
     public int surfaceSize(int width, int height) {
+        Check.argument(width % tileWidth == 0, "width must be a multiple of " + tileWidth);
+        Check.argument(height % tileHeight == 0, "height must be a multiple of " + tileHeight);
         return (width / tileWidth) * (height / tileHeight) * tileSizeInBytes;
     }
 }
