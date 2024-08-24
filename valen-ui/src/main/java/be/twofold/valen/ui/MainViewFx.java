@@ -3,6 +3,7 @@ package be.twofold.valen.ui;
 import be.twofold.valen.resource.*;
 import be.twofold.valen.ui.model.*;
 import jakarta.inject.*;
+import javafx.application.*;
 import javafx.beans.property.*;
 import javafx.geometry.*;
 import javafx.scene.*;
@@ -166,6 +167,7 @@ public final class MainViewFx extends BorderPane implements MainView {
         var menuFilePreferences = new MenuItem("Preferences");
 
         var menuFileQuit = new MenuItem("Quit");
+        menuFileQuit.onActionProperty().set(actionEvent -> Platform.exit());
 
         var menuFile = new Menu("File");
         menuFile.getItems().addAll(
