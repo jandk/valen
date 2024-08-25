@@ -26,17 +26,19 @@ public class ColossusGame implements Game {
     }
 
     @Override
-    public Archive loadArchive(String name) throws IOException {
+    public strictfp Archive loadArchive(String name) throws IOException {
         List<ResourcesFile> resourcesFiles = new ArrayList<>();
         List<TexDbFile> texDbFiles = new ArrayList<>();
-        for (int i = spec.patchLevel(); i > 0; i--) {
-            var resourcesPath = base.resolve("patch_" + i + ".resources");
-            var texDbPath = base.resolve("patch_" + i + ".texdb");
-            resourcesFiles.add(new ResourcesFile(resourcesPath));
-            texDbFiles.add(new TexDbFile(texDbPath));
-        }
-        resourcesFiles.add(new ResourcesFile(base.resolve("gameresources.resources")));
-        texDbFiles.add(new TexDbFile(base.resolve("gameresources.texdb")));
+//        for (int i = spec.patchLevel(); i > 0; i--) {
+//            var resourcesPath = base.resolve("patch_" + i + ".resources");
+//            var texDbPath = base.resolve("patch_" + i + ".texdb");
+//            resourcesFiles.add(new ResourcesFile(resourcesPath));
+//            texDbFiles.add(new TexDbFile(texDbPath));
+//        }
+//        resourcesFiles.add(new ResourcesFile(base.resolve("gameresources.resources")));
+//        texDbFiles.add(new TexDbFile(base.resolve("gameresources.texdb")));
+        resourcesFiles.add(new ResourcesFile(base.resolve("chunk_1.resources")));
+        texDbFiles.add(new TexDbFile(base.resolve("chunk_1.texdb")));
 
         return new ColossusArchive(resourcesFiles, texDbFiles);
     }

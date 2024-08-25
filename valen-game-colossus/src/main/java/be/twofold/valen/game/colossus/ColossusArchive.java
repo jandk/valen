@@ -30,20 +30,22 @@ public class ColossusArchive implements Archive {
             new ImageReader(this)
         );
 
-        var root = Path.of("D:\\Colossus");
+        Map<ResourceType, Integer> typeCounts = new EnumMap<>(ResourceType.class);
+        var root = Path.of("D:\\Colossus\\chunk01");
         for (ResourcesFile resourcesFile : resources) {
             for (Resource resource : resourcesFile.getResources()) {
-                if (resource.type() != ResourceType.renderProgResource || resource.variation() != ResourceVariation.RenderProgOglPc) {
-                    continue;
-                }
+                typeCounts.merge(resource.type(), 1, Integer::sum);
+//                if (resource.type() != ResourceType.model) {
+//                    continue;
+//                }
                 var resolved = root
                     .resolve(resource.key().type().toString())
                     .resolve(resource.key().pathName())
                     .resolve(resource.key().fileName() + "." + resource.key().type());
 
-//                if (Files.exists(resolved)) {
-//                    continue;
-//                }
+                if (Files.exists(resolved)) {
+                    continue;
+                }
 
                 System.out.println("Writing: " + resolved);
                 Files.createDirectories(resolved.getParent());
@@ -55,16 +57,7 @@ public class ColossusArchive implements Archive {
             }
         }
 
-        Optional<Resource> resource1 = findResource(ResourceKey.from("gpuuploadtranscodewbpblockbc4", ResourceType.renderProgResource, ResourceVariation.RenderProgOglPc));
-        Optional<Resource> resource2 = findResource(ResourceKey.from("gpuuploadtranscodewbpblockbc5", ResourceType.renderProgResource, ResourceVariation.RenderProgOglPc));
-        Optional<Resource> resource3 = findResource(ResourceKey.from("gpuuploadtranscodewbpsynth", ResourceType.renderProgResource, ResourceVariation.RenderProgOglPc));
-        try {
-            System.out.println(HexFormat.of().formatHex(Buffers.toArray(read(resource1.get()))));
-            System.out.println(HexFormat.of().formatHex(Buffers.toArray(read(resource2.get()))));
-            System.out.println(HexFormat.of().formatHex(Buffers.toArray(read(resource3.get()))));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        typeCounts.forEach((type, count) -> System.out.println(type + ": " + count));
         System.out.println("Resources loaded: " + resources.size());
     }
 
