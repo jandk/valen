@@ -1,0 +1,52 @@
+//------------------------------------------------
+//      File: mega2.bt
+//   Authors: JanDK
+//   Version: 0.1
+//   Purpose: Template for .mega2 from DOOM
+//  Category: Archive
+// File Mask: *.resources
+//  ID Bytes: 21 BB 3F A6
+//------------------------------------------------
+struct Mega2Header {
+    uint magic;
+    uint textureCountMaybe;
+    uint unknown08;
+    uint levelCount;
+    uint xResolution1;
+    uint yResolution1;
+    uint xBlockResolution1;
+    uint yBlockResolution1;
+    uint xResolution2;
+    uint yResolution2;
+    uint xBlockResolution2;
+    uint yBlockResolution2;
+    uint unknown44;
+    uint quadtreeLevelCount;
+    uquad pointerOffset;
+    uquad quadtreeOffset;
+    uint pointerCount;
+    uint quadtreeCount;
+};
+
+struct Mega2Level {
+    int blockXIndex;
+    int blockYIndex;
+    int blockXCount;
+    int blockYCount;
+    int treeIndex;
+    int treeCount;
+};
+
+struct Mega2Entry {
+    uquad offset;
+    uquad length;
+};
+
+Mega2Header header                            <style=sHeading1>;
+Mega2Level  levels[header.quadtreeLevelCount] <style=sHeading2>;
+
+FSeek(header.quadtreeOffset);
+uint quadtree[header.quadtreeCount];
+
+FSeek(header.pointerOffset);
+Mega2Entry pointers[header.pointerCount];

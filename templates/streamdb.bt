@@ -1,3 +1,0 @@
-#include "common/streamdb.bt"
-
-StreamDb streamDb;

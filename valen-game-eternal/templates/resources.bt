@@ -1,0 +1,102 @@
+//------------------------------------------------
+//      File: resources.bt
+//   Authors: JanDK
+//   Version: 0.1
+//   Purpose: Template for .resources from DOOM: Eternal
+//  Category: Archive
+// File Mask: *.resources
+//  ID Bytes: 49 44 43 4C
+//------------------------------------------------
+struct ResourceHeader {
+    char  magic[4];
+    uint  version;
+
+    uint  flags;
+    uint  numSegments;
+    uquad segmentSize;
+    uquad metadataHash;
+
+    uint  numResources;
+    uint  numDependencies;
+    uint  numDepIndices;
+    uint  numStringIndices;
+    uint  numSpecialHashes;
+    uint  numMetaEntries;
+    uint  stringTableSize;
+    uint  metaEntriesSize;
+
+    uquad stringTableOffset;
+    uquad metaEntriesOffset;
+    uquad resourceEntriesOffset;
+    uquad resourceDepsOffset;
+    uquad resourceSpecialHashOffset;
+
+    uquad dataOffset;
+    uint  unkown;
+    uquad metaSize;
+};
+
+struct ResourceEntry
+{
+	quad   resourceTypeString;
+	quad   nameString;
+	quad   descString;
+	uquad  depIndices;
+	uquad  strings;
+	uquad  specialHashes;
+	uquad  metaEntries;
+	uquad  dataOffset;
+	uquad  dataSize;
+
+	uquad  uncompressedSize;
+	uquad  dataCheckSum;
+	uquad  generationTimeStamp;
+	uquad  defaultHash;
+	uint   version;
+	uint   flags;
+	ubyte  compMode;
+	ubyte  reserved0;
+	ushort variation;
+	uint   reserved2;
+	uquad  reservedForVariations;
+
+	ushort numStrings;
+	ushort numSources;
+	ushort numDependencies;
+	ushort numSpecialHashes;
+	ushort numMetaEntries;
+    ubyte  padding[6];
+};
+
+typedef struct {
+    string value;
+} WrappedString <read=this.value>;
+
+struct StringChunk {
+    uint64 numStrings;
+    uint64 offsets[numStrings];
+    WrappedString values[numStrings] <optimize=false>;
+};
+
+struct ResourceDependency {
+	uint64 type;
+	uint64 name;
+	uint32 depType;
+	uint32 depSubType;
+	uint64 hashOrTimestamp;
+};
+
+struct Resources {
+    ResourceHeader header <style=sHeading1>;
+
+    FSeek(header.resourceEntriesOffset);
+    ResourceEntry entries[header.numResources] <style=sHeading2>;
+
+    FSeek(header.stringTableOffset);
+    StringChunk stringChunk <style=sHeading3>;
+
+    FSeek(header.resourceDepsOffset);
+    ResourceDependency dependencies[header.numDependencies] <style=sHeading4>;
+    uint32 dependencyIndex[header.numDepIndices] <style=sHeading1>;
+    uint64 stringIndex[header.numStringIndices] <style=sHeading2>;
+} resources;
