@@ -16,5 +16,4 @@ public final class EternalGameFactory implements GameFactory<EternalGame> {
     public EternalGame load(Path path) throws IOException {
         return new EternalGame(path.getParent());
     }
-
 }
