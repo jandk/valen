@@ -10,4 +10,7 @@ public interface GameFactory<T extends Game> {
 
     T load(Path path) throws IOException;
 
+    default boolean canLoad(Path path) {
+        return executableNames().contains(path.getFileName().toString());
+    }
 }
