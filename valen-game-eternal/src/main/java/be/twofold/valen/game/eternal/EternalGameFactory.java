@@ -7,6 +7,7 @@ import java.nio.file.*;
 import java.util.*;
 
 public final class EternalGameFactory implements GameFactory<EternalGame> {
+    @Override
     public Set<String> executableNames() {
         return Set.of("DOOMEternalx64vk.exe");
     }
@@ -16,8 +17,4 @@ public final class EternalGameFactory implements GameFactory<EternalGame> {
         return new EternalGame(path.getParent());
     }
 
-    @Override
-    public boolean canLoad(Path path) {
-        return executableNames().contains(path.getFileName().toString());
-    }
 }

@@ -7,6 +7,7 @@ import java.nio.file.*;
 import java.util.*;
 
 public final class DoomGameFactory implements GameFactory<DoomGame> {
+    @Override
     public Set<String> executableNames() {
         return Set.of("DOOMx64.exe", "DOOMx64vk.exe");
     }
@@ -14,10 +15,5 @@ public final class DoomGameFactory implements GameFactory<DoomGame> {
     @Override
     public DoomGame load(Path path) throws IOException {
         return new DoomGame(path.getParent());
-    }
-
-    @Override
-    public boolean canLoad(Path path) {
-        return executableNames().contains(path.getFileName().toString());
     }
 }

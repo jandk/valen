@@ -2,10 +2,15 @@ package be.twofold.valen.core.game;
 
 import java.io.*;
 import java.nio.file.*;
+import java.util.*;
 
 public interface GameFactory<T extends Game> {
 
+    Set<String> executableNames();
+
     T load(Path path) throws IOException;
 
-    boolean canLoad(Path path);
+    default boolean canLoad(Path path) {
+        return executableNames().contains(path.getFileName().toString());
+    }
 }
