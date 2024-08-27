@@ -1,5 +1,6 @@
 package be.twofold.valen.export.png;
 
+import be.twofold.tinybcdec.BlockFormat;
 import be.twofold.tinybcdec.*;
 import be.twofold.valen.core.texture.*;
 import be.twofold.valen.export.*;
@@ -37,26 +38,25 @@ public final class PngExporter implements Exporter<Texture> {
     }
 
     private BlockDecoder mapDecoder(TextureFormat format) {
-        return switch (format) {
-            case Bc1UNorm, Bc1UNormSrgb -> BlockDecoder.create(BlockFormat.BC1, PixelOrder.RGBA);
-            case Bc3UNorm, Bc3UNormSrgb -> BlockDecoder.create(BlockFormat.BC3, PixelOrder.RGBA);
-            case Bc4UNorm -> BlockDecoder.create(BlockFormat.BC4Unsigned, PixelOrder.R);
-            case Bc5UNorm -> BlockDecoder.create(normalizeNormalMap ? BlockFormat.BC5UnsignedNormalized : BlockFormat.BC5Unsigned, PixelOrder.RGB);
-            case Bc7UNorm, Bc7UNormSrgb -> BlockDecoder.create(BlockFormat.BC7, PixelOrder.RGBA);
-            case R8G8B8A8UNorm, A8UNorm -> null;
+        return switch (format.blockFormat()) {
+            case BC1 -> BlockDecoder.create(BlockFormat.BC1, PixelOrder.RGBA);
+            case BC3 -> BlockDecoder.create(BlockFormat.BC3, PixelOrder.RGBA);
+            case BC4 -> BlockDecoder.create(BlockFormat.BC4Unsigned, PixelOrder.R);
+            case BC5 -> BlockDecoder.create(normalizeNormalMap ? BlockFormat.BC5UnsignedNormalized : BlockFormat.BC5Unsigned, PixelOrder.RGB);
+            case BC7 -> BlockDecoder.create(BlockFormat.BC7, PixelOrder.RGBA);
+            // case R8G8B8A8UNorm, A8UNorm -> null;
             default -> throw new UnsupportedOperationException("Unsupported format: " + format);
         };
     }
 
     private PngFormat mapPngFormat(Texture texture) {
-        var width = texture.width();
-        var height = texture.height();
-        return switch (texture.format()) {
-            case Bc1UNorm, Bc3UNorm, Bc7UNorm, R8G8B8A8UNorm -> new PngFormat(width, height, PngColorType.RgbAlpha, 8, true);
-            case Bc1UNormSrgb, Bc3UNormSrgb, Bc7UNormSrgb -> new PngFormat(width, height, PngColorType.RgbAlpha, 8, false);
-            case Bc4UNorm, A8UNorm -> new PngFormat(width, height, PngColorType.Gray, 8, true);
-            case Bc5UNorm -> new PngFormat(width, height, PngColorType.Rgb, 8, true);
+        var colorType = switch (texture.format().blockFormat()) {
+            case BC1, BC3, BC7 -> PngColorType.RgbAlpha;
+            case BC4 -> PngColorType.Gray;
+            case BC5 -> PngColorType.Rgb;
             default -> throw new UnsupportedOperationException("Unsupported format: " + texture.format());
         };
+        boolean linear = texture.format().numericFormat() == NumericFormat.UNorm;
+        return new PngFormat(texture.width(), texture.height(), colorType, 8, linear);
     }
 }

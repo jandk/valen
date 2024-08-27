@@ -28,6 +28,7 @@ public final class ImageMapper {
                 surfaces.add(new Surface(
                     image.mipInfos().get(mipIndex).mipPixelWidth(),
                     image.mipInfos().get(mipIndex).mipPixelHeight(),
+                    toImageFormat(image.header().textureFormat()),
                     image.mipData()[mipIndex]
                 ));
             }
@@ -38,20 +39,20 @@ public final class ImageMapper {
     private TextureFormat toImageFormat(ImageTextureFormat format) {
         // I might not be sure about all these mappings, but it's a start
         return switch (format) {
-            case FMT_ALPHA -> TextureFormat.A8UNorm;
-            case FMT_BC1, FMT_BC1_ZERO_ALPHA -> TextureFormat.Bc1UNorm;
-            case FMT_BC1_SRGB -> TextureFormat.Bc1UNormSrgb;
-            case FMT_BC3 -> TextureFormat.Bc3UNorm;
-            case FMT_BC3_SRGB -> TextureFormat.Bc3UNormSrgb;
-            case FMT_BC4 -> TextureFormat.Bc4UNorm;
-            case FMT_BC5 -> TextureFormat.Bc5UNorm;
-            case FMT_BC6H_UF16 -> TextureFormat.Bc6HUFloat16;
-            case FMT_BC7 -> TextureFormat.Bc7UNorm;
-            case FMT_BC7_SRGB -> TextureFormat.Bc7UNormSrgb;
-            case FMT_RG16F -> TextureFormat.R16G16Float;
-            case FMT_RG8 -> TextureFormat.R8G8UNorm;
-            case FMT_RGBA8 -> TextureFormat.R8G8B8A8UNorm;
-            case FMT_X16F -> TextureFormat.R16Float;
+            case FMT_ALPHA -> TextureFormat.R8_UNORM;
+            case FMT_BC1, FMT_BC1_ZERO_ALPHA -> TextureFormat.BC1_UNORM;
+            case FMT_BC1_SRGB -> TextureFormat.BC1_SRGB;
+            case FMT_BC3 -> TextureFormat.BC3_UNORM;
+            case FMT_BC3_SRGB -> TextureFormat.BC3_SRGB;
+            case FMT_BC4 -> TextureFormat.BC4_UNORM;
+            case FMT_BC5 -> TextureFormat.BC5_UNORM;
+            case FMT_BC6H_UF16 -> TextureFormat.BC6H_UFLOAT;
+            case FMT_BC7 -> TextureFormat.BC7_UNORM;
+            case FMT_BC7_SRGB -> TextureFormat.BC7_SRGB;
+            case FMT_RG16F -> TextureFormat.R16G16_SFLOAT;
+            case FMT_RG8 -> TextureFormat.R8G8_UNORM;
+            case FMT_RGBA8 -> TextureFormat.R8G8B8A8_UNORM;
+            case FMT_X16F -> TextureFormat.R16_SFLOAT;
             default -> throw new UnsupportedOperationException("Unsupported format: " + format);
         };
     }

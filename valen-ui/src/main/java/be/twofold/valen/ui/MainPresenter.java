@@ -1,5 +1,6 @@
 package be.twofold.valen.ui;
 
+import be.twofold.tinybcdec.BlockFormat;
 import be.twofold.tinybcdec.*;
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.texture.*;
@@ -43,12 +44,12 @@ public class MainPresenter extends AbstractPresenter<MainView> {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        var decoder = switch (texture.format()) {
-            case Bc1UNorm, Bc1UNormSrgb -> BlockDecoder.create(BlockFormat.BC1, PixelOrder.BGRA);
-            case Bc3UNorm, Bc3UNormSrgb -> BlockDecoder.create(BlockFormat.BC3, PixelOrder.BGRA);
-            case Bc4UNorm -> BlockDecoder.create(BlockFormat.BC4Unsigned, PixelOrder.BGRA);
-            case Bc5UNorm -> BlockDecoder.create(BlockFormat.BC5UnsignedNormalized, PixelOrder.BGRA);
-            case Bc7UNorm, Bc7UNormSrgb -> BlockDecoder.create(BlockFormat.BC7, PixelOrder.BGRA);
+        var decoder = switch (texture.format().blockFormat()) {
+            case BC1 -> BlockDecoder.create(BlockFormat.BC1, PixelOrder.BGRA);
+            case BC3 -> BlockDecoder.create(BlockFormat.BC3, PixelOrder.BGRA);
+            case BC4 -> BlockDecoder.create(BlockFormat.BC4Unsigned, PixelOrder.BGRA);
+            case BC5 -> BlockDecoder.create(BlockFormat.BC5UnsignedNormalized, PixelOrder.BGRA);
+            case BC7 -> BlockDecoder.create(BlockFormat.BC7, PixelOrder.BGRA);
             default -> null;
         };
 
