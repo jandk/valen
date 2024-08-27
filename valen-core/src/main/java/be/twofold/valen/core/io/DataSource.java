@@ -169,6 +169,18 @@ public abstract class DataSource implements AutoCloseable {
         return new String(readBytes(length), StandardCharsets.UTF_8);
     }
 
+    public String readCString() throws IOException {
+        var result = new StringBuilder();
+        while (true) {
+            var b = readByte();
+            if (b == 0) {
+                break;
+            }
+            result.append((char) b);
+        }
+        return result.toString();
+    }
+
     public String readPString() throws IOException {
         return readString(readInt());
     }
