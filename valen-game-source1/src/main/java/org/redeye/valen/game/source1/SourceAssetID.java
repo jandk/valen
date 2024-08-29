@@ -1,4 +1,4 @@
-package org.redeye.valen.game.halflife2;
+package org.redeye.valen.game.source1;
 
 import be.twofold.valen.core.game.*;
 

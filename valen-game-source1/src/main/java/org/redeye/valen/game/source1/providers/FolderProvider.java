@@ -1,10 +1,8 @@
-package org.redeye.valen.game.halflife2.providers;
+package org.redeye.valen.game.source1.providers;
 
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.io.*;
-import org.redeye.valen.game.halflife2.*;
-import org.redeye.valen.game.halflife2.readers.Reader;
-import org.redeye.valen.game.halflife2.readers.*;
+import org.redeye.valen.game.source1.*;
 
 import java.io.*;
 import java.nio.*;
@@ -14,21 +12,18 @@ import java.util.*;
 public class FolderProvider implements Provider {
     private final Path root;
     private final HashMap<AssetID, Asset> assets = new HashMap<>();
-    private final List<Reader> readers;
     private final Provider parent;
 
     public FolderProvider(Path root, Provider parent) {
         this.root = root;
         this.parent = parent;
 
-        readers = List.of(new VtfReader());
-
         try (var files = Files.walk(root, 100)) {
             files.forEach(file -> {
                 try {
                     if (!Files.isDirectory(file)) {
-                        final String relativePath = root.relativize(file).toString().replace('\\', '/');
-                        final SourceAssetID id = new SourceAssetID(root.getFileName().toString(), relativePath);
+                        String relativePath = root.relativize(file).toString().replace('\\', '/');
+                        SourceAssetID id = new SourceAssetID(root.getFileName().toString(), relativePath);
                         assets.put(id, new Asset(id, id.identifyAssetType(), (int) Files.size(file), Map.of()));
                     }
                 } catch (IOException e) {
@@ -52,7 +47,7 @@ public class FolderProvider implements Provider {
 
     @Override
     public List<Asset> assets() {
-        return assets.values().stream().toList();
+        return List.copyOf(assets.values());
     }
 
     @Override
@@ -64,8 +59,8 @@ public class FolderProvider implements Provider {
     public Object loadAsset(AssetID identifier) throws IOException {
         final Asset asset = assets.get(identifier);
         if (identifier instanceof SourceAssetID sourceIdentifier) {
-            var reader = readers.stream().filter(rdr -> rdr.canRead(asset)).findFirst().orElseThrow();
-            return reader.read(this.getParent(), asset, ByteArrayDataSource.fromBuffer(loadRawAsset(sourceIdentifier)));
+            var reader = getReaders().stream().filter(rdr -> rdr.canRead(asset)).findFirst().orElseThrow();
+            return reader.read(getParent(), asset, ByteArrayDataSource.fromBuffer(loadRawAsset(sourceIdentifier)));
         }
         return null;
     }

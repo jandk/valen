@@ -1,7 +1,7 @@
-package org.redeye.valen.game.halflife2.providers;
+package org.redeye.valen.game.source1.providers;
 
 import be.twofold.valen.core.game.*;
-import org.redeye.valen.game.halflife2.utils.*;
+import org.redeye.valen.game.source1.utils.*;
 
 import java.io.*;
 import java.nio.*;
@@ -12,7 +12,7 @@ public class GameinfoProvider implements Provider {
     private final Path path;
     private final List<Provider> providers = new ArrayList<>();
 
-    public GameinfoProvider(Path path) {
+    public GameinfoProvider(Path path) throws IOException {
         this.path = path;
         var gameinfoData = new ValveKeyValueParser();
 
@@ -29,7 +29,14 @@ public class GameinfoProvider implements Provider {
         searchPaths.addAll(parsedSearchPaths.get("platform"));
         for (Path searchPath : searchPaths) {
             if (searchPath.getFileName().toString().endsWith(".vpk")) {
-                continue;
+                if (Files.notExists(searchPath)) {
+                    var name = searchPath.getFileName().toString();
+                    name = name.substring(0, name.length() - 4);
+                    searchPath = searchPath.getParent().resolve(name + "_dir.vpk");
+                }
+                if (Files.exists(searchPath)) {
+                    providers.add(new VpkArchive(searchPath, this));
+                }
             } else {
                 providers.add(new FolderProvider(searchPath, this));
             }

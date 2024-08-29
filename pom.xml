@@ -17,7 +17,7 @@
         <module>valen-export</module>
         <module>valen-game-doom</module>
         <module>valen-game-eternal</module>
-        <module>valen-game-halflife2</module>
+        <module>valen-game-source1</module>
         <module>valen-gltf</module>
         <module>valen-jlink</module>
         <module>valen-ui</module>
@@ -131,7 +131,7 @@
             </dependency>
             <dependency>
                 <groupId>be.twofold</groupId>
-                <artifactId>valen-game-halflife2</artifactId>
+                <artifactId>valen-game-source1</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

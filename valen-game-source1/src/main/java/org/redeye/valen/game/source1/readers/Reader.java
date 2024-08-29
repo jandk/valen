@@ -1,4 +1,4 @@
-package org.redeye.valen.game.halflife2.readers;
+package org.redeye.valen.game.source1.readers;
 
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.io.*;

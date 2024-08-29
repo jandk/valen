@@ -1,7 +1,7 @@
-package org.redeye.valen.game.halflife2;
+package org.redeye.valen.game.source1;
 
 import be.twofold.valen.core.game.*;
-import org.redeye.valen.game.halflife2.providers.*;
+import org.redeye.valen.game.source1.providers.*;
 
 import java.io.*;
 import java.nio.file.*;
@@ -11,7 +11,7 @@ public class SourceGame implements Game {
     private final List<Provider> providers = new ArrayList<>();
 
 
-    public SourceGame(Path path, String mod) {
+    public SourceGame(Path path, String mod) throws IOException {
         var mainGamePath = path.resolve(mod);
         var provider = new GameinfoProvider(mainGamePath.resolve("gameinfo.txt"));
         providers.add(provider);

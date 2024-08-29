@@ -1,4 +1,4 @@
-package org.redeye.valen.game.halflife2.vtf;
+package org.redeye.valen.game.source1.vtf;
 
 import be.twofold.valen.core.texture.*;
 

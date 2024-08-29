@@ -1,16 +1,19 @@
-package org.redeye.valen.game.halflife2.readers;
+package org.redeye.valen.game.source1.readers;
 
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.texture.*;
-import org.redeye.valen.game.halflife2.*;
-import org.redeye.valen.game.halflife2.vtf.*;
+import org.redeye.valen.game.source1.*;
+import org.redeye.valen.game.source1.vtf.*;
 
 import java.io.*;
 import java.util.*;
 
 
 public class VtfReader implements Reader<Texture> {
+
+    public static final byte[] HiResKey = {0x30, 0, 0};
+
     public Texture read(Archive archive, Asset asset, DataSource source) throws IOException {
         var ident = source.readString(3);
         if (!ident.equals("VTF")) {
@@ -38,10 +41,10 @@ public class VtfReader implements Reader<Texture> {
         final int resourceCount;
         if (versionMn >= 3) {
             resourceCount = source.readInt();
+            source.skip(8);
         } else {
             resourceCount = 0;
         }
-        source.seek(headerSize);
 
         final List<ResourceEntry> resources = new ArrayList<>();
         for (int i = 0; i < resourceCount; i++) {
@@ -53,18 +56,21 @@ public class VtfReader implements Reader<Texture> {
         }
         final List<Surface> surfaces = new ArrayList<>();
         if (resourceCount == 0) {
+            source.seek(headerSize);
             source.skip((long) (loWidth / 4) * (loHeight / 4) * loResFormat.blockSize());
-
-            final int minRes = hiResFormat.isBlockCompressed() ? 4 : 1;
-            for (int mipId = (mipCount - 1); mipId >= 0; mipId--) {
-                final int mipWidth = Math.max(width >> mipId, minRes);
-                final int mipHeight = Math.max(width >> mipId, minRes);
-                final Surface surface = new Surface(mipWidth, mipHeight, source.readBytes((mipHeight / minRes) * (mipWidth / minRes) * hiResFormat.blockSize()));
-                surfaces.add(surface);
-            }
         } else {
-            throw new RuntimeException("Not implemented");
+            var resource = resources.stream().filter(e -> Arrays.equals(e.tag(), HiResKey)).findFirst().orElseThrow();
+            source.seek(resource.offset());
         }
+
+        final int minRes = hiResFormat.isBlockCompressed() ? 4 : 1;
+        for (int mipId = (mipCount - 1); mipId >= 0; mipId--) {
+            final int mipWidth = Math.max(width >> (mipId), minRes);
+            final int mipHeight = Math.max(height >> (mipId), minRes);
+            final Surface surface = new Surface(mipWidth, mipHeight, source.readBytes((mipHeight / minRes) * (mipWidth / minRes) * hiResFormat.blockSize()));
+            surfaces.add(surface);
+        }
+
         return new Texture(width, height, textureFormat, surfaces.reversed(), false);
     }
 

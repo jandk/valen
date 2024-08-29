@@ -1,4 +1,4 @@
-package org.redeye.valen.game.halflife2.utils;
+package org.redeye.valen.game.source1.utils;
 
 import java.io.*;
 import java.util.*;
