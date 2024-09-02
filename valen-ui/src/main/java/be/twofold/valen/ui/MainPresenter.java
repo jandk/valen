@@ -1,7 +1,5 @@
 package be.twofold.valen.ui;
 
-import be.twofold.tinybcdec.BlockFormat;
-import be.twofold.tinybcdec.*;
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.texture.*;
 import jakarta.inject.*;
@@ -44,19 +42,9 @@ public class MainPresenter extends AbstractPresenter<MainView> {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        var decoder = switch (texture.format().blockFormat()) {
-            case BC1 -> BlockDecoder.create(BlockFormat.BC1, PixelOrder.BGRA);
-            case BC3 -> BlockDecoder.create(BlockFormat.BC3, PixelOrder.BGRA);
-            case BC4 -> BlockDecoder.create(BlockFormat.BC4Unsigned, PixelOrder.BGRA);
-            case BC5 -> BlockDecoder.create(BlockFormat.BC5UnsignedNormalized, PixelOrder.BGRA);
-            case BC7 -> BlockDecoder.create(BlockFormat.BC7, PixelOrder.BGRA);
-            default -> null;
-        };
 
-        if (decoder != null) {
-            byte[] decoded = decoder.decode(texture.width(), texture.height(), texture.surfaces().getFirst().data(), 0);
-            getView().setImage(decoded, texture.width(), texture.height());
-        }
+        Surface converted = SurfaceConverter.convert(texture.surfaces().getFirst(), TextureFormat.B8G8R8A8_UNORM);
+        getView().setImage(converted.data(), texture.width(), texture.height());
     }
 
     public void setResources(List<Asset> assets) {
