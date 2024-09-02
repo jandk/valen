@@ -85,7 +85,7 @@ public final class Md6ModelReader implements ResourceReader<Model> {
 
         var identity = (hash << 4) | lod;
         var buffer = archive.readStream(identity, uncompressedSize);
-        try (var source = ByteArrayDataSource.fromBuffer(buffer)) {
+        try (var source = DataSource.fromBuffer(buffer)) {
             return GeometryReader.readStreamedMesh(source, lodInfos, layouts, true);
         }
     }

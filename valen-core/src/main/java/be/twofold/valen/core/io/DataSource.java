@@ -1,10 +1,31 @@
 package be.twofold.valen.core.io;
 
 import java.io.*;
+import java.nio.*;
 import java.nio.charset.*;
+import java.nio.file.*;
 import java.util.*;
 
 public abstract class DataSource implements AutoCloseable {
+
+    public static DataSource fromArray(byte[] array) {
+        return new ByteArrayDataSource(array);
+    }
+
+    public static DataSource fromBuffer(ByteBuffer buffer) {
+        if (!buffer.hasArray()) {
+            throw new IllegalArgumentException("ByteBuffer must be backed by an array");
+        }
+        return new ByteArrayDataSource(buffer.array(), buffer.arrayOffset(), buffer.limit());
+    }
+
+    public static DataSource fromPath(Path path) throws IOException {
+        return new ChannelDataSource(Files.newByteChannel(path));
+    }
+
+    public static DataSource fromStream(InputStream stream) {
+        return new InputStreamDataSource(stream);
+    }
 
     public abstract byte readByte() throws IOException;
 

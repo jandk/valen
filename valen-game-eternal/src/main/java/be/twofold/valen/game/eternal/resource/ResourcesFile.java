@@ -16,9 +16,7 @@ public final class ResourcesFile implements AutoCloseable {
 
     public ResourcesFile(Path path) throws IOException {
         System.out.println("Loading resources: " + path);
-
-        var channel = Files.newByteChannel(path, StandardOpenOption.READ);
-        this.source = new ChannelDataSource(channel);
+        this.source = DataSource.fromPath(path);
 
         var resources = mapResources(Resources.read(source));
         this.index = resources.stream()

@@ -5,7 +5,7 @@ import java.lang.invoke.*;
 import java.nio.*;
 import java.util.*;
 
-public final class ByteArrayDataSource extends DataSource {
+final class ByteArrayDataSource extends DataSource {
     private static final VarHandle ShortVarHandle =
         MethodHandles.byteArrayViewVarHandle(short[].class, ByteOrder.LITTLE_ENDIAN);
     private static final VarHandle IntVarHandle =
@@ -22,23 +22,16 @@ public final class ByteArrayDataSource extends DataSource {
     private final int lim;
     private int pos;
 
-    public ByteArrayDataSource(byte[] bytes) {
+    ByteArrayDataSource(byte[] bytes) {
         this(bytes, 0, bytes.length);
     }
 
-    public ByteArrayDataSource(byte[] bytes, int offset, int length) {
+    ByteArrayDataSource(byte[] bytes, int offset, int length) {
         Objects.checkFromIndexSize(offset, length, bytes.length);
         this.bytes = bytes;
         this.offset = offset;
         this.pos = offset;
         this.lim = offset + length;
-    }
-
-    public static ByteArrayDataSource fromBuffer(ByteBuffer buffer) {
-        if (!buffer.hasArray()) {
-            throw new IllegalArgumentException("ByteBuffer must be backed by an array");
-        }
-        return new ByteArrayDataSource(buffer.array(), buffer.arrayOffset(), buffer.limit());
     }
 
     @Override
@@ -78,11 +71,6 @@ public final class ByteArrayDataSource extends DataSource {
     @Override
     public void close() {
         // Do nothing
-    }
-
-    public ByteArrayDataSource slice(int offset, int length) {
-        Objects.checkFromIndexSize(offset, length, lim - this.offset);
-        return new ByteArrayDataSource(bytes, this.offset + offset, length);
     }
 
     @Override

@@ -5,7 +5,7 @@ import java.nio.*;
 import java.nio.channels.*;
 import java.util.*;
 
-public final class ChannelDataSource extends DataSource {
+final class ChannelDataSource extends DataSource {
     private final ByteBuffer buffer = ByteBuffer
         .allocate(8192)
         .order(ByteOrder.LITTLE_ENDIAN)
@@ -17,11 +17,11 @@ public final class ChannelDataSource extends DataSource {
     private final long lim;
     private long bufPos;
 
-    public ChannelDataSource(SeekableByteChannel channel) throws IOException {
+    ChannelDataSource(SeekableByteChannel channel) throws IOException {
         this(channel, 0, channel.size());
     }
 
-    public ChannelDataSource(SeekableByteChannel channel, long offset, long length) throws IOException {
+    ChannelDataSource(SeekableByteChannel channel, long offset, long length) throws IOException {
         Objects.checkFromIndexSize(offset, length, channel.size());
         this.channel = channel;
         this.offset = offset;

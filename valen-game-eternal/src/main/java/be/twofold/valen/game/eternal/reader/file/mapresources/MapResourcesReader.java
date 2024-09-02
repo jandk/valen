@@ -24,6 +24,6 @@ public final class MapResourcesReader implements ResourceReader<MapResources> {
     @Override
     public MapResources read(DataSource source, Asset asset) throws IOException {
         var file = fileReader.read(source, asset);
-        return MapResources.read(new ByteArrayDataSource(file.data()));
+        return MapResources.read(DataSource.fromArray(file.data()));
     }
 }

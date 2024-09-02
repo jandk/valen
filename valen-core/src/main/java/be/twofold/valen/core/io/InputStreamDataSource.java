@@ -3,10 +3,10 @@ package be.twofold.valen.core.io;
 import java.io.*;
 import java.util.*;
 
-public final class InputStreamDataSource extends DataSource {
+final class InputStreamDataSource extends DataSource {
     private final InputStream stream;
 
-    public InputStreamDataSource(InputStream stream) {
+    InputStreamDataSource(InputStream stream) {
         this.stream = Objects.requireNonNull(stream);
     }
 
