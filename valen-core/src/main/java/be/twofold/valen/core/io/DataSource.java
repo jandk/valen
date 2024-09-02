@@ -20,7 +20,7 @@ public abstract class DataSource implements AutoCloseable {
     }
 
     public static DataSource fromPath(Path path) throws IOException {
-        return new ChannelDataSource(Files.newByteChannel(path));
+        return new ChannelDataSource(Files.newByteChannel(path, StandardOpenOption.READ));
     }
 
     public static DataSource fromStream(InputStream stream) {

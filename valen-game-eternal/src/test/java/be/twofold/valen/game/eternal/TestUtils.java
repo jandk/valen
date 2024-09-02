@@ -32,7 +32,7 @@ public abstract class TestUtils {
         entries.forEach(asset -> assertThatNoException()
             .isThrownBy(() -> {
                 var buffer = archive.loadRawAsset(asset.id());
-                reader.read(ByteArrayDataSource.fromBuffer(buffer), asset);
+                reader.read(DataSource.fromBuffer(buffer), asset);
             }));
     }
 

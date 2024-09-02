@@ -13,7 +13,7 @@ class DoomArchive implements Archive {
     private final ResourcesIndex index;
 
     DoomArchive(Path base, String name) throws IOException {
-        try (var source = new ChannelDataSource(Files.newByteChannel(base.resolve(name + ".index")))) {
+        try (var source = DataSource.fromPath(base.resolve(name + ".index"))) {
             this.index = ResourcesIndex.read(source);
         }
     }
