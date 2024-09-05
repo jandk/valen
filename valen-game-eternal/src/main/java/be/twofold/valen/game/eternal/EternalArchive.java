@@ -71,7 +71,7 @@ public final class EternalArchive implements Archive {
             .orElseThrow(() -> new IllegalArgumentException("No reader found for resource: " + resource));
 
         var buffer = resources.read(resource);
-        try (var source = ByteArrayDataSource.fromBuffer(buffer)) {
+        try (var source = DataSource.fromBuffer(buffer)) {
             return reader.read(source, toAsset(resource));
         }
     }

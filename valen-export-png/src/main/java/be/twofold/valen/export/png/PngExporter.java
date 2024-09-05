@@ -1,14 +1,11 @@
 package be.twofold.valen.export.png;
 
-import be.twofold.tinybcdec.*;
 import be.twofold.valen.core.texture.*;
 import be.twofold.valen.export.*;
 
 import java.io.*;
 
 public final class PngExporter implements Exporter<Texture> {
-    // TODO: Make this configurable
-    private final boolean normalizeNormalMap = false;
 
     @Override
     public String getExtension() {
@@ -22,41 +19,42 @@ public final class PngExporter implements Exporter<Texture> {
 
     @Override
     public void export(Texture texture, OutputStream out) throws IOException {
-        var format = mapPngFormat(texture);
-        var decoder = mapDecoder(texture.format());
-
-        byte[] data;
-        if (decoder != null) {
-            data = decoder.decode(texture.width(), texture.height(), texture.surfaces().getFirst().data(), 0);
-        } else {
-            data = texture.surfaces().getFirst().data();
-        }
+        var surface = texture.surfaces().getFirst();
+        var chosenFormat = chooseFormat(texture.format());
+        var decoded = SurfaceConverter.convert(surface, chosenFormat);
+        var format = mapPngFormat(surface, chosenFormat);
 
         // TODO: How to handle closing the output stream?
-        new PngOutputStream(out, format).writeImage(data);
+        new PngOutputStream(out, format).writeImage(decoded.data());
     }
 
-    private BlockDecoder mapDecoder(TextureFormat format) {
-        return switch (format) {
-            case Bc1UNorm, Bc1UNormSrgb -> BlockDecoder.create(BlockFormat.BC1, PixelOrder.RGBA);
-            case Bc3UNorm, Bc3UNormSrgb -> BlockDecoder.create(BlockFormat.BC3, PixelOrder.RGBA);
-            case Bc4UNorm -> BlockDecoder.create(BlockFormat.BC4Unsigned, PixelOrder.R);
-            case Bc5UNorm -> BlockDecoder.create(normalizeNormalMap ? BlockFormat.BC5UnsignedNormalized : BlockFormat.BC5Unsigned, PixelOrder.RGB);
-            case Bc7UNorm, Bc7UNormSrgb -> BlockDecoder.create(BlockFormat.BC7, PixelOrder.RGBA);
-            case R8G8B8A8UNorm, A8UNorm -> null;
+    private TextureFormat chooseFormat(TextureFormat format) {
+        if (format.isCompressed()) {
+            return switch (format.block()) {
+                case BC1, BC2, BC3, BC7 -> TextureFormat.R8G8B8A8_UNORM;
+                case BC4 -> TextureFormat.R8_UNORM;
+                case BC5 -> TextureFormat.R8G8B8_UNORM;
+                default -> throw new UnsupportedOperationException("Unsupported format: " + format.block());
+            };
+        }
+
+        return switch (format.order().orElseThrow()) {
+            case R -> TextureFormat.R8_UNORM;
+            case RGB -> TextureFormat.R8G8B8_UNORM;
+            case RGBA -> TextureFormat.R8G8B8A8_UNORM;
+            default -> throw new UnsupportedOperationException("Unsupported order: " + format.order());
+        };
+    }
+
+    private PngFormat mapPngFormat(Surface surface, TextureFormat format) {
+        var colorType = switch (format) {
+            case R8_UNORM -> PngColorType.Gray;
+            case R8G8B8_UNORM -> PngColorType.Rgb;
+            case R8G8B8A8_UNORM -> PngColorType.RgbAlpha;
             default -> throw new UnsupportedOperationException("Unsupported format: " + format);
         };
+        boolean linear = surface.format().interp() == TextureFormat.Interp.UNorm;
+        return new PngFormat(surface.width(), surface.height(), colorType, 8, linear);
     }
 
-    private PngFormat mapPngFormat(Texture texture) {
-        var width = texture.width();
-        var height = texture.height();
-        return switch (texture.format()) {
-            case Bc1UNorm, Bc3UNorm, Bc7UNorm, R8G8B8A8UNorm -> new PngFormat(width, height, PngColorType.RgbAlpha, 8, true);
-            case Bc1UNormSrgb, Bc3UNormSrgb, Bc7UNormSrgb -> new PngFormat(width, height, PngColorType.RgbAlpha, 8, false);
-            case Bc4UNorm, A8UNorm -> new PngFormat(width, height, PngColorType.Gray, 8, true);
-            case Bc5UNorm -> new PngFormat(width, height, PngColorType.Rgb, 8, true);
-            default -> throw new UnsupportedOperationException("Unsupported format: " + texture.format());
-        };
-    }
 }

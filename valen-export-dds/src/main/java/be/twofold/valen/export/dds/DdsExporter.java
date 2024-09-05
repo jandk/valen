@@ -4,8 +4,31 @@ import be.twofold.valen.core.texture.*;
 import be.twofold.valen.export.*;
 
 import java.io.*;
+import java.util.*;
 
 public final class DdsExporter implements Exporter<Texture> {
+    private static final Map<TextureFormat, DxgiFormat> FORMATS = Map.ofEntries(
+        Map.entry(TextureFormat.R8G8B8A8_UNORM, DxgiFormat.R8G8B8A8_UNORM),
+        Map.entry(TextureFormat.R16G16_SFLOAT, DxgiFormat.R16G16_FLOAT),
+        Map.entry(TextureFormat.R8G8_UNORM, DxgiFormat.R8G8_UNORM),
+        Map.entry(TextureFormat.R16_SFLOAT, DxgiFormat.R16_FLOAT),
+        Map.entry(TextureFormat.R8_UNORM, DxgiFormat.A8_UNORM),
+        Map.entry(TextureFormat.BC1_UNORM, DxgiFormat.BC1_UNORM),
+        Map.entry(TextureFormat.BC1_SRGB, DxgiFormat.BC1_UNORM_SRGB),
+        Map.entry(TextureFormat.BC2_UNORM, DxgiFormat.BC2_UNORM),
+        Map.entry(TextureFormat.BC2_SRGB, DxgiFormat.BC2_UNORM_SRGB),
+        Map.entry(TextureFormat.BC3_UNORM, DxgiFormat.BC3_UNORM),
+        Map.entry(TextureFormat.BC3_SRGB, DxgiFormat.BC3_UNORM_SRGB),
+        Map.entry(TextureFormat.BC4_UNORM, DxgiFormat.BC4_UNORM),
+        Map.entry(TextureFormat.BC4_SNORM, DxgiFormat.BC4_SNORM),
+        Map.entry(TextureFormat.BC5_UNORM, DxgiFormat.BC5_UNORM),
+        Map.entry(TextureFormat.BC5_SNORM, DxgiFormat.BC5_SNORM),
+        Map.entry(TextureFormat.BC6H_UFLOAT, DxgiFormat.BC6H_UF16),
+        Map.entry(TextureFormat.BC6H_SFLOAT, DxgiFormat.BC6H_SF16),
+        Map.entry(TextureFormat.BC7_UNORM, DxgiFormat.BC7_UNORM),
+        Map.entry(TextureFormat.BC7_SRGB, DxgiFormat.BC7_UNORM_SRGB)
+    );
+
     @Override
     public String getExtension() {
         return "dds";
@@ -25,7 +48,7 @@ public final class DdsExporter implements Exporter<Texture> {
     }
 
     private DdsHeader createHeader(Texture texture) {
-        var format = toDxgiFormat(texture.format());
+        var format = FORMATS.get(texture.format());
 
         var flags = DdsHeader.DDS_HEADER_FLAGS_TEXTURE;
         var height = texture.height();
@@ -62,7 +85,7 @@ public final class DdsExporter implements Exporter<Texture> {
         return new DdsHeader(flags, height, width, pitchOrLinearSize, 0, mipMapCount, pixelFormat, caps1, caps2, header10);
     }
 
-    private static DdsPixelFormat createPixelFormat() {
+    private DdsPixelFormat createPixelFormat() {
         var flags = DdsPixelFormat.DDPF_FOURCC;
         var fourCC = 'D' | 'X' << 8 | '1' << 16 | '0' << 24;
         return new DdsPixelFormat(flags, fourCC, 0, 0, 0, 0, 0);
@@ -108,30 +131,6 @@ public final class DdsExporter implements Exporter<Texture> {
             case R16G16_FLOAT, R8G8B8A8_UNORM -> width * 4;
             case R16_FLOAT, R8G8_UNORM -> width * 2;
             default -> throw new UnsupportedOperationException("Unsupported format: " + format);
-        };
-    }
-
-    private DxgiFormat toDxgiFormat(TextureFormat format) {
-        return switch (format) {
-            case TextureFormat.R8G8B8A8UNorm -> DxgiFormat.R8G8B8A8_UNORM;
-            case TextureFormat.R16G16Float -> DxgiFormat.R16G16_FLOAT;
-            case TextureFormat.R8G8UNorm -> DxgiFormat.R8G8_UNORM;
-            case TextureFormat.R16Float -> DxgiFormat.R16_FLOAT;
-            case TextureFormat.A8UNorm -> DxgiFormat.A8_UNORM;
-            case TextureFormat.Bc1UNorm -> DxgiFormat.BC1_UNORM;
-            case TextureFormat.Bc1UNormSrgb -> DxgiFormat.BC1_UNORM_SRGB;
-            case TextureFormat.Bc2UNorm -> DxgiFormat.BC2_UNORM;
-            case TextureFormat.Bc2UNormSrgb -> DxgiFormat.BC2_UNORM_SRGB;
-            case TextureFormat.Bc3UNorm -> DxgiFormat.BC3_UNORM;
-            case TextureFormat.Bc3UNormSrgb -> DxgiFormat.BC3_UNORM_SRGB;
-            case TextureFormat.Bc4UNorm -> DxgiFormat.BC4_UNORM;
-            case TextureFormat.Bc4SNorm -> DxgiFormat.BC4_SNORM;
-            case TextureFormat.Bc5UNorm -> DxgiFormat.BC5_UNORM;
-            case TextureFormat.Bc5SNorm -> DxgiFormat.BC5_SNORM;
-            case TextureFormat.Bc6HUFloat16 -> DxgiFormat.BC6H_UF16;
-            case TextureFormat.Bc6HSFloat16 -> DxgiFormat.BC6H_SF16;
-            case TextureFormat.Bc7UNorm -> DxgiFormat.BC7_UNORM;
-            case TextureFormat.Bc7UNormSrgb -> DxgiFormat.BC7_UNORM_SRGB;
         };
     }
 }

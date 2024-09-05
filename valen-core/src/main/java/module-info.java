@@ -1,5 +1,6 @@
 module valen.core {
     requires static com.sun.jna;
+    requires be.twofold.tinybcdec;
 
     exports be.twofold.valen.core.animation;
     exports be.twofold.valen.core.compression;
