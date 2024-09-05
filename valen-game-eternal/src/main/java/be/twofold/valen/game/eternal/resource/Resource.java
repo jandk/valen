@@ -7,7 +7,7 @@ public record Resource(
     int offset,
     int compressedSize,
     int uncompressedSize,
-    CompressionType compression,
+    Compression compression,
     long hash
 ) implements Comparable<Resource> {
     public ResourceName name() {

@@ -1,6 +1,5 @@
 package be.twofold.valen.game.eternal;
 
-import be.twofold.valen.core.compression.*;
 import be.twofold.valen.game.eternal.reader.packagemapspec.*;
 import be.twofold.valen.game.eternal.resource.*;
 
@@ -54,10 +53,9 @@ final class ResourcesCollection {
             if (entry.isEmpty()) {
                 continue;
             }
-            var compressed = file.read(entry.get());
-            return Decompressor
-                .forType(resource.compression())
-                .decompress(ByteBuffer.wrap(compressed), resource.uncompressedSize());
+            var compressed = ByteBuffer.wrap(file.read(entry.get()));
+            return resource.compression()
+                .decompress(compressed, resource.uncompressedSize());
         }
         throw new IOException("Unknown resource: " + resource.key());
     }

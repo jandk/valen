@@ -46,8 +46,7 @@ final class StreamDbCollection {
                 return ByteBuffer.wrap(compressed);
             }
 
-            return Decompressor
-                .forType(CompressionType.Kraken)
+            return Compression.Oodle
                 .decompress(ByteBuffer.wrap(compressed), uncompressedSize);
         }
         throw new IOException(String.format("Unknown stream: 0x%016x", identity));

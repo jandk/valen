@@ -65,11 +65,11 @@ public final class ResourcesFile implements AutoCloseable {
         );
     }
 
-    private CompressionType mapCompressionType(ResourceCompressionMode mode) {
+    private Compression mapCompressionType(ResourceCompressionMode mode) {
         return switch (mode) {
-            case RES_COMP_MODE_NONE -> CompressionType.None;
-            case RES_COMP_MODE_KRAKEN -> CompressionType.Kraken;
-            case RES_COMP_MODE_KRAKEN_CHUNKED -> CompressionType.KrakenChunked;
+            case RES_COMP_MODE_NONE -> Compression.None;
+            case RES_COMP_MODE_KRAKEN -> Compression.Oodle;
+            case RES_COMP_MODE_KRAKEN_CHUNKED -> Compression.OodleChunked;
             default -> throw new UnsupportedOperationException("Unsupported compression mode: " + mode);
         };
     }
