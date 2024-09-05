@@ -17,7 +17,7 @@ public class MainWindow extends Application {
             var fileChooser = new FileChooser();
             fileChooser.setTitle("Select the game executable");
             fileChooser.getExtensionFilters().addAll(
-                new FileChooser.ExtensionFilter("Game executable", "DoomEternalx64vk.exe")
+                new FileChooser.ExtensionFilter("Game executable", "*.exe")
             );
             var selectedFile = fileChooser.showOpenDialog(primaryStage);
             if (selectedFile != null) {

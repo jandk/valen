@@ -1,7 +1,6 @@
 package be.twofold.valen.ui;
 
 import be.twofold.valen.core.game.*;
-import be.twofold.valen.core.texture.*;
 import jakarta.inject.*;
 import javafx.scene.control.*;
 
@@ -23,8 +22,17 @@ public class MainPresenter extends AbstractPresenter<MainView> {
 
             @Override
             public void onAssetSelected(Asset asset) {
-                if (asset.type() == AssetType.Image) {
-                    decodeImage(asset);
+                try {
+                    Object assetData;
+                    if (asset.type() == AssetType.Binary) {
+                        assetData = archive.loadRawAsset(asset.id());
+                    } else {
+                        assetData = archive.loadAsset(asset.id());
+                    }
+                    getView().setupPreview(asset, assetData);
+                } catch (
+                    IOException e) {
+                    throw new RuntimeException(e);
                 }
             }
         });
@@ -33,18 +41,6 @@ public class MainPresenter extends AbstractPresenter<MainView> {
     public void setArchive(Archive archive) {
         this.archive = archive;
         setResources(archive.assets());
-    }
-
-    private void decodeImage(Asset asset) {
-        Texture texture;
-        try {
-            texture = (Texture) archive.loadAsset(asset.id());
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-
-        Surface converted = SurfaceConverter.convert(texture.surfaces().getFirst(), TextureFormat.B8G8R8A8_UNORM);
-        getView().setImage(converted.data(), texture.width(), texture.height());
     }
 
     public void setResources(List<Asset> assets) {

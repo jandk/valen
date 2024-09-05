@@ -11,7 +11,7 @@ public interface MainView extends View {
 
     void setAssets(List<Asset> resources);
 
-    void setImage(byte[] rgba, int width, int height);
+    void setupPreview(Asset asset, Object assetData);
 
     void addListener(MainViewListener listener);
 

@@ -6,11 +6,9 @@ import javafx.beans.property.*;
 import javafx.geometry.*;
 import javafx.scene.*;
 import javafx.scene.control.*;
-import javafx.scene.image.*;
 import javafx.scene.layout.*;
 import javafx.scene.paint.*;
 
-import java.nio.*;
 import java.util.*;
 
 public final class MainViewFx extends BorderPane implements MainView {
@@ -20,7 +18,7 @@ public final class MainViewFx extends BorderPane implements MainView {
     private final SplitPane splitPane = new SplitPane();
     private final TreeView<String> treeView = new TreeView<>();
     private final TableView<Asset> tableView = new TableView<>();
-    private final ImageViewerPane imageViewerPane = new ImageViewerPane();
+    private final PreviewTabPane tabPane = new PreviewTabPane();
 
     @Inject
     public MainViewFx() {
@@ -35,6 +33,8 @@ public final class MainViewFx extends BorderPane implements MainView {
     @Override
     public void setFileTree(TreeItem<String> root) {
         treeView.setRoot(root);
+        treeView.getSelectionModel().select(root);
+        root.setExpanded(true);
     }
 
     @Override
@@ -43,11 +43,8 @@ public final class MainViewFx extends BorderPane implements MainView {
     }
 
     @Override
-    public void setImage(byte[] bgra, int width, int height) {
-        var pixelBuffer = new PixelBuffer<>(width, height,
-            ByteBuffer.wrap(bgra), PixelFormat.getByteBgraPreInstance());
-        WritableImage image = new WritableImage(pixelBuffer);
-        imageViewerPane.setSourceImage(image);
+    public void setupPreview(Asset asset, Object assetData) {
+        tabPane.setData(asset.type(), assetData);
     }
 
     @Override
@@ -63,7 +60,7 @@ public final class MainViewFx extends BorderPane implements MainView {
                 splitPane.setDividerPositions(positions[0]);
             }
             case 2 -> {
-                splitPane.getItems().add(imageViewerPane);
+                splitPane.getItems().add(tabPane);
                 splitPane.setDividerPositions(positions[0], 0.75);
             }
             default -> throw new IllegalStateException("Unexpected number of items: " + splitPane.getItems().size());
@@ -103,7 +100,6 @@ public final class MainViewFx extends BorderPane implements MainView {
                 listeners.fire().onPathSelected(String.join("/", path.subList(1, path.size())));
             }
         });
-        treeView.setShowRoot(false);
         return treeView;
     }
 
