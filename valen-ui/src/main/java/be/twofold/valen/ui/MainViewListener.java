@@ -8,4 +8,6 @@ public interface MainViewListener {
 
     void onAssetSelected(Asset asset);
 
+    void onPreviewVisibleChanged(boolean visible);
+
 }

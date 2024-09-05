@@ -7,6 +7,8 @@ import java.util.*;
 
 public interface MainView extends View {
 
+    boolean isPreviewVisible();
+
     void setFileTree(TreeItem<String> root);
 
     void setAssets(List<Asset> resources);

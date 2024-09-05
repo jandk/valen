@@ -9,6 +9,7 @@ import java.util.*;
 
 public class MainPresenter extends AbstractPresenter<MainView> {
     private Archive archive;
+    private Asset lastAsset;
 
     @Inject
     MainPresenter(MainView view) {
@@ -22,17 +23,28 @@ public class MainPresenter extends AbstractPresenter<MainView> {
 
             @Override
             public void onAssetSelected(Asset asset) {
-                try {
-                    Object assetData;
-                    if (asset.type() == AssetType.Binary) {
-                        assetData = archive.loadRawAsset(asset.id());
-                    } else {
-                        assetData = archive.loadAsset(asset.id());
+                if (getView().isPreviewVisible()) {
+                    try {
+                        Object assetData;
+                        if (asset.type() == AssetType.Binary) {
+                            assetData = archive.loadRawAsset(asset.id());
+                        } else {
+                            assetData = archive.loadAsset(asset.id());
+                        }
+                        getView().setupPreview(asset, assetData);
+                    } catch (
+                        IOException e) {
+                        throw new RuntimeException(e);
                     }
-                    getView().setupPreview(asset, assetData);
-                } catch (
-                    IOException e) {
-                    throw new RuntimeException(e);
+                } else {
+                    lastAsset = asset;
+                }
+            }
+
+            @Override
+            public void onPreviewVisibleChanged(boolean visible) {
+                if (visible && lastAsset != null) {
+                    onAssetSelected(lastAsset);
                 }
             }
         });

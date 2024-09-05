@@ -1,6 +1,7 @@
 package be.twofold.valen.ui;
 
 import be.twofold.valen.core.game.*;
+import be.twofold.valen.ui.util.*;
 import jakarta.inject.*;
 import javafx.beans.property.*;
 import javafx.geometry.*;
@@ -31,6 +32,11 @@ public final class MainViewFx extends BorderPane implements MainView {
     }
 
     @Override
+    public boolean isPreviewVisible() {
+        return splitPane.getItems().size() == 3;
+    }
+
+    @Override
     public void setFileTree(TreeItem<String> root) {
         treeView.setRoot(root);
         treeView.getSelectionModel().select(root);
@@ -58,10 +64,12 @@ public final class MainViewFx extends BorderPane implements MainView {
             case 3 -> {
                 splitPane.getItems().remove(2);
                 splitPane.setDividerPositions(positions[0]);
+                listeners.fire().onPreviewVisibleChanged(false);
             }
             case 2 -> {
                 splitPane.getItems().add(tabPane);
                 splitPane.setDividerPositions(positions[0], 0.75);
+                listeners.fire().onPreviewVisibleChanged(true);
             }
             default -> throw new IllegalStateException("Unexpected number of items: " + splitPane.getItems().size());
         }
@@ -149,9 +157,10 @@ public final class MainViewFx extends BorderPane implements MainView {
     }
 
     private Menu buildMenuFile() {
-        var menuFileNew = new MenuItem("New");
-        var menuFileOpen = new MenuItem("Open");
-        var menuFileOpenRecent = new Menu("Open Recent");
+        var menuFileLoadGame = new MenuItem("Load Game");
+//        var menuFileNew = new MenuItem("New");
+//        var menuFileOpen = new MenuItem("Open");
+//        var menuFileOpenRecent = new Menu("Open Recent");
 
         var menuFileClose = new MenuItem("Close");
         var menuFileSave = new MenuItem("Save");
@@ -164,9 +173,10 @@ public final class MainViewFx extends BorderPane implements MainView {
 
         var menuFile = new Menu("File");
         menuFile.getItems().addAll(
-            menuFileNew,
-            menuFileOpen,
-            menuFileOpenRecent,
+            menuFileLoadGame,
+//            menuFileNew,
+//            menuFileOpen,
+//            menuFileOpenRecent,
             new SeparatorMenuItem(),
             menuFileClose,
             menuFileSave,
