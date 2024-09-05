@@ -27,7 +27,7 @@ final class PreviewItemTreeCellImpl extends TreeCell<PreviewItem> {
 
 
         String strValue;
-        if (item.value == null) {
+        if (item.value() == null) {
             strValue = "null";
         } else if (item.value().getClass().isArray()) {
             strValue = "%s[%d]".formatted(item.value().getClass().componentType().getSimpleName(), Array.getLength(item.value()));
