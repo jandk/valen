@@ -13,14 +13,14 @@ public record MapResourcesAsset(
     int unknown4
 ) {
     public static MapResourcesAsset read(DataSource source) throws IOException {
-        int type = Integer.reverseBytes(source.readInt());
+        int type = source.readIntBE();
         String name = source.readPString();
-        int unknown1 = Integer.reverseBytes(source.readInt());
-        int unknown2 = Integer.reverseBytes(source.readInt());
-        int unknown3 = Integer.reverseBytes(source.readInt());
+        int unknown1 = source.readIntBE();
+        int unknown2 = source.readIntBE();
+        int unknown3 = source.readIntBE();
         source.expectInt(0);
         source.expectInt(0);
-        int unknown4 = Integer.reverseBytes(source.readInt());
+        int unknown4 = source.readIntBE();
         return new MapResourcesAsset(
             type,
             name,

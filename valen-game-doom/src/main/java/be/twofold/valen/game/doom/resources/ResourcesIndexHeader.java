@@ -10,7 +10,7 @@ public record ResourcesIndexHeader(
 ) {
     public static ResourcesIndexHeader read(DataSource source) throws IOException {
         int magic = source.readInt();
-        int size = Integer.reverseBytes(source.readInt());
+        int size = source.readIntBE();
         source.expectLong(0);
         source.expectLong(0);
         source.expectLong(0);

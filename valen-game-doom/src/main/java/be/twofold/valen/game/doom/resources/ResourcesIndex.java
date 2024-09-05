@@ -15,7 +15,7 @@ public record ResourcesIndex(
             throw new IOException("Unsupported version: " + header.version());
         }
 
-        var numEntries = Integer.reverseBytes(source.readInt());
+        var numEntries = source.readIntBE();
         var entries = source.readStructs(numEntries, ResourcesIndexEntry::read);
 
         return new ResourcesIndex(header, entries);

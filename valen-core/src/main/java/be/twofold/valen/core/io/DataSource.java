@@ -59,6 +59,10 @@ public abstract class DataSource implements AutoCloseable {
         return (short) (b0 | (b1 << 8));
     }
 
+    public short readShortBE() throws IOException {
+        return Short.reverseBytes(readShort());
+    }
+
     public void readShorts(short[] array, int offset, int length) throws IOException {
         Objects.checkFromIndexSize(offset, length, array.length);
         for (var i = 0; i < length; i++) {
@@ -78,6 +82,10 @@ public abstract class DataSource implements AutoCloseable {
         var b2 = Byte.toUnsignedInt(readByte());
         var b3 = Byte.toUnsignedInt(readByte());
         return b0 | (b1 << 8) | (b2 << 16) | (b3 << 24);
+    }
+
+    public int readIntBE() throws IOException {
+        return Integer.reverseBytes(readInt());
     }
 
     public void readInts(int[] array, int offset, int length) throws IOException {
@@ -103,6 +111,10 @@ public abstract class DataSource implements AutoCloseable {
         var b6 = Byte.toUnsignedLong(readByte());
         var b7 = Byte.toUnsignedLong(readByte());
         return b0 | (b1 << 8) | (b2 << 16) | (b3 << 24) | (b4 << 32) | (b5 << 40) | (b6 << 48) | (b7 << 56);
+    }
+
+    public long readLongBE() throws IOException {
+        return Long.reverseBytes(readLong());
     }
 
     public void readLongs(long[] array, int offset, int length) throws IOException {

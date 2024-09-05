@@ -16,14 +16,14 @@ public record ResourcesIndexEntry(
     byte patchFileNumber
 ) {
     public static ResourcesIndexEntry read(DataSource source) throws IOException {
-        var id = Integer.reverseBytes(source.readInt());
+        var id = source.readIntBE();
         var name1 = source.readPString();
         var name2 = source.readPString();
         var name3 = source.readPString();
 
-        var offset = Long.reverseBytes(source.readLong());
-        var size = Integer.reverseBytes(source.readInt());
-        var sizeCompressed = Integer.reverseBytes(source.readInt());
+        var offset = source.readLongBE();
+        var size = source.readIntBE();
+        var sizeCompressed = source.readIntBE();
 
         var unknown = source.readInt();
         var patchFileNumber = source.readByte();
