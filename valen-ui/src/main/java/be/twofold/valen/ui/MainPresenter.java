@@ -1,8 +1,6 @@
 package be.twofold.valen.ui;
 
-import be.twofold.tinybcdec.*;
 import be.twofold.valen.core.game.*;
-import be.twofold.valen.core.texture.*;
 import jakarta.inject.*;
 import javafx.scene.control.*;
 
@@ -24,8 +22,17 @@ public class MainPresenter extends AbstractPresenter<MainView> {
 
             @Override
             public void onAssetSelected(Asset asset) {
-                if (asset.type() == AssetType.Image) {
-                    decodeImage(asset);
+                try {
+                    Object assetData;
+                    if (asset.type() == AssetType.Binary) {
+                        assetData = archive.loadRawAsset(asset.id());
+                    } else {
+                        assetData = archive.loadAsset(asset.id());
+                    }
+                    getView().setupPreview(asset, assetData);
+                } catch (
+                    IOException e) {
+                    throw new RuntimeException(e);
                 }
             }
         });
@@ -34,28 +41,6 @@ public class MainPresenter extends AbstractPresenter<MainView> {
     public void setArchive(Archive archive) {
         this.archive = archive;
         setResources(archive.assets());
-    }
-
-    private void decodeImage(Asset asset) {
-        Texture texture;
-        try {
-            texture = (Texture) archive.loadAsset(asset.id());
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-        var decoder = switch (texture.format()) {
-            case Bc1UNorm, Bc1UNormSrgb -> BlockDecoder.create(BlockFormat.BC1, PixelOrder.BGRA);
-            case Bc3UNorm, Bc3UNormSrgb -> BlockDecoder.create(BlockFormat.BC3, PixelOrder.BGRA);
-            case Bc4UNorm -> BlockDecoder.create(BlockFormat.BC4Unsigned, PixelOrder.BGRA);
-            case Bc5UNorm -> BlockDecoder.create(BlockFormat.BC5UnsignedNormalized, PixelOrder.BGRA);
-            case Bc7UNorm, Bc7UNormSrgb -> BlockDecoder.create(BlockFormat.BC7, PixelOrder.BGRA);
-            default -> null;
-        };
-
-        if (decoder != null) {
-            byte[] decoded = decoder.decode(texture.width(), texture.height(), texture.surfaces().getFirst().data(), 0);
-            getView().setImage(decoded, texture.width(), texture.height());
-        }
     }
 
     public void setResources(List<Asset> assets) {
