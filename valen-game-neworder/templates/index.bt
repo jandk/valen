@@ -1,0 +1,46 @@
+//------------------------------------------------
+//      File: index.bt
+//   Authors: JanDK
+//   Version: 0.1
+//   Purpose: Template for *.index from Wolfenstein: The New Order
+//  Category: Archive
+// File Mask: master.index
+//  ID Bytes: 03 53 45 52
+//------------------------------------------------
+typedef struct {
+    uint size;
+    char value[size];
+} SString<read=Str("%s", size > 0 ? this.value : "")>;
+
+struct Header {
+    BigEndian();
+    uint magic;
+    uint size;
+    uint reserved[6];
+    uint mask;
+    uint count;
+} header <style=sHeading1>;
+
+struct PlatformStreamData {
+    BigEndian();
+    char lang[16];
+    uint streamOffset;
+    uint streamLength;
+};
+
+struct Entry {
+    BigEndian();
+    uint resourceIndex;
+    LittleEndian();
+    SString typeName;
+    SString resourceName;
+    SString fileName;
+    BigEndian();
+    uint offset;
+    uint uncompressedLength;
+    uint compressedLength;
+    uint numPlatformStreamData;
+    PlatformStreamData platformStreamData[numPlatformStreamData];
+    uint useBits;
+    ubyte fileId;
+} entries[header.count] <optimize=false>;

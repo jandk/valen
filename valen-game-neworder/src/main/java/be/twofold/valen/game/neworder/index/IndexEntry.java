@@ -28,7 +28,8 @@ public record IndexEntry(
         var numPlatformStreamData = source.readIntBE();
         var platformStreamData = source.readStructs(numPlatformStreamData, PlatformStreamData::read);
         var useBits = source.readIntBE();
-        var fileId = source.readByte();
+        /*var fileId =*/
+        source.expectByte((byte) 0);
 
         return new IndexEntry(
             resourceIndex,
@@ -40,7 +41,7 @@ public record IndexEntry(
             compressedLength,
             platformStreamData,
             useBits,
-            fileId
+            (byte) 0
         );
     }
 }

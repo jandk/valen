@@ -9,19 +9,27 @@ import java.util.*;
 
 public final class NewOrderGame implements Game {
     private final Master master;
+    private final Path base;
 
     public NewOrderGame(Path root) throws IOException {
-        var base = root.resolve("base");
+        this.base = root.resolve("base");
         this.master = Master.read(base.resolve("master.index"));
     }
 
     @Override
     public List<String> archiveNames() {
-        return List.of();
+        return master.containers().stream()
+            .map(MasterContainer::name)
+            .toList();
     }
 
     @Override
     public Archive loadArchive(String name) throws IOException {
-        return new NewOrderArchive();
+        var container = master.containers().stream()
+            .filter(mc -> mc.name().equals(name))
+            .findFirst()
+            .orElseThrow(() -> new IOException("Archive not found: " + name));
+
+        return new NewOrderArchive(base, container);
     }
 }

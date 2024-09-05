@@ -10,4 +10,8 @@ public record MasterContainer(String indexName, String resourceName) {
         var resourceName = source.readPString();
         return new MasterContainer(indexName, resourceName);
     }
+
+    public String name() {
+        return indexName.substring(0, indexName.length() - ".index".length());
+    }
 }

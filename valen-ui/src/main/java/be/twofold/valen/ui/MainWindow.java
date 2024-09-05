@@ -30,7 +30,7 @@ public class MainWindow extends Application {
 //        var path = Path.of("D:\\Games\\Steam\\steamapps\\common\\DOOM\\DOOMx64.exe");
         var path = SettingsManager.get().getGameDirectory().get().resolve("DOOMEternalx64vk.exe");
         var game = resolveGameFactory(path).load(path);
-        var archive = game.loadArchive("common");
+        var archive = game.loadArchive("chunk0");
 
 //        var manager = DaggerManagerFactory.create().fileManager();
 //        manager.load(SettingsManager.get().getGameDirectory().get().resolve("base"));
