@@ -1,6 +1,5 @@
 package be.twofold.valen.ui.viewers.image;
 
-import be.twofold.tinybcdec.*;
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.texture.*;
 import be.twofold.valen.ui.viewers.*;
@@ -125,6 +124,7 @@ public final class ImageViewer extends VBox implements Viewer {
         return type == AssetType.Image;
     }
 
+
     @Override
     public void setData(Object data) {
         if (data == null) {
@@ -134,19 +134,8 @@ public final class ImageViewer extends VBox implements Viewer {
             return;
         }
         Texture texture = (Texture) data;
-        var decoder = switch (texture.format()) {
-            case Bc1UNorm, Bc1UNormSrgb -> BlockDecoder.create(BlockFormat.BC1, PixelOrder.BGRA);
-            case Bc3UNorm, Bc3UNormSrgb -> BlockDecoder.create(BlockFormat.BC3, PixelOrder.BGRA);
-            case Bc4UNorm -> BlockDecoder.create(BlockFormat.BC4Unsigned, PixelOrder.BGRA);
-            case Bc5UNorm -> BlockDecoder.create(BlockFormat.BC5UnsignedNormalized, PixelOrder.BGRA);
-            case Bc7UNorm, Bc7UNormSrgb -> BlockDecoder.create(BlockFormat.BC7, PixelOrder.BGRA);
-            default -> null;
-        };
-
-        if (decoder != null) {
-            byte[] decoded = decoder.decode(texture.width(), texture.height(), texture.surfaces().getFirst().data(), 0);
-            setImage(decoded, texture.width(), texture.height());
-        }
+        Surface converted = SurfaceConverter.convert(texture.surfaces().getFirst(), TextureFormat.B8G8R8A8_UNORM);
+        setImage(converted.data(), texture.width(), texture.height());
     }
 
     private void setImage(byte[] bgra, int width, int height) {
