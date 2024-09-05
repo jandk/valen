@@ -1,14 +1,20 @@
-package be.twofold.valen.ui;
+package be.twofold.valen.ui.viewers.image;
 
+import be.twofold.tinybcdec.*;
+import be.twofold.valen.core.game.*;
+import be.twofold.valen.core.texture.*;
+import be.twofold.valen.ui.viewers.*;
 import javafx.geometry.*;
+import javafx.scene.*;
 import javafx.scene.control.*;
 import javafx.scene.image.*;
 import javafx.scene.input.*;
 import javafx.scene.layout.*;
 
+import java.nio.*;
 import java.util.*;
 
-final class ImageViewerPane extends VBox {
+public final class ImageViewer extends VBox implements Viewer {
     private final ToggleButton rButton = new ToggleButton("R");
     private final ToggleButton gButton = new ToggleButton("G");
     private final ToggleButton bButton = new ToggleButton("B");
@@ -17,7 +23,7 @@ final class ImageViewerPane extends VBox {
     private Image sourceImage;
     private WritableImage targetImage;
 
-    ImageViewerPane() {
+    public ImageViewer() {
         setPrefSize(900, 600);
 
         var buttons = List.of(rButton, gButton, bButton, aButton);
@@ -114,4 +120,49 @@ final class ImageViewerPane extends VBox {
         targetImage.getPixelWriter().setPixels(0, 0, width, height, PixelFormat.getIntArgbPreInstance(), targetPixels, 0, width);
     }
 
+    @Override
+    public boolean canPreview(AssetType type) {
+        return type == AssetType.Image;
+    }
+
+    @Override
+    public void setData(Object data) {
+        if (data == null) {
+            imageView.setImage(null);
+            sourceImage = null;
+            targetImage = null;
+            return;
+        }
+        Texture texture = (Texture) data;
+        var decoder = switch (texture.format()) {
+            case Bc1UNorm, Bc1UNormSrgb -> BlockDecoder.create(BlockFormat.BC1, PixelOrder.BGRA);
+            case Bc3UNorm, Bc3UNormSrgb -> BlockDecoder.create(BlockFormat.BC3, PixelOrder.BGRA);
+            case Bc4UNorm -> BlockDecoder.create(BlockFormat.BC4Unsigned, PixelOrder.BGRA);
+            case Bc5UNorm -> BlockDecoder.create(BlockFormat.BC5UnsignedNormalized, PixelOrder.BGRA);
+            case Bc7UNorm, Bc7UNormSrgb -> BlockDecoder.create(BlockFormat.BC7, PixelOrder.BGRA);
+            default -> null;
+        };
+
+        if (decoder != null) {
+            byte[] decoded = decoder.decode(texture.width(), texture.height(), texture.surfaces().getFirst().data(), 0);
+            setImage(decoded, texture.width(), texture.height());
+        }
+    }
+
+    private void setImage(byte[] bgra, int width, int height) {
+        var pixelBuffer = new PixelBuffer<>(width, height,
+            ByteBuffer.wrap(bgra), PixelFormat.getByteBgraPreInstance());
+        WritableImage image = new WritableImage(pixelBuffer);
+        setSourceImage(image);
+    }
+
+    @Override
+    public Node getNode() {
+        return this;
+    }
+
+    @Override
+    public String getName() {
+        return "Image";
+    }
 }

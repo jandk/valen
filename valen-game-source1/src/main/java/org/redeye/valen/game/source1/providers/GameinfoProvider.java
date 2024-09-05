@@ -1,12 +1,13 @@
 package org.redeye.valen.game.source1.providers;
 
 import be.twofold.valen.core.game.*;
-import org.redeye.valen.game.source1.utils.*;
+import org.redeye.valen.game.source1.utils.keyvalues.*;
 
 import java.io.*;
 import java.nio.*;
 import java.nio.file.*;
 import java.util.*;
+import java.util.stream.*;
 
 public class GameinfoProvider implements Provider {
     private final Path path;
@@ -14,19 +15,19 @@ public class GameinfoProvider implements Provider {
 
     public GameinfoProvider(Path path) throws IOException {
         this.path = path;
-        var gameinfoData = new ValveKeyValueParser();
+        String modRoot = path.getParent().toString();
+        String gameRoot = path.getParent().getParent().toString();
+        var vdfReader = new VdfReader(new FileReader(path.toFile()));
+        var gameinfoData = vdfReader.parse();
 
-        try {
-            gameinfoData.parseFile(path.toString());
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-        var rawSearchPaths = (Map<String, List<Object>>) gameinfoData.getValueByPath("gameinfo.filesystem.searchpaths");
-        var parsedSearchPaths = parseSearchPaths(rawSearchPaths, path.getParent().toString(), path.getParent().getParent().toString());
-        var searchPaths = new LinkedHashSet<Path>();
-        searchPaths.addAll(parsedSearchPaths.get("game"));
-        searchPaths.addAll(parsedSearchPaths.get("mod"));
-        searchPaths.addAll(parsedSearchPaths.get("platform"));
+        VdfPath lookupPath = VdfPath.of("gameinfo.filesystem.searchpaths.[0]");
+        var rawSearchPaths = lookupPath.lookup(gameinfoData).orElseThrow().asObject();
+        var searchPaths = Stream.of("game", "mod", "platform")
+            .flatMap(s -> rawSearchPaths.get(s).asArray().stream())
+            .filter(Objects::nonNull)
+            .flatMap(v -> parseSearchPath(v.asString(), modRoot, gameRoot).stream())
+            .collect(Collectors.toCollection(LinkedHashSet::new));
+
         for (Path searchPath : searchPaths) {
             if (searchPath.getFileName().toString().endsWith(".vpk")) {
                 if (Files.notExists(searchPath)) {
@@ -41,71 +42,44 @@ public class GameinfoProvider implements Provider {
                 providers.add(new FolderProvider(searchPath, this));
             }
         }
-
     }
 
-    /**
-     * Parses the SearchPaths block from gameinfo.txt, replaces placeholders, converts paths to absolute paths,
-     * and handles wildcards by expanding directories.
-     *
-     * @param searchPathsMap A map representing the SearchPaths block.
-     * @param gameinfoPath   The actual value to replace |gameinfo_path|.
-     * @param gameRoot       The root directory of the game to replace |all_source_engine_paths|.
-     * @return A structured map with path types as keys and lists of absolute paths as values.
-     */
-    public static Map<String, List<Path>> parseSearchPaths(Map<String, List<Object>> searchPathsMap, String gameinfoPath, String gameRoot) {
-        Map<String, List<Path>> parsedPaths = new HashMap<>();
-        if (!(gameinfoPath.endsWith("/") | gameinfoPath.endsWith("\\"))) {
+    public static List<Path> parseSearchPath(String searchPath, String gameinfoPath, String gameRoot) {
+        if (searchPath == null || searchPath.isEmpty()) {
+            return Collections.emptyList();
+        }
+        if (!(gameinfoPath.endsWith("/") || gameinfoPath.endsWith("\\"))) {
             gameinfoPath += "/";
         }
-        if (!(gameRoot.endsWith("/") | gameRoot.endsWith("\\"))) {
+        if (!(gameRoot.endsWith("/") || gameRoot.endsWith("\\"))) {
             gameRoot += "/";
         }
-        for (Map.Entry<String, List<Object>> entry : searchPathsMap.entrySet()) {
-            String key = entry.getKey(); // e.g., "game", "mod", etc.
-            List<Object> values = entry.getValue();
-
-            List<Path> paths = new ArrayList<>();
-            for (Object value : values) {
-                if (value instanceof String) {
-                    // Split the value by commas and trim each path
-                    String[] splitPaths = ((String) value).split(",");
-                    for (String path : splitPaths) {
-                        path = path.trim();
-
-                        // Replace placeholders with actual values
-                        if (path.contains("|gameinfo_path|")) {
-                            path = path.replace("|gameinfo_path|", gameinfoPath);
-                        } else if (path.contains("|all_source_engine_paths|")) {
-                            path = path.replace("|all_source_engine_paths|", gameRoot);
-                        }
-
-                        // If the path has no placeholders, assume it's relative to the game root
-                        else if (!path.contains("|")) {
-                            path = gameRoot + "/" + path;
-                        }
-
-                        // Convert the path to an absolute Path object
-
-                        // Handle directories that need expansion (where the path ends with a directory containing "*")
-                        if (path.endsWith("*")) {
-                            Path directory = Path.of(path.substring(0, path.length() - 1));
-                            if (Files.isDirectory(directory)) {
-                                paths.addAll(expandDirectory(directory));
-                            }
-                        } else {
-                            if (path.endsWith(".")) {
-                                path = path.substring(0, path.length() - 1);
-                            }
-                            paths.add(Paths.get(path).toAbsolutePath());
-                        }
-                    }
-                }
-            }
-            parsedPaths.put(key, paths);
+        var path = searchPath.trim();
+        var paths = new ArrayList<Path>();
+        // Replace placeholders with actual values
+        if (path.contains("|gameinfo_path|")) {
+            path = path.replace("|gameinfo_path|", gameinfoPath);
+        } else if (path.contains("|all_source_engine_paths|")) {
+            path = path.replace("|all_source_engine_paths|", gameRoot);
+        }
+        // If the path has no placeholders, assume it's relative to the game root
+        else if (!path.contains("|")) {
+            path = gameRoot + "/" + path;
         }
 
-        return parsedPaths;
+        // Handle directories that need expansion (where the path ends with a directory containing "*")
+        if (path.endsWith("*")) {
+            Path directory = Path.of(path.substring(0, path.length() - 1));
+            if (Files.isDirectory(directory)) {
+                paths.addAll(expandDirectory(directory));
+            }
+        } else {
+            if (path.endsWith(".")) {
+                path = path.substring(0, path.length() - 1);
+            }
+            paths.add(Paths.get(path).toAbsolutePath());
+        }
+        return paths;
     }
 
     /**

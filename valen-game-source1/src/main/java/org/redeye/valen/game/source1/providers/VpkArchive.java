@@ -49,7 +49,8 @@ public class VpkArchive implements Provider {
                         if (name.isEmpty()) {
                             break;
                         }
-                        SourceAssetID id = new SourceAssetID(getName(), "%s/%s.%s".formatted(directory, name, ext));
+                        String fullName = (directory.isBlank() ? "" : directory + "/") + name + (ext.isBlank() ? "" : "." + ext);
+                        SourceAssetID id = new SourceAssetID(getName(), fullName);
                         source.skip(4);
                         short preloadSize = source.readShort();
                         short archiveId = source.readShort();
@@ -100,9 +101,12 @@ public class VpkArchive implements Provider {
     public Object loadAsset(AssetID identifier) throws IOException {
         final Asset asset = assets.get(identifier);
         if (identifier instanceof SourceAssetID sourceIdentifier) {
-            var reader = getReaders().stream().filter(rdr -> rdr.canRead(asset)).findFirst().orElseThrow();
+            var reader = getReaders().stream().filter(rdr -> rdr.canRead(asset)).findFirst();
+            if (reader.isEmpty()) {
+                return null;
+            }
             ByteBuffer buffer = loadRawAsset(sourceIdentifier);
-            return reader.read(getParent(), asset, ByteArrayDataSource.fromBuffer(buffer));
+            return reader.get().read(getParent(), asset, ByteArrayDataSource.fromBuffer(buffer));
         }
         return null;
     }

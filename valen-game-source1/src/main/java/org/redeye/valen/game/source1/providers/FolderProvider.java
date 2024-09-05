@@ -67,6 +67,6 @@ public class FolderProvider implements Provider {
 
     @Override
     public ByteBuffer loadRawAsset(AssetID identifier) throws IOException {
-        return ByteBuffer.wrap(Files.readAllBytes(root.resolve(identifier.pathName())));
+        return ByteBuffer.wrap(Files.readAllBytes(root.resolve(identifier.fullName())));
     }
 }

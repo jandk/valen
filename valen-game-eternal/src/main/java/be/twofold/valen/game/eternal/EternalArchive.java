@@ -95,6 +95,8 @@ public final class EternalArchive implements Archive {
     private AssetType mapType(ResourceType type) {
         return switch (Objects.requireNonNull(type)) {
             case Image -> AssetType.Image;
+            case Model -> AssetType.Model;
+            case BinaryMd6def -> AssetType.Model;
             default -> AssetType.Binary;
         };
     }

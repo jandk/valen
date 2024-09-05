@@ -20,19 +20,19 @@ public record SourceAssetID(String source, String name) implements AssetID {
         return index == -1 ? name : name.substring(index + 1);
     }
 
-    public String extention() {
+    public String extension() {
         var index = name.lastIndexOf('.');
         return index == -1 ? name : name.substring(index + 1);
     }
 
 
     public AssetType identifyAssetType() {
-        switch (extention()) {
-            case "vtf":
-                return AssetType.Image;
-            default:
-                return AssetType.Binary;
-        }
+        return switch (extension()) {
+            case "vtf" -> AssetType.Image;
+            case "vmt", "cfg", "txt", "res", "vdf" -> AssetType.Text;
+            case "mdl" -> AssetType.Model;
+            default -> AssetType.Binary;
+        };
     }
 
 }

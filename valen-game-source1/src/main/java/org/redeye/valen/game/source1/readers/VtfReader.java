@@ -77,7 +77,7 @@ public class VtfReader implements Reader<Texture> {
     @Override
     public boolean canRead(Asset asset) {
         if (asset.id() instanceof SourceAssetID sourceId) {
-            return sourceId.extention().equals("vtf");
+            return sourceId.extension().equals("vtf");
         }
         return false;
     }

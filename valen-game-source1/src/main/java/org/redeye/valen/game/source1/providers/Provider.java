@@ -7,7 +7,7 @@ import java.util.*;
 
 public interface Provider extends Archive {
     default List<Reader<?>> getReaders() {
-        return List.of(new VtfReader());
+        return List.of(new VtfReader(), new KeyValueReader(), new VmtReader(), new TextReader());
     }
 
     String getName();

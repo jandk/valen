@@ -27,10 +27,11 @@ public class MainWindow extends Application {
         }
 
         // TODO: Don't hardcode this
-        var path = Path.of("D:\\SteamLibrary\\steamapps\\common\\Portal\\hl2.exe");
+//        var path = Path.of("D:\\SteamLibrary\\steamapps\\common\\Portal\\hl2.exe");
+        var path = Path.of("D:\\SteamLibrary\\steamapps\\common\\DOOMEternal\\DOOMEternalx64vk.exe");
         // var path = SettingsManager.get().getGameDirectory().get().resolve("DOOMEternalx64vk.exe");
         var game = resolveGameFactory(path).load(path);
-        var archive = game.loadArchive("portal");
+        var archive = game.loadArchive("game/hub/hub");
 
 //        var manager = DaggerManagerFactory.create().fileManager();
 //        manager.load(SettingsManager.get().getGameDirectory().get().resolve("base"));
