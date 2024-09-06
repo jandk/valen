@@ -6,8 +6,6 @@ import javafx.scene.control.*;
 import java.lang.reflect.*;
 import java.util.*;
 
-import static be.twofold.valen.ui.viewers.data.PreviewItem.*;
-
 class PreviewValueTreeItem extends TreeItem<PreviewItem> {
     private boolean isLeaf;
     private boolean isFirstTimeChildren = true;
@@ -35,7 +33,7 @@ class PreviewValueTreeItem extends TreeItem<PreviewItem> {
         if (isFirstTimeLeaf) {
             isFirstTimeLeaf = false;
             var holder = getValue();
-            if (holder == null || holder.value() == null || holder.value() == NOVALUE) {
+            if (holder == null || holder.value() == null || holder.name() == null) {
                 isLeaf = true;
             } else {
                 if (holder.value().getClass().isRecord()) {
@@ -64,7 +62,7 @@ class PreviewValueTreeItem extends TreeItem<PreviewItem> {
                         children.add(new PreviewValueTreeItem(new PreviewItem(recordComponent.getName(), recordComponent.getAccessor().invoke(value))));
                     } catch (IllegalAccessException e) {
                         children.clear();
-                        children.add(new PreviewValueTreeItem(new PreviewItem(value.toString(), NOVALUE)));
+                        children.add(new PreviewValueTreeItem(new PreviewItem(null, value.toString())));
                     }
                 }
             } else {
@@ -81,7 +79,7 @@ class PreviewValueTreeItem extends TreeItem<PreviewItem> {
                     }
                     case Set<?> set -> {
                         for (Object value : set) {
-                            children.add(new PreviewValueTreeItem(new PreviewItem(value.toString(), NOVALUE)));
+                            children.add(new PreviewValueTreeItem(new PreviewItem(null, value.toString())));
                         }
                     }
                     default -> {
