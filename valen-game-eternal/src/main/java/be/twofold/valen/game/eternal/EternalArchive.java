@@ -92,11 +92,12 @@ public final class EternalArchive implements Archive {
         return streams.read(identifier, uncompressedSize);
     }
 
-    private AssetType mapType(ResourceType type) {
+    private Set<AssetTypeTag> mapType(ResourceType type) {
         return switch (Objects.requireNonNull(type)) {
-            case Image -> AssetType.Image;
-            case Model -> AssetType.Model;
-            default -> AssetType.Binary;
+            case Image -> Set.of(AssetTypeTag.Binary, AssetTypeTag.Image);
+            case Model -> Set.of(AssetTypeTag.Binary, AssetTypeTag.Model);
+            case RenderParm -> Set.of(AssetTypeTag.Text);
+            default -> Set.of(AssetTypeTag.Binary);
         };
     }
 

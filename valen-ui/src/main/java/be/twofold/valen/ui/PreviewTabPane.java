@@ -6,6 +6,7 @@ import be.twofold.valen.ui.viewers.data.*;
 import be.twofold.valen.ui.viewers.image.*;
 import javafx.scene.control.*;
 
+import java.io.*;
 import java.util.*;
 
 public class PreviewTabPane extends TabPane {
@@ -14,29 +15,38 @@ public class PreviewTabPane extends TabPane {
     public PreviewTabPane() {
         viewers = List.of(
             new PreviewTab(new ImageViewer()),
+            new PreviewTab(new AssetInfoViewer()),
             new PreviewTab(new DataViewer()),
             new PreviewTab(new TextViewer())
         );
     }
 
-    public void setData(AssetType type, Object assetData) {
+    public void setData(Asset asset, Archive archive) {
         getTabs().removeIf(tab -> {
             var viewer = ((PreviewTab) tab).getViewer();
-            if (!viewer.canPreview(type)) {
-                viewer.setData(null);
+            if (!viewer.canPreview(asset)) {
+                viewer.reset();
                 return true;
             }
             return false;
         });
 
         for (PreviewTab tab : viewers) {
-            if (!tab.getViewer().canPreview(type)) {
+            if (!tab.getViewer().canPreview(asset)) {
                 continue;
             }
-            if (!getTabs().contains(tab)) {
+            try {
+                boolean loaded = tab.getViewer().setData(archive, asset);
+                if (getTabs().contains(tab) || !loaded) {
+                    continue;
+                }
                 getTabs().add(tab);
+            } catch (IllegalArgumentException e) {
+                getTabs().removeIf(existingTab -> existingTab == tab);
+                e.printStackTrace();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
             }
-            tab.getViewer().setData(assetData);
         }
 
         getTabs().sort(Comparator.comparing(Tab::getText));

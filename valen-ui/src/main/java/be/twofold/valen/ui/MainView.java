@@ -13,7 +13,7 @@ public interface MainView extends View {
 
     void setAssets(List<Asset> resources);
 
-    void setupPreview(Asset asset, Object assetData);
+    void setupPreview(Asset asset, Archive archive);
 
     void addListener(MainViewListener listener);
 

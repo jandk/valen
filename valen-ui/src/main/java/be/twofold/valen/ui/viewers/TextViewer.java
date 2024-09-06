@@ -4,17 +4,28 @@ import be.twofold.valen.core.game.*;
 import javafx.scene.*;
 import javafx.scene.control.*;
 
+import java.io.*;
+import java.nio.*;
+import java.nio.charset.*;
+
 public class TextViewer extends TextArea implements Viewer {
     @Override
-    public boolean canPreview(AssetType type) {
-        return type == AssetType.Text;
+    public boolean canPreview(Asset asset) {
+        return asset.tags().contains(AssetTypeTag.Text);
     }
 
     @Override
-    public void setData(Object data) {
-        if (data instanceof String) {
-            setText((String) data);
-        }
+    public boolean setData(Archive archive, Asset asset) throws IOException {
+        ByteBuffer data = archive.loadRawAsset(asset.id());
+        byte[] bytes = new byte[data.remaining()];
+        data.get(bytes);
+        setText(new String(bytes, StandardCharsets.UTF_8));
+        return true;
+    }
+
+    @Override
+    public void reset() {
+        setText("");
     }
 
     @Override

@@ -4,7 +4,6 @@ import be.twofold.valen.core.game.*;
 import jakarta.inject.*;
 import javafx.scene.control.*;
 
-import java.io.*;
 import java.util.*;
 
 public class MainPresenter extends AbstractPresenter<MainView> {
@@ -24,18 +23,7 @@ public class MainPresenter extends AbstractPresenter<MainView> {
             @Override
             public void onAssetSelected(Asset asset) {
                 if (getView().isPreviewVisible()) {
-                    try {
-                        Object assetData;
-                        if (asset.type() == AssetType.Binary) {
-                            assetData = archive.loadRawAsset(asset.id());
-                        } else {
-                            assetData = archive.loadAsset(asset.id());
-                        }
-                        getView().setupPreview(asset, assetData);
-                    } catch (
-                        IOException e) {
-                        throw new RuntimeException(e);
-                    }
+                    getView().setupPreview(asset, archive);
                 } else {
                     lastAsset = asset;
                 }
