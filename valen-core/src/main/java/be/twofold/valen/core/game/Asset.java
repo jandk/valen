@@ -4,7 +4,7 @@ import java.util.*;
 
 public record Asset(
     AssetID id,
-    Set<AssetTypeTags> tags,
+    Set<AssetTypeTag> tags,
     int size,
     Map<String, Object> properties
 ) implements Comparable<Asset> {

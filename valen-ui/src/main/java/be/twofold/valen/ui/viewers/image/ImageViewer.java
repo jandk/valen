@@ -122,16 +122,14 @@ public final class ImageViewer extends VBox implements Viewer {
 
     @Override
     public boolean canPreview(Asset asset) {
-        return asset.tags().contains(AssetTypeTags.Image);
+        return asset.tags().contains(AssetTypeTag.Image);
     }
 
 
     @Override
-    public boolean setData(Asset asset, Archive archive) throws IOException {
+    public boolean setData(Archive archive, Asset asset) throws IOException {
         if (asset == null || archive == null) {
-            imageView.setImage(null);
-            sourceImage = null;
-            targetImage = null;
+            reset();
             return false;
         }
 
@@ -139,6 +137,13 @@ public final class ImageViewer extends VBox implements Viewer {
         Surface converted = SurfaceConverter.convert(texture.surfaces().getFirst(), TextureFormat.B8G8R8A8_UNORM);
         setImage(converted.data(), texture.width(), texture.height());
         return true;
+    }
+
+    @Override
+    public void reset() {
+        imageView.setImage(null);
+        sourceImage = null;
+        targetImage = null;
     }
 
     private void setImage(byte[] bgra, int width, int height) {

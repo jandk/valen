@@ -60,9 +60,10 @@ class PreviewValueTreeItem extends TreeItem<PreviewItem> {
                 for (RecordComponent recordComponent : value.getClass().getRecordComponents()) {
                     try {
                         children.add(new PreviewValueTreeItem(new PreviewItem(recordComponent.getName(), recordComponent.getAccessor().invoke(value))));
-                    } catch (IllegalAccessException e) {
+                    } catch (ReflectiveOperationException e) {
                         children.clear();
-                        children.add(new PreviewValueTreeItem(new PreviewItem(null, value.toString())));
+                        children.add(new PreviewValueTreeItem(new PreviewItem(null, value)));
+                        break;
                     }
                 }
             } else {
@@ -79,7 +80,7 @@ class PreviewValueTreeItem extends TreeItem<PreviewItem> {
                     }
                     case Set<?> set -> {
                         for (Object value : set) {
-                            children.add(new PreviewValueTreeItem(new PreviewItem(null, value.toString())));
+                            children.add(new PreviewValueTreeItem(new PreviewItem(null, value)));
                         }
                     }
                     default -> {

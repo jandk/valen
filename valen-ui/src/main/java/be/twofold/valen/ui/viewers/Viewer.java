@@ -9,7 +9,9 @@ public interface Viewer {
 
     boolean canPreview(Asset asset);
 
-    boolean setData(Asset asset, Archive archive) throws IOException;
+    boolean setData(Archive archive, Asset asset) throws IOException;
+
+    void reset();
 
     Node getNode();
 

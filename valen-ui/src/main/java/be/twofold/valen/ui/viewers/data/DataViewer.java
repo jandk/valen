@@ -19,15 +19,9 @@ public class DataViewer extends TreeView<PreviewItem> implements Viewer {
     }
 
     @Override
-    public boolean setData(Asset asset, Archive archive) throws IOException {
+    public boolean setData(Archive archive, Asset asset) throws IOException {
         Object assetData;
-        try {
-            assetData = archive.loadAsset(asset.id());
-        } catch (IllegalArgumentException e) {
-            //TODO: REDxEYE: Add logging
-            e.printStackTrace();
-            return false;
-        }
+        assetData = archive.loadAsset(asset.id());
         if (assetData != null) {
             if (assetData.getClass().isRecord()) {
                 var rootItem = new PreviewValueTreeItem(new PreviewItem(assetData.getClass().getSimpleName(), assetData));
@@ -43,6 +37,11 @@ public class DataViewer extends TreeView<PreviewItem> implements Viewer {
         }
         setRoot(null);
         return false;
+    }
+
+    @Override
+    public void reset() {
+        setRoot(null);
     }
 
     @Override

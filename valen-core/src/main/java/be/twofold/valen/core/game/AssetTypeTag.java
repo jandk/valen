@@ -1,6 +1,6 @@
 package be.twofold.valen.core.game;
 
-public enum AssetTypeTags {
+public enum AssetTypeTag {
     Binary,
     Text,
     Material,

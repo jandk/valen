@@ -12,14 +12,19 @@ public class AssetInfoViewer extends TreeView<PreviewItem> implements Viewer {
 
     @Override
     public boolean canPreview(Asset asset) {
-        return true; //TODO: Add other supported types
+        return true;
     }
 
     @Override
-    public boolean setData(Asset asset, Archive archive) {
+    public boolean setData(Archive archive, Asset asset) {
         var rootItem = new PreviewValueTreeItem(new PreviewItem(asset.getClass().getSimpleName(), asset));
         setRoot(rootItem);
         return true;
+    }
+
+    @Override
+    public void reset() {
+        setRoot(null);
     }
 
     @Override

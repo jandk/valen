@@ -25,11 +25,7 @@ public class PreviewTabPane extends TabPane {
         getTabs().removeIf(tab -> {
             var viewer = ((PreviewTab) tab).getViewer();
             if (!viewer.canPreview(asset)) {
-                try {
-                    viewer.setData(null, null);
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
+                viewer.reset();
                 return true;
             }
             return false;
@@ -40,11 +36,14 @@ public class PreviewTabPane extends TabPane {
                 continue;
             }
             try {
-                boolean loaded = tab.getViewer().setData(asset, archive);
+                boolean loaded = tab.getViewer().setData(archive, asset);
                 if (getTabs().contains(tab) || !loaded) {
                     continue;
                 }
                 getTabs().add(tab);
+            } catch (IllegalArgumentException e) {
+                getTabs().removeIf(existingTab -> existingTab == tab);
+                e.printStackTrace();
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
