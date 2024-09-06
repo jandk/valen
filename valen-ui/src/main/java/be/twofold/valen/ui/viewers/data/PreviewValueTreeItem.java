@@ -6,6 +6,8 @@ import javafx.scene.control.*;
 import java.lang.reflect.*;
 import java.util.*;
 
+import static be.twofold.valen.ui.viewers.data.PreviewItem.*;
+
 class PreviewValueTreeItem extends TreeItem<PreviewItem> {
     private boolean isLeaf;
     private boolean isFirstTimeChildren = true;
@@ -33,13 +35,18 @@ class PreviewValueTreeItem extends TreeItem<PreviewItem> {
         if (isFirstTimeLeaf) {
             isFirstTimeLeaf = false;
             var holder = getValue();
-            if (holder.getClass().isRecord()) {
-                isLeaf = false;
+            if (holder == null || holder.value() == null || holder.value() == NOVALUE) {
+                isLeaf = true;
             } else {
-                switch (holder.value()) {
-                    case Map<?, ?> ignored -> isLeaf = false;
-                    case List<?> ignored -> isLeaf = false;
-                    case null, default -> isLeaf = true;
+                if (holder.value().getClass().isRecord()) {
+                    isLeaf = false;
+                } else {
+                    switch (holder.value()) {
+                        case Map<?, ?> ignored -> isLeaf = false;
+                        case List<?> ignored -> isLeaf = false;
+                        case Set<?> ignored -> isLeaf = false;
+                        case null, default -> isLeaf = true;
+                    }
                 }
             }
         }
@@ -53,7 +60,12 @@ class PreviewValueTreeItem extends TreeItem<PreviewItem> {
             if (holder.value().getClass().isRecord()) {
                 var value = holder.value();
                 for (RecordComponent recordComponent : value.getClass().getRecordComponents()) {
-                    children.add(new PreviewValueTreeItem(new PreviewItem(recordComponent.getName(), recordComponent.getAccessor().invoke(value))));
+                    try {
+                        children.add(new PreviewValueTreeItem(new PreviewItem(recordComponent.getName(), recordComponent.getAccessor().invoke(value))));
+                    } catch (IllegalAccessException e) {
+                        children.clear();
+                        children.add(new PreviewValueTreeItem(new PreviewItem(value.toString(), NOVALUE)));
+                    }
                 }
             } else {
                 switch (holder.value()) {
@@ -65,6 +77,11 @@ class PreviewValueTreeItem extends TreeItem<PreviewItem> {
                     case List<?> list -> {
                         for (int i = 0; i < list.size(); i++) {
                             children.add(new PreviewValueTreeItem(new PreviewItem(Integer.toString(i), list.get(i))));
+                        }
+                    }
+                    case Set<?> set -> {
+                        for (Object value : set) {
+                            children.add(new PreviewValueTreeItem(new PreviewItem(value.toString(), NOVALUE)));
                         }
                     }
                     default -> {

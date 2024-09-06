@@ -10,6 +10,7 @@ import javafx.scene.image.*;
 import javafx.scene.input.*;
 import javafx.scene.layout.*;
 
+import java.io.*;
 import java.nio.*;
 import java.util.*;
 
@@ -120,20 +121,21 @@ public final class ImageViewer extends VBox implements Viewer {
     }
 
     @Override
-    public boolean canPreview(AssetType type) {
-        return type == AssetType.Image;
+    public boolean canPreview(Asset asset) {
+        return asset.tags().contains(AssetTypeTags.Image);
     }
 
 
     @Override
-    public void setData(Object data) {
-        if (data == null) {
+    public void setData(Asset asset, Archive archive) throws IOException {
+        if (asset == null || archive == null) {
             imageView.setImage(null);
             sourceImage = null;
             targetImage = null;
             return;
         }
-        Texture texture = (Texture) data;
+
+        Texture texture = (Texture) archive.loadAsset(asset.id());
         Surface converted = SurfaceConverter.convert(texture.surfaces().getFirst(), TextureFormat.B8G8R8A8_UNORM);
         setImage(converted.data(), texture.width(), texture.height());
     }

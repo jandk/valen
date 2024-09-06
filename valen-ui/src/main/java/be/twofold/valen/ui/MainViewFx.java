@@ -11,6 +11,7 @@ import javafx.scene.layout.*;
 import javafx.scene.paint.*;
 
 import java.util.*;
+import java.util.stream.*;
 
 public final class MainViewFx extends BorderPane implements MainView {
     private final ListenerHelper<MainViewListener> listeners
@@ -49,8 +50,8 @@ public final class MainViewFx extends BorderPane implements MainView {
     }
 
     @Override
-    public void setupPreview(Asset asset, Object assetData) {
-        tabPane.setData(asset.type(), assetData);
+    public void setupPreview(Asset asset, Archive archive) {
+        tabPane.setData(asset, archive);
     }
 
     @Override
@@ -123,7 +124,10 @@ public final class MainViewFx extends BorderPane implements MainView {
 
         TableColumn<Asset, String> typeColumn = new TableColumn<>();
         typeColumn.setText("Type");
-        typeColumn.setCellValueFactory(param -> new ReadOnlyObjectWrapper<>(param.getValue().type().name()));
+        typeColumn.setCellValueFactory(param -> new ReadOnlyObjectWrapper<>(param.getValue().tags().stream()
+            .map(Enum::name)  // Get the name of each enum constant
+            .collect(Collectors.joining(", "))
+        ));
 
 //        TableColumn<Asset<?>, Size> compressedColumn = new TableColumn<>();
 //        compressedColumn.setText("Compressed");

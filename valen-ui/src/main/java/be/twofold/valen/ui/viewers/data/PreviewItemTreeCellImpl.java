@@ -4,6 +4,8 @@ import javafx.scene.control.*;
 
 import java.lang.reflect.*;
 
+import static be.twofold.valen.ui.viewers.data.PreviewItem.*;
+
 final class PreviewItemTreeCellImpl extends TreeCell<PreviewItem> {
 
     @Override
@@ -25,9 +27,12 @@ final class PreviewItemTreeCellImpl extends TreeCell<PreviewItem> {
             return "null";
         }
 
-
+        Object value = item.value();
         String strValue;
-        if (item.value() == null) {
+
+        if (value == NOVALUE) {
+            return item.name();
+        } else if (value == null) {
             strValue = "null";
         } else if (item.value().getClass().isArray()) {
             strValue = "%s[%d]".formatted(item.value().getClass().componentType().getSimpleName(), Array.getLength(item.value()));
