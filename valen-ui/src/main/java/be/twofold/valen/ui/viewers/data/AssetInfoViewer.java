@@ -16,9 +16,10 @@ public class AssetInfoViewer extends TreeView<PreviewItem> implements Viewer {
     }
 
     @Override
-    public void setData(Asset asset, Archive archive) {
+    public boolean setData(Asset asset, Archive archive) {
         var rootItem = new PreviewValueTreeItem(new PreviewItem(asset.getClass().getSimpleName(), asset));
         setRoot(rootItem);
+        return true;
     }
 
     @Override

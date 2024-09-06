@@ -39,11 +39,12 @@ public class PreviewTabPane extends TabPane {
             if (!tab.getViewer().canPreview(asset)) {
                 continue;
             }
-            if (!getTabs().contains(tab)) {
-                getTabs().add(tab);
-            }
             try {
-                tab.getViewer().setData(asset, archive);
+                boolean loaded = tab.getViewer().setData(asset, archive);
+                if (getTabs().contains(tab) || !loaded) {
+                    continue;
+                }
+                getTabs().add(tab);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }

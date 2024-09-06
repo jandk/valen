@@ -27,8 +27,8 @@ public class MainWindow extends Application {
         }
 
         // TODO: Don't hardcode this
-//        var path = Path.of("D:\\Games\\Steam\\steamapps\\common\\DOOM\\DOOMx64.exe");
-        var path = SettingsManager.get().getGameDirectory().get().resolve("DOOMEternalx64vk.exe");
+        var path = Path.of("D:\\SteamLibrary\\steamapps\\common\\DOOMEternal\\DOOMEternalx64vk.exe");
+//        var path = SettingsManager.get().getGameDirectory().get().resolve("DOOMEternalx64vk.exe");
         var game = resolveGameFactory(path).load(path);
         var archive = game.loadArchive("common");
 

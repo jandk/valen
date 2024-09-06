@@ -15,11 +15,12 @@ public class TextViewer extends TextArea implements Viewer {
     }
 
     @Override
-    public void setData(Asset asset, Archive archive) throws IOException {
+    public boolean setData(Asset asset, Archive archive) throws IOException {
         ByteBuffer data = archive.loadRawAsset(asset.id());
         byte[] bytes = new byte[data.remaining()];
         data.get(bytes);
         setText(new String(bytes, StandardCharsets.UTF_8));
+        return true;
     }
 
     @Override

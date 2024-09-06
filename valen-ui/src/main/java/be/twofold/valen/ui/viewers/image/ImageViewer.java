@@ -127,17 +127,18 @@ public final class ImageViewer extends VBox implements Viewer {
 
 
     @Override
-    public void setData(Asset asset, Archive archive) throws IOException {
+    public boolean setData(Asset asset, Archive archive) throws IOException {
         if (asset == null || archive == null) {
             imageView.setImage(null);
             sourceImage = null;
             targetImage = null;
-            return;
+            return false;
         }
 
         Texture texture = (Texture) archive.loadAsset(asset.id());
         Surface converted = SurfaceConverter.convert(texture.surfaces().getFirst(), TextureFormat.B8G8R8A8_UNORM);
         setImage(converted.data(), texture.width(), texture.height());
+        return true;
     }
 
     private void setImage(byte[] bgra, int width, int height) {
