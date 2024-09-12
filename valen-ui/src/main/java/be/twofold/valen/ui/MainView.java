@@ -5,7 +5,7 @@ import javafx.scene.control.*;
 
 import java.util.*;
 
-public interface MainView extends View {
+public interface MainView extends View<MainViewListener> {
 
     boolean isPreviewVisible();
 
@@ -14,7 +14,5 @@ public interface MainView extends View {
     void setAssets(List<Asset> resources);
 
     void setupPreview(Asset asset, Object assetData);
-
-    void addListener(MainViewListener listener);
 
 }

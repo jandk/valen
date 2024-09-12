@@ -15,7 +15,7 @@ public final class DataViewer extends TreeView<PreviewItem> implements Viewer {
     @Override
     public boolean canPreview(AssetType type) {
         // TODO: Add other supported types
-        return type == AssetType.Image || type == AssetType.Text || type == AssetType.Model;
+        return type == AssetType.Texture || type == AssetType.Text || type == AssetType.Model;
     }
 
     @Override

@@ -1,7 +1,6 @@
 package be.twofold.valen.ui;
 
 import be.twofold.valen.core.game.*;
-import be.twofold.valen.ui.util.*;
 import jakarta.inject.*;
 import javafx.beans.property.*;
 import javafx.geometry.*;
@@ -12,10 +11,8 @@ import javafx.scene.paint.*;
 
 import java.util.*;
 
-public final class MainViewFx extends BorderPane implements MainView {
-    private final ListenerHelper<MainViewListener> listeners
-        = new ListenerHelper<>(MainViewListener.class);
-
+public final class MainViewFx extends AbstractView<MainViewListener> implements MainView {
+    private final BorderPane view = new BorderPane();
     private final SplitPane splitPane = new SplitPane();
     private final TreeView<String> treeView = new TreeView<>();
     private final TableView<Asset> tableView = new TableView<>();
@@ -23,12 +20,13 @@ public final class MainViewFx extends BorderPane implements MainView {
 
     @Inject
     public MainViewFx() {
+        super(MainViewListener.class);
         buildUI();
     }
 
     @Override
     public Parent getView() {
-        return this;
+        return view;
     }
 
     @Override
@@ -53,33 +51,28 @@ public final class MainViewFx extends BorderPane implements MainView {
         tabPane.setData(asset.type(), assetData);
     }
 
-    @Override
-    public void addListener(MainViewListener listener) {
-        listeners.addListener(listener);
-    }
-
     public void togglePreview() {
         var positions = splitPane.getDividerPositions();
         switch (splitPane.getItems().size()) {
             case 3 -> {
                 splitPane.getItems().remove(2);
                 splitPane.setDividerPositions(positions[0]);
-                listeners.fire().onPreviewVisibleChanged(false);
+                listeners().fire().onPreviewVisibleChanged(false);
             }
             case 2 -> {
                 splitPane.getItems().add(tabPane);
                 splitPane.setDividerPositions(positions[0], 0.75);
-                listeners.fire().onPreviewVisibleChanged(true);
+                listeners().fire().onPreviewVisibleChanged(true);
             }
             default -> throw new IllegalStateException("Unexpected number of items: " + splitPane.getItems().size());
         }
     }
 
     private void buildUI() {
-        setPrefSize(900, 600);
-        setTop(buildMenu());
-        setCenter(buildMainContent());
-        setBottom(buildStatusBar());
+        view.setPrefSize(900, 600);
+        view.setTop(buildMenu());
+        view.setCenter(buildMainContent());
+        view.setBottom(buildStatusBar());
 //            getChildren().addAll(
 //                buildMenu(),
 //                buildMainContent(),
@@ -105,7 +98,7 @@ public final class MainViewFx extends BorderPane implements MainView {
                     path.add(item.getValue());
                 }
                 Collections.reverse(path);
-                listeners.fire().onPathSelected(String.join("/", path.subList(1, path.size())));
+                listeners().fire().onPathSelected(String.join("/", path.subList(1, path.size())));
             }
         });
         return treeView;
@@ -114,7 +107,7 @@ public final class MainViewFx extends BorderPane implements MainView {
     private TableView<Asset> buildTableView() {
         tableView.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
             if (newValue != null) {
-                listeners.fire().onAssetSelected(newValue);
+                listeners().fire().onAssetSelected(newValue);
             }
         });
         TableColumn<Asset, String> nameColumn = new TableColumn<>();
