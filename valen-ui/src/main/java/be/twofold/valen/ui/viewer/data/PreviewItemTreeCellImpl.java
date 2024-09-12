@@ -5,7 +5,6 @@ import javafx.scene.control.*;
 import java.lang.reflect.*;
 
 final class PreviewItemTreeCellImpl extends TreeCell<PreviewItem> {
-
     @Override
     public void updateItem(PreviewItem item, boolean empty) {
         super.updateItem(item, empty);
@@ -25,16 +24,16 @@ final class PreviewItemTreeCellImpl extends TreeCell<PreviewItem> {
             return "null";
         }
 
+        return item.name() + ": " + toString(item.value());
+    }
 
-        String strValue;
-        if (item.value() == null) {
-            strValue = "null";
-        } else if (item.value().getClass().isArray()) {
-            strValue = "%s[%d]".formatted(item.value().getClass().componentType().getSimpleName(), Array.getLength(item.value()));
-        } else {
-            strValue = item.value().toString();
+    private String toString(Object value) {
+        if (value == null) {
+            return "null";
         }
-
-        return "%s: %s".formatted(item.name(), strValue);
+        if (value.getClass().isArray()) {
+            return "%s[%d]".formatted(value.getClass().componentType().getSimpleName(), Array.getLength(value));
+        }
+        return value.toString();
     }
 }

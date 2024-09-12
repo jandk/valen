@@ -14,22 +14,19 @@ public final class DataViewer extends TreeView<PreviewItem> implements Viewer {
 
     @Override
     public boolean canPreview(AssetType type) {
-        return type == AssetType.Image || type == AssetType.Text || type == AssetType.Model; //TODO: Add other supported types
+        // TODO: Add other supported types
+        return type == AssetType.Image || type == AssetType.Text || type == AssetType.Model;
     }
 
     @Override
     public void setData(Object data) {
-        if (data.getClass().isRecord()) {
+        if (data.getClass().isRecord() || data instanceof Map<?, ?>) {
             var rootItem = new PreviewValueTreeItem(new PreviewItem(data.getClass().getSimpleName(), data));
             rootItem.setExpanded(true);
             setRoot(rootItem);
-        } else if (data instanceof Map<?, ?> map) {
-            var rootItem = new PreviewValueTreeItem(new PreviewItem(data.getClass().getSimpleName(), map));
-            rootItem.setExpanded(true);
-            setRoot(rootItem);
-        } else {
-            setRoot(null);
+            return;
         }
+        setRoot(null);
     }
 
     @Override
@@ -41,5 +38,4 @@ public final class DataViewer extends TreeView<PreviewItem> implements Viewer {
     public String getName() {
         return "Data";
     }
-
 }

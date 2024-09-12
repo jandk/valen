@@ -5,11 +5,10 @@ import javafx.scene.control.*;
 
 import java.lang.reflect.*;
 import java.util.*;
+import java.util.stream.*;
 
 final class PreviewValueTreeItem extends TreeItem<PreviewItem> {
-    private boolean isLeaf;
     private boolean isFirstTimeChildren = true;
-    private boolean isFirstTimeLeaf = true;
 
     public PreviewValueTreeItem(PreviewItem value) {
         super(value);
@@ -19,61 +18,55 @@ final class PreviewValueTreeItem extends TreeItem<PreviewItem> {
     public ObservableList<TreeItem<PreviewItem>> getChildren() {
         if (isFirstTimeChildren) {
             isFirstTimeChildren = false;
-            try {
-                super.getChildren().setAll(buildChildren(this));
-            } catch (InvocationTargetException | IllegalAccessException e) {
-                throw new RuntimeException(e);
-            }
+            super.getChildren().setAll(buildChildren(this));
         }
         return super.getChildren();
     }
 
     @Override
     public boolean isLeaf() {
-        if (isFirstTimeLeaf) {
-            isFirstTimeLeaf = false;
-            var holder = getValue();
-            if (holder.getClass().isRecord()) {
-                isLeaf = false;
-            } else {
-                switch (holder.value()) {
-                    case Map<?, ?> ignored -> isLeaf = false;
-                    case List<?> ignored -> isLeaf = false;
-                    case null, default -> isLeaf = true;
-                }
-            }
+        var value = getValue();
+        if (value.getClass().isRecord()) {
+            return false;
         }
-        return isLeaf;
+        return switch (value.value()) {
+            case Map<?, ?> map -> false;
+            case List<?> list -> false;
+            case null, default -> true;
+        };
     }
 
-    private ObservableList<PreviewValueTreeItem> buildChildren(PreviewValueTreeItem item) throws InvocationTargetException, IllegalAccessException {
-        var holder = item.getValue();
-        if (holder.value() != null) {
-            ObservableList<PreviewValueTreeItem> children = FXCollections.observableArrayList();
-            if (holder.value().getClass().isRecord()) {
-                var value = holder.value();
-                for (RecordComponent recordComponent : value.getClass().getRecordComponents()) {
-                    children.add(new PreviewValueTreeItem(new PreviewItem(recordComponent.getName(), recordComponent.getAccessor().invoke(value))));
-                }
-            } else {
-                switch (holder.value()) {
-                    case Map<?, ?> map -> {
-                        map.forEach((key, value) -> {
-                            children.add(new PreviewValueTreeItem(new PreviewItem(key.toString(), value)));
-                        });
-                    }
-                    case List<?> list -> {
-                        for (int i = 0; i < list.size(); i++) {
-                            children.add(new PreviewValueTreeItem(new PreviewItem(Integer.toString(i), list.get(i))));
-                        }
-                    }
-                    default -> {
-                        return FXCollections.emptyObservableList();
-                    }
-                }
-            }
-            return children;
+    private List<PreviewValueTreeItem> buildChildren(PreviewValueTreeItem item) {
+        Object value = item.getValue().value();
+        if (value == null) {
+            return List.of();
         }
-        return FXCollections.emptyObservableList();
+
+        if (value.getClass().isRecord()) {
+            return Arrays.stream(value.getClass().getRecordComponents())
+                .map(c -> create(c.getName(), getComponent(value, c)))
+                .toList();
+        }
+        return switch (value) {
+            case Map<?, ?> map -> map.entrySet().stream()
+                .map(e -> create(e.getKey().toString(), e.getValue()))
+                .toList();
+            case List<?> list -> IntStream.range(0, list.size())
+                .mapToObj(i -> create(Integer.toString(i), list.get(i)))
+                .toList();
+            default -> List.of();
+        };
+    }
+
+    private PreviewValueTreeItem create(String name, Object invoke) {
+        return new PreviewValueTreeItem(new PreviewItem(name, invoke));
+    }
+
+    private Object getComponent(Object value, RecordComponent component) {
+        try {
+            return component.getAccessor().invoke(value);
+        } catch (IllegalAccessException | InvocationTargetException e) {
+            throw new RuntimeException(e);
+        }
     }
 }
