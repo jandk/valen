@@ -4,7 +4,7 @@ import java.lang.reflect.*;
 import java.util.*;
 
 public final class Listeners<T> {
-    private final Set<T> listeners = Collections.synchronizedSet(Collections.newSetFromMap(new WeakHashMap<>()));
+    private final Set<T> listeners = Collections.synchronizedSet(new HashSet<>());
 
     private final T proxy;
     private final Class<T> listenerClass;

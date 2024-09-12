@@ -2,6 +2,7 @@ package be.twofold.valen.ui.window;
 
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.ui.viewer.data.*;
+import be.twofold.valen.ui.viewer.model.*;
 import be.twofold.valen.ui.viewer.text.*;
 import be.twofold.valen.ui.viewer.texture.*;
 import javafx.scene.control.*;
@@ -13,6 +14,7 @@ public class PreviewTabPane extends TabPane {
 
     public PreviewTabPane() {
         viewers = List.of(
+            new PreviewTab(new ModelPresenter(new ModelViewFx())),
             new PreviewTab(new TexturePresenter(new TextureViewFx())),
             new PreviewTab(new DataViewer()),
             new PreviewTab(new TextViewer())
