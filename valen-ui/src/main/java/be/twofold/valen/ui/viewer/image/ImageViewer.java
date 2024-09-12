@@ -1,8 +1,8 @@
-package be.twofold.valen.ui.viewers.image;
+package be.twofold.valen.ui.viewer.image;
 
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.texture.*;
-import be.twofold.valen.ui.viewers.*;
+import be.twofold.valen.ui.viewer.*;
 import javafx.geometry.*;
 import javafx.scene.*;
 import javafx.scene.control.*;

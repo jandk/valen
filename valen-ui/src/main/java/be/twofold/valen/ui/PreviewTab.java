@@ -1,6 +1,6 @@
 package be.twofold.valen.ui;
 
-import be.twofold.valen.ui.viewers.*;
+import be.twofold.valen.ui.viewer.*;
 import javafx.scene.control.*;
 
 public class PreviewTab extends Tab {

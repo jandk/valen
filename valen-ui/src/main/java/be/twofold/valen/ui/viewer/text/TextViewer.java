@@ -1,10 +1,11 @@
-package be.twofold.valen.ui.viewers;
+package be.twofold.valen.ui.viewer.text;
 
 import be.twofold.valen.core.game.*;
+import be.twofold.valen.ui.viewer.*;
 import javafx.scene.*;
 import javafx.scene.control.*;
 
-public class TextViewer extends TextArea implements Viewer {
+public final class TextViewer extends TextArea implements Viewer {
     @Override
     public boolean canPreview(AssetType type) {
         return type == AssetType.Text;

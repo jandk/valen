@@ -1,4 +1,4 @@
-package be.twofold.valen.ui.viewers.data;
+package be.twofold.valen.ui.viewer.data;
 
 import javafx.collections.*;
 import javafx.scene.control.*;
@@ -6,7 +6,7 @@ import javafx.scene.control.*;
 import java.lang.reflect.*;
 import java.util.*;
 
-class PreviewValueTreeItem extends TreeItem<PreviewItem> {
+final class PreviewValueTreeItem extends TreeItem<PreviewItem> {
     private boolean isLeaf;
     private boolean isFirstTimeChildren = true;
     private boolean isFirstTimeLeaf = true;

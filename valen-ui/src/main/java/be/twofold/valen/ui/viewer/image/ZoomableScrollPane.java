@@ -1,4 +1,4 @@
-package be.twofold.valen.ui.viewers.image;
+package be.twofold.valen.ui.viewer.image;
 
 import javafx.geometry.*;
 import javafx.scene.*;

@@ -1,13 +1,13 @@
-package be.twofold.valen.ui.viewers.data;
+package be.twofold.valen.ui.viewer.data;
 
 import be.twofold.valen.core.game.*;
-import be.twofold.valen.ui.viewers.*;
+import be.twofold.valen.ui.viewer.*;
 import javafx.scene.*;
 import javafx.scene.control.*;
 
 import java.util.*;
 
-public class DataViewer extends TreeView<PreviewItem> implements Viewer {
+public final class DataViewer extends TreeView<PreviewItem> implements Viewer {
     public DataViewer() {
         setCellFactory(p -> new PreviewItemTreeCellImpl());
     }
