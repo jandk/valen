@@ -1,6 +1,7 @@
-package be.twofold.valen.ui;
+package be.twofold.valen.ui.window;
 
 import be.twofold.valen.core.game.*;
+import be.twofold.valen.ui.*;
 import jakarta.inject.*;
 import javafx.beans.property.*;
 import javafx.geometry.*;

@@ -2,7 +2,7 @@ package be.twofold.valen.ui;
 
 import java.util.*;
 
-public abstract class AbstractPresenter<T extends View> {
+public abstract class AbstractPresenter<T extends View<?>> {
     private final T view;
 
     protected AbstractPresenter(T view) {

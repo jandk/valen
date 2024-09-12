@@ -1,4 +1,4 @@
-package be.twofold.valen.ui;
+package be.twofold.valen.ui.util;
 
 import java.util.*;
 

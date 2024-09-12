@@ -3,13 +3,13 @@ package be.twofold.valen.ui.util;
 import java.lang.reflect.*;
 import java.util.*;
 
-public final class ListenerHelper<T> {
-    private final Set<T> listeners = Collections.synchronizedSet(new HashSet<>());
+public final class Listeners<T> {
+    private final Set<T> listeners = Collections.synchronizedSet(Collections.newSetFromMap(new WeakHashMap<>()));
 
     private final T proxy;
     private final Class<T> listenerClass;
 
-    public ListenerHelper(Class<T> listenerClass) {
+    public Listeners(Class<T> listenerClass) {
         this.proxy = buildProxy(listenerClass);
         this.listenerClass = listenerClass;
     }
@@ -37,7 +37,11 @@ public final class ListenerHelper<T> {
                 case "toString" -> super.toString();
                 default -> {
                     for (T listener : listeners) {
-                        method.invoke(listener, args);
+                        try {
+                            method.invoke(listener, args);
+                        } catch (Exception e) {
+                            System.err.println("Failed to invoke listener: " + e.getMessage());
+                        }
                     }
                     yield null;
                 }

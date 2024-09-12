@@ -1,6 +1,7 @@
 package be.twofold.valen.ui;
 
 import be.twofold.valen.ui.viewer.texture.*;
+import be.twofold.valen.ui.window.*;
 import dagger.Module;
 import dagger.*;
 
