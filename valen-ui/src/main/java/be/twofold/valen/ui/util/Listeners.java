@@ -40,7 +40,7 @@ public final class Listeners<T> {
                         try {
                             method.invoke(listener, args);
                         } catch (Exception e) {
-                            System.err.println("Failed to invoke listener: " + e.getMessage());
+                            throw new RuntimeException("Failed to invoke listener", e);
                         }
                     }
                     yield null;
