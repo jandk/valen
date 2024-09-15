@@ -1,0 +1,28 @@
+typedef struct {
+    uint size;
+    char value[size];
+} SString<read=Str("%s", size > 0 ? this.value : "")>;
+
+struct Vector3 {
+    float x;
+    float y;
+    float z;
+};
+
+struct SourceSurface {
+    SString mtr;
+    int renderSurface;
+    int firstVertex;
+    int lastVertex;
+};
+
+Vector3 referencePosition;
+uint numSourceSurfaces;
+SourceSurface sourceSurfaces[numSourceSurfaces] <optimize=false>;
+uint unknown;
+uint numSurfaces;
+float maxLodDeviations[3];
+SString material;
+uint unk;
+uint count;
+SString strings[count];

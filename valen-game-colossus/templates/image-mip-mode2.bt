@@ -1,0 +1,15 @@
+struct Tile {
+    uint zsize;
+    uint size;
+    ushort tileX;
+    ushort tileY;
+    ushort tileWidth;
+    ushort tileHeight;
+    ubyte mode;
+    ubyte weights[7];
+    ubyte data[zsize];
+};
+
+while (FTell() < FileSize()) {
+    Tile tile;
+}
