@@ -13,7 +13,7 @@ import java.util.*;
 public class MainWindow extends Application {
     @Override
     public void start(Stage primaryStage) throws IOException {
-        if (SettingsManager.get().getGameDirectory().isEmpty()) {
+        if (SettingsManager.get().getGameExecutable().isEmpty()) {
             var fileChooser = new FileChooser();
             fileChooser.setTitle("Select the game executable");
             fileChooser.getExtensionFilters().addAll(
@@ -21,14 +21,11 @@ public class MainWindow extends Application {
             );
             var selectedFile = fileChooser.showOpenDialog(primaryStage);
             if (selectedFile != null) {
-                var path = selectedFile.toPath();
-                SettingsManager.get().setGameDirectory(path.getParent());
+                SettingsManager.get().setGameExecutable(selectedFile.toPath());
             }
         }
 
-        // TODO: Don't hardcode this
-//        var path = Path.of("D:\\Games\\Steam\\steamapps\\common\\DOOM\\DOOMx64.exe");
-        var path = SettingsManager.get().getGameDirectory().get().resolve("DOOMEternalx64vk.exe");
+        var path = SettingsManager.get().getGameExecutable().get();
         var game = resolveGameFactory(path).load(path);
         var archive = game.loadArchive("common");
 
