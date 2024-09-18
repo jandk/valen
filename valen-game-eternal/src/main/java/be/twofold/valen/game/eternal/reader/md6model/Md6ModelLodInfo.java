@@ -22,9 +22,9 @@ public record Md6ModelLodInfo(
         var numVertices = source.readInt();
         var numFaces = source.readInt();
         var bounds = Bounds.read(source);
-        var vertexOffset = Vector3.read(source);
+        var vertexOffset = source.readVector3();
         var vertexScale = source.readFloat();
-        var uvOffset = Vector2.read(source);
+        var uvOffset = source.readVector2();
         var uvScale = source.readFloat();
         var flags = source.readInt();
         var unkFloat1 = source.readFloat();

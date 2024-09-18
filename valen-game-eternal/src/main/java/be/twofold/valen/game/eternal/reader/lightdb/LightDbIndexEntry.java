@@ -11,8 +11,6 @@ public record LightDbIndexEntry(
     short width,
     short height
 ) {
-    public static final int BYTES = 10;
-
     public static LightDbIndexEntry read(DataSource source) throws IOException {
         var imageIndex = source.readShort();
         var x = source.readShort();

@@ -8,8 +8,6 @@ public record FileCompressedHeader(
     int uncompressedSize,
     int compressedSize
 ) {
-    public static final int BYTES = 16;
-
     public static FileCompressedHeader read(DataSource source) throws IOException {
         int uncompressedSize = source.readLongAsInt();
         int compressedSize = source.readLongAsInt();

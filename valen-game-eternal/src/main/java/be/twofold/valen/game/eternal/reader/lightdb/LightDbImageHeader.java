@@ -13,8 +13,6 @@ public record LightDbImageHeader(
     int unk5,
     int unk6
 ) {
-    public static final int BYTES = 32;
-
     public static LightDbImageHeader read(DataSource source) throws IOException {
         var hash = source.readLong();
         var unk1 = source.readInt();

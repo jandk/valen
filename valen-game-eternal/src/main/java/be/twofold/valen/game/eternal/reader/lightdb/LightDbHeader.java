@@ -13,8 +13,6 @@ public record LightDbHeader(
     int hashOffset,
     int dbOffset16
 ) {
-    public static final int BYTES = 56;
-
     public static LightDbHeader read(DataSource source) throws IOException {
         source.expectInt(0x4c444202);
         source.expectInt(2);

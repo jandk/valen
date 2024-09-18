@@ -10,8 +10,8 @@ public record Bounds(
     Vector3 max
 ) {
     public static Bounds read(DataSource source) throws IOException {
-        Vector3 min = Vector3.read(source);
-        Vector3 max = Vector3.read(source);
+        Vector3 min = source.readVector3();
+        Vector3 max = source.readVector3();
         return new Bounds(min, max);
     }
 

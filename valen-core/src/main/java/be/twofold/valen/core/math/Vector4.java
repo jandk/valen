@@ -1,8 +1,11 @@
 package be.twofold.valen.core.math;
 
-import java.nio.*;
-
-public record Vector4(float x, float y, float z, float w) {
+public record Vector4(
+    float x,
+    float y,
+    float z,
+    float w
+) {
     public Vector4 add(Vector4 other) {
         return new Vector4(x + other.x, y + other.y, z + other.z, w + other.w);
     }
@@ -37,19 +40,6 @@ public record Vector4(float x, float y, float z, float w) {
 
     public Vector4 normalize() {
         return divide(length());
-    }
-
-    // TODO: Move this method somewhere else
-    public void put(FloatBuffer dst) {
-        dst.put(x);
-        dst.put(y);
-        dst.put(z);
-        dst.put(w);
-    }
-
-    // TODO: Move this method somewhere else
-    public float[] toArray() {
-        return new float[]{x, y, z, w};
     }
 
     @Override

@@ -1,27 +1,17 @@
 package be.twofold.valen.core.math;
 
-import be.twofold.valen.core.io.*;
-
-import java.io.*;
 import java.nio.*;
 
-public record Vector3(float x, float y, float z) {
+public record Vector3(
+    float x,
+    float y,
+    float z
+) {
     public static final Vector3 Zero = new Vector3(0.0f, 0.0f, 0.0f);
     public static final Vector3 One = new Vector3(1.0f, 1.0f, 1.0f);
     public static final Vector3 UnitX = new Vector3(1.0f, 0.0f, 0.0f);
     public static final Vector3 UnitY = new Vector3(0.0f, 1.0f, 0.0f);
     public static final Vector3 UnitZ = new Vector3(0.0f, 0.0f, 1.0f);
-
-    // TODO: Move this field somewhere else
-    public static final int BYTES = 3 * Float.BYTES;
-
-    // TODO: Move this method somewhere else
-    public static Vector3 read(DataSource source) throws IOException {
-        float x = source.readFloat();
-        float y = source.readFloat();
-        float z = source.readFloat();
-        return new Vector3(x, y, z);
-    }
 
     public Vector3 add(Vector3 other) {
         return new Vector3(x + other.x, y + other.y, z + other.z);

@@ -18,8 +18,6 @@ public record ResourcesHeader(
     int addrData,
     int addrEndMarker
 ) {
-    public static final int BYTES = 124;
-
     public static ResourcesHeader read(DataSource source) throws IOException {
         source.expectInt(0x4c434449);
         source.expectInt(12);

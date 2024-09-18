@@ -12,7 +12,7 @@ public record MapFileStaticInstancesPlayerStart(
 ) {
     public static MapFileStaticInstancesPlayerStart read(DataSource source) throws IOException {
         var entityName = source.readPString();
-        var spawnPosition = Vector3.read(source);
+        var spawnPosition = source.readVector3();
         var initial = source.readBoolByte();
         return new MapFileStaticInstancesPlayerStart(
             entityName,

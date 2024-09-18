@@ -13,7 +13,7 @@ public record StaticModelHeader(
     boolean streamable
 ) {
     public static StaticModelHeader read(DataSource source) throws IOException {
-        Vector3 referencePosition = Vector3.read(source);
+        Vector3 referencePosition = source.readVector3();
         var numLods = source.readInt();
         var numSurfaces = source.readInt();
         var maxLodDeviations = source.readFloats(numLods);
