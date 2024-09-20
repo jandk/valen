@@ -24,7 +24,7 @@ public final class NewOrderGame implements Game {
     }
 
     @Override
-    public Archive loadArchive(String name) throws IOException {
+    public NewOrderArchive loadArchive(String name) throws IOException {
         var container = master.containers().stream()
             .filter(mc -> mc.name().equals(name))
             .findFirst()

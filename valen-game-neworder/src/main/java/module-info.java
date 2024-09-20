@@ -1,4 +1,5 @@
 module valen.game.neworder {
+    requires com.sun.jna;
     requires valen.core;
 
     exports be.twofold.valen.game.neworder.index;

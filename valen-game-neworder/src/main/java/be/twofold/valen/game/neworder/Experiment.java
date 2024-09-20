@@ -12,30 +12,40 @@ import java.util.*;
 
 public final class Experiment {
     public static void main(String[] args) throws IOException {
-        var base = Path.of("C:\\Program Files (x86)\\Steam\\steamapps\\common\\Wolfenstein.The.New.Order\\base");
+        var path = Path.of("D:\\Games\\Steam\\steamapps\\common\\Wolfenstein.The.New.Order\\WolfNewOrder_x64.exe");
+        var base = path.getParent().resolve("base");
 
         var containers = Master.read(base.resolve("master.index")).containers();
         containers.forEach(System.out::println);
 
         var typeNames = new TreeMap<String, Integer>();
-        for (MasterContainer container : containers) {
-            Index index = Index.read(base.resolve(container.indexName()));
+        for (var container : containers) {
+            var index = Index.read(base.resolve(container.indexName()));
 
-            try (var resourceSource = DataSource.fromPath(base.resolve(container.resourceName()))) {
-                for (IndexEntry entry : index.entries()) {
+            var outBasePath = Path.of("D:\\Projects\\Wolfenstein New Order\\Extracted");
+            try (var source = DataSource.fromPath(base.resolve(container.resourceName()))) {
+                for (var entry : index.entries()) {
                     typeNames.merge(entry.typeName(), 1, Integer::sum);
-                    if (!entry.platformStreamData().isEmpty()) {
-                        System.out.println("Platform stream data: " + entry.platformStreamData());
-                    }
+                    if (entry.typeName().equals("image")) {
+                        var destPath = outBasePath
+                            .resolve(entry.typeName())
+                            .resolve(entry.fileName());
 
-                    if (entry.typeName().equals("skeleton")) {
-                        System.out.print(entry.resourceName());
+                        if (!Files.exists(destPath)) {
+                            Files.createDirectories(destPath.getParent());
 
-                        resourceSource.seek(entry.offset());
-                        var data = resourceSource.readBytes(entry.compressedLength());
-                        var inflated = Compression.InflateRaw.decompress(ByteBuffer.wrap(data), entry.uncompressedLength());
-                        System.out.println(" ");
+                            source.seek(entry.offset());
+                            byte[] compressed = source.readBytes(entry.compressedLength());
+                            var uncompressed = entry.uncompressedLength() != entry.compressedLength()
+                                ? Compression.InflateRaw.decompress(ByteBuffer.wrap(compressed), entry.uncompressedLength()).array()
+                                : compressed;
+
+                            Files.write(destPath, uncompressed);
+                        }
                     }
+//                    if (!entry.platformStreamData().isEmpty()) {
+//                        System.out.println("Platform stream data: " + entry.platformStreamData());
+//                    }
                 }
             }
         }
