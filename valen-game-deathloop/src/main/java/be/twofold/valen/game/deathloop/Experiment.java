@@ -1,17 +1,21 @@
 package be.twofold.valen.game.deathloop;
 
+import be.twofold.valen.core.compression.*;
 import be.twofold.valen.core.io.*;
+import be.twofold.valen.core.texture.*;
+import be.twofold.valen.game.deathloop.image.*;
 import be.twofold.valen.game.deathloop.index.*;
 import be.twofold.valen.game.deathloop.master.*;
 
 import java.io.*;
+import java.nio.*;
 import java.nio.file.*;
 import java.util.*;
 import java.util.stream.*;
 
 public class Experiment {
     public static void main(String[] args) throws IOException {
-        var root = Path.of("D:\\Games\\Steam\\steamapps\\common\\DEATHLOOP");
+        var root = Path.of("D:\\Projects\\Deathloop\\DEATHLOOP");
         var base = root.resolve("base");
 
         var masterIndex = MasterIndex.read(base.resolve("master.index"));
@@ -25,22 +29,36 @@ public class Experiment {
             sources.add(DataSource.fromPath(base.resolve(dataFile)));
         }
 
-        Map<String, List<IndexEntry>> collect = index.entries().stream()
+        var collect = index.entries().stream()
             .collect(Collectors.groupingBy(IndexEntry::typeName));
 
-        System.out.println(collect.size());
+        var outBase = Path.of("D:\\Projects\\Deathloop\\Extracted");
+        for (var entry : collect.get("image")) {
+//            var resolved = outBase
+//                .resolve(entry.typeName())
+//                .resolve(entry.fileName());
 
-        var image = index.entries().stream()
-            .filter(e -> e.resourceName().equals("models/environment/texture/tile/fabric/carpet/carpet_soft_white_01_d.png"))
-            .findFirst().orElseThrow();
+//            if (!Files.exists(resolved)) {
+//                Files.createDirectories(resolved.getParent());
+//
+//
+//                Files.write(resolved, uncompressed);
+//            }
 
-        DataSource source = sources.get(image.fileId());
-        source.seek(image.offset());
+            if (entry.useBits() != 0) {
+                continue;
+            }
 
-//        var data = source.readBytes(image.compressedLength());
-//        ByteBuffer buffer = Decompressor.forType(CompressionType.KrakenChunked).decompress(ByteBuffer.wrap(data), image.uncompressedLength());
-//        Files.write(root.resolve("carpet_soft_white_01_d.bimage"), buffer.array());
-//        System.out.println(data.length);
+            var source = sources.get(entry.fileId());
+            source.seek(entry.offset());
+            var compressed = source.readBytes(entry.compressedLength());
+            var uncompressed = entry.compressedLength() != entry.uncompressedLength()
+                ? Compression.OodleChunked.decompress(ByteBuffer.wrap(compressed), entry.uncompressedLength()).array()
+                : compressed;
+
+            Texture texture = new ImageReader().read(DataSource.fromArray(uncompressed));
+            System.out.println(texture);
+        }
     }
 
 }

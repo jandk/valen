@@ -1,0 +1,63 @@
+enum textureType_t
+{
+  TT_2D = 0x0,
+  TT_3D = 0x1,
+  TT_CUBIC = 0x2,
+};
+
+enum textureFormat_t
+{
+    FMT_R8 = 1,
+    FMT_R16F = 2,
+    FMT_R32F = 3,
+    FMT_R16_UNORM = 4,
+    FMT_RG32F = 6,
+    FMT_RGBA = 10,
+    FMT_RGBA16F = 11,
+    FMT_RGBA32F = 12,
+    FMT_BC1 = 14,
+    FMT_BC3 = 16,
+    FMT_BC4 = 17,
+    FMT_BC5 = 18,
+    FMT_BC6H = 19,
+    FMT_BC7 = 20
+};
+
+struct ImageHeader {
+    uint magic;
+    textureType_t textureType;
+    textureFormat_t textureFormat;
+    uint unk;
+    uint unk;
+    uint width;
+    uint height;
+    uint fullWidth;
+    uint fullHeight;
+    uint depth;
+    uint numLevelsEmbedded;
+    uint numLevels;
+    uint unk;
+    uint unk;
+    byte pad[3];
+    uint someSize;
+    uint unk;
+} header;
+
+local int numSlices = header.numLevelsEmbedded;
+switch(header.textureType) {
+    case TT_3D:
+        numSlices *= header.depth;
+        break;
+    case TT_CUBIC:
+        numSlices *= 6;
+        break;
+}
+
+struct ImageSlice {
+    uint level;
+    uint destZ;
+    uint width;
+    uint height;
+    uint dataSize;
+    ubyte data[dataSize];
+} slices[numSlices] <optimize=false>;
