@@ -42,7 +42,7 @@ public final class DeathloopArchive implements Archive {
     @Override
     public List<Asset> assets() {
         return index.entries().stream()
-            .filter(e -> !FILTER.contains(e.typeName()) || e.useBits() == 0)
+            .filter(e -> !FILTER.contains(e.typeName()) || e.fileName().endsWith(".bimage"))
             .map(this::mapIndexEntry)
             .toList();
     }

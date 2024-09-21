@@ -11,6 +11,7 @@ import java.util.*;
 
 public final class ImageReader {
     private final DeathloopArchive archive;
+    private final boolean readExternal = false;
 
     public ImageReader(DeathloopArchive archive) {
         this.archive = Objects.requireNonNull(archive);
@@ -19,22 +20,35 @@ public final class ImageReader {
     public Texture read(DataSource source, IndexEntry entry) throws IOException {
         var header = ImageHeader.read(source);
         var format = mapFormat(header.textureFormat());
+        int depth = header.textureType() == ImageTextureType.TT_3D ? header.depth() : header.numSlices();
+        if (header.textureType() == ImageTextureType.TT_CUBIC && depth == 1) {
+            depth = 6;
+        }
 
         var surfaces = new ArrayList<Surface>();
-        var externalLevels = header.levels() - header.embeddedLevels();
-        for (int i = 0, w = header.width(), h = header.height(); i < externalLevels; i++, w /= 2, h /= 2) {
-            var mipData = archive.loadRawAsset(new DeathloopAssetID(entry.fileName() + "_mip" + i));
-            var surface = new Surface(w, h, format, Buffers.toArray(mipData));
-            surfaces.add(surface);
+        if (readExternal) {
+            var externalLevels = header.levels() - header.embeddedLevels();
+            for (int i = 0, w = header.width(), h = header.height(); i < externalLevels; i++, w /= 2, h /= 2) {
+                var mipData = archive.loadRawAsset(new DeathloopAssetID(entry.fileName() + "_mip" + i));
+                var surface = new Surface(w, h, format, Buffers.toArray(mipData));
+                surfaces.add(surface);
+            }
         }
 
-        for (int i = 0; i < header.embeddedLevels(); i++) {
-            var mipHeader = ImageMipHeader.read(source);
-            var mipData = source.readBytes(mipHeader.dataSize());
-
-            var surface = new Surface(mipHeader.width(), mipHeader.height(), format, mipData);
-            surfaces.add(surface);
+        int width = header.embeddedWidth();
+        int height = header.embeddedHeight();
+        for (int mip = 0; mip < header.embeddedLevels(); mip++) {
+            for (int slice = 0; slice < depth; slice++) {
+                var sliceHeader = ImageMipHeader.read(source);
+                var sliceData = source.readBytes(sliceHeader.dataSize());
+                var surface = new Surface(width, height, format, sliceData);
+                surfaces.add(surface);
+            }
+            width /= 2;
+            height /= 2;
         }
+        source.expectEnd();
+
         return new Texture(header.width(), header.height(), format, surfaces, false);
     }
 

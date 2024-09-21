@@ -9,5 +9,17 @@ public class Experiment {
         var factory = new DeathloopGameFactory();
         var game = factory.load(path);
         var archive = game.loadArchive("");
+
+        var images = archive.assets().stream()
+            .filter(e -> e.id().fileName().endsWith(".bimage"))
+            .toList();
+
+        for (var image : images) {
+            try {
+                archive.loadAsset(image.id());
+            } catch (Exception e) {
+                System.out.println("Failed for: " + image.id() + " - " + e.getMessage());
+            }
+        }
     }
 }

@@ -16,7 +16,7 @@ public record ImageHeader(
     int depth,
     int embeddedLevels,
     int levels,
-    int unk4,
+    int numSlices,
     int unk5,
     int unk6
 ) {
@@ -34,7 +34,7 @@ public record ImageHeader(
         var embeddedLevels = source.readInt();
         var levels = source.readInt();
         source.expectInt(0);
-        var unk4 = source.readInt();
+        var numSlices = source.readInt();
         source.expectByte((byte) 0);
         source.expectByte((byte) 0);
         source.expectByte((byte) 0);
@@ -53,7 +53,7 @@ public record ImageHeader(
             depth,
             embeddedLevels,
             levels,
-            unk4,
+            numSlices,
             unk5,
             unk6
         );
