@@ -2,7 +2,7 @@ package be.twofold.valen.game.deathloop;
 
 import be.twofold.valen.core.game.*;
 
-public record DeathloopAssetId(
+public record DeathloopAssetID(
     String name
 ) implements AssetID {
     @Override
