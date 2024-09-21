@@ -35,16 +35,16 @@ public final class SurfaceConverter {
             default -> throw new UnsupportedOperationException("Unsupported order: " + target.format().order());
         };
 
-        if (source.format().interp() == TextureFormat.Interp.SNorm) {
-            throw new UnsupportedOperationException("Unsupported format: " + source.format());
-        }
-
         var blockFormat = switch (source.format().block()) {
             case BC1 -> BlockFormat.BC1;
             case BC2 -> BlockFormat.BC2;
             case BC3 -> BlockFormat.BC3;
-            case BC4 -> BlockFormat.BC4Unsigned;
-            case BC5 -> BlockFormat.BC5Unsigned;
+            case BC4 -> source.format() == TextureFormat.BC4_UNORM
+                ? BlockFormat.BC4Unsigned
+                : BlockFormat.BC4Signed;
+            case BC5 -> source.format() == TextureFormat.BC5_UNORM
+                ? BlockFormat.BC5UnsignedNormalized
+                : BlockFormat.BC5SignedNormalized;
             case BC7 -> BlockFormat.BC7;
             default -> throw new UnsupportedOperationException("Unsupported block: " + source.format().block());
         };

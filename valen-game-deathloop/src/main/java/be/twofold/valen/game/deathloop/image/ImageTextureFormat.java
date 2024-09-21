@@ -14,7 +14,7 @@ public enum ImageTextureFormat {
     FMT_BC1(14),
     FMT_BC3(16),
     FMT_BC4(17),
-    FMT_BC5(18),
+    FMT_BC5S(18),
     FMT_BC6H(19),
     FMT_BC7(20);
     private static final ImageTextureFormat[] VALUES = values();

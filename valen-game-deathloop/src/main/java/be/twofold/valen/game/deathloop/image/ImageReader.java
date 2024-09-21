@@ -38,7 +38,7 @@ public final class ImageReader {
             case FMT_BC1 -> TextureFormat.BC1_SRGB;
             case FMT_BC3 -> TextureFormat.BC3_SRGB;
             case FMT_BC4 -> TextureFormat.BC4_UNORM;
-            case FMT_BC5 -> TextureFormat.BC5_UNORM;
+            case FMT_BC5S -> TextureFormat.BC5_SNORM;
             case FMT_BC6H -> TextureFormat.BC6H_UFLOAT;
             case FMT_BC7 -> TextureFormat.BC7_SRGB;
         };
