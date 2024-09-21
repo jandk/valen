@@ -2,19 +2,32 @@ package be.twofold.valen.game.deathloop.image;
 
 import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.texture.*;
+import be.twofold.valen.core.util.*;
+import be.twofold.valen.game.deathloop.*;
+import be.twofold.valen.game.deathloop.index.*;
 
 import java.io.*;
 import java.util.*;
 
 public final class ImageReader {
-    public Texture read(DataSource source) throws IOException {
+    private final DeathloopArchive archive;
+
+    public ImageReader(DeathloopArchive archive) {
+        this.archive = Objects.requireNonNull(archive);
+    }
+
+    public Texture read(DataSource source, IndexEntry entry) throws IOException {
         var header = ImageHeader.read(source);
         var format = mapFormat(header.textureFormat());
-        if (header.textureFormat() == ImageTextureFormat.FMT_BC6H) {
-            System.out.println("Found format");
-        }
 
         var surfaces = new ArrayList<Surface>();
+        var externalLevels = header.levels() - header.embeddedLevels();
+        for (int i = 0, w = header.width(), h = header.height(); i < externalLevels; i++, w /= 2, h /= 2) {
+            var mipData = archive.loadRawAsset(new DeathloopAssetID(entry.fileName() + "_mip" + i));
+            var surface = new Surface(w, h, format, Buffers.toArray(mipData));
+            surfaces.add(surface);
+        }
+
         for (int i = 0; i < header.embeddedLevels(); i++) {
             var mipHeader = ImageMipHeader.read(source);
             var mipData = source.readBytes(mipHeader.dataSize());
@@ -22,7 +35,7 @@ public final class ImageReader {
             var surface = new Surface(mipHeader.width(), mipHeader.height(), format, mipData);
             surfaces.add(surface);
         }
-        return new Texture(header.embeddedWidth(), header.embeddedHeight(), format, surfaces, false);
+        return new Texture(header.width(), header.height(), format, surfaces, false);
     }
 
     private TextureFormat mapFormat(ImageTextureFormat textureFormat) {

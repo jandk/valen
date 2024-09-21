@@ -81,7 +81,7 @@ public final class DeathloopArchive implements Archive {
 
         switch (entry.typeName()) {
             case "image":
-                return new ImageReader().read(DataSource.fromBuffer(buffer));
+                return new ImageReader(this).read(DataSource.fromBuffer(buffer), entry);
             default:
                 throw new IllegalArgumentException("Unsupported asset type: " + entry.typeName());
         }
