@@ -4,4 +4,7 @@ module valen.game.deathloop {
 
     exports be.twofold.valen.game.deathloop.index;
     exports be.twofold.valen.game.deathloop.image;
+
+    provides be.twofold.valen.core.game.GameFactory
+        with be.twofold.valen.game.deathloop.DeathloopGameFactory;
 }
