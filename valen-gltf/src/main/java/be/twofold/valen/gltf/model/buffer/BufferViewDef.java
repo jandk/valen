@@ -9,7 +9,7 @@ import java.util.*;
  * A bufferView is a view into a buffer generally representing a subset of the buffer.
  */
 @SchemaStyle
-@Value.Immutable(copy = false)
+@Value.Immutable
 public interface BufferViewDef extends GltfChildOfRootProperty {
     /**
      * The index of the buffer.
