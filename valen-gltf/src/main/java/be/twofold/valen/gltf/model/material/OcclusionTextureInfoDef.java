@@ -11,7 +11,7 @@ import java.util.*;
  */
 @SchemaStyle
 @Value.Immutable(copy = false)
-public interface OcclusionTextureInfoDef extends TextureInfoDef {
+public interface OcclusionTextureInfoDef extends TextureInfo {
     /**
      * A scalar multiplier controlling the amount of occlusion applied.
      */

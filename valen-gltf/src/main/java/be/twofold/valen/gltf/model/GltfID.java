@@ -7,19 +7,15 @@ public abstract class GltfID {
         this.id = id;
     }
 
-    public int getId() {
+    public int id() {
         return id;
     }
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj == null || getClass() != obj.getClass()) {
-            return false;
-        }
-        return id == ((GltfID) obj).id;
+        return this == obj || obj != null
+            && getClass() == obj.getClass()
+            && id == ((GltfID) obj).id;
     }
 
     @Override
@@ -29,6 +25,6 @@ public abstract class GltfID {
 
     @Override
     public String toString() {
-        return String.valueOf(id);
+        return Integer.toString(id);
     }
 }

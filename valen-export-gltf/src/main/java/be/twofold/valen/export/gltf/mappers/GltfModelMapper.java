@@ -36,7 +36,7 @@ public final class GltfModelMapper {
         for (var entry : mesh.vertexBuffers().entrySet()) {
             var semantic = mapSemantic(entry.getKey());
             var accessor = buildAccessor(entry.getValue(), entry.getKey());
-            attributes.addProperty(semantic, accessor.getId());
+            attributes.addProperty(semantic, accessor.id());
         }
 
         var faceAccessor = buildAccessor(mesh.faceBuffer(), null);

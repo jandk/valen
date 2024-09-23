@@ -24,7 +24,7 @@ public class GltfWriter extends GltfCommon {
                 if (visitedBuffers.contains(bufferView.getBuffer())) {
                     continue;
                 }
-                var writable = context.writables.get(bufferView.getBuffer().getId());
+                var writable = context.writables.get(bufferView.getBuffer().id());
                 bufferView = BufferViewSchema.builder().from(bufferView).byteOffset(buffersTotalSize).buffer(BufferID.of(0)).build();
                 bufferViews.set(i, bufferView);
                 buffersTotalSize = alignedLength(buffersTotalSize + size(writable));

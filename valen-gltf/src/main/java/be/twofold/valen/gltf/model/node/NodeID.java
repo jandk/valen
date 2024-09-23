@@ -12,6 +12,6 @@ public final class NodeID extends GltfID {
     }
 
     public NodeID add(int offset) {
-        return new NodeID(getId() + offset);
+        return new NodeID(id() + offset);
     }
 }

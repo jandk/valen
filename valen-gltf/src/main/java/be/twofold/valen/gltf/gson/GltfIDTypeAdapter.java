@@ -9,7 +9,7 @@ import java.io.*;
 public final class GltfIDTypeAdapter extends TypeAdapter<GltfID> {
     @Override
     public void write(JsonWriter out, GltfID value) throws IOException {
-        out.value(value.getId());
+        out.value(value.id());
     }
 
     @Override

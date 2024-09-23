@@ -11,7 +11,7 @@ import java.util.*;
  */
 @SchemaStyle
 @Value.Immutable(copy = false)
-public interface NormalTextureInfoDef extends TextureInfoDef {
+public interface NormalTextureInfoDef extends TextureInfo {
     /**
      * The scalar parameter applied to each normal vector of the normal texture.
      */
