@@ -26,8 +26,12 @@ public final class ModelPresenter extends AbstractPresenter<ModelView> implement
 
     @Override
     public void setData(Object data) {
-        var model = (Model) data;
+        if (data == null) {
+            getView().setMeshes(List.of());
+            return;
+        }
 
+        var model = (Model) data;
         var meshes = mapModel(model);
         getView().setMeshes(meshes);
     }

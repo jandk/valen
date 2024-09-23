@@ -16,10 +16,17 @@ public final class ModelViewFx extends AbstractView<ModelViewListener> implement
     private final ObjectProperty<SubScene> subSceneProperty = new SimpleObjectProperty<>();
     private final Pane view = new SubSceneResizer(subSceneProperty);
     private final Group root = new Group();
+    private final SubScene subScene;
 
     @Inject
     public ModelViewFx() {
         super(ModelViewListener.class);
+
+        this.subScene = new SubScene(root, 400, 400, true, SceneAntialiasing.BALANCED);
+        subScene.setFill(new Color(0.2, 0.2, 0.2, 1.0));
+        subSceneProperty.set(subScene);
+        var cameraSystem = new CameraSystem(subScene);
+        root.getChildren().add(cameraSystem.camera());
     }
 
     @Override
@@ -29,18 +36,17 @@ public final class ModelViewFx extends AbstractView<ModelViewListener> implement
 
     @Override
     public void setMeshes(List<TriangleMesh> meshes) {
+        root.getChildren().subList(1, root.getChildren().size()).clear();
+        if (meshes.isEmpty()) {
+            return;
+        }
+
         var meshViews = meshes.stream()
             .map(MeshView::new)
             .toList();
 
         center(meshViews);
 
-        var subScene = new SubScene(root, 400, 400, true, SceneAntialiasing.BALANCED);
-        subScene.setFill(new Color(0.2, 0.2, 0.2, 1.0));
-        subSceneProperty.set(subScene);
-
-        var cameraSystem = new CameraSystem(subScene);
-        root.getChildren().add(cameraSystem.camera());
         root.getChildren().addAll(meshViews);
     }
 

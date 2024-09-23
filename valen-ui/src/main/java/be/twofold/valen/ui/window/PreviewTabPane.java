@@ -42,5 +42,6 @@ public class PreviewTabPane extends TabPane {
         }
 
         getTabs().sort(Comparator.comparing(Tab::getText));
+        getSelectionModel().selectLast();
     }
 }
