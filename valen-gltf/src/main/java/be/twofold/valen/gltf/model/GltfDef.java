@@ -24,6 +24,11 @@ import java.util.*;
 @Value.Immutable(copy = false)
 public interface GltfDef extends GltfProperty {
     /**
+     * Metadata about the glTF asset.
+     */
+    AssetSchema getAsset();
+
+    /**
      * Names of glTF extensions used in this asset.
      */
     List<String> getExtensionsUsed();
@@ -42,11 +47,6 @@ public interface GltfDef extends GltfProperty {
      * An array of keyframe animations.
      */
     List<AnimationSchema> getAnimations();
-
-    /**
-     * Metadata about the glTF asset.
-     */
-    AssetSchema getAsset();
 
     /**
      * An array of buffers.
