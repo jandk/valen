@@ -60,7 +60,7 @@ public final class GltfSkeletonMapper {
             .bufferView(bufferView)
             .componentType(AccessorComponentType.FLOAT)
             .count(bones.size())
-            .type(AccessorType.MAT4)
+            .type(AccessorType.Matrix4)
             .build();
         var inverseBindMatrices = context.addAccessor(accessor);
 

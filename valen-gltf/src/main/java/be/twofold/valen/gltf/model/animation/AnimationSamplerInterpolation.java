@@ -1,9 +1,11 @@
 package be.twofold.valen.gltf.model.animation;
 
-public enum AnimationSamplerInterpolation {
-    Linear("LINEAR"),
-    Step("STEP"),
-    CubicSpline("CUBICSPLINE");
+import be.twofold.valen.gltf.model.*;
+
+public enum AnimationSamplerInterpolation implements ValueEnum<String> {
+    LINEAR("LINEAR"),
+    STEP("STEP"),
+    CUBIC_SPLINE("CUBICSPLINE");
 
     private final String value;
 
@@ -11,7 +13,8 @@ public enum AnimationSamplerInterpolation {
         this.value = value;
     }
 
-    public String getValue() {
+    @Override
+    public String value() {
         return value;
     }
 }

@@ -1,6 +1,8 @@
 package be.twofold.valen.gltf.model.animation;
 
-public enum AnimationChannelTargetPath {
+import be.twofold.valen.gltf.model.*;
+
+public enum AnimationChannelTargetPath implements ValueEnum<String> {
     Translation("translation"),
     Rotation("rotation"),
     Scale("scale"),
@@ -12,7 +14,8 @@ public enum AnimationChannelTargetPath {
         this.value = value;
     }
 
-    public String getValue() {
+    @Override
+    public String value() {
         return value;
     }
 }

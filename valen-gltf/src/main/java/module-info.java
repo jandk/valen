@@ -34,4 +34,6 @@ module valen.gltf {
     opens be.twofold.valen.gltf.model.skin to com.google.gson;
     opens be.twofold.valen.gltf.model.texture to com.google.gson;
     opens be.twofold.valen.gltf.types to com.google.gson;
+    exports be.twofold.valen.gltf.gson;
+    opens be.twofold.valen.gltf.gson to com.google.gson;
 }

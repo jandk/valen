@@ -1,8 +1,10 @@
 package be.twofold.valen.gltf.model.image;
 
-public enum ImageMimeType {
-    ImageJpeg("image/jpeg"),
-    ImagePng("image/png");
+import be.twofold.valen.gltf.model.*;
+
+public enum ImageMimeType implements ValueEnum<String> {
+    IMAGE_JPEG("image/jpeg"),
+    IMAGE_PNG("image/png");
 
     private final String value;
 
@@ -10,7 +12,8 @@ public enum ImageMimeType {
         this.value = value;
     }
 
-    public String getValue() {
+    @Override
+    public String value() {
         return value;
     }
 }

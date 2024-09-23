@@ -6,7 +6,7 @@ import com.google.gson.stream.*;
 
 import java.io.*;
 
-public final class AbstractIdTypeAdapter extends TypeAdapter<GltfID> {
+public final class GltfIDTypeAdapter extends TypeAdapter<GltfID> {
     @Override
     public void write(JsonWriter out, GltfID value) throws IOException {
         out.value(value.getId());

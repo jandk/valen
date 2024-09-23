@@ -1,16 +1,19 @@
 package be.twofold.valen.gltf.model.buffer;
 
-public enum BufferViewTarget {
+import be.twofold.valen.gltf.model.*;
+
+public enum BufferViewTarget implements ValueEnum<Integer> {
     ARRAY_BUFFER(34962),
     ELEMENT_ARRAY_BUFFER(34963);
 
-    private final int id;
+    private final int value;
 
-    BufferViewTarget(int id) {
-        this.id = id;
+    BufferViewTarget(int value) {
+        this.value = value;
     }
 
-    public int getId() {
-        return id;
+    @Override
+    public Integer value() {
+        return value;
     }
 }
