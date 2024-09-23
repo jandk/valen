@@ -25,6 +25,6 @@ public interface ImageDef extends GltfChildOfRootProperty {
     /**
      * The index of the bufferView that contains the image. This field MUST NOT be defined when uri is defined.
      */
-    OptionalInt getBufferView();
+    Optional<BufferViewId> getBufferView();
 
 }

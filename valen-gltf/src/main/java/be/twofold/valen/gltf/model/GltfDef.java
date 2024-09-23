@@ -78,7 +78,7 @@ public interface GltfDef extends GltfProperty {
     /**
      * The index of the default scene.
      */
-    OptionalInt getScene();
+    Optional<SceneId> getScene();
 
     /**
      * An array of scenes.

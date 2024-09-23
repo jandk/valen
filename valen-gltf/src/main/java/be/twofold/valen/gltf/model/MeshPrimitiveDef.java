@@ -27,7 +27,7 @@ public interface MeshPrimitiveDef extends GltfProperty {
     /**
      * The topology type of primitives to render.
      */
-    OptionalInt getMode();
+    Optional<MeshPrimitiveMode> getMode();
 
     /**
      * An array of Morph Targets.

@@ -136,8 +136,9 @@ public class GltfContext {
         return SamplerId.of(samplers.size() - 1);
     }
 
-    public void addScene(SceneSchema scene) {
+    public SceneId addScene(SceneSchema scene) {
         scenes.add(scene);
+        return SceneId.of(scenes.size() - 1);
     }
 
     public SkinId addSkin(SkinSchema skin) {
