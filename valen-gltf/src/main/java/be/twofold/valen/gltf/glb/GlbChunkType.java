@@ -1,8 +1,8 @@
 package be.twofold.valen.gltf.glb;
 
 public enum GlbChunkType {
-    JSON(0x4e4f534a),
-    BIN(0x004e4942);
+    JSON(0x4E4F534A),
+    BIN(0x004E4942);
 
     private final int value;
 

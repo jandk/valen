@@ -39,7 +39,7 @@ public final class GlbWriter extends GltfCommon {
         int alignedJsonLength = alignedLength(rawJson.length);
 
         int totalSize = GlbHeader.BYTES + GlbChunkHeader.BYTES + alignedJsonLength + GlbChunkHeader.BYTES + buffersTotalSize;
-        out.write(GlbHeader.of(totalSize).toBuffer().array());
+        out.write(new GlbHeader(totalSize).toBuffer().array());
         out.write(new GlbChunkHeader(alignedJsonLength, GlbChunkType.JSON).toBuffer().array());
         out.write(rawJson);
         align(out, rawJson.length, (byte) ' ');
