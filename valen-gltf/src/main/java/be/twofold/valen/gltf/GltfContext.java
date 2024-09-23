@@ -1,6 +1,19 @@
 package be.twofold.valen.gltf;
 
 import be.twofold.valen.gltf.model.*;
+import be.twofold.valen.gltf.model.accessor.*;
+import be.twofold.valen.gltf.model.animation.*;
+import be.twofold.valen.gltf.model.asset.*;
+import be.twofold.valen.gltf.model.buffer.*;
+import be.twofold.valen.gltf.model.camera.*;
+import be.twofold.valen.gltf.model.image.*;
+import be.twofold.valen.gltf.model.material.*;
+import be.twofold.valen.gltf.model.mesh.*;
+import be.twofold.valen.gltf.model.node.*;
+import be.twofold.valen.gltf.model.sampler.*;
+import be.twofold.valen.gltf.model.scene.*;
+import be.twofold.valen.gltf.model.skin.*;
+import be.twofold.valen.gltf.model.texture.*;
 
 import java.nio.*;
 import java.util.*;
@@ -87,73 +100,73 @@ public class GltfContext {
 
     // region Adders
 
-    public AccessorId addAccessor(AccessorSchema accessor) {
+    public AccessorID addAccessor(AccessorSchema accessor) {
         accessors.add(accessor);
-        return AccessorId.of(accessors.size() - 1);
+        return AccessorID.of(accessors.size() - 1);
     }
 
     public void addAnimation(AnimationSchema animation) {
         animations.add(animation);
     }
 
-    public BufferId addBuffer(BufferSchema buffer) {
+    public BufferID addBuffer(BufferSchema buffer) {
         buffers.add(buffer);
-        return BufferId.of(buffers.size() - 1);
+        return BufferID.of(buffers.size() - 1);
     }
 
-    public BufferViewId addBufferView(BufferViewSchema bufferView) {
+    public BufferViewID addBufferView(BufferViewSchema bufferView) {
         bufferViews.add(bufferView);
-        return BufferViewId.of(bufferViews.size() - 1);
+        return BufferViewID.of(bufferViews.size() - 1);
     }
 
-    public CameraId addCamera(CameraSchema camera) {
+    public CameraID addCamera(CameraSchema camera) {
         cameras.add(camera);
-        return CameraId.of(cameras.size() - 1);
+        return CameraID.of(cameras.size() - 1);
     }
 
-    public ImageId addImage(ImageSchema image) {
+    public ImageID addImage(ImageSchema image) {
         images.add(image);
-        return ImageId.of(images.size() - 1);
+        return ImageID.of(images.size() - 1);
     }
 
-    public MaterialId addMaterial(MaterialSchema material) {
+    public MaterialID addMaterial(MaterialSchema material) {
         materials.add(material);
-        return MaterialId.of(materials.size() - 1);
+        return MaterialID.of(materials.size() - 1);
     }
 
-    public MeshId addMesh(MeshSchema mesh) {
+    public MeshID addMesh(MeshSchema mesh) {
         meshes.add(mesh);
-        return MeshId.of(meshes.size() - 1);
+        return MeshID.of(meshes.size() - 1);
     }
 
-    public NodeId addNode(NodeSchema node) {
+    public NodeID addNode(NodeSchema node) {
         nodes.add(node);
-        return NodeId.of(nodes.size() - 1);
+        return NodeID.of(nodes.size() - 1);
     }
 
-    public SamplerId addSampler(SamplerSchema sampler) {
+    public SamplerID addSampler(SamplerSchema sampler) {
         samplers.add(sampler);
-        return SamplerId.of(samplers.size() - 1);
+        return SamplerID.of(samplers.size() - 1);
     }
 
-    public SceneId addScene(SceneSchema scene) {
+    public SceneID addScene(SceneSchema scene) {
         scenes.add(scene);
-        return SceneId.of(scenes.size() - 1);
+        return SceneID.of(scenes.size() - 1);
     }
 
-    public SkinId addSkin(SkinSchema skin) {
+    public SkinID addSkin(SkinSchema skin) {
         skins.add(skin);
-        return SkinId.of(skins.size() - 1);
+        return SkinID.of(skins.size() - 1);
     }
 
-    public TextureId addTexture(TextureSchema texture) {
+    public TextureID addTexture(TextureSchema texture) {
         textures.add(texture);
-        return TextureId.of(textures.size() - 1);
+        return TextureID.of(textures.size() - 1);
     }
 
     // endregion
 
-    public void addScene(List<NodeId> nodes) {
+    public void addScene(List<NodeID> nodes) {
         var skinNodes = skins.stream()
             .flatMap(skin -> skin.getSkeleton().stream())
             .toList();
@@ -173,19 +186,19 @@ public class GltfContext {
         extensions.put(name, extension);
     }
 
-    public BufferViewId createBufferView(Buffer buffer, int length, BufferViewTarget target) {
+    public BufferViewID createBufferView(Buffer buffer, int length, BufferViewTarget target) {
         writables.add(buffer);
         var bufferId = writables.size() - 1;
         return createBufferView(length, target, bufferId);
     }
 
-    public TextureId allocateTextureId(String textureName) {
+    public TextureID allocateTextureId(String textureName) {
         var textureId = allocatedTextures.indexOf(textureName);
         if (textureId == -1) {
             allocatedTextures.add(textureName);
-            return TextureId.of(allocatedTextures.size() - 1);
+            return TextureID.of(allocatedTextures.size() - 1);
         } else {
-            return TextureId.of(textureId);
+            return TextureID.of(textureId);
         }
     }
 
@@ -193,28 +206,28 @@ public class GltfContext {
         return allocatedTextures;
     }
 
-    public MaterialId findMaterial(String materialName) {
+    public MaterialID findMaterial(String materialName) {
         for (int i = 0; i < materials.size(); i++) {
             MaterialSchema materialSchema = materials.get(i);
             if (materialSchema.getName().isPresent() && materialSchema.getName().get().equals(materialName)) {
-                return MaterialId.of(i);
+                return MaterialID.of(i);
             }
         }
-        return MaterialId.of(-1);
+        return MaterialID.of(-1);
     }
 
-    public ImageId getImage(String texturePath) {
+    public ImageID getImage(String texturePath) {
         for (int i = 0; i < images.size(); i++) {
             if (images.get(i).getName().isPresent() && images.get(i).getName().get().equals(texturePath)) {
-                return ImageId.of(i);
+                return ImageID.of(i);
             }
         }
-        return ImageId.of(-1);
+        return ImageID.of(-1);
     }
 
-    private BufferViewId createBufferView(int length, BufferViewTarget target, int bufferId) {
+    private BufferViewID createBufferView(int length, BufferViewTarget target, int bufferId) {
         var bufferView = BufferViewSchema.builder()
-            .buffer(BufferId.of(bufferId))
+            .buffer(BufferID.of(bufferId))
             .byteOffset(0)
             .byteLength(length)
             .target(Optional.ofNullable(target))
@@ -222,7 +235,7 @@ public class GltfContext {
         bufferViews.add(bufferView);
 
         // Round up offset to a multiple of 4
-        return BufferViewId.of(bufferViews.size() - 1);
+        return BufferViewID.of(bufferViews.size() - 1);
     }
 
     public GltfSchema buildGltf() {
@@ -252,7 +265,7 @@ public class GltfContext {
             .build();
     }
 
-    public NodeId nextNodeId() {
-        return NodeId.of(nodes.size());
+    public NodeID nextNodeId() {
+        return NodeID.of(nodes.size());
     }
 }

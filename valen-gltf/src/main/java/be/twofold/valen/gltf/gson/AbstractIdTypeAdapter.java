@@ -6,14 +6,14 @@ import com.google.gson.stream.*;
 
 import java.io.*;
 
-public final class AbstractIdTypeAdapter extends TypeAdapter<AbstractId> {
+public final class AbstractIdTypeAdapter extends TypeAdapter<GltfID> {
     @Override
-    public void write(JsonWriter out, AbstractId value) throws IOException {
+    public void write(JsonWriter out, GltfID value) throws IOException {
         out.value(value.getId());
     }
 
     @Override
-    public AbstractId read(JsonReader in) throws IOException {
+    public GltfID read(JsonReader in) throws IOException {
         throw new UnsupportedOperationException();
     }
 }

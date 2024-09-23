@@ -3,7 +3,9 @@ package be.twofold.valen.export.gltf.mappers;
 import be.twofold.valen.core.geometry.*;
 import be.twofold.valen.core.math.*;
 import be.twofold.valen.gltf.*;
-import be.twofold.valen.gltf.model.*;
+import be.twofold.valen.gltf.model.accessor.*;
+import be.twofold.valen.gltf.model.buffer.*;
+import be.twofold.valen.gltf.model.mesh.*;
 import com.google.gson.*;
 
 import java.nio.*;
@@ -44,7 +46,7 @@ public final class GltfModelMapper {
             .build();
     }
 
-    private AccessorId buildAccessor(VertexBuffer buffer, Semantic semantic) {
+    private AccessorID buildAccessor(VertexBuffer buffer, Semantic semantic) {
         var target = semantic == null
             ? BufferViewTarget.ELEMENT_ARRAY_BUFFER
             : BufferViewTarget.ARRAY_BUFFER;

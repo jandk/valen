@@ -1,6 +1,7 @@
 package be.twofold.valen.gltf;
 
 import be.twofold.valen.gltf.model.*;
+import be.twofold.valen.gltf.model.buffer.*;
 
 import java.io.*;
 import java.net.*;
@@ -16,7 +17,7 @@ public class GltfWriter extends GltfCommon {
     public void write(Path outputDirectory, String filename) throws IOException {
         try (var channel = Files.newOutputStream(outputDirectory.resolve(filename + ".bin"))) {
             int buffersTotalSize = 0;
-            var visitedBuffers = new HashSet<BufferId>();
+            var visitedBuffers = new HashSet<BufferID>();
             List<BufferViewSchema> bufferViews = context.getBufferViews();
             for (int i = 0; i < bufferViews.size(); i++) {
                 BufferViewSchema bufferView = bufferViews.get(i);
@@ -24,7 +25,7 @@ public class GltfWriter extends GltfCommon {
                     continue;
                 }
                 var writable = context.writables.get(bufferView.getBuffer().getId());
-                bufferView = BufferViewSchema.builder().from(bufferView).byteOffset(buffersTotalSize).buffer(BufferId.of(0)).build();
+                bufferView = BufferViewSchema.builder().from(bufferView).byteOffset(buffersTotalSize).buffer(BufferID.of(0)).build();
                 bufferViews.set(i, bufferView);
                 buffersTotalSize = alignedLength(buffersTotalSize + size(writable));
                 visitedBuffers.add(bufferView.getBuffer());

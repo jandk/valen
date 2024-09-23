@@ -3,7 +3,9 @@ package be.twofold.valen.export.gltf.mappers;
 import be.twofold.valen.core.geometry.*;
 import be.twofold.valen.core.math.*;
 import be.twofold.valen.gltf.*;
-import be.twofold.valen.gltf.model.*;
+import be.twofold.valen.gltf.model.accessor.*;
+import be.twofold.valen.gltf.model.node.*;
+import be.twofold.valen.gltf.model.skin.*;
 
 import java.nio.*;
 import java.util.*;
@@ -30,8 +32,8 @@ public final class GltfSkeletonMapper {
 
         // Build the skeleton
         var baseNodeId = context.nextNodeId();
-        var skeletonNodeId = (NodeId) null;
-        var jointIndices = new ArrayList<NodeId>();
+        var skeletonNodeId = (NodeID) null;
+        var jointIndices = new ArrayList<NodeID>();
         for (var i = 0; i < bones.size(); i++) {
             var bone = bones.get(i);
             var jointChildren = children.getOrDefault(i, List.of()).stream()
@@ -70,7 +72,7 @@ public final class GltfSkeletonMapper {
     }
 
     @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
-    private NodeId buildSkeletonJoint(Bone joint, List<NodeId> children, Optional<Quaternion> rotation) {
+    private NodeID buildSkeletonJoint(Bone joint, List<NodeID> children, Optional<Quaternion> rotation) {
         var builder = NodeSchema.builder()
             .name(joint.name())
             .children(children)

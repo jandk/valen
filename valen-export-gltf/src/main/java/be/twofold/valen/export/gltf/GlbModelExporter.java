@@ -5,7 +5,8 @@ import be.twofold.valen.core.math.*;
 import be.twofold.valen.export.*;
 import be.twofold.valen.export.gltf.mappers.*;
 import be.twofold.valen.gltf.*;
-import be.twofold.valen.gltf.model.*;
+import be.twofold.valen.gltf.model.mesh.*;
+import be.twofold.valen.gltf.model.node.*;
 
 import java.io.*;
 import java.util.*;
@@ -42,7 +43,7 @@ public final class GlbModelExporter implements Exporter<Model> {
         writer.write(out);
     }
 
-    private static NodeId mapAnimatedModel(GltfContext context, MeshId meshId, Skeleton skeleton) {
+    private static NodeID mapAnimatedModel(GltfContext context, MeshID meshId, Skeleton skeleton) {
         var skeletonMapper = new GltfSkeletonMapper(context, ROTATION);
 
         var skinId = context.addSkin(
@@ -60,7 +61,7 @@ public final class GlbModelExporter implements Exporter<Model> {
                 .build());
     }
 
-    private static NodeId mapStaticModel(GltfContext context, MeshId meshId) {
+    private static NodeID mapStaticModel(GltfContext context, MeshID meshId) {
         var meshNodeId = context.addNode(
             NodeSchema.builder()
                 .mesh(meshId)

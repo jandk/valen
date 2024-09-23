@@ -1,6 +1,6 @@
 package be.twofold.valen.gltf.gson;
 
-import be.twofold.valen.gltf.model.*;
+import be.twofold.valen.gltf.model.buffer.*;
 import com.google.gson.*;
 import com.google.gson.stream.*;
 

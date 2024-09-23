@@ -2,7 +2,8 @@ package be.twofold.valen.export.gltf.mappers;
 
 import be.twofold.valen.core.material.*;
 import be.twofold.valen.gltf.*;
-import be.twofold.valen.gltf.model.*;
+import be.twofold.valen.gltf.model.material.*;
+import be.twofold.valen.gltf.model.texture.*;
 
 public final class GltfMaterialMapper {
     private final GltfContext context;

@@ -2,6 +2,10 @@ package be.twofold.valen.gltf;
 
 import be.twofold.valen.gltf.gson.*;
 import be.twofold.valen.gltf.model.*;
+import be.twofold.valen.gltf.model.accessor.*;
+import be.twofold.valen.gltf.model.animation.*;
+import be.twofold.valen.gltf.model.buffer.*;
+import be.twofold.valen.gltf.model.image.*;
 import be.twofold.valen.gltf.types.*;
 import com.google.gson.*;
 
@@ -12,14 +16,14 @@ import java.util.*;
 abstract class GltfCommon {
     static final Gson GSON = new GsonBuilder()
         // .setPrettyPrinting()
-        .registerTypeHierarchyAdapter(AbstractId.class, new AbstractIdTypeAdapter().nullSafe())
+        .registerTypeHierarchyAdapter(GltfID.class, new AbstractIdTypeAdapter().nullSafe())
         .registerTypeHierarchyAdapter(Collection.class, new CollectionSerializer())
         .registerTypeHierarchyAdapter(Map.class, new MapSerializer())
         .registerTypeAdapter(AccessorComponentType.class, new AccessorComponentTypeTypeAdapter())
         .registerTypeAdapter(AnimationChannelTargetPath.class, new AnimationChannelTargetPathTypeAdapter())
         .registerTypeAdapter(AnimationSamplerInterpolation.class, new AnimationSamplerInterpolationTypeAdapter().nullSafe())
         .registerTypeAdapter(BufferViewTarget.class, new BufferViewTargetTypeAdapter().nullSafe())
-        .registerTypeAdapter(MimeType.class, new MimeTypeTypeAdapter().nullSafe())
+        .registerTypeAdapter(ImageMimeType.class, new MimeTypeTypeAdapter().nullSafe())
         .registerTypeAdapter(Mat2.class, new Mat2.Adapter().nullSafe())
         .registerTypeAdapter(Mat3.class, new Mat3.Adapter().nullSafe())
         .registerTypeAdapter(Mat4.class, new Mat4.Adapter().nullSafe())
