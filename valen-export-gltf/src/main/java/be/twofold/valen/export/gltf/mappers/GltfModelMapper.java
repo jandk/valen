@@ -5,7 +5,6 @@ import be.twofold.valen.core.math.*;
 import be.twofold.valen.gltf.*;
 import be.twofold.valen.gltf.model.accessor.*;
 import be.twofold.valen.gltf.model.buffer.*;
-import be.twofold.valen.gltf.model.mesh.*;
 import com.google.gson.*;
 
 import java.nio.*;
@@ -24,6 +23,7 @@ public final class GltfModelMapper {
             .toList();
 
         return MeshSchema.builder()
+            .name(model.name())
             .primitives(primitives)
             .build();
     }
@@ -41,6 +41,7 @@ public final class GltfModelMapper {
 
         var faceAccessor = buildAccessor(mesh.faceBuffer(), null);
         return MeshPrimitiveSchema.builder()
+            .material(MaterialId.of(mesh.materialIndex()))
             .attributes(attributes)
             .indices(faceAccessor)
             .build();
@@ -79,13 +80,30 @@ public final class GltfModelMapper {
         // TODO: Loop over joints and weights and fix them
         mesh.getBuffer(Semantic.Joints0).ifPresent(joints -> mesh
             .getBuffer(Semantic.Weights0).ifPresent(weights -> {
-                var ja = ((ByteBuffer) joints.buffer()).array();
                 var wa = ((ByteBuffer) weights.buffer()).array();
-                for (var i = 0; i < ja.length; i++) {
-                    if (wa[i] == 0) {
-                        ja[i] = 0;
+                Buffer buffer = joints.buffer();
+                switch (buffer) {
+                    case ByteBuffer byteBuffer -> {
+                        var ja = byteBuffer.array();
+                        for (var i = 0; i < ja.length; i++) {
+                            if (wa[i] == 0) {
+                                ja[i] = 0;
+                            }
+                        }
                     }
+                    case ShortBuffer shortBuffer -> {
+                        var ja = shortBuffer.array();
+                        for (var i = 0; i < ja.length; i++) {
+                            if (wa[i] == 0) {
+                                ja[i] = 0;
+                            }
+                        }
+                    }
+                    default -> throw new IllegalStateException("Unexpected buffer type: " + buffer);
                 }
+
+
+
             }));
     }
 

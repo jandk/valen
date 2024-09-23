@@ -28,8 +28,9 @@ public final class GlbModelExporter implements Exporter<Model> {
     @Override
     public void export(Model model, OutputStream out) throws IOException {
         var context = new GltfContext();
+        var materialMapper = new GltfMaterialMapper(context);
         var modelMapper = new GltfModelMapper(context);
-
+        model.materials().stream().map(materialMapper::map).forEach(context::addMaterial);
         var meshId = context.addMesh(
             modelMapper.map(model));
 

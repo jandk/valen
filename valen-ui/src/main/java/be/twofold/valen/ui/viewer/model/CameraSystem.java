@@ -54,7 +54,7 @@ final class CameraSystem {
             } else if (event.isSecondaryButtonDown()) {
                 double z = translate.getZ();
                 z += (mouseDeltaX + mouseDeltaY) * 0.3;
-                translate.setZ(Math.clamp(z, -1000, -200));
+                translate.setZ(Math.clamp(z, -5000, -200));
             }
         }
     }
@@ -65,14 +65,14 @@ final class CameraSystem {
             camera.setTranslateY(camera.getTranslateY() + (0.01 * event.getDeltaY()));
         } else {
             double z = translate.getZ() - (event.getDeltaY() * 0.2);
-            translate.setZ(Math.clamp(z, -1000, -200));
+            translate.setZ(Math.clamp(z, -5000, -200));
         }
     }
 
     private void handleZoomEvent(ZoomEvent event) {
         if (!Double.isNaN(event.getZoomFactor()) && event.getZoomFactor() > 0.8 && event.getZoomFactor() < 1.2) {
             double z = translate.getZ() / event.getZoomFactor();
-            translate.setZ(Math.clamp(z, -1000, -200));
+            translate.setZ(Math.clamp(z, -5000, -200));
         }
     }
 }

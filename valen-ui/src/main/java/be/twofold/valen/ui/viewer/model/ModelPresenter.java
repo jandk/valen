@@ -30,9 +30,15 @@ public final class ModelPresenter extends AbstractPresenter<ModelView> implement
             getView().setMeshes(List.of());
             return;
         }
+        var meshes = new ArrayList<TriangleMesh>();
+        if (data instanceof Model mdl) {
+            meshes.addAll(mapModel(mdl));
+        } else if (data instanceof List<?> mdlList) {
+            for (Object o : mdlList) {
+                meshes.addAll(mapModel((Model) o));
+            }
+        }
 
-        var model = (Model) data;
-        var meshes = mapModel(model);
         getView().setMeshes(meshes);
     }
 

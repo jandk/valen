@@ -2,8 +2,6 @@ package be.twofold.valen.export.gltf.mappers;
 
 import be.twofold.valen.core.material.*;
 import be.twofold.valen.gltf.*;
-import be.twofold.valen.gltf.model.material.*;
-import be.twofold.valen.gltf.model.texture.*;
 
 public final class GltfMaterialMapper {
     private final GltfContext context;
@@ -12,7 +10,7 @@ public final class GltfMaterialMapper {
         this.context = context;
     }
 
-    MaterialSchema map(Material material) {
+    public MaterialSchema map(Material material) {
         var builder = MaterialSchema.builder().name(material.name());
         var pbrBuilder = PbrMetallicRoughnessSchema.builder();
         for (var texture : material.textures()) {

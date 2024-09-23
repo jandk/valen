@@ -18,6 +18,10 @@ public record Vector2(
         return new Vector2(x * scalar, y * scalar);
     }
 
+    public Vector2 multiply(Vector2 vec) {
+        return new Vector2(x * vec.x(), y * vec.y());
+    }
+
     public Vector2 divide(float scalar) {
         return multiply(1.0f / scalar);
     }

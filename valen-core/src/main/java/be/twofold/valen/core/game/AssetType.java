@@ -5,4 +5,5 @@ public enum AssetType {
     Texture,
     Model,
     Text,
+    Data,
 }

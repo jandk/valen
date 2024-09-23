@@ -17,6 +17,7 @@
         <module>valen-export</module>
         <module>valen-game-doom</module>
         <module>valen-game-eternal</module>
+        <module>valen-game-spacemarines2</module>
         <module>valen-gltf</module>
         <module>valen-jlink</module>
         <module>valen-ui</module>
@@ -126,6 +127,11 @@
             <dependency>
                 <groupId>be.twofold</groupId>
                 <artifactId>valen-game-eternal</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.redeye</groupId>
+                <artifactId>valen-game-spacemarines2</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
