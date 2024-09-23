@@ -38,6 +38,7 @@ public final class GltfContext {
     private final List<TextureSchema> textures = new ArrayList<>();
 
     private final List<Buffer> binaryBuffers = new ArrayList<>();
+    private int binaryBufferSize = 0;
 
     // region Getters
 
@@ -188,13 +189,15 @@ public final class GltfContext {
     }
 
     public BufferViewID createBufferView(Buffer buffer, int length, BufferViewTarget target) {
-        binaryBuffers.add(buffer);
-
         var bufferView = BufferViewSchema.builder()
             .buffer(BufferID.of(0))
             .byteLength(length)
+            .byteOffset(binaryBufferSize)
             .target(Optional.ofNullable(target))
             .build();
+
+        binaryBuffers.add(buffer);
+        binaryBufferSize = GltfUtils.alignedLength(binaryBufferSize + size(buffer));
 
         return addBufferView(bufferView);
     }
@@ -235,20 +238,12 @@ public final class GltfContext {
     }
 
     public int updateBufferViews(URI uri) {
-        var totalSize = 0;
-        for (var i = 0; i < bufferViews.size(); i++) {
-            bufferViews.set(i, bufferViews.get(i).withByteOffset(totalSize));
-            totalSize = GltfUtils.alignedLength(totalSize + size(binaryBuffers.get(i)));
-        }
-
-        // TODO: Add support for multiple buffers
         buffers.clear();
         addBuffer(BufferSchema.builder()
-            .byteLength(totalSize)
+            .byteLength(binaryBufferSize)
             .uri(Optional.ofNullable(uri))
             .build());
-
-        return totalSize;
+        return binaryBufferSize;
     }
 
     private int size(Buffer buffer) {
