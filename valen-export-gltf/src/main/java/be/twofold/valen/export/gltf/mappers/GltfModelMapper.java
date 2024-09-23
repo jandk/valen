@@ -120,13 +120,13 @@ public final class GltfModelMapper {
 
     public static AccessorType mapElementType(ElementType type) {
         return switch (type) {
-            case Scalar -> AccessorType.Scalar;
-            case Vector2 -> AccessorType.Vector2;
-            case Vector3 -> AccessorType.Vector3;
-            case Vector4 -> AccessorType.Vector4;
-            case Matrix2 -> AccessorType.Matrix2;
-            case Matrix3 -> AccessorType.Matrix3;
-            case Matrix4 -> AccessorType.Matrix4;
+            case Scalar -> AccessorType.SCALAR;
+            case Vector2 -> AccessorType.VEC2;
+            case Vector3 -> AccessorType.VEC3;
+            case Vector4 -> AccessorType.VEC4;
+            case Matrix2 -> AccessorType.MAT2;
+            case Matrix3 -> AccessorType.MAT3;
+            case Matrix4 -> AccessorType.MAT4;
         };
     }
 

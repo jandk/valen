@@ -15,10 +15,11 @@ import be.twofold.valen.gltf.model.scene.*;
 import be.twofold.valen.gltf.model.skin.*;
 import be.twofold.valen.gltf.model.texture.*;
 
+import java.net.*;
 import java.nio.*;
 import java.util.*;
 
-public class GltfContext {
+public final class GltfContext {
     private final Map<String, Extension> extensions = new TreeMap<>();
     private final List<String> extensionsUsed = new ArrayList<>();
     private final List<String> extensionsRequired = new ArrayList<>();
@@ -36,11 +37,19 @@ public class GltfContext {
     private final List<SkinSchema> skins = new ArrayList<>();
     private final List<TextureSchema> textures = new ArrayList<>();
 
-    private final List<String> allocatedTextures = new ArrayList<>();
-
-    final List<Buffer> writables = new ArrayList<>();
+    private final List<Buffer> binaryBuffers = new ArrayList<>();
+    private int binaryBufferSize = 0;
 
     // region Getters
+
+    // TODO: Fix this method
+    public void addExtension(String name, Extension extension, boolean required) {
+        extensionsUsed.add(name);
+        if (required) {
+            extensionsRequired.add(name);
+        }
+        extensions.put(name, extension);
+    }
 
     public List<AccessorSchema> getAccessors() {
         return Collections.unmodifiableList(accessors);
@@ -51,13 +60,11 @@ public class GltfContext {
     }
 
     public List<BufferSchema> getBuffers() {
-        // TODO: This needs to be an immutable return
-        return buffers;
+        return Collections.unmodifiableList(buffers);
     }
 
     public List<BufferViewSchema> getBufferViews() {
-        // TODO: This needs to be an immutable return
-        return bufferViews;
+        return Collections.unmodifiableList(bufferViews);
     }
 
     public List<CameraSchema> getCameras() {
@@ -94,6 +101,10 @@ public class GltfContext {
 
     public List<TextureSchema> getTextures() {
         return Collections.unmodifiableList(textures);
+    }
+
+    public List<Buffer> getBinaryBuffers() {
+        return Collections.unmodifiableList(binaryBuffers);
     }
 
     // endregion
@@ -171,71 +182,28 @@ public class GltfContext {
             .flatMap(skin -> skin.getSkeleton().stream())
             .toList();
 
-        scenes.add(
-            SceneSchema.builder()
-                .addAllNodes(nodes)
-                .addAllNodes(skinNodes)
-                .build());
-    }
-
-    public void addExtension(String name, Extension extension, boolean required) {
-        extensionsUsed.add(name);
-        if (required) {
-            extensionsRequired.add(name);
-        }
-        extensions.put(name, extension);
+        scenes.add(SceneSchema.builder()
+            .addAllNodes(nodes)
+            .addAllNodes(skinNodes)
+            .build());
     }
 
     public BufferViewID createBufferView(Buffer buffer, int length, BufferViewTarget target) {
-        writables.add(buffer);
-        var bufferId = writables.size() - 1;
-        return createBufferView(length, target, bufferId);
+        var bufferView = BufferViewSchema.builder()
+            .buffer(BufferID.of(0))
+            .byteLength(length)
+            .byteOffset(binaryBufferSize)
+            .target(Optional.ofNullable(target))
+            .build();
+
+        binaryBuffers.add(buffer);
+        binaryBufferSize = GltfUtils.alignedLength(binaryBufferSize + size(buffer));
+
+        return addBufferView(bufferView);
     }
 
     public TextureID allocateTextureId(String textureName) {
-        var textureId = allocatedTextures.indexOf(textureName);
-        if (textureId == -1) {
-            allocatedTextures.add(textureName);
-            return TextureID.of(allocatedTextures.size() - 1);
-        } else {
-            return TextureID.of(textureId);
-        }
-    }
-
-    public List<String> getAllocatedTextures() {
-        return allocatedTextures;
-    }
-
-    public MaterialID findMaterial(String materialName) {
-        for (int i = 0; i < materials.size(); i++) {
-            MaterialSchema materialSchema = materials.get(i);
-            if (materialSchema.getName().isPresent() && materialSchema.getName().get().equals(materialName)) {
-                return MaterialID.of(i);
-            }
-        }
-        return MaterialID.of(-1);
-    }
-
-    public ImageID getImage(String texturePath) {
-        for (int i = 0; i < images.size(); i++) {
-            if (images.get(i).getName().isPresent() && images.get(i).getName().get().equals(texturePath)) {
-                return ImageID.of(i);
-            }
-        }
-        return ImageID.of(-1);
-    }
-
-    private BufferViewID createBufferView(int length, BufferViewTarget target, int bufferId) {
-        var bufferView = BufferViewSchema.builder()
-            .buffer(BufferID.of(bufferId))
-            .byteOffset(0)
-            .byteLength(length)
-            .target(Optional.ofNullable(target))
-            .build();
-        bufferViews.add(bufferView);
-
-        // Round up offset to a multiple of 4
-        return BufferViewID.of(bufferViews.size() - 1);
+        throw new UnsupportedOperationException();
     }
 
     public GltfSchema buildGltf() {
@@ -267,5 +235,26 @@ public class GltfContext {
 
     public NodeID nextNodeId() {
         return NodeID.of(nodes.size());
+    }
+
+    public int updateBufferViews(URI uri) {
+        buffers.clear();
+        addBuffer(BufferSchema.builder()
+            .byteLength(binaryBufferSize)
+            .uri(Optional.ofNullable(uri))
+            .build());
+        return binaryBufferSize;
+    }
+
+    private int size(Buffer buffer) {
+        return switch (buffer) {
+            case ByteBuffer bb -> bb.limit();
+            case ShortBuffer sb -> sb.limit() * Short.BYTES;
+            case IntBuffer ib -> ib.limit() * Integer.BYTES;
+            case LongBuffer lb -> lb.limit() * Long.BYTES;
+            case FloatBuffer fb -> fb.limit() * Float.BYTES;
+            case DoubleBuffer db -> db.limit() * Double.BYTES;
+            case CharBuffer cb -> cb.limit() * Character.BYTES;
+        };
     }
 }

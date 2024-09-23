@@ -3,10 +3,10 @@ package be.twofold.valen.gltf.model.animation;
 import be.twofold.valen.gltf.model.*;
 
 public enum AnimationChannelTargetPath implements ValueEnum<String> {
-    Translation("translation"),
-    Rotation("rotation"),
-    Scale("scale"),
-    Weights("weights");
+    TRANSLATION("translation"),
+    ROTATION("rotation"),
+    SCALE("scale"),
+    WEIGHTS("weights");
 
     private final String value;
 
