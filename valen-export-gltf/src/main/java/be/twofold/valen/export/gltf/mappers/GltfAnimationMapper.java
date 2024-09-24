@@ -31,8 +31,8 @@ public final class GltfAnimationMapper {
                     var keyFrameBuffer = buildKeyFrameBuffer(rotation.keyFrames(), animation.frameRate());
                     var rotationBuffer = buildRotationBuffer(rotation.keyFrames());
 
-                    var keyFrameBufferView = context.createBufferView(keyFrameBuffer, keyFrameBuffer.capacity() * Float.BYTES, null);
-                    var rotationBufferView = context.createBufferView(rotationBuffer, rotationBuffer.capacity() * Float.BYTES, null);
+                    var keyFrameBufferView = context.createBufferView(keyFrameBuffer);
+                    var rotationBufferView = context.createBufferView(rotationBuffer);
 
                     var input = buildAccessor(keyFrameBufferView, rotation.keyFrames().size(), min(keyFrameBuffer), max(keyFrameBuffer));
                     var output = buildAccessor(rotationBufferView, rotation.keyFrames().size(), AccessorType.VEC4);
@@ -45,8 +45,8 @@ public final class GltfAnimationMapper {
                     var keyFrameBuffer = buildKeyFrameBuffer(scale.keyFrames(), animation.frameRate());
                     var scaleBuffer = buildScaleTranslationBuffer(scale.keyFrames());
 
-                    var keyFrameBufferView = context.createBufferView(keyFrameBuffer, keyFrameBuffer.capacity() * Float.BYTES, null);
-                    var scaleBufferView = context.createBufferView(scaleBuffer, scaleBuffer.capacity() * Float.BYTES, null);
+                    var keyFrameBufferView = context.createBufferView(keyFrameBuffer);
+                    var scaleBufferView = context.createBufferView(scaleBuffer);
 
                     var input = buildAccessor(keyFrameBufferView, scale.keyFrames().size(), min(keyFrameBuffer), max(keyFrameBuffer));
                     var output = buildAccessor(scaleBufferView, scale.keyFrames().size(), AccessorType.VEC3);
@@ -59,8 +59,8 @@ public final class GltfAnimationMapper {
                     var keyFrameBuffer = buildKeyFrameBuffer(translation.keyFrames(), animation.frameRate());
                     var translationBuffer = buildScaleTranslationBuffer(translation.keyFrames());
 
-                    var keyFrameBufferView = context.createBufferView(keyFrameBuffer, keyFrameBuffer.capacity() * Float.BYTES, null);
-                    var translationBufferView = context.createBufferView(translationBuffer, translationBuffer.capacity() * Float.BYTES, null);
+                    var keyFrameBufferView = context.createBufferView(keyFrameBuffer);
+                    var translationBufferView = context.createBufferView(translationBuffer);
 
                     var input = buildAccessor(keyFrameBufferView, translation.keyFrames().size(), min(keyFrameBuffer), max(keyFrameBuffer));
                     var output = buildAccessor(translationBufferView, translation.keyFrames().size(), AccessorType.VEC3);

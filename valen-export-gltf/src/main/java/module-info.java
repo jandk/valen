@@ -1,6 +1,7 @@
 module valen.export.gltf {
     requires com.google.gson;
     requires valen.core;
+    requires valen.export.png;
     requires valen.export;
     requires valen.gltf;
 

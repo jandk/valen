@@ -21,7 +21,7 @@ public record FileType<T>(
     public static final FileType<byte[]> BinaryFile = new FileType<>(byte[].class, ResourceType.BinaryFile);
     public static final FileType<byte[]> CompFile = new FileType<>(byte[].class, ResourceType.CompFile);
     public static final FileType<Material> Material = new FileType<>(Material.class, ResourceType.RsStreamFile);
-    public static final FileType<be.twofold.valen.game.eternal.reader.decl.renderparm.RenderParm> RenderParm = new FileType<>(RenderParm.class, ResourceType.RsStreamFile);
+    public static final FileType<RenderParm> RenderParam = new FileType<>(RenderParm.class, ResourceType.RsStreamFile);
     public static final FileType<EntityFile> Entities = new FileType<>(EntityFile.class, ResourceType.CompFile);
     public static final FileType<JsonObject> Declaration = new FileType<>(JsonObject.class, ResourceType.RsStreamFile);
 }

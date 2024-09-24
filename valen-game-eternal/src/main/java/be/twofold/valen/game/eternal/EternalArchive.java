@@ -99,26 +99,4 @@ public final class EternalArchive implements Archive {
             default -> AssetType.Binary;
         };
     }
-
-    /*
-        public <T> T readResource(String name, FileType<T> type) throws IOException {
-        var entry = resourceManager.get(name, type.resourceType())
-            .orElseThrow(() -> new IllegalArgumentException("Resource not found: " + name));
-
-        var reader = readers.stream()
-            .filter(r -> r.canRead(entry))
-            .findFirst()
-            .orElseThrow(() -> new IllegalArgumentException("No reader found for " + entry));
-
-        // TODO: Fix this, a filter would fix issues with decl sub readers
-        var readType = reader.getReadType();
-        if (readType != null && !readType.isAssignableFrom(type.instanceType())) {
-            throw new IllegalArgumentException("Reader " + reader.getClass() + " cannot read " + type.instanceType());
-        }
-
-        var buffer = resourceManager.read(entry);
-        var result = reader.read(ByteArrayDataSource.fromBuffer(buffer), entry);
-        return type.instanceType().cast(result);
-    }
-     */
 }

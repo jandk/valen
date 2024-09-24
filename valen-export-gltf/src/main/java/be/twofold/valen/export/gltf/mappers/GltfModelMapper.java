@@ -5,22 +5,33 @@ import be.twofold.valen.core.math.*;
 import be.twofold.valen.gltf.*;
 import be.twofold.valen.gltf.model.accessor.*;
 import be.twofold.valen.gltf.model.buffer.*;
+import be.twofold.valen.gltf.model.material.*;
 import be.twofold.valen.gltf.model.mesh.*;
 import com.google.gson.*;
 
+import java.io.*;
 import java.nio.*;
+import java.util.*;
 
 public final class GltfModelMapper {
     private final GltfContext context;
+    private final GltfMaterialMapper materialMapper;
 
     public GltfModelMapper(GltfContext context) {
         this.context = context;
+        this.materialMapper = new GltfMaterialMapper(context);
     }
 
-    public MeshSchema map(Model model) {
-        // First we do the meshes
+    public MeshSchema map(Model model) throws IOException {
+        // First the materials
+        var materialIDs = new ArrayList<MaterialID>();
+        for (var material : model.materials()) {
+            materialIDs.add(context.addMaterial(materialMapper.map(material)));
+        }
+
+        // Then the meshes
         var primitives = model.meshes().stream()
-            .map(this::mapMesh)
+            .map(mesh -> mapMesh(mesh, materialIDs.get(mesh.materialIndex())))
             .toList();
 
         return MeshSchema.builder()
@@ -28,7 +39,7 @@ public final class GltfModelMapper {
             .build();
     }
 
-    private MeshPrimitiveSchema mapMesh(Mesh mesh) {
+    private MeshPrimitiveSchema mapMesh(Mesh mesh, MaterialID materialID) {
         // Have to fix up the joints and weights first
         fixJointsAndWeights(mesh);
 
@@ -43,6 +54,7 @@ public final class GltfModelMapper {
         return MeshPrimitiveSchema.builder()
             .attributes(attributes)
             .indices(faceAccessor)
+            .material(materialID)
             .build();
     }
 
@@ -51,8 +63,7 @@ public final class GltfModelMapper {
             ? BufferViewTarget.ELEMENT_ARRAY_BUFFER
             : BufferViewTarget.ARRAY_BUFFER;
 
-        var length = buffer.buffer().limit() * buffer.componentType().size();
-        var bufferView = context.createBufferView(buffer.buffer(), length, target);
+        var bufferView = context.createBufferView(buffer.buffer(), target);
 
         var bounds = semantic == Semantic.Position
             ? Bounds.calculate(((FloatBuffer) buffer.buffer()))

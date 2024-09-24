@@ -225,7 +225,7 @@ public abstract class DataSource implements AutoCloseable {
         for (var i = 0; i < count; i++) {
             result.add(mapper.read(this));
         }
-        return result;
+        return List.copyOf(result);
     }
 
     public void expectByte(byte expected) throws IOException {
