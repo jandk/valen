@@ -128,8 +128,8 @@ public final class GeometryManager {
             switch (subChunk.id()) {
                 case 0 -> {
                     geomSetsInfo = new ObjGeomSetsInfo();
-                    geomSetsInfo.streamRefSets = new FioArraySerializer<>(ObjGeomStreamSetRef::new, 9, new ObjGeomStreamSetRefSerializer()).load(source);
-                    geomSetsInfo.steamRefs = new FioArraySerializer<>(ObjGeomSteamRef::new, 9, new ObjGeomSteamRefSerializer()).load(source);
+                    geomSetsInfo.setStreamRefSets(new FioArraySerializer<>(ObjGeomStreamSetRef::new, 9, new ObjGeomStreamSetRefSerializer()).load(source));
+                    geomSetsInfo.setStreamRefs(new FioArraySerializer<>(ObjGeomStreamRef::new, 9, new ObjGeomSteamRefSerializer()).load(source));
                 }
                 case 1 -> {
                 }
@@ -142,7 +142,7 @@ public final class GeometryManager {
                     } else if (objectsSetIds.size() == 1) {
                         objects.getFirst().setId = objectsSetIds.getFirst().intValue();
                     }
-                    geomSetsInfo.streamingAvailable = 1;
+                    geomSetsInfo.setStreamingAvailable(true);
                 }
                 default -> {
                     System.out.println("SubChunk: " + subChunk);

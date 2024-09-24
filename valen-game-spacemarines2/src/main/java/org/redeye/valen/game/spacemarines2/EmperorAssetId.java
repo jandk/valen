@@ -20,7 +20,6 @@ public record EmperorAssetId(String path) implements AssetID {
         return index == -1 ? path : path.substring(index + 1);
     }
 
-
     public AssetType inferAssetType() {
         var index = fileName().indexOf('.');
         if (index == -1) {
@@ -41,7 +40,7 @@ public record EmperorAssetId(String path) implements AssetID {
         };
     }
 
-    public AssetID withExt(String newExt) {
+    public EmperorAssetId withExt(String newExt) {
         var index = path.lastIndexOf('.');
         var withoutExt = path.substring(0, index);
         return new EmperorAssetId(withoutExt + newExt);

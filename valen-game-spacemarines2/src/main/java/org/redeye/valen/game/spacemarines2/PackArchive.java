@@ -47,7 +47,7 @@ public class PackArchive implements Archive {
 
     @Override
     public boolean exists(AssetID identifier) {
-        return mounted.stream().map(zipArchive -> zipArchive.exists(identifier)).findFirst().orElse(false);
+        return mounted.stream().anyMatch(zipArchive -> zipArchive.exists(identifier));
     }
 
     @Override
@@ -64,10 +64,9 @@ public class PackArchive implements Archive {
     @Override
     public ByteBuffer loadRawAsset(AssetID identifier) throws IOException {
         for (ZipArchive zipArchive : mounted) {
-            if (!zipArchive.exists(identifier)) {
-                continue;
+            if (zipArchive.exists(identifier)) {
+                return zipArchive.loadRawAsset(identifier);
             }
-            return zipArchive.loadRawAsset(identifier);
         }
         throw new FileNotFoundException("File '" + identifier + "' not found");
     }

@@ -5,11 +5,11 @@ import org.redeye.valen.game.spacemarines2.types.*;
 
 import java.util.*;
 
-public class ObjGeomSteamRefSerializer extends FioStructSerializer<ObjGeomSteamRef> {
+public class ObjGeomSteamRefSerializer extends FioStructSerializer<ObjGeomStreamRef> {
     public ObjGeomSteamRefSerializer() {
-        super(ObjGeomSteamRef::new, 12, List.of(
-            new FioStructMember<>("Offset", ObjGeomSteamRef::setOffset, new FioInt64Serializer(16)),
-            new FioStructMember<>("Size", ObjGeomSteamRef::setSize, new FioInt64Serializer(16))
+        super(ObjGeomStreamRef::new, 12, List.of(
+            new FioStructMember<>("Offset", ObjGeomStreamRef::setOffset, new FioInt64Serializer(16)),
+            new FioStructMember<>("Size", ObjGeomStreamRef::setSize, new FioInt64Serializer(16))
         ));
     }
 }

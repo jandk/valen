@@ -5,6 +5,8 @@ import be.twofold.valen.core.math.*;
 import be.twofold.valen.gltf.*;
 import be.twofold.valen.gltf.model.accessor.*;
 import be.twofold.valen.gltf.model.buffer.*;
+import be.twofold.valen.gltf.model.material.*;
+import be.twofold.valen.gltf.model.mesh.*;
 import com.google.gson.*;
 
 import java.nio.*;
@@ -41,7 +43,7 @@ public final class GltfModelMapper {
 
         var faceAccessor = buildAccessor(mesh.faceBuffer(), null);
         return MeshPrimitiveSchema.builder()
-            .material(MaterialId.of(mesh.materialIndex()))
+            .material(MaterialID.of(mesh.materialIndex()))
             .attributes(attributes)
             .indices(faceAccessor)
             .build();

@@ -42,7 +42,7 @@ public class FioStructSerializer<T> implements FioSerializer<T> {
             // source.readInt();
         }
         var memberCount = source.readShort();
-//        Check.argument(memberCount <= members.size(), "Invalid member count");
+//        Check.state(memberCount <= members.size(), "Invalid member count");
 
         var flags = source.readShort();
         if (flags == 2) {

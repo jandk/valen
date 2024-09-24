@@ -28,16 +28,16 @@ public class FioArraySerializer<T> implements FioSerializer<List<T>> {
     @Override
     public List<T> load(DataSource source) throws IOException {
         var count = source.readInt();
-        Check.argument(count > 0);
+        Check.state(count >= 0);
         var innerFlags = serializer.flags();
         var array = new ArrayList<T>(count);
 
         if ((innerFlags & 4) != 0) {
-            Check.argument(serializer instanceof FioStructSerializer<T>, "Serializer has flag 4, but is not a struct type");
+            Check.state(serializer instanceof FioStructSerializer<T>, "Serializer has flag 4, but is not a struct type");
             FioStructSerializer<T> structSerializer = (FioStructSerializer<T>) serializer;
             var memberCount = source.readShort();
             var flags = source.readShort();
-            Check.argument(flags == 0, "Flags are not 0");
+            Check.state(flags == 0, "Flags are not 0");
             for (int i = 0; i < count; i++) {
                 array.add(defaultFactory.get());
             }

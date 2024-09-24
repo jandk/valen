@@ -25,10 +25,12 @@ public class MainWindow extends Application {
             }
         }
 
-        var path = SettingsManager.get().getGameExecutable().get();
+        // var path = SettingsManager.get().getGameExecutable().get();
+        // TODO: Don't hardcode this
+        var path = Path.of("D:\\SteamLibrary\\steamapps\\common\\Space Marine 2\\Warhammer 40000 Space Marine 2.exe");
+//        var path = SettingsManager.get().getGameDirectory().get().resolve("DOOMEternalx64vk.exe");
         var game = resolveGameFactory(path).load(path);
-        var archive = game.loadArchive("common");
-
+        var archive = game.loadArchive("client_pc");
 //        var manager = DaggerManagerFactory.create().fileManager();
 //        manager.load(SettingsManager.get().getGameDirectory().get().resolve("base"));
 //        try {

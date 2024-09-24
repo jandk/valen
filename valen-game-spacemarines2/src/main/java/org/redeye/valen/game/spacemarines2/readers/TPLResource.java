@@ -23,7 +23,6 @@ public class TPLResource implements Reader<List<Model>> {
         }
         ResourceHeader header = ResourceHeader.read(source);
         AnimTplSerializer serializer = new AnimTplSerializer();
-        var streamData = archive.loadRawAsset(emperorAssetId.withExt(".tpl_data"));
         AnimTemplate animTemplate = serializer.load(source);
 
         if (animTemplate.geometryManager == null) {
@@ -33,7 +32,7 @@ public class TPLResource implements Reader<List<Model>> {
 
         if (geometryManager.rootObjId != null) {
             ObjObj rootObj = geometryManager.objects.get(geometryManager.rootObjId);
-            Check.argument(rootObj.name == null);
+            // Check.state(rootObj.name == null);
         }
 
         var bones = new ArrayList<Bone>();
@@ -44,11 +43,7 @@ public class TPLResource implements Reader<List<Model>> {
             var parentId = obj.parentId;
             if (obj.parentId >= geometryManager.rootObjId) {
                 parentId = -1;
-            }//  else {
-            //     if (obj.parentId != -1) {
-            //         parentId = boneMap.get(obj.parentId.intValue());
-            //     }
-            // }
+            }
             if (obj.name == null) {
                 obj.name = "BONE_" + i;
             }
@@ -60,14 +55,20 @@ public class TPLResource implements Reader<List<Model>> {
 
         var skeleton = new Skeleton(bones);
 
+        ByteBuffer streamData = null;
+        if (archive.exists(emperorAssetId.withExt(".tpl_data"))) {
+            streamData = archive.loadRawAsset(emperorAssetId.withExt(".tpl_data"));
+        }
+
         var streams = geometryManager.streams;
-        for (int streamId = 0; streamId < geometryManager.geomSetsInfo.steamRefs.size(); streamId++) {
-            var steamRef = geometryManager.geomSetsInfo.steamRefs.get(streamId);
+        for (int streamId = 0; streamId < geometryManager.geomSetsInfo.getStreamRefs().size(); streamId++) {
+            var streamRef = geometryManager.geomSetsInfo.getStreamRefs().get(streamId);
             var stream = streams.get(streamId);
             if ((stream.state & 2) == 0) {
-                Check.argument(steamRef.size == stream.size.longValue());
-                stream.data = new byte[Math.toIntExact(steamRef.size)];
-                streamData.get(Math.toIntExact(steamRef.offset), stream.data, 0, Math.toIntExact(steamRef.size));
+                Check.state(streamData != null);
+                Check.state(streamRef.getSize() == stream.size.longValue());
+                stream.data = new byte[Math.toIntExact(streamRef.getSize())];
+                streamData.get(Math.toIntExact(streamRef.getOffset()), stream.data, 0, Math.toIntExact(streamRef.getSize()));
                 Files.write(Path.of("stream_" + streamId + ".bin"), stream.data);
             }
         }
@@ -139,7 +140,7 @@ public class TPLResource implements Reader<List<Model>> {
             if (v0 > max) {
                 max = v0;
             }
-            Check.argument(v0 >= 0);
+            Check.state(v0 >= 0);
             Check.index(v0, 65535);
             newIndicesBuffer.put((short) v0);
         }
@@ -147,13 +148,7 @@ public class TPLResource implements Reader<List<Model>> {
         attributes.values().forEach(vertexBuffer -> vertexBuffer.buffer().rewind());
 
 
-        String materialName;
-        String shadingMtlTex = (String) split.materialInfo.get("shadingMtl_Tex");
-        if (!shadingMtlTex.isBlank() && !shadingMtlTex.isEmpty()) {
-            materialName = shadingMtlTex;
-        } else {
-            materialName = ((Map<String, Object>) split.materialInfo.get("layer0")).get("texName").toString();
-        }
+        String materialName = extractMaterialName(split);
         var matObj = materials.stream().filter(material -> materialName.equals(material.name())).findFirst().orElseGet(() -> new Material(materialName, List.of()));
         if (!materials.contains(matObj)) {
             materials.add(new Material(materialName, List.of()));
@@ -165,6 +160,17 @@ public class TPLResource implements Reader<List<Model>> {
             attributes,
             matId);
         meshes.add(mesh);
+    }
+
+    private static String extractMaterialName(ObjSplit split) {
+        String materialName;
+        String shadingMtlTex = (String) split.materialInfo.get("shadingMtl_Tex");
+        if (!shadingMtlTex.isBlank() && !shadingMtlTex.isEmpty()) {
+            materialName = shadingMtlTex;
+        } else {
+            materialName = ((Map<String, Object>) split.materialInfo.get("layer0")).get("texName").toString();
+        }
+        return materialName;
     }
 
     private void readStream(ObjGeomStream vertexStream, int offset, Map<Semantic, VertexBuffer> attributes, short[] uvTiles, int vertCount, VertCompressParams compressParams) {
@@ -200,78 +206,84 @@ public class TPLResource implements Reader<List<Model>> {
                     buf.put(norm.z());
                 }
             } else if (streamFVF.contains(FVF.OBJ_FVF_NORM_COMPR)) {
+                Check.state(false, "Should not reach");
                 FloatBuffer buf = (FloatBuffer) attributes.get(Semantic.Normal).buffer();
                 buf.put(inBuf.getFloat());
                 buf.put(inBuf.getFloat());
                 buf.put(inBuf.getFloat());
             }
 
-            if (streamFVF.contains(FVF.OBJ_FVF_WEIGHT8)) {
+            if (streamFVF.contains(FVF.OBJ_FVF_WEIGHT8) && streamFVF.contains(FVF.OBJ_FVF_INDICES16)) {
                 ByteBuffer bufW = (ByteBuffer) attributes.get(Semantic.Weights0).buffer();
-                ShortBuffer bufI = (ShortBuffer) attributes.get(Semantic.Joints0).buffer();
-                int w0 = Byte.toUnsignedInt(inBuf.get());
-                int w1 = Byte.toUnsignedInt(inBuf.get());
-                int w2 = Byte.toUnsignedInt(inBuf.get());
-                int w3 = Byte.toUnsignedInt(inBuf.get());
 
-                boolean isShort = !streamFVF.contains(FVF.OBJ_FVF_INDICES16);
-                int i0 = isShort ? Short.toUnsignedInt(inBuf.getShort()) : Byte.toUnsignedInt(inBuf.get());
-                int i1 = isShort ? Short.toUnsignedInt(inBuf.getShort()) : Byte.toUnsignedInt(inBuf.get());
-                int i2 = isShort ? Short.toUnsignedInt(inBuf.getShort()) : Byte.toUnsignedInt(inBuf.get());
-                int i3 = isShort ? Short.toUnsignedInt(inBuf.getShort()) : Byte.toUnsignedInt(inBuf.get());
+                byte[] weights = new byte[4];
+                inBuf.get(weights);
 
-                if (w2 == 0) {
-                    w3 = 0;
-                }
-
-                float total = w0 + w1 + w2 + w3;
-                float wf0 = w0 / total;
-                float wf1 = w1 / total;
-                float wf2 = w2 / total;
-                float wf3 = w3 / total;
-
-                bufW.put((byte) (wf0 * 255));
-                bufW.put((byte) (wf1 * 255));
-                bufW.put((byte) (wf2 * 255));
-                bufW.put((byte) (wf3 * 255));
-                bufI.put((short) i0);
-                bufI.put((short) i1);
-                bufI.put((short) i2);
-                bufI.put((short) i3);
+                weights[3] = 0;
+                bufW.put(weights);
             }
 
-            // if (streamFVF.contains(FVF.OBJ_FVF_INDICES16)) {
-            //     ByteBuffer buf = (ByteBuffer) attributes.get(Semantic.Joints0).buffer();
-            //     buf.put(inBuf.get());
-            //     buf.put(inBuf.get());
-            //     buf.put(inBuf.get());
-            //     buf.put(inBuf.get());
-            //     // Check.argument(unk ==16);
-            // }
+            if (streamFVF.contains(FVF.OBJ_FVF_INDICES16)) {
+                if (streamFVF.contains(FVF.OBJ_FVF_WEIGHT8)) {
+                    ShortBuffer buf = (ShortBuffer) attributes.get(Semantic.Joints0).buffer();
+                    buf.put((short) Byte.toUnsignedInt(inBuf.get()));
+                    buf.put((short) Byte.toUnsignedInt(inBuf.get()));
+                    buf.put((short) Byte.toUnsignedInt(inBuf.get()));
+                    buf.put((short) Byte.toUnsignedInt(inBuf.get()));
+                } else {
+                    ShortBuffer bufI0 = (ShortBuffer) attributes.get(Semantic.Joints0).buffer();
+                    ShortBuffer bufI1 = (ShortBuffer) attributes.get(Semantic.Joints1).buffer();
+                    ByteBuffer bufW0 = (ByteBuffer) attributes.get(Semantic.Weights0).buffer();
+                    ByteBuffer bufW1 = (ByteBuffer) attributes.get(Semantic.Weights1).buffer();
+                    int[] weights = new int[8];
+                    short[] indices = new short[8];
 
-            int tangentLayerCount = 0;
+                    for (int j = 0; j < 8; j++) {
+                        weights[j] = Byte.toUnsignedInt(inBuf.get());
+                    }
+                    for (int j = 0; j < 8; j++) {
+                        indices[j] = (short) Byte.toUnsignedInt(inBuf.get());
+                    }
+
+                    float total = 0;
+                    for (int j = 0; j < weights.length; j++) {
+                        if (weights[j] == 0) {
+                            indices[j] = 0;
+                        }
+                        total += weights[j];
+                    }
+
+                    for (int j = 0; j < weights.length - 1; j++) {
+                        for (int k = 0; k < weights.length - j - 1; k++) {
+                            if (weights[k] < weights[k + 1]) {
+                                int tempWeight = weights[k];
+                                weights[k] = weights[k + 1];
+                                weights[k + 1] = tempWeight;
+
+                                short tempIndex = indices[k];
+                                indices[k] = indices[k + 1];
+                                indices[k + 1] = tempIndex;
+                            }
+                        }
+                    }
+
+                    for (int j = 0; j < 4; j++) {
+                        bufW0.put((byte) ((weights[j] / total) * 255));
+                        bufI0.put(indices[j]);
+                    }
+                    for (int j = 0; j < 4; j++) {
+                        bufW1.put((byte) ((weights[j + 4] / total) * 255));
+                        bufI1.put(indices[j + 4]);
+                    }
+                }
+            }
+
             for (FVF tangentLayerFlag : EnumSet.range(FVF.OBJ_FVF_TANG0, FVF.OBJ_FVF_TANG4)) {
                 if (streamFVF.contains(tangentLayerFlag)) {
                     if (streamFVF.contains(FVF.OBJ_FVF_TANG_COMPR)) {
-                        Check.argument(false);
+                        Check.state(false);
                     }
-                    var tangent = new Vector3(
-                        MathF.unpackUNorm8Normal(inBuf.get()),
-                        MathF.unpackUNorm8Normal(inBuf.get()),
-                        MathF.unpackUNorm8Normal(inBuf.get())
-                    ).normalize();
-                    inBuf.get();
-
-                    // buf.put(tangent.x());
-                    // buf.put(tangent.y());
-                    // buf.put(tangent.z());
-                    // buf.put(inBuf.get() > 0 ? 1f : -1f);
-                    // } else {
-                    //     buf.put(inBuf.getFloat());
-                    //     buf.put(inBuf.getFloat());
-                    //     buf.put(inBuf.getFloat());
-                    // }
-                    tangentLayerCount++;
+                    inBuf.getInt();
                 }
             }
 
@@ -292,12 +304,12 @@ public class TPLResource implements Reader<List<Model>> {
             for (FVF uvLayerFlag : EnumSet.range(FVF.OBJ_FVF_TEX0, FVF.OBJ_FVF_TEX4)) {
                 if (streamFVF.contains(uvLayerFlag)) {
                     FloatBuffer buf = (FloatBuffer) attributes.get(new Semantic.TexCoord(uvLayerCount)).buffer();
-                    float uvTile = 1 + uvTiles[uvLayerId];
-                    // if (streamFVF.contains(FVF.values()[FVF.OBJ_FVF_TEX0_COMPR.ordinal() + uvLayerId])) {
-                    //     uvTile = uvTiles[uvLayerId];
-                    // }
-                    float u = (inBuf.getShort() / 32767.f) * uvTile;
-                    float v = (inBuf.getShort() / 32767.f) * uvTile;
+                    float uvTile = 1;
+                    if (streamFVF.contains(FVF.values()[FVF.OBJ_FVF_TEX0_COMPR.ordinal() + uvLayerId])) {
+                        uvTile += uvTiles[uvLayerId];
+                    }
+                    float u = (inBuf.getShort() / 32767.f) / uvTile;
+                    float v = (inBuf.getShort() / 32767.f) / uvTile;
                     buf.put(u);
                     buf.put(v);
                     uvLayerCount++;
@@ -338,18 +350,31 @@ public class TPLResource implements Reader<List<Model>> {
                 new VertexBuffer(ByteBuffer.allocate(vertexCount * 4), ElementType.Vector4, ComponentType.UnsignedByte, true));
         }
         if (geomFVF.contains(FVF.OBJ_FVF_WEIGHT4)) {
-            Check.argument(false, "Unsupported OBJ_FVF_WEIGHT4");
+            Check.state(false, "Unsupported OBJ_FVF_WEIGHT4");
             // map.put(Semantic.Weights0,
             //     new VertexBuffer(ByteBuffer.allocate(vertexCount * 4), ElementType.Vector4, ComponentType.Byte, true));
         }
         if (geomFVF.contains(FVF.OBJ_FVF_INDICES)) {
-            Check.argument(false, "Unsupported OBJ_FVF_INDICES");
+            Check.state(false, "Unsupported OBJ_FVF_INDICES");
             // map.put(Semantic.Weights0,
             //     new VertexBuffer(ByteBuffer.allocate(vertexCount * 4), ElementType.Vector4, ComponentType.Byte, true));
         }
         if (geomFVF.contains(FVF.OBJ_FVF_INDICES16)) {
-            map.put(Semantic.Joints0,
-                new VertexBuffer(ShortBuffer.allocate(vertexCount * 4), ElementType.Vector4, ComponentType.UnsignedShort, false));
+            if (geomFVF.contains(FVF.OBJ_FVF_WEIGHT8)) {
+                map.put(Semantic.Joints0,
+                    new VertexBuffer(ShortBuffer.allocate(vertexCount * 4), ElementType.Vector4, ComponentType.UnsignedShort, false));
+                map.put(Semantic.Weights0,
+                    new VertexBuffer(ByteBuffer.allocate(vertexCount * 4), ElementType.Vector4, ComponentType.UnsignedByte, true));
+            } else {
+                map.put(Semantic.Joints0,
+                    new VertexBuffer(ShortBuffer.allocate(vertexCount * 4), ElementType.Vector4, ComponentType.UnsignedShort, false));
+                map.put(Semantic.Weights0,
+                    new VertexBuffer(ByteBuffer.allocate(vertexCount * 4), ElementType.Vector4, ComponentType.UnsignedByte, true));
+                map.put(Semantic.Joints1,
+                    new VertexBuffer(ShortBuffer.allocate(vertexCount * 4), ElementType.Vector4, ComponentType.UnsignedShort, false));
+                map.put(Semantic.Weights1,
+                    new VertexBuffer(ByteBuffer.allocate(vertexCount * 4), ElementType.Vector4, ComponentType.UnsignedByte, true));
+            }
         }
 
         int uvLayerCount = 0;

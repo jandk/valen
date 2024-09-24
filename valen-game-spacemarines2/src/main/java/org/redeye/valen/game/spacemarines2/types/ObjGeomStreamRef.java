@@ -1,8 +1,8 @@
 package org.redeye.valen.game.spacemarines2.types;
 
-public class ObjGeomSteamRef {
-    public Long offset;
-    public Long size;
+public class ObjGeomStreamRef {
+    private Long offset;
+    private Long size;
 
     public void setOffset(Long offset) {
         this.offset = offset;
@@ -10,5 +10,13 @@ public class ObjGeomSteamRef {
 
     public void setSize(Long size) {
         this.size = size;
+    }
+
+    public Long getOffset() {
+        return offset;
+    }
+
+    public Long getSize() {
+        return size;
     }
 }
