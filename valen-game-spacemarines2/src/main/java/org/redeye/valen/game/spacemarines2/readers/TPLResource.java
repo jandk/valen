@@ -15,9 +15,9 @@ import java.nio.*;
 import java.nio.file.*;
 import java.util.*;
 
-public class TPLResource implements Reader<List<Model>> {
+public class TPLResource implements Reader<Model> {
     @Override
-    public List<Model> read(Archive archive, Asset asset, DataSource source) throws IOException {
+    public Model read(Archive archive, Asset asset, DataSource source) throws IOException {
         if (!(asset.id() instanceof EmperorAssetId emperorAssetId)) {
             return null;
         }
@@ -73,23 +73,22 @@ public class TPLResource implements Reader<List<Model>> {
             }
         }
         List<ObjSplit> splits = geometryManager.splits;
+        List<Material> materials = new ArrayList<>();
 
-        var models = new ArrayList<Model>();
+        var meshes = new ArrayList<Mesh>();
         var lod0Ids = animTemplate.lodDef != null ? animTemplate.lodDef.stream().filter(lodDef -> lodDef.index == 0).map(lodDef -> lodDef.objId).toList() : null;
         if (geometryManager.objSpitInfo != null) {
-            extractBySplitInfo(geometryManager, lod0Ids, splits, streams, models, skeleton);
+            extractBySplitInfo(geometryManager, lod0Ids, splits, streams, meshes, materials);
         } else {
-            List<Mesh> meshes = new ArrayList<>();
-            List<Material> materials = new ArrayList<>();
-            for (int i = 0; i < splits.size(); i++) {
-                convertSplitMesh(splits.get(i), streams, i, meshes, materials);
+            for (ObjSplit split : splits) {
+                convertSplitMesh("Mesh", split, streams, meshes, materials);
             }
-            models.add(new Model("Object", meshes, materials, skeleton));
         }
-        return models;
+        String modelName = asset.id().fileName().substring(0, asset.id().fileName().indexOf('.'));
+        return new Model(modelName, meshes, materials, skeleton);
     }
 
-    private void extractBySplitInfo(GeometryManager geometryManager, List<Short> lod0Ids, List<ObjSplit> splits, List<ObjGeomStream> streams, ArrayList<Model> models, Skeleton skeleton) {
+    private void extractBySplitInfo(GeometryManager geometryManager, List<Short> lod0Ids, List<ObjSplit> splits, List<ObjGeomStream> streams, List<Mesh> meshes, List<Material> materials) {
         List<ObjSplitRange> objSpitInfo = geometryManager.objSpitInfo;
         for (int j = 0; j < objSpitInfo.size(); j++) {
             ObjObj obj = geometryManager.objects.get(j);
@@ -100,17 +99,13 @@ public class TPLResource implements Reader<List<Model>> {
             if (objSplitRange.numSplits == 0) {
                 continue;
             }
-            List<Mesh> meshes = new ArrayList<>();
-            List<Material> materials = new ArrayList<>();
-            System.out.println(obj.name);
             for (int i = objSplitRange.startIndex; i < objSplitRange.startIndex + objSplitRange.numSplits; i++) {
-                convertSplitMesh(splits.get(i), streams, i, meshes, materials);
+                convertSplitMesh(obj.name, splits.get(i), streams, meshes, materials);
             }
-            models.add(new Model(obj.name != null ? obj.name : "Object", meshes, materials, skeleton));
         }
     }
 
-    private void convertSplitMesh(ObjSplit split, List<ObjGeomStream> streams, int j, List<Mesh> meshes, List<Material> materials) {
+    private void convertSplitMesh(String meshName, ObjSplit split, List<ObjGeomStream> streams, List<Mesh> meshes, List<Material> materials) {
         ObjGeom geom = split.geom;
         System.out.println(split);
         geom.streams.forEach((slot, stream) -> {
@@ -156,6 +151,7 @@ public class TPLResource implements Reader<List<Model>> {
         var matId = materials.indexOf(matObj);
 
         Mesh mesh = new Mesh(
+            meshName,
             new VertexBuffer(newIndicesBuffer.rewind(), ElementType.Scalar, ComponentType.UnsignedShort, false),
             attributes,
             matId);

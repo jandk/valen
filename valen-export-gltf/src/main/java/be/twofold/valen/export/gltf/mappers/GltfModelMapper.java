@@ -7,26 +7,54 @@ import be.twofold.valen.gltf.model.accessor.*;
 import be.twofold.valen.gltf.model.buffer.*;
 import be.twofold.valen.gltf.model.material.*;
 import be.twofold.valen.gltf.model.mesh.*;
+import be.twofold.valen.gltf.model.node.*;
+import be.twofold.valen.gltf.model.skin.*;
 import com.google.gson.*;
 
 import java.nio.*;
+import java.util.*;
 
 public final class GltfModelMapper {
+    // TODO: Make this configurable
+    private static final Quaternion ROTATION = Quaternion.fromAxisAngle(Vector3.UnitX, -MathF.HALF_PI);
+
     private final GltfContext context;
 
     public GltfModelMapper(GltfContext context) {
         this.context = context;
     }
 
-    public MeshSchema map(Model model) {
+    public NodeSchema map(Model model) {
         // First we do the meshes
-        var primitives = model.meshes().stream()
-            .map(this::mapMesh)
-            .toList();
+        var skeletonMapper = new GltfSkeletonMapper(context, ROTATION);
 
-        return MeshSchema.builder()
+        SkinID skinId = null;
+        if (model.skeleton() != null) {
+            skinId = context.addSkin(
+                skeletonMapper.map(model.skeleton()));
+        }
+
+        var children = new ArrayList<NodeID>();
+        for (Mesh mesh : model.meshes()) {
+            var meshPrimSchema = mapMesh(mesh);
+            var meshSchema = MeshSchema.builder()
+                .name(mesh.name())
+                .primitives(List.of(meshPrimSchema))
+                .build();
+
+            var meshNode = NodeSchema.builder()
+                .name(mesh.name())
+                .mesh(context.addMesh(meshSchema))
+                .skin(skinId)
+                .build();
+            children.add(context.addNode(meshNode));
+        }
+
+
+        return NodeSchema.builder()
             .name(model.name())
-            .primitives(primitives)
+            .addAllChildren(children)
+            .skin(skinId)
             .build();
     }
 
@@ -103,7 +131,6 @@ public final class GltfModelMapper {
                     }
                     default -> throw new IllegalStateException("Unexpected buffer type: " + buffer);
                 }
-
 
 
             }));

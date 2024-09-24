@@ -114,8 +114,8 @@ public class TPLtest {
 
 
     private void exportModel(Archive archive, Path outputPath, EmperorAssetId tplPath) throws IOException {
-        EmperorAssetId tplId = tplPath.withExt(".tpl");
-        String mdlName = tplId.fileName().substring(0, tplId.fileName().lastIndexOf('.'));
+        EmperorAssetId tplId = tplPath.withExt("");
+        String mdlName = tplId.fileName().substring(0, tplId.fileName().indexOf('.'));
         outputPath = outputPath.resolve(mdlName);
         Files.createDirectories(outputPath);
 
@@ -129,21 +129,21 @@ public class TPLtest {
             for (String textureLink : ((List<String>) matInfo.get("linksPct"))) {
                 Texture texture = (Texture) archive.loadAsset(new EmperorAssetId(textureLink.substring(6)));
                 var outName = textureLink.substring(10, textureLink.length() - 13);
-                try (OutputStream outputStream = Files.newOutputStream(outputPath.resolve(outName + ".png"))) {
-                    pngExporter.export(texture, outputStream);
+                Path pngPath = outputPath.resolve(outName + ".png");
+                if (!Files.exists(pngPath)) {
+                    try (OutputStream outputStream = Files.newOutputStream(pngPath)) {
+                        pngExporter.export(texture, outputStream);
+                    }
                 }
             }
         }
-        List<Model> models = (List<Model>) archive.loadAsset(tplId);
-        saveModels(models, outputPath);
+        Model model = (Model) archive.loadAsset(tplId);
+        saveModel(model, outputPath);
     }
 
-    private static void saveModels(List<Model> models, Path outputPath) throws IOException {
-        for (int i = 0; i < models.size(); i++) {
-            Model model = models.get(i);
-            try (OutputStream outputStream = Files.newOutputStream(outputPath.resolve(model.name() + ".glb"))) {
-                new GlbModelExporter().export(model, outputStream);
-            }
+    private static void saveModel(Model model, Path outputPath) throws IOException {
+        try (OutputStream outputStream = Files.newOutputStream(outputPath.resolve(model.name() + ".glb"))) {
+            new GlbModelExporter().export(model, outputStream);
         }
     }
 
