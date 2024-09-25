@@ -13,7 +13,7 @@ public final class DoomGameFactory implements GameFactory<DoomGame> {
     }
 
     @Override
-    public DoomGame load(Path path) throws IOException {
+    public DoomGame load(Path path) {
         return new DoomGame(path.getParent());
     }
 }

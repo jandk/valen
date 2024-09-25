@@ -1,5 +1,7 @@
 package be.twofold.valen.core.io;
 
+import be.twofold.valen.core.util.*;
+
 import java.io.*;
 import java.util.*;
 
@@ -7,7 +9,7 @@ final class InputStreamDataSource extends DataSource {
     private final InputStream stream;
 
     InputStreamDataSource(InputStream stream) {
-        this.stream = Objects.requireNonNull(stream);
+        this.stream = Check.notNull(stream);
     }
 
     @Override

@@ -1,5 +1,4 @@
 module valen.export.png {
-    requires be.twofold.tinybcdec;
     requires valen.core;
     requires valen.export;
 

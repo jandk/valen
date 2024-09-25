@@ -18,7 +18,7 @@ public final class ValueEnumTypeAdapter extends TypeAdapter<ValueEnum<?>> {
     }
 
     @Override
-    public ValueEnum<?> read(JsonReader in) throws IOException {
+    public ValueEnum<?> read(JsonReader in) {
         throw new UnsupportedOperationException();
     }
 }

@@ -31,12 +31,12 @@ class DoomArchive implements Archive {
     }
 
     @Override
-    public ByteBuffer loadRawAsset(AssetID identifier) throws IOException {
+    public ByteBuffer loadRawAsset(AssetID identifier) {
         return null;
     }
 
     @Override
-    public Object loadAsset(AssetID identifier) throws IOException {
+    public Object loadAsset(AssetID identifier) {
         return null;
     }
 }
