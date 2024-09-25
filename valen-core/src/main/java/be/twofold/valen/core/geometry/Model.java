@@ -6,16 +6,16 @@ import java.util.*;
 
 public record Model(
     String name,
-    List<Mesh> meshes,
+    List<SubModel> subModels,
     List<Material> materials,
     Skeleton skeleton
 ) {
     public Model {
-        meshes = List.copyOf(meshes);
+        subModels = List.copyOf(subModels);
         materials = List.copyOf(materials);
     }
 
-    public Model(List<Mesh> meshes, List<Material> materials, Skeleton skeleton) {
-        this("Object", meshes, materials, skeleton);
+    public Model(List<SubModel> subModels, List<Material> materials, Skeleton skeleton) {
+        this("Object", subModels, materials, skeleton);
     }
 }

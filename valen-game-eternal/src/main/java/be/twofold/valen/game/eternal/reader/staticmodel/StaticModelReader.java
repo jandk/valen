@@ -40,7 +40,7 @@ public final class StaticModelReader implements ResourceReader<Model> {
     @Override
     public Model read(DataSource source, Asset asset) throws IOException {
         var model = read(source, (Long) asset.properties().get("hash"));
-        return new Model(model.meshes(), model.materials(), null);
+        return new Model(List.of(new SubModel(model.meshes())), model.materials(), null);
     }
 
     public StaticModel read(DataSource source, long hash) throws IOException {

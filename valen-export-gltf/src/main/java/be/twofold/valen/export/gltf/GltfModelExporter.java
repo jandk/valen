@@ -9,7 +9,7 @@ import be.twofold.valen.gltf.model.node.*;
 import java.io.*;
 import java.util.*;
 
-public final class GlbModelExporter implements Exporter<Model> {
+public final class GltfModelExporter implements Exporter<Model> {
     @Override
     public String getExtension() {
         return "glb";
@@ -31,7 +31,7 @@ public final class GlbModelExporter implements Exporter<Model> {
 
         context.addScene(rootNodes);
 
-        var writer = new GlbWriter(context);
-        writer.write(out);
+        var writer = new GltfWriter(context);
+        writer.writeWithEmbeddedBuffer(out);
     }
 }

@@ -8,4 +8,6 @@ public enum TextureType {
     Normal,
     Smoothness,
     Specular,
+    MRAO,
+    AmbientOcclusion,
 }

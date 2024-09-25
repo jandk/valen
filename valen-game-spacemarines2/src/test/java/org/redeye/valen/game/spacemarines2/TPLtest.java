@@ -142,8 +142,8 @@ public class TPLtest {
     }
 
     private static void saveModel(Model model, Path outputPath) throws IOException {
-        try (OutputStream outputStream = Files.newOutputStream(outputPath.resolve(model.name() + ".glb"))) {
-            new GlbModelExporter().export(model, outputStream);
+        try (OutputStream outputStream = Files.newOutputStream(outputPath.resolve(model.name() + ".gltf"))) {
+            new GltfModelExporter().export(model, outputStream);
         }
     }
 

@@ -20,4 +20,9 @@ public final class GltfWriter extends GltfCommon {
             out.write(toRawJson());
         }
     }
+
+    public void writeWithEmbeddedBuffer(OutputStream out) throws IOException {
+        writeBuffersEmbedded();
+        out.write(toRawJson());
+    }
 }

@@ -5,6 +5,7 @@ import be.twofold.valen.core.geometry.*;
 import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.material.*;
 import be.twofold.valen.core.math.*;
+import be.twofold.valen.core.texture.*;
 import be.twofold.valen.core.util.*;
 import org.redeye.valen.game.spacemarines2.*;
 import org.redeye.valen.game.spacemarines2.serializers.tpl.*;
@@ -21,19 +22,22 @@ public class TPLResource implements Reader<Model> {
         if (!(asset.id() instanceof EmperorAssetId emperorAssetId)) {
             return null;
         }
-        ResourceHeader header = ResourceHeader.read(source);
+        ResourceHeader ignored = ResourceHeader.read(source);
         AnimTplSerializer serializer = new AnimTplSerializer();
         AnimTemplate animTemplate = serializer.load(source);
 
         if (animTemplate.geometryManager == null) {
             return null;
         }
+
+        ArrayList<Material> materials = convertMaterials(archive, emperorAssetId.withExt(".tpl.resource"));
+
         var geometryManager = animTemplate.geometryManager;
 
-        if (geometryManager.rootObjId != null) {
-            ObjObj rootObj = geometryManager.objects.get(geometryManager.rootObjId);
-            // Check.state(rootObj.name == null);
-        }
+        // if (geometryManager.rootObjId != null) {
+        //     ObjObj rootObj = geometryManager.objects.get(geometryManager.rootObjId);
+        //     // Check.state(rootObj.name == null);
+        // }
 
         var bones = new ArrayList<Bone>();
         var boneMap = new HashMap<Integer, Integer>();
@@ -61,34 +65,79 @@ public class TPLResource implements Reader<Model> {
         }
 
         var streams = geometryManager.streams;
-        for (int streamId = 0; streamId < geometryManager.geomSetsInfo.getStreamRefs().size(); streamId++) {
-            var streamRef = geometryManager.geomSetsInfo.getStreamRefs().get(streamId);
-            var stream = streams.get(streamId);
-            if ((stream.state & 2) == 0) {
-                Check.state(streamData != null);
-                Check.state(streamRef.getSize() == stream.size.longValue());
-                stream.data = new byte[Math.toIntExact(streamRef.getSize())];
-                streamData.get(Math.toIntExact(streamRef.getOffset()), stream.data, 0, Math.toIntExact(streamRef.getSize()));
-                Files.write(Path.of("stream_" + streamId + ".bin"), stream.data);
+        if (geometryManager.geomSetsInfo != null) {
+            for (int streamId = 0; streamId < geometryManager.geomSetsInfo.getStreamRefs().size(); streamId++) {
+                var streamRef = geometryManager.geomSetsInfo.getStreamRefs().get(streamId);
+                var stream = streams.get(streamId);
+                if ((stream.state & 2) == 0) {
+                    Check.state(streamData != null);
+                    Check.state(streamRef.getSize() == stream.size.longValue());
+                    stream.data = new byte[Math.toIntExact(streamRef.getSize())];
+                    streamData.get(Math.toIntExact(streamRef.getOffset()), stream.data, 0, Math.toIntExact(streamRef.getSize()));
+                    Files.write(Path.of("stream_" + streamId + ".bin"), stream.data);
+                }
             }
         }
         List<ObjSplit> splits = geometryManager.splits;
-        List<Material> materials = new ArrayList<>();
 
-        var meshes = new ArrayList<Mesh>();
+        var subModels = new ArrayList<SubModel>();
         var lod0Ids = animTemplate.lodDef != null ? animTemplate.lodDef.stream().filter(lodDef -> lodDef.index == 0).map(lodDef -> lodDef.objId).toList() : null;
         if (geometryManager.objSpitInfo != null) {
-            extractBySplitInfo(geometryManager, lod0Ids, splits, streams, meshes, materials);
+            extractBySplitInfo(geometryManager, lod0Ids, splits, streams, subModels, materials);
         } else {
+            var meshes = new ArrayList<Mesh>();
             for (ObjSplit split : splits) {
-                convertSplitMesh("Mesh", split, streams, meshes, materials);
+                convertSplitMesh(split, streams, meshes, materials);
             }
+            subModels.add(new SubModel("Mesh", meshes));
         }
         String modelName = asset.id().fileName().substring(0, asset.id().fileName().indexOf('.'));
-        return new Model(modelName, meshes, materials, skeleton);
+        return new Model(modelName, subModels, materials, skeleton);
     }
 
-    private void extractBySplitInfo(GeometryManager geometryManager, List<Short> lod0Ids, List<ObjSplit> splits, List<ObjGeomStream> streams, List<Mesh> meshes, List<Material> materials) {
+    private ArrayList<Material> convertMaterials(Archive archive, EmperorAssetId resourceId) throws IOException {
+        Map<String, Map> resInfo = (Map<String, Map>) archive.loadAsset(resourceId);
+        var materials = new ArrayList<Material>();
+        for (String materialLink : ((List<String>) resInfo.get("linksTd"))) {
+            Map<String, Object> matResourceInfo = (Map<String, Object>) archive.loadAsset(new EmperorAssetId(materialLink.substring(6)));
+            var textureRefs = new ArrayList<TextureReference>();
+            List<String> get = (List<String>) matResourceInfo.get("linksPct");
+            for (int i = 0; i < get.size(); i++) {
+                String textureLink = get.get(i);
+                Texture texture = (Texture) archive.loadAsset(new EmperorAssetId(textureLink.substring(6)));
+                var outName = textureLink.substring(10, textureLink.length() - 13);
+                if (i == 0) {
+                    textureRefs.add(new TextureReference(TextureType.Albedo, outName, () -> texture));
+                } else if (outName.endsWith("_nm")) {
+                    textureRefs.add(new TextureReference(TextureType.Normal, outName, () -> texture));
+                } else if (outName.endsWith("_spec")) {
+                    textureRefs.add(new TextureReference(TextureType.MRAO, outName, () -> texture));
+                } else if (outName.endsWith("_ao")) {
+                    textureRefs.add(new TextureReference(TextureType.AmbientOcclusion, outName, () -> texture));
+                } else if (outName.endsWith("_em")) {
+                    textureRefs.add(new TextureReference(TextureType.Emissive, outName, () -> texture));
+                } else {
+                    textureRefs.add(new TextureReference(TextureType.Unknown, outName, () -> texture));
+                    System.out.println("Unknown texture: " + outName);
+                }
+
+
+                // Path pngPath = outputPath.resolve(outName + ".png");
+                // if (!Files.exists(pngPath)) {
+                //     try (OutputStream outputStream = Files.newOutputStream(pngPath)) {
+                //         pngExporter.export(texture, outputStream);
+                //     }
+                // }
+
+            }
+
+            materials.add(new Material(((String) matResourceInfo.get("name")), textureRefs));
+            // materials.add(new Material(((String) matResourceInfo.get("name")), List.of()));
+        }
+        return materials;
+    }
+
+    private void extractBySplitInfo(GeometryManager geometryManager, List<Short> lod0Ids, List<ObjSplit> splits, List<ObjGeomStream> streams, ArrayList<SubModel> subModels, ArrayList<Material> materials) {
         List<ObjSplitRange> objSpitInfo = geometryManager.objSpitInfo;
         for (int j = 0; j < objSpitInfo.size(); j++) {
             ObjObj obj = geometryManager.objects.get(j);
@@ -99,21 +148,22 @@ public class TPLResource implements Reader<Model> {
             if (objSplitRange.numSplits == 0) {
                 continue;
             }
+            var meshes = new ArrayList<Mesh>();
             for (int i = objSplitRange.startIndex; i < objSplitRange.startIndex + objSplitRange.numSplits; i++) {
-                convertSplitMesh(obj.name, splits.get(i), streams, meshes, materials);
+                convertSplitMesh(splits.get(i), streams, meshes, materials);
             }
+            subModels.add(new SubModel(obj.name, meshes));
         }
     }
 
-    private void convertSplitMesh(String meshName, ObjSplit split, List<ObjGeomStream> streams, List<Mesh> meshes, List<Material> materials) {
+    private void convertSplitMesh(ObjSplit split, List<ObjGeomStream> streams, ArrayList<Mesh> meshes, ArrayList<Material> materials) {
         ObjGeom geom = split.geom;
+        Set<FVF> geomFVF = geom.fvf;
+
         System.out.println(split);
         geom.streams.forEach((slot, stream) -> {
-            var streamId = streams.indexOf(stream);
-            System.out.printf("Stream(%d) %s: stride: %d, %s, %s%n", streamId, slot, stream.stride, stream.fvf, stream.flags);
+            System.out.printf("Stream(%d) %s: stride: %d, %s, %s%n", streams.indexOf(stream), slot, stream.stride, stream.fvf, stream.flags);
         });
-
-        Set<FVF> geomFVF = geom.fvf;
 
         var attributes = buildAttributes(geomFVF, split.nVert);
 
@@ -151,7 +201,6 @@ public class TPLResource implements Reader<Model> {
         var matId = materials.indexOf(matObj);
 
         Mesh mesh = new Mesh(
-            meshName,
             new VertexBuffer(newIndicesBuffer.rewind(), ElementType.Scalar, ComponentType.UnsignedShort, false),
             attributes,
             matId);
@@ -167,6 +216,37 @@ public class TPLResource implements Reader<Model> {
             materialName = ((Map<String, Object>) split.materialInfo.get("layer0")).get("texName").toString();
         }
         return materialName;
+    }
+
+    public static byte[] renormalize(byte[] byteArray) {
+        int sum = 0;
+        for (byte b : byteArray) {
+            sum += Byte.toUnsignedInt(b);
+        }
+        double scaleFactor = 255.0 / sum;
+        byte[] normalizedArray = new byte[byteArray.length];
+        double totalRoundedSum = 0;
+        for (int i = 0; i < byteArray.length; i++) {
+            double scaledValue = (byteArray[i] & 0xFF) * scaleFactor;
+            normalizedArray[i] = (byte) Math.round(scaledValue);
+            totalRoundedSum += Byte.toUnsignedInt(normalizedArray[i]);
+        }
+
+        int difference = (int) totalRoundedSum - 255;
+        if (difference != 0) {
+            for (int i = 0; i < byteArray.length; i++) {
+                if (difference > 0 && (normalizedArray[i] & 0xFF) > 0) {
+                    normalizedArray[i]--;  // Reduce a value to decrease sum
+                    difference--;
+                } else if (difference < 0 && (normalizedArray[i] & 0xFF) < 255) {
+                    normalizedArray[i]++;  // Increase a value to increase sum
+                    difference++;
+                }
+                if (difference == 0) break;
+            }
+        }
+
+        return normalizedArray;
     }
 
     private void readStream(ObjGeomStream vertexStream, int offset, Map<Semantic, VertexBuffer> attributes, short[] uvTiles, int vertCount, VertCompressParams compressParams) {
@@ -216,7 +296,10 @@ public class TPLResource implements Reader<Model> {
                 inBuf.get(weights);
 
                 weights[3] = 0;
-                bufW.put(weights);
+
+                var normalized = renormalize(weights);
+
+                bufW.put(normalized);
             }
 
             if (streamFVF.contains(FVF.OBJ_FVF_INDICES16)) {
@@ -231,11 +314,11 @@ public class TPLResource implements Reader<Model> {
                     ShortBuffer bufI1 = (ShortBuffer) attributes.get(Semantic.Joints1).buffer();
                     ByteBuffer bufW0 = (ByteBuffer) attributes.get(Semantic.Weights0).buffer();
                     ByteBuffer bufW1 = (ByteBuffer) attributes.get(Semantic.Weights1).buffer();
-                    int[] weights = new int[8];
+                    float[] weights = new float[8];
                     short[] indices = new short[8];
 
                     for (int j = 0; j < 8; j++) {
-                        weights[j] = Byte.toUnsignedInt(inBuf.get());
+                        weights[j] = Byte.toUnsignedInt(inBuf.get()) / 255.f;
                     }
                     for (int j = 0; j < 8; j++) {
                         indices[j] = (short) Byte.toUnsignedInt(inBuf.get());
@@ -252,7 +335,7 @@ public class TPLResource implements Reader<Model> {
                     for (int j = 0; j < weights.length - 1; j++) {
                         for (int k = 0; k < weights.length - j - 1; k++) {
                             if (weights[k] < weights[k + 1]) {
-                                int tempWeight = weights[k];
+                                float tempWeight = weights[k];
                                 weights[k] = weights[k + 1];
                                 weights[k + 1] = tempWeight;
 
@@ -287,10 +370,14 @@ public class TPLResource implements Reader<Model> {
             for (FVF colorLayerFlag : EnumSet.range(FVF.OBJ_FVF_COLOR0, FVF.OBJ_FVF_COLOR5)) {
                 if (streamFVF.contains(colorLayerFlag)) {
                     ByteBuffer buf = (ByteBuffer) attributes.get(new Semantic.Color(colorLayerCount)).buffer();
-                    buf.put(inBuf.get());
-                    buf.put(inBuf.get());
-                    buf.put(inBuf.get());
-                    buf.put(inBuf.get());
+                    byte[] color = new byte[4];
+                    inBuf.get(color);
+                    if (color[0] == 0 && color[1] == 0 && color[2] == 0) { // Avoid full black VColors for now
+                        color[0] = -1;
+                        color[1] = -1;
+                        color[2] = -1;
+                    }
+                    buf.put(color);
                     colorLayerCount++;
                 }
             }

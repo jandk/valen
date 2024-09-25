@@ -27,7 +27,7 @@ public final class GltfModelMapper {
         this.materialMapper = new GltfMaterialMapper(context);
     }
 
-    public NodeSchema map(Model model) {
+    public NodeSchema map(Model model) throws IOException {
         var materialIDs = new ArrayList<MaterialID>();
         for (var material : model.materials()) {
             materialIDs.add(context.addMaterial(materialMapper.map(material)));
@@ -38,30 +38,30 @@ public final class GltfModelMapper {
         SkinID skinId = null;
         if (model.skeleton() != null) {
             skinId = context.addSkin(
-                skeletonMapper.map(model.skeleton()));
+                skeletonMapper.map(model.skeleton(), model.name()));
         }
 
         var children = new ArrayList<NodeID>();
-        for (Mesh mesh : model.meshes()) {
-            var meshPrimSchema = mapMesh(mesh,materialIDs.get(mesh.materialIndex())));
+        for (SubModel subModel : model.subModels()) {
+            var primitives = subModel.meshes().stream()
+                .map(mesh -> mapMesh(mesh, materialIDs.get(mesh.materialIndex())))
+                .toList();
+
             var meshSchema = MeshSchema.builder()
-                .name(mesh.name())
-                .primitives(List.of(meshPrimSchema))
+                .name(subModel.name())
+                .primitives(primitives)
                 .build();
 
             var meshNode = NodeSchema.builder()
-                .name(mesh.name())
+                .name(subModel.name())
                 .mesh(context.addMesh(meshSchema))
                 .skin(skinId)
                 .build();
             children.add(context.addNode(meshNode));
         }
-
-
         return NodeSchema.builder()
             .name(model.name())
             .addAllChildren(children)
-            .skin(skinId)
             .build();
     }
 

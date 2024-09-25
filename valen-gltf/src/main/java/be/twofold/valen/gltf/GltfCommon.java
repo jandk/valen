@@ -2,10 +2,12 @@ package be.twofold.valen.gltf;
 
 import be.twofold.valen.gltf.gson.*;
 import be.twofold.valen.gltf.model.*;
+import be.twofold.valen.gltf.model.buffer.*;
 import be.twofold.valen.gltf.types.*;
 import com.google.gson.*;
 
 import java.io.*;
+import java.net.*;
 import java.nio.*;
 import java.nio.charset.*;
 import java.util.*;
@@ -47,6 +49,19 @@ abstract class GltfCommon {
             out.write(byteBuffer);
             GltfUtils.align(out, byteBuffer.length, (byte) 0);
         }
+    }
+
+    public void writeBuffersEmbedded() throws IOException {
+        var tmpStream = new ByteArrayOutputStream();
+        for (var buffer : context.getBinaryBuffers()) {
+            var byteBuffer = toArray(buffer);
+            tmpStream.write(byteBuffer);
+            GltfUtils.align(tmpStream, byteBuffer.length, (byte) 0);
+        }
+        byte[] data = tmpStream.toByteArray();
+        String encodedData = Base64.getEncoder().encodeToString(data);
+        var uri = URI.create("data:application/octet-stream;base64," + encodedData);
+        getContext().addBuffer(BufferSchema.builder().uri(uri).byteLength(data.length).build());
     }
 
     private byte[] toArray(Buffer buffer) {

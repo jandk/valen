@@ -92,13 +92,21 @@ public final class GeometryManager {
         if (objSpitInfo != null) {
             Check.argument(objects.size() == objSpitInfo.size());
         }
-        Check.argument(objects.size() == mtrLt.size());
-        Check.argument(objects.size() == mtrModel.size());
+        if (mtrLt != null) {
+            Check.argument(objects.size() == mtrLt.size());
+        }
+        if (mtrModel != null) {
+            Check.argument(objects.size() == mtrModel.size());
+        }
 
         for (int i = 0; i < objects.size(); i++) {
             var obj = objects.get(i);
-            obj.setMatrixLt(mtrLt.get(i));
-            obj.setModelMatrix(mtrModel.get(i));
+            if (mtrLt != null) {
+                obj.setMatrixLt(mtrLt.get(i));
+            }
+            if (mtrModel != null) {
+                obj.setModelMatrix(mtrModel.get(i));
+            }
         }
         if (namedObjectsId != null && !namedObjectsId.isEmpty()) {
             for (int i = 0; i < namedObjectsId.size(); i++) {

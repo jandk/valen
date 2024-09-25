@@ -26,6 +26,8 @@ public final class GltfMaterialMapper {
             switch (reference.type()) {
                 case Albedo -> pbrBuilder.baseColorTexture(textureSchema(textureID));
                 case Normal -> builder.normalTexture(normalTextureInfoSchema(textureID));
+                case MRAO -> pbrBuilder.metallicRoughnessTexture(textureSchema(textureID));
+                case Emissive -> builder.emissiveTexture(textureSchema(textureID));
                 // case Smoothness -> pbrBuilder.metallicRoughnessTexture(textureSchema(textureID));
             }
         }
