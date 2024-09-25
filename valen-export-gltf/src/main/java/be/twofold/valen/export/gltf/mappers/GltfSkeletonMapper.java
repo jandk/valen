@@ -41,7 +41,7 @@ public final class GltfSkeletonMapper {
                 .toList();
 
             var jointId = buildSkeletonJoint(bone, jointChildren,
-                bone.parent() == -1 ? Optional.of(this.rotation) : Optional.empty());
+                /*bone.parent() == -1 ? Optional.of(this.rotation) :*/ Optional.empty());
 
             jointIndices.add(jointId);
             if (bone.parent() == -1) {
@@ -55,7 +55,7 @@ public final class GltfSkeletonMapper {
         }
         buffer.flip();
 
-        var bufferView = context.createBufferView(buffer, buffer.limit() * 4, null);
+        var bufferView = context.createBufferView(buffer);
         var accessor = AccessorSchema.builder()
             .bufferView(bufferView)
             .componentType(AccessorComponentType.FLOAT)

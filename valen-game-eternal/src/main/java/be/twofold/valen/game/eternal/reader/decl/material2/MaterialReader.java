@@ -3,6 +3,8 @@ package be.twofold.valen.game.eternal.reader.decl.material2;
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.material.*;
+import be.twofold.valen.core.texture.*;
+import be.twofold.valen.core.util.fi.*;
 import be.twofold.valen.game.eternal.*;
 import be.twofold.valen.game.eternal.reader.*;
 import be.twofold.valen.game.eternal.reader.decl.*;
@@ -36,7 +38,7 @@ public final class MaterialReader implements ResourceReader<Material> {
 
     @Override
     public Material read(DataSource source, Asset asset) throws IOException {
-        JsonObject object = declReader.read(source, asset);
+        var object = declReader.read(source, asset);
         return parseMaterial(object, asset.id().fullName());
     }
 
@@ -73,8 +75,12 @@ public final class MaterialReader implements ResourceReader<Material> {
             }
             mapOptions(builder, kind, parm, opts);
 
-            if (archive.exists(ResourceKey.from(builder.toString(), ResourceType.Image))) {
-                references.add(new TextureReference(mapTextureType(kind), builder.toString()));
+            var filename = builder.toString();
+            var resourceKey = ResourceKey.from(filename, ResourceType.Image);
+            if (archive.exists(resourceKey)) {
+                var textureType = mapTextureType(kind);
+                var supplier = ThrowingSupplier.lazy(() -> (Texture) archive.loadAsset(resourceKey));
+                references.add(new TextureReference(textureType, filename, supplier));
             }
         });
 

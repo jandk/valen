@@ -188,10 +188,14 @@ public final class GltfContext {
             .build());
     }
 
-    public BufferViewID createBufferView(Buffer buffer, int length, BufferViewTarget target) {
+    public BufferViewID createBufferView(Buffer buffer) {
+        return createBufferView(buffer, null);
+    }
+
+    public BufferViewID createBufferView(Buffer buffer, BufferViewTarget target) {
         var bufferView = BufferViewSchema.builder()
             .buffer(BufferID.of(0))
-            .byteLength(length)
+            .byteLength(size(buffer))
             .byteOffset(binaryBufferSize)
             .target(Optional.ofNullable(target))
             .build();

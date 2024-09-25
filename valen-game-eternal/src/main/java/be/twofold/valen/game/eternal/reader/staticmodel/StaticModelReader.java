@@ -3,6 +3,7 @@ package be.twofold.valen.game.eternal.reader.staticmodel;
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.geometry.*;
 import be.twofold.valen.core.io.*;
+import be.twofold.valen.core.material.*;
 import be.twofold.valen.core.util.*;
 import be.twofold.valen.game.eternal.*;
 import be.twofold.valen.game.eternal.reader.*;
@@ -47,26 +48,27 @@ public final class StaticModelReader implements ResourceReader<Model> {
 
         model = model.withMeshes(readMeshes(model, source, hash));
 
-//        if (readMaterials) {
-//            var materials = new LinkedHashMap<String, Material>();
-//            var materialIndices = new HashMap<String, Integer>();
-//
-//            var meshes = new ArrayList<Mesh>();
-//            for (int i = 0; i < model.meshes().size(); i++) {
-//                var meshInfo = model.meshInfos().get(i);
-//                var materialName = meshInfo.mtlDecl();
-//                var materialFile = "generated/decls/material2/" + materialName + ".decl";
-//                var materialIndex = materialIndices.computeIfAbsent(materialName, k -> materials.size());
-//                if (!materials.containsKey(materialName)) {
-//                    Material material = fileManager.get().readResource(materialFile, FileType.Material);
-//                    materials.put(materialName, material);
-//                }
-//                meshes.add(model.meshes().get(i).withMaterialIndex(materialIndex));
-//            }
-//            model = model
-//                .withMeshes(meshes)
-//                .withMaterials(List.copyOf(materials.values()));
-//        }
+        if (readMaterials) {
+            var materials = new LinkedHashMap<String, Material>();
+            var materialIndices = new HashMap<String, Integer>();
+
+            var meshes = new ArrayList<Mesh>();
+            for (int i = 0; i < model.meshes().size(); i++) {
+                var meshInfo = model.meshInfos().get(i);
+                var materialName = meshInfo.mtlDecl();
+                var materialFile = "generated/decls/material2/" + materialName + ".decl";
+                var materialIndex = materialIndices.computeIfAbsent(materialName, k -> materials.size());
+                if (!materials.containsKey(materialName)) {
+                    var assetId = ResourceKey.from(materialFile, ResourceType.RsStreamFile);
+                    var material = (Material) archive.loadAsset(assetId);
+                    materials.put(materialName, material);
+                }
+                meshes.add(model.meshes().get(i).withMaterialIndex(materialIndex));
+            }
+            model = model
+                .withMeshes(meshes)
+                .withMaterials(List.copyOf(materials.values()));
+        }
         return model;
     }
 

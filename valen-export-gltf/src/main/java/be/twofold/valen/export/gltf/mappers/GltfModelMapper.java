@@ -11,6 +11,7 @@ import be.twofold.valen.gltf.model.node.*;
 import be.twofold.valen.gltf.model.skin.*;
 import com.google.gson.*;
 
+import java.io.*;
 import java.nio.*;
 import java.util.*;
 
@@ -19,13 +20,19 @@ public final class GltfModelMapper {
     private static final Quaternion ROTATION = Quaternion.fromAxisAngle(Vector3.UnitX, -MathF.HALF_PI);
 
     private final GltfContext context;
+    private final GltfMaterialMapper materialMapper;
 
     public GltfModelMapper(GltfContext context) {
         this.context = context;
+        this.materialMapper = new GltfMaterialMapper(context);
     }
 
     public NodeSchema map(Model model) {
-        // First we do the meshes
+        var materialIDs = new ArrayList<MaterialID>();
+        for (var material : model.materials()) {
+            materialIDs.add(context.addMaterial(materialMapper.map(material)));
+        }
+
         var skeletonMapper = new GltfSkeletonMapper(context, ROTATION);
 
         SkinID skinId = null;
@@ -36,7 +43,7 @@ public final class GltfModelMapper {
 
         var children = new ArrayList<NodeID>();
         for (Mesh mesh : model.meshes()) {
-            var meshPrimSchema = mapMesh(mesh);
+            var meshPrimSchema = mapMesh(mesh,materialIDs.get(mesh.materialIndex())));
             var meshSchema = MeshSchema.builder()
                 .name(mesh.name())
                 .primitives(List.of(meshPrimSchema))
@@ -58,7 +65,7 @@ public final class GltfModelMapper {
             .build();
     }
 
-    private MeshPrimitiveSchema mapMesh(Mesh mesh) {
+    private MeshPrimitiveSchema mapMesh(Mesh mesh, MaterialID materialID) {
         // Have to fix up the joints and weights first
         fixJointsAndWeights(mesh);
 
@@ -71,9 +78,9 @@ public final class GltfModelMapper {
 
         var faceAccessor = buildAccessor(mesh.faceBuffer(), null);
         return MeshPrimitiveSchema.builder()
-            .material(MaterialID.of(mesh.materialIndex()))
             .attributes(attributes)
             .indices(faceAccessor)
+            .material(materialID)
             .build();
     }
 
@@ -82,8 +89,7 @@ public final class GltfModelMapper {
             ? BufferViewTarget.ELEMENT_ARRAY_BUFFER
             : BufferViewTarget.ARRAY_BUFFER;
 
-        var length = buffer.buffer().limit() * buffer.componentType().size();
-        var bufferView = context.createBufferView(buffer.buffer(), length, target);
+        var bufferView = context.createBufferView(buffer.buffer(), target);
 
         var bounds = semantic == Semantic.Position
             ? Bounds.calculate(((FloatBuffer) buffer.buffer()))
@@ -131,8 +137,6 @@ public final class GltfModelMapper {
                     }
                     default -> throw new IllegalStateException("Unexpected buffer type: " + buffer);
                 }
-
-
             }));
     }
 
