@@ -11,7 +11,7 @@ import java.nio.file.*;
 import java.util.*;
 
 public class PackArchive implements Archive {
-    private static final List<Reader<?>> READERS = List.of(new Resource(), new TPLResource(), new PCTResource());
+    private static final List<Reader<?>> READERS = List.of(new Resource(), new TDResource(), new TPLResource(), new PCTResource());
 
     private final Path root;
     private final String name;

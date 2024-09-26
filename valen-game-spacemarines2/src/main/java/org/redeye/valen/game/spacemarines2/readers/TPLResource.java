@@ -9,6 +9,7 @@ import be.twofold.valen.core.texture.*;
 import be.twofold.valen.core.util.*;
 import org.redeye.valen.game.spacemarines2.*;
 import org.redeye.valen.game.spacemarines2.serializers.tpl.*;
+import org.redeye.valen.game.spacemarines2.td.*;
 import org.redeye.valen.game.spacemarines2.types.*;
 
 import java.io.*;
@@ -99,40 +100,178 @@ public class TPLResource implements Reader<Model> {
         Map<String, Map> resInfo = (Map<String, Map>) archive.loadAsset(resourceId);
         var materials = new ArrayList<Material>();
         for (String materialLink : ((List<String>) resInfo.get("linksTd"))) {
+            System.out.println("Exporting " + materialLink);
             Map<String, Object> matResourceInfo = (Map<String, Object>) archive.loadAsset(new EmperorAssetId(materialLink.substring(6)));
             var textureRefs = new ArrayList<TextureReference>();
             List<String> get = (List<String>) matResourceInfo.get("linksPct");
+            boolean useAlpha = false;
             for (int i = 0; i < get.size(); i++) {
                 String textureLink = get.get(i);
+                String tdFilePath = "td" + textureLink.substring(9, textureLink.length() - 13) + ".td";
+                TDValue.TDObject tdData = (TDValue.TDObject) archive.loadAsset(new EmperorAssetId(tdFilePath));
                 Texture texture = (Texture) archive.loadAsset(new EmperorAssetId(textureLink.substring(6)));
+
                 var outName = textureLink.substring(10, textureLink.length() - 13);
-                if (i == 0) {
-                    textureRefs.add(new TextureReference(TextureType.Albedo, outName, () -> texture));
-                } else if (outName.endsWith("_nm")) {
-                    textureRefs.add(new TextureReference(TextureType.Normal, outName, () -> texture));
-                } else if (outName.endsWith("_spec")) {
-                    textureRefs.add(new TextureReference(TextureType.MRAO, outName, () -> texture));
-                } else if (outName.endsWith("_ao")) {
-                    textureRefs.add(new TextureReference(TextureType.AmbientOcclusion, outName, () -> texture));
-                } else if (outName.endsWith("_em")) {
-                    textureRefs.add(new TextureReference(TextureType.Emissive, outName, () -> texture));
-                } else {
-                    textureRefs.add(new TextureReference(TextureType.Unknown, outName, () -> texture));
-                    System.out.println("Unknown texture: " + outName);
+                switch (tdData.get("usage").asString()) {
+                    case "MD" -> {
+                        if (outName.endsWith("_dm") || outName.endsWith("_diffdet") || outName.endsWith("_det") || outName.startsWith("gradient_")) {
+                            textureRefs.add(new TextureReference(TextureType.Unknown, outName, () -> texture));
+                        } else {
+                            textureRefs.add(new TextureReference(TextureType.Albedo, outName, () -> texture));
+                        }
+                    }
+                    case "MD+MAK" -> {
+                        textureRefs.add(new TextureReference(TextureType.Albedo, outName, () -> texture));
+                        useAlpha = true;
+                    }
+                    case "MD+MT" -> {
+                        textureRefs.add(new TextureReference(TextureType.Albedo, outName, () -> texture));
+                        useAlpha = false;
+                    }
+                    case "MDTM" -> {
+                        textureRefs.add(new TextureReference(TextureType.DetailMask, outName, () -> texture));
+                    }
+                    case "MEM" -> {
+                        textureRefs.add(new TextureReference(TextureType.Emissive, outName, () -> texture));
+                    }
+                    case "MH" -> {
+                        textureRefs.add(new TextureReference(TextureType.Height, outName, () -> texture));
+                    }
+                    case "MAO" -> {
+                        textureRefs.add(new TextureReference(TextureType.AmbientOcclusion, outName, () -> texture));
+                    }
+                    case "MD+MSP" -> {
+                        textureRefs.add(new TextureReference(TextureType.Albedo, outName, () -> texture));
+                    }
+                    case "MNM" -> {
+                        var converted = SurfaceConverter.convert(texture.surfaces().getFirst(), TextureFormat.R8G8B8A8_UNORM);
+                        var data = converted.data();
+                        for (int p = 0; p < converted.data().length; p += 4) {
+                            data[p + 1] = (byte) (255 - data[p + 1]);
+                        }
+                        var newTexture = new Texture(converted.width(),
+                            converted.height(),
+                            converted.format(),
+                            List.of(converted),
+                            false
+                        );
+                        textureRefs.add(new TextureReference(TextureType.Normal, outName, () -> newTexture));
+                    }
+                    case "MDT" -> {
+                        var converted = SurfaceConverter.convert(texture.surfaces().getFirst(), TextureFormat.R8G8B8A8_UNORM);
+                        var data = converted.data();
+                        for (int p = 0; p < converted.data().length; p += 4) {
+                            data[p + 1] = (byte) (255 - data[p + 1]);
+                        }
+                        var newTexture = new Texture(converted.width(),
+                            converted.height(),
+                            converted.format(),
+                            List.of(converted),
+                            false
+                        );
+                        textureRefs.add(new TextureReference(TextureType.DetailNormal, outName, () -> newTexture));
+                    }
+                    case "MSCRGHAO" -> {
+                        var converted = SurfaceConverter.convert(texture.surfaces().getFirst(), TextureFormat.R8G8B8A8_UNORM);
+                        var data = converted.data();
+                        for (int p = 0; p < converted.data().length; p += 4) {
+                            var tmp = data[p];
+                            data[p] = data[p + 2];
+                            data[p + 2] = tmp;
+                        }
+                        var newTexture = new Texture(converted.width(),
+                            converted.height(),
+                            converted.format(),
+                            List.of(converted),
+                            false
+                        );
+                        textureRefs.add(new TextureReference(TextureType.ORM, outName, () -> newTexture));
+                    }
+                    case "MEM+MAO" -> {
+                        var converted = SurfaceConverter.convert(texture.surfaces().getFirst(), TextureFormat.R8G8B8A8_UNORM);
+                        var data = converted.data();
+                        var emissiveSurface = Surface.create(converted.width(), converted.height(), TextureFormat.R8G8B8A8_UNORM);
+                        var emissiveData = emissiveSurface.data();
+                        var aoSurface = Surface.create(converted.width(), converted.height(), TextureFormat.R8G8B8A8_UNORM);
+                        var aoData = emissiveSurface.data();
+                        for (int p = 0; p < converted.data().length; p += 4) {
+                            emissiveData[p] = data[p];
+                            emissiveData[p + 1] = data[p + 1];
+                            emissiveData[p + 2] = data[p + 2];
+                            emissiveData[p + 3] = -1;
+                            aoData[p] = data[p + 3];
+                            aoData[p + 1] = data[p + 3];
+                            aoData[p + 2] = data[p + 3];
+                            aoData[p + 3] = -1;
+                        }
+                        var emissiveTexture = new Texture(emissiveSurface.width(),
+                            emissiveSurface.height(),
+                            emissiveSurface.format(),
+                            List.of(emissiveSurface),
+                            false
+                        );
+                        var aoTexture = new Texture(aoSurface.width(),
+                            aoSurface.height(),
+                            aoSurface.format(),
+                            List.of(aoSurface),
+                            false
+                        );
+                        textureRefs.add(new TextureReference(TextureType.Emissive, outName, () -> emissiveTexture));
+                        textureRefs.add(new TextureReference(TextureType.AmbientOcclusion, outName, () -> aoTexture));
+                    }
+                    case "MH+MDTM" -> {
+                        var converted = SurfaceConverter.convert(texture.surfaces().getFirst(), TextureFormat.R8G8B8A8_UNORM);
+                        var data = converted.data();
+                        var heightSurface = Surface.create(converted.width(), converted.height(), TextureFormat.R8G8B8A8_UNORM);
+                        var heightData = heightSurface.data();
+                        var detailMaskSurface = Surface.create(converted.width(), converted.height(), TextureFormat.R8G8B8A8_UNORM);
+                        var detailMaskData = heightSurface.data();
+                        for (int p = 0; p < converted.data().length; p += 4) {
+                            heightData[p] = data[p];
+                            heightData[p + 1] = data[p];
+                            heightData[p + 2] = data[p];
+                            heightData[p + 3] = -1;
+                            detailMaskData[p] = data[p + 1];
+                            detailMaskData[p + 1] = data[p + 1];
+                            detailMaskData[p + 2] = data[p + 1];
+                            detailMaskData[p + 3] = -1;
+                        }
+                        var heightTexture = new Texture(heightSurface.width(),
+                            heightSurface.height(),
+                            heightSurface.format(),
+                            List.of(heightSurface),
+                            false
+                        );
+                        var detailMaskTexture = new Texture(detailMaskSurface.width(),
+                            detailMaskSurface.height(),
+                            detailMaskSurface.format(),
+                            List.of(detailMaskSurface),
+                            false
+                        );
+                        textureRefs.add(new TextureReference(TextureType.Height, outName, () -> heightTexture));
+                        textureRefs.add(new TextureReference(TextureType.DetailMask, outName, () -> detailMaskTexture));
+                    }
+                    case "MSCG+MRGH" -> {
+                        var converted = SurfaceConverter.convert(texture.surfaces().getFirst(), TextureFormat.R8G8B8A8_UNORM);
+                        var data = converted.data();
+                        var newData = new byte[TextureFormat.R8G8B8A8_UNORM.block().surfaceSize(converted.width(), converted.height())];
+                        for (int p = 0; p < converted.data().length / 4; p++) {
+                            newData[p * 4 + 1] = data[p * 4 + 1];
+                            newData[p * 4 + 2] = data[p * 4 + 2];
+                        }
+                        var newTexture = new Texture(converted.width(),
+                            converted.height(),
+                            converted.format(),
+                            List.of(new Surface(converted.width(), converted.height(), TextureFormat.R8G8B8A8_UNORM, newData)),
+                            false
+                        );
+                        textureRefs.add(new TextureReference(TextureType.ORM, outName, () -> newTexture));
+                    }
+                    default ->
+                        throw new IllegalStateException("Unexpected value: " + tdData.get("usage").asString() + " in " + tdFilePath);
                 }
-
-
-                // Path pngPath = outputPath.resolve(outName + ".png");
-                // if (!Files.exists(pngPath)) {
-                //     try (OutputStream outputStream = Files.newOutputStream(pngPath)) {
-                //         pngExporter.export(texture, outputStream);
-                //     }
-                // }
-
             }
-
-            materials.add(new Material(((String) matResourceInfo.get("name")), textureRefs));
-            // materials.add(new Material(((String) matResourceInfo.get("name")), List.of()));
+            materials.add(new Material(((String) matResourceInfo.get("name")), textureRefs, useAlpha));
         }
         return materials;
     }
@@ -152,7 +291,7 @@ public class TPLResource implements Reader<Model> {
             for (int i = objSplitRange.startIndex; i < objSplitRange.startIndex + objSplitRange.numSplits; i++) {
                 convertSplitMesh(splits.get(i), streams, meshes, materials);
             }
-            subModels.add(new SubModel(obj.name, meshes));
+            subModels.add(new SubModel(Objects.requireNonNullElse(obj.name, "SubModel"), meshes));
         }
     }
 
@@ -162,8 +301,15 @@ public class TPLResource implements Reader<Model> {
 
         System.out.println(split);
         geom.streams.forEach((slot, stream) -> {
-            System.out.printf("Stream(%d) %s: stride: %d, %s, %s%n", streams.indexOf(stream), slot, stream.stride, stream.fvf, stream.flags);
+            System.out.printf("Stream(%d) %s: stride: %d, %s, %s, %s%n", streams.indexOf(stream), slot, stream.stride, stream.fvf, stream.flags, geom.flags);
         });
+
+        String materialName = extractMaterialName(split);
+        var matObj = materials.stream().filter(material -> materialName.equals(material.name())).findFirst().orElseGet(() -> new Material(materialName, List.of()));
+        if (!materials.contains(matObj)) {
+            materials.add(new Material(materialName, List.of()));
+        }
+        var matId = materials.indexOf(matObj);
 
         var attributes = buildAttributes(geomFVF, split.nVert);
 
@@ -174,6 +320,10 @@ public class TPLResource implements Reader<Model> {
 
         var indicesStreamEntry = geom.streams.entrySet().stream().filter(entry -> entry.getValue() != null && entry.getValue().fvf.isEmpty()).findFirst().orElseThrow();
         ObjGeomStream indicesStream = indicesStreamEntry.getValue();
+        if (indicesStream.stride > 6 && indicesStream.stride < 12) {
+            System.err.println("Invalid index stream stride: " + indicesStream.stride);
+            return;
+        }
         ByteBuffer indicesBuffer = ByteBuffer.wrap(indicesStream.data).order(ByteOrder.LITTLE_ENDIAN);
         indicesBuffer.position(split.startFace * indicesStream.stride + (geom.streamsOffset.get(indicesStreamEntry.getKey())));
         short[] indices = new short[split.nFace * 3];
@@ -191,14 +341,6 @@ public class TPLResource implements Reader<Model> {
         }
         Check.index(max, split.nVert);
         attributes.values().forEach(vertexBuffer -> vertexBuffer.buffer().rewind());
-
-
-        String materialName = extractMaterialName(split);
-        var matObj = materials.stream().filter(material -> materialName.equals(material.name())).findFirst().orElseGet(() -> new Material(materialName, List.of()));
-        if (!materials.contains(matObj)) {
-            materials.add(new Material(materialName, List.of()));
-        }
-        var matId = materials.indexOf(matObj);
 
         Mesh mesh = new Mesh(
             new VertexBuffer(newIndicesBuffer.rewind(), ElementType.Scalar, ComponentType.UnsignedShort, false),
@@ -249,7 +391,7 @@ public class TPLResource implements Reader<Model> {
         return normalizedArray;
     }
 
-    private void readStream(ObjGeomStream vertexStream, int offset, Map<Semantic, VertexBuffer> attributes, short[] uvTiles, int vertCount, VertCompressParams compressParams) {
+    private void readStream(ObjGeomStream vertexStream, int offset, Map<Semantic, VertexBuffer> attributes, Map<Integer, Integer> uvTiles, int vertCount, VertCompressParams compressParams) {
         ByteBuffer inBuf = ByteBuffer.wrap(vertexStream.data, offset, vertexStream.size - offset).order(ByteOrder.LITTLE_ENDIAN);
         for (int i = 0; i < vertCount; i++) {
             inBuf.position(offset + vertexStream.stride * i);
@@ -287,6 +429,31 @@ public class TPLResource implements Reader<Model> {
                 buf.put(inBuf.getFloat());
                 buf.put(inBuf.getFloat());
                 buf.put(inBuf.getFloat());
+            }
+
+            if (streamFVF.contains(FVF.OBJ_FVF_WEIGHT8) && !(streamFVF.contains(FVF.OBJ_FVF_INDICES16) || streamFVF.contains(FVF.OBJ_FVF_INDICES))) {
+                ShortBuffer bufI0 = (ShortBuffer) attributes.get(Semantic.Joints0).buffer();
+                ByteBuffer bufW0 = (ByteBuffer) attributes.get(Semantic.Weights0).buffer();
+                byte[] weights = new byte[4];
+                short[] indices = new short[4];
+
+                inBuf.get(weights);
+                weights[3] = 0;
+                weights = renormalize(weights);
+                for (int j = 0; j < 4; j++) {
+                    indices[j] = inBuf.getShort();
+                }
+
+                for (int j = 0; j < weights.length; j++) {
+                    if (weights[j] == 0) {
+                        indices[j] = 0;
+                    }
+                }
+
+                for (int j = 0; j < 4; j++) {
+                    bufW0.put(weights[j]);
+                    bufI0.put(indices[j]);
+                }
             }
 
             if (streamFVF.contains(FVF.OBJ_FVF_WEIGHT8) && streamFVF.contains(FVF.OBJ_FVF_INDICES16)) {
@@ -387,12 +554,20 @@ public class TPLResource implements Reader<Model> {
             for (FVF uvLayerFlag : EnumSet.range(FVF.OBJ_FVF_TEX0, FVF.OBJ_FVF_TEX4)) {
                 if (streamFVF.contains(uvLayerFlag)) {
                     FloatBuffer buf = (FloatBuffer) attributes.get(new Semantic.TexCoord(uvLayerCount)).buffer();
-                    float uvTile = 1;
-                    if (streamFVF.contains(FVF.values()[FVF.OBJ_FVF_TEX0_COMPR.ordinal() + uvLayerId])) {
-                        uvTile += uvTiles[uvLayerId];
+                    float uvTile;
+                    if (uvTiles.containsKey(uvLayerId) || streamFVF.contains(FVF.values()[FVF.OBJ_FVF_TEX0_COMPR.ordinal() + uvLayerId])) {
+                        uvTile = uvTiles.get(uvLayerId);
+                    } else {
+                        uvTile = 1;
                     }
-                    float u = (inBuf.getShort() / 32767.f) / uvTile;
-                    float v = (inBuf.getShort() / 32767.f) / uvTile;
+                    float u = (inBuf.getShort() / 32767.f); /// uvTile;
+                    float v = (inBuf.getShort() / 32767.f); /// uvTile;
+
+                    if (uvTile > 1) {
+                        u *= (uvTile);
+                        v *= (uvTile);
+                    }
+
                     buf.put(u);
                     buf.put(v);
                     uvLayerCount++;
@@ -428,7 +603,13 @@ public class TPLResource implements Reader<Model> {
             map.put(Semantic.Normal,
                 new VertexBuffer(FloatBuffer.allocate(vertexCount * 3), ElementType.Vector3, ComponentType.Float, false));
         }
-        if (geomFVF.contains(FVF.OBJ_FVF_WEIGHT8)) {
+
+        if (geomFVF.contains(FVF.OBJ_FVF_WEIGHT8) && !(geomFVF.contains(FVF.OBJ_FVF_INDICES16) || geomFVF.contains(FVF.OBJ_FVF_INDICES))) {
+            map.put(Semantic.Weights0,
+                new VertexBuffer(ByteBuffer.allocate(vertexCount * 4), ElementType.Vector4, ComponentType.UnsignedByte, true));
+            map.put(Semantic.Joints0,
+                new VertexBuffer(ShortBuffer.allocate(vertexCount * 4), ElementType.Vector4, ComponentType.UnsignedShort, false));
+        } else if (geomFVF.contains(FVF.OBJ_FVF_WEIGHT8)) {
             map.put(Semantic.Weights0,
                 new VertexBuffer(ByteBuffer.allocate(vertexCount * 4), ElementType.Vector4, ComponentType.UnsignedByte, true));
         }

@@ -8,7 +8,7 @@ public class ObjSplit {
     public int nVert;
     public int startFace;
     public int nFace;
-    public short[] texCoordMaxTile = new short[6];
+    public Map<Integer, Integer> texCoordMaxTile = new HashMap<>();
     public VertCompressParams vertCompParams = new VertCompressParams();
     public short skinCompoundId;
     public MtlDesc mtlDesc = new MtlDesc();
@@ -25,7 +25,7 @@ public class ObjSplit {
             ", nVert=" + nVert +
             ", startFace=" + startFace +
             ", nFace=" + nFace +
-            ", texCoordMaxTile=" + Arrays.toString(texCoordMaxTile) +
+            ", texCoordMaxTile=" + texCoordMaxTile +
             ", vertCompParams=" + vertCompParams +
             ", skinCompoundId=" + skinCompoundId +
             ", mtlDesc=" + mtlDesc +

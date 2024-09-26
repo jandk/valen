@@ -6,10 +6,15 @@ import java.util.*;
 
 public record Material(
     String name,
-    List<TextureReference> textures
+    List<TextureReference> textures,
+    boolean useAlpha
 ) {
     public Material {
         Check.notNull(name, "name");
         textures = List.copyOf(textures);
+    }
+
+    public Material(String name, List<TextureReference> textures) {
+        this(name, textures, false);
     }
 }

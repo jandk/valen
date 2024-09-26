@@ -4,6 +4,7 @@ module valen.game.spacemarines2 {
     requires java.sql;
 
     opens org.redeye.valen.game.spacemarines2.types;
+    opens org.redeye.valen.game.spacemarines2.types.spline;
 
     provides be.twofold.valen.core.game.GameFactory
         with org.redeye.valen.game.spacemarines2.SpaceMarines2GameFactory;

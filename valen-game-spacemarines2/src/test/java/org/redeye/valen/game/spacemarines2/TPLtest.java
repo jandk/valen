@@ -6,6 +6,7 @@ import be.twofold.valen.core.texture.*;
 import be.twofold.valen.export.gltf.*;
 import be.twofold.valen.export.png.*;
 import org.junit.jupiter.api.*;
+import org.redeye.valen.game.spacemarines2.td.*;
 
 import java.io.*;
 import java.nio.file.*;
@@ -21,7 +22,22 @@ public class TPLtest {
     }
 
     @Test
-    void testReadAcidBomb() throws IOException {
+    void test_TDLexer() throws IOException {
+        SpaceMarines2Game game = new SpaceMarines2GameFactory().load(Path.of("D:\\SteamLibrary\\steamapps\\common\\Space Marine 2\\Warhammer 40000 Space Marine 2.exe"));
+        var archive = game.loadArchive("client_pc");
+        for (Asset asset : archive.assets()) {
+            if (asset.id().fileName().endsWith(".td")) {
+                System.out.println(asset.id());
+                var rawData = archive.loadRawAsset(asset.id());
+                TDParser parser = new TDParser(new InputStreamReader(new ByteArrayInputStream(rawData.array())));
+                var res = parser.parse();
+                System.out.println(res);
+            }
+        }
+    }
+
+    @Test
+    void testRead_acid_bomb_01_anim() throws IOException {
         SpaceMarines2Game game = new SpaceMarines2GameFactory().load(Path.of("D:\\SteamLibrary\\steamapps\\common\\Space Marine 2\\Warhammer 40000 Space Marine 2.exe"));
         var archive = game.loadArchive("client_pc");
 
@@ -30,7 +46,7 @@ public class TPLtest {
     }
 
     @Test
-    void testReadGargoyle() throws IOException {
+    void testRead_cc_gargoyle() throws IOException {
         SpaceMarines2Game game = new SpaceMarines2GameFactory().load(Path.of("D:\\SteamLibrary\\steamapps\\common\\Space Marine 2\\Warhammer 40000 Space Marine 2.exe"));
         var archive = game.loadArchive("client_pc");
 
@@ -63,6 +79,66 @@ public class TPLtest {
         var archive = game.loadArchive("client_pc");
 
         EmperorAssetId resourceId = new EmperorAssetId("tpl/cc_calgar.tpl/cc_calgar.tpl.resource");
+        exportModel(archive, Path.of("dump"), resourceId);
+
+    }
+
+    @Test
+    void testRead_cc_dreadnought() throws IOException {
+        SpaceMarines2Game game = new SpaceMarines2GameFactory().load(Path.of("D:\\SteamLibrary\\steamapps\\common\\Space Marine 2\\Warhammer 40000 Space Marine 2.exe"));
+        var archive = game.loadArchive("client_pc");
+
+        EmperorAssetId resourceId = new EmperorAssetId("tpl/cc_dreadnought.tpl/cc_dreadnought.tpl.resource");
+        exportModel(archive, Path.of("dump"), resourceId);
+
+    }
+
+    @Test
+    void testRead_cc_hive_tyrant_clean() throws IOException {
+        SpaceMarines2Game game = new SpaceMarines2GameFactory().load(Path.of("D:\\SteamLibrary\\steamapps\\common\\Space Marine 2\\Warhammer 40000 Space Marine 2.exe"));
+        var archive = game.loadArchive("client_pc");
+
+        EmperorAssetId resourceId = new EmperorAssetId("tpl/cc_hive_tyrant_clean.tpl/cc_hive_tyrant_clean.tpl.resource");
+        exportModel(archive, Path.of("dump"), resourceId);
+
+    }
+
+    @Test
+    void testRead_cc_lord_of_change() throws IOException {
+        SpaceMarines2Game game = new SpaceMarines2GameFactory().load(Path.of("D:\\SteamLibrary\\steamapps\\common\\Space Marine 2\\Warhammer 40000 Space Marine 2.exe"));
+        var archive = game.loadArchive("client_pc");
+
+        EmperorAssetId resourceId = new EmperorAssetId("tpl/cc_lord_of_change.tpl/cc_lord_of_change.tpl.resource");
+        exportModel(archive, Path.of("dump"), resourceId);
+
+    }
+
+    @Test
+    void testRead_cc_sm_constructor_victrix_guard() throws IOException {
+        SpaceMarines2Game game = new SpaceMarines2GameFactory().load(Path.of("D:\\SteamLibrary\\steamapps\\common\\Space Marine 2\\Warhammer 40000 Space Marine 2.exe"));
+        var archive = game.loadArchive("client_pc");
+
+        EmperorAssetId resourceId = new EmperorAssetId("tpl/cc_sm_constructor_victrix_guard.tpl/cc_sm_constructor_victrix_guard.tpl.resource");
+        exportModel(archive, Path.of("dump"), resourceId);
+
+    }
+
+    @Test
+    void testRead_cc_carnifex() throws IOException {
+        SpaceMarines2Game game = new SpaceMarines2GameFactory().load(Path.of("D:\\SteamLibrary\\steamapps\\common\\Space Marine 2\\Warhammer 40000 Space Marine 2.exe"));
+        var archive = game.loadArchive("client_pc");
+
+        EmperorAssetId resourceId = new EmperorAssetId("tpl/cc_carnifex.tpl/cc_carnifex.tpl.resource");
+        exportModel(archive, Path.of("dump"), resourceId);
+
+    }
+
+    @Test
+    void testRead_cc_sorcerer_exalted() throws IOException {
+        SpaceMarines2Game game = new SpaceMarines2GameFactory().load(Path.of("D:\\SteamLibrary\\steamapps\\common\\Space Marine 2\\Warhammer 40000 Space Marine 2.exe"));
+        var archive = game.loadArchive("client_pc");
+
+        EmperorAssetId resourceId = new EmperorAssetId("tpl/cc_sorcerer_exalted.tpl/cc_sorcerer_exalted.tpl.resource");
         exportModel(archive, Path.of("dump"), resourceId);
 
     }
@@ -120,7 +196,7 @@ public class TPLtest {
         Files.createDirectories(outputPath);
 
 
-        var rawData = archive.loadRawAsset(tplPath);
+        var rawData = archive.loadRawAsset(tplId);
         Files.write(outputPath.resolve(tplId.fileName()), rawData.array());
 
         Map<String, Map> resInfo = (Map<String, Map>) archive.loadAsset(tplPath);
@@ -142,8 +218,8 @@ public class TPLtest {
     }
 
     private static void saveModel(Model model, Path outputPath) throws IOException {
-        try (OutputStream outputStream = Files.newOutputStream(outputPath.resolve(model.name() + ".gltf"))) {
-            new GltfModelExporter().export(model, outputStream);
+        try (OutputStream outputStream = Files.newOutputStream(outputPath.resolve(model.name() + ".glb"))) {
+            new GlbModelExporter().export(model, outputStream);
         }
     }
 

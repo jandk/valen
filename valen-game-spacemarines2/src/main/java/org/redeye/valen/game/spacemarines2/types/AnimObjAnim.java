@@ -1,6 +1,7 @@
 package org.redeye.valen.game.spacemarines2.types;
 
 import be.twofold.valen.core.math.*;
+import org.redeye.valen.game.spacemarines2.types.spline.*;
 
 public final class AnimObjAnim {
     Vector3 iniTranslation;

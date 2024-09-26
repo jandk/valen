@@ -3,6 +3,7 @@ package org.redeye.valen.game.spacemarines2.serializers.tpl;
 import org.redeye.valen.game.spacemarines2.fio.*;
 import org.redeye.valen.game.spacemarines2.serializers.*;
 import org.redeye.valen.game.spacemarines2.types.*;
+import org.redeye.valen.game.spacemarines2.types.spline.*;
 
 import java.util.*;
 

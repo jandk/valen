@@ -196,22 +196,13 @@ public final class GeometryManager {
                 case 2 -> {
                     System.out.println("Materials AAAAAAAAAAAAAAAAAAAAAAAAAAA");
                 }
-
                 case 4 -> {
                     for (ObjSplit split : splits) {
-                        if (split.geom.fvf.contains(FVF.OBJ_FVF_TEX0_COMPR) ||
-                            split.geom.fvf.contains(FVF.OBJ_FVF_TEX1_COMPR) ||
-                            split.geom.fvf.contains(FVF.OBJ_FVF_TEX2_COMPR) ||
-                            split.geom.fvf.contains(FVF.OBJ_FVF_TEX3_COMPR) ||
-                            split.geom.fvf.contains(FVF.OBJ_FVF_TEX4_COMPR) ||
-                            split.geom.fvf.contains(FVF.OBJ_FVF_TEX5_COMPR)
-                        ) {
-                            var val = source.readByte();
-                            for (byte i = 0; i < val; i++) {
-                                var idx = source.readByte();
-                                var tile = source.readShort();
-                                split.texCoordMaxTile[idx] = tile;
-                            }
+                        var val = source.readByte();
+                        for (byte i = 0; i < val; i++) {
+                            int idx = Byte.toUnsignedInt(source.readByte());
+                            int tile = Short.toUnsignedInt(source.readShort());
+                            split.texCoordMaxTile.put(idx, tile);
                         }
                     }
                 }
@@ -256,16 +247,15 @@ public final class GeometryManager {
         }
         while (source.tell() < chunk.endOffset()) {
             var subChunk = Chunk.read(source);
-            if (subChunk.id() == 2) {
-                break;
-            }
             if (subChunk.id() == 0) {
-                for (int i = 0; i < geoms.size(); i++) {
-                    var fvf = new FVFSerializer().load(source);
-                    System.out.println("AAAAAAAAAAAAA " + fvf);
+                for (ObjGeom geom : geoms) {
+                    geom.flags.addAll(new FVFSerializer().load(source));
                 }
+            } else if (subChunk.id() == 2) {
+                break;
+            } else {
+                System.out.println("Unhandled SubChunk: " + subChunk);
             }
-
             source.seek(subChunk.endOffset());
         }
         for (ObjGeom geom : geoms) {

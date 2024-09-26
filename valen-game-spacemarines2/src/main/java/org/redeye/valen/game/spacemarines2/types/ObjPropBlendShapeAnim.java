@@ -1,5 +1,7 @@
 package org.redeye.valen.game.spacemarines2.types;
 
+import org.redeye.valen.game.spacemarines2.types.spline.*;
+
 import java.util.*;
 
 public class ObjPropBlendShapeAnim implements ObjProp {
