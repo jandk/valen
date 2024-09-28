@@ -1,7 +1,6 @@
 package be.twofold.valen.game.doom;
 
 import be.twofold.valen.core.game.*;
-import be.twofold.valen.core.io.*;
 import be.twofold.valen.game.doom.resources.*;
 
 import java.io.*;
@@ -13,15 +12,13 @@ class DoomArchive implements Archive {
     private final ResourcesIndex index;
 
     DoomArchive(Path base, String name) throws IOException {
-        try (var source = DataSource.fromPath(base.resolve(name + ".index"))) {
-            this.index = ResourcesIndex.read(source);
-        }
+        this.index = ResourcesIndex.read(base.resolve(name + ".index"));
     }
 
     @Override
     public List<Asset> assets() {
         return index.entries().stream()
-            .map(e -> new Asset(new DoomAssetID(e.name2()), AssetType.Binary, e.size(), Map.of()))
+            .map(e -> new Asset(new DoomAssetID(e.typeName()), AssetType.Binary, e.size(), Map.of()))
             .toList();
     }
 
