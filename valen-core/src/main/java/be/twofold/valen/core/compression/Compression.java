@@ -1,7 +1,5 @@
 package be.twofold.valen.core.compression;
 
-import be.twofold.valen.core.compression.oodle.*;
-
 import java.io.*;
 import java.nio.*;
 
