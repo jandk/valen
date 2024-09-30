@@ -1,6 +1,7 @@
 package org.redeye.valen.game.spacemarines2;
 
 import be.twofold.valen.core.game.*;
+import org.redeye.valen.game.spacemarines2.archives.*;
 
 import java.io.*;
 import java.nio.file.*;

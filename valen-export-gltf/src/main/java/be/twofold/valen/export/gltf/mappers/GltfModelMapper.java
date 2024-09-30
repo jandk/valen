@@ -55,7 +55,7 @@ public final class GltfModelMapper {
             var meshNode = NodeSchema.builder()
                 .name(subModel.name())
                 .mesh(context.addMesh(meshSchema))
-                .skin(skinId)
+                .skin(Optional.ofNullable(skinId))
                 .build();
             children.add(context.addNode(meshNode));
         }

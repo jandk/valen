@@ -7,11 +7,12 @@ import java.io.*;
 public class FioStringSerializer implements FioSerializer<String> {
     @Override
     public String load(DataSource source) throws IOException {
-        return source.readPString();
+        String val = source.readPString();
+        return val;
     }
 
     @Override
     public int flags() {
-        return 0;
+        return 9;
     }
 }

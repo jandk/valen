@@ -11,6 +11,7 @@ public class FioInt32Serializer extends FioPrimitiveSerializerImpl<Integer> {
     }
 
     public FioInt32Serializer() {
+        this(16);
     }
 
     @Override

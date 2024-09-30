@@ -39,10 +39,9 @@ public class FioStructSerializer<T> implements FioSerializer<T> {
     public T load(DataSource source) throws IOException {
         if (sign != 0) {
             source.expectInt(sign);
-            // source.readInt();
         }
         var memberCount = source.readShort();
-//        Check.state(memberCount <= members.size(), "Invalid member count");
+        // Check.state(memberCount <= members.size(), "Invalid member count");
 
         var flags = source.readShort();
         if (flags == 2) {
