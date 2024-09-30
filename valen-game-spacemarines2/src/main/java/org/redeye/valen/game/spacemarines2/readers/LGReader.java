@@ -1,4 +1,4 @@
-package org.redeye.valen.game.spacemarines2.resourceReaders;
+package org.redeye.valen.game.spacemarines2.readers;
 
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.geometry.*;
@@ -15,7 +15,7 @@ import java.io.*;
 import java.nio.*;
 import java.util.*;
 
-public class LGResource implements Reader<Model> {
+public class LGReader implements Reader<Model> {
     private GeometryManagerToModel converter = new GeometryManagerToModel();
 
     @Override

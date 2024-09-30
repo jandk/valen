@@ -1,4 +1,4 @@
-package org.redeye.valen.game.spacemarines2.resourceReaders;
+package org.redeye.valen.game.spacemarines2.readers;
 
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.io.*;

@@ -1,4 +1,4 @@
-package org.redeye.valen.game.spacemarines2.resourceReaders;
+package org.redeye.valen.game.spacemarines2.readers;
 
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.io.*;
@@ -8,7 +8,7 @@ import org.yaml.snakeyaml.*;
 import java.io.*;
 import java.util.*;
 
-public class Resource implements Reader<Map<String, ?>> {
+public class ResourceReader implements Reader<Map<String, ?>> {
     @Override
     public Map<String, ?> read(Archive archive, Asset asset, DataSource source) throws IOException {
         Yaml yaml = new Yaml();

@@ -1,4 +1,4 @@
-package org.redeye.valen.game.spacemarines2.resourceReaders;
+package org.redeye.valen.game.spacemarines2.readers;
 
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.geometry.*;
@@ -14,7 +14,7 @@ import java.io.*;
 import java.nio.*;
 import java.nio.file.*;
 
-public class TPLResource implements Reader<Model> {
+public class TPLReader implements Reader<Model> {
     private GeometryManagerToModel converter = new GeometryManagerToModel();
 
     @Override

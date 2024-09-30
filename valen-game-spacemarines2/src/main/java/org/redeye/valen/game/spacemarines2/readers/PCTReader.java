@@ -1,4 +1,4 @@
-package org.redeye.valen.game.spacemarines2.resourceReaders;
+package org.redeye.valen.game.spacemarines2.readers;
 
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.io.*;
@@ -11,7 +11,7 @@ import java.io.*;
 import java.nio.*;
 import java.util.*;
 
-public class PCTResource implements Reader<Texture> {
+public class PCTReader implements Reader<Texture> {
     @Override
     public Texture read(Archive archive, Asset asset, DataSource source) throws IOException {
         Yaml yaml = new Yaml();
