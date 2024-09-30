@@ -1,13 +1,13 @@
-package org.redeye.valen.game.spacemarines2.td;
+package org.redeye.valen.game.spacemarines2.psSection;
 
 import be.twofold.valen.core.util.*;
 
 import java.util.*;
 import java.util.function.*;
 
-public sealed interface TDValue {
+public sealed interface PsSectionValue {
 
-    record TDString(String value) implements TDValue {
+    record PsSectionString(String value) implements PsSectionValue {
         @Override
         public String toString() {
             return "\"%s\"".formatted(value);
@@ -24,7 +24,7 @@ public sealed interface TDValue {
         }
     }
 
-    record TDNumber(Number value) implements TDValue {
+    record PsSectionNumber(Number value) implements PsSectionValue {
         @Override
         public String toString() {
             return value.toString();
@@ -41,14 +41,14 @@ public sealed interface TDValue {
         }
     }
 
-    record TDObject(Map<String, TDValue> values) implements TDValue {
+    record PsSectionObject(Map<String, PsSectionValue> values) implements PsSectionValue {
         @Override
         public String toString() {
             return values.toString();
         }
 
         @Override
-        public TDObject asObject() {
+        public PsSectionObject asObject() {
             return this;
         }
 
@@ -71,7 +71,7 @@ public sealed interface TDValue {
             return values.containsKey(key);
         }
 
-        public TDValue get(String key) {
+        public PsSectionValue get(String key) {
             return values.get(key);
         }
 
@@ -80,14 +80,14 @@ public sealed interface TDValue {
         }
     }
 
-    record TDList(List<TDValue> values) implements TDValue, Iterable<TDValue> {
+    record PsSectionList(List<PsSectionValue> values) implements PsSectionValue, Iterable<PsSectionValue> {
         @Override
         public String toString() {
             return values.toString();
         }
 
         @Override
-        public TDList asArray() {
+        public PsSectionList asArray() {
             return this;
         }
 
@@ -102,27 +102,27 @@ public sealed interface TDValue {
             return values.size();
         }
 
-        public TDValue get(int index) {
+        public PsSectionValue get(int index) {
             Check.index(index, size());
             return values.get(index);
         }
 
         @Override
-        public Iterator<TDValue> iterator() {
+        public Iterator<PsSectionValue> iterator() {
             return values.iterator();
         }
 
-        public void forEach(Consumer<? super TDValue> action) {
+        public void forEach(Consumer<? super PsSectionValue> action) {
             values.forEach(action);
         }
 
         @Override
-        public Spliterator<TDValue> spliterator() {
+        public Spliterator<PsSectionValue> spliterator() {
             return values.spliterator();
         }
     }
 
-    record TDBoolean(boolean value) implements TDValue {
+    record PsSectionBoolean(boolean value) implements PsSectionValue {
 
         @Override
         public Object valueRepr() {
@@ -140,11 +140,11 @@ public sealed interface TDValue {
         }
     }
 
-    default TDObject asObject() {
+    default PsSectionObject asObject() {
         throw ex("Object");
     }
 
-    default TDList asArray() {
+    default PsSectionList asArray() {
         throw ex("Array");
     }
 

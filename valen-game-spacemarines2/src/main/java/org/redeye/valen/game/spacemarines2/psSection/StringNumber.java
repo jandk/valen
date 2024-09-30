@@ -1,4 +1,4 @@
-package org.redeye.valen.game.spacemarines2.td;
+package org.redeye.valen.game.spacemarines2.psSection;
 
 import be.twofold.valen.core.util.*;
 

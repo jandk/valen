@@ -7,7 +7,7 @@ import be.twofold.valen.core.math.*;
 import be.twofold.valen.core.texture.*;
 import be.twofold.valen.core.util.*;
 import org.redeye.valen.game.spacemarines2.*;
-import org.redeye.valen.game.spacemarines2.td.*;
+import org.redeye.valen.game.spacemarines2.psSection.*;
 import org.redeye.valen.game.spacemarines2.types.template.*;
 
 import java.io.*;
@@ -74,7 +74,7 @@ public class GeometryManagerToModel {
             for (int i = 0; i < get.size(); i++) {
                 String textureLink = get.get(i);
                 String tdFilePath = "td" + textureLink.substring(9, textureLink.length() - 13) + ".td";
-                TDValue.TDObject tdData = (TDValue.TDObject) archive.loadAsset(new EmperorAssetId(tdFilePath));
+                PsSectionValue.PsSectionObject tdData = (PsSectionValue.PsSectionObject) archive.loadAsset(new EmperorAssetId(tdFilePath));
                 Texture texture = (Texture) archive.loadAsset(new EmperorAssetId(textureLink.substring(6)));
                 String usageInfo;
                 if (tdData.has("convert_settings")) {

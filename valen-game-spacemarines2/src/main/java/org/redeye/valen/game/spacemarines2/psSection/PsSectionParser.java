@@ -1,11 +1,11 @@
-package org.redeye.valen.game.spacemarines2.td;
+package org.redeye.valen.game.spacemarines2.psSection;
 
 import java.io.*;
 import java.util.*;
 
 import static java.lang.Character.*;
 
-public class TDParser {
+public class PsSectionParser {
     private enum TokenType {
         ObjectStart,
         ObjectEnd,
@@ -16,6 +16,7 @@ public class TDParser {
         Number,
         Equals,
         Comma,
+        Semicolon,
         Eof,
     }
 
@@ -27,26 +28,26 @@ public class TDParser {
     private TokenType token;
     private String value;
 
-    public TDParser(Reader reader) {
+    public PsSectionParser(Reader reader) {
         this.reader = new BufferedReader(Objects.requireNonNull(reader));
     }
 
-    public TDValue.TDObject parse() throws IOException {
+    public PsSectionValue.PsSectionObject parse() throws IOException {
         nextToken(); // First token read
         var item = parseObjectInner(true);
         expectAndConsume(TokenType.Eof);
         return item;
     }
 
-    private TDValue.TDObject parseObject() throws IOException {
+    private PsSectionValue.PsSectionObject parseObject() throws IOException {
         expectAndConsume(TokenType.ObjectStart);
         var obj = parseObjectInner(false);
         expectAndConsume(TokenType.ObjectEnd);
         return obj;
     }
 
-    private TDValue.TDObject parseObjectInner(boolean isTopLevel) throws IOException {
-        var object = new LinkedHashMap<String, TDValue>();
+    private PsSectionValue.PsSectionObject parseObjectInner(boolean isTopLevel) throws IOException {
+        var object = new LinkedHashMap<String, PsSectionValue>();
         while (token != TokenType.ObjectEnd) {
             if (token == TokenType.Eof && isTopLevel) {
                 break;
@@ -61,12 +62,12 @@ public class TDParser {
             var value = parseAssignment();
             object.put(key, value);
         }
-        return new TDValue.TDObject(object);
+        return new PsSectionValue.PsSectionObject(object);
     }
 
-    private TDValue.TDList parseArray() throws IOException {
+    private PsSectionValue.PsSectionList parseArray() throws IOException {
         expectAndConsume(TokenType.ListStart);
-        var items = new ArrayList<TDValue>();
+        var items = new ArrayList<PsSectionValue>();
         if (token != TokenType.ListEnd) {
             items.add(parseValue());
             while (token == TokenType.Comma) {
@@ -75,43 +76,43 @@ public class TDParser {
             }
         }
         expectAndConsume(TokenType.ListEnd);
-        return new TDValue.TDList(items);
+        return new PsSectionValue.PsSectionList(items);
     }
 
-    private TDValue parseAssignment() throws IOException {
+    private PsSectionValue parseAssignment() throws IOException {
         expectAndConsume(TokenType.Equals);
         return parseValue();
     }
 
-    private TDValue parseValue() throws IOException {
-        switch (token) {
-            case ObjectStart -> {
-                return parseObject();
-            }
-            case ListStart -> {
-                return parseArray();
-            }
+    private PsSectionValue parseValue() throws IOException {
+        var result = switch (token) {
+            case ObjectStart -> parseObject();
+            case ListStart -> parseArray();
             case String -> {
-                TDValue.TDString tdString = new TDValue.TDString(value);
+                PsSectionValue.PsSectionString tdString = new PsSectionValue.PsSectionString(value);
                 expectAndConsume(TokenType.String);
-                return tdString;
+                yield tdString;
             }
             case Identifier -> {
                 var bool = switch (value.toLowerCase()) {
-                    case "true" -> new TDValue.TDBoolean(true);
-                    case "false" -> new TDValue.TDBoolean(false);
+                    case "true" -> new PsSectionValue.PsSectionBoolean(true);
+                    case "false" -> new PsSectionValue.PsSectionBoolean(false);
                     default -> throw new IllegalStateException("Unexpected value: " + value);
                 };
                 expectAndConsume(TokenType.Identifier);
-                return bool;
+                yield bool;
             }
             case Number -> {
-                TDValue.TDNumber tdNumber = new TDValue.TDNumber(new StringNumber(value));
+                PsSectionValue.PsSectionNumber tdNumber = new PsSectionValue.PsSectionNumber(new StringNumber(value));
                 expectAndConsume(TokenType.Number);
-                return tdNumber;
+                yield tdNumber;
             }
             default -> throw new IllegalStateException("Unexpected token: " + token);
+        };
+        if (token == TokenType.Semicolon) {
+            expectAndConsume(TokenType.Semicolon);
         }
+        return result;
     }
 
     private void nextToken() throws IOException {
@@ -145,6 +146,10 @@ public class TDParser {
             case ',':
                 read();
                 token(TokenType.Comma, null);
+                break;
+            case ';':
+                read();
+                token(TokenType.Semicolon, null);
                 break;
             case '-':
             case '0':
@@ -189,12 +194,16 @@ public class TDParser {
         builder.setLength(0);
         while (true) {
             int peek = peek();
-            if (isWhitespace(peek)) {
+            if (isWhitespace(peek) || isControlCharacter(peek)) {
                 break;
             }
             appendNext();
         }
         return builder.toString();
+    }
+
+    private boolean isControlCharacter(int peek) {
+        return peek == ';' || peek == '}' || peek == ']' || peek == '=' || peek == ',' || peek == '\n' || peek == '\r';
     }
 
     private String parseQuotedString() {
@@ -345,7 +354,7 @@ public class TDParser {
 
     public static void main(String[] args) throws IOException {
         FileReader fileReader = new FileReader("D:\\projects\\java\\valen\\valen-game-spacemarines2\\ch_calgar_head_hair_01_dm.td");
-        TDParser reader = new TDParser(fileReader);
+        PsSectionParser reader = new PsSectionParser(fileReader);
         var value = reader.parse();
         System.out.println(value);
     }

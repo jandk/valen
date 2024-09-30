@@ -6,7 +6,7 @@ import be.twofold.valen.core.texture.*;
 import be.twofold.valen.export.gltf.*;
 import be.twofold.valen.export.png.*;
 import org.junit.jupiter.api.*;
-import org.redeye.valen.game.spacemarines2.td.*;
+import org.redeye.valen.game.spacemarines2.psSection.*;
 
 import java.io.*;
 import java.nio.file.*;
@@ -29,7 +29,7 @@ public class TPLtest {
             if (asset.id().fileName().endsWith(".td")) {
                 System.out.println(asset.id());
                 var rawData = archive.loadRawAsset(asset.id());
-                TDParser parser = new TDParser(new InputStreamReader(new ByteArrayInputStream(rawData.array())));
+                PsSectionParser parser = new PsSectionParser(new InputStreamReader(new ByteArrayInputStream(rawData.array())));
                 var res = parser.parse();
                 System.out.println(res);
             }
@@ -182,6 +182,16 @@ public class TPLtest {
         outputPath = outputPath.resolve(mdlName);
         Files.createDirectories(outputPath);
         saveModel((Model) model, outputPath);
+    }
+
+    @Test
+    void testRead_class_list() throws IOException {
+        SpaceMarines2Game game = new SpaceMarines2GameFactory().load(Path.of("D:\\SteamLibrary\\steamapps\\common\\Space Marine 2\\Warhammer 40000 Space Marine 2.exe"));
+        var archive = game.loadArchive("client_pc");
+
+        EmperorAssetId resourceId = new EmperorAssetId("scenes/story_tower.scn/story_tower.class_list");
+        var data = archive.loadAsset(resourceId);
+        System.out.println(data);
     }
 
     @Test
