@@ -45,10 +45,10 @@ public interface AccessorDef extends GltfChildOfRootProperty {
     /**
      * Minimum value of each component in this attribute.
      */
-    Optional<float[]> getMin();
+    Optional<Object> getMin();
 
     /**
      * Maximum value of each component in this attribute.
      */
-    Optional<float[]> getMax();
+    Optional<Object> getMax();
 }

@@ -7,6 +7,7 @@ import be.twofold.valen.gltf.model.accessor.*;
 import be.twofold.valen.gltf.model.buffer.*;
 import be.twofold.valen.gltf.model.material.*;
 import be.twofold.valen.gltf.model.mesh.*;
+import be.twofold.valen.gltf.types.*;
 import com.google.gson.*;
 
 import java.io.*;
@@ -76,8 +77,8 @@ public final class GltfModelMapper {
             .type(mapElementType(buffer.elementType()));
 
         if (bounds != null) {
-            accessor.min(bounds.min().toArray());
-            accessor.max(bounds.max().toArray());
+            accessor.min(mapVector3(bounds.min()));
+            accessor.max(mapVector3(bounds.max()));
         }
         if (buffer.normalized()) {
             accessor.normalized(true);
@@ -133,5 +134,9 @@ public final class GltfModelMapper {
             case Semantic.Joints(var n) -> "JOINTS_" + n;
             case Semantic.Weights(var n) -> "WEIGHTS_" + n;
         };
+    }
+
+    private Vec3 mapVector3(Vector3 v) {
+        return new Vec3(v.x(), v.y(), v.z());
     }
 }
