@@ -13,7 +13,7 @@ import java.util.*;
 
 public final class GlbModelExporter implements Exporter<Model> {
     // TODO: Make this configurable
-    private static final Quaternion ROTATION = Quaternion.fromAxisAngle(Vector3.UnitX, -MathF.HALF_PI);
+    private static final Quaternion ROTATION = Quaternion.fromAxisAngle(Vector3.X, -MathF.HALF_PI);
 
     @Override
     public String getExtension() {

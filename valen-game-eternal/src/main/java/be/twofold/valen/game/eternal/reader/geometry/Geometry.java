@@ -75,7 +75,7 @@ public final class Geometry {
         float y = MathF.unpackUNorm8Normal(source.readByte());
         float z = MathF.unpackUNorm8Normal(source.readByte());
 
-        float scale = 1.0f / MathF.sqrt(x * x + y * y + z * z);
+        float scale = MathF.invSqrt(x * x + y * y + z * z);
 
         dst.put(x * scale);
         dst.put(y * scale);
@@ -92,7 +92,7 @@ public final class Geometry {
         float z = MathF.unpackUNorm8Normal(source.readByte());
         float w = (source.readByte() & 0x80) == 0 ? 1 : -1;
 
-        float scale = 1.0f / MathF.sqrt(x * x + y * y + z * z);
+        float scale = MathF.invSqrt(x * x + y * y + z * z);
 
         dst.put(x * scale);
         dst.put(y * scale);

@@ -99,7 +99,10 @@ public final class GltfAnimationMapper {
     private FloatBuffer buildRotationBuffer(List<KeyFrame<Quaternion>> keyFrames) {
         var buffer = FloatBuffer.allocate(keyFrames.size() * 4);
         for (var keyFrame : keyFrames) {
-            keyFrame.value().put(buffer);
+            buffer.put(keyFrame.value().x());
+            buffer.put(keyFrame.value().y());
+            buffer.put(keyFrame.value().z());
+            buffer.put(keyFrame.value().w());
         }
         return buffer.flip();
     }
@@ -107,7 +110,9 @@ public final class GltfAnimationMapper {
     private FloatBuffer buildScaleTranslationBuffer(List<KeyFrame<Vector3>> keyFrames) {
         var buffer = FloatBuffer.allocate(keyFrames.size() * 3);
         for (var keyFrame : keyFrames) {
-            keyFrame.value().put(buffer);
+            buffer.put(keyFrame.value().x());
+            buffer.put(keyFrame.value().y());
+            buffer.put(keyFrame.value().z());
         }
         return buffer.flip();
     }
