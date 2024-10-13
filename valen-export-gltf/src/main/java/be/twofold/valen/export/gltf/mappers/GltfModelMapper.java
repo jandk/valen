@@ -101,15 +101,22 @@ public final class GltfModelMapper {
             }));
     }
 
-    private AccessorComponentType mapComponentType(ComponentType componentType) {
-        return switch (componentType) {
-            case Byte -> AccessorComponentType.BYTE;
-            case UnsignedByte -> AccessorComponentType.UNSIGNED_BYTE;
-            case Short -> AccessorComponentType.SHORT;
-            case UnsignedShort -> AccessorComponentType.UNSIGNED_SHORT;
-            case UnsignedInt -> AccessorComponentType.UNSIGNED_INT;
-            case Float -> AccessorComponentType.FLOAT;
-        };
+    private AccessorComponentType mapComponentType(ComponentType<?> componentType) {
+        if (componentType == ComponentType.Byte) {
+            return AccessorComponentType.BYTE;
+        } else if (componentType == ComponentType.UnsignedByte) {
+            return AccessorComponentType.UNSIGNED_BYTE;
+        } else if (componentType == ComponentType.Short) {
+            return AccessorComponentType.SHORT;
+        } else if (componentType == ComponentType.UnsignedShort) {
+            return AccessorComponentType.UNSIGNED_SHORT;
+        } else if (componentType == ComponentType.UnsignedInt) {
+            return AccessorComponentType.UNSIGNED_INT;
+        } else if (componentType == ComponentType.Float) {
+            return AccessorComponentType.FLOAT;
+        } else {
+            throw new UnsupportedOperationException("Unsupported component type: " + componentType);
+        }
     }
 
     public static AccessorType mapElementType(ElementType type) {
