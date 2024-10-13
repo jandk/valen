@@ -110,9 +110,9 @@ public record Matrix3(
 
     public Matrix3 multiply(float scalar) {
         return new Matrix3(
-            m00 + scalar, m01 + scalar, m02 + scalar,
-            m10 + scalar, m11 + scalar, m12 + scalar,
-            m20 + scalar, m21 + scalar, m22 + scalar
+            m00 * scalar, m01 * scalar, m02 * scalar,
+            m10 * scalar, m11 * scalar, m12 * scalar,
+            m20 * scalar, m21 * scalar, m22 * scalar
         );
     }
 
