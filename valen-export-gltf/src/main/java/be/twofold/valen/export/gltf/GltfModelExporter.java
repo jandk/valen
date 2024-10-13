@@ -12,7 +12,7 @@ import java.util.*;
 public final class GltfModelExporter implements Exporter<Model> {
     @Override
     public String getExtension() {
-        return "glb";
+        return "gltf";
     }
 
     @Override

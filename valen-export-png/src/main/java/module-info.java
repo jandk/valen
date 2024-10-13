@@ -4,7 +4,7 @@ module valen.export.png {
     requires valen.export;
 
     exports be.twofold.valen.export.png
-        to valen.export.gltf;
+        to valen.export.gltf, valen.export.dmf;
 
     provides be.twofold.valen.export.Exporter
         with be.twofold.valen.export.png.PngExporter;
