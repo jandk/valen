@@ -16,6 +16,10 @@ public record Vector3(
     public static final Vector3 Y = new Vector3(0.0f, 1.0f, 0.0f);
     public static final Vector3 Z = new Vector3(0.0f, 0.0f, 1.0f);
 
+    public static Vector3 splat(float value) {
+        return new Vector3(value, value, value);
+    }
+
     public static Vector3 read(DataSource source) throws IOException {
         float x = source.readFloat();
         float y = source.readFloat();
@@ -31,8 +35,16 @@ public record Vector3(
         return add(other.negate());
     }
 
+    public Vector3 multiply(Vector3 other) {
+        return new Vector3(x * other.x, y * other.y, z * other.z);
+    }
+
     public Vector3 multiply(float scalar) {
         return new Vector3(x * scalar, y * scalar, z * scalar);
+    }
+
+    public Vector3 divide(Vector3 other) {
+        return new Vector3(x / other.x, y / other.y, z / other.z);
     }
 
     public Vector3 divide(float scalar) {
@@ -70,9 +82,13 @@ public record Vector3(
     }
 
     public Vector3 fma(float scale, Vector3 offset) {
-        float x = Math.fma(this.x, scale, offset.x());
-        float y = Math.fma(this.y, scale, offset.y());
-        float z = Math.fma(this.z, scale, offset.z());
+        return fma(splat(scale), offset);
+    }
+
+    public Vector3 fma(Vector3 scale, Vector3 offset) {
+        float x = Math.fma(this.x, scale.x, offset.x);
+        float y = Math.fma(this.y, scale.y, offset.y);
+        float z = Math.fma(this.z, scale.z, offset.z);
         return new Vector3(x, y, z);
     }
 

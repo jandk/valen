@@ -14,6 +14,10 @@ public record Vector2(
     public static Vector2 X = new Vector2(1.0f, 0.0f);
     public static Vector2 Y = new Vector2(0.0f, 1.0f);
 
+    public static Vector2 splat(float value) {
+        return new Vector2(value, value);
+    }
+
     public static Vector2 read(DataSource source) throws IOException {
         float x = source.readFloat();
         float y = source.readFloat();
@@ -28,8 +32,16 @@ public record Vector2(
         return add(other.negate());
     }
 
+    public Vector2 multiply(Vector2 other) {
+        return new Vector2(x * other.x, y * other.y);
+    }
+
     public Vector2 multiply(float scalar) {
         return new Vector2(x * scalar, y * scalar);
+    }
+
+    public Vector2 divide(Vector2 other) {
+        return new Vector2(x / other.x, y / other.y);
     }
 
     public Vector2 divide(float scalar) {
@@ -56,10 +68,14 @@ public record Vector2(
         return divide(length());
     }
 
-    public Vector2 fma(float scale, Vector2 offset) {
-        float x = Math.fma(this.x, scale, offset.x());
-        float y = Math.fma(this.y, scale, offset.y());
+    public Vector2 fma(Vector2 scale, Vector2 offset) {
+        float x = Math.fma(this.x, scale.x, offset.x);
+        float y = Math.fma(this.y, scale.y, offset.y);
         return new Vector2(x, y);
+    }
+
+    public Vector2 fma(float scale, Vector2 offset) {
+        return fma(splat(scale), offset);
     }
 
     public void toBuffer(FloatBuffer buffer) {
