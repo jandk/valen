@@ -141,10 +141,10 @@ public record Matrix4(
 
     public Matrix4 multiply(float scalar) {
         return new Matrix4(
-            m00 + scalar, m01 + scalar, m02 + scalar, m03 + scalar,
-            m10 + scalar, m11 + scalar, m12 + scalar, m13 + scalar,
-            m20 + scalar, m21 + scalar, m22 + scalar, m23 + scalar,
-            m30 + scalar, m31 + scalar, m32 + scalar, m33 + scalar
+            m00 * scalar, m01 * scalar, m02 * scalar, m03 * scalar,
+            m10 * scalar, m11 * scalar, m12 * scalar, m13 * scalar,
+            m20 * scalar, m21 * scalar, m22 * scalar, m23 * scalar,
+            m30 * scalar, m31 * scalar, m32 * scalar, m33 * scalar
         );
     }
 
