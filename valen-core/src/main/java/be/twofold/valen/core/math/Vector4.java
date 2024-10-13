@@ -3,6 +3,7 @@ package be.twofold.valen.core.math;
 import be.twofold.valen.core.io.*;
 
 import java.io.*;
+import java.nio.*;
 
 public record Vector4(
     float x,
@@ -23,6 +24,10 @@ public record Vector4(
         float z = source.readFloat();
         float w = source.readFloat();
         return new Vector4(x, y, z, w);
+    }
+
+    public Vector4(Vector3 v, float w) {
+        this(v.x(), v.y(), v.z(), w);
     }
 
     public Vector4 add(Vector4 other) {
@@ -59,6 +64,17 @@ public record Vector4(
 
     public Vector4 normalize() {
         return divide(length());
+    }
+
+    public void toBuffer(FloatBuffer dst) {
+        dst.put(x);
+        dst.put(y);
+        dst.put(z);
+        dst.put(w);
+    }
+
+    public Vector3 toVector3() {
+        return new Vector3(x, y, z);
     }
 
     @Override

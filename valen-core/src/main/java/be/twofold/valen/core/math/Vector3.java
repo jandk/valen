@@ -69,7 +69,14 @@ public record Vector3(
         );
     }
 
-    public void toFloatBuffer(FloatBuffer buffer) {
+    public Vector3 fma(float scale, Vector3 offset) {
+        float x = Math.fma(this.x, scale, offset.x());
+        float y = Math.fma(this.y, scale, offset.x());
+        float z = Math.fma(this.z, scale, offset.x());
+        return new Vector3(x, y, z);
+    }
+
+    public void toBuffer(FloatBuffer buffer) {
         buffer.put(this.x);
         buffer.put(this.y);
         buffer.put(this.z);

@@ -1,5 +1,7 @@
 package be.twofold.valen.core.io;
 
+import be.twofold.valen.core.util.*;
+
 import java.io.*;
 import java.lang.invoke.*;
 import java.nio.*;
@@ -59,8 +61,9 @@ final class ByteArrayDataSource extends DataSource {
 
     @Override
     public void seek(long pos) {
-        Objects.checkIndex(pos, lim - offset + 1);
-        this.pos = (int) (this.offset + pos);
+        int intPos = Math.toIntExact(pos);
+        Check.index(intPos, lim - offset + 1);
+        this.pos = this.offset + intPos;
     }
 
     @Override

@@ -41,7 +41,8 @@ public record Md6Skel(
             var floats = new float[16];
             source.readFloats(floats, 0, 12);
             floats[15] = 1;
-            inverseBasePoses.add(Matrix4.fromArray(floats).transpose());
+            Matrix4 matrix4 = Matrix4.fromArray(floats).transpose();
+            inverseBasePoses.add(matrix4);
         }
         return List.copyOf(inverseBasePoses);
     }

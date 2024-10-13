@@ -14,6 +14,10 @@ public abstract class DataSource implements AutoCloseable {
         return new ByteArrayDataSource(array);
     }
 
+    public static DataSource fromArray(byte[] array, int offset, int length) {
+        return new ByteArrayDataSource(array, offset, length);
+    }
+
     public static DataSource fromBuffer(ByteBuffer buffer) {
         Check.argument(buffer.hasArray(), "ByteBuffer must be backed by an array");
         return new ByteArrayDataSource(buffer.array(), buffer.arrayOffset(), buffer.limit());
@@ -47,6 +51,10 @@ public abstract class DataSource implements AutoCloseable {
         seek(tell() + count);
     }
 
+    public int readByteAsInt() throws IOException {
+        return Byte.toUnsignedInt(readByte());
+    }
+
     public byte[] readBytes(int len) throws IOException {
         var result = new byte[len];
         readBytes(result, 0, len);
@@ -54,8 +62,8 @@ public abstract class DataSource implements AutoCloseable {
     }
 
     public short readShort() throws IOException {
-        var b0 = Byte.toUnsignedInt(readByte());
-        var b1 = Byte.toUnsignedInt(readByte());
+        var b0 = readByteAsInt();
+        var b1 = readByteAsInt();
         return (short) (b0 | (b1 << 8));
     }
 
@@ -77,10 +85,10 @@ public abstract class DataSource implements AutoCloseable {
     }
 
     public int readInt() throws IOException {
-        var b0 = Byte.toUnsignedInt(readByte());
-        var b1 = Byte.toUnsignedInt(readByte());
-        var b2 = Byte.toUnsignedInt(readByte());
-        var b3 = Byte.toUnsignedInt(readByte());
+        var b0 = readByteAsInt();
+        var b1 = readByteAsInt();
+        var b2 = readByteAsInt();
+        var b3 = readByteAsInt();
         return b0 | (b1 << 8) | (b2 << 16) | (b3 << 24);
     }
 

@@ -3,6 +3,7 @@ package be.twofold.valen.core.math;
 import be.twofold.valen.core.io.*;
 
 import java.io.*;
+import java.nio.*;
 
 public record Vector2(
     float x,
@@ -53,6 +54,17 @@ public record Vector2(
 
     public Vector2 normalize() {
         return divide(length());
+    }
+
+    public Vector2 fma(float scale, Vector2 offset) {
+        float x = Math.fma(this.x, scale, offset.x());
+        float y = Math.fma(this.y, scale, offset.y());
+        return new Vector2(x, y);
+    }
+
+    public void toBuffer(FloatBuffer buffer) {
+        buffer.put(x);
+        buffer.put(y);
     }
 
     @Override
