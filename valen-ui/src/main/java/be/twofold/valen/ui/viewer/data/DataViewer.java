@@ -2,12 +2,14 @@ package be.twofold.valen.ui.viewer.data;
 
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.ui.viewer.*;
+import jakarta.inject.*;
 import javafx.scene.*;
 import javafx.scene.control.*;
 
 import java.util.*;
 
 public final class DataViewer extends TreeView<PreviewItem> implements Viewer {
+    @Inject
     public DataViewer() {
         setCellFactory(p -> new PreviewItemTreeCellImpl());
     }

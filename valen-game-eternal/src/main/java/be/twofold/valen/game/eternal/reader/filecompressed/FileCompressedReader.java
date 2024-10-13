@@ -20,8 +20,11 @@ public final class FileCompressedReader implements ResourceReader<byte[]> {
     @Override
     public byte[] read(DataSource source, Asset asset) throws IOException {
         var header = FileCompressedHeader.read(source);
-        var compressed = source.readBytes(header.compressedSize());
+        if (header.compressedSize() == -1) {
+            return source.readBytes(header.uncompressedSize());
+        }
 
+        var compressed = source.readBytes(header.compressedSize());
         return Buffers.toArray(Compression.Oodle
             .decompress(ByteBuffer.wrap(compressed), header.uncompressedSize()));
     }

@@ -12,10 +12,10 @@ public final class MapSerializer implements JsonSerializer<Map<?, ?>> {
             return JsonNull.INSTANCE;
         }
 
-        JsonObject obj = new JsonObject();
-        src.forEach((key, value) -> {
-            obj.add(key.toString(), context.serialize(value));
-        });
-        return obj;
+        var object = new JsonObject();
+        for (var entry : src.entrySet()) {
+            object.add(entry.getKey().toString(), context.serialize(entry.getValue()));
+        }
+        return object;
     }
 }

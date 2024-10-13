@@ -1,6 +1,6 @@
-package be.twofold.valen.core.compression.oodle.jna;
+package be.twofold.valen.core.compression.oodle;
 
-import be.twofold.valen.core.util.*;
+import be.twofold.valen.core.compression.jna.*;
 
 public enum OodleLZ_FuzzSafe implements NativeEnum {
     No(0),

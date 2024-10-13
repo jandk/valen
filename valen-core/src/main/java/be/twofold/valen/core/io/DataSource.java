@@ -1,6 +1,7 @@
 package be.twofold.valen.core.io;
 
 import be.twofold.valen.core.math.*;
+import be.twofold.valen.core.util.*;
 
 import java.io.*;
 import java.nio.*;
@@ -15,9 +16,7 @@ public abstract class DataSource implements AutoCloseable {
     }
 
     public static DataSource fromBuffer(ByteBuffer buffer) {
-        if (!buffer.hasArray()) {
-            throw new IllegalArgumentException("ByteBuffer must be backed by an array");
-        }
+        Check.argument(buffer.hasArray(), "ByteBuffer must be backed by an array");
         return new ByteArrayDataSource(buffer.array(), buffer.arrayOffset(), buffer.limit());
     }
 

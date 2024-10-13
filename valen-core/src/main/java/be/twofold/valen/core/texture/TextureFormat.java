@@ -93,9 +93,6 @@ public enum TextureFormat {
         }
 
         public int surfaceSize(int width, int height) {
-            // TODO: This check fails on the lowest mips
-            // Check.argument(width % this.width == 0, "width must be a multiple of " + this.width);
-            // Check.argument(height % this.height == 0, "height must be a multiple of " + this.height);
             var blockWidth = (width + this.width - 1) / this.width;
             var blockHeight = (height + this.height - 1) / this.height;
             return blockWidth * blockHeight * this.size;

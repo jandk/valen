@@ -6,6 +6,85 @@ public record Matrix4(
     float m20, float m21, float m22, float m23,
     float m30, float m31, float m32, float m33
 ) {
+
+    // region Constants and Factories
+
+    public static Matrix4 Zero = new Matrix4(
+        0.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f
+    );
+
+    public static Matrix4 Identity = new Matrix4(
+        1.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 1.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 1.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 1.0f
+    );
+
+    public static Matrix4 fromRotationX(float angle) {
+        float sin = MathF.sin(angle);
+        float cos = MathF.cos(angle);
+
+        return new Matrix4(
+            1.0f, 0.0f, 0.0f, 0.0f,
+            0.0f, +cos, +sin, 0.0f,
+            0.0f, -sin, +cos, 0.0f,
+            0.0f, 0.0f, 0.0f, 1.0f
+        );
+    }
+
+    public static Matrix4 fromRotationY(float angle) {
+        float sin = MathF.sin(angle);
+        float cos = MathF.cos(angle);
+
+        return new Matrix4(
+            +cos, 0.0f, -sin, 0.0f,
+            0.0f, 1.0f, 0.0f, 0.0f,
+            +sin, 0.0f, +cos, 0.0f,
+            0.0f, 0.0f, 0.0f, 1.0f
+        );
+    }
+
+    public static Matrix4 fromRotationZ(float angle) {
+        float sin = MathF.sin(angle);
+        float cos = MathF.cos(angle);
+
+        return new Matrix4(
+            +cos, +sin, 0.0f, 0.0f,
+            -sin, +cos, 0.0f, 0.0f,
+            0.0f, 0.0f, 1.0f, 0.0f,
+            0.0f, 0.0f, 0.0f, 1.0f
+        );
+    }
+
+    public static Matrix4 fromScale(Vector3 scale) {
+        return fromScale(scale.x(), scale.y(), scale.z());
+    }
+
+    public static Matrix4 fromScale(float sclX, float sclY, float sclZ) {
+        return new Matrix4(
+            sclX, 0.0f, 0.0f, 0.0f,
+            0.0f, sclY, 0.0f, 0.0f,
+            0.0f, 0.0f, sclZ, 0.0f,
+            0.0f, 0.0f, 0.0f, 1.0f
+        );
+    }
+
+    public static Matrix4 fromTranslation(Vector3 translation) {
+        return fromTranslation(translation.x(), translation.y(), translation.z());
+    }
+
+    public static Matrix4 fromTranslation(float trnX, float trnY, float trnZ) {
+        return new Matrix4(
+            1.0f, 0.0f, 0.0f, 0.0f,
+            0.0f, 1.0f, 0.0f, 0.0f,
+            0.0f, 0.0f, 1.0f, 0.0f,
+            trnX, trnY, trnZ, 1.0f
+        );
+    }
+
     public static Matrix4 fromArray(float[] array) {
         return new Matrix4(
             array[+0], array[+1], array[+2], array[+3],
@@ -15,92 +94,41 @@ public record Matrix4(
         );
     }
 
-    public static Matrix4 identity() {
+    // endregion
+
+    public Matrix4 add(Matrix4 other) {
         return new Matrix4(
-            1, 0, 0, 0,
-            0, 1, 0, 0,
-            0, 0, 1, 0,
-            0, 0, 0, 1
+            m00 + other.m00, m01 + other.m01, m02 + other.m02, m03 + other.m03,
+            m10 + other.m10, m11 + other.m11, m12 + other.m12, m13 + other.m13,
+            m20 + other.m20, m21 + other.m21, m22 + other.m22, m23 + other.m23,
+            m30 + other.m30, m31 + other.m31, m32 + other.m32, m33 + other.m33
         );
     }
 
-    public Vector3 translation() {
-        return new Vector3(m30, m31, m32);
+    public Matrix4 subtract(Matrix4 other) {
+        return add(other.negate());
     }
 
-    public Quaternion rotation() {
-        // Extract the columns of the rotation matrix
-        Vector3 col0 = new Vector3(m00, m10, m20);
-        Vector3 col1 = new Vector3(m01, m11, m21);
-        Vector3 col2 = new Vector3(m02, m12, m22);
-
-        // Extract scaling factors
-        float scaleX = col0.length();
-        float scaleY = col1.length();
-        float scaleZ = col2.length();
-
-        // Prevent division by zero
-        if (scaleX == 0 || scaleY == 0 || scaleZ == 0) {
-            // Handle the error as appropriate for your application
-            return Quaternion.Identity;
-        }
-
-        // Normalize the columns to remove scaling
-        Vector3 normCol0 = col0.divide(scaleX);
-        Vector3 normCol1 = col1.divide(scaleY);
-        Vector3 normCol2 = col2.divide(scaleZ);
-
-        // Reconstruct the normalized rotation matrix elements
-        float r00 = normCol0.x();
-        float r01 = normCol1.x();
-        float r02 = normCol2.x();
-
-        float r10 = normCol0.y();
-        float r11 = normCol1.y();
-        float r12 = normCol2.y();
-
-        float r20 = normCol0.z();
-        float r21 = normCol1.z();
-        float r22 = normCol2.z();
-
-        // Compute the trace of the matrix
-        float trace = r00 + r11 + r22;
-        float w, x, y, z;
-
-        if (trace > 0) {
-            float s = 0.5f / (float) Math.sqrt(trace + 1.0f);
-            w = 0.25f / s;
-            x = (r21 - r12) * s;
-            y = (r02 - r20) * s;
-            z = (r10 - r01) * s;
-        } else if (r00 > r11 && r00 > r22) {
-            float s = 2.0f * (float) Math.sqrt(1.0f + r00 - r11 - r22);
-            w = (r21 - r12) / s;
-            x = 0.25f * s;
-            y = (r01 + r10) / s;
-            z = (r02 + r20) / s;
-        } else if (r11 > r22) {
-            float s = 2.0f * (float) Math.sqrt(1.0f + r11 - r00 - r22);
-            w = (r02 - r20) / s;
-            x = (r01 + r10) / s;
-            y = 0.25f * s;
-            z = (r12 + r21) / s;
-        } else {
-            float s = 2.0f * (float) Math.sqrt(1.0f + r22 - r00 - r11);
-            w = (r10 - r01) / s;
-            x = (r02 + r20) / s;
-            y = (r12 + r21) / s;
-            z = 0.25f * s;
-        }
-
-        return new Quaternion(x, y, z, w);
+    public Matrix4 multiply(float scalar) {
+        return new Matrix4(
+            m00 + scalar, m01 + scalar, m02 + scalar, m03 + scalar,
+            m10 + scalar, m11 + scalar, m12 + scalar, m13 + scalar,
+            m20 + scalar, m21 + scalar, m22 + scalar, m23 + scalar,
+            m30 + scalar, m31 + scalar, m32 + scalar, m33 + scalar
+        );
     }
 
-    public Vector3 scale() {
-        var row0 = new Vector3(m00, m10, m20);
-        var row1 = new Vector3(m01, m11, m21);
-        var row2 = new Vector3(m02, m12, m22);
-        return new Vector3(row0.length(), row1.length(), row2.length());
+    public Matrix4 divide(float scalar) {
+        return multiply(1.0f / scalar);
+    }
+
+    public Matrix4 negate() {
+        return new Matrix4(
+            -m00, -m01, -m02, -m03,
+            -m10, -m11, -m12, -m13,
+            -m20, -m21, -m22, -m23,
+            -m30, -m31, -m32, -m33
+        );
     }
 
     public Matrix4 transpose() {
@@ -112,144 +140,104 @@ public record Matrix4(
         );
     }
 
-    public Matrix4 inverse() {
-        float[] m = this.toArray();
+    // Custom methods
 
-        float[] inv = new float[16];
-
-        inv[0] = m[5] * m[10] * m[15] -
-            m[5] * m[11] * m[14] -
-            m[9] * m[6] * m[15] +
-            m[9] * m[7] * m[14] +
-            m[13] * m[6] * m[11] -
-            m[13] * m[7] * m[10];
-
-        inv[1] = -m[1] * m[10] * m[15] +
-            m[1] * m[11] * m[14] +
-            m[9] * m[2] * m[15] -
-            m[9] * m[3] * m[14] -
-            m[13] * m[2] * m[11] +
-            m[13] * m[3] * m[10];
-
-        inv[2] = m[1] * m[6] * m[15] -
-            m[1] * m[7] * m[14] -
-            m[5] * m[2] * m[15] +
-            m[5] * m[3] * m[14] +
-            m[13] * m[2] * m[7] -
-            m[13] * m[3] * m[6];
-
-        inv[3] = -m[1] * m[6] * m[11] +
-            m[1] * m[7] * m[10] +
-            m[5] * m[2] * m[11] -
-            m[5] * m[3] * m[10] -
-            m[9] * m[2] * m[7] +
-            m[9] * m[3] * m[6];
-
-        inv[4] = -m[4] * m[10] * m[15] +
-            m[4] * m[11] * m[14] +
-            m[8] * m[6] * m[15] -
-            m[8] * m[7] * m[14] -
-            m[12] * m[6] * m[11] +
-            m[12] * m[7] * m[10];
-
-        inv[5] = m[0] * m[10] * m[15] -
-            m[0] * m[11] * m[14] -
-            m[8] * m[2] * m[15] +
-            m[8] * m[3] * m[14] +
-            m[12] * m[2] * m[11] -
-            m[12] * m[3] * m[10];
-
-        inv[6] = -m[0] * m[6] * m[15] +
-            m[0] * m[7] * m[14] +
-            m[4] * m[2] * m[15] -
-            m[4] * m[3] * m[14] -
-            m[12] * m[2] * m[7] +
-            m[12] * m[3] * m[6];
-
-        inv[7] = m[0] * m[6] * m[11] -
-            m[0] * m[7] * m[10] -
-            m[4] * m[2] * m[11] +
-            m[4] * m[3] * m[10] +
-            m[8] * m[2] * m[7] -
-            m[8] * m[3] * m[6];
-
-        inv[8] = m[4] * m[9] * m[15] -
-            m[4] * m[11] * m[13] -
-            m[8] * m[5] * m[15] +
-            m[8] * m[7] * m[13] +
-            m[12] * m[5] * m[11] -
-            m[12] * m[7] * m[9];
-
-        inv[9] = -m[0] * m[9] * m[15] +
-            m[0] * m[11] * m[13] +
-            m[8] * m[1] * m[15] -
-            m[8] * m[3] * m[13] -
-            m[12] * m[1] * m[11] +
-            m[12] * m[3] * m[9];
-
-        inv[10] = m[0] * m[5] * m[15] -
-            m[0] * m[7] * m[13] -
-            m[4] * m[1] * m[15] +
-            m[4] * m[3] * m[13] +
-            m[12] * m[1] * m[7] -
-            m[12] * m[3] * m[5];
-
-        inv[11] = -m[0] * m[5] * m[11] +
-            m[0] * m[7] * m[9] +
-            m[4] * m[1] * m[11] -
-            m[4] * m[3] * m[9] -
-            m[8] * m[1] * m[7] +
-            m[8] * m[3] * m[5];
-
-        inv[12] = -m[4] * m[9] * m[14] +
-            m[4] * m[10] * m[13] +
-            m[8] * m[5] * m[14] -
-            m[8] * m[6] * m[13] -
-            m[12] * m[5] * m[10] +
-            m[12] * m[6] * m[9];
-
-        inv[13] = m[0] * m[9] * m[14] -
-            m[0] * m[10] * m[13] -
-            m[8] * m[1] * m[14] +
-            m[8] * m[2] * m[13] +
-            m[12] * m[1] * m[10] -
-            m[12] * m[2] * m[9];
-
-        inv[14] = -m[0] * m[5] * m[14] +
-            m[0] * m[6] * m[13] +
-            m[4] * m[1] * m[14] -
-            m[4] * m[2] * m[13] -
-            m[12] * m[1] * m[6] +
-            m[12] * m[2] * m[5];
-
-        inv[15] = m[0] * m[5] * m[10] -
-            m[0] * m[6] * m[9] -
-            m[4] * m[1] * m[10] +
-            m[4] * m[2] * m[9] +
-            m[8] * m[1] * m[6] -
-            m[8] * m[2] * m[5];
-
-        float det = m[0] * inv[0] + m[1] * inv[4] + m[2] * inv[8] + m[3] * inv[12];
-
-        if (Math.abs(det) < 1e-6f) {
-            throw new ArithmeticException("Matrix is singular and cannot be inverted.");
-        }
-
-        det = 1.0f / det;
-
-        float[] invOut = new float[16];
-        for (int i = 0; i < 16; i++) {
-            invOut[i] = inv[i] * det;
-        }
+    public Matrix4 multiply(Matrix4 other) {
+        float m00 = this.m00 * other.m00 + this.m10 * other.m01 + this.m20 * other.m02 + this.m30 * other.m03;
+        float m01 = this.m01 * other.m00 + this.m11 * other.m01 + this.m21 * other.m02 + this.m31 * other.m03;
+        float m02 = this.m02 * other.m00 + this.m12 * other.m01 + this.m22 * other.m02 + this.m32 * other.m03;
+        float m03 = this.m03 * other.m00 + this.m13 * other.m01 + this.m23 * other.m02 + this.m33 * other.m03;
+        float m10 = this.m00 * other.m10 + this.m10 * other.m11 + this.m20 * other.m12 + this.m30 * other.m13;
+        float m11 = this.m01 * other.m10 + this.m11 * other.m11 + this.m21 * other.m12 + this.m31 * other.m13;
+        float m12 = this.m02 * other.m10 + this.m12 * other.m11 + this.m22 * other.m12 + this.m32 * other.m13;
+        float m13 = this.m03 * other.m10 + this.m13 * other.m11 + this.m23 * other.m12 + this.m33 * other.m13;
+        float m20 = this.m00 * other.m20 + this.m10 * other.m21 + this.m20 * other.m22 + this.m30 * other.m23;
+        float m21 = this.m01 * other.m20 + this.m11 * other.m21 + this.m21 * other.m22 + this.m31 * other.m23;
+        float m22 = this.m02 * other.m20 + this.m12 * other.m21 + this.m22 * other.m22 + this.m32 * other.m23;
+        float m23 = this.m03 * other.m20 + this.m13 * other.m21 + this.m23 * other.m22 + this.m33 * other.m23;
+        float m30 = this.m00 * other.m30 + this.m10 * other.m31 + this.m20 * other.m32 + this.m30 * other.m33;
+        float m31 = this.m01 * other.m30 + this.m11 * other.m31 + this.m21 * other.m32 + this.m31 * other.m33;
+        float m32 = this.m02 * other.m30 + this.m12 * other.m31 + this.m22 * other.m32 + this.m32 * other.m33;
+        float m33 = this.m03 * other.m30 + this.m13 * other.m31 + this.m23 * other.m32 + this.m33 * other.m33;
 
         return new Matrix4(
-            invOut[0], invOut[1], invOut[2], invOut[3],
-            invOut[4], invOut[5], invOut[6], invOut[7],
-            invOut[8], invOut[9], invOut[10], invOut[11],
-            invOut[12], invOut[13], invOut[14], invOut[15]
+            m00, m01, m02, m03,
+            m10, m11, m12, m13,
+            m20, m21, m22, m23,
+            m30, m31, m32, m33
         );
     }
 
+    public float determinant() {
+        float a0 = m00 * m11 - m01 * m10;
+        float a1 = m00 * m12 - m02 * m10;
+        float a2 = m00 * m13 - m03 * m10;
+        float a3 = m01 * m12 - m02 * m11;
+        float a4 = m01 * m13 - m03 * m11;
+        float a5 = m02 * m13 - m03 * m12;
+        float b0 = m20 * m31 - m21 * m30;
+        float b1 = m20 * m32 - m22 * m30;
+        float b2 = m20 * m33 - m23 * m30;
+        float b3 = m21 * m32 - m22 * m31;
+        float b4 = m21 * m33 - m23 * m31;
+        float b5 = m22 * m33 - m23 * m32;
+        return a0 * b5 - a1 * b4 + a2 * b3 + a3 * b2 - a4 * b1 + a5 * b0;
+    }
+
+    public Matrix4 inverse() {
+        float a0 = m00 * m11 - m01 * m10;
+        float a1 = m00 * m12 - m02 * m10;
+        float a2 = m00 * m13 - m03 * m10;
+        float a3 = m01 * m12 - m02 * m11;
+        float a4 = m01 * m13 - m03 * m11;
+        float a5 = m02 * m13 - m03 * m12;
+        float b0 = m20 * m31 - m21 * m30;
+        float b1 = m20 * m32 - m22 * m30;
+        float b2 = m20 * m33 - m23 * m30;
+        float b3 = m21 * m32 - m22 * m31;
+        float b4 = m21 * m33 - m23 * m31;
+        float b5 = m22 * m33 - m23 * m32;
+        float determinant = a0 * b5 - a1 * b4 + a2 * b3 + a3 * b2 - a4 * b1 + a5 * b0;
+        assert determinant != 0.0f;
+
+        return new Matrix4(
+            +this.m11 * b5 - this.m12 * b4 + this.m13 * b3,
+            -this.m01 * b5 + this.m02 * b4 - this.m03 * b3,
+            +this.m31 * a5 - this.m32 * a4 + this.m33 * a3,
+            -this.m21 * a5 + this.m22 * a4 - this.m23 * a3,
+            -this.m10 * b5 + this.m12 * b2 - this.m13 * b1,
+            +this.m00 * b5 - this.m02 * b2 + this.m03 * b1,
+            -this.m30 * a5 + this.m32 * a2 - this.m33 * a1,
+            +this.m20 * a5 - this.m22 * a2 + this.m23 * a1,
+            +this.m10 * b4 - this.m11 * b2 + this.m13 * b0,
+            -this.m00 * b4 + this.m01 * b2 - this.m03 * b0,
+            +this.m30 * a4 - this.m31 * a2 + this.m33 * a0,
+            -this.m20 * a4 + this.m21 * a2 - this.m23 * a0,
+            -this.m10 * b3 + this.m11 * b1 - this.m12 * b0,
+            +this.m00 * b3 - this.m01 * b1 + this.m02 * b0,
+            -this.m30 * a3 + this.m31 * a1 - this.m32 * a0,
+            +this.m20 * a3 - this.m21 * a1 + this.m22 * a0
+        ).divide(determinant);
+    }
+
+    public Vector3 toScale() {
+        float x = MathF.sqrt(m00 * m00 + m01 * m01 + m02 * m02);
+        float y = MathF.sqrt(m10 * m10 + m11 * m11 + m12 * m12);
+        float z = MathF.sqrt(m20 * m20 + m21 * m21 + m22 * m22);
+        return new Vector3(x, y, z);
+    }
+
+    public Quaternion toRotation() {
+        return Quaternion.fromMatrix(
+            m00, m01, m02,
+            m10, m11, m12,
+            m20, m21, m22
+        );
+    }
+
+    public Vector3 toTranslation() {
+        return new Vector3(m30, m31, m32);
+    }
 
     public float[] toArray() {
         return new float[]{
@@ -259,6 +247,8 @@ public record Matrix4(
             m30, m31, m32, m33
         };
     }
+
+    // Object methods
 
     @Override
     public boolean equals(Object obj) {
@@ -306,10 +296,10 @@ public record Matrix4(
     @Override
     public String toString() {
         return "(" +
-            m00 + ", " + m01 + ", " + m02 + ", " + m03 + ", " +
-            m10 + ", " + m11 + ", " + m12 + ", " + m13 + ", " +
-            m20 + ", " + m21 + ", " + m22 + ", " + m23 + ", " +
-            m30 + ", " + m31 + ", " + m32 + ", " + m33 +
+            "(" + m00 + ", " + m10 + ", " + m20 + ", " + m30 + "), " +
+            "(" + m01 + ", " + m11 + ", " + m21 + ", " + m31 + "), " +
+            "(" + m02 + ", " + m12 + ", " + m22 + ", " + m32 + "), " +
+            "(" + m03 + ", " + m13 + ", " + m23 + ", " + m33 + ")" +
             ")";
     }
 }

@@ -135,19 +135,15 @@ final class ChannelDataSource extends DataSource {
     // Helper methods
     //
 
-    private void readInternal(ByteBuffer buffer) {
+    private void readInternal(ByteBuffer buffer) throws IOException {
         while (buffer.hasRemaining()) {
-            try {
-                if (channel.read(buffer) == -1) {
-                    throw new EOFException();
-                }
-            } catch (IOException e) {
-                throw new UncheckedIOException(e);
+            if (channel.read(buffer) == -1) {
+                throw new EOFException();
             }
         }
     }
 
-    private void refillWhen(int n) throws EOFException {
+    private void refillWhen(int n) throws IOException {
         if (buffer.remaining() < n) {
             refill();
             if (buffer.remaining() < n) {
@@ -156,7 +152,7 @@ final class ChannelDataSource extends DataSource {
         }
     }
 
-    private void refill() {
+    private void refill() throws IOException {
         long start = bufPos + buffer.position();
         long end = Math.min(start + buffer.capacity(), lim);
         buffer.compact();

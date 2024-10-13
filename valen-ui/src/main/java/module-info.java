@@ -1,9 +1,7 @@
 module valen.ui {
-    requires be.twofold.tinybcdec;
     requires com.google.gson;
     requires dagger;
     requires jakarta.inject;
-    requires java.desktop;
     requires javafx.controls;
     requires javafx.graphics;
     requires valen.core;

@@ -1,7 +1,5 @@
 package be.twofold.valen.core.math;
 
-import java.nio.*;
-
 public record Quaternion(float x, float y, float z, float w) {
     public static final Quaternion Identity = new Quaternion(0.0f, 0.0f, 0.0f, 1.0f);
 
@@ -13,6 +11,54 @@ public record Quaternion(float x, float y, float z, float w) {
         float y = axis.y() * sin;
         float z = axis.z() * sin;
         return new Quaternion(x, y, z, cos);
+    }
+
+    static Quaternion fromMatrix(
+        float m00, float m01, float m02,
+        float m10, float m11, float m12,
+        float m20, float m21, float m22
+    ) {
+        float xLength = MathF.invSqrt(m00 * m00 + m01 * m01 + m02 * m02);
+        float yLength = MathF.invSqrt(m10 * m10 + m11 * m11 + m12 * m12);
+        float zLength = MathF.invSqrt(m20 * m20 + m21 * m21 + m22 * m22);
+
+        return fromMatrixNormalized(
+            m00 * xLength, m01 * xLength, m02 * xLength,
+            m10 * yLength, m11 * yLength, m12 * yLength,
+            m20 * zLength, m21 * zLength, m22 * zLength
+        );
+    }
+
+    static Quaternion fromMatrixNormalized(
+        float m00, float m01, float m02,
+        float m10, float m11, float m12,
+        float m20, float m21, float m22
+    ) {
+        if (m22 <= 0.0f) { // x^2 + y^2 >= z^2 + w^2
+            float dif10 = m11 - m00;
+            float omm22 = 1.0f - m22;
+            if (dif10 <= 0.0f) { // x^2 >= y^2
+                float four_xsq = omm22 - dif10;
+                return new Quaternion(four_xsq, m01 + m10, m02 + m20, m12 - m21)
+                    .multiply(0.5f / MathF.sqrt(four_xsq));
+            } else { // y^2 >= x^2
+                float four_ysq = omm22 + dif10;
+                return new Quaternion(m01 + m10, four_ysq, m12 + m21, m20 - m02)
+                    .multiply(0.5f / MathF.sqrt(four_ysq));
+            }
+        } else { // z^2 + w^2 >= x^2 + y^2
+            float sum10 = m11 + m00;
+            float opm22 = 1.0f + m22;
+            if (sum10 <= 0.0f) { // z^2 >= w^2
+                float four_zsq = opm22 - sum10;
+                return new Quaternion(m02 + m20, m12 + m21, four_zsq, m01 - m10)
+                    .multiply(0.5f / MathF.sqrt(four_zsq));
+            } else { // w^2 >= z^2
+                float four_wsq = opm22 + sum10;
+                return new Quaternion(m12 - m21, m20 - m02, m01 - m10, four_wsq)
+                    .multiply(0.5f / MathF.sqrt(four_wsq));
+            }
+        }
     }
 
     public Quaternion add(Quaternion other) {
@@ -51,6 +97,8 @@ public record Quaternion(float x, float y, float z, float w) {
         return divide(length());
     }
 
+    // Custom methods
+
     public Quaternion multiply(Quaternion other) {
         return new Quaternion(
             w * other.x + x * other.w + y * other.z - z * other.y,
@@ -60,13 +108,7 @@ public record Quaternion(float x, float y, float z, float w) {
         );
     }
 
-    // TODO: Move this method somewhere else
-    public void put(FloatBuffer buffer) {
-        buffer.put(x);
-        buffer.put(y);
-        buffer.put(z);
-        buffer.put(w);
-    }
+    // Object methods
 
     @Override
     public boolean equals(Object obj) {

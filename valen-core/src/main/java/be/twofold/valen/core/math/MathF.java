@@ -26,6 +26,10 @@ public final class MathF {
         return (float) Math.sqrt(a);
     }
 
+    public static float invSqrt(float a) {
+        return (float) (1.0 / Math.sqrt(a));
+    }
+
     // equals and hashCode
 
     public static boolean equals(float a, float b) {

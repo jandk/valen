@@ -96,8 +96,8 @@ public final class TexturePresenter extends AbstractPresenter<TextureView> imple
                     var argb = sourcePixels[i];
                     var a = alpha ? (argb >> 24) & 0xFF : 0xFF;
                     var r = red ? (argb >> 16) & 0xFF : 0;
-                    var g = green ? (argb >> +8) & 0xFF : 0;
-                    var b = blue ? (argb >> +0) & 0xFF : 0;
+                    var g = green ? (argb >> 8) & 0xFF : 0;
+                    var b = blue ? (argb >> 0) & 0xFF : 0;
                     var newArgb = (a << 24) | (r << 16) | (g << 8) | b;
 
                     targetPixels[i] = newArgb;

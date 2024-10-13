@@ -7,8 +7,7 @@ import be.twofold.valen.gltf.model.accessor.*;
 import be.twofold.valen.gltf.model.buffer.*;
 import be.twofold.valen.gltf.model.material.*;
 import be.twofold.valen.gltf.model.mesh.*;
-import be.twofold.valen.gltf.model.node.*;
-import be.twofold.valen.gltf.model.skin.*;
+import be.twofold.valen.gltf.types.*;
 import com.google.gson.*;
 
 import java.io.*;
@@ -16,9 +15,6 @@ import java.nio.*;
 import java.util.*;
 
 public final class GltfModelMapper {
-    // TODO: Make this configurable
-    private static final Quaternion ROTATION = Quaternion.fromAxisAngle(Vector3.UnitX, -MathF.HALF_PI);
-
     private final GltfContext context;
     private final GltfMaterialMapper materialMapper;
 
@@ -27,41 +23,20 @@ public final class GltfModelMapper {
         this.materialMapper = new GltfMaterialMapper(context);
     }
 
-    public NodeSchema map(Model model) throws IOException {
+    public MeshSchema map(Model model) throws IOException {
+        // First the materials
         var materialIDs = new ArrayList<MaterialID>();
         for (var material : model.materials()) {
             materialIDs.add(context.addMaterial(materialMapper.map(material)));
         }
 
-        var skeletonMapper = new GltfSkeletonMapper(context, ROTATION);
+        // Then the meshes
+        var primitives = model.meshes().stream()
+            .map(mesh -> mapMesh(mesh, materialIDs.get(mesh.materialIndex())))
+            .toList();
 
-        SkinID skinId = null;
-        if (model.skeleton() != null) {
-            skinId = context.addSkin(
-                skeletonMapper.map(model.skeleton(), model.name()));
-        }
-
-        var children = new ArrayList<NodeID>();
-        for (SubModel subModel : model.subModels()) {
-            var primitives = subModel.meshes().stream()
-                .map(mesh -> mapMesh(mesh, materialIDs.get(mesh.materialIndex())))
-                .toList();
-
-            var meshSchema = MeshSchema.builder()
-                .name(subModel.name())
-                .primitives(primitives)
-                .build();
-
-            var meshNode = NodeSchema.builder()
-                .name(subModel.name())
-                .mesh(context.addMesh(meshSchema))
-                .skin(Optional.ofNullable(skinId))
-                .build();
-            children.add(context.addNode(meshNode));
-        }
-        return NodeSchema.builder()
-            .name(model.name())
-            .addAllChildren(children)
+        return MeshSchema.builder()
+            .primitives(primitives)
             .build();
     }
 
@@ -102,8 +77,8 @@ public final class GltfModelMapper {
             .type(mapElementType(buffer.elementType()));
 
         if (bounds != null) {
-            accessor.min(bounds.min().toArray());
-            accessor.max(bounds.max().toArray());
+            accessor.min(mapVector3(bounds.min()));
+            accessor.max(mapVector3(bounds.max()));
         }
         if (buffer.normalized()) {
             accessor.normalized(true);
@@ -140,15 +115,22 @@ public final class GltfModelMapper {
             }));
     }
 
-    private AccessorComponentType mapComponentType(ComponentType componentType) {
-        return switch (componentType) {
-            case Byte -> AccessorComponentType.BYTE;
-            case UnsignedByte -> AccessorComponentType.UNSIGNED_BYTE;
-            case Short -> AccessorComponentType.SHORT;
-            case UnsignedShort -> AccessorComponentType.UNSIGNED_SHORT;
-            case UnsignedInt -> AccessorComponentType.UNSIGNED_INT;
-            case Float -> AccessorComponentType.FLOAT;
-        };
+    private AccessorComponentType mapComponentType(ComponentType<?> componentType) {
+        if (componentType == ComponentType.Byte) {
+            return AccessorComponentType.BYTE;
+        } else if (componentType == ComponentType.UnsignedByte) {
+            return AccessorComponentType.UNSIGNED_BYTE;
+        } else if (componentType == ComponentType.Short) {
+            return AccessorComponentType.SHORT;
+        } else if (componentType == ComponentType.UnsignedShort) {
+            return AccessorComponentType.UNSIGNED_SHORT;
+        } else if (componentType == ComponentType.UnsignedInt) {
+            return AccessorComponentType.UNSIGNED_INT;
+        } else if (componentType == ComponentType.Float) {
+            return AccessorComponentType.FLOAT;
+        } else {
+            throw new UnsupportedOperationException("Unsupported component type: " + componentType);
+        }
     }
 
     public static AccessorType mapElementType(ElementType type) {
@@ -173,5 +155,9 @@ public final class GltfModelMapper {
             case Semantic.Joints(var n) -> "JOINTS_" + n;
             case Semantic.Weights(var n) -> "WEIGHTS_" + n;
         };
+    }
+
+    private Vec3 mapVector3(Vector3 v) {
+        return new Vec3(v.x(), v.y(), v.z());
     }
 }

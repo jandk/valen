@@ -1,25 +1,31 @@
 package be.twofold.valen.core.util;
 
-import be.twofold.valen.core.geometry.*;
-
 import java.nio.*;
+import java.util.*;
+import java.util.function.*;
 
 public final class Buffers {
+    private static final Map<Class<? extends Buffer>, IntFunction<? extends Buffer>> FACTORIES = Map.of(
+        ByteBuffer.class, Buffers::allocate,
+        CharBuffer.class, capacity -> allocate(capacity * Character.BYTES).asCharBuffer(),
+        DoubleBuffer.class, capacity -> allocate(capacity * Double.BYTES).asDoubleBuffer(),
+        FloatBuffer.class, capacity -> allocate(capacity * Float.BYTES).asFloatBuffer(),
+        IntBuffer.class, capacity -> allocate(capacity * Integer.BYTES).asIntBuffer(),
+        LongBuffer.class, capacity -> allocate(capacity * Long.BYTES).asLongBuffer(),
+        ShortBuffer.class, capacity -> allocate(capacity * Short.BYTES).asShortBuffer()
+    );
+
     private Buffers() {
     }
 
-    public static Buffer allocate(int count, ComponentType type) {
-        return switch (type) {
-            case Byte, UnsignedByte -> allocate(count);
-            case Short, UnsignedShort -> allocate(count * Short.BYTES).asShortBuffer();
-            case UnsignedInt -> allocate(count * Integer.BYTES).asIntBuffer();
-            case Float -> allocate(count * Float.BYTES).asFloatBuffer();
-        };
+    public static ByteBuffer allocate(int capacity) {
+        return ByteBuffer
+            .allocate(capacity)
+            .order(ByteOrder.LITTLE_ENDIAN);
     }
 
-    private static ByteBuffer allocate(int capacity) {
-        return ByteBuffer.allocate(capacity)
-            .order(ByteOrder.LITTLE_ENDIAN);
+    public static <T extends Buffer> T create(Class<T> type, int capacity) {
+        return type.cast(FACTORIES.get(type).apply(capacity));
     }
 
     public static byte[] toArray(ByteBuffer buffer) {

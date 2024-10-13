@@ -2,6 +2,7 @@ package be.twofold.valen.game.eternal;
 
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.io.*;
+import be.twofold.valen.core.util.*;
 import be.twofold.valen.game.eternal.reader.*;
 import be.twofold.valen.game.eternal.reader.decl.*;
 import be.twofold.valen.game.eternal.reader.decl.material2.*;
@@ -22,8 +23,8 @@ public final class EternalArchive implements Archive {
     private final List<ResourceReader<?>> readers;
 
     public EternalArchive(StreamDbCollection streams, ResourcesCollection resources) {
-        this.streams = Objects.requireNonNull(streams);
-        this.resources = Objects.requireNonNull(resources);
+        this.streams = Check.notNull(streams);
+        this.resources = Check.notNull(resources);
 
         var declReader = new DeclReader(this);
         this.readers = List.of(
@@ -93,7 +94,7 @@ public final class EternalArchive implements Archive {
     }
 
     private AssetType mapType(ResourceType type) {
-        return switch (Objects.requireNonNull(type)) {
+        return switch (type) {
             case Image -> AssetType.Texture;
             case BaseModel, Model -> AssetType.Model;
             default -> AssetType.Binary;

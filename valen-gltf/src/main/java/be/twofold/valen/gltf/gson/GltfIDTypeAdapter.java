@@ -13,7 +13,7 @@ public final class GltfIDTypeAdapter extends TypeAdapter<GltfID> {
     }
 
     @Override
-    public GltfID read(JsonReader in) throws IOException {
+    public GltfID read(JsonReader in) {
         throw new UnsupportedOperationException();
     }
 }

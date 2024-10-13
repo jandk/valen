@@ -12,8 +12,8 @@ public final class CollectionSerializer implements JsonSerializer<Collection<?>>
             return JsonNull.INSTANCE;
         }
 
-        JsonArray array = new JsonArray();
-        for (Object element : src) {
+        var array = new JsonArray();
+        for (var element : src) {
             array.add(context.serialize(element));
         }
         return array;

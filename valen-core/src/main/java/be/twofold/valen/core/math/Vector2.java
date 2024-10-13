@@ -1,11 +1,14 @@
 package be.twofold.valen.core.math;
 
-import java.nio.*;
-
 public record Vector2(
     float x,
     float y
 ) {
+    public static Vector2 Zero = new Vector2(0.0f, 0.0f);
+    public static Vector2 One = new Vector2(1.0f, 1.0f);
+    public static Vector2 X = new Vector2(1.0f, 0.0f);
+    public static Vector2 Y = new Vector2(0.0f, 1.0f);
+
     public Vector2 add(Vector2 other) {
         return new Vector2(x + other.x, y + other.y);
     }
@@ -44,12 +47,6 @@ public record Vector2(
 
     public Vector2 normalize() {
         return divide(length());
-    }
-
-    // TODO: Move this method somewhere else
-    public void put(FloatBuffer dst) {
-        dst.put(x);
-        dst.put(y);
     }
 
     @Override

@@ -1,4 +1,4 @@
-package be.twofold.valen.core.compression.oodle.jna;
+package be.twofold.valen.core.compression.oodle;
 
 import com.sun.jna.*;
 

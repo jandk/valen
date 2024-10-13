@@ -1,7 +1,5 @@
 package be.twofold.valen.core.math;
 
-import java.nio.*;
-
 public record Vector3(
     float x,
     float y,
@@ -9,9 +7,9 @@ public record Vector3(
 ) {
     public static final Vector3 Zero = new Vector3(0.0f, 0.0f, 0.0f);
     public static final Vector3 One = new Vector3(1.0f, 1.0f, 1.0f);
-    public static final Vector3 UnitX = new Vector3(1.0f, 0.0f, 0.0f);
-    public static final Vector3 UnitY = new Vector3(0.0f, 1.0f, 0.0f);
-    public static final Vector3 UnitZ = new Vector3(0.0f, 0.0f, 1.0f);
+    public static final Vector3 X = new Vector3(1.0f, 0.0f, 0.0f);
+    public static final Vector3 Y = new Vector3(0.0f, 1.0f, 0.0f);
+    public static final Vector3 Z = new Vector3(0.0f, 0.0f, 1.0f);
 
     public Vector3 add(Vector3 other) {
         return new Vector3(x + other.x, y + other.y, z + other.z);
@@ -49,17 +47,17 @@ public record Vector3(
         return divide(length());
     }
 
-    // TODO: Move this method somewhere else
-    public void put(FloatBuffer dst) {
-        dst.put(x);
-        dst.put(y);
-        dst.put(z);
+    // Custom methods
+
+    public Vector3 cross(Vector3 other) {
+        return new Vector3(
+            y * other.z - other.y * z,
+            z * other.x - other.z * x,
+            x * other.y - other.x * y
+        );
     }
 
-    // TODO: Move this method somewhere else
-    public float[] toArray() {
-        return new float[]{x, y, z};
-    }
+    // Object methods
 
     @Override
     public boolean equals(Object obj) {

@@ -17,11 +17,13 @@ public final class MainViewFx extends AbstractView<MainViewListener> implements 
     private final SplitPane splitPane = new SplitPane();
     private final TreeView<String> treeView = new TreeView<>();
     private final TableView<Asset> tableView = new TableView<>();
-    private final PreviewTabPane tabPane = new PreviewTabPane();
+
+    private final PreviewTabPane tabPane;
 
     @Inject
-    public MainViewFx() {
+    public MainViewFx(PreviewTabPane tabPane) {
         super(MainViewListener.class);
+        this.tabPane = tabPane;
         buildUI();
     }
 
