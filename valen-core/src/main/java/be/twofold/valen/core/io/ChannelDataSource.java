@@ -1,15 +1,14 @@
 package be.twofold.valen.core.io;
 
+import be.twofold.valen.core.util.*;
+
 import java.io.*;
 import java.nio.*;
 import java.nio.channels.*;
 import java.util.*;
 
 final class ChannelDataSource extends DataSource {
-    private final ByteBuffer buffer = ByteBuffer
-        .allocate(8192)
-        .order(ByteOrder.LITTLE_ENDIAN)
-        .limit(0);
+    private final ByteBuffer buffer = Buffers.allocate(8192).limit(0);
 
     private final SeekableByteChannel channel;
     private final long offset;
