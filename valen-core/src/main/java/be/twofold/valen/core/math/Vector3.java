@@ -71,8 +71,8 @@ public record Vector3(
 
     public Vector3 fma(float scale, Vector3 offset) {
         float x = Math.fma(this.x, scale, offset.x());
-        float y = Math.fma(this.y, scale, offset.x());
-        float z = Math.fma(this.z, scale, offset.x());
+        float y = Math.fma(this.y, scale, offset.y());
+        float z = Math.fma(this.z, scale, offset.z());
         return new Vector3(x, y, z);
     }
 
