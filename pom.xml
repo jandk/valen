@@ -21,6 +21,7 @@
         <module>valen-gltf</module>
         <module>valen-jlink</module>
         <module>valen-ui</module>
+        <module>valen-export-dmf</module>
     </modules>
 
     <properties>

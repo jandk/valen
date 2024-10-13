@@ -7,8 +7,7 @@ import java.io.*;
 public class FioStringSerializer implements FioSerializer<String> {
     @Override
     public String load(DataSource source) throws IOException {
-        String val = source.readPString();
-        return val;
+        return source.readPString();
     }
 
     @Override

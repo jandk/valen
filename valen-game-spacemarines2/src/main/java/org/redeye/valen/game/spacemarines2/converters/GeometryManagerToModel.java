@@ -13,6 +13,7 @@ import org.redeye.valen.game.spacemarines2.types.template.*;
 import java.io.*;
 import java.nio.*;
 import java.util.*;
+import java.util.stream.*;
 
 public class GeometryManagerToModel {
 
@@ -456,49 +457,71 @@ public class GeometryManagerToModel {
                     buf.put((short) Byte.toUnsignedInt(inBuf.get()));
                     buf.put((short) Byte.toUnsignedInt(inBuf.get()));
                 } else {
-                    ShortBuffer bufI0 = (ShortBuffer) attributes.get(Semantic.Joints0).buffer();
-                    ShortBuffer bufI1 = (ShortBuffer) attributes.get(Semantic.Joints1).buffer();
-                    ByteBuffer bufW0 = (ByteBuffer) attributes.get(Semantic.Weights0).buffer();
-                    ByteBuffer bufW1 = (ByteBuffer) attributes.get(Semantic.Weights1).buffer();
-                    float[] weights = new float[8];
-                    short[] indices = new short[8];
+                    if (vertexStream.stride == 4) {
+                        byte[] indices = new byte[4];
+                        inBuf.get(indices);
 
-                    for (int j = 0; j < 8; j++) {
-                        weights[j] = Byte.toUnsignedInt(inBuf.get()) / 255.f;
-                    }
-                    for (int j = 0; j < 8; j++) {
-                        indices[j] = (short) Byte.toUnsignedInt(inBuf.get());
-                    }
+                        var boneCount = IntStream.range(0, indices.length).map(operand -> indices[operand]).distinct().count();
 
-                    float total = 0;
-                    for (int j = 0; j < weights.length; j++) {
-                        if (weights[j] == 0) {
-                            indices[j] = 0;
+                        byte[] weights = new byte[4];
+                        for (int i1 = 0; i1 < boneCount; i1++) {
+                            weights[i1] = -1;
                         }
-                        total += weights[j];
-                    }
+                        weights = renormalize(weights);
 
-                    for (int j = 0; j < weights.length - 1; j++) {
-                        for (int k = 0; k < weights.length - j - 1; k++) {
-                            if (weights[k] < weights[k + 1]) {
-                                float tempWeight = weights[k];
-                                weights[k] = weights[k + 1];
-                                weights[k + 1] = tempWeight;
+                        ShortBuffer buf = (ShortBuffer) attributes.get(Semantic.Joints0).buffer();
+                        ByteBuffer bufW = (ByteBuffer) attributes.get(Semantic.Weights0).buffer();
+                        for (byte index : indices) {
+                            buf.put(index);
+                        }
+                        bufW.put(weights);
+                    } else {
 
-                                short tempIndex = indices[k];
-                                indices[k] = indices[k + 1];
-                                indices[k + 1] = tempIndex;
+
+                        ShortBuffer bufI0 = (ShortBuffer) attributes.get(Semantic.Joints0).buffer();
+                        ShortBuffer bufI1 = (ShortBuffer) attributes.get(Semantic.Joints1).buffer();
+                        ByteBuffer bufW0 = (ByteBuffer) attributes.get(Semantic.Weights0).buffer();
+                        ByteBuffer bufW1 = (ByteBuffer) attributes.get(Semantic.Weights1).buffer();
+                        float[] weights = new float[8];
+                        short[] indices = new short[8];
+
+                        for (int j = 0; j < 8; j++) {
+                            weights[j] = Byte.toUnsignedInt(inBuf.get()) / 255.f;
+                        }
+                        for (int j = 0; j < 8; j++) {
+                            indices[j] = (short) Byte.toUnsignedInt(inBuf.get());
+                        }
+
+                        float total = 0;
+                        for (int j = 0; j < weights.length; j++) {
+                            if (weights[j] == 0) {
+                                indices[j] = 0;
+                            }
+                            total += weights[j];
+                        }
+
+                        for (int j = 0; j < weights.length - 1; j++) {
+                            for (int k = 0; k < weights.length - j - 1; k++) {
+                                if (weights[k] < weights[k + 1]) {
+                                    float tempWeight = weights[k];
+                                    weights[k] = weights[k + 1];
+                                    weights[k + 1] = tempWeight;
+
+                                    short tempIndex = indices[k];
+                                    indices[k] = indices[k + 1];
+                                    indices[k + 1] = tempIndex;
+                                }
                             }
                         }
-                    }
 
-                    for (int j = 0; j < 4; j++) {
-                        bufW0.put((byte) ((weights[j] / total) * 255));
-                        bufI0.put(indices[j]);
-                    }
-                    for (int j = 0; j < 4; j++) {
-                        bufW1.put((byte) ((weights[j + 4] / total) * 255));
-                        bufI1.put(indices[j + 4]);
+                        for (int j = 0; j < 4; j++) {
+                            bufW0.put((byte) ((weights[j] / total) * 255));
+                            bufI0.put(indices[j]);
+                        }
+                        for (int j = 0; j < 4; j++) {
+                            bufW1.put((byte) ((weights[j + 4] / total) * 255));
+                            bufI1.put(indices[j + 4]);
+                        }
                     }
                 }
             }

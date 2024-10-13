@@ -79,6 +79,9 @@ public enum FVF implements ValueEnum<Long> {
     }
 
     public static Set<FVF> fromCode(BigInteger code) {
+        if (code.bitCount() > 64) {
+            throw new IllegalArgumentException("Code is too big");
+        }
         Set<FVF> flags = EnumSet.noneOf(FVF.class);
         for (FVF flag : FVF.values()) {
             if (code.and(BigInteger.valueOf(flag.value)).equals(BigInteger.valueOf(flag.value))) {

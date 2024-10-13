@@ -7,10 +7,10 @@ import org.redeye.valen.game.spacemarines2.fio.*;
 import java.io.*;
 import java.util.*;
 
-public class Vec3Serializer extends FioPrimitiveSerializerImpl<Vector3> {
+public class Vec4Serializer extends FioPrimitiveSerializerImpl<Vector4> {
     @Override
-    public Vector3 load(DataSource source) throws IOException {
-        return source.readVector3();
+    public Vector4 load(DataSource source) throws IOException {
+        return source.readVector4();
     }
 
     @Override
@@ -19,10 +19,10 @@ public class Vec3Serializer extends FioPrimitiveSerializerImpl<Vector3> {
     }
 
     @Override
-    public List<Vector3> loadArray(DataSource source, int size) throws IOException {
-        List<Vector3> data = new ArrayList<>(size);
+    public List<Vector4> loadArray(DataSource source, int size) throws IOException {
+        List<Vector4> data = new ArrayList<>(size);
         for (int i = 0; i < size; i++) {
-            data.add(source.readVector3());
+            data.add(source.readVector4());
         }
         return data;
     }

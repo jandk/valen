@@ -39,6 +39,7 @@ public class TPLReader implements Reader<Model> {
 
         var geometryManager = animTemplate.geometryManager;
         var streams = geometryManager.streams;
+        Files.createDirectories(Path.of("streams"));
         if (geometryManager.geomSetsInfo != null) {
             for (int streamId = 0; streamId < geometryManager.geomSetsInfo.getStreamRefs().size(); streamId++) {
                 var streamRef = geometryManager.geomSetsInfo.getStreamRefs().get(streamId);
@@ -47,15 +48,13 @@ public class TPLReader implements Reader<Model> {
                     if (streamData == null) {
                         throw new IllegalStateException("No stream found for external source stream(%s).".formatted(streamId));
                     }
-                    Check.state(streamRef.getSize() == stream.size.longValue());
+                    Check.state(streamRef.getSize() == stream.size);
                     stream.data = new byte[Math.toIntExact(streamRef.getSize())];
                     streamData.get(Math.toIntExact(streamRef.getOffset()), stream.data, 0, Math.toIntExact(streamRef.getSize()));
-                    Files.write(Path.of("stream_" + streamId + ".bin"), stream.data);
+                    Files.write(Path.of("streams/stream_" + streamId + ".bin"), stream.data);
                 }
             }
         }
-
-
         return converter.convert(archive, tplId, resourceId, animTemplate.geometryManager, animTemplate.lodDef);
     }
 

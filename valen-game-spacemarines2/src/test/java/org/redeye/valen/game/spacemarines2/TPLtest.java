@@ -3,9 +3,10 @@ package org.redeye.valen.game.spacemarines2;
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.geometry.*;
 import be.twofold.valen.core.texture.*;
-import be.twofold.valen.export.gltf.*;
+import be.twofold.valen.export.*;
 import be.twofold.valen.export.png.*;
 import org.junit.jupiter.api.*;
+import org.redeye.valen.export.dmf.*;
 import org.redeye.valen.game.spacemarines2.psSection.*;
 
 import java.io.*;
@@ -191,6 +192,36 @@ public class TPLtest {
 
         EmperorAssetId resourceId = new EmperorAssetId("scenes/story_tower.scn/story_tower.class_list");
         var data = archive.loadAsset(resourceId);
+        // System.out.println(data);
+    }
+
+    @Test
+    void testRead_cd_list() throws IOException {
+        SpaceMarines2Game game = new SpaceMarines2GameFactory().load(Path.of("D:\\SteamLibrary\\steamapps\\common\\Space Marine 2\\Warhammer 40000 Space Marine 2.exe"));
+        var archive = game.loadArchive("client_pc");
+
+        EmperorAssetId resourceId = new EmperorAssetId("scenes/story_tower.scn/story_tower.cd_list");
+        var data = archive.loadAsset(resourceId);
+        // System.out.println(data);
+    }
+
+    @Test
+    void testRead_lwi_inst() throws IOException {
+        SpaceMarines2Game game = new SpaceMarines2GameFactory().load(Path.of("D:\\SteamLibrary\\steamapps\\common\\Space Marine 2\\Warhammer 40000 Space Marine 2.exe"));
+        var archive = game.loadArchive("client_pc");
+
+        EmperorAssetId resourceId = new EmperorAssetId("scenes/story_tower.scn/story_tower.lwi_inst");
+        var data = archive.loadAsset(resourceId);
+        System.out.println(data);
+    }
+
+    @Test
+    void testRead_lwi_container() throws IOException {
+        SpaceMarines2Game game = new SpaceMarines2GameFactory().load(Path.of("D:\\SteamLibrary\\steamapps\\common\\Space Marine 2\\Warhammer 40000 Space Marine 2.exe"));
+        var archive = game.loadArchive("client_pc");
+
+        EmperorAssetId resourceId = new EmperorAssetId("scenes/story_tower.scn/story_tower.lwi_container");
+        var data = archive.loadAsset(resourceId);
         System.out.println(data);
     }
 
@@ -242,8 +273,10 @@ public class TPLtest {
     }
 
     private static void saveModel(Model model, Path outputPath) throws IOException {
-        try (OutputStream outputStream = Files.newOutputStream(outputPath.resolve(model.name() + ".glb"))) {
-            new GlbModelExporter().export(model, outputStream);
+        Exporter<Model> exporter = new DmfModelExporter();
+        // Exporter<Model> exporter = new GlbModelExporter();
+        try (OutputStream outputStream = Files.newOutputStream(outputPath.resolve(model.name() + "." + exporter.getExtension()))) {
+            exporter.export(model, outputStream);
         }
     }
 

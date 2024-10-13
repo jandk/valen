@@ -8,6 +8,8 @@ import java.util.*;
 import java.util.function.*;
 
 public class FioStructSerializer<T> implements FioSerializer<T> {
+    public static boolean debugPrint = true;
+
     private final int sign;
     private final Supplier<T> factory;
     private final int flags;
@@ -59,10 +61,14 @@ public class FioStructSerializer<T> implements FioSerializer<T> {
             byte b = memberMask[i / 8];
             if ((b & (1 << (i % 8))) != 0) {
                 FioStructMember<T, ?> member = members.get(i);
-                // System.out.printf("Reading member %s at %d%n", member.name(), source.tell());
+                if (debugPrint) {
+                    System.out.printf("Reading member %s at %d%n", member.name(), source.tell());
+                }
                 setMember(member, holder, source);
             } else {
-                // System.out.printf("Member %s was skipped%n", members.get(i).name());
+                if (debugPrint) {
+                    System.out.printf("Member %s was skipped%n", members.get(i).name());
+                }
             }
         }
 

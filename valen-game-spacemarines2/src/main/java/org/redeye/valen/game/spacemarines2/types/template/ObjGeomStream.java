@@ -5,9 +5,9 @@ import java.util.*;
 
 public class ObjGeomStream {
     public Set<FVF> fvf;
-    public Integer size;
-    public Short stride;
-    public Integer vBuffOffset;
+    public int size = 0;
+    public short stride = 0;
+    public int vBuffOffset = 0;
     public Long setId;
 
     public int state;
@@ -18,15 +18,15 @@ public class ObjGeomStream {
         this.fvf = fvf;
     }
 
-    public void setSize(Integer size) {
+    public void setSize(int size) {
         this.size = size;
     }
 
-    public void setStride(Short stride) {
+    public void setStride(short stride) {
         this.stride = stride;
     }
 
-    public void setvBuffOffset(Integer vBuffOffset) {
+    public void setvBuffOffset(int vBuffOffset) {
         this.vBuffOffset = vBuffOffset;
     }
 

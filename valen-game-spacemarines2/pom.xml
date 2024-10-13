@@ -44,6 +44,12 @@
             <artifactId>valen-export-png</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>be.twofold</groupId>
+            <artifactId>valen-export-dmf</artifactId>
+            <version>1.0-SNAPSHOT</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
 </project>

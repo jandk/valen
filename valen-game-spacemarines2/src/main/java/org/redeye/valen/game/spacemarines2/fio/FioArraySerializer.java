@@ -43,10 +43,12 @@ public class FioArraySerializer<T> implements FioSerializer<List<T>> {
             }
             for (int memId = 0; memId < memberCount; memId++) {
                 var mode = source.readByte();
+                FioStructMember<T, ?> member = structSerializer.members.get(memId);
                 if (mode > 0) {
-                    FioStructMember<T, ?> member = structSerializer.members.get(memId);
                     // System.out.printf("Reading array struct member: %s at %d%n", member.name(), source.tell());
                     readArray(source, mode, count, array, member);
+                } else {
+                    // System.out.printf("Skipping array struct member: %s%n", member.name());
                 }
             }
 
