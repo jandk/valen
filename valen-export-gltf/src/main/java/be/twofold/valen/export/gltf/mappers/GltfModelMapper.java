@@ -23,7 +23,7 @@ public final class GltfModelMapper {
         this.materialMapper = new GltfMaterialMapper(context);
     }
 
-    public MeshSchema map(Model model) throws IOException {
+    public List<MeshSchema> map(Model model) throws IOException {
         // First the materials
         var materialIDs = new ArrayList<MaterialID>();
         for (var material : model.materials()) {
@@ -31,16 +31,12 @@ public final class GltfModelMapper {
         }
 
         // Then the meshes
-        var primitives = model.meshes().stream()
+        return model.meshes().stream()
             .map(mesh -> mapMesh(mesh, materialIDs.get(mesh.materialIndex())))
             .toList();
-
-        return MeshSchema.builder()
-            .primitives(primitives)
-            .build();
     }
 
-    private MeshPrimitiveSchema mapMesh(Mesh mesh, MaterialID materialID) {
+    private MeshSchema mapMesh(Mesh mesh, MaterialID materialID) {
         // Have to fix up the joints and weights first
         fixJointsAndWeights(mesh);
 
@@ -52,10 +48,15 @@ public final class GltfModelMapper {
         }
 
         var faceAccessor = buildAccessor(mesh.faceBuffer(), null);
-        return MeshPrimitiveSchema.builder()
+        var primitiveSchema = MeshPrimitiveSchema.builder()
             .attributes(attributes)
             .indices(faceAccessor)
             .material(materialID)
+            .build();
+
+        return MeshSchema.builder()
+            .name(Optional.ofNullable(mesh.name()))
+            .addPrimitives(primitiveSchema)
             .build();
     }
 

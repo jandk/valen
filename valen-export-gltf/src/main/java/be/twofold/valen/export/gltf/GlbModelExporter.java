@@ -30,47 +30,44 @@ public final class GlbModelExporter implements Exporter<Model> {
         var context = new GltfContext();
         var modelMapper = new GltfModelMapper(context);
 
-        var meshId = context.addMesh(
-            modelMapper.map(model));
+        var meshIDs = modelMapper.map(model).stream()
+            .map(context::addMesh)
+            .toList();
 
-        var rootNodeId = model.skeleton() != null
-            ? mapAnimatedModel(context, meshId, model.skeleton())
-            : mapStaticModel(context, meshId);
+        var rootNodeID = model.skeleton() != null
+            ? mapAnimatedModel(context, meshIDs, model.skeleton())
+            : mapStaticModel(context, meshIDs);
 
-        context.addScene(List.of(rootNodeId));
+        context.addScene(List.of(rootNodeID));
 
         var writer = new GlbWriter(context);
         writer.write(out);
     }
 
-    private static NodeID mapAnimatedModel(GltfContext context, MeshID meshId, Skeleton skeleton) {
+    private static NodeID mapAnimatedModel(GltfContext context, List<MeshID> meshIDs, Skeleton skeleton) {
         var skeletonMapper = new GltfSkeletonMapper(context, ROTATION);
 
-        var skinId = context.addSkin(
-            skeletonMapper.map(skeleton));
+        var skinID = context.addSkin(skeletonMapper.map(skeleton));
 
-        var meshNodeId = context.addNode(
-            NodeSchema.builder()
-                .mesh(meshId)
-                .skin(skinId)
-                .build());
+        var meshNodeIDs = meshIDs.stream()
+            .map(meshID -> context.addNode(NodeSchema.builder().mesh(meshID).skin(skinID).build()))
+            .toList();
 
         return context.addNode(
             NodeSchema.builder()
-                .addChildren(meshNodeId)
+                .addAllChildren(meshNodeIDs)
                 .build());
     }
 
-    private static NodeID mapStaticModel(GltfContext context, MeshID meshId) {
-        var meshNodeId = context.addNode(
-            NodeSchema.builder()
-                .mesh(meshId)
-                .build());
+    private static NodeID mapStaticModel(GltfContext context, List<MeshID> meshIDs) {
+        var meshNodeIDs = meshIDs.stream()
+            .map(meshID -> context.addNode(NodeSchema.builder().mesh(meshID).build()))
+            .toList();
 
         return context.addNode(
             NodeSchema.builder()
                 // .rotation(GltfUtils.mapQuaternion(ROTATION))
-                .addChildren(meshNodeId)
+                .addAllChildren(meshNodeIDs)
                 .build());
     }
 }

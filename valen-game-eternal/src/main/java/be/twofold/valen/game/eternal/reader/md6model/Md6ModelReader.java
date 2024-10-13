@@ -71,6 +71,12 @@ public final class Md6ModelReader implements ResourceReader<Model> {
         } else {
             meshes = List.of();
         }
+
+        // Add names to all meshes
+        for (int i = 0; i < meshes.size(); i++) {
+            meshes.set(i, meshes.get(i).withName(md6.meshInfos().get(i).meshName()));
+        }
+
         return md6.withMeshes(meshes);
     }
 
