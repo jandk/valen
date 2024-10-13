@@ -13,8 +13,8 @@ public record Md6ModelHeader(
 ) {
     public static Md6ModelHeader read(DataSource source) throws IOException {
         var md6SkelName = source.readPString();
-        var minBoundsExpansion = source.readVector3();
-        var maxBoundsExpansion = source.readVector3();
+        var minBoundsExpansion = Vector3.read(source);
+        var maxBoundsExpansion = Vector3.read(source);
         var remapForSkinning = source.readBoolByte(); // true for md6skel, false for alembic
         source.expectInt(0);
 

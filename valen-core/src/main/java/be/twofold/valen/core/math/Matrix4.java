@@ -1,5 +1,9 @@
 package be.twofold.valen.core.math;
 
+import be.twofold.valen.core.io.*;
+
+import java.io.*;
+
 public record Matrix4(
     float m00, float m01, float m02, float m03,
     float m10, float m11, float m12, float m13,
@@ -91,6 +95,32 @@ public record Matrix4(
             array[+4], array[+5], array[+6], array[+7],
             array[+8], array[+9], array[10], array[11],
             array[12], array[13], array[14], array[15]
+        );
+    }
+
+    public static Matrix4 read(DataSource source) throws IOException {
+        float m00 = source.readFloat();
+        float m01 = source.readFloat();
+        float m02 = source.readFloat();
+        float m03 = source.readFloat();
+        float m10 = source.readFloat();
+        float m11 = source.readFloat();
+        float m12 = source.readFloat();
+        float m13 = source.readFloat();
+        float m20 = source.readFloat();
+        float m21 = source.readFloat();
+        float m22 = source.readFloat();
+        float m23 = source.readFloat();
+        float m30 = source.readFloat();
+        float m31 = source.readFloat();
+        float m32 = source.readFloat();
+        float m33 = source.readFloat();
+
+        return new Matrix4(
+            m00, m01, m02, m03,
+            m10, m11, m12, m13,
+            m20, m21, m22, m23,
+            m30, m31, m32, m33
         );
     }
 

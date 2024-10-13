@@ -12,8 +12,8 @@ public record MapFileStaticInstancesDeclGeometry(
     int unknown52
 ) {
     public static MapFileStaticInstancesDeclGeometry read(DataSource source) throws IOException {
-        var translation = source.readVector3();
-        var rotation = source.readMatrix3();
+        var translation = Vector3.read(source);
+        var rotation = Matrix3.read(source);
         var extraIndex = source.readInt();
         var unknown52 = source.readInt();
 
