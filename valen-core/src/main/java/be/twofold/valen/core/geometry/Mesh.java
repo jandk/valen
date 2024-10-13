@@ -5,6 +5,7 @@ import be.twofold.valen.core.util.*;
 import java.util.*;
 
 public record Mesh(
+    String name,
     VertexBuffer faceBuffer,
     Map<Semantic, VertexBuffer> vertexBuffers,
     int materialIndex
@@ -19,6 +20,10 @@ public record Mesh(
     }
 
     public Mesh withMaterialIndex(int materialIndex) {
-        return new Mesh(faceBuffer, vertexBuffers, materialIndex);
+        return new Mesh(name, faceBuffer, vertexBuffers, materialIndex);
+    }
+
+    public Mesh withName(String name) {
+        return new Mesh(name, faceBuffer, vertexBuffers, materialIndex);
     }
 }
