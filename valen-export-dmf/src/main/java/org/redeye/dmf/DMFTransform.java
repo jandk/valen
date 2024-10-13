@@ -18,9 +18,9 @@ public class DMFTransform {
     }
 
     public DMFTransform( Matrix4 matrix) {
-        final Vector3 translation = matrix.translation();
-        final Vector3 scale = matrix.scale();
-        final Quaternion rotation = matrix.rotation();
+        final Vector3 translation = matrix.toTranslation();
+        final Vector3 scale = matrix.toScale();
+        final Quaternion rotation = matrix.toRotation();
         this.position = new double[]{translation.x(), translation.y(), translation.z()};
         this.scale = new double[]{scale.x(), scale.y(), scale.z()};
         this.rotation = new double[]{rotation.x(), rotation.y(), rotation.z(), rotation.w()};

@@ -53,7 +53,7 @@ public final class ModelPresenter extends AbstractPresenter<ModelView> implement
     }
 
     private List<TriangleMesh> mapModel(Model model) {
-        return model.subModels().stream().flatMap(subModel -> subModel.meshes().stream().map(this::mapMesh)).toList();
+        return model.meshes().stream().map(this::mapMesh).toList();
     }
 
     private TriangleMesh mapMesh(Mesh mesh) {

@@ -36,45 +36,45 @@ public class DmfModelExporter implements Exporter<Model> {
 
         var scene = new DMFSceneFile(4);
 
-        var modelGroup = new DMFModelGroup(model.name());
-        for (SubModel subModel : model.subModels()) {
-            var dmfMesh = new DMFMesh();
-            var dmfModel = new DMFModel(subModel.name(), dmfMesh);
-
-            List<Mesh> meshes = subModel.meshes();
-            for (int i = 0; i < meshes.size(); i++) {
-                Mesh mesh = meshes.get(i);
-                var vertexBuffers = mesh.vertexBuffers();
-                var indexBuffer = mesh.faceBuffer();
-
-                var positionsBuffer = vertexBuffers.get(Semantic.Position);
-
-                int vertexCount = positionsBuffer.count();
-                int indexCount = indexBuffer.count();
-                var dmfPrimitive = new DMFPrimitive(i, vertexCount, DMFVertexBufferType.MULTI_BUFFER, 0, vertexCount, indexBuffer.componentType().size(), indexCount, 0, indexCount);
-
-                String indexBufferName = "%s_%s_INDICES".formatted(subModel.name(), materials.get(mesh.materialIndex()).name());
-                dmfPrimitive.setIndexBufferView(exportBuffer(scene, indexBufferName, indexBuffer), scene);
-                dmfPrimitive.materialId = mesh.materialIndex();
-                dmfPrimitive.flipUv = true;
-
-                vertexBuffers.forEach((key, value) -> {
-                    var dmfVertexAttribute = new DMFVertexAttribute();
-                    dmfVertexAttribute.semantic = convertSemantic(key);
-                    dmfVertexAttribute.elementType = convertComponentType(value.componentType(), value.normalized());
-                    dmfVertexAttribute.elementCount = value.elementType().size();
-                    dmfVertexAttribute.offset = 0;
-                    dmfVertexAttribute.stride = value.componentType().size() * value.elementType().size();
-                    dmfVertexAttribute.size = dmfVertexAttribute.stride;
-                    String vertexBufferName = "%s_%s_%s".formatted(subModel.name(), materials.get(mesh.materialIndex()).name(), dmfVertexAttribute.semantic.name());
-                    var bufferView = exportBuffer(scene, vertexBufferName, value);
-                    dmfVertexAttribute.bufferViewId = scene.getBufferViewId(bufferView);
-                    dmfPrimitive.vertexAttributes.put(dmfVertexAttribute.semantic, dmfVertexAttribute);
-                });
-                dmfMesh.primitives.add(dmfPrimitive);
-            }
-            modelGroup.children.add(dmfModel);
-        }
+        // var modelGroup = new DMFModelGroup(model.name());
+        // for (SubModel subModel : model.subModels()) {
+        //     var dmfMesh = new DMFMesh();
+        //     var dmfModel = new DMFModel(subModel.name(), dmfMesh);
+        //
+        //     List<Mesh> meshes = subModel.meshes();
+        //     for (int i = 0; i < meshes.size(); i++) {
+        //         Mesh mesh = meshes.get(i);
+        //         var vertexBuffers = mesh.vertexBuffers();
+        //         var indexBuffer = mesh.faceBuffer();
+        //
+        //         var positionsBuffer = vertexBuffers.get(Semantic.Position);
+        //
+        //         int vertexCount = positionsBuffer.count();
+        //         int indexCount = indexBuffer.count();
+        //         var dmfPrimitive = new DMFPrimitive(i, vertexCount, DMFVertexBufferType.MULTI_BUFFER, 0, vertexCount, indexBuffer.componentType().size(), indexCount, 0, indexCount);
+        //
+        //         String indexBufferName = "%s_%s_INDICES".formatted(subModel.name(), materials.get(mesh.materialIndex()).name());
+        //         dmfPrimitive.setIndexBufferView(exportBuffer(scene, indexBufferName, indexBuffer), scene);
+        //         dmfPrimitive.materialId = mesh.materialIndex();
+        //         dmfPrimitive.flipUv = true;
+        //
+        //         vertexBuffers.forEach((key, value) -> {
+        //             var dmfVertexAttribute = new DMFVertexAttribute();
+        //             dmfVertexAttribute.semantic = convertSemantic(key);
+        //             dmfVertexAttribute.elementType = convertComponentType(value.componentType(), value.normalized());
+        //             dmfVertexAttribute.elementCount = value.elementType().size();
+        //             dmfVertexAttribute.offset = 0;
+        //             dmfVertexAttribute.stride = value.componentType().size() * value.elementType().size();
+        //             dmfVertexAttribute.size = dmfVertexAttribute.stride;
+        //             String vertexBufferName = "%s_%s_%s".formatted(subModel.name(), materials.get(mesh.materialIndex()).name(), dmfVertexAttribute.semantic.name());
+        //             var bufferView = exportBuffer(scene, vertexBufferName, value);
+        //             dmfVertexAttribute.bufferViewId = scene.getBufferViewId(bufferView);
+        //             dmfPrimitive.vertexAttributes.put(dmfVertexAttribute.semantic, dmfVertexAttribute);
+        //         });
+        //         dmfMesh.primitives.add(dmfPrimitive);
+        //     }
+        //     modelGroup.children.add(dmfModel);
+        // }
 
         for (Material material : materials) {
             var dmfMaterial = scene.createMaterial(material.name());
@@ -125,7 +125,7 @@ public class DmfModelExporter implements Exporter<Model> {
             }
         }
 
-        scene.models.add(modelGroup);
+        // scene.models.add(modelGroup);
         GSON.toJson(scene, new OutputStreamWriter(out));
     }
 
@@ -158,19 +158,20 @@ public class DmfModelExporter implements Exporter<Model> {
     }
 
     private String convertComponentType(ComponentType componentType, boolean normalized) {
-        return switch (componentType) {
-            case Byte ->
-                normalized ? DMFComponentType.SIGNED_BYTE_NORMALIZED.name() : DMFComponentType.SIGNED_BYTE.name();
-            case UnsignedByte ->
-                normalized ? DMFComponentType.UNSIGNED_BYTE_NORMALIZED.name() : DMFComponentType.UNSIGNED_BYTE.name();
-            case Short ->
-                normalized ? DMFComponentType.SIGNED_SHORT_NORMALIZED.name() : DMFComponentType.SIGNED_SHORT.name();
-            case UnsignedShort ->
-                normalized ? DMFComponentType.UNSIGNED_SHORT_NORMALIZED.name() : DMFComponentType.UNSIGNED_SHORT.name();
-            case UnsignedInt ->
-                normalized ? DMFComponentType.UNSIGNED_INT_NORMALIZED.name() : DMFComponentType.UNSIGNED_INT.name();
-            case Float -> DMFComponentType.FLOAT.name();
-        };
+        // return switch (componentType) {
+        //     case Byte ->
+        //         normalized ? DMFComponentType.SIGNED_BYTE_NORMALIZED.name() : DMFComponentType.SIGNED_BYTE.name();
+        //     case UnsignedByte ->
+        //         normalized ? DMFComponentType.UNSIGNED_BYTE_NORMALIZED.name() : DMFComponentType.UNSIGNED_BYTE.name();
+        //     case Short ->
+        //         normalized ? DMFComponentType.SIGNED_SHORT_NORMALIZED.name() : DMFComponentType.SIGNED_SHORT.name();
+        //     case UnsignedShort ->
+        //         normalized ? DMFComponentType.UNSIGNED_SHORT_NORMALIZED.name() : DMFComponentType.UNSIGNED_SHORT.name();
+        //     case UnsignedInt ->
+        //         normalized ? DMFComponentType.UNSIGNED_INT_NORMALIZED.name() : DMFComponentType.UNSIGNED_INT.name();
+        //     case Float -> DMFComponentType.FLOAT.name();
+        // };
+        return null;
     }
 
 

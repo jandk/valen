@@ -18,7 +18,7 @@ public class TplSkinSerializer implements FioSerializer<TplSkin> {
         if (skin.state.get(0)) {
             skin.boneInvBindMatrList = new ArrayList<>(skin.nBones);
             for (int i = 0; i < skin.nBones; i++) {
-                skin.boneInvBindMatrList.add(Matrix4.identity());
+                skin.boneInvBindMatrList.add(Matrix4.Identity);
             }
         }
         Chunk chunk = Chunk.read(source);

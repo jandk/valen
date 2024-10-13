@@ -20,8 +20,8 @@ public class GeometryManagerSerializer extends FioStructSerializer<GeometryManag
             new FioStructMember<>("vBufferMapping", GeometryManager::setvBufferMapping, new ObjGeomVBufferMappingSerializer()),
             new FioStructMember<>("NamedObjectsName", GeometryManager::setNamedObjectsName, new FioArraySerializer<>(() -> "", 9, new FioStringSerializer())),
             new FioStructMember<>("NamedObjectsId", GeometryManager::setNamedObjectsId, new FioArraySerializer<>(() -> (short) 0, 9, new FioInt16Serializer(16))),
-            new FioStructMember<>("MtrLt", GeometryManager::setMtrLt, new FioArraySerializer<>(Matrix4::identity, 9, new MatrixSerializer(16))),
-            new FioStructMember<>("MtrModel", GeometryManager::setMtrModel, new FioArraySerializer<>(Matrix4::identity, 9, new MatrixSerializer(16))),
+            new FioStructMember<>("MtrLt", GeometryManager::setMtrLt, new FioArraySerializer<>(() -> Matrix4.Identity, 9, new MatrixSerializer(16))),
+            new FioStructMember<>("MtrModel", GeometryManager::setMtrModel, new FioArraySerializer<>(() -> Matrix4.Identity, 9, new MatrixSerializer(16))),
             new FioStructMember<>("ObjSpitInfo", GeometryManager::setObjSpitInfo, new FioArraySerializer<>(ObjSplitRange::new, 9, new ObjSplitRangeSerializer()))
         ), GeometryManager::onReadFinishCallback);
     }

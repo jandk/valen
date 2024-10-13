@@ -58,7 +58,7 @@ public final class Md6ModelReader implements ResourceReader<Model> {
                 .withMeshes(meshes)
                 .withMaterials(List.copyOf(materials.values()));
         }
-        return new Model(List.of(new SubModel(model.meshes())), model.materials(), skeleton);
+        return new Model(model.meshes(), model.materials(), skeleton);
     }
 
     public Md6Model read(DataSource source, boolean readStreams, long hash) throws IOException {

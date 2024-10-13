@@ -4,9 +4,9 @@ import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.geometry.*;
 import be.twofold.valen.core.texture.*;
 import be.twofold.valen.export.*;
+import be.twofold.valen.export.gltf.*;
 import be.twofold.valen.export.png.*;
 import org.junit.jupiter.api.*;
-import org.redeye.valen.export.dmf.*;
 import org.redeye.valen.game.spacemarines2.psSection.*;
 
 import java.io.*;
@@ -182,7 +182,7 @@ public class TPLtest {
         var outputPath = Path.of("dump");
         outputPath = outputPath.resolve(mdlName);
         Files.createDirectories(outputPath);
-        saveModel((Model) model, outputPath);
+        saveModel(mdlName, (Model) model, outputPath);
     }
 
     @Test
@@ -269,13 +269,13 @@ public class TPLtest {
             }
         }
         Model model = (Model) archive.loadAsset(tplId);
-        saveModel(model, outputPath);
+        saveModel(mdlName, model, outputPath);
     }
 
-    private static void saveModel(Model model, Path outputPath) throws IOException {
-        Exporter<Model> exporter = new DmfModelExporter();
-        // Exporter<Model> exporter = new GlbModelExporter();
-        try (OutputStream outputStream = Files.newOutputStream(outputPath.resolve(model.name() + "." + exporter.getExtension()))) {
+    private static void saveModel(String name, Model model, Path outputPath) throws IOException {
+        // Exporter<Model> exporter = new DmfModelExporter();
+        Exporter<Model> exporter = new GltfModelExporter();
+        try (OutputStream outputStream = Files.newOutputStream(outputPath.resolve(name + "." + exporter.getExtension()))) {
             exporter.export(model, outputStream);
         }
     }

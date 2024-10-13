@@ -19,7 +19,7 @@ public final class GltfSkeletonMapper {
         this.rotation = rotation;
     }
 
-    public SkinSchema map(Skeleton skeleton, String name) {
+    public SkinSchema map(Skeleton skeleton) {
         var bones = skeleton.bones();
 
         // Calculate the parent-child relationships
@@ -65,7 +65,7 @@ public final class GltfSkeletonMapper {
         var inverseBindMatrices = context.addAccessor(accessor);
 
         return SkinSchema.builder()
-            .name(name)
+            // .name(name)
             .skeleton(skeletonNodeId)
             .joints(jointIndices)
             .inverseBindMatrices(inverseBindMatrices)

@@ -35,7 +35,7 @@ public class GeometryManagerToModel {
                 obj.name = "BONE_" + i;
             }
             var mat = obj.modelMatrix;
-            var bone = new Bone(obj.name, parentId, mat.rotation(), mat.scale(), mat.translation(), obj.matrixLt.inverse());
+            var bone = new Bone(obj.name, parentId, mat.toRotation(), mat.toScale(), mat.toTranslation(), obj.matrixLt.inverse());
             bones.add(bone);
             boneMap.put(i, bones.indexOf(bone));
         }
@@ -47,19 +47,19 @@ public class GeometryManagerToModel {
         var streams = geometryManager.streams;
         List<ObjSplit> splits = geometryManager.splits;
 
-        var subModels = new ArrayList<SubModel>();
+        // var subModels = new ArrayList<SubModel>();
         var lod0Ids = lodDef != null ? lodDef.stream().filter(ld -> ld.index == 0).map(ld -> ld.objId).toList() : null;
+        ArrayList<Mesh> meshes = new ArrayList<>();
         if (geometryManager.objSpitInfo != null) {
-            extractBySplitInfo(geometryManager, lod0Ids, splits, streams, subModels, materials);
+            extractBySplitInfo(geometryManager, lod0Ids, splits, streams, meshes, materials);
         } else {
-            var meshes = new ArrayList<Mesh>();
             for (ObjSplit split : splits) {
                 convertSplitMesh(split, streams, meshes, materials);
             }
-            subModels.add(new SubModel("Mesh", meshes));
+            // subModels.add(new SubModel("Mesh", meshes));
         }
         String modelName = assetId.fileName().substring(0, assetId.fileName().indexOf('.'));
-        return new Model(modelName, subModels, materials, skeleton);
+        return new Model(meshes, materials, skeleton);
     }
 
 
@@ -251,7 +251,7 @@ public class GeometryManagerToModel {
         return materials;
     }
 
-    private void extractBySplitInfo(GeometryManager geometryManager, List<Short> lod0Ids, List<ObjSplit> splits, List<ObjGeomStream> streams, ArrayList<SubModel> subModels, ArrayList<Material> materials) {
+    private void extractBySplitInfo(GeometryManager geometryManager, List<Short> lod0Ids, List<ObjSplit> splits, List<ObjGeomStream> streams, ArrayList<Mesh> meshes, ArrayList<Material> materials) {
         List<ObjSplitRange> objSpitInfo = geometryManager.objSpitInfo;
         for (int j = 0; j < objSpitInfo.size(); j++) {
             ObjObj obj = geometryManager.objects.get(j);
@@ -262,11 +262,11 @@ public class GeometryManagerToModel {
             if (objSplitRange.numSplits == 0) {
                 continue;
             }
-            var meshes = new ArrayList<Mesh>();
+            // var meshes = new ArrayList<Mesh>();
             for (int i = objSplitRange.startIndex; i < objSplitRange.startIndex + objSplitRange.numSplits; i++) {
                 convertSplitMesh(splits.get(i), streams, meshes, materials);
             }
-            subModels.add(new SubModel(Objects.requireNonNullElse(obj.name, "SubModel"), meshes));
+            // subModels.add(new SubModel(Objects.requireNonNullElse(obj.name, "SubModel"), meshes));
         }
     }
 
