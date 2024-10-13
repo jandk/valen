@@ -78,11 +78,11 @@ public final class MathF {
     }
 
     public static byte packUNorm8(float value) {
-        return (byte) (clamp01(value) * 255.0f + 0.5f);
+        return (byte) Math.fma(clamp01(value), 255.0f, 0.5f);
     }
 
     public static short packUNorm16(float value) {
-        return (short) (clamp01(value) * 65535.0f + 0.5f);
+        return (short) Math.fma(clamp01(value), 65535.0f, 0.5f);
     }
 
     public static float unpackSNorm8(byte value) {
