@@ -20,9 +20,9 @@ public record MapFileStaticInstancesModelGeometry(
         var modelIndex = source.readShort();
         var modelIndexVPaint = source.readShort();
         source.expectShort((short) 0);
-        var translation = source.readVector3();
-        var rotation = source.readMatrix3();
-        var scale = source.readVector3();
+        var translation = Vector3.read(source);
+        var rotation = Matrix3.read(source);
+        var scale = Vector3.read(source);
         var flagsMaybe = source.readInt();
         var extraIndex = source.readInt();
         return new MapFileStaticInstancesModelGeometry(

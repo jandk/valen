@@ -40,7 +40,7 @@ public final class GeometryReader {
     ) throws IOException {
         var meshes = new ArrayList<Mesh>();
         for (var layout : layouts) {
-            var offsets = Arrays.copyOf(layout.vertexOffsets(), layout.numVertexStreams());
+            var vertexOffsets = Arrays.copyOf(layout.vertexOffsets(), layout.numVertexStreams());
             var indexOffset = layout.indexOffset();
 
             for (var lodInfo : lods) {
@@ -51,8 +51,8 @@ public final class GeometryReader {
                 var vertexAccessors = new ArrayList<Geo.Accessor<?>>();
                 for (var v = 0; v < layout.numVertexStreams(); v++) {
                     var mask = GeometryVertexMask.from(layout.vertexMasks()[v]);
-                    vertexAccessors.addAll(buildAccessors(offsets[v], lodInfo.numVertices(), mask.size(), mask, lodInfo, animated));
-                    offsets[v] += mask.size() * lodInfo.numVertices();
+                    vertexAccessors.addAll(buildAccessors(vertexOffsets[v], lodInfo.numVertices(), mask.size(), mask, lodInfo, animated));
+                    vertexOffsets[v] += mask.size() * lodInfo.numVertices();
                 }
 
                 var faceInfo = VertexBuffer.Info.faces(ComponentType.UnsignedShort);
@@ -67,8 +67,11 @@ public final class GeometryReader {
 
     private static List<Geo.Accessor<?>> buildAccessors(int offset, int count, int stride, GeometryVertexMask mask, LodInfo lodInfo, boolean animated) {
         return switch (mask) {
-            case WGVS_POSITION_SHORT, WGVS_POSITION -> List.of(
-                new Geo.Accessor<>(offset, count, stride, VertexBuffer.Info.POSITION, Geometry.readPackedPosition(lodInfo.vertexOffset(), lodInfo.vertexScale()))
+            case WGVS_POSITION_SHORT -> List.of(
+                new Geo.Accessor<>(offset, count, stride, VertexBuffer.Info.POSITION, Geometry.readPackedPosition(lodInfo.vertexScale(), lodInfo.vertexOffset()))
+            );
+            case WGVS_POSITION -> List.of(
+                new Geo.Accessor<>(offset, count, stride, VertexBuffer.Info.POSITION, Geometry.readPosition(lodInfo.vertexScale(), lodInfo.vertexOffset()))
             );
             case WGVS_NORMAL_TANGENT -> {
                 var normal = new Geo.Accessor<>(offset, count, stride, VertexBuffer.Info.NORMAL, Geometry.readPackedNormal());
@@ -77,16 +80,16 @@ public final class GeometryReader {
                 yield animated ? List.of(normal, tangent, weights0) : List.of(normal, tangent);
             }
             case WGVS_LIGHTMAP_UV_SHORT -> List.of(
-                new Geo.Accessor<>(offset, count, stride, VertexBuffer.Info.texCoords(1), Geometry.readPackedUV(lodInfo.uvOffset(), lodInfo.uvScale()))
+                new Geo.Accessor<>(offset, count, stride, VertexBuffer.Info.texCoords(1), Geometry.readPackedUV(lodInfo.uvScale(), lodInfo.uvOffset()))
             );
             case WGVS_LIGHTMAP_UV -> List.of(
-                new Geo.Accessor<>(offset, count, stride, VertexBuffer.Info.texCoords(1), Geometry.readUV(lodInfo.uvOffset(), lodInfo.uvScale()))
+                new Geo.Accessor<>(offset, count, stride, VertexBuffer.Info.texCoords(1), Geometry.readUV(lodInfo.uvScale(), lodInfo.uvOffset()))
             );
             case WGVS_MATERIAL_UV_SHORT -> List.of(
-                new Geo.Accessor<>(offset, count, stride, VertexBuffer.Info.texCoords(0), Geometry.readPackedUV(lodInfo.uvOffset(), lodInfo.uvScale()))
+                new Geo.Accessor<>(offset, count, stride, VertexBuffer.Info.texCoords(0), Geometry.readPackedUV(lodInfo.uvScale(), lodInfo.uvOffset()))
             );
             case WGVS_MATERIAL_UV -> List.of(
-                new Geo.Accessor<>(offset, count, stride, VertexBuffer.Info.texCoords(0), Geometry.readUV(lodInfo.uvOffset(), lodInfo.uvScale()))
+                new Geo.Accessor<>(offset, count, stride, VertexBuffer.Info.texCoords(0), Geometry.readUV(lodInfo.uvScale(), lodInfo.uvOffset()))
             );
             case WGVS_COLOR -> {
                 var info = animated

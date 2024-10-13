@@ -11,9 +11,9 @@ public record StaticModelTextureAxis(
     Vector2 scale
 ) {
     public static StaticModelTextureAxis read(DataSource source) throws IOException {
-        var axis = source.readMatrix3();
-        var origin = source.readVector3();
-        var scale = source.readVector2();
+        var axis = Matrix3.read(source);
+        var origin = Vector3.read(source);
+        var scale = Vector2.read(source);
 
         return new StaticModelTextureAxis(
             axis,

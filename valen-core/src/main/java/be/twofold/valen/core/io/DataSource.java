@@ -1,6 +1,5 @@
 package be.twofold.valen.core.io;
 
-import be.twofold.valen.core.math.*;
 import be.twofold.valen.core.util.*;
 
 import java.io.*;
@@ -13,6 +12,10 @@ public abstract class DataSource implements AutoCloseable {
 
     public static DataSource fromArray(byte[] array) {
         return new ByteArrayDataSource(array);
+    }
+
+    public static DataSource fromArray(byte[] array, int offset, int length) {
+        return new ByteArrayDataSource(array, offset, length);
     }
 
     public static DataSource fromBuffer(ByteBuffer buffer) {
@@ -48,6 +51,10 @@ public abstract class DataSource implements AutoCloseable {
         seek(tell() + count);
     }
 
+    public int readByteAsInt() throws IOException {
+        return Byte.toUnsignedInt(readByte());
+    }
+
     public byte[] readBytes(int len) throws IOException {
         var result = new byte[len];
         readBytes(result, 0, len);
@@ -55,8 +62,8 @@ public abstract class DataSource implements AutoCloseable {
     }
 
     public short readShort() throws IOException {
-        var b0 = Byte.toUnsignedInt(readByte());
-        var b1 = Byte.toUnsignedInt(readByte());
+        var b0 = readByteAsInt();
+        var b1 = readByteAsInt();
         return (short) (b0 | (b1 << 8));
     }
 
@@ -78,10 +85,10 @@ public abstract class DataSource implements AutoCloseable {
     }
 
     public int readInt() throws IOException {
-        var b0 = Byte.toUnsignedInt(readByte());
-        var b1 = Byte.toUnsignedInt(readByte());
-        var b2 = Byte.toUnsignedInt(readByte());
-        var b3 = Byte.toUnsignedInt(readByte());
+        var b0 = readByteAsInt();
+        var b1 = readByteAsInt();
+        var b2 = readByteAsInt();
+        var b3 = readByteAsInt();
         return b0 | (b1 << 8) | (b2 << 16) | (b3 << 24);
     }
 
@@ -266,55 +273,5 @@ public abstract class DataSource implements AutoCloseable {
         if (tell() != size()) {
             throw new IOException("Expected end of file, but got " + tell() + " of " + size());
         }
-    }
-
-    //
-    // Custom types
-    //
-
-    public Matrix3 readMatrix3() throws IOException {
-        float m00 = readFloat();
-        float m01 = readFloat();
-        float m02 = readFloat();
-        float m10 = readFloat();
-        float m11 = readFloat();
-        float m12 = readFloat();
-        float m20 = readFloat();
-        float m21 = readFloat();
-        float m22 = readFloat();
-        return new Matrix3(
-            m00, m01, m02,
-            m10, m11, m12,
-            m20, m21, m22
-        );
-    }
-
-    public Quaternion readQuaternion() throws IOException {
-        float x = readFloat();
-        float y = readFloat();
-        float z = readFloat();
-        float w = readFloat();
-        return new Quaternion(x, y, z, w);
-    }
-
-    public Vector2 readVector2() throws IOException {
-        float x = readFloat();
-        float y = readFloat();
-        return new Vector2(x, y);
-    }
-
-    public Vector3 readVector3() throws IOException {
-        float x = readFloat();
-        float y = readFloat();
-        float z = readFloat();
-        return new Vector3(x, y, z);
-    }
-
-    public Vector4 readVector4() throws IOException {
-        float x = readFloat();
-        float y = readFloat();
-        float z = readFloat();
-        float w = readFloat();
-        return new Vector4(x, y, z, w);
     }
 }

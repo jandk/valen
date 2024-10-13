@@ -19,9 +19,9 @@ public record Md6Skel(
         var header = Md6SkelHeader.read(source);
 
         source.expectPosition(header.basePoseOffset() + 4);
-        var rotations = source.readStructs(header.numJoints8(), DataSource::readQuaternion);
-        var scales = source.readStructs(header.numJoints8(), DataSource::readVector3);
-        var translations = source.readStructs(header.numJoints8(), DataSource::readVector3);
+        var rotations = source.readStructs(header.numJoints8(), Quaternion::read);
+        var scales = source.readStructs(header.numJoints8(), Vector3::read);
+        var translations = source.readStructs(header.numJoints8(), Vector3::read);
 
         source.seek(header.parentTblOffset() + 4);
         var parents = source.readShorts(header.numJoints8());
@@ -41,7 +41,8 @@ public record Md6Skel(
             var floats = new float[16];
             source.readFloats(floats, 0, 12);
             floats[15] = 1;
-            inverseBasePoses.add(Matrix4.fromArray(floats).transpose());
+            Matrix4 matrix4 = Matrix4.fromArray(floats).transpose();
+            inverseBasePoses.add(matrix4);
         }
         return List.copyOf(inverseBasePoses);
     }

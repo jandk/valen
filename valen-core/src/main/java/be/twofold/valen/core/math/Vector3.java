@@ -1,5 +1,10 @@
 package be.twofold.valen.core.math;
 
+import be.twofold.valen.core.io.*;
+
+import java.io.*;
+import java.nio.*;
+
 public record Vector3(
     float x,
     float y,
@@ -10,6 +15,13 @@ public record Vector3(
     public static final Vector3 X = new Vector3(1.0f, 0.0f, 0.0f);
     public static final Vector3 Y = new Vector3(0.0f, 1.0f, 0.0f);
     public static final Vector3 Z = new Vector3(0.0f, 0.0f, 1.0f);
+
+    public static Vector3 read(DataSource source) throws IOException {
+        float x = source.readFloat();
+        float y = source.readFloat();
+        float z = source.readFloat();
+        return new Vector3(x, y, z);
+    }
 
     public Vector3 add(Vector3 other) {
         return new Vector3(x + other.x, y + other.y, z + other.z);
@@ -55,6 +67,19 @@ public record Vector3(
             z * other.x - other.z * x,
             x * other.y - other.x * y
         );
+    }
+
+    public Vector3 fma(float scale, Vector3 offset) {
+        float x = Math.fma(this.x, scale, offset.x());
+        float y = Math.fma(this.y, scale, offset.x());
+        float z = Math.fma(this.z, scale, offset.x());
+        return new Vector3(x, y, z);
+    }
+
+    public void toBuffer(FloatBuffer buffer) {
+        buffer.put(this.x);
+        buffer.put(this.y);
+        buffer.put(this.z);
     }
 
     // Object methods

@@ -26,8 +26,9 @@ public final class MathF {
         return (float) Math.sqrt(a);
     }
 
-    public static float invSqrt(float a) {
-        return (float) (1.0 / Math.sqrt(a));
+    public static float clamp(float value, float min, float max) {
+        assert min <= max : "min > max";
+        return Math.min(max, Math.max(value, min));
     }
 
     // equals and hashCode
@@ -45,19 +46,51 @@ public final class MathF {
     // Additional math functions
 
     public static float clamp01(float value) {
-        return Math.clamp(value, 0.0f, 1.0f);
+        return clamp(value, 0.0f, 1.0f);
+    }
+
+    public static float clamp11(float value) {
+        return clamp(value, -1.0f, 1.0f);
+    }
+
+    public static float invSqrt(float a) {
+        return 1.0f / sqrt(a);
     }
 
     public static float lerp(float a, float b, float t) {
         return Math.fma(t, b - a, a);
     }
 
+    public static byte packUNorm8Normal(float value) {
+        return packUNorm8(Math.fma(value, 0.5f, 0.5f));
+    }
+
     public static float unpackUNorm8Normal(byte value) {
         return Math.fma(unpackUNorm8(value), 2.0f, -1.0f);
     }
 
-    public static byte packUNorm8Normal(float value) {
-        return packUNorm8(Math.fma(value, 0.5f, 0.5f));
+    public static byte packSNorm8(float value) {
+        return (byte) Math.round(clamp11(value) * Byte.MAX_VALUE);
+    }
+
+    public static short packSNorm16(float value) {
+        return (short) Math.round(clamp11(value) * Short.MAX_VALUE);
+    }
+
+    public static byte packUNorm8(float value) {
+        return (byte) (clamp01(value) * 255.0f + 0.5f);
+    }
+
+    public static short packUNorm16(float value) {
+        return (short) (clamp01(value) * 65535.0f + 0.5f);
+    }
+
+    public static float unpackSNorm8(byte value) {
+        return Math.max(-Byte.MAX_VALUE, value) * (1.0f / Byte.MAX_VALUE);
+    }
+
+    public static float unpackSNorm16(short value) {
+        return Math.max(-Short.MAX_VALUE, value) * (1.0f / Short.MAX_VALUE);
     }
 
     public static float unpackUNorm8(byte value) {
@@ -67,9 +100,4 @@ public final class MathF {
     public static float unpackUNorm16(short value) {
         return Short.toUnsignedInt(value) * (1.0f / 65535.0f);
     }
-
-    public static byte packUNorm8(float value) {
-        return (byte) Math.round(clamp01(value) * 255.0f);
-    }
-
 }

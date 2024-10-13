@@ -19,17 +19,15 @@ public final class Geo {
         var vertexBuffers = new HashMap<Semantic, VertexBuffer>();
         for (var accessor : vertexAccessors) {
             source.seek(startPos);
-            var buffer = accessor.read(source);
-            var vertexBuffer = new VertexBuffer(buffer, accessor.info());
+            var vertexBuffer = accessor.read(source);
             vertexBuffers.put(accessor.info().semantic(), vertexBuffer);
         }
 
         source.seek(startPos);
-        var buffer = faceAccessor.read(source);
+        var faceBuffer = faceAccessor.read(source);
         if (invertFaces) {
-            invertFaces(buffer);
+            invertFaces(faceBuffer.buffer());
         }
-        var faceBuffer = new VertexBuffer(buffer, faceAccessor.info());
 
         source.seek(startPos);
         return new Mesh(faceBuffer, vertexBuffers, -1);
@@ -73,8 +71,7 @@ public final class Geo {
         VertexBuffer.Info<T> info,
         Reader<T> reader
     ) {
-        @SuppressWarnings("unchecked")
-        public T read(DataSource source) throws IOException {
+        public VertexBuffer read(DataSource source) throws IOException {
             var numPrimitives = count * info.elementType().size();
             var buffer = info.componentType().allocate(numPrimitives);
 
@@ -84,7 +81,8 @@ public final class Geo {
                 reader.read(source, buffer);
             }
 
-            return (T) buffer.flip();
+            buffer.flip();
+            return new VertexBuffer(buffer, info);
         }
     }
 }

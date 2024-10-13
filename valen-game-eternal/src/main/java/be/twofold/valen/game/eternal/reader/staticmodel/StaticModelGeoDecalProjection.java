@@ -10,8 +10,8 @@ public record StaticModelGeoDecalProjection(
     Quaternion projT
 ) {
     public static StaticModelGeoDecalProjection read(DataSource source) throws IOException {
-        var projS = source.readQuaternion();
-        var projT = source.readQuaternion();
+        var projS = Quaternion.read(source);
+        var projT = Quaternion.read(source);
         return new StaticModelGeoDecalProjection(projS, projT);
     }
 }

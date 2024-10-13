@@ -24,11 +24,11 @@ public record StaticModelLodInfo(
         var numVertices = source.readInt();
         var numEdges = source.readInt();
         var flags = source.readInt();
-        var negBounds = source.readVector3();
-        var posBounds = source.readVector3();
-        var vertexOffset = source.readVector3();
+        var negBounds = Vector3.read(source);
+        var posBounds = Vector3.read(source);
+        var vertexOffset = Vector3.read(source);
         var vertexScale = source.readFloat();
-        var uvOffset = source.readVector2();
+        var uvOffset = Vector2.read(source);
         var uvScale = source.readFloat();
         source.expectInt(0);
         var unkFloat1 = source.readFloat();

@@ -1,5 +1,10 @@
 package be.twofold.valen.core.math;
 
+import be.twofold.valen.core.io.*;
+
+import java.io.*;
+import java.nio.*;
+
 public record Vector4(
     float x,
     float y,
@@ -12,6 +17,18 @@ public record Vector4(
     public static Vector4 Y = new Vector4(0.0f, 1.0f, 0.0f, 0.0f);
     public static Vector4 Z = new Vector4(0.0f, 0.0f, 1.0f, 0.0f);
     public static Vector4 W = new Vector4(0.0f, 0.0f, 0.0f, 1.0f);
+
+    public static Vector4 read(DataSource source) throws IOException {
+        float x = source.readFloat();
+        float y = source.readFloat();
+        float z = source.readFloat();
+        float w = source.readFloat();
+        return new Vector4(x, y, z, w);
+    }
+
+    public Vector4(Vector3 v, float w) {
+        this(v.x(), v.y(), v.z(), w);
+    }
 
     public Vector4 add(Vector4 other) {
         return new Vector4(x + other.x, y + other.y, z + other.z, w + other.w);
@@ -47,6 +64,17 @@ public record Vector4(
 
     public Vector4 normalize() {
         return divide(length());
+    }
+
+    public void toBuffer(FloatBuffer dst) {
+        dst.put(x);
+        dst.put(y);
+        dst.put(z);
+        dst.put(w);
+    }
+
+    public Vector3 toVector3() {
+        return new Vector3(x, y, z);
     }
 
     @Override

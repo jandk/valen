@@ -1,5 +1,10 @@
 package be.twofold.valen.core.math;
 
+import be.twofold.valen.core.io.*;
+
+import java.io.*;
+import java.nio.*;
+
 public record Vector2(
     float x,
     float y
@@ -8,6 +13,12 @@ public record Vector2(
     public static Vector2 One = new Vector2(1.0f, 1.0f);
     public static Vector2 X = new Vector2(1.0f, 0.0f);
     public static Vector2 Y = new Vector2(0.0f, 1.0f);
+
+    public static Vector2 read(DataSource source) throws IOException {
+        float x = source.readFloat();
+        float y = source.readFloat();
+        return new Vector2(x, y);
+    }
 
     public Vector2 add(Vector2 other) {
         return new Vector2(x + other.x, y + other.y);
@@ -47,6 +58,17 @@ public record Vector2(
 
     public Vector2 normalize() {
         return divide(length());
+    }
+
+    public Vector2 fma(float scale, Vector2 offset) {
+        float x = Math.fma(this.x, scale, offset.x());
+        float y = Math.fma(this.y, scale, offset.y());
+        return new Vector2(x, y);
+    }
+
+    public void toBuffer(FloatBuffer buffer) {
+        buffer.put(x);
+        buffer.put(y);
     }
 
     @Override

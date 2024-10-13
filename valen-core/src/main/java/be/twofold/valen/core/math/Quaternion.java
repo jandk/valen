@@ -1,5 +1,9 @@
 package be.twofold.valen.core.math;
 
+import be.twofold.valen.core.io.*;
+
+import java.io.*;
+
 public record Quaternion(float x, float y, float z, float w) {
     public static final Quaternion Identity = new Quaternion(0.0f, 0.0f, 0.0f, 1.0f);
 
@@ -11,6 +15,14 @@ public record Quaternion(float x, float y, float z, float w) {
         float y = axis.y() * sin;
         float z = axis.z() * sin;
         return new Quaternion(x, y, z, cos);
+    }
+
+    public static Quaternion read(DataSource source) throws IOException {
+        float x = source.readFloat();
+        float y = source.readFloat();
+        float z = source.readFloat();
+        float w = source.readFloat();
+        return new Quaternion(x, y, z, w);
     }
 
     static Quaternion fromMatrix(
