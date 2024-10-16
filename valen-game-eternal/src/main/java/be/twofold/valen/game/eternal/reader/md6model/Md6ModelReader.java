@@ -33,14 +33,14 @@ public final class Md6ModelReader implements ResourceReader<Model> {
 
     @Override
     public Model read(DataSource source, Asset asset) throws IOException {
-        var model = read(source, true, (Long) asset.properties().get("hash"));
+        var model = Md6Model.read(source);
+        var meshes = new ArrayList<>(readMeshes(model, (Long) asset.properties().get("hash")));
         var skeletonKey = ResourceKey.from(model.header().md6SkelName(), ResourceType.Skeleton);
         var skeleton = (Skeleton) archive.loadAsset(skeletonKey);
 
         if (readMaterials) {
             var materials = new HashMap<String, Material>();
-            var meshes = new ArrayList<Mesh>();
-            for (int i = 0; i < model.meshes().size(); i++) {
+            for (int i = 0; i < meshes.size(); i++) {
                 var meshInfo = model.meshInfos().get(i);
                 var materialName = meshInfo.materialName();
                 var materialFile = "generated/decls/material2/" + materialName + ".decl";
@@ -49,31 +49,22 @@ public final class Md6ModelReader implements ResourceReader<Model> {
                     var material = (Material) archive.loadAsset(assetId);
                     materials.put(materialName, material);
                 }
-                meshes.add(model.meshes().get(i)
+                meshes.set(i, meshes.get(i)
                     .withMaterial(materials.get(materialName)));
             }
-            model = model.withMeshes(meshes);
         }
-        return new Model(model.meshes(), skeleton);
+        return new Model(meshes, skeleton);
     }
 
-    public Md6Model read(DataSource source, boolean readStreams, long hash) throws IOException {
-        var md6 = Md6Model.read(source);
-
-        List<Mesh> meshes;
-        if (readStreams) {
-            meshes = readStreamedGeometry(md6, 0, hash);
-            fixJointIndices(md6, meshes);
-        } else {
-            meshes = List.of();
-        }
+    private List<Mesh> readMeshes(Md6Model md6, long hash) throws IOException {
+        var meshes = readStreamedGeometry(md6, 0, hash);
+        fixJointIndices(md6, meshes);
 
         // Add names to all meshes
         for (int i = 0; i < meshes.size(); i++) {
             meshes.set(i, meshes.get(i).withName(md6.meshInfos().get(i).meshName()));
         }
-
-        return md6.withMeshes(meshes);
+        return meshes;
     }
 
     private List<Mesh> readStreamedGeometry(Md6Model md6, int lod, long hash) throws IOException {

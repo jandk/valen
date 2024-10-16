@@ -15,20 +15,14 @@ import java.util.*;
 
 public final class StaticModelReader implements ResourceReader<Model> {
     private final EternalArchive archive;
-    private final boolean readStreams;
     private final boolean readMaterials;
 
     public StaticModelReader(EternalArchive archive) {
-        this(archive, true, true);
+        this(archive, true);
     }
 
-    StaticModelReader(
-        EternalArchive archive,
-        boolean readStreams,
-        boolean readMaterials
-    ) {
+    StaticModelReader(EternalArchive archive, boolean readMaterials) {
         this.archive = archive;
-        this.readStreams = readStreams;
         this.readMaterials = readMaterials;
     }
 
@@ -41,13 +35,11 @@ public final class StaticModelReader implements ResourceReader<Model> {
     public Model read(DataSource source, Asset asset) throws IOException {
         long hash = (Long) asset.properties().get("hash");
         var model = StaticModel.read(source);
-
-        model = model.withMeshes(readMeshes(model, source, hash));
+        var meshes = new ArrayList<>(readMeshes(model, source, hash));
 
         if (readMaterials) {
             var materials = new HashMap<String, Material>();
-            var meshes = new ArrayList<Mesh>();
-            for (int i = 0; i < model.meshes().size(); i++) {
+            for (int i = 0; i < meshes.size(); i++) {
                 var meshInfo = model.meshInfos().get(i);
                 var materialName = meshInfo.mtlDecl();
                 var materialFile = "generated/decls/material2/" + materialName + ".decl";
@@ -56,24 +48,18 @@ public final class StaticModelReader implements ResourceReader<Model> {
                     var material = (Material) archive.loadAsset(assetId);
                     materials.put(materialName, material);
                 }
-                meshes.add(model.meshes().get(i)
+                meshes.set(i, meshes.get(i)
                     .withMaterial(materials.get(materialName)));
             }
-            model = model
-                .withMeshes(meshes)
-                .withMaterials(List.copyOf(materials.values()));
         }
-        return new Model(model.meshes(), null);
+        return new Model(meshes, null);
     }
 
     private List<Mesh> readMeshes(StaticModel model, DataSource source, long hash) throws IOException {
         if (!model.header().streamable()) {
             return readEmbeddedGeometry(model, source);
         }
-        if (readStreams) {
-            return readStreamedGeometry(model, 0, hash);
-        }
-        return List.of();
+        return readStreamedGeometry(model, 0, hash);
     }
 
     private List<Mesh> readEmbeddedGeometry(StaticModel model, DataSource source) throws IOException {
