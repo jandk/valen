@@ -22,7 +22,7 @@ public final class GltfTextureMapper {
     }
 
     public TextureID map(TextureReference reference) throws IOException {
-        var existingSchema = textures.get(reference.filename());
+        var existingSchema = textures.get(reference.name());
         if (existingSchema != null) {
             return existingSchema;
         }
@@ -32,19 +32,19 @@ public final class GltfTextureMapper {
         var bufferViewID = context.createBufferView(buffer);
 
         var imageSchema = ImageSchema.builder()
-            .name(reference.filename())
+            .name(reference.name())
             .mimeType(ImageMimeType.IMAGE_PNG)
             .bufferView(bufferViewID)
             .build();
         var imageID = context.addImage(imageSchema);
 
         var textureSchema = TextureSchema.builder()
-            .name(reference.filename())
+            .name(reference.name())
             .source(imageID)
             .build();
         var textureID = context.addTexture(textureSchema);
 
-        textures.put(reference.filename(), textureID);
+        textures.put(reference.name(), textureID);
 
         return textureID;
     }

@@ -80,7 +80,7 @@ public final class MaterialReader implements ResourceReader<Material> {
             if (archive.exists(resourceKey)) {
                 var textureType = mapTextureType(kind);
                 var supplier = ThrowingSupplier.lazy(() -> (Texture) archive.loadAsset(resourceKey));
-                references.add(new TextureReference(textureType, filename, supplier));
+                references.add(new TextureReference(filename, textureType, supplier));
             }
         });
 
