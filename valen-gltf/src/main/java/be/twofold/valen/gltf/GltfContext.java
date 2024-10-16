@@ -206,10 +206,6 @@ public final class GltfContext {
         return addBufferView(bufferView);
     }
 
-    public TextureID allocateTextureId(String textureName) {
-        throw new UnsupportedOperationException();
-    }
-
     public GltfSchema buildGltf() {
         var asset = AssetSchema.builder()
             .generator("Valen")

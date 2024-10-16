@@ -9,9 +9,11 @@ import be.twofold.valen.gltf.model.texture.*;
 
 import java.io.*;
 import java.nio.*;
+import java.util.*;
 
 public final class GltfTextureMapper {
-    private static final PngExporter EXPORTER = new PngExporter();
+    private final PngExporter pngExporter = new PngExporter();
+    private final Map<String, TextureID> textures = new HashMap<>();
 
     private final GltfContext context;
 
@@ -19,27 +21,37 @@ public final class GltfTextureMapper {
         this.context = context;
     }
 
-    public TextureSchema map(TextureReference reference) throws IOException {
+    public TextureID map(TextureReference reference) throws IOException {
+        var existingSchema = textures.get(reference.filename());
+        if (existingSchema != null) {
+            return existingSchema;
+        }
+
         var texture = reference.supplier().get();
         var buffer = textureToPng(texture);
-        var bufferView = context.createBufferView(buffer);
+        var bufferViewID = context.createBufferView(buffer);
 
-        var image = ImageSchema.builder()
+        var imageSchema = ImageSchema.builder()
             .name(reference.filename())
             .mimeType(ImageMimeType.IMAGE_PNG)
-            .bufferView(bufferView)
+            .bufferView(bufferViewID)
             .build();
-        var imageID = context.addImage(image);
+        var imageID = context.addImage(imageSchema);
 
-        return TextureSchema.builder()
+        var textureSchema = TextureSchema.builder()
             .name(reference.filename())
             .source(imageID)
             .build();
+        var textureID = context.addTexture(textureSchema);
+
+        textures.put(reference.filename(), textureID);
+
+        return textureID;
     }
 
     private ByteBuffer textureToPng(Texture texture) throws IOException {
         try (var out = new ByteArrayOutputStream()) {
-            EXPORTER.export(texture, out);
+            pngExporter.export(texture, out);
             return ByteBuffer.wrap(out.toByteArray());
         }
     }

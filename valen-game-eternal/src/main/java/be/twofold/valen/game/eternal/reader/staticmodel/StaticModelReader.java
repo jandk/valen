@@ -45,27 +45,25 @@ public final class StaticModelReader implements ResourceReader<Model> {
         model = model.withMeshes(readMeshes(model, source, hash));
 
         if (readMaterials) {
-            var materials = new LinkedHashMap<String, Material>();
-            var materialIndices = new HashMap<String, Integer>();
-
+            var materials = new HashMap<String, Material>();
             var meshes = new ArrayList<Mesh>();
             for (int i = 0; i < model.meshes().size(); i++) {
                 var meshInfo = model.meshInfos().get(i);
                 var materialName = meshInfo.mtlDecl();
                 var materialFile = "generated/decls/material2/" + materialName + ".decl";
-                var materialIndex = materialIndices.computeIfAbsent(materialName, k -> materials.size());
                 if (!materials.containsKey(materialName)) {
                     var assetId = ResourceKey.from(materialFile, ResourceType.RsStreamFile);
                     var material = (Material) archive.loadAsset(assetId);
                     materials.put(materialName, material);
                 }
-                meshes.add(model.meshes().get(i).withMaterialIndex(materialIndex));
+                meshes.add(model.meshes().get(i)
+                    .withMaterial(materials.get(materialName)));
             }
             model = model
                 .withMeshes(meshes)
                 .withMaterials(List.copyOf(materials.values()));
         }
-        return new Model(model.meshes(), model.materials(), null);
+        return new Model(model.meshes(), null);
     }
 
     private List<Mesh> readMeshes(StaticModel model, DataSource source, long hash) throws IOException {

@@ -5,8 +5,8 @@ import be.twofold.valen.core.math.*;
 import be.twofold.valen.gltf.*;
 import be.twofold.valen.gltf.model.accessor.*;
 import be.twofold.valen.gltf.model.buffer.*;
-import be.twofold.valen.gltf.model.material.*;
 import be.twofold.valen.gltf.model.mesh.*;
+import be.twofold.valen.gltf.model.node.*;
 import be.twofold.valen.gltf.types.*;
 import com.google.gson.*;
 
@@ -17,26 +17,60 @@ import java.util.*;
 public final class GltfModelMapper {
     private final GltfContext context;
     private final GltfMaterialMapper materialMapper;
+    private final GltfSkeletonMapper skeletonMapper;
 
     public GltfModelMapper(GltfContext context) {
         this.context = context;
         this.materialMapper = new GltfMaterialMapper(context);
+        this.skeletonMapper = new GltfSkeletonMapper(context);
     }
 
-    public List<MeshSchema> map(Model model) throws IOException {
-        // First the materials
-        var materialIDs = new ArrayList<MaterialID>();
-        for (var material : model.materials()) {
-            materialIDs.add(context.addMaterial(materialMapper.map(material)));
-        }
-
-        // Then the meshes
-        return model.meshes().stream()
-            .map(mesh -> mapMesh(mesh, materialIDs.get(mesh.materialIndex())))
+    public NodeID map(Model model) throws IOException {
+        var meshIDs = mapModel(model).stream()
+            .map(context::addMesh)
             .toList();
+
+        return model.skeleton() == null
+            ? mapStaticModel(meshIDs)
+            : mapAnimatedModel(meshIDs, model.skeleton());
     }
 
-    private MeshSchema mapMesh(Mesh mesh, MaterialID materialID) {
+    private NodeID mapStaticModel(List<MeshID> meshIDs) {
+        var meshNodeIDs = meshIDs.stream()
+            .map(meshID -> context.addNode(NodeSchema.builder().mesh(meshID).build()))
+            .toList();
+
+        return context.addNode(
+            NodeSchema.builder()
+                .addAllChildren(meshNodeIDs)
+                .build());
+    }
+
+    private NodeID mapAnimatedModel(List<MeshID> meshIDs, Skeleton skeleton) {
+        var skinID = skeletonMapper.map(skeleton);
+
+        var meshNodeIDs = meshIDs.stream()
+            .map(meshID -> context.addNode(NodeSchema.builder().mesh(meshID).skin(skinID).build()))
+            .toList();
+
+        return context.addNode(
+            NodeSchema.builder()
+                .addAllChildren(meshNodeIDs)
+                .build());
+    }
+
+    private List<MeshSchema> mapModel(Model model) throws IOException {
+        var meshSchemas = new ArrayList<MeshSchema>();
+        for (Mesh mesh : model.meshes()) {
+            meshSchemas.add(mapMesh(mesh));
+        }
+        return meshSchemas;
+    }
+
+    private MeshSchema mapMesh(Mesh mesh) throws IOException {
+        // Add the material
+        var materialID = materialMapper.map(mesh.material());
+
         // Have to fix up the joints and weights first
         fixJointsAndWeights(mesh);
 
