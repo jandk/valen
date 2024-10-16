@@ -39,11 +39,7 @@ public final class StaticModelReader implements ResourceReader<Model> {
 
     @Override
     public Model read(DataSource source, Asset asset) throws IOException {
-        var model = read(source, (Long) asset.properties().get("hash"));
-        return new Model(model.meshes(), model.materials(), null);
-    }
-
-    public StaticModel read(DataSource source, long hash) throws IOException {
+        long hash = (Long) asset.properties().get("hash");
         var model = StaticModel.read(source);
 
         model = model.withMeshes(readMeshes(model, source, hash));
@@ -69,7 +65,7 @@ public final class StaticModelReader implements ResourceReader<Model> {
                 .withMeshes(meshes)
                 .withMaterials(List.copyOf(materials.values()));
         }
-        return model;
+        return new Model(model.meshes(), model.materials(), null);
     }
 
     private List<Mesh> readMeshes(StaticModel model, DataSource source, long hash) throws IOException {
