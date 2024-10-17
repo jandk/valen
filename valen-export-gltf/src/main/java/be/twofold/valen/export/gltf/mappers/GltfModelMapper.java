@@ -15,6 +15,8 @@ import java.nio.*;
 import java.util.*;
 
 public final class GltfModelMapper {
+    private final Map<String, NodeID> models = new HashMap<>();
+
     private final GltfContext context;
     private final GltfMaterialMapper materialMapper;
     private final GltfSkeletonMapper skeletonMapper;
@@ -25,38 +27,45 @@ public final class GltfModelMapper {
         this.skeletonMapper = new GltfSkeletonMapper(context);
     }
 
+    public NodeID map(ModelReference model) throws IOException {
+        var existingNodeID = models.get(model.name());
+        if (existingNodeID != null) {
+            return existingNodeID;
+        }
+
+        var nodeID = map(model.supplier().get());
+        models.put(model.name(), nodeID);
+        return nodeID;
+    }
+
     public NodeID map(Model model) throws IOException {
         var meshIDs = mapModel(model).stream()
             .map(context::addMesh)
             .toList();
 
-        return model.skeleton() == null
+        var nodeIDs = model.skeleton() == null
             ? mapStaticModel(meshIDs)
             : mapAnimatedModel(meshIDs, model.skeleton());
+
+        return context.addNode(
+            NodeSchema.builder()
+                .name(Optional.ofNullable(model.name()))
+                .addAllChildren(nodeIDs)
+                .build());
     }
 
-    private NodeID mapStaticModel(List<MeshID> meshIDs) {
-        var meshNodeIDs = meshIDs.stream()
+    private List<NodeID> mapStaticModel(List<MeshID> meshIDs) {
+        return meshIDs.stream()
             .map(meshID -> context.addNode(NodeSchema.builder().mesh(meshID).build()))
             .toList();
-
-        return context.addNode(
-            NodeSchema.builder()
-                .addAllChildren(meshNodeIDs)
-                .build());
     }
 
-    private NodeID mapAnimatedModel(List<MeshID> meshIDs, Skeleton skeleton) {
+    private List<NodeID> mapAnimatedModel(List<MeshID> meshIDs, Skeleton skeleton) {
         var skinID = skeletonMapper.map(skeleton);
 
-        var meshNodeIDs = meshIDs.stream()
+        return meshIDs.stream()
             .map(meshID -> context.addNode(NodeSchema.builder().mesh(meshID).skin(skinID).build()))
             .toList();
-
-        return context.addNode(
-            NodeSchema.builder()
-                .addAllChildren(meshNodeIDs)
-                .build());
     }
 
     private List<MeshSchema> mapModel(Model model) throws IOException {

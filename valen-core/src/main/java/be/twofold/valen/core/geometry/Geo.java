@@ -60,6 +60,7 @@ public final class Geo {
         }
     }
 
+    @FunctionalInterface
     public interface Reader<T extends Buffer> {
         void read(DataSource source, T buffer) throws IOException;
     }

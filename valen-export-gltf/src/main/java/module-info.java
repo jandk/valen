@@ -6,5 +6,5 @@ module valen.export.gltf {
     requires valen.gltf;
 
     provides be.twofold.valen.export.Exporter
-        with be.twofold.valen.export.gltf.GlbModelExporter;
+        with be.twofold.valen.export.gltf.GlbModelExporter, be.twofold.valen.export.gltf.GlbSceneExporter;
 }

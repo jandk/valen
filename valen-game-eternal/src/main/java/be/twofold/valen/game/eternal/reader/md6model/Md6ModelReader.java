@@ -50,10 +50,11 @@ public final class Md6ModelReader implements ResourceReader<Model> {
                     materials.put(materialName, material);
                 }
                 meshes.set(i, meshes.get(i)
+                    .withName(meshInfo.meshName())
                     .withMaterial(materials.get(materialName)));
             }
         }
-        return new Model(meshes, skeleton);
+        return new Model(asset.id().fullName(), meshes, skeleton);
     }
 
     private List<Mesh> readMeshes(Md6Model md6, long hash) throws IOException {

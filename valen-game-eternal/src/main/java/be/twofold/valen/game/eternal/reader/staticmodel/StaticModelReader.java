@@ -52,7 +52,7 @@ public final class StaticModelReader implements ResourceReader<Model> {
                     .withMaterial(materials.get(materialName)));
             }
         }
-        return new Model(meshes, null);
+        return new Model(asset.id().fullName(), meshes, null);
     }
 
     private List<Mesh> readMeshes(StaticModel model, DataSource source, long hash) throws IOException {
