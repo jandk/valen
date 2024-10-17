@@ -208,8 +208,8 @@ public final class GltfContext {
 
     public GltfSchema buildGltf() {
         var asset = AssetSchema.builder()
-            .generator("Valen")
             .version("2.0")
+            .generator("Valen")
             .build();
 
         return GltfSchema.builder()

@@ -12,7 +12,7 @@ import java.util.*;
 
 public final class GlbSceneExporter implements Exporter<Scene> {
     private final GltfContext context = new GltfContext();
-    private final GltfModelMapper modelMapper = new GltfModelMapper(context);
+    private final GltfModelSingleMapper modelMapper = new GltfModelSingleMapper(context);
 
     @Override
     public String getExtension() {
@@ -29,14 +29,14 @@ public final class GlbSceneExporter implements Exporter<Scene> {
         var instanceNodes = new ArrayList<NodeID>();
 
         for (var instance : scene.instances()) {
-            var nodeID = modelMapper.map(instance.modelReference());
+            var meshID = modelMapper.map(instance.modelReference());
 
             var instanceNode = context.addNode(NodeSchema.builder()
                 .name(Optional.ofNullable(instance.name()))
                 .translation(GltfUtils.mapVector3(instance.translation()))
                 .rotation(GltfUtils.mapQuaternion(instance.rotation()))
                 .scale(GltfUtils.mapVector3(instance.scale()))
-                .children(List.of(nodeID))
+                .mesh(meshID)
                 .build());
             instanceNodes.add(instanceNode);
         }

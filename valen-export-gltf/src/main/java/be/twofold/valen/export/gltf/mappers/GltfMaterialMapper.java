@@ -38,6 +38,11 @@ public final class GltfMaterialMapper {
         var materialSchema = builder
             .pbrMetallicRoughness(pbrBuilder.build())
             .build();
+
+        if (materialSchema.getNormalTexture().isEmpty() || materialSchema.getPbrMetallicRoughness().get().getBaseColorTexture().isEmpty()) {
+            System.out.println("Material without textures: " + material.name());
+        }
+
         var materialID = context.addMaterial(materialSchema);
 
         materials.put(material.name(), materialID);

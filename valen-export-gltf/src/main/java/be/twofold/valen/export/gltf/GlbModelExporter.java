@@ -10,7 +10,7 @@ import java.util.*;
 
 public final class GlbModelExporter implements Exporter<Model> {
     private final GltfContext context = new GltfContext();
-    private final GltfModelMapper modelMapper = new GltfModelMapper(context);
+    private final GltfModelMultiMapper modelMapper = new GltfModelMultiMapper(context);
 
     @Override
     public String getExtension() {
