@@ -1,6 +1,7 @@
 package org.redeye.valen.game.spacemarines2.psSection;
 
 import be.twofold.valen.core.io.*;
+import com.google.gson.*;
 
 import java.io.*;
 import java.util.*;
@@ -19,32 +20,32 @@ public class PsSectionAscii {
         this.reader = new BufferedReader(Objects.requireNonNull(reader));
     }
 
-    public static PsSectionValue.PsSectionObject parseFromString(String string) throws IOException {
+    public static JsonObject parseFromString(String string) throws IOException {
         var parser = new PsSectionAscii(new StringReader(string));
         return parser.parse();
     }
 
-    public static PsSectionValue.PsSectionObject parseFromDataSource(DataSource source) throws IOException {
+    public static JsonObject parseFromDataSource(DataSource source) throws IOException {
         var parser = new PsSectionAscii(new StringReader(source.readString((int) source.size())));
         return parser.parse();
     }
 
-    public PsSectionValue.PsSectionObject parse() throws IOException {
+    public JsonObject parse() throws IOException {
         nextToken(); // First token read
         var item = parseObjectInner(true);
         expectAndConsume(TokenType.Eof);
         return item;
     }
 
-    private PsSectionValue.PsSectionObject parseObject() throws IOException {
+    private JsonObject parseObject() throws IOException {
         expectAndConsume(TokenType.ObjectStart);
         var obj = parseObjectInner(false);
         expectAndConsume(TokenType.ObjectEnd);
         return obj;
     }
 
-    private PsSectionValue.PsSectionObject parseObjectInner(boolean isTopLevel) throws IOException {
-        var object = new LinkedHashMap<String, PsSectionValue>();
+    private JsonObject parseObjectInner(boolean isTopLevel) throws IOException {
+        var object = new JsonObject();
         while (token != TokenType.ObjectEnd) {
             if (token == TokenType.Eof && isTopLevel) {
                 break;
@@ -57,14 +58,14 @@ public class PsSectionAscii {
             var key = value;
             nextToken();
             var value = parseAssignment();
-            object.put(key, value);
+            object.add(key, value);
         }
-        return new PsSectionValue.PsSectionObject(object);
+        return object;
     }
 
-    private PsSectionValue.PsSectionList parseArray() throws IOException {
+    private JsonArray parseArray() throws IOException {
         expectAndConsume(TokenType.ListStart);
-        var items = new ArrayList<PsSectionValue>();
+        var items = new JsonArray();
         if (token != TokenType.ListEnd) {
             items.add(parseValue());
             while (token == TokenType.Comma) {
@@ -73,34 +74,34 @@ public class PsSectionAscii {
             }
         }
         expectAndConsume(TokenType.ListEnd);
-        return new PsSectionValue.PsSectionList(items);
+        return items;
     }
 
-    private PsSectionValue parseAssignment() throws IOException {
+    private JsonElement parseAssignment() throws IOException {
         expectAndConsume(TokenType.Equals);
         return parseValue();
     }
 
-    private PsSectionValue parseValue() throws IOException {
+    private JsonElement parseValue() throws IOException {
         var result = switch (token) {
             case ObjectStart -> parseObject();
             case ListStart -> parseArray();
             case String -> {
-                PsSectionValue.PsSectionString tdString = new PsSectionValue.PsSectionString(value);
+                JsonElement tdString = new JsonPrimitive(value);
                 expectAndConsume(TokenType.String);
                 yield tdString;
             }
             case Identifier -> {
                 var bool = switch (value.toLowerCase()) {
-                    case "true" -> new PsSectionValue.PsSectionBoolean(true);
-                    case "false" -> new PsSectionValue.PsSectionBoolean(false);
+                    case "true" -> new JsonPrimitive(true);
+                    case "false" -> new JsonPrimitive(false);
                     default -> throw new IllegalStateException("Unexpected value: " + value);
                 };
                 expectAndConsume(TokenType.Identifier);
                 yield bool;
             }
             case Number -> {
-                PsSectionValue.PsSectionNumber tdNumber = new PsSectionValue.PsSectionNumber(new StringNumber(value));
+                JsonElement tdNumber = new JsonPrimitive(new StringNumber(value));
                 expectAndConsume(TokenType.Number);
                 yield tdNumber;
             }
@@ -113,12 +114,10 @@ public class PsSectionAscii {
     }
 
     private void nextToken() throws IOException {
-        while (true) {
+        do {
             skipWhitespace();
-            if (!skipComments()) {
-                break;
-            }
-        }
+        } while (skipComments());
+
         switch (peek()) {
             case '{':
                 read();

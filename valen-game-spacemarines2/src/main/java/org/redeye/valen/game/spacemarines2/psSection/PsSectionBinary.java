@@ -1,14 +1,14 @@
 package org.redeye.valen.game.spacemarines2.psSection;
 
 import be.twofold.valen.core.io.*;
+import com.google.gson.*;
 
 import java.io.*;
-import java.util.*;
 
 public class PsSectionBinary {
     private final DataSource source;
 
-    public static PsSectionValue.PsSectionObject parseFromDataSource(DataSource source) throws IOException {
+    public static JsonObject parseFromDataSource(DataSource source) throws IOException {
         return new PsSectionBinary(source).parse();
     }
 
@@ -16,37 +16,36 @@ public class PsSectionBinary {
         this.source = source;
     }
 
-    public PsSectionValue.PsSectionObject parse() throws IOException {
+    public JsonObject parse() throws IOException {
         return readObject();
     }
 
-    private PsSectionValue.PsSectionObject readObject() throws IOException {
+    private JsonObject readObject() throws IOException {
         var count = source.readInt();
-        var map = new LinkedHashMap<String, PsSectionValue>();
+        var obj = new JsonObject();
         for (int i = 0; i < count; i++) {
             var name = source.readPString();
-            var bin = readValue();
-            map.put(name, bin);
+            obj.add(name, readValue());
         }
-        return new PsSectionValue.PsSectionObject(map);
+        return obj;
     }
 
-    private PsSectionValue.PsSectionList readArray() throws IOException {
+    private JsonArray readArray() throws IOException {
         var count = source.readInt();
-        var arr = new ArrayList<PsSectionValue>(count);
+        var arr = new JsonArray(count);
         for (int i = 0; i < count; i++) {
             arr.add(readValue());
         }
-        return new PsSectionValue.PsSectionList(arr);
+        return arr;
     }
 
-    private PsSectionValue readValue() throws IOException {
+    private JsonElement readValue() throws IOException {
         var type = source.readInt();
         return switch (type) {
-            case 1 -> new PsSectionValue.PsSectionNumber(source.readInt());
-            case 2 -> new PsSectionValue.PsSectionNumber(source.readFloat());
-            case 3 -> new PsSectionValue.PsSectionBoolean(source.readBoolByte());
-            case 4 -> new PsSectionValue.PsSectionString(source.readPString());
+            case 1 -> new JsonPrimitive(source.readInt());
+            case 2 -> new JsonPrimitive(source.readFloat());
+            case 3 -> new JsonPrimitive(source.readBoolByte());
+            case 4 -> new JsonPrimitive(source.readPString());
             case 6 -> readArray();
             case 7 -> readObject();
             default -> throw new IOException("Unimplemented type: " + type);

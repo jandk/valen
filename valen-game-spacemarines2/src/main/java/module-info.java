@@ -2,6 +2,7 @@
 module valen.game.spacemarines2 {
     requires valen.core;
     requires org.yaml.snakeyaml;
+    requires com.google.gson;
 
     opens org.redeye.valen.game.spacemarines2.types;
     opens org.redeye.valen.game.spacemarines2.types.spline;

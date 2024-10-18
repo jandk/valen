@@ -18,7 +18,7 @@ public final class GeometryManager {
     public ObjGeomSetsInfo geomSetsInfo;
     public Object debugInfo;
     public List<ObjObj> objects;
-    public List<ObjSplitRange> objSpitInfo;
+    public List<ObjSplitRange> objSplitInfo;
     public List<Matrix4> mtrLt;
     public List<Matrix4> mtrModel;
     public List<Short> namedObjectsId;
@@ -65,8 +65,8 @@ public final class GeometryManager {
         this.objectProps = objectProps;
     }
 
-    public void setObjSpitInfo(List<ObjSplitRange> objSpitInfo) {
-        this.objSpitInfo = objSpitInfo;
+    public void setObjSplitInfo(List<ObjSplitRange> objSplitInfo) {
+        this.objSplitInfo = objSplitInfo;
     }
 
     public void setMtrLt(List<Matrix4> mtrLt) {
@@ -91,8 +91,8 @@ public final class GeometryManager {
 
     public void onReadFinishCallback(DataSource source, FioStructSerializer<GeometryManager> serializer) throws IOException {
 
-        if (objSpitInfo != null) {
-            Check.argument(objects.size() == objSpitInfo.size());
+        if (objSplitInfo != null) {
+            Check.argument(objects.size() == objSplitInfo.size());
         }
         if (mtrLt != null) {
             Check.argument(objects.size() == mtrLt.size());
@@ -337,10 +337,10 @@ public final class GeometryManager {
                 case 5 -> {
                     for (ObjSplit split : splits) {
                         if (split.geom.fvf.contains(FVF.VERT_COMPR)) {
-                            split.vertCompParams.offset = source.readShorts(3);
-                            split.vertCompParams.scale[0] = source.readShort();
-                            split.vertCompParams.scale[1] = source.readShort();
-                            split.vertCompParams.scale[2] = source.readShort();
+                            split.vertCompParams = new VertCompressParams(
+                                new Vector3(source.readShort(), source.readShort(), source.readShort()),
+                                new Vector3(Short.toUnsignedInt(source.readShort()), Short.toUnsignedInt(source.readShort()), Short.toUnsignedInt(source.readShort()))
+                            );
                         }
                     }
                 }
@@ -384,10 +384,10 @@ public final class GeometryManager {
                     var objectsSetIds = new FioArraySerializer<>(() -> (byte) 0, 9, new FioInt8Serializer(16)).load(source);
                     if (objectsSetIds.size() > 1) {
                         for (int i = 0; i < objectsSetIds.size(); i++) {
-                            objects.get(i).setId = objectsSetIds.get(i).intValue();
+                            objects.get(i).setSetId(objectsSetIds.get(i).intValue());
                         }
                     } else if (objectsSetIds.size() == 1) {
-                        objects.getFirst().setId = objectsSetIds.getFirst().intValue();
+                        objects.getFirst().setSetId(objectsSetIds.getFirst().intValue());
                     }
                     geomSetsInfo.setStreamingAvailable(true);
                 }

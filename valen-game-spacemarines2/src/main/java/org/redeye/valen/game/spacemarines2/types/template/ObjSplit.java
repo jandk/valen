@@ -1,6 +1,6 @@
 package org.redeye.valen.game.spacemarines2.types.template;
 
-import org.redeye.valen.game.spacemarines2.psSection.*;
+import com.google.gson.*;
 
 import java.util.*;
 
@@ -14,7 +14,7 @@ public class ObjSplit {
     public VertCompressParams vertCompParams = new VertCompressParams();
     public short skinCompoundId;
     public MtlDesc mtlDesc = new MtlDesc();
-    public PsSectionValue.PsSectionObject materialInfo;
+    public JsonObject materialInfo;
     //    public dsSERDE_UNIQUE_PTR<vidPASS_OBJ> passDesc;
     public MtlTexDensity texDensity = new MtlTexDensity();
     public ObjGeom geom;

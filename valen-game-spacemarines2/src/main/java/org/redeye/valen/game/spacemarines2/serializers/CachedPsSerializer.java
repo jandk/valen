@@ -2,16 +2,17 @@ package org.redeye.valen.game.spacemarines2.serializers;
 
 import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.util.*;
+import com.google.gson.*;
 import org.redeye.valen.game.spacemarines2.fio.*;
 import org.redeye.valen.game.spacemarines2.psSection.*;
 
 import java.io.*;
 
-public class CachedPsSerializer implements FioSerializer<PsSectionValue.PsSectionObject> {
+public class CachedPsSerializer implements FioSerializer<JsonObject> {
     @Override
-    public PsSectionValue.PsSectionObject load(DataSource source) throws IOException {
+    public JsonObject load(DataSource source) throws IOException {
         Chunk chunk = Chunk.read(source);
-        PsSectionValue.PsSectionObject parsed = null;
+        JsonObject parsed = null;
         while (!chunk.isTerminator()) {
             if (chunk.id() == 0) {
                 parsed = PsSectionAscii.parseFromString(source.readPString());

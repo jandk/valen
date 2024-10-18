@@ -20,11 +20,11 @@ public class MeshConverter {
 
     private static String extractMaterialName(ObjSplit split) {
         String materialName;
-        String shadingMtlTex = split.materialInfo.asObject().get("shadingMtl_Tex").asString();
+        String shadingMtlTex = split.materialInfo.get("shadingMtl_Tex").getAsString();
         if (!shadingMtlTex.isBlank() && !shadingMtlTex.isEmpty()) {
             materialName = shadingMtlTex;
         } else {
-            materialName = split.materialInfo.asObject().get("layer0").asObject().get("texName").asString();
+            materialName = split.materialInfo.getAsJsonObject("layer0").get("texName").getAsString();
         }
         return materialName;
     }

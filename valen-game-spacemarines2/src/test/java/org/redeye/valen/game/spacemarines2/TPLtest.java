@@ -6,13 +6,13 @@ import be.twofold.valen.core.texture.*;
 import be.twofold.valen.export.*;
 import be.twofold.valen.export.gltf.*;
 import be.twofold.valen.export.png.*;
+import com.google.gson.*;
 import org.junit.jupiter.api.*;
 import org.redeye.valen.game.spacemarines2.psSection.*;
 
 import java.io.*;
 import java.nio.charset.*;
 import java.nio.file.*;
-import java.util.*;
 
 public class TPLtest {
 
@@ -253,13 +253,13 @@ public class TPLtest {
 
         var rawData = archive.loadRawAsset(tplId);
         Files.write(outputPath.resolve(tplId.fileName()), rawData.array());
-
-        Map<String, Map> resInfo = (Map<String, Map>) archive.loadAsset(tplPath);
-        for (String materialLink : ((List<String>) resInfo.get("linksTd"))) {
-            Map<String, Map> matInfo = (Map<String, Map>) archive.loadAsset(new EmperorAssetId(materialLink.substring(6)));
-            for (String textureLink : ((List<String>) matInfo.get("linksPct"))) {
-                Texture texture = (Texture) archive.loadAsset(new EmperorAssetId(textureLink.substring(6)));
-                var outName = textureLink.substring(10, textureLink.length() - 13);
+        JsonObject resInfo = (JsonObject) archive.loadAsset(tplPath);
+        for (JsonElement materialLink : resInfo.getAsJsonArray("linksTd")) {
+            JsonObject matInfo = (JsonObject) archive.loadAsset(new EmperorAssetId(materialLink.getAsString().substring(6)));
+            for (JsonElement textureLink : (matInfo.getAsJsonArray("linksPct"))) {
+                String textureLinkString = textureLink.getAsString();
+                Texture texture = (Texture) archive.loadAsset(new EmperorAssetId(textureLinkString.substring(6)));
+                var outName = textureLinkString.substring(10, textureLinkString.length() - 13);
                 Path pngPath = outputPath.resolve(outName + ".png");
                 if (!Files.exists(pngPath)) {
                     try (OutputStream outputStream = Files.newOutputStream(pngPath)) {

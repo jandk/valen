@@ -1,16 +1,16 @@
 package org.redeye.valen.game.spacemarines2.types;
 
-import org.redeye.valen.game.spacemarines2.psSection.*;
+import com.google.gson.*;
 
 public class ScnInstanceClassData {
-    private PsSectionValue.PsSectionObject ps;
+    private JsonObject ps;
     private String name;
 
-    public PsSectionValue.PsSectionObject getPs() {
+    public JsonObject getPs() {
         return ps;
     }
 
-    public void setPs(PsSectionValue.PsSectionObject ps) {
+    public void setPs(JsonObject ps) {
         this.ps = ps;
     }
 

@@ -1,7 +1,7 @@
 package org.redeye.valen.game.spacemarines2.types;
 
 import be.twofold.valen.core.math.*;
-import org.redeye.valen.game.spacemarines2.psSection.*;
+import com.google.gson.*;
 
 import java.util.*;
 
@@ -12,7 +12,7 @@ public class SceneInstanceCreateData {
     private Matrix4 mat;
     private Vector3 scale;
     private String affixes;
-    private PsSectionValue.PsSectionObject ps;
+    private JsonObject ps;
     private List<ScnInstanceOverrideData> overrides;
     private BitSet gameObjectFlags;
     private Integer parentInstIdx;
@@ -66,11 +66,11 @@ public class SceneInstanceCreateData {
         this.affixes = affixes;
     }
 
-    public PsSectionValue.PsSectionObject getPs() {
+    public JsonObject getPs() {
         return ps;
     }
 
-    public void setPs(PsSectionValue.PsSectionObject ps) {
+    public void setPs(JsonObject ps) {
         this.ps = ps;
     }
 
