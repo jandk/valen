@@ -1,7 +1,6 @@
 package org.redeye.valen.export.dmf;
 
 import be.twofold.valen.core.geometry.*;
-import be.twofold.valen.core.material.*;
 import be.twofold.valen.core.util.*;
 import be.twofold.valen.export.*;
 import be.twofold.valen.export.png.*;
@@ -11,7 +10,6 @@ import org.redeye.dmf.*;
 import java.io.*;
 import java.lang.reflect.*;
 import java.nio.*;
-import java.util.*;
 
 public class DmfModelExporter implements Exporter<Model> {
     private static final Gson GSON = new GsonBuilder()
@@ -31,7 +29,7 @@ public class DmfModelExporter implements Exporter<Model> {
 
     @Override
     public void export(Model model, OutputStream out) throws IOException {
-        List<Material> materials = model.materials();
+        // List<Material> materials = model.materials();
         var pngExporter = new PngExporter();
 
         var scene = new DMFSceneFile(4);
@@ -76,54 +74,54 @@ public class DmfModelExporter implements Exporter<Model> {
         //     modelGroup.children.add(dmfModel);
         // }
 
-        for (Material material : materials) {
-            var dmfMaterial = scene.createMaterial(material.name());
-            for (TextureReference textureRef : material.textures()) {
-                var texture = textureRef.supplier().get();
-                var outStream = new ByteArrayOutputStream();
-                pngExporter.export(texture, outStream);
-                var buffer = scene.createBuffer(textureRef.filename(), new ByteArrayDataProvider(outStream.toByteArray()));
-                var dmfTexture = new DMFTexture(textureRef.filename(), scene.getBufferId(buffer));
-                int textureId = scene.getTextureId(dmfTexture);
-                dmfMaterial.textureIds.put(textureRef.type().name(), textureId);
-                switch (textureRef.type()) {
-                    case Unknown -> {
-                    }
-                    case Albedo -> {
-                        dmfMaterial.textureDescriptors.add(new DMFTextureDescriptor(textureId, "RGB", "Color"));
-                    }
-                    case Emissive -> {
-                        dmfMaterial.textureDescriptors.add(new DMFTextureDescriptor(textureId, "RGB", "Emissive"));
-                    }
-                    case Height -> {
-                        dmfMaterial.textureDescriptors.add(new DMFTextureDescriptor(textureId, "RGB", "Height"));
-                    }
-                    case Normal -> {
-                        dmfMaterial.textureDescriptors.add(new DMFTextureDescriptor(textureId, "RGB", "Normal"));
-                    }
-                    case Smoothness -> {
-                        dmfMaterial.textureDescriptors.add(new DMFTextureDescriptor(textureId, "RGB", "Smoothness"));
-                    }
-                    case Specular -> {
-                        dmfMaterial.textureDescriptors.add(new DMFTextureDescriptor(textureId, "RGB", "Specular"));
-                    }
-                    case ORM -> {
-                        dmfMaterial.textureDescriptors.add(new DMFTextureDescriptor(textureId, "B", "AmbientOcclusion"));
-                        dmfMaterial.textureDescriptors.add(new DMFTextureDescriptor(textureId, "G", "Roughness"));
-                        dmfMaterial.textureDescriptors.add(new DMFTextureDescriptor(textureId, "R", "Mask"));
-                    }
-                    case AmbientOcclusion -> {
-                        dmfMaterial.textureDescriptors.add(new DMFTextureDescriptor(textureId, "RGB", "AmbientOcclusion"));
-                    }
-                    case DetailMask -> {
-                        dmfMaterial.textureDescriptors.add(new DMFTextureDescriptor(textureId, "RGB", "DetailMask"));
-                    }
-                    case DetailNormal -> {
-                        dmfMaterial.textureDescriptors.add(new DMFTextureDescriptor(textureId, "RGB", "DetailNormal"));
-                    }
-                }
-            }
-        }
+        // for (Material material : materials) {
+        //     var dmfMaterial = scene.createMaterial(material.name());
+        //     for (TextureReference textureRef : material.textures()) {
+        //         var texture = textureRef.supplier().get();
+        //         var outStream = new ByteArrayOutputStream();
+        //         pngExporter.export(texture, outStream);
+        //         var buffer = scene.createBuffer(textureRef.filename(), new ByteArrayDataProvider(outStream.toByteArray()));
+        //         var dmfTexture = new DMFTexture(textureRef.filename(), scene.getBufferId(buffer));
+        //         int textureId = scene.getTextureId(dmfTexture);
+        //         dmfMaterial.textureIds.put(textureRef.type().name(), textureId);
+        //         switch (textureRef.type()) {
+        //             case Unknown -> {
+        //             }
+        //             case Albedo -> {
+        //                 dmfMaterial.textureDescriptors.add(new DMFTextureDescriptor(textureId, "RGB", "Color"));
+        //             }
+        //             case Emissive -> {
+        //                 dmfMaterial.textureDescriptors.add(new DMFTextureDescriptor(textureId, "RGB", "Emissive"));
+        //             }
+        //             case Height -> {
+        //                 dmfMaterial.textureDescriptors.add(new DMFTextureDescriptor(textureId, "RGB", "Height"));
+        //             }
+        //             case Normal -> {
+        //                 dmfMaterial.textureDescriptors.add(new DMFTextureDescriptor(textureId, "RGB", "Normal"));
+        //             }
+        //             case Smoothness -> {
+        //                 dmfMaterial.textureDescriptors.add(new DMFTextureDescriptor(textureId, "RGB", "Smoothness"));
+        //             }
+        //             case Specular -> {
+        //                 dmfMaterial.textureDescriptors.add(new DMFTextureDescriptor(textureId, "RGB", "Specular"));
+        //             }
+        //             case ORM -> {
+        //                 dmfMaterial.textureDescriptors.add(new DMFTextureDescriptor(textureId, "B", "AmbientOcclusion"));
+        //                 dmfMaterial.textureDescriptors.add(new DMFTextureDescriptor(textureId, "G", "Roughness"));
+        //                 dmfMaterial.textureDescriptors.add(new DMFTextureDescriptor(textureId, "R", "Mask"));
+        //             }
+        //             case AmbientOcclusion -> {
+        //                 dmfMaterial.textureDescriptors.add(new DMFTextureDescriptor(textureId, "RGB", "AmbientOcclusion"));
+        //             }
+        //             case DetailMask -> {
+        //                 dmfMaterial.textureDescriptors.add(new DMFTextureDescriptor(textureId, "RGB", "DetailMask"));
+        //             }
+        //             case DetailNormal -> {
+        //                 dmfMaterial.textureDescriptors.add(new DMFTextureDescriptor(textureId, "RGB", "DetailNormal"));
+        //             }
+        //         }
+        //     }
+        // }
 
         // scene.models.add(modelGroup);
         GSON.toJson(scene, new OutputStreamWriter(out));
