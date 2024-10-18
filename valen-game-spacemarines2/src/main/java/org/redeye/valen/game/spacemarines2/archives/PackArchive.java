@@ -22,41 +22,40 @@ public class PackArchive implements Archive {
         new PCTReader()
     );
 
-    private final Path root;
-    private final String name;
-
     private final List<ZipArchive> mounted = new ArrayList<>();
 
     public PackArchive(Path root, String name) throws IOException {
-        this.root = root;
-        this.name = switch (name) {
+        String packName = switch (name) {
             case "client_pc" -> "client";
             case "server_pc" -> "server";
             default -> throw new IllegalStateException("Unexpected Pack name: " + name);
         };
-        var paksFolder = this.root.resolve("%s\\root\\paks\\%s".formatted(name, this.name));
+        var paksFolder = root.resolve("%s\\root\\paks\\%s".formatted(name, packName));
         mounted.add(new ZipArchive(paksFolder.resolve("resources.pak")));
-        Files.walk(paksFolder.resolve("default")).forEach(file -> {
-            if (!file.toString().endsWith(".pak")) {
-                return;
-            }
-            try {
-                mounted.add(new ZipArchive(file));
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        });
-        Files.walk(paksFolder.resolve("default/scenes")).forEach(file -> {
-            if (!file.toString().endsWith(".pak")) {
-                return;
-            }
-            try {
-                mounted.add(new ZipArchive(file));
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        });
-
+        try (var files = Files.walk(paksFolder.resolve("default"))) {
+            files.forEach(file -> {
+                if (!file.toString().endsWith(".pak")) {
+                    return;
+                }
+                try {
+                    mounted.add(new ZipArchive(file));
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            });
+        }
+        try (var files = Files.walk(paksFolder.resolve("default/scenes"))) {
+            files.forEach(file -> {
+                if (!file.toString().endsWith(".pak")) {
+                    return;
+                }
+                try {
+                    mounted.add(new ZipArchive(file));
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            });
+        }
     }
 
     @Override
