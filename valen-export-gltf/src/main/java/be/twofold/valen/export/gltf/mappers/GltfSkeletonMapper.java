@@ -12,14 +12,12 @@ import java.util.*;
 
 public final class GltfSkeletonMapper {
     private final GltfContext context;
-    private final Quaternion rotation;
 
-    public GltfSkeletonMapper(GltfContext context, Quaternion rotation) {
+    public GltfSkeletonMapper(GltfContext context) {
         this.context = context;
-        this.rotation = rotation;
     }
 
-    public SkinSchema map(Skeleton skeleton) {
+    public SkinID map(Skeleton skeleton) {
         var bones = skeleton.bones();
 
         // Calculate the parent-child relationships
@@ -64,12 +62,12 @@ public final class GltfSkeletonMapper {
             .build();
         var inverseBindMatrices = context.addAccessor(accessor);
 
-        return SkinSchema.builder()
-            // .name(name)
+        var skinSchema = SkinSchema.builder()
             .skeleton(skeletonNodeId)
             .joints(jointIndices)
             .inverseBindMatrices(inverseBindMatrices)
             .build();
+        return context.addSkin(skinSchema);
     }
 
     @SuppressWarnings("OptionalUsedAsFieldOrParameterType")

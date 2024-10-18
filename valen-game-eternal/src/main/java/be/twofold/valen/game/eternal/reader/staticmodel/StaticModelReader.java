@@ -15,20 +15,14 @@ import java.util.*;
 
 public final class StaticModelReader implements ResourceReader<Model> {
     private final EternalArchive archive;
-    private final boolean readStreams;
     private final boolean readMaterials;
 
     public StaticModelReader(EternalArchive archive) {
-        this(archive, true, true);
+        this(archive, true);
     }
 
-    StaticModelReader(
-        EternalArchive archive,
-        boolean readStreams,
-        boolean readMaterials
-    ) {
+    StaticModelReader(EternalArchive archive, boolean readMaterials) {
         this.archive = archive;
-        this.readStreams = readStreams;
         this.readMaterials = readMaterials;
     }
 
@@ -39,47 +33,33 @@ public final class StaticModelReader implements ResourceReader<Model> {
 
     @Override
     public Model read(DataSource source, Asset asset) throws IOException {
-        var model = read(source, (Long) asset.properties().get("hash"));
-        return new Model(model.meshes(), model.materials(), null);
-    }
-
-    public StaticModel read(DataSource source, long hash) throws IOException {
+        long hash = (Long) asset.properties().get("hash");
         var model = StaticModel.read(source);
-
-        model = model.withMeshes(readMeshes(model, source, hash));
+        var meshes = new ArrayList<>(readMeshes(model, source, hash));
 
         if (readMaterials) {
-            var materials = new LinkedHashMap<String, Material>();
-            var materialIndices = new HashMap<String, Integer>();
-
-            var meshes = new ArrayList<Mesh>();
-            for (int i = 0; i < model.meshes().size(); i++) {
+            var materials = new HashMap<String, Material>();
+            for (int i = 0; i < meshes.size(); i++) {
                 var meshInfo = model.meshInfos().get(i);
                 var materialName = meshInfo.mtlDecl();
                 var materialFile = "generated/decls/material2/" + materialName + ".decl";
-                var materialIndex = materialIndices.computeIfAbsent(materialName, k -> materials.size());
                 if (!materials.containsKey(materialName)) {
                     var assetId = ResourceKey.from(materialFile, ResourceType.RsStreamFile);
                     var material = (Material) archive.loadAsset(assetId);
                     materials.put(materialName, material);
                 }
-                meshes.add(model.meshes().get(i).withMaterialIndex(materialIndex));
+                meshes.set(i, meshes.get(i)
+                    .withMaterial(materials.get(materialName)));
             }
-            model = model
-                .withMeshes(meshes)
-                .withMaterials(List.copyOf(materials.values()));
         }
-        return model;
+        return new Model(asset.id().fullName(), meshes, null);
     }
 
     private List<Mesh> readMeshes(StaticModel model, DataSource source, long hash) throws IOException {
         if (!model.header().streamable()) {
             return readEmbeddedGeometry(model, source);
         }
-        if (readStreams) {
-            return readStreamedGeometry(model, 0, hash);
-        }
-        return List.of();
+        return readStreamedGeometry(model, 0, hash);
     }
 
     private List<Mesh> readEmbeddedGeometry(StaticModel model, DataSource source) throws IOException {

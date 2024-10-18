@@ -33,51 +33,39 @@ public final class Md6ModelReader implements ResourceReader<Model> {
 
     @Override
     public Model read(DataSource source, Asset asset) throws IOException {
-        var model = read(source, true, (Long) asset.properties().get("hash"));
+        var model = Md6Model.read(source);
+        var meshes = new ArrayList<>(readMeshes(model, (Long) asset.properties().get("hash")));
         var skeletonKey = ResourceKey.from(model.header().md6SkelName(), ResourceType.Skeleton);
         var skeleton = (Skeleton) archive.loadAsset(skeletonKey);
 
         if (readMaterials) {
-            var materials = new LinkedHashMap<String, Material>();
-            var materialIndices = new HashMap<String, Integer>();
-
-            var meshes = new ArrayList<Mesh>();
-            for (int i = 0; i < model.meshes().size(); i++) {
+            var materials = new HashMap<String, Material>();
+            for (int i = 0; i < meshes.size(); i++) {
                 var meshInfo = model.meshInfos().get(i);
                 var materialName = meshInfo.materialName();
                 var materialFile = "generated/decls/material2/" + materialName + ".decl";
-                var materialIndex = materialIndices.computeIfAbsent(materialName, k -> materials.size());
                 if (!materials.containsKey(materialName)) {
                     var assetId = ResourceKey.from(materialFile, ResourceType.RsStreamFile);
                     var material = (Material) archive.loadAsset(assetId);
                     materials.put(materialName, material);
                 }
-                meshes.add(model.meshes().get(i).withMaterialIndex(materialIndex));
+                meshes.set(i, meshes.get(i)
+                    .withName(meshInfo.meshName())
+                    .withMaterial(materials.get(materialName)));
             }
-            model = model
-                .withMeshes(meshes)
-                .withMaterials(List.copyOf(materials.values()));
         }
-        return new Model(model.meshes(), model.materials(), skeleton);
+        return new Model(asset.id().fullName(), meshes, skeleton);
     }
 
-    public Md6Model read(DataSource source, boolean readStreams, long hash) throws IOException {
-        var md6 = Md6Model.read(source);
-
-        List<Mesh> meshes;
-        if (readStreams) {
-            meshes = readStreamedGeometry(md6, 0, hash);
-            fixJointIndices(md6, meshes);
-        } else {
-            meshes = List.of();
-        }
+    private List<Mesh> readMeshes(Md6Model md6, long hash) throws IOException {
+        var meshes = readStreamedGeometry(md6, 0, hash);
+        fixJointIndices(md6, meshes);
 
         // Add names to all meshes
         for (int i = 0; i < meshes.size(); i++) {
             meshes.set(i, meshes.get(i).withName(md6.meshInfos().get(i).meshName()));
         }
-
-        return md6.withMeshes(meshes);
+        return meshes;
     }
 
     private List<Mesh> readStreamedGeometry(Md6Model md6, int lod, long hash) throws IOException {

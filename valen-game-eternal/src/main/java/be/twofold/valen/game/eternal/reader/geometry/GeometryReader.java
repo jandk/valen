@@ -5,6 +5,7 @@ import be.twofold.valen.core.io.*;
 
 import java.io.*;
 import java.util.*;
+import java.util.stream.*;
 
 public final class GeometryReader {
     public static Mesh readEmbeddedMesh(DataSource source, LodInfo lodInfo) throws IOException {
@@ -18,7 +19,6 @@ public final class GeometryReader {
 
         var offset = 0;
         var vertexAccessors = new ArrayList<Geo.Accessor<?>>();
-
         for (var mask : masks) {
             var accessors = buildAccessors(offset, lodInfo.numVertices(), stride, mask, lodInfo, false);
             vertexAccessors.addAll(accessors);
@@ -38,26 +38,31 @@ public final class GeometryReader {
         List<GeometryMemoryLayout> layouts,
         boolean animated
     ) throws IOException {
-        var meshes = new ArrayList<Mesh>();
-        for (var layout : layouts) {
-            var vertexOffsets = Arrays.copyOf(layout.vertexOffsets(), layout.numVertexStreams());
-            var indexOffset = layout.indexOffset();
+        var offsetsByLayout = layouts.stream().collect(Collectors.toUnmodifiableMap(
+            GeometryMemoryLayout::combinedVertexMask,
+            layout -> new Offsets(
+                layout.indexOffset(),
+                Arrays.copyOf(layout.vertexOffsets(), layout.numVertexStreams())
+            )));
 
-            for (var lodInfo : lods) {
+        var meshes = new ArrayList<Mesh>();
+        for (var lodInfo : lods) {
+            for (var layout : layouts) {
                 if (lodInfo.vertexMask() != layout.combinedVertexMask()) {
                     continue;
                 }
 
+                var offsets = offsetsByLayout.get(layout.combinedVertexMask());
                 var vertexAccessors = new ArrayList<Geo.Accessor<?>>();
                 for (var v = 0; v < layout.numVertexStreams(); v++) {
                     var mask = GeometryVertexMask.from(layout.vertexMasks()[v]);
-                    vertexAccessors.addAll(buildAccessors(vertexOffsets[v], lodInfo.numVertices(), mask.size(), mask, lodInfo, animated));
-                    vertexOffsets[v] += mask.size() * lodInfo.numVertices();
+                    vertexAccessors.addAll(buildAccessors(offsets.vertexOffsets[v], lodInfo.numVertices(), mask.size(), mask, lodInfo, animated));
+                    offsets.vertexOffsets[v] += lodInfo.numVertices() * mask.size();
                 }
 
                 var faceInfo = VertexBuffer.Info.faces(ComponentType.UnsignedShort);
-                var faceAccessor = new Geo.Accessor<>(indexOffset, lodInfo.numFaces() * 3, 2, faceInfo, Geometry.readFace());
-                indexOffset += lodInfo.numFaces() * 3 * Short.BYTES;
+                var faceAccessor = new Geo.Accessor<>(offsets.indexOffset, lodInfo.numFaces() * 3, 2, faceInfo, Geometry.readFace());
+                offsets.indexOffset += lodInfo.numFaces() * 3 * Short.BYTES;
 
                 meshes.add(new Geo(true).readMesh(source, vertexAccessors, faceAccessor));
             }
@@ -102,5 +107,15 @@ public final class GeometryReader {
             }
             case WGVS_MATERIALS -> List.of();
         };
+    }
+
+    private static final class Offsets {
+        private int indexOffset;
+        private final int[] vertexOffsets;
+
+        private Offsets(int indexOffset, int[] vertexOffsets) {
+            this.indexOffset = indexOffset;
+            this.vertexOffsets = vertexOffsets;
+        }
     }
 }
