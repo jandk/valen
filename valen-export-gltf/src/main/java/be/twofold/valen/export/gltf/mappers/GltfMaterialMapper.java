@@ -37,8 +37,8 @@ public final class GltfMaterialMapper {
                 case Albedo -> pbrBuilder.baseColorTexture(textureSchema(textureMapper.map(reference)));
                 case Normal -> builder.normalTexture(normalTextureInfoSchema(textureMapper.map(reference)));
 
-                case ORM -> pbrBuilder.metallicRoughnessTexture(textureMapper.map(reference));
-                case Emissive -> builder.emissiveTexture(textureMapper.map(reference));
+                case ORM -> pbrBuilder.metallicRoughnessTexture(textureSchema(textureMapper.map(reference)));
+                case Emissive -> builder.emissiveTexture(textureSchema(textureMapper.map(reference)));
 
                 // case Smoothness -> pbrBuilder.metallicRoughnessTexture(textureSchema(textureID));
             }
