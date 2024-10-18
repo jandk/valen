@@ -9,8 +9,7 @@ public class FioPsSectionSerializer implements FioSerializer<PsSectionValue.PsSe
     @Override
     public PsSectionValue.PsSectionObject load(DataSource source) throws IOException {
         String val = source.readPString();
-        var parser = new PsSectionParser(new StringReader(val));
-        return parser.parse();
+        return PsSectionAscii.parseFromString(val);
     }
 
     @Override

@@ -10,7 +10,7 @@ import java.util.*;
 public class Vec3Serializer extends FioPrimitiveSerializerImpl<Vector3> {
     @Override
     public Vector3 load(DataSource source) throws IOException {
-        return source.readVector3();
+        return Vector3.read(source);
     }
 
     @Override
@@ -22,7 +22,7 @@ public class Vec3Serializer extends FioPrimitiveSerializerImpl<Vector3> {
     public List<Vector3> loadArray(DataSource source, int size) throws IOException {
         List<Vector3> data = new ArrayList<>(size);
         for (int i = 0; i < size; i++) {
-            data.add(source.readVector3());
+            data.add(Vector3.read(source));
         }
         return data;
     }

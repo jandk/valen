@@ -10,6 +10,7 @@ import org.junit.jupiter.api.*;
 import org.redeye.valen.game.spacemarines2.psSection.*;
 
 import java.io.*;
+import java.nio.charset.*;
 import java.nio.file.*;
 import java.util.*;
 
@@ -30,8 +31,7 @@ public class TPLtest {
             if (asset.id().fileName().endsWith(".td")) {
                 System.out.println(asset.id());
                 var rawData = archive.loadRawAsset(asset.id());
-                PsSectionParser parser = new PsSectionParser(new InputStreamReader(new ByteArrayInputStream(rawData.array())));
-                var res = parser.parse();
+                var res = PsSectionAscii.parseFromString(new String(rawData.array(), StandardCharsets.UTF_8));
                 System.out.println(res);
             }
         }
@@ -56,7 +56,7 @@ public class TPLtest {
     }
 
     @Test
-    void testReadAm_chimera_rig() throws IOException {
+    void testRead_am_chimera_rig() throws IOException {
         SpaceMarines2Game game = new SpaceMarines2GameFactory().load(Path.of("D:\\SteamLibrary\\steamapps\\common\\Space Marine 2\\Warhammer 40000 Space Marine 2.exe"));
 
         var archive = game.loadArchive("client_pc");
@@ -222,7 +222,7 @@ public class TPLtest {
 
         EmperorAssetId resourceId = new EmperorAssetId("scenes/story_tower.scn/story_tower.lwi_container");
         var data = archive.loadAsset(resourceId);
-        System.out.println(data);
+        // System.out.println(data);
     }
 
     @Test
@@ -274,7 +274,7 @@ public class TPLtest {
 
     private static void saveModel(String name, Model model, Path outputPath) throws IOException {
         // Exporter<Model> exporter = new DmfModelExporter();
-        Exporter<Model> exporter = new GltfModelExporter();
+        Exporter<Model> exporter = new GlbModelExporter();
         try (OutputStream outputStream = Files.newOutputStream(outputPath.resolve(name + "." + exporter.getExtension()))) {
             exporter.export(model, outputStream);
         }

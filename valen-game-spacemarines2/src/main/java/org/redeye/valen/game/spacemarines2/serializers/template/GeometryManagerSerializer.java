@@ -22,7 +22,7 @@ public class GeometryManagerSerializer extends FioStructSerializer<GeometryManag
             new FioStructMember<>("NamedObjectsId", GeometryManager::setNamedObjectsId, new FioArraySerializer<>(() -> (short) 0, 9, new FioInt16Serializer(16))),
             new FioStructMember<>("MtrLt", GeometryManager::setMtrLt, new FioArraySerializer<>(() -> Matrix4.Identity, 9, new MatrixSerializer(16))),
             new FioStructMember<>("MtrModel", GeometryManager::setMtrModel, new FioArraySerializer<>(() -> Matrix4.Identity, 9, new MatrixSerializer(16))),
-            new FioStructMember<>("ObjSpitInfo", GeometryManager::setObjSpitInfo, new FioArraySerializer<>(ObjSplitRange::new, 9, new ObjSplitRangeSerializer()))
+            new FioStructMember<>("ObjSpitInfo", GeometryManager::setObjSplitInfo, new FioArraySerializer<>(ObjSplitRange::new, 9, new ObjSplitRangeSerializer()))
         ), GeometryManager::onReadFinishCallback);
     }
 }

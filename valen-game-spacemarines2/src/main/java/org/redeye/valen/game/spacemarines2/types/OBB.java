@@ -14,6 +14,6 @@ public record OBB(
 ) {
 
     public static OBB read(DataSource source) throws IOException {
-        return new OBB(source.readVector3(), source.readVector3(), source.readVector3(), source.readVector3(), source.readVector3());
+        return new OBB(Vector3.read(source), Vector3.read(source), Vector3.read(source), Vector3.read(source), Vector3.read(source));
     }
 }

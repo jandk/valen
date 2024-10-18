@@ -10,8 +10,7 @@ import java.io.*;
 public class TDReader implements Reader<PsSectionValue.PsSectionObject> {
     @Override
     public PsSectionValue.PsSectionObject read(Archive archive, Asset asset, DataSource source) throws IOException {
-        PsSectionParser parser = new PsSectionParser(new InputStreamReader(new ByteArrayInputStream(source.readBytes((int) source.size()))));
-        return parser.parse();
+        return PsSectionAscii.parseFromDataSource(source);
     }
 
     @Override

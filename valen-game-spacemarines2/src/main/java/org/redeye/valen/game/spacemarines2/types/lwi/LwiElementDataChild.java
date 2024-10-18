@@ -17,10 +17,10 @@ public record LwiElementDataChild(
     private static Matrix4 readMat4x3(DataSource source) throws IOException {
         Vector3[] rows = new Vector3[4];
 
-        rows[3] = source.readVector3();
-        rows[0] = source.readVector3();
-        rows[1] = source.readVector3();
-        rows[2] = source.readVector3();
+        rows[3] = Vector3.read(source);
+        rows[0] = Vector3.read(source);
+        rows[1] = Vector3.read(source);
+        rows[2] = Vector3.read(source);
 
         return new Matrix4(
             rows[0].x(), rows[0].y(), rows[0].z(), 0,

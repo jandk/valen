@@ -8,7 +8,7 @@ import java.util.*;
 import java.util.function.*;
 
 public class FioStructSerializer<T> implements FioSerializer<T> {
-    public static boolean debugPrint = true;
+    public static boolean debugPrint = false;
 
     private final int sign;
     private final Supplier<T> factory;

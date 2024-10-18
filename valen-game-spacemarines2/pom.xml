@@ -29,12 +29,6 @@
             <version>2.3</version>
         </dependency>
         <dependency>
-            <groupId>org.checkerframework</groupId>
-            <artifactId>checker-qual</artifactId>
-            <version>3.42.0</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
             <groupId>be.twofold</groupId>
             <artifactId>valen-export-gltf</artifactId>
             <scope>test</scope>

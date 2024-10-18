@@ -1,29 +1,13 @@
 package org.redeye.valen.game.spacemarines2.types.template;
 
-import java.util.*;
+import be.twofold.valen.core.math.*;
 
-public class VertCompressParams {
-    public short[] offset = new short[3];
-    public short[] scale = new short[3]; // Unsigned
+public record VertCompressParams(
+    Vector3 offset,
+    Vector3 scale // Unsigned
+) {
 
-
-    float unpackOffset(short offset) {
-        float a = (short) (offset ^ 0x8000);
-        float b = a - 32768.0f;
-        return offset;
-    }
-
-    float[] unpack() {
-        var data = new float[6];
-
-        return data;
-    }
-
-    @Override
-    public String toString() {
-        return "VertCompressParams{" +
-            "offset=" + Arrays.toString(offset) +
-            ", scale=" + Arrays.toString(scale) +
-            '}';
+    VertCompressParams() {
+        this(Vector3.Zero, Vector3.Zero);
     }
 }

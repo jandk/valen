@@ -24,7 +24,7 @@ public class ObjObjSerializer extends FioStructSerializer<ObjObj> {
             new FioStructMember<>("GeomData", ObjObj::setGeomData, new ObjGeomDataSerializer()),
             new FioStructMember<>("SourceId", ObjObj::setSourceId, new FioStringSerializer()),
             new FioStructMember<>("OBB", (objObj, s) -> {
-                if (objObj.geomData != null) objObj.geomData.setObb(s);
+                if (objObj.getGeomData() != null) objObj.getGeomData().setObb(s);
             }, new ObbSerializer()),
             new FioStructMember<>("Name2", ObjObj::setName2, new FioOldStringSerializer()),
             new FioStructMember<>("Affixes", ObjObj::setAffixes, new FioOldStringSerializer()),

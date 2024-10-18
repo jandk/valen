@@ -2,7 +2,6 @@ package org.redeye.valen.game.spacemarines2.types.template;
 
 import be.twofold.valen.core.util.*;
 
-import java.math.*;
 import java.util.*;
 
 public enum ObjState implements ValueEnum<Integer> {
@@ -45,23 +44,54 @@ public enum ObjState implements ValueEnum<Integer> {
         return value;
     }
 
-    public static Set<ObjState> fromCode(long code) {
-        Set<ObjState> flags = EnumSet.noneOf(ObjState.class);
-        for (ObjState flag : ObjState.values()) {
-            if ((code & flag.value) != 0) {
-                flags.add(flag);
-            }
-        }
-        return flags;
+    public static Set<ObjState> fromCode(byte[] code) {
+        return fromBitSet(BitSet.valueOf(code));
     }
 
-    public static Set<ObjState> fromCode(BigInteger code) {
-        Set<ObjState> flags = EnumSet.noneOf(ObjState.class);
-        for (ObjState flag : ObjState.values()) {
-            if (code.and(BigInteger.valueOf(flag.value)).equals(BigInteger.valueOf(flag.value))) {
-                flags.add(flag);
-            }
-        }
+    private static EnumSet<ObjState> fromBitSet(BitSet bits) {
+        EnumSet<ObjState> flags = EnumSet.noneOf(ObjState.class);
+        if (bits.get(0)) flags.add(ObjState.OBJ_ST_VERT_WCS);
+        if (bits.get(1)) flags.add(ObjState.OBJ_ST_VALIDATE_GROUP);
+        if (bits.get(2)) flags.add(ObjState.OBJ_ST_SKIN_REGULAR);
+        if (bits.get(3)) flags.add(ObjState.OBJ_ST_SKIN_COMPOUND);
+        // bits.get(4)
+        // bits.get(5)
+        // bits.get(6)
+        if (bits.get(7)) flags.add(ObjState.OBJ_ST_NO_FOG);
+        // bits.get(8)
+        if (bits.get(9)) flags.add(ObjState.OBJ_ST_NO_SPOT);
+        if (bits.get(10)) flags.add(ObjState.OBJ_ST_DOUBLE_SIDED);
+        // bits.get(11)
+        // bits.get(12)
+
+        if (bits.get(13)) flags.add(ObjState.OBJ_ST_START_OFF_MATRMODEL);
+        if (bits.get(14)) flags.add(ObjState.OBJ_ST_IDENTITY_MODEL_MATR);
+        // bits.get(15)
+        // bits.get(16)
+        // bits.get(17)
+        // bits.get(18)
+        if (bits.get(19)) flags.add(ObjState.OBJ_ST_IS_BONE);
+        // bits.get(20)
+        // bits.get(21)
+        // bits.get(22)
+        // bits.get(23)
+        // bits.get(24)
+        if (bits.get(25)) flags.add(ObjState.OBJ_ST_UNUSED);
+        if (bits.get(25)) flags.add(ObjState.OBJ_ST_OFF_SCORCH);
+        // bits.get(26)
+        // bits.get(27)
+        // bits.get(28)
+        // bits.get(29)
+        // bits.get(30)
+        if (bits.get(31)) flags.add(ObjState.OBJ_ST_IS_SKIN_COMPOUND_BONE);
+        // bits.get(32)
+        if (bits.get(33)) flags.add(ObjState.OBJ_ST_DECAL);
+        if (bits.get(34)) flags.add(ObjState.OBJ_ST_COLOR_HAS_FRAME_BLEND);
+        if (bits.get(35)) flags.add(ObjState.OBJ_ST_SKIN_WEIGHT_BLENDED);
+        if (bits.get(36)) flags.add(ObjState.OBJ_ST_MORPHED_SHAPE);
+        if (bits.get(37)) flags.add(ObjState.OBJ_ST_VISIBILITY_OCCLUDER);
+        if (bits.get(38)) flags.add(ObjState.OBJ_ST_FOG2_PORTAL);
+        if (bits.get(39)) flags.add(ObjState.OBJ_ST_SKIN_DUAL_QUATERNION);
         return flags;
     }
 }

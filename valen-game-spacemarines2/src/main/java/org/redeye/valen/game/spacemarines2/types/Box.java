@@ -11,6 +11,6 @@ public record Box(
 ) {
 
     public static Box read(DataSource source) throws IOException {
-        return new Box(source.readVector3(), source.readVector3());
+        return new Box(Vector3.read(source), Vector3.read(source));
     }
 }

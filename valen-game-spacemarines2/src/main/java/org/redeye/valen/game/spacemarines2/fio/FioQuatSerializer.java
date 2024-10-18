@@ -8,7 +8,7 @@ import java.io.*;
 public class FioQuatSerializer implements FioSerializer<Quaternion> {
     @Override
     public Quaternion load(DataSource source) throws IOException {
-        return source.readQuaternion();
+        return Quaternion.read(source);
     }
 
     @Override

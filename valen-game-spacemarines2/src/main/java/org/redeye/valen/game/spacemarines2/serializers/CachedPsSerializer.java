@@ -14,8 +14,7 @@ public class CachedPsSerializer implements FioSerializer<PsSectionValue.PsSectio
         PsSectionValue.PsSectionObject parsed = null;
         while (!chunk.isTerminator()) {
             if (chunk.id() == 0) {
-                var parser = new PsSectionParser(new StringReader(source.readPString()));
-                parsed = parser.parse();
+                parsed = PsSectionAscii.parseFromString(source.readPString());
             } else if (chunk.id() == 1) {
                 var value = source.readInt();
                 Check.state(false, "Chunk 1 for CachedPsSerializer not implemented.");

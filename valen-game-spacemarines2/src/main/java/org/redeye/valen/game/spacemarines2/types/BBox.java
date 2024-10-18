@@ -8,7 +8,7 @@ import java.io.*;
 public record BBox(Vector3 min, Vector3 max) {
 
     public static BBox read(DataSource source) throws IOException {
-        return new BBox(source.readVector3(), source.readVector3());
+        return new BBox(Vector3.read(source), Vector3.read(source));
     }
 
 }

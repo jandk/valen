@@ -1,35 +1,32 @@
 package org.redeye.valen.game.spacemarines2.psSection;
 
+import be.twofold.valen.core.io.*;
+
 import java.io.*;
 import java.util.*;
 
 import static java.lang.Character.*;
 
-public class PsSectionParser {
-    private enum TokenType {
-        ObjectStart,
-        ObjectEnd,
-        ListStart,
-        ListEnd,
-        Identifier,
-        String,
-        Number,
-        Equals,
-        Comma,
-        Semicolon,
-        Eof,
-    }
-
+public class PsSectionAscii {
     private static final int NotPeeked = -2;
     private final Reader reader;
-    private int peeked = NotPeeked;
-
     private final StringBuilder builder = new StringBuilder();
+    private int peeked = NotPeeked;
     private TokenType token;
     private String value;
 
-    public PsSectionParser(Reader reader) {
+    private PsSectionAscii(Reader reader) {
         this.reader = new BufferedReader(Objects.requireNonNull(reader));
+    }
+
+    public static PsSectionValue.PsSectionObject parseFromString(String string) throws IOException {
+        var parser = new PsSectionAscii(new StringReader(string));
+        return parser.parse();
+    }
+
+    public static PsSectionValue.PsSectionObject parseFromDataSource(DataSource source) throws IOException {
+        var parser = new PsSectionAscii(new StringReader(source.readString((int) source.size())));
+        return parser.parse();
     }
 
     public PsSectionValue.PsSectionObject parse() throws IOException {
@@ -352,11 +349,18 @@ public class PsSectionParser {
         }
     }
 
-    public static void main(String[] args) throws IOException {
-        FileReader fileReader = new FileReader("D:\\projects\\java\\valen\\valen-game-spacemarines2\\ch_calgar_head_hair_01_dm.td");
-        PsSectionParser reader = new PsSectionParser(fileReader);
-        var value = reader.parse();
-        System.out.println(value);
+    private enum TokenType {
+        ObjectStart,
+        ObjectEnd,
+        ListStart,
+        ListEnd,
+        Identifier,
+        String,
+        Number,
+        Equals,
+        Comma,
+        Semicolon,
+        Eof,
     }
 }
 

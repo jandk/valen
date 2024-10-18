@@ -11,7 +11,8 @@ public class ObjStateSerializer implements FioSerializer<Set<ObjState>> {
 
     @Override
     public Set<ObjState> load(DataSource source) throws IOException {
-        return ObjState.fromCode(new FioVarIntFlagsSerializer().load(source));
+        var count = source.readShort();
+        return ObjState.fromCode(source.readBytes((count + 7) / 8));
     }
 
     @Override

@@ -11,7 +11,8 @@ public class FVFSerializer implements FioSerializer<Set<FVF>> {
 
     @Override
     public Set<FVF> load(DataSource source) throws IOException {
-        return FVF.fromCode(new FioVarIntFlagsSerializer().load(source));
+        var count = source.readShort();
+        return FVF.fromCode(source.readBytes((count + 7) / 8));
     }
 
     @Override

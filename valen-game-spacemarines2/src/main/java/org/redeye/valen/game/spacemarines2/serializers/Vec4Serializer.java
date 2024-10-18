@@ -10,7 +10,7 @@ import java.util.*;
 public class Vec4Serializer extends FioPrimitiveSerializerImpl<Vector4> {
     @Override
     public Vector4 load(DataSource source) throws IOException {
-        return source.readVector4();
+        return Vector4.read(source);
     }
 
     @Override
@@ -22,7 +22,7 @@ public class Vec4Serializer extends FioPrimitiveSerializerImpl<Vector4> {
     public List<Vector4> loadArray(DataSource source, int size) throws IOException {
         List<Vector4> data = new ArrayList<>(size);
         for (int i = 0; i < size; i++) {
-            data.add(source.readVector4());
+            data.add(Vector4.read(source));
         }
         return data;
     }

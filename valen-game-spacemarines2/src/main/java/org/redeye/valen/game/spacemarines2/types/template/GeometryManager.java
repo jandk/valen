@@ -4,6 +4,7 @@ import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.math.*;
 import be.twofold.valen.core.util.*;
 import org.redeye.valen.game.spacemarines2.fio.*;
+import org.redeye.valen.game.spacemarines2.psSection.*;
 import org.redeye.valen.game.spacemarines2.serializers.template.*;
 import org.redeye.valen.game.spacemarines2.types.*;
 
@@ -348,7 +349,7 @@ public final class GeometryManager {
                     int max = 0;
                     for (int i = 0; i < splits.size(); i++) {
                         var slot = source.readShort();
-                        var psBin = PsBin.read(source);
+                        var psBin = PsSectionBinary.parseFromDataSource(source);
                         if (slot > max) {
                             max = slot;
                         }
