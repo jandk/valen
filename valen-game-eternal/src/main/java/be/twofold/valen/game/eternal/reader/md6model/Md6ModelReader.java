@@ -60,11 +60,6 @@ public final class Md6ModelReader implements ResourceReader<Model> {
     private List<Mesh> readMeshes(Md6Model md6, long hash) throws IOException {
         var meshes = readStreamedGeometry(md6, 0, hash);
         fixJointIndices(md6, meshes);
-
-        // Add names to all meshes
-        for (int i = 0; i < meshes.size(); i++) {
-            meshes.set(i, meshes.get(i).withName(md6.meshInfos().get(i).meshName()));
-        }
         return meshes;
     }
 

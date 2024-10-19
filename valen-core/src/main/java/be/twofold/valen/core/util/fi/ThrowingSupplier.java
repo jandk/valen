@@ -1,5 +1,7 @@
 package be.twofold.valen.core.util.fi;
 
+import be.twofold.valen.core.util.*;
+
 @FunctionalInterface
 public interface ThrowingSupplier<T, X extends Exception> {
     T get() throws X;
@@ -7,6 +9,26 @@ public interface ThrowingSupplier<T, X extends Exception> {
     static <T, X extends Exception> ThrowingSupplier<T, X> lazy(
         ThrowingSupplier<T, X> supplier
     ) {
-        return new LazyThrowingSupplier<>(supplier);
+        Check.notNull(supplier, "supplier must not be null");
+
+        return new ThrowingSupplier<>() {
+            private volatile ThrowingSupplier<T, X> delegate = supplier;
+            private T value;
+
+            @Override
+            public T get() throws X {
+                if (delegate != null) {
+                    synchronized (this) {
+                        if (delegate != null) {
+                            T value = delegate.get();
+                            this.value = value;
+                            delegate = null;
+                            return value;
+                        }
+                    }
+                }
+                return value;
+            }
+        };
     }
 }
