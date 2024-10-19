@@ -10,7 +10,7 @@ public class AnimTplSerializer extends FioStructSerializer<AnimTemplate> {
     public static final int SIGNATURE = 'T' | 'P' << 8 | 'L' << 16 | '1' << 24; // TPL1
 
     public AnimTplSerializer() {
-        super(SIGNATURE, AnimTemplate::new, 12, List.of(
+        super(SIGNATURE, AnimTemplate::new, List.of(
             new FioStructMember<>("Name", AnimTemplate::setName, new FioStringSerializer()),
             new FioStructMember<>("NameClass", AnimTemplate::setNameClass, new FioStringSerializer()),
             new FioStructMember<>("State", AnimTemplate::setState, new FioBitSetFlagsSerializer()),
@@ -20,7 +20,7 @@ public class AnimTplSerializer extends FioStructSerializer<AnimTemplate> {
             new FioStructMember<>("TplAnimTrack", AnimTemplate::setTplAnimTrack, new AnimTrackSerializer()),
             FioStructMember.nullMember(),
             new FioStructMember<>("BBox", AnimTemplate::setBBox, new BBoxSerializer()),
-            new FioStructMember<>("LodDef", AnimTemplate::setLodDef, new FioArraySerializer<>(LodDef::new, 9, new LodDefSerializer())),
+            new FioStructMember<>("LodDef", AnimTemplate::setLodDef, new FioArraySerializer<>(LodDef::new, new LodDefSerializer())),
             new FioStructMember<>("TexList", AnimTemplate::setTexList, new TxmTexListSerializer()),
             new FioStructMember<>("Geometry", AnimTemplate::setGeometryManager, new GeometryManagerSerializer()),
             new FioStructMember<>("ExternData", AnimTemplate::setExternData, new TplExternDataSerializer())

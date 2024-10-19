@@ -8,13 +8,6 @@ import java.io.*;
 import java.util.*;
 
 public class MatrixSerializer extends FioPrimitiveSerializerImpl<Matrix4> {
-    public MatrixSerializer(int flags) {
-        super(flags);
-    }
-
-    public MatrixSerializer() {
-    }
-
     @Override
     public Matrix4 load(DataSource source) throws IOException {
         return Matrix4.fromArray(source.readFloats(16));

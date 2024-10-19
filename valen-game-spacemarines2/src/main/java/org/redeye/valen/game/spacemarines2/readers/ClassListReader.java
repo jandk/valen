@@ -15,7 +15,7 @@ public class ClassListReader implements Reader<List<ScnInstanceClassData>> {
     public List<ScnInstanceClassData> read(Archive archive, Asset asset, DataSource source) throws IOException {
         ResourceHeader ignored = ResourceHeader.read(source);
 
-        var serializer = new FioArraySerializer<>(ScnInstanceClassData::new, 9, new ScnInstanceClassDataSerializer());
+        var serializer = new FioArraySerializer<>(ScnInstanceClassData::new, new ScnInstanceClassDataSerializer());
         var instances = serializer.load(source);
         return instances;
     }

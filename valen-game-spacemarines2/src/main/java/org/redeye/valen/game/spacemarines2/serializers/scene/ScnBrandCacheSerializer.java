@@ -8,8 +8,8 @@ import java.util.*;
 public class ScnBrandCacheSerializer extends FioStructSerializer<ScnBrandCache> {
 
     public ScnBrandCacheSerializer() {
-        super(ScnBrandCache::new, 12, List.of(
-            new FioStructMember<>("ListBrandId", ScnBrandCache::setListBrandId, new FioArraySerializer<>(ScnBrandCacheInfo::new, 9, new ScnBrandCacheInfoSerializer()))
+        super(ScnBrandCache::new, List.of(
+            new FioStructMember<>("ListBrandId", ScnBrandCache::setListBrandId, new FioArraySerializer<>(ScnBrandCacheInfo::new, new ScnBrandCacheInfoSerializer()))
         ));
     }
 }

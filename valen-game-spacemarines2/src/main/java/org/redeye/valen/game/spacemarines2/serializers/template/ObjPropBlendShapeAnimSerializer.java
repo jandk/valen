@@ -9,10 +9,10 @@ import java.util.*;
 
 public class ObjPropBlendShapeAnimSerializer extends FioStructSerializer<ObjPropBlendShapeAnim> {
     public ObjPropBlendShapeAnimSerializer() {
-        super(ObjPropBlendShapeAnim::new, 12, List.of(
-            new FioStructMember<>("BlendShapeNames", ObjPropBlendShapeAnim::setBlendShapeNames, new FioArraySerializer<>(() -> "", 9, new FioStringSerializer())),
-            new FioStructMember<>("BlendShapes", ObjPropBlendShapeAnim::setBlendShapes, new FioArraySerializer<>(Spline::new, 9, new SplineSerializer())),
-            new FioStructMember<>("Wrinkles", ObjPropBlendShapeAnim::setWrinkles, new FioArraySerializer<>(Spline::new, 9, new SplineSerializer()))
+        super(ObjPropBlendShapeAnim::new, List.of(
+            new FioStructMember<>("BlendShapeNames", ObjPropBlendShapeAnim::setBlendShapeNames, new FioArraySerializer<>(() -> "", new FioStringSerializer())),
+            new FioStructMember<>("BlendShapes", ObjPropBlendShapeAnim::setBlendShapes, new FioArraySerializer<>(Spline::new, new SplineSerializer())),
+            new FioStructMember<>("Wrinkles", ObjPropBlendShapeAnim::setWrinkles, new FioArraySerializer<>(Spline::new, new SplineSerializer()))
         ));
     }
 }

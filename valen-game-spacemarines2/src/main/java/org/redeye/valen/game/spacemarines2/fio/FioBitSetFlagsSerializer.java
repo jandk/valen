@@ -6,12 +6,6 @@ import java.io.*;
 import java.util.*;
 
 public class FioBitSetFlagsSerializer implements FioSerializer<BitSet> {
-    private int flags;
-
-    public FioBitSetFlagsSerializer() {
-        this.flags = 0;
-    }
-
     @Override
     public BitSet load(DataSource source) throws IOException {
         var count = source.readShort();
@@ -21,7 +15,6 @@ public class FioBitSetFlagsSerializer implements FioSerializer<BitSet> {
 
     @Override
     public int flags() {
-        return flags;
+        return 0;
     }
-
 }

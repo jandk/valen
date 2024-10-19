@@ -9,7 +9,7 @@ import java.util.*;
 public class ObjObjSerializer extends FioStructSerializer<ObjObj> {
 
     public ObjObjSerializer() {
-        super(ObjObj::new, 12, List.of(
+        super(ObjObj::new, List.of(
             new FioStructMember<>("id", ObjObj::setId, new FioInt16Serializer()),
             new FioStructMember<>("Name", ObjObj::setName, new FioStringSerializer()),
             new FioStructMember<>("StateF", ObjObj::setState, new ObjStateSerializer()),

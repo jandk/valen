@@ -14,11 +14,6 @@ public class Vec4Serializer extends FioPrimitiveSerializerImpl<Vector4> {
     }
 
     @Override
-    public int flags() {
-        return 16;
-    }
-
-    @Override
     public List<Vector4> loadArray(DataSource source, int size) throws IOException {
         List<Vector4> data = new ArrayList<>(size);
         for (int i = 0; i < size; i++) {

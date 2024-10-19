@@ -1,4 +1,4 @@
-package org.redeye.valen.game.spacemarines2.serializers.template;
+package org.redeye.valen.game.spacemarines2.types.template;
 
 import java.util.*;
 

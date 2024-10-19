@@ -8,7 +8,7 @@ import java.util.*;
 
 public class AnimSeqSerializer extends FioStructSerializer<AnimSeq> {
     public AnimSeqSerializer() {
-        super(AnimSeq::new, 12, List.of(
+        super(AnimSeq::new, List.of(
             new FioStructMember<>("Name", AnimSeq::setName, new FioStringSerializer()),
             new FioStructMember<>("LayerId", AnimSeq::setLayerId, new FioInt32Serializer()),
             new FioStructMember<>("StartFrame", AnimSeq::setStartFrame, new FioFloatSerializer()),
@@ -16,7 +16,7 @@ public class AnimSeqSerializer extends FioStructSerializer<AnimSeq> {
             new FioStructMember<>("OffsetFrame", AnimSeq::setOffsetFrame, new FioFloatSerializer()),
             new FioStructMember<>("LenFrame", AnimSeq::setLenFrame, new FioFloatSerializer()),
             new FioStructMember<>("TimeSec", AnimSeq::setTimeSec, new FioFloatSerializer()),
-            new FioStructMember<>("ActionFrames", AnimSeq::setActionFrames, new FioArraySerializer<>(ActionFrame::new, 9, new ActionFrameSerializer())),
+            new FioStructMember<>("ActionFrames", AnimSeq::setActionFrames, new FioArraySerializer<>(ActionFrame::new, new ActionFrameSerializer())),
             new FioStructMember<>("Bbox", AnimSeq::setBbox, new BBoxSerializer())
         ));
     }

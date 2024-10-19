@@ -7,7 +7,7 @@ import java.util.*;
 
 public class BlockInfoSerializer extends FioStructSerializer<BlockInfo> {
     public BlockInfoSerializer() {
-        super(BlockInfo::new, 12, List.of(
+        super(BlockInfo::new, List.of(
             new FioStructMember<>("GlobalInstId", BlockInfo::setGlobalInstId, new FioInt32Serializer()),
             new FioStructMember<>("TplIdxNInst", BlockInfo::setTplIdxNInst, new FioInt32Serializer()),
             new FioStructMember<>("TransIdxLwiIdx", BlockInfo::setTransIdxLwiIdx, new FioInt32Serializer()),

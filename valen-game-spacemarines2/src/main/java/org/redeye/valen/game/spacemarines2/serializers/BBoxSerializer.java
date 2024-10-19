@@ -15,6 +15,6 @@ public class BBoxSerializer implements FioSerializer<BBox> {
 
     @Override
     public int flags() {
-        return 0;
+        return 16;
     }
 }

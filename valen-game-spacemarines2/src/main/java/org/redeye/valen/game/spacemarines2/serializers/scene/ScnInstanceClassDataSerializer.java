@@ -7,7 +7,7 @@ import java.util.*;
 
 public class ScnInstanceClassDataSerializer extends FioStructSerializer<ScnInstanceClassData> {
     public ScnInstanceClassDataSerializer() {
-        super(ScnInstanceClassData::new, 12, List.of(
+        super(ScnInstanceClassData::new, List.of(
             new FioStructMember<>("Name", ScnInstanceClassData::setName, new FioStringSerializer()),
             new FioStructMember<>("Ps", ScnInstanceClassData::setPs, new FioPsSectionSerializer())
         ));

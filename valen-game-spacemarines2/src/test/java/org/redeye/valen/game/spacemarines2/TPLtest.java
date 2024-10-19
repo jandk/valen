@@ -2,17 +2,21 @@ package org.redeye.valen.game.spacemarines2;
 
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.geometry.*;
+import be.twofold.valen.core.scene.*;
 import be.twofold.valen.core.texture.*;
+import be.twofold.valen.core.util.*;
 import be.twofold.valen.export.*;
 import be.twofold.valen.export.gltf.*;
 import be.twofold.valen.export.png.*;
 import com.google.gson.*;
 import org.junit.jupiter.api.*;
 import org.redeye.valen.game.spacemarines2.psSection.*;
+import org.redeye.valen.game.spacemarines2.types.lwi.*;
 
 import java.io.*;
 import java.nio.charset.*;
 import java.nio.file.*;
+import java.util.*;
 
 public class TPLtest {
 
@@ -220,9 +224,73 @@ public class TPLtest {
         SpaceMarines2Game game = new SpaceMarines2GameFactory().load(Path.of("D:\\SteamLibrary\\steamapps\\common\\Space Marine 2\\Warhammer 40000 Space Marine 2.exe"));
         var archive = game.loadArchive("client_pc");
 
-        EmperorAssetId resourceId = new EmperorAssetId("scenes/story_tower.scn/story_tower.lwi_container");
-        var data = archive.loadAsset(resourceId);
-        // System.out.println(data);
+        EmperorAssetId resourceId = new EmperorAssetId("scenes/story_blackstone_2.scn/story_blackstone_2.lwi_container");
+        var data = (LwiContainerStatic) archive.loadAsset(resourceId);
+        var modelInfos = data.modelList();
+
+        var instances = new ArrayList<Instance>();
+        var alreadyLoaded = new HashMap<EmperorAssetId, Model>();
+
+        for (LwiElementData instanceGroup : data.instanceGroups()) {
+            var modelInfo = modelInfos.get(instanceGroup.elemId());
+            EmperorAssetId identifier = new EmperorAssetId("tpl/%s.tpl/%s.tpl".formatted(modelInfo.tplName(), modelInfo.tplName()));
+            Check.state(archive.exists(identifier));
+
+
+            for (LwiElementDataChild modelInstance : instanceGroup.instances()) {
+                // if (child.subItems().isEmpty()) {
+                var matrix = modelInstance.mat();
+                Instance instance = new Instance(
+                    modelInfo.name(),
+                    new ModelReference(modelInfo.tplName(), () -> {
+                        var model = alreadyLoaded.computeIfAbsent(identifier, assetId -> {
+                            System.out.println(assetId);
+                            try {
+                                return (Model) archive.loadAsset(identifier);
+                            } catch (IOException e) {
+                                throw new RuntimeException(e);
+                            }
+                        });
+                        // if (model.meshes().isEmpty()) {
+                        //     System.out.println("Skipped " + modelInfo);
+                        //     return null;
+                        // }
+                        return model;
+                    }), matrix.toTranslation(), matrix.toRotation().normalize(), matrix.toScale()
+                );
+                instances.add(instance);
+                // } else {
+                //     for (LwiElementDataChildSubItem subItem : child.subItems()) {
+                //         var matrix = subItem.mat().multiply(child.mat());
+                //         var model = alreadyLoaded.computeIfAbsent(identifier, assetId -> {
+                //             System.out.println(assetId);
+                //             try {
+                //                 return (Model) archive.loadAsset(identifier);
+                //             } catch (IOException e) {
+                //                 throw new RuntimeException(e);
+                //             }
+                //         });
+                //         Instance instance = new Instance(
+                //             meshInfo.name(),
+                //             new ModelReference(meshInfo.tplName(), () -> model), matrix.toTranslation(), matrix.toRotation().normalize(), matrix.toScale()
+                //         );
+                //         instances.add(instance);
+                //
+                //     }
+                // }
+            }
+        }
+        System.out.println("Exported scene with " + instances.size() + " instances");
+        var scene = new Scene(instances);
+        EmperorAssetId withoutExt = resourceId.withExt("");
+        Path outputPath = Path.of("dump").resolve(withoutExt.fileName());
+        Files.createDirectories(outputPath);
+        GlbSceneExporter glbSceneExporter = new GlbSceneExporter();
+        try (OutputStream outputStream = Files.newOutputStream(outputPath.resolve(withoutExt.fileName() + "." + glbSceneExporter.getExtension()))) {
+            glbSceneExporter.export(scene, outputStream);
+        }
+        System.out.println(1);
+
     }
 
     @Test

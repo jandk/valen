@@ -8,8 +8,8 @@ import java.util.*;
 
 public record LwiContainerStatic(
     String componentTag,
-    List<LwiElement> elementList,
-    List<LwiElementData> elementDataList
+    List<LwiElement> modelList,
+    List<LwiElementData> instanceGroups
 ) implements LwiContainer {
 
     public static LwiContainerStatic read(DataSource source, int version) throws IOException {

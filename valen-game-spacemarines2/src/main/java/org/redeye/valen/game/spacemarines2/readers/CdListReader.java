@@ -15,7 +15,7 @@ public class CdListReader implements Reader<List<SceneInstanceCreateData>> {
     public List<SceneInstanceCreateData> read(Archive archive, Asset asset, DataSource source) throws IOException {
         ResourceHeader ignored = ResourceHeader.read(source);
 
-        var serializer = new FioArraySerializer<>(SceneInstanceCreateData::new, 9, new InstanceCreateDataSerializer());
+        var serializer = new FioArraySerializer<>(SceneInstanceCreateData::new, new InstanceCreateDataSerializer());
         var instances = serializer.load(source);
         return instances;
     }

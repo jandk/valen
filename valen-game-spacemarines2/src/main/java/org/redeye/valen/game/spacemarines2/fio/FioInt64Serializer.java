@@ -6,13 +6,6 @@ import java.io.*;
 import java.util.*;
 
 public class FioInt64Serializer extends FioPrimitiveSerializerImpl<Long> {
-    public FioInt64Serializer(int flags) {
-        super(flags);
-    }
-
-    public FioInt64Serializer() {
-    }
-
     @Override
     public Long load(DataSource source) throws IOException {
         return source.readLong();

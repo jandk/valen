@@ -8,7 +8,7 @@ import java.util.*;
 
 public class ObjPropFaceGenMeshSerializer extends FioStructSerializer<ObjPropFaceGenMesh> {
     public ObjPropFaceGenMeshSerializer() {
-        super(ObjPropFaceGenMesh::new, 12, List.of(
+        super(ObjPropFaceGenMesh::new, List.of(
             new FioStructMember<>("internal", (holder, value) -> {
                 holder.setProject(value.name);
                 holder.setPart(value.name);
@@ -18,7 +18,7 @@ public class ObjPropFaceGenMeshSerializer extends FioStructSerializer<ObjPropFac
             new FioStructMember<>("Controls", ObjPropFaceGenMesh::setControls, new FioStringSerializer()),
             new FioStructMember<>("Project", ObjPropFaceGenMesh::setProject, new FioStringSerializer()),
             new FioStructMember<>("Part", ObjPropFaceGenMesh::setPart, new FioStringSerializer()),
-            new FioStructMember<>("VertRemap", ObjPropFaceGenMesh::setVertRemap, new FioArraySerializer<>(() -> (short) 0, 9, new FioInt16Serializer())),
+            new FioStructMember<>("VertRemap", ObjPropFaceGenMesh::setVertRemap, new FioArraySerializer<>(() -> (short) 0, new FioInt16Serializer())),
             new FioStructMember<>("InvMatr", ObjPropFaceGenMesh::setInvMatr, new MatrixSerializer())
         ));
     }

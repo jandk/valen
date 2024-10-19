@@ -1,6 +1,5 @@
 package org.redeye.valen.game.spacemarines2.types.template;
 
-import org.redeye.valen.game.spacemarines2.serializers.template.*;
 import org.redeye.valen.game.spacemarines2.types.*;
 
 import java.util.*;

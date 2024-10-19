@@ -6,13 +6,6 @@ import java.io.*;
 import java.util.*;
 
 public class FioUUIDSerializer extends FioPrimitiveSerializerImpl<UUID> {
-    public FioUUIDSerializer(int flags) {
-        super(flags);
-    }
-
-    public FioUUIDSerializer() {
-    }
-
     @Override
     public UUID load(DataSource source) throws IOException {
         return new UUID(source.readLong(), source.readLong());
@@ -22,7 +15,7 @@ public class FioUUIDSerializer extends FioPrimitiveSerializerImpl<UUID> {
     public List<UUID> loadArray(DataSource source, int count) throws IOException {
         List<UUID> arr = new ArrayList<>(count);
         for (int i = 0; i < count; i++) {
-            arr.add(new UUID(source.readLong(), source.readLong()));
+            arr.add(load(source));
         }
         return arr;
     }

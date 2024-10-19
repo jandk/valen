@@ -13,7 +13,6 @@ import java.util.*;
 
 public final class GeometryManager {
 
-
     public List<ObjLodRoot> lodRoots;
     public ObjGeomSetsInfo geomSetsInfo;
     public Object debugInfo;
@@ -26,12 +25,12 @@ public final class GeometryManager {
     public List<ObjSplit> splits;
     public List<ObjGeom> geoms;
     public List<ObjGeomStream> streams;
-    // public List<RenderVertexbuffer> vertexBuffers;
     public List<Pair<Integer, ObjPropStorage>> objectProps;
     public List<Pair<Integer, String>> objPs;
     public Short rootObjId;
     public ObjGeomVBufferMapping vBufferMapping;
     public GeometryManagerState state = GeometryManagerState.STREAMING_UNLOADED;
+    private GeometryManagerInfo info;
 
     public GeometryManager() {
 
@@ -127,62 +126,24 @@ public final class GeometryManager {
                 case 5 -> readGeomRefs(source, chunk);
                 default -> System.out.println("Unhandled chunk: " + chunk.id());
             }
-            source.seek(chunk.endOffset());
+            if (chunk.endOffset() != source.tell()) {
+                System.err.printf("GeometryManager::Callback: Under/over read of chunk %d. Expected %d, got %d%n", chunk.id(), chunk.endOffset(), source.tell());
+                source.seek(chunk.endOffset());
+            }
             chunk = Chunk.read(source);
         }
     }
 
     private void readInfo(DataSource source, int version) throws IOException {
-        int objectCount = 0;
-        int streamCount = 0;
-        int geomCount = 0;
-        int splitsCount = 0;
-        int psCount = 0;
-        int unkCount = 0;
-        int unkCount2 = 0;
         rootObjId = source.readShort();
-        if (version > 0) {
-            objectCount = source.readInt();
-            if (objects == null) {
-                objects = new ArrayList<>(objectCount);
-                for (int i = 0; i < objectCount; i++) {
-                    objects.add(new ObjObj());
-                }
-            }
-        }
-        streamCount = source.readInt();
-        if (streams == null) {
-            streams = new ArrayList<>(streamCount);
-            for (int i = 0; i < streamCount; i++) {
-                streams.add(new ObjGeomStream());
-            }
-        }
-        geomCount = source.readInt();
-        if (geoms == null) {
-            geoms = new ArrayList<>(geomCount);
-            for (int i = 0; i < geomCount; i++) {
-                geoms.add(new ObjGeom());
-            }
-        }
-        splitsCount = source.readInt();
-        if (splits == null) {
-            splits = new ArrayList<>(splitsCount);
-            for (int i = 0; i < splitsCount; i++) {
-                splits.add(new ObjSplit());
-            }
-        }
-        psCount = source.readInt();
-        if (objPs == null) {
-            objPs = new ArrayList<>(psCount);
-            for (int i = 0; i < psCount; i++) {
-                objPs.add(new Pair<>(0, ""));
-            }
-        }
-        unkCount = source.readInt();
-        unkCount2 = source.readInt();
+        info = GeometryManagerInfo.read(source, version);
     }
 
     private void readStreams(DataSource source, Chunk chunk) throws IOException {
+        streams = new ArrayList<>(info.streamCount);
+        for (int i = 0; i < info.streamCount; i++) {
+            streams.add(new ObjGeomStream());
+        }
         while (source.tell() < chunk.endOffset()) {
             var subChunk = Chunk.read(source);
             switch (subChunk.id()) {
@@ -234,9 +195,14 @@ public final class GeometryManager {
     }
 
     private void readGeoms(DataSource source, Chunk chunk) throws IOException {
-        if (geoms.isEmpty()) {
+        if (info.geomCount == 0) {
             return;
         }
+        geoms = new ArrayList<>(info.geomCount);
+        for (int i = 0; i < info.geomCount; i++) {
+            geoms.add(new ObjGeom());
+        }
+
         while (source.tell() < chunk.endOffset()) {
             var subChunk = Chunk.read(source);
             if (subChunk.id() == 0) {
@@ -290,6 +256,11 @@ public final class GeometryManager {
     }
 
     private void readSplits(DataSource source, int version, Chunk chunk) throws IOException {
+        splits = new ArrayList<>(info.splitsCount);
+        for (int i = 0; i < info.splitsCount; i++) {
+            splits.add(new ObjSplit());
+        }
+
         while (source.tell() < chunk.endOffset()) {
             var subChunk = Chunk.read(source);
             switch (subChunk.id()) {
@@ -337,10 +308,7 @@ public final class GeometryManager {
                 case 5 -> {
                     for (ObjSplit split : splits) {
                         if (split.geom.fvf.contains(FVF.VERT_COMPR)) {
-                            split.vertCompParams = new VertCompressParams(
-                                new Vector3(source.readShort(), source.readShort(), source.readShort()),
-                                new Vector3(Short.toUnsignedInt(source.readShort()), Short.toUnsignedInt(source.readShort()), Short.toUnsignedInt(source.readShort()))
-                            );
+                            split.vertCompParams = new VertCompressParams(new Vector3(source.readShort(), source.readShort(), source.readShort()), new Vector3(Short.toUnsignedInt(source.readShort()), Short.toUnsignedInt(source.readShort()), Short.toUnsignedInt(source.readShort())));
                         }
                     }
                 }
@@ -375,13 +343,13 @@ public final class GeometryManager {
             switch (subChunk.id()) {
                 case 0 -> {
                     geomSetsInfo = new ObjGeomSetsInfo();
-                    geomSetsInfo.setStreamRefSets(new FioArraySerializer<>(ObjGeomStreamSetRef::new, 9, new ObjGeomStreamSetRefSerializer()).load(source));
-                    geomSetsInfo.setStreamRefs(new FioArraySerializer<>(ObjGeomStreamRef::new, 9, new ObjGeomSteamRefSerializer()).load(source));
+                    geomSetsInfo.setStreamRefSets(new FioArraySerializer<>(ObjGeomStreamSetRef::new, new ObjGeomStreamSetRefSerializer()).load(source));
+                    geomSetsInfo.setStreamRefs(new FioArraySerializer<>(ObjGeomStreamRef::new, new ObjGeomSteamRefSerializer()).load(source));
                 }
                 case 1 -> {
                 }
                 case 2 -> {
-                    var objectsSetIds = new FioArraySerializer<>(() -> (byte) 0, 9, new FioInt8Serializer(16)).load(source);
+                    var objectsSetIds = new FioArraySerializer<>(() -> (byte) 0, new FioInt8Serializer()).load(source);
                     if (objectsSetIds.size() > 1) {
                         for (int i = 0; i < objectsSetIds.size(); i++) {
                             objects.get(i).setSetId(objectsSetIds.get(i).intValue());
@@ -397,6 +365,22 @@ public final class GeometryManager {
             }
 
             source.seek(subChunk.endOffset());
+        }
+    }
+
+    private record GeometryManagerInfo(int objectCount, int streamCount, int geomCount, int splitsCount, int psCount,
+                                       int unkCount) {
+        public static GeometryManagerInfo read(DataSource source, int version) throws IOException {
+            int objectCount = 0;
+            if (version > 0) {
+                objectCount = source.readInt();
+            }
+            int streamCount = source.readInt();
+            int geomCount = source.readInt();
+            int splitsCount = source.readInt();
+            int psCount = source.readInt();
+            int unkCount = source.readInt();
+            return new GeometryManagerInfo(objectCount, streamCount, geomCount, splitsCount, psCount, unkCount);
         }
     }
 }

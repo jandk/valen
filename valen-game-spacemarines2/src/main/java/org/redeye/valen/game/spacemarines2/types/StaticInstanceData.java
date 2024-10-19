@@ -6,7 +6,7 @@ import java.util.*;
 
 public class StaticInstanceData {
     private UUID sceneGuid;
-    private Box staticInstAABB;
+    private BBox staticInstAABB;
     private List<InteractiveItem> interactiveItemsList;
     private List<Integer> visBlockData;
     private List<Vector4> visBlockPlacementData;
@@ -22,11 +22,11 @@ public class StaticInstanceData {
         this.sceneGuid = sceneGuid;
     }
 
-    public Box getStaticInstAABB() {
+    public BBox getStaticInstAABB() {
         return staticInstAABB;
     }
 
-    public void setStaticInstAABB(Box staticInstAABB) {
+    public void setStaticInstAABB(BBox staticInstAABB) {
         this.staticInstAABB = staticInstAABB;
     }
 

@@ -7,9 +7,9 @@ import java.util.*;
 
 public class ObjGeomSteamRefSerializer extends FioStructSerializer<ObjGeomStreamRef> {
     public ObjGeomSteamRefSerializer() {
-        super(ObjGeomStreamRef::new, 12, List.of(
-            new FioStructMember<>("Offset", ObjGeomStreamRef::setOffset, new FioInt64Serializer(16)),
-            new FioStructMember<>("Size", ObjGeomStreamRef::setSize, new FioInt64Serializer(16))
+        super(ObjGeomStreamRef::new, List.of(
+            new FioStructMember<>("Offset", ObjGeomStreamRef::setOffset, new FioInt64Serializer()),
+            new FioStructMember<>("Size", ObjGeomStreamRef::setSize, new FioInt64Serializer())
         ));
     }
 }

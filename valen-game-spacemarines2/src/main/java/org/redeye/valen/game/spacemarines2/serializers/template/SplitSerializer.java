@@ -8,9 +8,9 @@ import java.util.*;
 
 public class SplitSerializer extends FioStructSerializer<Split> {
     public SplitSerializer() {
-        super(Split::new, 12, List.of(
+        super(Split::new, List.of(
             new FioStructMember<>("Name", Split::setName, new FioStringSerializer()),
-            new FioStructMember<>("ShortList", Split::setVertRemap, new FioArraySerializer<>(() -> (short) 0, 9, new FioInt16Serializer())),
+            new FioStructMember<>("ShortList", Split::setVertRemap, new FioArraySerializer<>(() -> (short) 0, new FioInt16Serializer())),
             new FioStructMember<>("MatrLt", Split::setInvMatrLT, new MatrixSerializer())
         ));
     }

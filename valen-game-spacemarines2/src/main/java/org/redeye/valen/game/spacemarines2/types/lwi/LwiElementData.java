@@ -8,7 +8,7 @@ import java.util.*;
 public record LwiElementData(
     int elemId,
     int hashedMaterialOverride,
-    List<LwiElementDataChild> children
+    List<LwiElementDataChild> instances
 ) {
 
     public static LwiElementData read(DataSource source, int version) throws IOException {

@@ -7,7 +7,7 @@ import java.util.*;
 
 public class ObjLodDistSerializer extends FioStructSerializer<ObjLodDist> {
     public ObjLodDistSerializer() {
-        super(ObjLodDist::new, 12, List.of(
+        super(ObjLodDist::new, List.of(
             new FioStructMember<>("Dist", ObjLodDist::setDist, new FioFloatSerializer())
         ));
     }

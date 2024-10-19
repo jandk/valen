@@ -8,7 +8,7 @@ import java.util.*;
 
 public class AnimObjAnimSerializer extends FioStructSerializer<AnimObjAnim> {
     public AnimObjAnimSerializer() {
-        super(AnimObjAnim::new, 12, List.of(
+        super(AnimObjAnim::new, List.of(
             new FioStructMember<>("IniTranslation", AnimObjAnim::setIniTranslation, new Vec3Serializer()),
             new FioStructMember<>("Translation", AnimObjAnim::setTranslation, new SplineSerializer()),
             new FioStructMember<>("IniRotation", AnimObjAnim::setIniRotation, new FioQuatSerializer()),

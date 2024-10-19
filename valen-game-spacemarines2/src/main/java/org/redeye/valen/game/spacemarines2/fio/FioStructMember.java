@@ -12,7 +12,7 @@ public record FioStructMember<T, V>(String name, BiConsumer<T, V> setter, FioSer
         return (FioStructMember<T, Void>) NULL_MEMBER;
     }
 
-    public static <T, V> void nullSetter(T object, V value) {
+    private static <T, V> void nullSetter(T object, V value) {
         // do nothing
     }
 }

@@ -7,7 +7,7 @@ import java.util.*;
 
 public class ObjPropStorageSerializer extends FioStructSerializer<ObjPropStorage> {
     public ObjPropStorageSerializer() {
-        super(ObjPropStorage::new, 12, List.of(
+        super(ObjPropStorage::new, List.of(
             new FioStructMember<>("ObjProps", ObjPropStorage::setObjProps, new ObjPropsSerializer())
         ));
     }

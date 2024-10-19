@@ -14,8 +14,8 @@ public class GeometryManagerToModel {
 
     public Model convert(Archive archive, EmperorAssetId assetId, EmperorAssetId resourceId, GeometryManager geometryManager, List<LodDef> lodDef) throws IOException {
         var materialConverter = new MaterialConverter();
-        ArrayList<Material> materials = materialConverter.convertMaterials(archive, resourceId);
-        // ArrayList<Material> materials = new ArrayList<>();
+        // ArrayList<Material> materials = materialConverter.convertMaterials(archive, resourceId);
+        ArrayList<Material> materials = new ArrayList<>();
 
 
         var skeletonConverter = new SkeletonConverter();

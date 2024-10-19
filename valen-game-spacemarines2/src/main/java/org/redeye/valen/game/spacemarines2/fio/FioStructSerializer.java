@@ -8,31 +8,27 @@ import java.util.*;
 import java.util.function.*;
 
 public class FioStructSerializer<T> implements FioSerializer<T> {
-    public static boolean debugPrint = false;
-
     private final int sign;
     private final Supplier<T> factory;
-    private final int flags;
     protected final List<FioStructMember<T, ?>> members;
     public int version = 0;
     public FioCallback<T> onReadFinishCallback;
 
-    public FioStructSerializer(Supplier<T> factory, int flags, List<FioStructMember<T, ?>> members) {
-        this(0, factory, flags, members, null);
+    public FioStructSerializer(Supplier<T> factory, List<FioStructMember<T, ?>> members) {
+        this(0, factory, members, null);
     }
 
-    public FioStructSerializer(Supplier<T> factory, int flags, List<FioStructMember<T, ?>> members, FioCallback<T> onReadFinishCallback) {
-        this(0, factory, flags, members, onReadFinishCallback);
+    public FioStructSerializer(Supplier<T> factory, List<FioStructMember<T, ?>> members, FioCallback<T> onReadFinishCallback) {
+        this(0, factory, members, onReadFinishCallback);
     }
 
-    public FioStructSerializer(int sign, Supplier<T> factory, int flags, List<FioStructMember<T, ?>> members) {
-        this(sign, factory, flags, members, null);
+    public FioStructSerializer(int sign, Supplier<T> factory, List<FioStructMember<T, ?>> members) {
+        this(sign, factory, members, null);
     }
 
-    public FioStructSerializer(int sign, Supplier<T> factory, int flags, List<FioStructMember<T, ?>> members, FioCallback<T> onReadFinishCallback) {
+    public FioStructSerializer(int sign, Supplier<T> factory, List<FioStructMember<T, ?>> members, FioCallback<T> onReadFinishCallback) {
         this.sign = sign;
         this.factory = Check.notNull(factory);
-        this.flags = flags;
         this.members = List.copyOf(members);
         this.onReadFinishCallback = onReadFinishCallback;
     }
@@ -43,7 +39,6 @@ public class FioStructSerializer<T> implements FioSerializer<T> {
             source.expectInt(sign);
         }
         var memberCount = source.readShort();
-        // Check.state(memberCount <= members.size(), "Invalid member count");
 
         var flags = source.readShort();
         if (flags == 2) {
@@ -51,37 +46,25 @@ public class FioStructSerializer<T> implements FioSerializer<T> {
         } else if (flags != 0) {
             throw new IllegalStateException("Flags are not 0");
         }
-        var holder = factory.get();
-        var memberMaskSize = (memberCount + 7) / 8;
-        var memberMask = source.readBytes(memberMaskSize);
-        for (int i = 0; i < memberCount; i++) {
-            if (i >= members.size()) {
-                break;
-            }
-            byte b = memberMask[i / 8];
-            if ((b & (1 << (i % 8))) != 0) {
+        var objectInstance = factory.get();
+        var memberMask = BitSet.valueOf(source.readBytes((memberCount + 7) / 8));
+        for (int i = 0; i < Math.min(memberCount, members.size()); i++) {
+            if (memberMask.get(i)) {
                 FioStructMember<T, ?> member = members.get(i);
-                if (debugPrint) {
-                    System.out.printf("Reading member %s at %d%n", member.name(), source.tell());
-                }
-                setMember(member, holder, source);
-            } else {
-                if (debugPrint) {
-                    System.out.printf("Member %s was skipped%n", members.get(i).name());
-                }
+                setMember(member, objectInstance, source);
             }
         }
 
         if (onReadFinishCallback != null) {
-            onReadFinishCallback.call(holder, source, this);
+            onReadFinishCallback.call(objectInstance, source, this);
         }
 
-        return holder;
+        return objectInstance;
     }
 
     @Override
     public int flags() {
-        return flags;
+        return 12;
     }
 
     protected <V> void setMember(FioStructMember<T, V> member, T holder, DataSource source) throws IOException {

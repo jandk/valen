@@ -15,6 +15,6 @@ public class ObbSerializer implements FioSerializer<OBB> {
 
     @Override
     public int flags() {
-        return 0;
+        return 16;
     }
 }

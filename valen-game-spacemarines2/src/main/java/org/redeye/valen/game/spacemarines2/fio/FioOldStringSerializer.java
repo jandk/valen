@@ -7,7 +7,7 @@ import java.io.*;
 public class FioOldStringSerializer implements FioSerializer<String> {
     @Override
     public String load(DataSource source) throws IOException {
-        return source.readString(source.readShort());
+        return source.readString(Short.toUnsignedInt(source.readShort()));
     }
 
     @Override

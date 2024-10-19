@@ -1,6 +1,7 @@
 package org.redeye.valen.game.spacemarines2.converters;
 
 import be.twofold.valen.core.geometry.*;
+import be.twofold.valen.core.math.*;
 import org.redeye.valen.game.spacemarines2.types.template.*;
 
 import java.util.*;
@@ -20,8 +21,11 @@ public class SkeletonConverter {
                 throw new IllegalStateException("Failed to find parent: " + node);
             }
         }
-
-        var bone = new Bone(node.name(), parentId, node.matrix().toRotation(), node.matrix().toScale(), node.matrix().toTranslation(), node.inverseMatrix());
+        Matrix4 inverseBasePose = node.inverseMatrix();
+        float[] tmp = inverseBasePose.toArray();
+        tmp[15] = 1;
+        inverseBasePose = Matrix4.fromArray(tmp);
+        var bone = new Bone(node.name(), parentId, node.matrix().toRotation(), node.matrix().toScale(), node.matrix().toTranslation(), inverseBasePose);
         boneMap.put(node.getId(), bones.size());
         bones.add(bone);
         node.children().forEach(n -> processNodes(n, bones, boneMap));

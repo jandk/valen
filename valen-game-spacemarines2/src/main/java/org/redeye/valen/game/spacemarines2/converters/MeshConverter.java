@@ -145,12 +145,12 @@ public class MeshConverter {
 
     public Optional<Mesh> convertSplitMesh(ObjSplit split, List<ObjGeomStream> streams, List<Material> materials) throws IOException {
         ObjGeom geom = split.geom;
-
-        System.out.println(split);
-        geom.streams.forEach((slot, stream) -> {
-            System.out.printf("Stream(%d) %s: stride: %d, %s, %s, %s%n", streams.indexOf(stream), slot, stream.stride, stream.fvf, stream.flags, geom.flags);
-        });
-
+        if (false) {
+            System.out.println(split);
+            geom.streams.forEach((slot, stream) -> {
+                System.out.printf("Stream(%d) %s: stride: %d, %s, %s, %s%n", streams.indexOf(stream), slot, stream.stride, stream.fvf, stream.flags, geom.flags);
+            });
+        }
         String materialName = extractMaterialName(split);
         var matObj = materials.stream().filter(material -> materialName.equals(material.name())).findFirst().orElseGet(() -> new Material(materialName, List.of()));
         if (!materials.contains(matObj)) {
@@ -232,11 +232,13 @@ public class MeshConverter {
 
         if (streamFVF.contains(FVF.WEIGHT4)) {
             var accessor = new Geo.Accessor<>(bufferOffset, vertCount, vertexStream.stride, VertexBuffer.Info.weights(0, ComponentType.UnsignedByte), (source1, buffer) -> {
-                buffer.put(source1.readByte());
-                buffer.put(source1.readByte());
-                buffer.put(source1.readByte());
+                byte[] weights = new byte[4];
+                weights[0] = source1.readByte();
+                weights[1] = source1.readByte();
+                weights[2] = source1.readByte();
+                weights = renormalize(weights);
                 source1.readByte();
-                buffer.put((byte) 0);
+                buffer.put(weights);
             });
             bufferOffset += 4;
             source.seek(0);
@@ -244,20 +246,25 @@ public class MeshConverter {
         }
         if (streamFVF.contains(FVF.WEIGHT8)) {
             var accessor = new Geo.Accessor<>(bufferOffset, vertCount, vertexStream.stride, VertexBuffer.Info.weights(0, ComponentType.UnsignedByte), (source1, buffer) -> {
-                buffer.put(source1.readByte());
-                buffer.put(source1.readByte());
-                buffer.put(source1.readByte());
-                buffer.put(source1.readByte());
+                byte[] weights = new byte[4];
+                weights[0] = source1.readByte();
+                weights[1] = source1.readByte();
+                weights[2] = source1.readByte();
+                weights[3] = source1.readByte();
+                weights = renormalize(weights);
+                buffer.put(weights);
             });
             bufferOffset += 4;
             source.seek(0);
             attributes.put(Semantic.Weights0, accessor.read(source));
             accessor = new Geo.Accessor<>(bufferOffset, vertCount, vertexStream.stride, VertexBuffer.Info.weights(1, ComponentType.UnsignedByte), (source1, buffer) -> {
-                buffer.put(source1.readByte());
-                buffer.put(source1.readByte());
-                buffer.put(source1.readByte());
+                byte[] weights = new byte[4];
+                weights[0] = source1.readByte();
+                weights[1] = source1.readByte();
+                weights[2] = source1.readByte();
                 source1.readByte();
-                buffer.put((byte) 0);
+                weights = renormalize(weights);
+                buffer.put(weights);
             });
             bufferOffset += 4;
             source.seek(0);

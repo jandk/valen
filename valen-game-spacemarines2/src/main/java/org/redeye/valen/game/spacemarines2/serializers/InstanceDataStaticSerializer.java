@@ -7,7 +7,7 @@ import java.util.*;
 
 public class InstanceDataStaticSerializer extends FioStructSerializer<InstanceDataStatic> {
     public InstanceDataStaticSerializer() {
-        super(InstanceDataStatic::new, 12, List.of(
+        super(InstanceDataStatic::new, List.of(
             new FioStructMember<>("Data", InstanceDataStatic::setData, new Vec4Serializer())
         ));
     }

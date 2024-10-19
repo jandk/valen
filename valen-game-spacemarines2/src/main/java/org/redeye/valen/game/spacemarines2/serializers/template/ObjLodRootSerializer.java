@@ -8,10 +8,10 @@ import java.util.*;
 
 public class ObjLodRootSerializer extends FioStructSerializer<ObjLodRoot> {
     public ObjLodRootSerializer() {
-        super(ObjLodRoot::new, 12, List.of(
-            new FioStructMember<>("ObjIds", ObjLodRoot::setObjIds, new FioArraySerializer<>(() -> 0, 9, new FioInt32Serializer())),
-            new FioStructMember<>("MaxObjLodIndices", ObjLodRoot::setMaxObjLodIndices, new FioArraySerializer<>(() -> 0, 9, new FioInt32Serializer())),
-            new FioStructMember<>("LodDists", ObjLodRoot::setLodDists, new FioArraySerializer<>(ObjLodDist::new, 9, new ObjLodDistSerializer())),
+        super(ObjLodRoot::new, List.of(
+            new FioStructMember<>("ObjIds", ObjLodRoot::setObjIds, new FioArraySerializer<>(() -> 0, new FioInt32Serializer())),
+            new FioStructMember<>("MaxObjLodIndices", ObjLodRoot::setMaxObjLodIndices, new FioArraySerializer<>(() -> 0, new FioInt32Serializer())),
+            new FioStructMember<>("LodDists", ObjLodRoot::setLodDists, new FioArraySerializer<>(ObjLodDist::new, new ObjLodDistSerializer())),
             new FioStructMember<>("Bbox", ObjLodRoot::setBbox, new BBoxSerializer()),
             new FioStructMember<>("Skip float", (objLodRoot, aFloat) -> {
             }, new FioFloatSerializer()),

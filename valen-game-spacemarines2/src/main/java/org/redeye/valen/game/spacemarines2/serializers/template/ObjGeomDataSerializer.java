@@ -8,7 +8,7 @@ import java.util.*;
 
 public class ObjGeomDataSerializer extends FioStructSerializer<ObjGeomUnshared> {
     public ObjGeomDataSerializer() {
-        super(ObjGeomUnshared::new, 12, List.of(
+        super(ObjGeomUnshared::new, List.of(
             new FioStructMember<>("SplitIndex", ObjGeomUnshared::setSplitIndex, new FioInt32Serializer()),
             new FioStructMember<>("SplitCount", ObjGeomUnshared::setSplitCount, new FioInt32Serializer()),
             new FioStructMember<>("BBox", ObjGeomUnshared::setBbox, new BBoxSerializer()),

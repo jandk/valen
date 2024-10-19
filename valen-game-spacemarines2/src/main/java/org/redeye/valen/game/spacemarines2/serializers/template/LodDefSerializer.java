@@ -7,7 +7,7 @@ import java.util.*;
 
 public class LodDefSerializer extends FioStructSerializer<LodDef> {
     public LodDefSerializer() {
-        super(LodDef::new, 12, List.of(
+        super(LodDef::new, List.of(
             new FioStructMember<>("ObjId", LodDef::setObjId, new FioInt16Serializer()),
             new FioStructMember<>("Index", LodDef::setIndex, new FioInt8Serializer()),
             new FioStructMember<>("IsLastLodUpToInfinity", LodDef::setIsLastLodUpToInfinity, new FioInt8Serializer())

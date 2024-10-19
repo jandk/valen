@@ -1,15 +1,15 @@
 package org.redeye.valen.game.spacemarines2.types;
 
 public class VisBlockOBBData {
-    private Box visBox;
+    private BBox visBox;
     private Float maxHideDist2;
     private Float maxSMFactor2;
 
-    public Box getVisBox() {
+    public BBox getVisBox() {
         return visBox;
     }
 
-    public void setVisBox(Box visBox) {
+    public void setVisBox(BBox visBox) {
         this.visBox = visBox;
     }
 

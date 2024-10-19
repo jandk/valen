@@ -6,13 +6,6 @@ import java.io.*;
 import java.util.*;
 
 public class FioInt8Serializer extends FioPrimitiveSerializerImpl<Byte> {
-    public FioInt8Serializer(int flags) {
-        super(flags);
-    }
-
-    public FioInt8Serializer() {
-    }
-
     @Override
     public Byte load(DataSource source) throws IOException {
         return source.readByte();
@@ -20,11 +13,6 @@ public class FioInt8Serializer extends FioPrimitiveSerializerImpl<Byte> {
 
     @Override
     public List<Byte> loadArray(DataSource source, int count) throws IOException {
-        byte[] bytes = source.readBytes(count);
-        List<Byte> arr = new ArrayList<>(count);
-        for (int i = 0; i < count; i++) {
-            arr.add(bytes[i]);
-        }
-        return arr;
+        return source.readStructs(count, DataSource::readByte);
     }
 }
