@@ -190,6 +190,21 @@ public class TPLtest {
     }
 
     @Test
+    void testRead_terrain() throws IOException {
+        SpaceMarines2Game game = new SpaceMarines2GameFactory().load(Path.of("D:\\SteamLibrary\\steamapps\\common\\Space Marine 2\\Warhammer 40000 Space Marine 2.exe"));
+        var archive = game.loadArchive("client_pc");
+
+        EmperorAssetId resourceId = new EmperorAssetId("scenes/story_blackstone_2.scn/terrain/terrain.terrain");
+        var model = archive.loadAsset(resourceId);
+        String mdlName = resourceId.fileName().substring(0, resourceId.fileName().indexOf('.'));
+        var outputPath = Path.of("dump");
+        outputPath = outputPath.resolve(mdlName);
+        Files.createDirectories(outputPath);
+        System.out.println(model);
+        // saveModel(mdlName, (Model) model, outputPath);
+    }
+
+    @Test
     void testRead_class_list() throws IOException {
         SpaceMarines2Game game = new SpaceMarines2GameFactory().load(Path.of("D:\\SteamLibrary\\steamapps\\common\\Space Marine 2\\Warhammer 40000 Space Marine 2.exe"));
         var archive = game.loadArchive("client_pc");

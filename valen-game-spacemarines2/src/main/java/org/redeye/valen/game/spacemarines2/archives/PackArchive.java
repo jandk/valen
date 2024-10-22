@@ -16,6 +16,7 @@ public class PackArchive implements Archive {
         new TPLReader(),
         new LGReader(),
         new ClassListReader(),
+        new TerrainReader(),
         new CdListReader(),
         new StaticInstanceDataReader(),
         new LwiContainerReader(),

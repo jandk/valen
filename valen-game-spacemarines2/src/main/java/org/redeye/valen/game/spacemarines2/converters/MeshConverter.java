@@ -392,4 +392,217 @@ public class MeshConverter {
         Check.state(bufferOffset <= vertexStream.stride);
     }
 
+    // long objGetFVFOffset(ExtendedSet<FVF> geomFvf, FVF componentFvf) {
+    //     long offset; // rax
+    //     long v3; // edx
+    //     long v4; // r8d
+    //     long v5; // edx
+    //     long v6; // ecx
+    //     long v7; // ecx
+    //     long v8; // r8d
+    //     long v9; // eax
+    //     long v10; // eax
+    //     long v11; // eax
+    //     long v12; // eax
+    //     long v13; // eax
+    //     long v14; // eax
+    //
+    //     offset = 0;
+    //     if (componentFvf == FVF.VERT || componentFvf == FVF.NORM && geomFvf.containsOnly(FVF.NORM_IN_VERT4))
+    //         return offset;
+    //     offset = 0;
+    //     if (geomFvf.contains(FVF.VERT)) {
+    //         offset = 8;
+    //         if (!geomFvf.contains(FVF.VERT_COMPR))
+    //             offset = (geomFvf.contains(FVF.NORM_IN_VERT4) ? 1 : 0) + 12;// ((geomFvf.data >> 10) & 0x4)
+    //     }
+    //     if (componentFvf == FVF.WEIGHT4 || componentFvf == FVF.WEIGHT8)
+    //         return offset;
+    //     if (geomFvf.containsAnyOf(FVF.WEIGHT8, FVF.WEIGHT4)) {
+    //         v3 = 8;
+    //         if (!geomFvf.contains(FVF.WEIGHT8))           // (geomFvf.data & 0x80) == 0
+    //             v3 = 4 * (geomFvf.containsAnyOf(FVF.INDICES16, FVF.INDICES, FVF.WEIGHT4) ? 1 : 0);
+    //         offset = (v3 + offset);
+    //     }
+    //     if (componentFvf == FVF.INDICES || componentFvf == FVF.INDICES16)
+    //         return offset;
+    //     if (geomFvf.containsAnyOf(FVF.INDICES16, FVF.INDICES)) {
+    //         v4 = 8;
+    //         if (!geomFvf.contains(FVF.WEIGHT8))           // (geomFvf.data & 0x80) == 0
+    //             v4 = 4 * (geomFvf.containsAnyOf(FVF.INDICES16, FVF.INDICES, FVF.WEIGHT4) ? 1 : 0);
+    //         v5 = 2;
+    //         if (!geomFvf.contains(FVF.INDICES16))
+    //             v5 = geomFvf.contains(FVF.INDICES) ? 1 : 0;    // (geomFvf.data >> 8) & 1
+    //         offset = (v4 * v5 + offset);
+    //     }
+    //     if (componentFvf == FVF.MASKING_FLAGS)
+    //         return offset;
+    //     v6 = offset + 4;
+    //     if ((geomFvf.data & FVF.MASKING_FLAGS) == 0)
+    //         v6 = offset;
+    //     if (componentFvf == FVF.NORM)
+    //         return v6;
+    //     if ((geomFvf.data & (FVF.NORM_IN_VERT4 | FVF.NORM)) == FVF.NORM) {
+    //         if ((geomFvf.data & FVF.NORM_COMPR) != 0)
+    //             v6 += 4;
+    //         else
+    //             v6 += 12;
+    //     }
+    //     if ((geomFvf.data & FVF.TANG_COMPR) == 0) {
+    //         if (componentFvf == FVF.TANG0)
+    //             return v6;
+    //         offset = v6 + 16;
+    //         if ((geomFvf.data & FVF.TANG0) == 0)
+    //             offset = v6;
+    //         if (componentFvf == FVF.TANG1)
+    //             return offset;
+    //         if ((geomFvf.data & FVF.TANG1) != 0)
+    //             offset = (offset + 16);
+    //         if (componentFvf == FVF.TANG2)
+    //             return offset;
+    //         if ((geomFvf.data & FVF.TANG2) != 0)
+    //             offset = (offset + 16);
+    //         if (componentFvf == FVF.TANG3)
+    //             return offset;
+    //         if ((geomFvf.data & FVF.TANG3) != 0)
+    //             offset = (offset + 16);
+    //         if (componentFvf == FVF.TANG4)
+    //             return offset;
+    //         v7 = offset + 16;
+    //         LABEL_60:
+    //         if ((geomFvf.data & FVF.TANG4) == 0)
+    //             v7 = offset;
+    //         offset = v7;
+    //         if (componentFvf == FVF.COLOR0)
+    //             return offset;
+    //         if ((geomFvf.data & FVF.COLOR0) != 0)
+    //             offset = v7 + 4;
+    //         if (componentFvf == FVF.COLOR1)
+    //             return offset;
+    //         if ((geomFvf.data & FVF.COLOR1) != 0)
+    //             offset = (offset + 4);
+    //         if (componentFvf == FVF.COLOR2)
+    //             return offset;
+    //         if ((geomFvf.data & FVF.COLOR2) != 0)
+    //             offset = (offset + 4);
+    //         if (componentFvf == FVF.COLOR3)
+    //             return offset;
+    //         if ((geomFvf.data & FVF.COLOR3) != 0)
+    //             offset = (offset + 4);
+    //         if (componentFvf == FVF.COLOR4)
+    //             return offset;
+    //         if ((geomFvf.data & FVF.COLOR4) != 0)
+    //             offset = (offset + 4);
+    //         if (componentFvf == FVF.COLOR5)
+    //             return offset;
+    //         if ((geomFvf.data & FVF.COLOR5) != 0)
+    //             offset = (offset + 4);
+    //         if (componentFvf == FVF.BS_INFO)
+    //             return offset;
+    //         v8 = offset + 16;
+    //         if ((geomFvf.data & FVF.BS_INFO) == 0)
+    //             v8 = offset;
+    //         if (componentFvf == FVF.TEX0)
+    //             return v8;
+    //         if ((geomFvf.data & FVF.TEX0) != 0) {
+    //             v9 = ((geomFvf.data & FVF.TEX0_4D) != 0) + 1;
+    //             if (SLODWORD(geomFvf.data) < 0)         // (geomFvf.data & 0x80000000) != 0
+    //             {
+    //                 if ((~geomFvf.data & (FVF.TEX0_4D_BYTE | FVF.TEX0_4D)) != 0)
+    //                     v8 += 4 * v9;
+    //                 else
+    //                     v8 += 4;
+    //             } else {
+    //                 v8 += 8 * v9;
+    //             }
+    //         }
+    //         if (componentFvf == FVF.TEX1)
+    //             return v8;
+    //         if ((geomFvf.data & FVF.TEX1) != 0) {
+    //             v10 = ((geomFvf.data & FVF.TEX1_4D) != 0) + 1;
+    //             if ((geomFvf.data & FVF.TEX1_COMPR) != 0) {
+    //                 if ((~geomFvf.data & (FVF.TEX1_4D_BYTE | FVF.TEX1_4D)) != 0)
+    //                     v8 += 4 * v10;
+    //                 else
+    //                     v8 += 4;
+    //             } else {
+    //                 v8 += 8 * v10;
+    //             }
+    //         }
+    //         if (componentFvf == FVF.TEX2)
+    //             return v8;
+    //         if ((geomFvf.data & FVF.TEX2) != 0) {
+    //             v11 = ((geomFvf.data & FVF.TEX2_4D) != 0) + 1;
+    //             if ((geomFvf.data & FVF.TEX2_COMPR) != 0) {
+    //                 if ((~geomFvf.data & (FVF.TEX2_4D_BYTE | FVF.TEX2_4D)) != 0)
+    //                     v8 += 4 * v11;
+    //                 else
+    //                     v8 += 4;
+    //             } else {
+    //                 v8 += 8 * v11;
+    //             }
+    //         }
+    //         if (componentFvf == FVF.TEX3)
+    //             return v8;
+    //         if ((geomFvf.data & FVF.TEX3) != 0) {
+    //             v12 = ((geomFvf.data & FVF.TEX3_4D) != 0) + 1;
+    //             if ((geomFvf.data & FVF.TEX3_COMPR) != 0) {
+    //                 if ((~geomFvf.data & (FVF.TEX3_4D_BYTE | FVF.TEX3_4D)) != 0)
+    //                     v8 += 4 * v12;
+    //                 else
+    //                     v8 += 4;
+    //             } else {
+    //                 v8 += 8 * v12;
+    //             }
+    //         }
+    //         if (componentFvf == FVF.TEX4)
+    //             return v8;
+    //         if ((geomFvf.data & FVF.TEX4) != 0) {
+    //             v13 = ((geomFvf.data & FVF.TEX4_4D) != 0) + 1;
+    //             if ((geomFvf.data & FVF.TEX4_COMPR) != 0) {
+    //                 if ((~geomFvf.data & (FVF.TEX4_4D_BYTE | FVF.TEX4_4D)) != 0)
+    //                     v8 += 4 * v13;
+    //                 else
+    //                     v8 += 4;
+    //             } else {
+    //                 v8 += 8 * v13;
+    //             }
+    //         }
+    //         if (componentFvf == FVF.TEX5 || (geomFvf.data & FVF.TEX5) == 0) {
+    //             return v8;
+    //         } else {
+    //             v14 = ((geomFvf.data & FVF.TEX5_4D) != 0) + 1;
+    //             if ((geomFvf.data & FVF.TEX5_COMPR) != 0) {
+    //                 if ((~geomFvf.data & (FVF.TEX5_4D_BYTE | FVF.TEX5_4D)) != 0)
+    //                     return v8 + 4 * v14;
+    //                 else
+    //                     return v8 + 4;
+    //             } else {
+    //                 return v8 + 8 * v14;
+    //             }
+    //         }
+    //         return offset;
+    //     }
+    //     if (componentFvf == FVF.TANG0)
+    //         return v6;
+    //     offset = v6 + 4;
+    //     if ((geomFvf.data & FVF.TANG0) == 0)
+    //         offset = v6;
+    //     if (componentFvf == FVF.TANG1)
+    //         return offset;
+    //     if ((geomFvf.data & FVF.TANG1) != 0)
+    //         offset = (offset + 4);
+    //     if (componentFvf == FVF.TANG2)
+    //         return offset;
+    //     if ((geomFvf.data & FVF.TANG2) != 0)
+    //         offset = (offset + 4);
+    //     if (componentFvf == FVF.TANG3)
+    //         return offset;
+    //     if ((geomFvf.data & FVF.TANG3) != 0)
+    //         offset = (offset + 4);
+    //     if (componentFvf == FVF.TANG4)
+    //         return offset;
+    //     v7 = offset + 4;
+    //     goto LABEL_60;
+    // }
 }
