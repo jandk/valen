@@ -28,7 +28,7 @@ public final class GltfMaterialMapper {
         var builder = MaterialSchema.builder().name(material.name());
 
         if (material.useAlpha()) {
-            builder.alphaMode(MaterialAlphaMode.BLEND);
+            builder.alphaMode(MaterialAlphaMode.MASK);
         }
 
         var pbrBuilder = PbrMetallicRoughnessSchema.builder();
