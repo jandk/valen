@@ -8,7 +8,7 @@ import java.nio.charset.*;
 import java.nio.file.*;
 import java.util.*;
 
-public abstract class DataSource implements AutoCloseable {
+public abstract class DataSource implements Closeable {
 
     public static DataSource fromArray(byte[] array) {
         return new ByteArrayDataSource(array);

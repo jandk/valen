@@ -10,7 +10,7 @@ import java.util.*;
 import java.util.function.*;
 import java.util.stream.*;
 
-public final class ResourcesFile implements AutoCloseable {
+public final class ResourcesFile implements Closeable {
     private final Map<ResourceKey, Resource> index;
     private DataSource source;
 

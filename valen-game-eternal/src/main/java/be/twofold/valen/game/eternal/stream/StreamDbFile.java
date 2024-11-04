@@ -9,7 +9,7 @@ import java.util.*;
 import java.util.function.*;
 import java.util.stream.*;
 
-public final class StreamDbFile implements AutoCloseable {
+public final class StreamDbFile implements Closeable {
     private final Map<Long, StreamDbEntry> index;
     private DataSource source;
 

@@ -12,7 +12,7 @@ import java.util.zip.*;
  * <p>
  * So here we are. Good thing it's not that hard to write a PNG file.
  */
-final class PngOutputStream implements AutoCloseable {
+final class PngOutputStream implements Closeable {
     private static final byte[] Magic = new byte[]{(byte) 0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a};
     private static final int IHDR = 0x49484452;
     private static final int PLTE = 0x504c5445;
