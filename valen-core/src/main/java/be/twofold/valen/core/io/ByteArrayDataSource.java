@@ -3,22 +3,8 @@ package be.twofold.valen.core.io;
 import be.twofold.valen.core.util.*;
 
 import java.io.*;
-import java.lang.invoke.*;
-import java.nio.*;
-import java.util.*;
 
 final class ByteArrayDataSource extends DataSource {
-    private static final VarHandle ShortVarHandle =
-        MethodHandles.byteArrayViewVarHandle(short[].class, ByteOrder.LITTLE_ENDIAN);
-    private static final VarHandle IntVarHandle =
-        MethodHandles.byteArrayViewVarHandle(int[].class, ByteOrder.LITTLE_ENDIAN);
-    private static final VarHandle LongVarHandle =
-        MethodHandles.byteArrayViewVarHandle(long[].class, ByteOrder.LITTLE_ENDIAN);
-    private static final VarHandle FloatVarHandle =
-        MethodHandles.byteArrayViewVarHandle(float[].class, ByteOrder.LITTLE_ENDIAN);
-    private static final VarHandle DoubleVarHandle =
-        MethodHandles.byteArrayViewVarHandle(double[].class, ByteOrder.LITTLE_ENDIAN);
-
     private final byte[] bytes;
     private final int offset;
     private final int lim;
@@ -29,7 +15,7 @@ final class ByteArrayDataSource extends DataSource {
     }
 
     ByteArrayDataSource(byte[] bytes, int offset, int length) {
-        Objects.checkFromIndexSize(offset, length, bytes.length);
+        Check.fromIndexSize(offset, length, bytes.length);
         this.bytes = bytes;
         this.offset = offset;
         this.pos = offset;
@@ -46,7 +32,7 @@ final class ByteArrayDataSource extends DataSource {
 
     @Override
     public void readBytes(byte[] dst, int off, int len, boolean buffered) throws IOException {
-        Objects.checkFromIndexSize(off, len, dst.length);
+        Check.fromIndexSize(off, len, dst.length);
         if (pos + len > lim) {
             throw new EOFException();
         }
@@ -78,35 +64,35 @@ final class ByteArrayDataSource extends DataSource {
 
     @Override
     public short readShort() {
-        var value = (short) ShortVarHandle.get(bytes, pos);
+        var value = ByteArrays.readShort(bytes, pos);
         pos += Short.BYTES;
         return value;
     }
 
     @Override
     public int readInt() {
-        var value = (int) IntVarHandle.get(bytes, pos);
+        var value = ByteArrays.readInt(bytes, pos);
         pos += Integer.BYTES;
         return value;
     }
 
     @Override
     public long readLong() {
-        var value = (long) LongVarHandle.get(bytes, pos);
+        var value = ByteArrays.readLong(bytes, pos);
         pos += Long.BYTES;
         return value;
     }
 
     @Override
     public float readFloat() {
-        var value = (float) FloatVarHandle.get(bytes, pos);
+        var value = ByteArrays.readFloat(bytes, pos);
         pos += Float.BYTES;
         return value;
     }
 
     @Override
     public double readDouble() {
-        var value = (double) DoubleVarHandle.get(bytes, pos);
+        var value = ByteArrays.readDouble(bytes, pos);
         pos += Double.BYTES;
         return value;
     }

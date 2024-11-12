@@ -55,6 +55,10 @@ public abstract class DataSource implements Closeable {
         return Byte.toUnsignedInt(readByte());
     }
 
+    public long readByteAsLong() throws IOException {
+        return Byte.toUnsignedLong(readByte());
+    }
+
     public byte[] readBytes(int len) throws IOException {
         var result = new byte[len];
         readBytes(result, 0, len);
@@ -72,7 +76,7 @@ public abstract class DataSource implements Closeable {
     }
 
     public void readShorts(short[] array, int offset, int length) throws IOException {
-        Objects.checkFromIndexSize(offset, length, array.length);
+        Check.fromIndexSize(offset, length, array.length);
         for (var i = 0; i < length; i++) {
             array[offset + i] = readShort();
         }
@@ -85,10 +89,10 @@ public abstract class DataSource implements Closeable {
     }
 
     public int readInt() throws IOException {
-        var b0 = readByteAsInt();
-        var b1 = readByteAsInt();
-        var b2 = readByteAsInt();
-        var b3 = readByteAsInt();
+        int b0 = readByteAsInt();
+        int b1 = readByteAsInt();
+        int b2 = readByteAsInt();
+        int b3 = readByteAsInt();
         return b0 | (b1 << 8) | (b2 << 16) | (b3 << 24);
     }
 
@@ -97,7 +101,7 @@ public abstract class DataSource implements Closeable {
     }
 
     public void readInts(int[] array, int offset, int length) throws IOException {
-        Objects.checkFromIndexSize(offset, length, array.length);
+        Check.fromIndexSize(offset, length, array.length);
         for (var i = 0; i < length; i++) {
             array[offset + i] = readInt();
         }
@@ -110,14 +114,14 @@ public abstract class DataSource implements Closeable {
     }
 
     public long readLong() throws IOException {
-        var b0 = Byte.toUnsignedLong(readByte());
-        var b1 = Byte.toUnsignedLong(readByte());
-        var b2 = Byte.toUnsignedLong(readByte());
-        var b3 = Byte.toUnsignedLong(readByte());
-        var b4 = Byte.toUnsignedLong(readByte());
-        var b5 = Byte.toUnsignedLong(readByte());
-        var b6 = Byte.toUnsignedLong(readByte());
-        var b7 = Byte.toUnsignedLong(readByte());
+        long b0 = readByteAsLong();
+        long b1 = readByteAsLong();
+        long b2 = readByteAsLong();
+        long b3 = readByteAsLong();
+        long b4 = readByteAsLong();
+        long b5 = readByteAsLong();
+        long b6 = readByteAsLong();
+        long b7 = readByteAsLong();
         return b0 | (b1 << 8) | (b2 << 16) | (b3 << 24) | (b4 << 32) | (b5 << 40) | (b6 << 48) | (b7 << 56);
     }
 
@@ -126,7 +130,7 @@ public abstract class DataSource implements Closeable {
     }
 
     public void readLongs(long[] array, int offset, int length) throws IOException {
-        Objects.checkFromIndexSize(offset, length, array.length);
+        Check.fromIndexSize(offset, length, array.length);
         for (var i = 0; i < length; i++) {
             array[offset + i] = readLong();
         }
@@ -143,7 +147,7 @@ public abstract class DataSource implements Closeable {
     }
 
     public void readFloats(float[] array, int offset, int length) throws IOException {
-        Objects.checkFromIndexSize(offset, length, array.length);
+        Check.fromIndexSize(offset, length, array.length);
         for (var i = 0; i < length; i++) {
             array[offset + i] = readFloat();
         }
@@ -160,7 +164,7 @@ public abstract class DataSource implements Closeable {
     }
 
     public void readDoubles(double[] array, int offset, int length) throws IOException {
-        Objects.checkFromIndexSize(offset, length, array.length);
+        Check.fromIndexSize(offset, length, array.length);
         for (var i = 0; i < length; i++) {
             array[offset + i] = readDouble();
         }

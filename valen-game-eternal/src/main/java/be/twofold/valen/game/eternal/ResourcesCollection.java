@@ -4,7 +4,6 @@ import be.twofold.valen.game.eternal.reader.packagemapspec.*;
 import be.twofold.valen.game.eternal.resource.*;
 
 import java.io.*;
-import java.nio.*;
 import java.nio.file.*;
 import java.util.*;
 
@@ -47,13 +46,13 @@ final class ResourcesCollection {
             .toList();
     }
 
-    ByteBuffer read(Resource resource) throws IOException {
+    byte[] read(Resource resource) throws IOException {
         for (var file : files) {
             var entry = file.get(resource.key());
             if (entry.isEmpty()) {
                 continue;
             }
-            var compressed = ByteBuffer.wrap(file.read(entry.get()));
+            var compressed = file.read(entry.get());
             return resource.compression()
                 .decompress(compressed, resource.uncompressedSize());
         }

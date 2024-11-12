@@ -31,8 +31,8 @@ public abstract class TestUtils {
 
         entries.forEach(asset -> assertThatNoException()
             .isThrownBy(() -> {
-                var buffer = archive.loadRawAsset(asset.id());
-                reader.read(DataSource.fromBuffer(buffer), asset);
+                var bytes = archive.loadRawAsset(asset.id());
+                reader.read(DataSource.fromArray(bytes), asset);
             }));
     }
 

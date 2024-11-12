@@ -59,11 +59,6 @@ public final class MurmurHash2 {
     }
 
     private static int getIntLE(byte[] data, int index) {
-        int b0 = Byte.toUnsignedInt(data[index]);
-        int b1 = Byte.toUnsignedInt(data[index + 1]);
-        int b2 = Byte.toUnsignedInt(data[index + 2]);
-        int b3 = Byte.toUnsignedInt(data[index + 3]);
-
-        return b0 | b1 << 8 | b2 << 16 | b3 << 24;
+        return ByteArrays.readInt(data, index);
     }
 }

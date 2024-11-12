@@ -1,7 +1,6 @@
 package be.twofold.valen.core.compression;
 
 import java.io.*;
-import java.nio.*;
 
 public enum Compression {
     None(new NullDecompressor()),
@@ -18,7 +17,12 @@ public enum Compression {
         this.decompressor = decompressor;
     }
 
-    public ByteBuffer decompress(ByteBuffer src, int dstLength) throws IOException {
-        return decompressor.decompress(src, dstLength);
+    public byte[] decompress(byte[] source, int dstLength) throws IOException {
+        byte[] target = new byte[dstLength];
+        decompressor.decompress(
+            source, 0, source.length,
+            target, 0, target.length
+        );
+        return target;
     }
 }

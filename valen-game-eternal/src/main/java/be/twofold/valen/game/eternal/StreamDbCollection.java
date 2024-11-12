@@ -5,7 +5,6 @@ import be.twofold.valen.game.eternal.reader.packagemapspec.*;
 import be.twofold.valen.game.eternal.stream.*;
 
 import java.io.*;
-import java.nio.*;
 import java.nio.file.*;
 import java.util.*;
 
@@ -34,7 +33,7 @@ final class StreamDbCollection {
             .anyMatch(f -> f.get(identity).isPresent());
     }
 
-    ByteBuffer read(long identity, int uncompressedSize) throws IOException {
+    byte[] read(long identity, int uncompressedSize) throws IOException {
         for (var file : files) {
             var entry = file.get(identity);
             if (entry.isEmpty()) {
@@ -43,11 +42,11 @@ final class StreamDbCollection {
 
             var compressed = file.read(entry.get());
             if (compressed.length == uncompressedSize) {
-                return ByteBuffer.wrap(compressed);
+                return compressed;
             }
 
             return Compression.Oodle
-                .decompress(ByteBuffer.wrap(compressed), uncompressedSize);
+                .decompress(compressed, uncompressedSize);
         }
         throw new IOException(String.format("Unknown stream: 0x%016x", identity));
     }

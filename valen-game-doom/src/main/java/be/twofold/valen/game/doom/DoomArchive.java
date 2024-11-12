@@ -4,7 +4,6 @@ import be.twofold.valen.core.game.*;
 import be.twofold.valen.game.doom.resources.*;
 
 import java.io.*;
-import java.nio.*;
 import java.nio.file.*;
 import java.util.*;
 
@@ -28,7 +27,7 @@ class DoomArchive implements Archive {
     }
 
     @Override
-    public ByteBuffer loadRawAsset(AssetID identifier) {
+    public byte[] loadRawAsset(AssetID identifier) {
         return null;
     }
 

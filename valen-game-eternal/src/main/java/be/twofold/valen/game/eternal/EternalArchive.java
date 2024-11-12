@@ -15,7 +15,6 @@ import be.twofold.valen.game.eternal.reader.staticmodel.*;
 import be.twofold.valen.game.eternal.resource.*;
 
 import java.io.*;
-import java.nio.*;
 import java.util.*;
 
 public final class EternalArchive implements Archive {
@@ -73,14 +72,14 @@ public final class EternalArchive implements Archive {
             .findFirst()
             .orElseThrow(() -> new IllegalArgumentException("No reader found for resource: " + resource));
 
-        var buffer = resources.read(resource);
-        try (var source = DataSource.fromBuffer(buffer)) {
+        var bytes = resources.read(resource);
+        try (var source = DataSource.fromArray(bytes)) {
             return reader.read(source, toAsset(resource));
         }
     }
 
     @Override
-    public ByteBuffer loadRawAsset(AssetID id) throws IOException {
+    public byte[] loadRawAsset(AssetID id) throws IOException {
         var resource = resources.get((ResourceKey) id)
             .orElseThrow(() -> new IllegalArgumentException("Resource not found: " + id));
 
@@ -91,7 +90,7 @@ public final class EternalArchive implements Archive {
         return streams.exists(identifier);
     }
 
-    public ByteBuffer readStream(long identifier, int uncompressedSize) throws IOException {
+    public byte[] readStream(long identifier, int uncompressedSize) throws IOException {
         return streams.read(identifier, uncompressedSize);
     }
 

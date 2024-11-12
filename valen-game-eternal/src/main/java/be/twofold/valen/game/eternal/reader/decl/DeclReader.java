@@ -2,7 +2,6 @@ package be.twofold.valen.game.eternal.reader.decl;
 
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.io.*;
-import be.twofold.valen.core.util.*;
 import be.twofold.valen.game.eternal.*;
 import be.twofold.valen.game.eternal.reader.*;
 import be.twofold.valen.game.eternal.reader.decl.parser.*;
@@ -88,7 +87,7 @@ public final class DeclReader implements ResourceReader<JsonObject> {
             return object;
         }
 
-        var bytes = Buffers.toArray(archive.loadRawAsset(resourceKey));
+        var bytes = archive.loadRawAsset(resourceKey);
         parent = DeclParser.parse(decode(bytes));
         parent = loadInherit(parent, fullName);
         declCache.put(key, parent);

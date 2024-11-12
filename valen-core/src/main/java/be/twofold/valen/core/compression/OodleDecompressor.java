@@ -13,13 +13,16 @@ public final class OodleDecompressor extends Decompressor {
     }
 
     @Override
-    public ByteBuffer decompress(ByteBuffer src, int dstLength) throws IOException {
+    public void decompress(
+        byte[] source, int sourceOffset, int sourceLength,
+        byte[] target, int targetOffset, int targetLength
+    ) throws IOException {
+        var sourceBuffer = ByteBuffer.wrap(source, sourceOffset, sourceLength);
+        var targetBuffer = ByteBuffer.wrap(target, targetOffset, targetLength);
         if (chunked) {
-            src = src.slice(12, src.remaining() - 12);
+            sourceBuffer = sourceBuffer.slice(12, sourceBuffer.remaining() - 12);
         }
 
-        var dst = ByteBuffer.allocate(dstLength);
-        Oodle.instance().decompress(src, dst);
-        return dst;
+        Oodle.instance().decompress(sourceBuffer, targetBuffer);
     }
 }

@@ -18,7 +18,7 @@
 
 package be.twofold.valen.core.util.hash;
 
-import java.util.*;
+import be.twofold.valen.core.util.*;
 
 /**
  * Implementation of FarmHash Fingerprint64, an open-source fingerprinting algorithm for strings.
@@ -51,7 +51,7 @@ public final class FarmHashFingerprint64 {
     }
 
     public static long hashBytes(byte[] input, int off, int len) {
-        Objects.checkFromIndexSize(off, len, input.length);
+        Check.fromIndexSize(off, len, input.length);
         return fingerprint(input, off, len);
     }
 
@@ -202,22 +202,10 @@ public final class FarmHashFingerprint64 {
     }
 
     private static int load32(byte[] input, int offset) {
-        int b0 = Byte.toUnsignedInt(input[offset]);
-        int b1 = Byte.toUnsignedInt(input[offset + 1]);
-        int b2 = Byte.toUnsignedInt(input[offset + 2]);
-        int b3 = Byte.toUnsignedInt(input[offset + 3]);
-        return b0 | b1 << 8 | b2 << 16 | b3 << 24;
+        return ByteArrays.readInt(input, offset);
     }
 
     private static long load64(byte[] input, int offset) {
-        long b0 = Byte.toUnsignedLong(input[offset]);
-        long b1 = Byte.toUnsignedLong(input[offset + 1]);
-        long b2 = Byte.toUnsignedLong(input[offset + 2]);
-        long b3 = Byte.toUnsignedLong(input[offset + 3]);
-        long b4 = Byte.toUnsignedLong(input[offset + 4]);
-        long b5 = Byte.toUnsignedLong(input[offset + 5]);
-        long b6 = Byte.toUnsignedLong(input[offset + 6]);
-        long b7 = Byte.toUnsignedLong(input[offset + 7]);
-        return b0 | b1 << 8 | b2 << 16 | b3 << 24 | b4 << 32 | b5 << 40 | b6 << 48 | b7 << 56;
+        return ByteArrays.readLong(input, offset);
     }
 }

@@ -5,7 +5,6 @@ import be.twofold.valen.core.util.*;
 import java.io.*;
 import java.nio.*;
 import java.nio.channels.*;
-import java.util.*;
 
 final class ChannelDataSource extends DataSource {
     private final ByteBuffer buffer = Buffers.allocate(8192).limit(0);
@@ -21,7 +20,7 @@ final class ChannelDataSource extends DataSource {
     }
 
     ChannelDataSource(SeekableByteChannel channel, long offset, long length) throws IOException {
-        Objects.checkFromIndexSize(offset, length, channel.size());
+        Check.fromIndexSize(offset, length, channel.size());
         this.channel = channel;
         this.offset = offset;
         this.length = length;

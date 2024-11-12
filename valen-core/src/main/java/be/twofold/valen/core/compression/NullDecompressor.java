@@ -1,14 +1,21 @@
 package be.twofold.valen.core.compression;
 
+import be.twofold.valen.core.util.*;
+
 import java.io.*;
-import java.nio.*;
 
 final class NullDecompressor extends Decompressor {
+
     @Override
-    public ByteBuffer decompress(ByteBuffer src, int dstLength) throws IOException {
-        if (src.remaining() != dstLength) {
+    public void decompress(
+        byte[] source, int sourceOffset, int sourceLength,
+        byte[] target, int targetOffset, int targetLength
+    ) throws IOException {
+        Check.fromIndexSize(sourceOffset, sourceLength, source.length);
+        Check.fromIndexSize(targetOffset, targetLength, target.length);
+
+        if (sourceLength != targetLength) {
             throw new IOException("Invalid decompressed size");
         }
-        return src;
     }
 }
