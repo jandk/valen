@@ -64,35 +64,35 @@ final class ByteArrayDataSource extends DataSource {
 
     @Override
     public short readShort() {
-        var value = ByteArrays.readShort(bytes, pos);
+        var value = ByteArrays.getShort(bytes, pos);
         pos += Short.BYTES;
         return value;
     }
 
     @Override
     public int readInt() {
-        var value = ByteArrays.readInt(bytes, pos);
+        var value = ByteArrays.getInt(bytes, pos);
         pos += Integer.BYTES;
         return value;
     }
 
     @Override
     public long readLong() {
-        var value = ByteArrays.readLong(bytes, pos);
+        var value = ByteArrays.getLong(bytes, pos);
         pos += Long.BYTES;
         return value;
     }
 
     @Override
     public float readFloat() {
-        var value = ByteArrays.readFloat(bytes, pos);
+        var value = ByteArrays.getFloat(bytes, pos);
         pos += Float.BYTES;
         return value;
     }
 
     @Override
     public double readDouble() {
-        var value = ByteArrays.readDouble(bytes, pos);
+        var value = ByteArrays.getDouble(bytes, pos);
         pos += Double.BYTES;
         return value;
     }

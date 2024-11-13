@@ -202,10 +202,10 @@ public final class FarmHashFingerprint64 {
     }
 
     private static int load32(byte[] input, int offset) {
-        return ByteArrays.readInt(input, offset);
+        return ByteArrays.getInt(input, offset);
     }
 
     private static long load64(byte[] input, int offset) {
-        return ByteArrays.readLong(input, offset);
+        return ByteArrays.getLong(input, offset);
     }
 }

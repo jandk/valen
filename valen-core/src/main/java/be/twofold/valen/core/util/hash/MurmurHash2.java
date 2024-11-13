@@ -59,6 +59,6 @@ public final class MurmurHash2 {
     }
 
     private static int getIntLE(byte[] data, int index) {
-        return ByteArrays.readInt(data, index);
+        return ByteArrays.getInt(data, index);
     }
 }

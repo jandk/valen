@@ -61,7 +61,7 @@ final class LZ4Decompressor extends Decompressor {
             }
 
             // Get the match position, can't start before the output start
-            int offset = ByteArrays.readShort(source, sourcePosition);
+            int offset = ByteArrays.getShort(source, sourcePosition);
             int matchPosition = targetPosition - offset;
             sourcePosition += 2;
             if (matchPosition < targetOffset || offset == 0) {

@@ -18,23 +18,23 @@ public final class ByteArrays {
     private ByteArrays() {
     }
 
-    public static short readShort(byte[] bytes, int offset) {
+    public static short getShort(byte[] bytes, int offset) {
         return (short) SHORT_VH_LE.get(bytes, offset);
     }
 
-    public static int readInt(byte[] bytes, int offset) {
+    public static int getInt(byte[] bytes, int offset) {
         return (int) INT_VH_LE.get(bytes, offset);
     }
 
-    public static long readLong(byte[] bytes, int offset) {
+    public static long getLong(byte[] bytes, int offset) {
         return (long) LONG_VH_LE.get(bytes, offset);
     }
 
-    public static float readFloat(byte[] bytes, int offset) {
+    public static float getFloat(byte[] bytes, int offset) {
         return (float) FLOAT_VH_LE.get(bytes, offset);
     }
 
-    public static double readDouble(byte[] bytes, int offset) {
+    public static double getDouble(byte[] bytes, int offset) {
         return (double) DOUBLE_VH_LE.get(bytes, offset);
     }
 }
