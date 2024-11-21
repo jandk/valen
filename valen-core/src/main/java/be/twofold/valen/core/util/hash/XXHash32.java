@@ -14,9 +14,10 @@ public final class XXHash32 {
 
     public static int hash(byte[] array, int offset, int length, int seed) {
         Check.fromIndexSize(offset, length, array.length);
+        int limit = offset + length;
 
         int acc;
-        if (offset <= length - 16) {
+        if (offset <= limit - 16) {
             // Step 1: Initialize internal accumulators
             int acc1 = seed + PRIME32_1 + PRIME32_2;
             int acc2 = seed + PRIME32_2;
@@ -25,22 +26,15 @@ public final class XXHash32 {
 
             // Step 2: Process stripes
             do {
-                int lane1 = ByteArrays.getInt(array, offset);
-                acc1 = round(acc1, lane1);
+                acc1 = round(acc1, ByteArrays.getInt(array, offset));
                 offset += 4;
-
-                int lane2 = ByteArrays.getInt(array, offset);
-                acc2 = round(acc2, lane2);
+                acc2 = round(acc2, ByteArrays.getInt(array, offset));
                 offset += 4;
-
-                int lane3 = ByteArrays.getInt(array, offset);
-                acc3 = round(acc3, lane3);
+                acc3 = round(acc3, ByteArrays.getInt(array, offset));
                 offset += 4;
-
-                int lane4 = ByteArrays.getInt(array, offset);
-                acc4 = round(acc4, lane4);
+                acc4 = round(acc4, ByteArrays.getInt(array, offset));
                 offset += 4;
-            } while (offset <= length - 16);
+            } while (offset <= limit - 16);
 
             // Step 3: Accumulator convergence
             acc = Integer.rotateLeft(acc1, 1)
@@ -56,14 +50,14 @@ public final class XXHash32 {
         acc = acc + length;
 
         // Step 5: Consume remaining input
-        while (offset <= length - 4) {
+        while (offset <= limit - 4) {
             int lane = ByteArrays.getInt(array, offset);
             acc = acc + (lane * PRIME32_3);
             acc = Integer.rotateLeft(acc, 17) * PRIME32_4;
             offset += 4;
         }
 
-        while (offset < length) {
+        while (offset < limit) {
             int lane = Byte.toUnsignedInt(array[offset]);
             acc = acc + (lane * PRIME32_5);
             acc = Integer.rotateLeft(acc, 11) * PRIME32_1;

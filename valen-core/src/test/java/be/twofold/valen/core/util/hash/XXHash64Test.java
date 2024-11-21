@@ -1,5 +1,6 @@
 package be.twofold.valen.core.util.hash;
 
+import org.junit.jupiter.api.*;
 import org.junit.jupiter.params.*;
 import org.junit.jupiter.params.provider.*;
 
@@ -16,6 +17,13 @@ class XXHash64Test {
         long actual = XXHash64.hash(buffer, 0, buffer.length, seed);
         long expected = Long.parseUnsignedLong(expectedString, 16);
         assertThat(actual).isEqualTo(expected);
+    }
+
+    @Test
+    void testWithOffset() {
+        byte[] buffer = "The quick brown fox jumps over the lazy dog".getBytes();
+        long actual = XXHash64.hash(buffer, 4, 35, 123);
+        assertThat(actual).isEqualTo(0x4FD1367565445C53L);
     }
 
 }

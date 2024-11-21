@@ -14,9 +14,10 @@ public final class XXHash64 {
 
     public static long hash(byte[] array, int offset, int length, long seed) {
         Check.fromIndexSize(offset, length, array.length);
+        int limit = offset + length;
 
         long acc;
-        if (offset <= length - 32) {
+        if (offset <= limit - 32) {
             // Step 1: Initialize internal accumulators
             long acc1 = seed + PRIME64_1 + PRIME64_2;
             long acc2 = seed + PRIME64_2;
@@ -33,7 +34,7 @@ public final class XXHash64 {
                 offset += 8;
                 acc4 = round(acc4, ByteArrays.getLong(array, offset));
                 offset += 8;
-            } while (offset <= length - 32);
+            } while (offset <= limit - 32);
 
             // Step 3: Accumulator convergence
             acc = Long.rotateLeft(acc1, 1)
@@ -54,7 +55,7 @@ public final class XXHash64 {
         acc = acc + length;
 
         // Step 5: Consume remaining input
-        while (offset <= length - 8) {
+        while (offset <= limit - 8) {
             long lane = ByteArrays.getLong(array, offset);
             acc = acc ^ round(0, lane);
             acc = Long.rotateLeft(acc, 27) * PRIME64_1;
@@ -62,7 +63,7 @@ public final class XXHash64 {
             offset += 8;
         }
 
-        if (offset <= length - 4) {
+        if (offset <= limit - 4) {
             long lane = Integer.toUnsignedLong(ByteArrays.getInt(array, offset));
             acc = acc ^ (lane * PRIME64_1);
             acc = Long.rotateLeft(acc, 23) * PRIME64_2;
@@ -70,7 +71,7 @@ public final class XXHash64 {
             offset += 4;
         }
 
-        while (offset < length) {
+        while (offset < limit) {
             long lane = Byte.toUnsignedLong(array[offset]);
             acc = acc ^ (lane * PRIME64_5);
             acc = Long.rotateLeft(acc, 11) * PRIME64_1;
