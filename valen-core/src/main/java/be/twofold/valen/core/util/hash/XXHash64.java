@@ -54,7 +54,7 @@ public final class XXHash64 {
         acc = acc + length;
 
         // Step 5: Consume remaining input
-        while (length - offset >= 8) {
+        while (offset <= length - 8) {
             long lane = ByteArrays.getLong(array, offset);
             acc = acc ^ round(0, lane);
             acc = Long.rotateLeft(acc, 27) * PRIME64_1;
@@ -62,7 +62,7 @@ public final class XXHash64 {
             offset += 8;
         }
 
-        if (length - offset >= 4) {
+        if (offset <= length - 4) {
             long lane = Integer.toUnsignedLong(ByteArrays.getInt(array, offset));
             acc = acc ^ (lane * PRIME64_1);
             acc = Long.rotateLeft(acc, 23) * PRIME64_2;
@@ -70,7 +70,7 @@ public final class XXHash64 {
             offset += 4;
         }
 
-        while (length - offset >= 1) {
+        while (offset < length) {
             long lane = Byte.toUnsignedLong(array[offset]);
             acc = acc ^ (lane * PRIME64_5);
             acc = Long.rotateLeft(acc, 11) * PRIME64_1;
