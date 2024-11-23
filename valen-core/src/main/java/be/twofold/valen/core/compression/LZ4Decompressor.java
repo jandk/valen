@@ -56,14 +56,15 @@ final class LZ4Decompressor extends Decompressor {
             }
 
             // End of input check
-            if (sourcePosition == sourceLength) {
+            if (sourcePosition == sourceLimit) {
                 return /*targetPosition - targetOffset*/;
             }
 
             // Get the match position, can't start before the output start
-            int offset = ByteArrays.getShort(source, sourcePosition);
-            int matchPosition = targetPosition - offset;
+            int offset = Short.toUnsignedInt(ByteArrays.getShort(source, sourcePosition));
             sourcePosition += 2;
+
+            int matchPosition = targetPosition - offset;
             if (matchPosition < targetOffset || offset == 0) {
                 throw new IOException("Offset out of range");
             }
