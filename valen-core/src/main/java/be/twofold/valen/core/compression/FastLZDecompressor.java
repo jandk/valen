@@ -16,80 +16,62 @@ final class FastLZDecompressor extends LZDecompressor {
         Objects.checkFromIndexSize(dstOff, dstLen, dst.length);
         Level level = Level.from(src[srcOff]);
 
-        int sourceLimit = srcOff + srcLen;
-        int targetLimit = dstOff + dstLen;
-        int dstOffOrig = dstOff;
+        int srcLim = srcOff + srcLen;
+        int dstLim = dstOff + dstLen;
+        int srcPos = srcOff;
+        int dstPos = dstOff;
 
-        boolean loop = true;
-        int opcode = src[srcOff++] & 31;
-        do {
+        int opcode = src[srcPos++] & 0x1F; // Could have had a pretty loop, but no
+        while (true) {
             if ((opcode & 0xE0) == 0x00) {
+                // If the upper 3 bits are 0, we have a literal
                 int literalLength = (opcode & 0x1F) + 1;
-                if (srcOff + literalLength > sourceLimit) {
-                    throw new IOException("Input too small");
-                }
-                if (dstOff + literalLength > targetLimit) {
-                    throw new IOException("Output too small");
-                }
-                System.arraycopy(src, srcOff, dst, dstOff, literalLength);
-                srcOff += literalLength;
-                dstOff += literalLength;
+                copyLiteral(src, srcPos, srcLim, dst, dstPos, dstLim, literalLength);
+                srcPos += literalLength;
+                dstPos += literalLength;
             } else {
+                // Otherwise we have a match of at least 2
                 int matchLength = (opcode >> 5) + 2;
                 if ((opcode & 0xE0) == 0xE0) {
+                    // If all upper bits are set, we have a long match
                     switch (level) {
-                        case One -> matchLength += readByte(src, srcOff++);
+                        case One -> matchLength += getUnsignedByte(src, srcPos++);
                         case Two -> {
                             int temp;
                             do {
-                                temp = readByte(src, srcOff++);
+                                temp = getUnsignedByte(src, srcPos++);
                                 matchLength += temp;
-                            } while (temp == 255);
+                            } while (temp == 0xFF);
                         }
                     }
                 }
 
-                int offset = (opcode & 31) << 8;
+                // Then we handle the offset
+                int offset = ((opcode & 0x1F) << 8) + 1;
                 switch (level) {
-                    case One -> offset += readByte(src, srcOff++);
+                    case One -> offset += getUnsignedByte(src, srcPos++);
                     case Two -> {
-                        int temp = readByte(src, srcOff++);
+                        int temp = getUnsignedByte(src, srcPos++);
                         offset += temp;
 
-                        if (temp == 255 && (opcode & 31) == 31) {
-                            offset += readByte(src, srcOff++) << 8;
-                            offset += readByte(src, srcOff++);
+                        if (temp == 0xFF && (opcode & 0x1F) == 0x1F) {
+                            offset += getUnsignedByte(src, srcPos++) << 8;
+                            offset += getUnsignedByte(src, srcPos++);
                         }
                     }
                 }
 
-                int matchPosition = dstOff - offset - 1;
-                if (matchPosition < dstOffOrig) {
-                    throw new IOException("Offset out of range");
-                }
-
-                overlappingCopy(dst, matchPosition, dstOff, matchLength);
-                dstOff += matchLength;
+                copyReference(dst, dstPos, dstLim, dstOff, offset, matchLength);
+                dstPos += matchLength;
             }
 
-            if (srcOff < sourceLimit) {
-                opcode = readByte(src, srcOff++);
-            } else {
-                loop = false;
+            if (srcPos == srcLim) {
+                break;
             }
-        } while (loop);
+            opcode = getUnsignedByte(src, srcPos++);
+        }
 
         // return dstPos - targetOffset;
-    }
-
-    private static void overlappingCopy(byte[] array, int srcPos, int dstPos, int len) {
-        for (int i = 0; i < len; i++) {
-            array[dstPos + i] = array[srcPos + i];
-        }
-    }
-
-    private int readByte(byte[] array, int offset) {
-        return Byte.toUnsignedInt(array[offset]);
     }
 
     private enum Level {
