@@ -4,33 +4,31 @@ import be.twofold.valen.core.util.*;
 
 import java.io.*;
 
-final class LZ4Decompressor extends Decompressor {
+final class LZ4Decompressor extends LZDecompressor {
     LZ4Decompressor() {
     }
 
     @Override
     public void decompress(
-        byte[] source, int sourceOffset, int sourceLength,
-        byte[] target, int targetOffset, int targetLength
+        byte[] src, int srcOff, int srcLen,
+        byte[] dst, int dstOff, int dstLen
     ) throws IOException {
-        Check.fromIndexSize(sourceOffset, sourceLength, source.length);
-        Check.fromIndexSize(targetOffset, targetLength, target.length);
+        Check.fromIndexSize(srcOff, srcLen, src.length);
+        Check.fromIndexSize(dstOff, dstLen, dst.length);
 
         // Special case
-        if (targetLength == 0) {
-            if (sourceLength != 1 || source[sourceOffset] != 0) {
+        if (dstLen == 0) {
+            if (srcLen != 1 || src[srcOff] != 0) {
                 throw new IOException("Invalid empty block");
             }
             return /*0*/;
         }
 
-        int sourceLimit = sourceOffset + sourceLength;
-        int targetLimit = targetOffset + targetLength;
-
-        int sourcePosition = sourceOffset;
-        int targetPosition = targetOffset;
+        int srcLim = srcOff + srcLen;
+        int dstLim = dstOff + dstLen;
+        int dstOffOrig = dstOff;
         while (true) {
-            int token = source[sourcePosition++];
+            int token = src[srcOff++];
 
             // Get the literal len
             int literalLength = (token >>> 4) & 0x0F;
@@ -38,34 +36,34 @@ final class LZ4Decompressor extends Decompressor {
                 if (literalLength == 15) {
                     int temp;
                     do {
-                        temp = readByte(source, sourcePosition++);
+                        temp = readByte(src, srcOff++);
                         literalLength += temp;
                     } while (temp == 255);
                 }
 
                 // Copy the literal over
-                if (sourcePosition + literalLength > sourceLimit) {
+                if (srcOff + literalLength > srcLim) {
                     throw new IOException("Input too small");
                 }
-                if (targetPosition + literalLength > targetLimit) {
+                if (dstOff + literalLength > dstLim) {
                     throw new IOException("Output too small");
                 }
-                System.arraycopy(source, sourcePosition, target, targetPosition, literalLength);
-                sourcePosition += literalLength;
-                targetPosition += literalLength;
+                System.arraycopy(src, srcOff, dst, dstOff, literalLength);
+                srcOff += literalLength;
+                dstOff += literalLength;
             }
 
             // End of input check
-            if (sourcePosition == sourceLimit) {
-                return /*targetPosition - targetOffset*/;
+            if (srcOff == srcLim) {
+                return /*dstOff - targetOffset*/;
             }
 
             // Get the match position, can't start before the output start
-            int offset = Short.toUnsignedInt(ByteArrays.getShort(source, sourcePosition));
-            sourcePosition += 2;
+            int offset = Short.toUnsignedInt(ByteArrays.getShort(src, srcOff));
+            srcOff += 2;
 
-            int matchPosition = targetPosition - offset;
-            if (matchPosition < targetOffset || offset == 0) {
+            int matchPosition = dstOff - offset;
+            if (matchPosition < dstOffOrig || offset == 0) {
                 throw new IOException("Offset out of range");
             }
 
@@ -74,24 +72,24 @@ final class LZ4Decompressor extends Decompressor {
             if (matchLength == 15) {
                 int temp;
                 do {
-                    temp = readByte(source, sourcePosition++);
+                    temp = readByte(src, srcOff++);
                     matchLength += temp;
                 } while (temp == 255);
             }
             matchLength += 4;
 
             // Can't copy past the end of the output
-            if (targetPosition + matchLength > targetLimit) {
+            if (dstOff + matchLength > dstLim) {
                 throw new IOException("Output past end of dst");
             }
-            overlappingCopy(target, matchPosition, targetPosition, matchLength);
-            targetPosition += matchLength;
+            overlappingCopy(dst, matchPosition, dstOff, matchLength);
+            dstOff += matchLength;
         }
     }
 
-    private void overlappingCopy(byte[] array, int sourcePosition, int targetPosition, int length) {
+    private void overlappingCopy(byte[] array, int srcOff, int dstOff, int length) {
         for (int i = 0; i < length; i++) {
-            array[targetPosition + i] = array[sourcePosition + i];
+            array[dstOff + i] = array[srcOff + i];
         }
     }
 

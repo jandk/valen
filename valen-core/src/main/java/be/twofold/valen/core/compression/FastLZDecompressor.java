@@ -3,44 +3,46 @@ package be.twofold.valen.core.compression;
 import java.io.*;
 import java.util.*;
 
-final class FastLZDecompressor extends Decompressor {
+final class FastLZDecompressor extends LZDecompressor {
+    FastLZDecompressor() {
+    }
+
     @Override
     public void decompress(
-        byte[] source, int sourceOffset, int sourceLength,
-        byte[] target, int targetOffset, int targetLength
+        byte[] src, int srcOff, int srcLen,
+        byte[] dst, int dstOff, int dstLen
     ) throws IOException {
-        Objects.checkFromIndexSize(sourceOffset, sourceLength, source.length);
-        Objects.checkFromIndexSize(targetOffset, targetLength, target.length);
-        Level level = Level.from(source[sourceOffset]);
+        Objects.checkFromIndexSize(srcOff, srcLen, src.length);
+        Objects.checkFromIndexSize(dstOff, dstLen, dst.length);
+        Level level = Level.from(src[srcOff]);
 
-        int sourceLimit = sourceOffset + sourceLength;
-        int targetLimit = targetOffset + targetLength;
-        int sourcePosition = sourceOffset;
-        int targetPosition = targetOffset;
+        int sourceLimit = srcOff + srcLen;
+        int targetLimit = dstOff + dstLen;
+        int dstOffOrig = dstOff;
 
         boolean loop = true;
-        int opcode = source[sourcePosition++] & 31;
+        int opcode = src[srcOff++] & 31;
         do {
             if ((opcode & 0xE0) == 0x00) {
                 int literalLength = (opcode & 0x1F) + 1;
-                if (sourcePosition + literalLength > sourceLimit) {
+                if (srcOff + literalLength > sourceLimit) {
                     throw new IOException("Input too small");
                 }
-                if (targetPosition + literalLength > targetLimit) {
+                if (dstOff + literalLength > targetLimit) {
                     throw new IOException("Output too small");
                 }
-                System.arraycopy(source, sourcePosition, target, targetPosition, literalLength);
-                sourcePosition += literalLength;
-                targetPosition += literalLength;
+                System.arraycopy(src, srcOff, dst, dstOff, literalLength);
+                srcOff += literalLength;
+                dstOff += literalLength;
             } else {
                 int matchLength = (opcode >> 5) + 2;
                 if ((opcode & 0xE0) == 0xE0) {
                     switch (level) {
-                        case One -> matchLength += readByte(source, sourcePosition++);
+                        case One -> matchLength += readByte(src, srcOff++);
                         case Two -> {
                             int temp;
                             do {
-                                temp = readByte(source, sourcePosition++);
+                                temp = readByte(src, srcOff++);
                                 matchLength += temp;
                             } while (temp == 255);
                         }
@@ -49,29 +51,29 @@ final class FastLZDecompressor extends Decompressor {
 
                 int offset = (opcode & 31) << 8;
                 switch (level) {
-                    case One -> offset += readByte(source, sourcePosition++);
+                    case One -> offset += readByte(src, srcOff++);
                     case Two -> {
-                        int temp = readByte(source, sourcePosition++);
+                        int temp = readByte(src, srcOff++);
                         offset += temp;
 
                         if (temp == 255 && (opcode & 31) == 31) {
-                            offset += readByte(source, sourcePosition++) << 8;
-                            offset += readByte(source, sourcePosition++);
+                            offset += readByte(src, srcOff++) << 8;
+                            offset += readByte(src, srcOff++);
                         }
                     }
                 }
 
-                int matchPosition = targetPosition - offset - 1;
-                if (matchPosition < targetOffset) {
+                int matchPosition = dstOff - offset - 1;
+                if (matchPosition < dstOffOrig) {
                     throw new IOException("Offset out of range");
                 }
 
-                overlappingCopy(target, matchPosition, targetPosition, matchLength);
-                targetPosition += matchLength;
+                overlappingCopy(dst, matchPosition, dstOff, matchLength);
+                dstOff += matchLength;
             }
 
-            if (sourcePosition < sourceLimit) {
-                opcode = readByte(source, sourcePosition++);
+            if (srcOff < sourceLimit) {
+                opcode = readByte(src, srcOff++);
             } else {
                 loop = false;
             }

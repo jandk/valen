@@ -4,17 +4,17 @@ import be.twofold.valen.core.util.*;
 
 import java.io.*;
 
-final class NullDecompressor extends Decompressor {
+final class NullDecompressor implements Decompressor {
 
     @Override
     public void decompress(
-        byte[] source, int sourceOffset, int sourceLength,
-        byte[] target, int targetOffset, int targetLength
+        byte[] src, int srcOff, int srcLen,
+        byte[] dst, int dstOff, int dstLen
     ) throws IOException {
-        Check.fromIndexSize(sourceOffset, sourceLength, source.length);
-        Check.fromIndexSize(targetOffset, targetLength, target.length);
+        Check.fromIndexSize(srcOff, srcLen, src.length);
+        Check.fromIndexSize(dstOff, dstLen, dst.length);
 
-        if (sourceLength != targetLength) {
+        if (srcLen != dstLen) {
             throw new IOException("Invalid decompressed size");
         }
     }
