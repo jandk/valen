@@ -23,8 +23,8 @@
     </modules>
 
     <properties>
-        <maven.compiler.source>21</maven.compiler.source>
-        <maven.compiler.target>21</maven.compiler.target>
+        <maven.compiler.source>23</maven.compiler.source>
+        <maven.compiler.target>23</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <dapper.version>2.41.2</dapper.version>
@@ -160,11 +160,6 @@
                 <groupId>io.github.jbock-java</groupId>
                 <artifactId>dapper</artifactId>
                 <version>${dapper.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>net.java.dev.jna</groupId>
-                <artifactId>jna-jpms</artifactId>
-                <version>5.14.0</version>
             </dependency>
             <dependency>
                 <groupId>org.openjfx</groupId>

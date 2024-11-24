@@ -1,22 +1,18 @@
 package be.twofold.valen.core.compression.oodle;
 
-import be.twofold.valen.core.compression.jna.*;
-
-public enum OodleLZ_Verbosity implements NativeEnum {
+public enum OodleLZ_Verbosity {
     None(0),
     Minimal(1),
     Some(2),
-    Lots(3),
-    Force32(0x40000000);
+    Lots(3);
 
-    private final int nativeValue;
+    private final int value;
 
     OodleLZ_Verbosity(int nativeValue) {
-        this.nativeValue = nativeValue;
+        this.value = nativeValue;
     }
 
-    @Override
-    public int nativeValue() {
-        return nativeValue;
+    public int value() {
+        return value;
     }
 }

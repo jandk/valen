@@ -1,13 +1,13 @@
 package be.twofold.valen.game.eternal.resource;
 
-import be.twofold.valen.core.compression.*;
+import be.twofold.valen.game.eternal.reader.resource.*;
 
 public record Resource(
     ResourceKey key,
     int offset,
     int compressedSize,
     int uncompressedSize,
-    Compression compression,
+    ResourceCompressionMode compression,
     long hash
 ) implements Comparable<Resource> {
     public ResourceName name() {

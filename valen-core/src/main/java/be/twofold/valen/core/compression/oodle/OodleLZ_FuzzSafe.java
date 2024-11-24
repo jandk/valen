@@ -1,19 +1,16 @@
 package be.twofold.valen.core.compression.oodle;
 
-import be.twofold.valen.core.compression.jna.*;
-
-public enum OodleLZ_FuzzSafe implements NativeEnum {
+public enum OodleLZ_FuzzSafe {
     No(0),
     Yes(1);
 
-    private final int nativeValue;
+    private final int value;
 
-    OodleLZ_FuzzSafe(int nativeValue) {
-        this.nativeValue = nativeValue;
+    OodleLZ_FuzzSafe(int value) {
+        this.value = value;
     }
 
-    @Override
-    public int nativeValue() {
-        return nativeValue;
+    public int value() {
+        return value;
     }
 }

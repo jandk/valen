@@ -1,6 +1,5 @@
 module valen.app {
     requires com.google.gson;
-    requires com.sun.jna;
     requires java.desktop;
     requires java.sql;
     requires javafx.graphics;

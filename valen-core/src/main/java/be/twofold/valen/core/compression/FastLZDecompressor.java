@@ -1,7 +1,8 @@
 package be.twofold.valen.core.compression;
 
+import be.twofold.valen.core.util.*;
+
 import java.io.*;
-import java.util.*;
 
 final class FastLZDecompressor extends LZDecompressor {
     FastLZDecompressor() {
@@ -12,8 +13,8 @@ final class FastLZDecompressor extends LZDecompressor {
         byte[] src, int srcOff, int srcLen,
         byte[] dst, int dstOff, int dstLen
     ) throws IOException {
-        Objects.checkFromIndexSize(srcOff, srcLen, src.length);
-        Objects.checkFromIndexSize(dstOff, dstLen, dst.length);
+        Check.fromIndexSize(srcOff, srcLen, src.length);
+        Check.fromIndexSize(dstOff, dstLen, dst.length);
         Level level = Level.from(src[srcOff]);
 
         int srcLim = srcOff + srcLen;

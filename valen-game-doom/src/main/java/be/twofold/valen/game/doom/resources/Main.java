@@ -23,7 +23,7 @@ public class Main {
                 byte[] decompressed = compressed;
 
                 if (entry.size() != entry.sizeCompressed()) {
-                    decompressed = Compression.InflateRaw.decompress(compressed, entry.size());
+                    decompressed = Decompressor.inflate(true).decompress(compressed, entry.size());
                 }
 
                 var dest = Path.of("D:\\Projects\\2016\\Extracted").resolve(entry.fileName());

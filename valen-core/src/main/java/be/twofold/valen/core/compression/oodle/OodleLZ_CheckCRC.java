@@ -1,20 +1,16 @@
 package be.twofold.valen.core.compression.oodle;
 
-import be.twofold.valen.core.compression.jna.*;
-
-public enum OodleLZ_CheckCRC implements NativeEnum {
+public enum OodleLZ_CheckCRC {
     No(0),
-    Yes(1),
-    Force32(0x40000000);
+    Yes(1);
 
-    private final int nativeValue;
+    private final int value;
 
-    OodleLZ_CheckCRC(int nativeValue) {
-        this.nativeValue = nativeValue;
+    OodleLZ_CheckCRC(int value) {
+        this.value = value;
     }
 
-    @Override
-    public int nativeValue() {
-        return nativeValue;
+    public int value() {
+        return value;
     }
 }

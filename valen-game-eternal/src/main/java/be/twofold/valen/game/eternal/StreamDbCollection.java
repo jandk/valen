@@ -1,6 +1,7 @@
 package be.twofold.valen.game.eternal;
 
 import be.twofold.valen.core.compression.*;
+import be.twofold.valen.core.util.*;
 import be.twofold.valen.game.eternal.reader.packagemapspec.*;
 import be.twofold.valen.game.eternal.stream.*;
 
@@ -10,12 +11,14 @@ import java.util.*;
 
 final class StreamDbCollection {
     private final List<StreamDbFile> files;
+    private final Decompressor decompressor;
 
-    private StreamDbCollection(List<StreamDbFile> files) {
+    private StreamDbCollection(List<StreamDbFile> files, Decompressor decompressor) {
         this.files = List.copyOf(files);
+        this.decompressor = Check.notNull(decompressor);
     }
 
-    static StreamDbCollection load(Path base, PackageMapSpec spec) throws IOException {
+    static StreamDbCollection load(Path base, PackageMapSpec spec, Decompressor decompressor) throws IOException {
         var paths = spec.files().stream()
             .filter(s -> s.endsWith(".streamdb"))
             .map(base::resolve)
@@ -25,7 +28,7 @@ final class StreamDbCollection {
         for (var path : paths) {
             files.add(new StreamDbFile(path));
         }
-        return new StreamDbCollection(files);
+        return new StreamDbCollection(files, decompressor);
     }
 
     boolean exists(long identity) {
@@ -45,8 +48,7 @@ final class StreamDbCollection {
                 return compressed;
             }
 
-            return Compression.Oodle
-                .decompress(compressed, uncompressedSize);
+            return decompressor.decompress(compressed, uncompressedSize);
         }
         throw new IOException(String.format("Unknown stream: 0x%016x", identity));
     }

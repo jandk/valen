@@ -3,12 +3,19 @@ package be.twofold.valen.game.eternal.reader.filecompressed;
 import be.twofold.valen.core.compression.*;
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.io.*;
+import be.twofold.valen.core.util.*;
 import be.twofold.valen.game.eternal.reader.*;
 import be.twofold.valen.game.eternal.resource.*;
 
 import java.io.*;
 
 public final class FileCompressedReader implements ResourceReader<byte[]> {
+    private final Decompressor decompressor;
+
+    public FileCompressedReader(Decompressor decompressor) {
+        this.decompressor = Check.notNull(decompressor);
+    }
+
     @Override
     public boolean canRead(ResourceKey key) {
         return key.type() == ResourceType.CompFile
@@ -23,6 +30,6 @@ public final class FileCompressedReader implements ResourceReader<byte[]> {
         }
 
         var compressed = source.readBytes(header.compressedSize());
-        return Compression.Oodle.decompress(compressed, header.uncompressedSize());
+        return decompressor.decompress(compressed, header.uncompressedSize());
     }
 }

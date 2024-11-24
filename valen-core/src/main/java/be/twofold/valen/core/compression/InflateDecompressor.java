@@ -1,13 +1,15 @@
 package be.twofold.valen.core.compression;
 
+import be.twofold.valen.core.util.*;
+
 import java.io.*;
 import java.util.zip.*;
 
 final class InflateDecompressor implements Decompressor {
-    private final boolean nowrap;
+    private final boolean raw;
 
-    InflateDecompressor(boolean nowrap) {
-        this.nowrap = nowrap;
+    InflateDecompressor(boolean raw) {
+        this.raw = raw;
     }
 
     @Override
@@ -15,7 +17,10 @@ final class InflateDecompressor implements Decompressor {
         byte[] src, int srcOff, int srcLen,
         byte[] dst, int dstOff, int dstLen
     ) throws IOException {
-        var inflater = new Inflater(nowrap);
+        Check.fromIndexSize(srcOff, srcLen, src.length);
+        Check.fromIndexSize(dstOff, dstLen, dst.length);
+
+        var inflater = new Inflater(raw);
         inflater.setInput(src, srcOff, srcLen);
 
         while (!inflater.finished()) {

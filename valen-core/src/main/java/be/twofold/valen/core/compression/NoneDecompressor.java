@@ -4,8 +4,7 @@ import be.twofold.valen.core.util.*;
 
 import java.io.*;
 
-final class NullDecompressor implements Decompressor {
-
+final class NoneDecompressor implements Decompressor {
     @Override
     public void decompress(
         byte[] src, int srcOff, int srcLen,
