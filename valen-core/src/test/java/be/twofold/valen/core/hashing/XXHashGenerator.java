@@ -1,4 +1,4 @@
-package be.twofold.valen.core.util.hash;
+package be.twofold.valen.core.hashing;
 
 final class XXHashGenerator {
     private static final long PRIME32 = 0x000000009E3779B1L;

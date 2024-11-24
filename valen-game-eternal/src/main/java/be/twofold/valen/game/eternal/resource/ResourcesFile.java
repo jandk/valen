@@ -60,7 +60,8 @@ public final class ResourcesFile implements Closeable {
             entry.dataSize(),
             entry.uncompressedSize(),
             entry.compMode(),
-            entry.defaultHash()
+            entry.defaultHash(),
+            entry.dataCheckSum()
         );
     }
 

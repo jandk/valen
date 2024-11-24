@@ -1,6 +1,7 @@
 package be.twofold.valen.game.eternal;
 
 import be.twofold.valen.core.compression.*;
+import be.twofold.valen.core.hashing.*;
 import be.twofold.valen.core.util.*;
 import be.twofold.valen.game.eternal.reader.packagemapspec.*;
 import be.twofold.valen.game.eternal.reader.resource.*;
@@ -72,6 +73,11 @@ final class ResourcesCollection {
                 compressed, offset, compressed.length - offset,
                 decompressed, 0, decompressed.length
             );
+
+            long checksum = HashFunction.murmurHash64B(0xDEADBEEFL).hash(decompressed).asLong();
+            if (checksum != entry.get().checksum()) {
+                System.err.println("Checksum mismatch! (" + checksum + " != " + entry.get().checksum() + ")");
+            }
             return decompressed;
         }
         throw new IOException("Unknown resource: " + resource.key());

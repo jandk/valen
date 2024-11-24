@@ -8,7 +8,8 @@ public record Resource(
     int compressedSize,
     int uncompressedSize,
     ResourceCompressionMode compression,
-    long hash
+    long hash,
+    long checksum
 ) implements Comparable<Resource> {
     public ResourceName name() {
         return key.name();

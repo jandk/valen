@@ -1,18 +1,22 @@
-package be.twofold.valen.core.util.hash;
+package be.twofold.valen.core.hashing;
 
 import be.twofold.valen.core.util.*;
 
-public final class XXHash32 {
+final class XXHash32 implements HashFunction {
     private static final int PRIME32_1 = 0x9E3779B1;
     private static final int PRIME32_2 = 0x85EBCA77;
     private static final int PRIME32_3 = 0xC2B2AE3D;
     private static final int PRIME32_4 = 0x27D4EB2F;
     private static final int PRIME32_5 = 0x165667B1;
 
-    private XXHash32() {
+    private final int seed;
+
+    XXHash32(int seed) {
+        this.seed = seed;
     }
 
-    public static int hash(byte[] array, int offset, int length, int seed) {
+    @Override
+    public HashCode hash(byte[] array, int offset, int length) {
         Check.fromIndexSize(offset, length, array.length);
         int limit = offset + length;
 
@@ -70,7 +74,8 @@ public final class XXHash32 {
         acc = acc ^ (acc >>> 13);
         acc = acc * PRIME32_3;
         acc = acc ^ (acc >>> 16);
-        return acc;
+
+        return new HashCode.IntHashCode(acc);
     }
 
     private static int round(int acc, int lane) {

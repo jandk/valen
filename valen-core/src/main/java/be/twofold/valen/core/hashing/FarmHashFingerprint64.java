@@ -16,7 +16,7 @@
  * Adopted from Guava's FarmHashFingerprint64.java
  */
 
-package be.twofold.valen.core.util.hash;
+package be.twofold.valen.core.hashing;
 
 import be.twofold.valen.core.util.*;
 
@@ -37,22 +37,20 @@ import be.twofold.valen.core.util.*;
  * @author Kyle Maddison
  * @author Geoff Pike
  */
-public final class FarmHashFingerprint64 {
+final class FarmHashFingerprint64 implements HashFunction {
     // Some primes between 2^63 and 2^64 for various uses.
     private static final long K0 = 0xc3a5c85c97cb3127L;
     private static final long K1 = 0xb492b66fbe98f273L;
     private static final long K2 = 0x9ae16a3b2f90404fL;
 
-    private FarmHashFingerprint64() {
+    FarmHashFingerprint64() {
     }
 
-    public static long hashBytes(byte[] input) {
-        return hashBytes(input, 0, input.length);
-    }
-
-    public static long hashBytes(byte[] input, int off, int len) {
-        Check.fromIndexSize(off, len, input.length);
-        return fingerprint(input, off, len);
+    @Override
+    public HashCode hash(byte[] array, int offset, int length) {
+        Check.fromIndexSize(offset, length, array.length);
+        long hash = fingerprint(array, offset, length);
+        return new HashCode.LongHashCode(hash);
     }
 
     // End of public functions.
