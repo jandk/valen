@@ -91,7 +91,7 @@
                     <appVersion>1.0</appVersion>
                     <!-- TODO: copyright? -->
                     <description>A video game resource extractor</description>
-                    <icon>${project.basedir}/src/main/resources/valen.ico</icon>
+                    <icon>valen.ico</icon>
                     <name>Valen</name>
                     <destination>target/dist</destination>
                     <vendor>Twofold</vendor>

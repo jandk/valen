@@ -4,6 +4,7 @@ import be.twofold.valen.core.game.*;
 import be.twofold.valen.ui.settings.*;
 import javafx.application.*;
 import javafx.scene.*;
+import javafx.scene.image.*;
 import javafx.stage.*;
 
 import java.io.*;
@@ -47,6 +48,12 @@ public class MainWindow extends Application {
 //        scene.getAccelerators().forEach((key, value) -> System.out.println(key + " -> " + value));
 //        scene.getAccelerators().put(KeyCombination.valueOf("Ctrl+P"), window::togglePreview);
 
+        var icons = List.of(16, 24, 32, 48, 64, 96, 128).stream()
+            .map(i -> new Image(getClass().getResourceAsStream("/appicon/valen-" + i + ".png")))
+            .toList();
+
+        primaryStage.setTitle("Valen");
+        primaryStage.getIcons().setAll(icons);
         primaryStage.setScene(scene);
         primaryStage.show();
     }
