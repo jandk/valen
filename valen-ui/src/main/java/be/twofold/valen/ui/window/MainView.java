@@ -10,9 +10,11 @@ public interface MainView extends View<MainViewListener> {
 
     boolean isPreviewVisible();
 
+    void setArchives(List<String> archives);
+
     void setFileTree(TreeItem<String> root);
 
-    void setAssets(List<Asset> resources);
+    void setFilteredAssets(List<Asset> assets);
 
     void setupPreview(Asset asset, Object assetData);
 

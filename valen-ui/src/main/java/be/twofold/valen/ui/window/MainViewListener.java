@@ -4,6 +4,8 @@ import be.twofold.valen.core.game.*;
 
 public interface MainViewListener {
 
+    void onArchiveSelected(String archiveName);
+
     void onPathSelected(String path);
 
     void onAssetSelected(Asset asset);

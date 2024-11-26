@@ -10,6 +10,7 @@ import java.io.*;
 import java.util.*;
 
 public class MainPresenter extends AbstractPresenter<MainView> {
+    private Game game;
     private Archive archive;
     private Asset lastAsset;
 
@@ -18,6 +19,11 @@ public class MainPresenter extends AbstractPresenter<MainView> {
         super(view);
 
         getView().addListener(new MainViewListener() {
+            @Override
+            public void onArchiveSelected(String archiveName) {
+                loadArchive(archiveName);
+            }
+
             @Override
             public void onPathSelected(String path) {
                 loadResources(path);
@@ -52,15 +58,21 @@ public class MainPresenter extends AbstractPresenter<MainView> {
         });
     }
 
-    public void setArchive(Archive archive) {
-        this.archive = archive;
-        setResources(archive.assets());
+    public void setGame(Game game) {
+        this.game = game;
+        getView().setArchives(game.archiveNames());
     }
 
-    public void setResources(List<Asset> assets) {
-        Node node = buildNodeTree(assets);
-        TreeItem<String> convert = convert(node);
-        getView().setFileTree(convert);
+
+    private void loadArchive(String archiveName) {
+        try {
+            archive = game.loadArchive(archiveName);
+            Node node = buildNodeTree(archive.assets());
+            TreeItem<String> convert = convert(node);
+            getView().setFileTree(convert);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 
     private void loadResources(String path) {
@@ -68,7 +80,7 @@ public class MainPresenter extends AbstractPresenter<MainView> {
             .filter(r -> r.id().pathName().equals(path))
             .toList();
 
-        getView().setAssets(assets);
+        getView().setFilteredAssets(assets);
     }
 
     private TreeItem<String> convert(Node node) {

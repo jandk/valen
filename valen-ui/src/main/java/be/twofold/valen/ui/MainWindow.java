@@ -2,9 +2,11 @@ package be.twofold.valen.ui;
 
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.ui.settings.*;
+import be.twofold.valen.ui.window.*;
 import javafx.application.*;
 import javafx.scene.*;
 import javafx.scene.image.*;
+import javafx.scene.input.*;
 import javafx.stage.*;
 
 import java.io.*;
@@ -40,7 +42,7 @@ public class MainWindow extends Application {
 //        }
 
         var presenter = DaggerPresenterFactory.create().presenter();
-        presenter.setArchive(archive);
+        presenter.setGame(game);
         var scene = new Scene(presenter.getView().getView());
 //        System.out.println("Mnemonics:");
 //        scene.getMnemonics().forEach((key, value) -> System.out.println(key + " -> " + value));
@@ -51,6 +53,8 @@ public class MainWindow extends Application {
         var icons = List.of(16, 24, 32, 48, 64, 96, 128).stream()
             .map(i -> new Image(getClass().getResourceAsStream("/appicon/valen-" + i + ".png")))
             .toList();
+
+        scene.getStylesheets().add(getClass().getResource("/style.css").toExternalForm());
 
         primaryStage.setTitle("Valen");
         primaryStage.getIcons().setAll(icons);

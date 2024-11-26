@@ -15,6 +15,8 @@ import java.util.*;
 public final class MainViewFx extends AbstractView<MainViewListener> implements MainView {
     private final BorderPane view = new BorderPane();
     private final SplitPane splitPane = new SplitPane();
+
+    private final ChoiceBox<String> archiveChooser = new ChoiceBox<>();
     private final TreeView<String> treeView = new TreeView<>();
     private final TableView<Asset> tableView = new TableView<>();
 
@@ -38,6 +40,12 @@ public final class MainViewFx extends AbstractView<MainViewListener> implements 
     }
 
     @Override
+    public void setArchives(List<String> archives) {
+        archiveChooser.getItems().setAll(archives);
+        archiveChooser.getSelectionModel().select(0);
+    }
+
+    @Override
     public void setFileTree(TreeItem<String> root) {
         treeView.setRoot(root);
         treeView.getSelectionModel().select(root);
@@ -45,8 +53,8 @@ public final class MainViewFx extends AbstractView<MainViewListener> implements 
     }
 
     @Override
-    public void setAssets(List<Asset> resources) {
-        tableView.getItems().setAll(resources);
+    public void setFilteredAssets(List<Asset> assets) {
+        tableView.getItems().setAll(assets);
     }
 
     @Override
@@ -64,7 +72,7 @@ public final class MainViewFx extends AbstractView<MainViewListener> implements 
             }
             case 2 -> {
                 splitPane.getItems().add(tabPane);
-                splitPane.setDividerPositions(positions[0], 0.75);
+                splitPane.setDividerPositions(positions[0], 0.60);
                 listeners().fire().onPreviewVisibleChanged(true);
             }
             default -> throw new IllegalStateException("Unexpected number of items: " + splitPane.getItems().size());
@@ -72,15 +80,10 @@ public final class MainViewFx extends AbstractView<MainViewListener> implements 
     }
 
     private void buildUI() {
-        view.setPrefSize(900, 600);
-        view.setTop(buildMenu());
+        view.setPrefSize(1200, 800);
+        view.setTop(buildToolBar());
         view.setCenter(buildMainContent());
         view.setBottom(buildStatusBar());
-//            getChildren().addAll(
-//                buildMenu(),
-//                buildMainContent(),
-//                buildStatusBar()
-//            );
     }
 
     private SplitPane buildMainContent() {
@@ -94,7 +97,7 @@ public final class MainViewFx extends AbstractView<MainViewListener> implements 
     }
 
     private TreeView<String> buildTreeView() {
-        treeView.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
+        treeView.getSelectionModel().selectedItemProperty().addListener((_, _, newValue) -> {
             if (newValue != null) {
                 List<String> path = new ArrayList<>();
                 for (var item = newValue; item != null; item = item.getParent()) {
@@ -108,7 +111,7 @@ public final class MainViewFx extends AbstractView<MainViewListener> implements 
     }
 
     private TableView<Asset> buildTableView() {
-        tableView.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
+        tableView.getSelectionModel().selectedItemProperty().addListener((_, _, newValue) -> {
             if (newValue != null) {
                 listeners().fire().onAssetSelected(newValue);
             }
@@ -134,9 +137,14 @@ public final class MainViewFx extends AbstractView<MainViewListener> implements 
     }
 
     private HBox buildStatusBar() {
-        var leftStatus = new Label("Left status");
-        leftStatus.setTextFill(Color.color(0.625, 0.625, 0.625));
-        HBox.setHgrow(leftStatus, Priority.ALWAYS);
+        var searchTextField = new TextField();
+        searchTextField.setId("searchTextField");
+        searchTextField.setPromptText("Search");
+
+        var searchClearButton = new Button("Clear");
+        searchClearButton.setDisable(true);
+        searchClearButton.setOnAction(_ -> searchTextField.setText(""));
+        searchClearButton.disableProperty().bind(searchTextField.textProperty().isEmpty());
 
         var pane = new Pane();
         HBox.setHgrow(pane, Priority.ALWAYS);
@@ -145,96 +153,34 @@ public final class MainViewFx extends AbstractView<MainViewListener> implements 
         rightStatus.setTextFill(Color.color(0.625, 0.625, 0.625));
         HBox.setHgrow(rightStatus, Priority.NEVER);
 
-        var hBox = new HBox(leftStatus, pane, rightStatus);
+        var hBox = new HBox(
+            searchTextField, searchClearButton,
+            pane,
+            rightStatus
+        );
         hBox.setAlignment(Pos.CENTER_LEFT);
         hBox.setSpacing(5.0);
         hBox.setPadding(new Insets(3.0));
         return hBox;
     }
 
-    private Menu buildMenuFile() {
-        var menuFileLoadGame = new MenuItem("Load Game");
-//        var menuFileNew = new MenuItem("New");
-//        var menuFileOpen = new MenuItem("Open");
-//        var menuFileOpenRecent = new Menu("Open Recent");
+    private Control buildToolBar() {
+        archiveChooser.getSelectionModel().selectedItemProperty().addListener((_, _, newValue) -> {
+            listeners().fire().onArchiveSelected(newValue);
+        });
 
-        var menuFileClose = new MenuItem("Close");
-        var menuFileSave = new MenuItem("Save");
-        var menuFileSaveAs = new MenuItem("Save As");
-        var menuFileRevert = new MenuItem("Revert");
+        Pane pane = new Pane();
+        HBox.setHgrow(pane, Priority.ALWAYS);
 
-        var menuFilePreferences = new MenuItem("Preferences");
+        Button previewButton = new Button("Preview");
+        previewButton.onActionProperty().set(_ -> togglePreview());
 
-        var menuFileQuit = new MenuItem("Quit");
-
-        var menuFile = new Menu("File");
-        menuFile.getItems().addAll(
-            menuFileLoadGame,
-//            menuFileNew,
-//            menuFileOpen,
-//            menuFileOpenRecent,
-            new SeparatorMenuItem(),
-            menuFileClose,
-            menuFileSave,
-            menuFileSaveAs,
-            menuFileRevert,
-            new SeparatorMenuItem(),
-            menuFilePreferences,
-            new SeparatorMenuItem(),
-            menuFileQuit
+        return new ToolBar(
+            new Button("Load Game"),
+            archiveChooser,
+            pane,
+            previewButton,
+            new Button("Settings")
         );
-        return menuFile;
-    }
-
-    private Menu buildMenuEdit() {
-        var menuEditUndo = new MenuItem("Undo");
-        var menuEditRedo = new MenuItem("Redo");
-        var menuEditCut = new MenuItem("Cut");
-        var menuEditCopy = new MenuItem("Copy");
-        var menuEditPaste = new MenuItem("Paste");
-        var menuEditDelete = new MenuItem("Delete");
-        var menuEditSelectAll = new MenuItem("Select All");
-        var menuEditUnselectAll = new MenuItem("Unselect All");
-
-        var menuEdit = new Menu("Edit");
-        menuEdit.getItems().addAll(
-            menuEditUndo,
-            menuEditRedo,
-            new SeparatorMenuItem(),
-            menuEditCut,
-            menuEditCopy,
-            menuEditPaste,
-            menuEditDelete,
-            new SeparatorMenuItem(),
-            menuEditSelectAll,
-            menuEditUnselectAll
-        );
-        return menuEdit;
-    }
-
-    private Menu buildMenuView() {
-        var menuView = new Menu("View");
-        var menuViewPreview = new MenuItem("Preview");
-        menuViewPreview.onActionProperty().set(event -> togglePreview());
-        menuView.getItems().addAll(menuViewPreview);
-        return menuView;
-    }
-
-    private Menu buildMenuHelp() {
-        var menuHelpAbout = new MenuItem("About");
-        var menuHelp = new Menu("Help");
-        menuHelp.getItems().add(menuHelpAbout);
-        return menuHelp;
-    }
-
-    private MenuBar buildMenu() {
-        var menuBar = new MenuBar();
-        menuBar.getMenus().addAll(
-            buildMenuFile(),
-            buildMenuEdit(),
-            buildMenuView(),
-            buildMenuHelp()
-        );
-        return menuBar;
     }
 }
