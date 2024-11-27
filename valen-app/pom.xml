@@ -22,11 +22,11 @@
         </dependency>
         <dependency>
             <groupId>be.twofold</groupId>
-            <artifactId>valen-export</artifactId>
+            <artifactId>valen-export-dds</artifactId>
         </dependency>
         <dependency>
             <groupId>be.twofold</groupId>
-            <artifactId>valen-export-dds</artifactId>
+            <artifactId>valen-export-png</artifactId>
         </dependency>
         <dependency>
             <groupId>be.twofold</groupId>

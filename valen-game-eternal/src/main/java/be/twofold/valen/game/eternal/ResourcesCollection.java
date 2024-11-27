@@ -20,14 +20,9 @@ final class ResourcesCollection {
         this.decompressor = Check.notNull(decompressor);
     }
 
-    static ResourcesCollection load(Path base, PackageMapSpec spec, String name, Decompressor decompressor) throws IOException {
-        var mapFiles = spec.mapFiles().get(name);
-
-        var filesToLoad = new LinkedHashSet<>(mapFiles);
-        filesToLoad.addAll(spec.mapFiles().get("common"));
-        filesToLoad.addAll(spec.mapFiles().get("warehouse"));
-
-        var paths = filesToLoad.stream()
+    static ResourcesCollection load(Path base, PackageMapSpec spec, Decompressor decompressor, String... names) throws IOException {
+        var paths = Arrays.stream(names)
+            .flatMap(name -> spec.mapFiles().get(name).stream())
             .filter(s -> s.endsWith(".resources"))
             .map(base::resolve)
             .toList();

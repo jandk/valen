@@ -10,6 +10,4 @@ module valen.ui {
     exports be.twofold.valen.ui.settings;
 
     opens be.twofold.valen.ui.settings to com.google.gson;
-
-    uses be.twofold.valen.core.game.GameFactory;
 }

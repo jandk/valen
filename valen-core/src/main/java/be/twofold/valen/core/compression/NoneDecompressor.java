@@ -14,7 +14,9 @@ final class NoneDecompressor implements Decompressor {
         Check.fromIndexSize(dstOff, dstLen, dst.length);
 
         if (srcLen != dstLen) {
-            throw new IOException("Invalid decompressed size");
+            throw new IOException("srcLen (" + srcLen + ") and dstLen (" + dstLen + ") do not match");
         }
+
+        System.arraycopy(src, srcOff, dst, dstOff, srcLen);
     }
 }

@@ -22,6 +22,9 @@ public final class DataViewer extends TreeView<PreviewItem> implements Viewer {
 
     @Override
     public void setData(Object data) {
+        if (data == null) {
+            return;
+        }
         if (data.getClass().isRecord() || data instanceof Map<?, ?>) {
             var rootItem = new PreviewValueTreeItem(new PreviewItem(data.getClass().getSimpleName(), data));
             rootItem.setExpanded(true);

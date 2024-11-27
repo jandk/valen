@@ -2,19 +2,17 @@ package be.twofold.valen.ui;
 
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.ui.settings.*;
-import be.twofold.valen.ui.window.*;
 import javafx.application.*;
 import javafx.scene.*;
 import javafx.scene.image.*;
-import javafx.scene.input.*;
 import javafx.stage.*;
 
 import java.io.*;
-import java.nio.file.*;
-import java.util.*;
+import java.util.stream.*;
 
 public class MainWindow extends Application {
     @Override
+    @SuppressWarnings("DataFlowIssue")
     public void start(Stage primaryStage) throws IOException {
         if (SettingsManager.get().getGameExecutable().isEmpty()) {
             var fileChooser = new FileChooser();
@@ -28,21 +26,7 @@ public class MainWindow extends Application {
             }
         }
 
-        var path = SettingsManager.get().getGameExecutable().get();
-        var game = resolveGameFactory(path).load(path);
-        var archive = game.loadArchive("common");
-
-//        var manager = DaggerManagerFactory.create().fileManager();
-//        manager.load(SettingsManager.get().getGameDirectory().get().resolve("base"));
-//        try {
-//            manager.select("common");
-//        } catch (IOException e) {
-//            System.out.println("Failed to select common");
-//            throw new UncheckedIOException(e);
-//        }
-
         var presenter = DaggerPresenterFactory.create().presenter();
-        presenter.setGame(game);
         var scene = new Scene(presenter.getView().getView());
 //        System.out.println("Mnemonics:");
 //        scene.getMnemonics().forEach((key, value) -> System.out.println(key + " -> " + value));
@@ -50,7 +34,7 @@ public class MainWindow extends Application {
 //        scene.getAccelerators().forEach((key, value) -> System.out.println(key + " -> " + value));
 //        scene.getAccelerators().put(KeyCombination.valueOf("Ctrl+P"), window::togglePreview);
 
-        var icons = List.of(16, 24, 32, 48, 64, 96, 128).stream()
+        var icons = Stream.of(16, 24, 32, 48, 64, 96, 128)
             .map(i -> new Image(getClass().getResourceAsStream("/appicon/valen-" + i + ".png")))
             .toList();
 
@@ -60,13 +44,9 @@ public class MainWindow extends Application {
         primaryStage.getIcons().setAll(icons);
         primaryStage.setScene(scene);
         primaryStage.show();
-    }
 
-    private static GameFactory<?> resolveGameFactory(Path path) {
-        return ServiceLoader.load(GameFactory.class).stream()
-            .map(ServiceLoader.Provider::get)
-            .filter(factory -> factory.canLoad(path))
-            .findFirst()
-            .orElseThrow(() -> new IllegalArgumentException("No GameFactory found for " + path));
+        var path = SettingsManager.get().getGameExecutable().get();
+        var game = GameFactory.resolve(path).load(path);
+        presenter.setGame(game);
     }
 }

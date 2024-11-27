@@ -14,7 +14,6 @@
         <module>valen-export-dds</module>
         <module>valen-export-gltf</module>
         <module>valen-export-png</module>
-        <module>valen-export</module>
         <module>valen-game-doom</module>
         <module>valen-game-eternal</module>
         <module>valen-gltf</module>
@@ -88,11 +87,6 @@
             <!-- Project -->
             <dependency>
                 <groupId>be.twofold</groupId>
-                <artifactId>valen-app</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>be.twofold</groupId>
                 <artifactId>valen-core</artifactId>
                 <version>${project.version}</version>
             </dependency>
@@ -109,11 +103,6 @@
             <dependency>
                 <groupId>be.twofold</groupId>
                 <artifactId>valen-export-png</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>be.twofold</groupId>
-                <artifactId>valen-export</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

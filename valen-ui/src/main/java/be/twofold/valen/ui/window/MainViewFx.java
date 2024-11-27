@@ -16,7 +16,7 @@ public final class MainViewFx extends AbstractView<MainViewListener> implements 
     private final BorderPane view = new BorderPane();
     private final SplitPane splitPane = new SplitPane();
 
-    private final ChoiceBox<String> archiveChooser = new ChoiceBox<>();
+    private final ComboBox<String> archiveChooser = new ComboBox<>();
     private final TreeView<String> treeView = new TreeView<>();
     private final TableView<Asset> tableView = new TableView<>();
 
@@ -42,7 +42,6 @@ public final class MainViewFx extends AbstractView<MainViewListener> implements 
     @Override
     public void setArchives(List<String> archives) {
         archiveChooser.getItems().setAll(archives);
-        archiveChooser.getSelectionModel().select(0);
     }
 
     @Override
@@ -78,6 +77,8 @@ public final class MainViewFx extends AbstractView<MainViewListener> implements 
             default -> throw new IllegalStateException("Unexpected number of items: " + splitPane.getItems().size());
         }
     }
+
+    // region UI
 
     private void buildUI() {
         view.setPrefSize(1200, 800);
@@ -118,10 +119,12 @@ public final class MainViewFx extends AbstractView<MainViewListener> implements 
         });
         TableColumn<Asset, String> nameColumn = new TableColumn<>();
         nameColumn.setText("Name");
+        nameColumn.setPrefWidth(200);
         nameColumn.setCellValueFactory(param -> new ReadOnlyObjectWrapper<>(param.getValue().id().fileName()));
 
         TableColumn<Asset, String> typeColumn = new TableColumn<>();
         typeColumn.setText("Type");
+        typeColumn.setPrefWidth(40);
         typeColumn.setCellValueFactory(param -> new ReadOnlyObjectWrapper<>(param.getValue().type().name()));
 
 //        TableColumn<Asset<?>, Size> compressedColumn = new TableColumn<>();
@@ -133,6 +136,7 @@ public final class MainViewFx extends AbstractView<MainViewListener> implements 
 //        uncompressedColumn.setCellValueFactory(param -> new ReadOnlyObjectWrapper<>(new Size(param.getValue().uncompressedSize())));
 
         tableView.getColumns().addAll(nameColumn, typeColumn/*, compressedColumn, uncompressedColumn*/);
+        tableView.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN); // TODO: Maybe change this?
         return tableView;
     }
 
@@ -183,4 +187,7 @@ public final class MainViewFx extends AbstractView<MainViewListener> implements 
             new Button("Settings")
         );
     }
+
+    // endregion
+
 }

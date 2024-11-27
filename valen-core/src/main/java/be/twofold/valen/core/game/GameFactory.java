@@ -13,4 +13,12 @@ public interface GameFactory<T extends Game> {
     default boolean canLoad(Path path) {
         return executableNames().contains(path.getFileName().toString());
     }
+
+    static GameFactory<?> resolve(Path path) {
+        return ServiceLoader.load(GameFactory.class).stream()
+            .map(ServiceLoader.Provider::get)
+            .filter(factory -> factory.canLoad(path))
+            .findFirst()
+            .orElseThrow(() -> new IllegalArgumentException("No GameFactory found for " + path));
+    }
 }

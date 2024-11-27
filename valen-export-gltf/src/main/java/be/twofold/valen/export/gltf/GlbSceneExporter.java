@@ -1,7 +1,7 @@
 package be.twofold.valen.export.gltf;
 
+import be.twofold.valen.core.export.*;
 import be.twofold.valen.core.scene.*;
-import be.twofold.valen.export.*;
 import be.twofold.valen.export.gltf.mappers.GltfUtils;
 import be.twofold.valen.export.gltf.mappers.*;
 import be.twofold.valen.gltf.*;

@@ -1,7 +1,7 @@
 package be.twofold.valen.export.png;
 
+import be.twofold.valen.core.export.*;
 import be.twofold.valen.core.texture.*;
-import be.twofold.valen.export.*;
 
 import java.io.*;
 
