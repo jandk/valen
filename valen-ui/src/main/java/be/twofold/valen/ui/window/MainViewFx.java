@@ -61,20 +61,44 @@ public final class MainViewFx extends AbstractView<MainViewListener> implements 
         tabPane.setData(asset.type(), assetData);
     }
 
-    public void togglePreview() {
-        var positions = splitPane.getDividerPositions();
-        switch (splitPane.getItems().size()) {
-            case 3 -> {
-                splitPane.getItems().remove(2);
-                splitPane.setDividerPositions(positions[0]);
-                listeners().fire().onPreviewVisibleChanged(false);
+    private void selectPath(TreeItem<String> treeItem) {
+        if (treeItem == null) {
+            return;
+        }
+        List<String> path = new ArrayList<>();
+        for (var item = treeItem; item != null; item = item.getParent()) {
+            path.add(item.getValue());
+        }
+        Collections.reverse(path);
+        listeners().fire().onPathSelected(String.join("/", path.subList(1, path.size())));
+    }
+
+    private void selectArchive(String archiveName) {
+        listeners().fire().onArchiveSelected(archiveName);
+    }
+
+    private void selectAsset(Asset newValue) {
+        if (newValue == null) {
+            return;
+        }
+        listeners().fire().onAssetSelected(newValue);
+    }
+
+    private void setPreviewEnabled(boolean enabled) {
+        if (enabled) {
+            if (splitPane.getItems().size() != 2) {
+                return;
             }
-            case 2 -> {
-                splitPane.getItems().add(tabPane);
-                splitPane.setDividerPositions(positions[0], 0.60);
-                listeners().fire().onPreviewVisibleChanged(true);
+            splitPane.getItems().add(tabPane);
+            splitPane.setDividerPositions(splitPane.getDividerPositions()[0], 0.60);
+            listeners().fire().onPreviewVisibleChanged(true);
+        } else {
+            if (splitPane.getItems().size() != 3) {
+                return;
             }
-            default -> throw new IllegalStateException("Unexpected number of items: " + splitPane.getItems().size());
+            splitPane.getItems().remove(2);
+            splitPane.setDividerPositions(splitPane.getDividerPositions()[0]);
+            listeners().fire().onPreviewVisibleChanged(false);
         }
     }
 
@@ -99,23 +123,14 @@ public final class MainViewFx extends AbstractView<MainViewListener> implements 
 
     private TreeView<String> buildTreeView() {
         treeView.getSelectionModel().selectedItemProperty().addListener((_, _, newValue) -> {
-            if (newValue != null) {
-                List<String> path = new ArrayList<>();
-                for (var item = newValue; item != null; item = item.getParent()) {
-                    path.add(item.getValue());
-                }
-                Collections.reverse(path);
-                listeners().fire().onPathSelected(String.join("/", path.subList(1, path.size())));
-            }
+            selectPath(newValue);
         });
         return treeView;
     }
 
     private TableView<Asset> buildTableView() {
         tableView.getSelectionModel().selectedItemProperty().addListener((_, _, newValue) -> {
-            if (newValue != null) {
-                listeners().fire().onAssetSelected(newValue);
-            }
+            selectAsset(newValue);
         });
         TableColumn<Asset, String> nameColumn = new TableColumn<>();
         nameColumn.setText("Name");
@@ -170,14 +185,16 @@ public final class MainViewFx extends AbstractView<MainViewListener> implements 
 
     private Control buildToolBar() {
         archiveChooser.getSelectionModel().selectedItemProperty().addListener((_, _, newValue) -> {
-            listeners().fire().onArchiveSelected(newValue);
+            selectArchive(newValue);
         });
 
         Pane pane = new Pane();
         HBox.setHgrow(pane, Priority.ALWAYS);
 
-        Button previewButton = new Button("Preview");
-        previewButton.onActionProperty().set(_ -> togglePreview());
+        var previewButton = new ToggleButton("Preview");
+        previewButton.selectedProperty().addListener((_, _, newValue) -> {
+            setPreviewEnabled(newValue);
+        });
 
         return new ToolBar(
             new Button("Load Game"),

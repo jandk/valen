@@ -9,7 +9,7 @@ import javafx.scene.control.*;
 import java.io.*;
 import java.util.*;
 
-public class MainPresenter extends AbstractPresenter<MainView> {
+public class MainPresenter extends AbstractPresenter<MainView> implements MainViewListener {
     private Game game;
     private Archive archive;
     private Asset lastAsset;
@@ -18,53 +18,11 @@ public class MainPresenter extends AbstractPresenter<MainView> {
     MainPresenter(MainView view) {
         super(view);
 
-        getView().addListener(new MainViewListener() {
-            @Override
-            public void onArchiveSelected(String archiveName) {
-                loadArchive(archiveName);
-            }
-
-            @Override
-            public void onPathSelected(String path) {
-                loadResources(path);
-            }
-
-            @Override
-            public void onAssetSelected(Asset asset) {
-                if (getView().isPreviewVisible()) {
-                    try {
-                        Object assetData;
-                        if (asset.type() == AssetType.Binary) {
-                            assetData = archive.loadRawAsset(asset.id());
-                        } else {
-                            assetData = archive.loadAsset(asset.id());
-                        }
-                        getView().setupPreview(asset, assetData);
-                    } catch (
-                        IOException e) {
-                        throw new RuntimeException(e);
-                    }
-                } else {
-                    lastAsset = asset;
-                }
-            }
-
-            @Override
-            public void onPreviewVisibleChanged(boolean visible) {
-                if (visible && lastAsset != null) {
-                    onAssetSelected(lastAsset);
-                }
-            }
-        });
+        getView().addListener(this);
     }
 
-    public void setGame(Game game) {
-        this.game = game;
-        getView().setArchives(game.archiveNames());
-    }
-
-
-    private void loadArchive(String archiveName) {
+    @Override
+    public void onArchiveSelected(String archiveName) {
         try {
             archive = game.loadArchive(archiveName);
             Node node = buildNodeTree(archive.assets());
@@ -75,13 +33,46 @@ public class MainPresenter extends AbstractPresenter<MainView> {
         }
     }
 
-    private void loadResources(String path) {
+    @Override
+    public void onPathSelected(String path) {
         var assets = archive.assets().stream()
             .filter(r -> r.id().pathName().equals(path))
             .toList();
 
         getView().setFilteredAssets(assets);
     }
+
+    @Override
+    public void onAssetSelected(Asset asset) {
+        if (getView().isPreviewVisible()) {
+            try {
+                Object assetData;
+                if (asset.type() == AssetType.Binary) {
+                    assetData = archive.loadRawAsset(asset.id());
+                } else {
+                    assetData = archive.loadAsset(asset.id());
+                }
+                getView().setupPreview(asset, assetData);
+            } catch (
+                IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        lastAsset = asset;
+    }
+
+    @Override
+    public void onPreviewVisibleChanged(boolean visible) {
+        if (visible && lastAsset != null) {
+            onAssetSelected(lastAsset);
+        }
+    }
+
+    public void setGame(Game game) {
+        this.game = game;
+        getView().setArchives(game.archiveNames());
+    }
+
 
     private TreeItem<String> convert(Node node) {
         var children = node.children.entrySet().stream()

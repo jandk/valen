@@ -9,9 +9,19 @@ final class ZoomableScrollPane extends ScrollPane {
     private double scaleValue = 1;
     private final Node target;
     private final Node zoomNode;
+    private boolean lockZoomToFit = false;
 
     public ZoomableScrollPane(Node target) {
         this.target = target;
+        this.target.boundsInLocalProperty().addListener((_, _, newValue) -> {
+            System.out.println("targetBounds changed: " + newValue);
+            zoomToFit(newValue);
+        });
+        viewportBoundsProperty().addListener((_, _, newValue) -> {
+            System.out.println("viewportBounds changed: " + newValue);
+            zoomToFit(this.target.getBoundsInLocal());
+        });
+
         this.zoomNode = new Group(target);
 
         VBox outer = new VBox(zoomNode);
@@ -27,10 +37,39 @@ final class ZoomableScrollPane extends ScrollPane {
         setPannable(true);
         setHbarPolicy(ScrollBarPolicy.NEVER);
         setVbarPolicy(ScrollBarPolicy.NEVER);
+
+        updateBounds();
+    }
+
+    void lockZoomToFit() {
+        lockZoomToFit = true;
+        zoomToFit(target.getBoundsInLocal());
+    }
+
+    void setScaleValue(double scaleValue) {
+        this.scaleValue = scaleValue;
+        target.setScaleX(this.scaleValue);
+        target.setScaleY(this.scaleValue);
+    }
+
+    private void zoomToFit(Bounds targetBounds) {
+        if (!lockZoomToFit) {
+            return;
+        }
+
+        var viewportBounds = getViewportBounds();
+
+        double scaleX = viewportBounds.getWidth() / targetBounds.getWidth();
+        double scaleY = viewportBounds.getHeight() / targetBounds.getHeight();
+        scaleValue = Math.min(scaleX, scaleY);
+
+        target.setScaleX(scaleValue);
+        target.setScaleY(scaleValue);
     }
 
     private void onScroll(double delta, Point2D point) {
-        double zoomFactor = Math.exp(delta * 0.1);
+        lockZoomToFit = false;
+        double zoomFactor = Math.pow(2, delta * 0.1);
 
         Bounds innerBounds = zoomNode.getLayoutBounds();
         Bounds viewportBounds = getViewportBounds();

@@ -2,7 +2,6 @@ package be.twofold.valen.ui.viewer.texture;
 
 import be.twofold.valen.ui.*;
 import jakarta.inject.*;
-import javafx.geometry.*;
 import javafx.scene.*;
 import javafx.scene.control.*;
 import javafx.scene.image.*;
@@ -25,6 +24,7 @@ public final class TextureViewFx extends AbstractView<TextureViewListener> imple
     private final ToggleButton bButton = new ToggleButton("B");
     private final ToggleButton aButton = new ToggleButton("A");
     private final ImageView imageView = new ImageView();
+    private final ZoomableScrollPane scrollPane = new ZoomableScrollPane(imageView);
 
     @Inject
     public TextureViewFx() {
@@ -40,12 +40,13 @@ public final class TextureViewFx extends AbstractView<TextureViewListener> imple
     @Override
     public void setImage(Image image) {
         imageView.setImage(image);
+        scrollPane.lockZoomToFit();
     }
 
     private void buildUI() {
         view.setPrefSize(900, 600);
 
-        //        subScene.setFill(new ImagePattern(new Image("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQAQMAAAAlPW0iAAAABlBMVEW/v7////+Zw/90AAAAD0lEQVR4XmNg+I8V4RIGAH6/D/EjO09fAAAAAElFTkSuQmCC")));
+        // .setFill(new ImagePattern(new Image("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQAQMAAAAlPW0iAAAABlBMVEW/v7////+Zw/90AAAAD0lEQVR4XmNg+I8V4RIGAH6/D/EjO09fAAAAAElFTkSuQmCC")));
         var buttons = List.of(rButton, gButton, bButton, aButton);
         for (var button : buttons) {
             button.setSelected(true);
@@ -65,12 +66,12 @@ public final class TextureViewFx extends AbstractView<TextureViewListener> imple
         }
 
         imageView.setPreserveRatio(true);
-        var scrollPane = new ZoomableScrollPane(imageView);
 
-        var buttonBox = new HBox();
-        buttonBox.setPadding(new Insets(5));
-        buttonBox.setSpacing(5);
-        buttonBox.getChildren().addAll(buttons);
+        var buttonBox = new ToolBar();
+        buttonBox.getItems().addAll(buttons);
+        // buttonBox.getItems().add(new Separator());
+        // buttonBox.getItems().add(new Slider(-10, 10, 0));
+        // buttonBox.getItems().add(new Button("100%"));
 
         var stackPane = new StackPane();
         stackPane.getChildren().add(new Label("No image loaded"));
