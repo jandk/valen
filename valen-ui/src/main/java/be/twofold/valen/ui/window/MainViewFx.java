@@ -74,7 +74,7 @@ public final class MainViewFx implements MainView {
         if (treeItem == null) {
             return;
         }
-        List<String> parts = new ArrayList<>();
+        var parts = new ArrayList<String>();
         for (var item = treeItem; item != null; item = item.getParent()) {
             parts.add(item.getValue());
         }
@@ -113,6 +113,12 @@ public final class MainViewFx implements MainView {
     }
 
     private TreeItem<String> convert(PathNode<String> node) {
+        if (node.children().size() == 1 && !node.hasFiles()) {
+            var child = convert(node.children().values().iterator().next());
+            child.setValue(node.name() + "/" + child.getValue());
+            return child;
+        }
+
         var children = node.children().entrySet().stream()
             .sorted(Map.Entry.comparingByKey(NaturalOrderComparator.instance()))
             .map(Map.Entry::getValue)
