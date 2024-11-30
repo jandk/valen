@@ -1,5 +1,6 @@
 package be.twofold.valen.ui;
 
+import be.twofold.valen.ui.event.*;
 import be.twofold.valen.ui.viewer.*;
 import be.twofold.valen.ui.window.*;
 import dagger.*;
@@ -10,6 +11,10 @@ import jakarta.inject.*;
     ViewModule.class,
     ViewerModule.class,
 })
-interface PresenterFactory {
+interface MainFactory {
+
+    EventBus eventBus();
+
     MainPresenter presenter();
+
 }

@@ -9,7 +9,7 @@ public interface Viewer {
 
     void setData(Object data);
 
-    Node getNode();
+    Node getFXNode();
 
     String getName();
 }

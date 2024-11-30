@@ -13,6 +13,7 @@ public final class EventBus {
 
     @Inject
     EventBus() {
+        System.out.println("Constructor called");
         channels = new IdentityHashMap<>();
     }
 

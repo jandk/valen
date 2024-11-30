@@ -37,8 +37,8 @@ public final class ModelPresenter extends AbstractPresenter<ModelView> implement
     }
 
     @Override
-    public Node getNode() {
-        return getView().getView();
+    public Node getFXNode() {
+        return getView().getFXNode();
     }
 
     @Override

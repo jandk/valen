@@ -10,6 +10,8 @@ import javafx.scene.input.*;
 import javafx.stage.*;
 
 import java.io.*;
+import java.nio.file.*;
+import java.util.*;
 import java.util.stream.*;
 
 public final class MainWindow extends Application {
@@ -27,17 +29,27 @@ public final class MainWindow extends Application {
 
     @Override
     @SuppressWarnings("DataFlowIssue")
-    public void start(Stage primaryStage) throws IOException {
+    public void start(Stage primaryStage) {
         this.primaryStage = primaryStage;
 
-        presenter = DaggerPresenterFactory.create().presenter();
-        var scene = new Scene(presenter.getView().getView());
-        scene.getAccelerators().put(KeyCombination.keyCombination("Ctrl+F"), presenter::focusOnSearch);
+        var factory = DaggerMainFactory.create();
+
+        factory.eventBus()
+            .receiverFor(MainEvent.class)
+            .consume(event -> {
+                switch (event) {
+                    case MainEvent.GameLoadRequested() -> selectAndLoadGame();
+                }
+            });
+
+        presenter = factory.presenter();
 
         var icons = Stream.of(16, 24, 32, 48, 64, 96, 128)
             .map(i -> new Image(getClass().getResourceAsStream("/appicon/valen-" + i + ".png")))
             .toList();
 
+        var scene = new Scene(presenter.getView().getFXNode());
+        scene.getAccelerators().put(KeyCombination.keyCombination("Ctrl+F"), presenter::focusOnSearch);
         scene.getStylesheets().add(getClass().getResource("/style.css").toExternalForm());
 
         primaryStage.setTitle("Valen");
@@ -45,36 +57,41 @@ public final class MainWindow extends Application {
         primaryStage.setScene(scene);
         primaryStage.show();
 
-        if (settings.getGameExecutable().isEmpty()) {
-            chooseGame();
+        if (settings.getGameExecutable().isPresent()) {
+            loadGame(settings.getGameExecutable().get());
+        } else {
+            selectAndLoadGame();
         }
-        loadGame();
     }
 
-    private void chooseGame() {
+    private void selectAndLoadGame() {
+        Platform.runLater(() -> chooseGame()
+            .ifPresent(path -> {
+                settings.setGameExecutable(path);
+                loadGame(path);
+            }));
+    }
+
+    private Optional<Path> chooseGame() {
         var fileChooser = new FileChooser();
         fileChooser.setTitle("Select the game executable");
         fileChooser.getExtensionFilters().addAll(
             new FileChooser.ExtensionFilter("Game executable", "*.exe")
         );
-        var selectedFile = fileChooser.showOpenDialog(primaryStage);
-        if (selectedFile == null) {
-            return;
-        }
 
-        var selectedPath = selectedFile.toPath();
-        if (GameFactory.resolve(selectedPath).isPresent()) {
-            settings.setGameExecutable(selectedPath);
-        }
+        return Optional.ofNullable(fileChooser.showOpenDialog(primaryStage))
+            .map(File::toPath)
+            .filter(path -> GameFactory.resolve(path).isPresent());
     }
 
-    private void loadGame() throws IOException {
-        if (settings.getGameExecutable().isEmpty()) {
-            return;
+    private void loadGame(Path path) {
+        try {
+            var game = GameFactory.resolve(path).orElseThrow().load(path);
+            presenter.setGame(game);
+        } catch (IOException e) {
+            System.err.println("Could not load game " + path);
+            e.printStackTrace(System.err);
         }
-        var path = settings.getGameExecutable().orElseThrow();
-        var game = GameFactory.resolve(path).orElseThrow().load(path);
-        presenter.setGame(game);
     }
 
 }

@@ -7,7 +7,7 @@ public class PreviewTab extends Tab {
     private final Viewer viewer;
 
     public PreviewTab(Viewer viewer) {
-        super(viewer.getName(), viewer.getNode());
+        super(viewer.getName(), viewer.getFXNode());
         this.viewer = viewer;
         setClosable(false);
     }

@@ -33,7 +33,7 @@ public final class MainViewFx implements MainView {
     }
 
     @Override
-    public Parent getView() {
+    public Parent getFXNode() {
         return view;
     }
 
@@ -218,8 +218,12 @@ public final class MainViewFx implements MainView {
             setPreviewEnabled(newValue);
         });
 
+        var loadGame = new Button("Load Game");
+
+        loadGame.setOnAction(_ -> channel.send(new MainViewEvent.LoadGameClicked()));
+        loadGame.fire();
         return new ToolBar(
-            new Button("Load Game"),
+            loadGame,
             archiveChooser,
             pane,
             previewButton,

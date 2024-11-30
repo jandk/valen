@@ -35,7 +35,7 @@ public final class DataViewer extends TreeView<PreviewItem> implements Viewer {
     }
 
     @Override
-    public Node getNode() {
+    public Node getFXNode() {
         return this;
     }
 

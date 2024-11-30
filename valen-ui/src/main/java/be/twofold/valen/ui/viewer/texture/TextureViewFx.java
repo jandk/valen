@@ -35,7 +35,7 @@ public final class TextureViewFx implements TextureView {
     }
 
     @Override
-    public Parent getView() {
+    public Parent getFXNode() {
         return view;
     }
 

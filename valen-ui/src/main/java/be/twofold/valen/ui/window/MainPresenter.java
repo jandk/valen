@@ -11,6 +11,8 @@ import java.io.*;
 import java.util.*;
 
 public final class MainPresenter extends AbstractPresenter<MainView> {
+    private final SendChannel<MainEvent> channel;
+
     private Game game;
     private Archive archive;
     private Asset lastAsset;
@@ -19,6 +21,7 @@ public final class MainPresenter extends AbstractPresenter<MainView> {
     MainPresenter(MainView view, EventBus eventBus) {
         super(view);
 
+        this.channel = eventBus.senderFor(MainEvent.class);
         eventBus
             .receiverFor(MainViewEvent.class)
             .consume(event -> {
@@ -27,6 +30,7 @@ public final class MainPresenter extends AbstractPresenter<MainView> {
                     case MainViewEvent.PathSelected(var name) -> selectPath(name);
                     case MainViewEvent.AssetSelected(var name) -> selectAsset(name);
                     case MainViewEvent.PreviewVisibilityChanged(var visible) -> showPreview(visible);
+                    case MainViewEvent.LoadGameClicked _ -> channel.send(new MainEvent.GameLoadRequested());
                 }
             });
     }

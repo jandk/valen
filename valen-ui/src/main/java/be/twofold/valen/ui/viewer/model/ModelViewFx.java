@@ -26,7 +26,7 @@ public final class ModelViewFx implements ModelView {
     }
 
     @Override
-    public Parent getView() {
+    public Parent getFXNode() {
         return view;
     }
 
