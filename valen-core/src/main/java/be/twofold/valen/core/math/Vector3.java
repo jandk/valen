@@ -93,9 +93,9 @@ public record Vector3(
     }
 
     public void toBuffer(FloatBuffer buffer) {
-        buffer.put(this.x);
-        buffer.put(this.y);
-        buffer.put(this.z);
+        buffer.put(x);
+        buffer.put(y);
+        buffer.put(z);
     }
 
     // Object methods

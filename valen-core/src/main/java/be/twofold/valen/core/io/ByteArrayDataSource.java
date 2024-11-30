@@ -49,7 +49,7 @@ final class ByteArrayDataSource extends DataSource {
     public void seek(long pos) {
         int intPos = Math.toIntExact(pos);
         Check.index(intPos, lim - offset + 1);
-        this.pos = this.offset + intPos;
+        this.pos = offset + intPos;
     }
 
     @Override

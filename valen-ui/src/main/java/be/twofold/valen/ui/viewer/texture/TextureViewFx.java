@@ -1,6 +1,6 @@
 package be.twofold.valen.ui.viewer.texture;
 
-import be.twofold.valen.ui.*;
+import be.twofold.valen.ui.event.*;
 import jakarta.inject.*;
 import javafx.scene.*;
 import javafx.scene.control.*;
@@ -10,7 +10,7 @@ import javafx.scene.layout.*;
 
 import java.util.*;
 
-public final class TextureViewFx extends AbstractView<TextureViewListener> implements TextureView {
+public final class TextureViewFx implements TextureView {
     private static final Map<String, String> ButtonColors = Map.of(
         "R", "red",
         "G", "green",
@@ -26,9 +26,11 @@ public final class TextureViewFx extends AbstractView<TextureViewListener> imple
     private final ImageView imageView = new ImageView();
     private final ZoomableScrollPane scrollPane = new ZoomableScrollPane(imageView);
 
+    private final SendChannel<TextureViewEvent> channel;
+
     @Inject
-    public TextureViewFx() {
-        super(TextureViewListener.class);
+    public TextureViewFx(EventBus eventBus) {
+        this.channel = eventBus.senderFor(TextureViewEvent.class);
         buildUI();
     }
 
@@ -83,11 +85,11 @@ public final class TextureViewFx extends AbstractView<TextureViewListener> imple
     }
 
     private void fireColorEvent() {
-        listeners().fire().onToggleColor(
+        channel.send(new TextureViewEvent.ColorsToggled(
             rButton.isSelected(),
             gButton.isSelected(),
             bButton.isSelected(),
             aButton.isSelected()
-        );
+        ));
     }
 }

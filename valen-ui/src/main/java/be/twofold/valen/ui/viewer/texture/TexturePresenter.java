@@ -3,6 +3,7 @@ package be.twofold.valen.ui.viewer.texture;
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.texture.*;
 import be.twofold.valen.ui.*;
+import be.twofold.valen.ui.event.*;
 import be.twofold.valen.ui.viewer.*;
 import jakarta.inject.*;
 import javafx.scene.*;
@@ -16,10 +17,18 @@ public final class TexturePresenter extends AbstractPresenter<TextureView> imple
     private WritableImage targetImage;
 
     @Inject
-    public TexturePresenter(TextureView view) {
+    public TexturePresenter(TextureView view, EventBus eventBus) {
         // TODO: Make package-private
         super(view);
-        view.addListener(new Listener());
+
+        eventBus
+            .receiverFor(TextureViewEvent.class)
+            .consume(event -> {
+                switch (event) {
+                    case TextureViewEvent.ColorsToggled(var red, var green, var blue, var alpha) ->
+                        filterImage(red, green, blue, alpha);
+                }
+            });
     }
 
     @Override
@@ -72,7 +81,25 @@ public final class TexturePresenter extends AbstractPresenter<TextureView> imple
         var reader = sourceImage.getPixelReader();
         var writer = targetImage.getPixelWriter();
         if (red && green && blue && alpha) {
-            writer.setPixels(0, 0, width, height, reader, 0, 0);
+             writer.setPixels(0, 0, width, height, reader, 0, 0);
+
+             // TODO: Proper non-premultiplied alpha support
+//            for (int y = 0, i = 0; y < height; y++) {
+//                for (var x = 0; x < width; x++, i++) {
+//                    var argb = reader.getArgb(x, y);
+//                    int a = (argb >> 24) & 0xff;
+//                    int r = (argb >> 16) & 0xff;
+//                    int g = (argb >> 8) & 0xff;
+//                    int b = (argb) & 0xff;
+//
+//                    r = (r * a) >> 8;
+//                    g = (g * a) >> 8;
+//                    b = (b * a) >> 8;
+//
+//                    targetPixels[i] = a << 24 | r << 16 | g << 8 | b;
+//                }
+//            }
+//            writer.setPixels(0, 0, width, height, PixelFormat.getIntArgbPreInstance(), targetPixels, 0, width);
             return;
         }
 
@@ -99,12 +126,5 @@ public final class TexturePresenter extends AbstractPresenter<TextureView> imple
         }
 
         writer.setPixels(0, 0, width, height, PixelFormat.getIntArgbPreInstance(), targetPixels, 0, width);
-    }
-
-    private final class Listener implements TextureViewListener {
-        @Override
-        public void onToggleColor(boolean red, boolean green, boolean blue, boolean alpha) {
-            filterImage(red, green, blue, alpha);
-        }
     }
 }

@@ -2,20 +2,22 @@ package be.twofold.valen.ui.window;
 
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.ui.*;
-import javafx.scene.control.*;
+import be.twofold.valen.ui.util.*;
 
 import java.util.*;
 
-public interface MainView extends View<MainViewListener> {
+public interface MainView extends View {
 
     boolean isPreviewVisible();
 
     void setArchives(List<String> archives);
 
-    void setFileTree(TreeItem<String> root);
+    void setFileTree(PathNode<String> tree);
 
     void setFilteredAssets(List<Asset> assets);
 
     void setupPreview(Asset asset, Object assetData);
+
+    void focusOnSearch();
 
 }

@@ -95,7 +95,7 @@ public enum TextureFormat {
         public int surfaceSize(int width, int height) {
             var blockWidth = (width + this.width - 1) / this.width;
             var blockHeight = (height + this.height - 1) / this.height;
-            return blockWidth * blockHeight * this.size;
+            return blockWidth * blockHeight * size;
         }
     }
 

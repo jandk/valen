@@ -14,11 +14,13 @@ public interface GameFactory<T extends Game> {
         return executableNames().contains(path.getFileName().toString());
     }
 
-    static GameFactory<?> resolve(Path path) {
-        return ServiceLoader.load(GameFactory.class).stream()
-            .map(ServiceLoader.Provider::get)
-            .filter(factory -> factory.canLoad(path))
-            .findFirst()
-            .orElseThrow(() -> new IllegalArgumentException("No GameFactory found for " + path));
+    static Optional<GameFactory<?>> resolve(Path path) {
+        // Do a good old foreach, because streams mess with the generic argument
+        for (GameFactory<?> gameFactory : ServiceLoader.load(GameFactory.class)) {
+            if (gameFactory.canLoad(path)) {
+                return Optional.of(gameFactory);
+            }
+        }
+        return Optional.empty();
     }
 }

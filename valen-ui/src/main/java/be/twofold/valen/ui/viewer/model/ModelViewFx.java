@@ -1,6 +1,5 @@
 package be.twofold.valen.ui.viewer.model;
 
-import be.twofold.valen.ui.*;
 import jakarta.inject.*;
 import javafx.beans.property.*;
 import javafx.geometry.*;
@@ -12,15 +11,13 @@ import javafx.scene.transform.*;
 
 import java.util.*;
 
-public final class ModelViewFx extends AbstractView<ModelViewListener> implements ModelView {
+public final class ModelViewFx implements ModelView {
     private final ObjectProperty<SubScene> subSceneProperty = new SimpleObjectProperty<>();
     private final Pane view = new SubSceneResizer(subSceneProperty);
     private final Group root = new Group();
 
     @Inject
     public ModelViewFx() {
-        super(ModelViewListener.class);
-
         var subScene = new SubScene(root, 400, 400, true, SceneAntialiasing.BALANCED);
         subScene.setFill(new Color(0.2, 0.2, 0.2, 1.0));
         subSceneProperty.set(subScene);

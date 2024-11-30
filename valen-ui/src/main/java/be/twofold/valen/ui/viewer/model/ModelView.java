@@ -5,6 +5,6 @@ import javafx.scene.shape.*;
 
 import java.util.*;
 
-public interface ModelView extends View<ModelViewListener> {
+public interface ModelView extends View {
     void setMeshes(List<TriangleMesh> meshes);
 }

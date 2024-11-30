@@ -6,6 +6,9 @@ import java.util.*;
 public final class Settings {
     private Path gameExecutable;
 
+    Settings() {
+    }
+
     public Optional<Path> getGameExecutable() {
         return Optional.ofNullable(gameExecutable);
     }

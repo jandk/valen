@@ -2,48 +2,57 @@ package be.twofold.valen.ui.window;
 
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.ui.*;
+import be.twofold.valen.ui.event.*;
 import be.twofold.valen.ui.util.*;
 import jakarta.inject.*;
-import javafx.scene.control.*;
+import javafx.application.*;
 
 import java.io.*;
 import java.util.*;
 
-public class MainPresenter extends AbstractPresenter<MainView> implements MainViewListener {
+public final class MainPresenter extends AbstractPresenter<MainView> {
     private Game game;
     private Archive archive;
     private Asset lastAsset;
 
     @Inject
-    MainPresenter(MainView view) {
+    MainPresenter(MainView view, EventBus eventBus) {
         super(view);
 
-        getView().addListener(this);
+        eventBus
+            .receiverFor(MainViewEvent.class)
+            .consume(event -> {
+                switch (event) {
+                    case MainViewEvent.ArchiveSelected(var name) -> selectArchive(name);
+                    case MainViewEvent.PathSelected(var name) -> selectPath(name);
+                    case MainViewEvent.AssetSelected(var name) -> selectAsset(name);
+                    case MainViewEvent.PreviewVisibilityChanged(var visible) -> showPreview(visible);
+                }
+            });
     }
 
-    @Override
-    public void onArchiveSelected(String archiveName) {
+    private void selectArchive(String archiveName) {
         try {
             archive = game.loadArchive(archiveName);
-            Node node = buildNodeTree(archive.assets());
-            TreeItem<String> convert = convert(node);
-            getView().setFileTree(convert);
+            Platform.runLater(() -> {
+                getView().setFileTree(buildNodeTree(archive.assets()));
+            });
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
     }
 
-    @Override
-    public void onPathSelected(String path) {
+    private void selectPath(String path) {
         var assets = archive.assets().stream()
             .filter(r -> r.id().pathName().equals(path))
             .toList();
 
-        getView().setFilteredAssets(assets);
+        Platform.runLater(() -> {
+            getView().setFilteredAssets(assets);
+        });
     }
 
-    @Override
-    public void onAssetSelected(Asset asset) {
+    private void selectAsset(Asset asset) {
         if (getView().isPreviewVisible()) {
             try {
                 Object assetData;
@@ -52,19 +61,19 @@ public class MainPresenter extends AbstractPresenter<MainView> implements MainVi
                 } else {
                     assetData = archive.loadAsset(asset.id());
                 }
-                getView().setupPreview(asset, assetData);
-            } catch (
-                IOException e) {
-                throw new RuntimeException(e);
+                Platform.runLater(() -> {
+                    getView().setupPreview(asset, assetData);
+                });
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
             }
         }
         lastAsset = asset;
     }
 
-    @Override
-    public void onPreviewVisibleChanged(boolean visible) {
+    private void showPreview(boolean visible) {
         if (visible && lastAsset != null) {
-            onAssetSelected(lastAsset);
+            selectAsset(lastAsset);
         }
     }
 
@@ -73,22 +82,12 @@ public class MainPresenter extends AbstractPresenter<MainView> implements MainVi
         getView().setArchives(game.archiveNames());
     }
 
-
-    private TreeItem<String> convert(Node node) {
-        var children = node.children.entrySet().stream()
-            .sorted(Map.Entry.comparingByKey(NaturalOrderComparator.instance()))
-            .map(Map.Entry::getValue)
-            .toList();
-
-        var item = new TreeItem<>(node.name);
-        for (var child : children) {
-            item.getChildren().add(convert(child));
-        }
-        return item;
+    public void focusOnSearch() {
+        getView().focusOnSearch();
     }
 
-    private Node buildNodeTree(List<Asset> assets) {
-        var root = new Node("root");
+    private PathNode<String> buildNodeTree(List<Asset> assets) {
+        var root = new PathNode<>("root");
         for (var asset : assets) {
             var node = root;
             var path = asset.id().pathName();
@@ -99,18 +98,5 @@ public class MainPresenter extends AbstractPresenter<MainView> implements MainVi
             }
         }
         return root;
-    }
-
-    private static final class Node {
-        private final String name;
-        private final Map<String, Node> children = new HashMap<>();
-
-        public Node(String name) {
-            this.name = name;
-        }
-
-        public Node get(String name) {
-            return children.computeIfAbsent(name, Node::new);
-        }
     }
 }

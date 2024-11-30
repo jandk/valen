@@ -1,7 +1,8 @@
 package be.twofold.valen.ui.window;
 
 import be.twofold.valen.core.game.*;
-import be.twofold.valen.ui.*;
+import be.twofold.valen.ui.event.*;
+import be.twofold.valen.ui.util.*;
 import jakarta.inject.*;
 import javafx.beans.property.*;
 import javafx.geometry.*;
@@ -12,20 +13,22 @@ import javafx.scene.paint.*;
 
 import java.util.*;
 
-public final class MainViewFx extends AbstractView<MainViewListener> implements MainView {
+public final class MainViewFx implements MainView {
     private final BorderPane view = new BorderPane();
     private final SplitPane splitPane = new SplitPane();
 
     private final ComboBox<String> archiveChooser = new ComboBox<>();
     private final TreeView<String> treeView = new TreeView<>();
     private final TableView<Asset> tableView = new TableView<>();
+    private final TextField searchTextField = new TextField();
 
     private final PreviewTabPane tabPane;
+    private final SendChannel<MainViewEvent> channel;
 
     @Inject
-    public MainViewFx(PreviewTabPane tabPane) {
-        super(MainViewListener.class);
+    public MainViewFx(PreviewTabPane tabPane, EventBus eventBus) {
         this.tabPane = tabPane;
+        this.channel = eventBus.senderFor(MainViewEvent.class);
         buildUI();
     }
 
@@ -45,7 +48,8 @@ public final class MainViewFx extends AbstractView<MainViewListener> implements 
     }
 
     @Override
-    public void setFileTree(TreeItem<String> root) {
+    public void setFileTree(PathNode<String> tree) {
+        var root = convert(tree);
         treeView.setRoot(root);
         treeView.getSelectionModel().select(root);
         root.setExpanded(true);
@@ -61,27 +65,33 @@ public final class MainViewFx extends AbstractView<MainViewListener> implements 
         tabPane.setData(asset.type(), assetData);
     }
 
+    @Override
+    public void focusOnSearch() {
+        searchTextField.requestFocus();
+    }
+
     private void selectPath(TreeItem<String> treeItem) {
         if (treeItem == null) {
             return;
         }
-        List<String> path = new ArrayList<>();
+        List<String> parts = new ArrayList<>();
         for (var item = treeItem; item != null; item = item.getParent()) {
-            path.add(item.getValue());
+            parts.add(item.getValue());
         }
-        Collections.reverse(path);
-        listeners().fire().onPathSelected(String.join("/", path.subList(1, path.size())));
+        Collections.reverse(parts);
+        var path = String.join("/", parts.subList(1, parts.size()));
+        channel.send(new MainViewEvent.PathSelected(path));
     }
 
     private void selectArchive(String archiveName) {
-        listeners().fire().onArchiveSelected(archiveName);
+        channel.send(new MainViewEvent.ArchiveSelected(archiveName));
     }
 
-    private void selectAsset(Asset newValue) {
-        if (newValue == null) {
+    private void selectAsset(Asset asset) {
+        if (asset == null) {
             return;
         }
-        listeners().fire().onAssetSelected(newValue);
+        channel.send(new MainViewEvent.AssetSelected(asset));
     }
 
     private void setPreviewEnabled(boolean enabled) {
@@ -91,15 +101,28 @@ public final class MainViewFx extends AbstractView<MainViewListener> implements 
             }
             splitPane.getItems().add(tabPane);
             splitPane.setDividerPositions(splitPane.getDividerPositions()[0], 0.60);
-            listeners().fire().onPreviewVisibleChanged(true);
+            channel.send(new MainViewEvent.PreviewVisibilityChanged(true));
         } else {
             if (splitPane.getItems().size() != 3) {
                 return;
             }
             splitPane.getItems().remove(2);
             splitPane.setDividerPositions(splitPane.getDividerPositions()[0]);
-            listeners().fire().onPreviewVisibleChanged(false);
+            channel.send(new MainViewEvent.PreviewVisibilityChanged(false));
         }
+    }
+
+    private TreeItem<String> convert(PathNode<String> node) {
+        var children = node.children().entrySet().stream()
+            .sorted(Map.Entry.comparingByKey(NaturalOrderComparator.instance()))
+            .map(Map.Entry::getValue)
+            .toList();
+
+        var item = new TreeItem<>(node.name());
+        for (var child : children) {
+            item.getChildren().add(convert(child));
+        }
+        return item;
     }
 
     // region UI
@@ -132,12 +155,12 @@ public final class MainViewFx extends AbstractView<MainViewListener> implements 
         tableView.getSelectionModel().selectedItemProperty().addListener((_, _, newValue) -> {
             selectAsset(newValue);
         });
-        TableColumn<Asset, String> nameColumn = new TableColumn<>();
+        var nameColumn = new TableColumn<Asset, String>();
         nameColumn.setText("Name");
         nameColumn.setPrefWidth(200);
         nameColumn.setCellValueFactory(param -> new ReadOnlyObjectWrapper<>(param.getValue().id().fileName()));
 
-        TableColumn<Asset, String> typeColumn = new TableColumn<>();
+        var typeColumn = new TableColumn<Asset, String>();
         typeColumn.setText("Type");
         typeColumn.setPrefWidth(40);
         typeColumn.setCellValueFactory(param -> new ReadOnlyObjectWrapper<>(param.getValue().type().name()));
@@ -156,7 +179,6 @@ public final class MainViewFx extends AbstractView<MainViewListener> implements 
     }
 
     private HBox buildStatusBar() {
-        var searchTextField = new TextField();
         searchTextField.setId("searchTextField");
         searchTextField.setPromptText("Search");
 
@@ -188,7 +210,7 @@ public final class MainViewFx extends AbstractView<MainViewListener> implements 
             selectArchive(newValue);
         });
 
-        Pane pane = new Pane();
+        var pane = new Pane();
         HBox.setHgrow(pane, Priority.ALWAYS);
 
         var previewButton = new ToggleButton("Preview");
