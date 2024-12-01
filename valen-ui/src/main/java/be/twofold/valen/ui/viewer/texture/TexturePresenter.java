@@ -62,11 +62,6 @@ public final class TexturePresenter extends AbstractPresenter<TextureView> imple
     }
 
     @Override
-    public Node getFXNode() {
-        return getView().getFXNode();
-    }
-
-    @Override
     public String getName() {
         return "Texture";
     }

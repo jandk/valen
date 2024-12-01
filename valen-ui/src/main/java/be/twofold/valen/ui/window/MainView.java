@@ -1,12 +1,11 @@
 package be.twofold.valen.ui.window;
 
 import be.twofold.valen.core.game.*;
-import be.twofold.valen.ui.*;
 import be.twofold.valen.ui.util.*;
 
 import java.util.*;
 
-public interface MainView extends View {
+public interface MainView {
 
     boolean isPreviewVisible();
 

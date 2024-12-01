@@ -1,6 +1,7 @@
 package be.twofold.valen.ui.window;
 
 import be.twofold.valen.core.game.*;
+import be.twofold.valen.ui.*;
 import be.twofold.valen.ui.event.*;
 import be.twofold.valen.ui.util.*;
 import jakarta.inject.*;
@@ -13,7 +14,7 @@ import javafx.scene.paint.*;
 
 import java.util.*;
 
-public final class MainViewFx implements MainView {
+public final class MainFXView implements MainView, FXView {
     private final BorderPane view = new BorderPane();
     private final SplitPane splitPane = new SplitPane();
 
@@ -26,7 +27,7 @@ public final class MainViewFx implements MainView {
     private final SendChannel<MainViewEvent> channel;
 
     @Inject
-    public MainViewFx(PreviewTabPane tabPane, EventBus eventBus) {
+    MainFXView(PreviewTabPane tabPane, EventBus eventBus) {
         this.tabPane = tabPane;
         this.channel = eventBus.senderFor(MainViewEvent.class);
         buildUI();
@@ -212,6 +213,9 @@ public final class MainViewFx implements MainView {
     }
 
     private Control buildToolBar() {
+        var loadGame = new Button("Load Game");
+        loadGame.setOnAction(_ -> channel.send(new MainViewEvent.LoadGameClicked()));
+
         archiveChooser.getSelectionModel().selectedItemProperty().addListener((_, _, newValue) -> {
             selectArchive(newValue);
         });
@@ -224,16 +228,15 @@ public final class MainViewFx implements MainView {
             setPreviewEnabled(newValue);
         });
 
-        var loadGame = new Button("Load Game");
+        var settingsButton = new Button("Settings");
+        settingsButton.setDisable(true);
 
-        loadGame.setOnAction(_ -> channel.send(new MainViewEvent.LoadGameClicked()));
-        loadGame.fire();
         return new ToolBar(
             loadGame,
             archiveChooser,
             pane,
             previewButton,
-            new Button("Settings")
+            settingsButton
         );
     }
 

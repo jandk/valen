@@ -48,7 +48,7 @@ public final class MainWindow extends Application {
             .map(i -> new Image(getClass().getResourceAsStream("/appicon/valen-" + i + ".png")))
             .toList();
 
-        var scene = new Scene(presenter.getView().getFXNode());
+        var scene = new Scene(presenter.getFXNode());
         scene.getAccelerators().put(KeyCombination.keyCombination("Ctrl+F"), presenter::focusOnSearch);
         scene.getStylesheets().add(getClass().getResource("/style.css").toExternalForm());
 

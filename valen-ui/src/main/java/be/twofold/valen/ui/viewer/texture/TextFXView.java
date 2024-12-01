@@ -1,5 +1,6 @@
 package be.twofold.valen.ui.viewer.texture;
 
+import be.twofold.valen.ui.*;
 import be.twofold.valen.ui.event.*;
 import jakarta.inject.*;
 import javafx.scene.*;
@@ -10,7 +11,7 @@ import javafx.scene.layout.*;
 
 import java.util.*;
 
-public final class TextureViewFx implements TextureView {
+public final class TextFXView implements TextureView, FXView {
     private static final Map<String, String> ButtonColors = Map.of(
         "R", "red",
         "G", "green",
@@ -29,7 +30,7 @@ public final class TextureViewFx implements TextureView {
     private final SendChannel<TextureViewEvent> channel;
 
     @Inject
-    public TextureViewFx(EventBus eventBus) {
+    TextFXView(EventBus eventBus) {
         this.channel = eventBus.senderFor(TextureViewEvent.class);
         buildUI();
     }
@@ -52,7 +53,7 @@ public final class TextureViewFx implements TextureView {
         var buttons = List.of(rButton, gButton, bButton, aButton);
         for (var button : buttons) {
             button.setSelected(true);
-            button.setOnAction(e -> fireColorEvent());
+            button.setOnAction(_ -> fireColorEvent());
             button.setStyle("-fx-base: " + ButtonColors.get(button.getText()) + ";");
 
             button.setOnMouseClicked(e -> {

@@ -7,7 +7,6 @@ import be.twofold.valen.ui.*;
 import be.twofold.valen.ui.viewer.*;
 import jakarta.inject.*;
 import javafx.collections.*;
-import javafx.scene.*;
 import javafx.scene.shape.*;
 
 import java.nio.*;
@@ -34,11 +33,6 @@ public final class ModelPresenter extends AbstractPresenter<ModelView> implement
         var model = (Model) data;
         var meshes = mapModel(model);
         getView().setMeshes(meshes);
-    }
-
-    @Override
-    public Node getFXNode() {
-        return getView().getFXNode();
     }
 
     @Override
