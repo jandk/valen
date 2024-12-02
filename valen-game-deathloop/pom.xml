@@ -15,11 +15,5 @@
             <groupId>be.twofold</groupId>
             <artifactId>valen-core</artifactId>
         </dependency>
-
-        <dependency>
-            <groupId>net.java.dev.jna</groupId>
-            <artifactId>jna-jpms</artifactId>
-        </dependency>
     </dependencies>
-
 </project>

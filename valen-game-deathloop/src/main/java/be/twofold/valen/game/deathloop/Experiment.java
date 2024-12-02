@@ -1,5 +1,7 @@
 package be.twofold.valen.game.deathloop;
 
+import be.twofold.valen.core.texture.*;
+
 import java.io.*;
 import java.nio.file.*;
 
@@ -16,7 +18,7 @@ public class Experiment {
 
         for (var image : images) {
             try {
-                archive.loadAsset(image.id());
+                archive.loadAsset(image.id(), Texture.class);
             } catch (Exception e) {
                 System.out.println("Failed for: " + image.id() + " - " + e.getMessage());
             }

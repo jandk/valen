@@ -44,17 +44,17 @@ public final class TexturePresenter extends AbstractPresenter<TextureView> imple
             return;
         }
         var texture = (Texture) data;
-        var converted = SurfaceConverter.convert(texture.surfaces().getFirst(), TextureFormat.B8G8R8A8_UNORM);
+        var surface = SurfaceConverter.convert(texture.surfaces().getFirst(), TextureFormat.B8G8R8A8_UNORM);
 
         var pixelBuffer = new PixelBuffer<>(
-            texture.width(),
-            texture.height(),
-            ByteBuffer.wrap(converted.data()),
+            surface.width(),
+            surface.height(),
+            ByteBuffer.wrap(surface.data()),
             PixelFormat.getByteBgraPreInstance()
         );
         sourceImage = new WritableImage(pixelBuffer);
         targetImage = new WritableImage((int) sourceImage.getWidth(), (int) sourceImage.getHeight());
-        targetPixels = new int[texture.width() * texture.height()];
+        targetPixels = new int[surface.width() * surface.height()];
 
         filterImage(true, true, true, true);
         getView().setImage(targetImage);

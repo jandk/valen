@@ -2,7 +2,6 @@ package be.twofold.valen.game.deathloop.image;
 
 import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.texture.*;
-import be.twofold.valen.core.util.*;
 import be.twofold.valen.game.deathloop.*;
 import be.twofold.valen.game.deathloop.index.*;
 
@@ -29,8 +28,8 @@ public final class ImageReader {
         if (readExternal) {
             var externalLevels = header.levels() - header.embeddedLevels();
             for (int i = 0, w = header.width(), h = header.height(); i < externalLevels; i++, w /= 2, h /= 2) {
-                var mipData = archive.loadRawAsset(new DeathloopAssetID(entry.fileName() + "_mip" + i));
-                var surface = new Surface(w, h, format, Buffers.toArray(mipData));
+                var mipData = archive.loadAsset(new DeathloopAssetID(entry.fileName() + "_mip" + i), byte[].class);
+                var surface = new Surface(w, h, format, mipData);
                 surfaces.add(surface);
             }
         }

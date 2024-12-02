@@ -14,7 +14,6 @@
         <module>valen-export-dds</module>
         <module>valen-export-gltf</module>
         <module>valen-export-png</module>
-        <module>valen-export</module>
         <module>valen-game-deathloop</module>
         <module>valen-game-doom</module>
         <module>valen-game-eternal</module>

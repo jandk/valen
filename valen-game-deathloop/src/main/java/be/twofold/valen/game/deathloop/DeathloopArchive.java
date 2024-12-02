@@ -3,11 +3,11 @@ package be.twofold.valen.game.deathloop;
 import be.twofold.valen.core.compression.*;
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.io.*;
+import be.twofold.valen.core.util.*;
 import be.twofold.valen.game.deathloop.image.*;
 import be.twofold.valen.game.deathloop.index.*;
 
 import java.io.*;
-import java.nio.*;
 import java.nio.file.*;
 import java.util.*;
 import java.util.function.*;
@@ -17,11 +17,15 @@ public final class DeathloopArchive implements Archive {
     private static final Set<String> FILTER = Set.of("cpuimage", "image");
 
     private final Index index;
+    private final Decompressor decompressor;
+
     private final List<DataSource> dataSources;
     private final Map<AssetID, IndexEntry> indexEntries;
 
-    public DeathloopArchive(Path indexFile, List<Path> dataFiles) throws IOException {
+    public DeathloopArchive(Path indexFile, List<Path> dataFiles, Decompressor decompressor) throws IOException {
         this.index = Index.read(indexFile);
+        this.decompressor = Check.notNull(decompressor);
+
         var dataSources = new ArrayList<DataSource>(dataFiles.size());
         for (var dataFile : dataFiles) {
             dataSources.add(DataSource.fromPath(dataFile));
@@ -60,12 +64,12 @@ public final class DeathloopArchive implements Archive {
         return new DeathloopAssetID(entry.fileName());
     }
 
-    private AssetType mapAssetType(IndexEntry entry) {
+    private AssetType<?> mapAssetType(IndexEntry entry) {
         switch (entry.typeName()) {
             case "image":
-                return AssetType.Texture;
+                return AssetType.TEXTURE;
             default:
-                return AssetType.Binary;
+                return AssetType.BINARY;
         }
     }
 
@@ -75,27 +79,27 @@ public final class DeathloopArchive implements Archive {
     }
 
     @Override
-    public Object loadAsset(AssetID identifier) throws IOException {
+    public <T> T loadAsset(AssetID identifier, Class<T> clazz) throws IOException {
         var entry = indexEntries.get(identifier);
-        var buffer = loadRawAsset(identifier);
+
+        var source = dataSources.get(entry.fileId());
+        source.seek(entry.offset());
+
+        var bytes = source.readBytes(entry.compressedLength());
+        if (entry.compressedLength() != entry.uncompressedLength()) {
+            var uncompressed = new byte[entry.uncompressedLength()];
+            decompressor.decompress(
+                bytes, 12, bytes.length - 12,
+                uncompressed, 0, uncompressed.length
+            );
+            bytes = uncompressed;
+        }
 
         switch (entry.typeName()) {
             case "image":
-                return new ImageReader(this).read(DataSource.fromBuffer(buffer), entry);
+                return (T) new ImageReader(this).read(DataSource.fromArray(bytes), entry);
             default:
                 throw new IllegalArgumentException("Unsupported asset type: " + entry.typeName());
         }
-    }
-
-    @Override
-    public ByteBuffer loadRawAsset(AssetID identifier) throws IOException {
-        var entry = indexEntries.get(identifier);
-        var source = dataSources.get(entry.fileId());
-
-        source.seek(entry.offset());
-        var compressed = source.readBytes(entry.compressedLength());
-        return entry.compressedLength() != entry.uncompressedLength()
-            ? Compression.OodleChunked.decompress(ByteBuffer.wrap(compressed), entry.uncompressedLength())
-            : ByteBuffer.wrap(compressed);
     }
 }
