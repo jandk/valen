@@ -12,8 +12,8 @@ public final class TextViewer extends TextArea implements Viewer {
     }
 
     @Override
-    public boolean canPreview(AssetType type) {
-        return type == AssetType.Text;
+    public boolean canPreview(AssetType<?> type) {
+        return type == AssetType.TEXT;
     }
 
     @Override

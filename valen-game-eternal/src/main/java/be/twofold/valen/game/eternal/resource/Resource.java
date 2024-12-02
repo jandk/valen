@@ -11,22 +11,6 @@ public record Resource(
     long hash,
     long checksum
 ) implements Comparable<Resource> {
-    public ResourceName name() {
-        return key.name();
-    }
-
-    public ResourceType type() {
-        return key.type();
-    }
-
-    public ResourceVariation variation() {
-        return key.variation();
-    }
-
-    public String nameString() {
-        return key.name().toString();
-    }
-
     @Override
     public int compareTo(Resource o) {
         return key.compareTo(o.key);

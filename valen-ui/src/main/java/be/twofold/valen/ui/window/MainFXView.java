@@ -5,12 +5,12 @@ import be.twofold.valen.ui.*;
 import be.twofold.valen.ui.event.*;
 import be.twofold.valen.ui.util.*;
 import jakarta.inject.*;
+import javafx.application.*;
 import javafx.beans.property.*;
 import javafx.geometry.*;
 import javafx.scene.*;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
-import javafx.scene.paint.*;
 
 import java.util.*;
 
@@ -22,6 +22,7 @@ public final class MainFXView implements MainView, FXView {
     private final TreeView<String> treeView = new TreeView<>();
     private final TableView<Asset> tableView = new TableView<>();
     private final TextField searchTextField = new TextField();
+    private final ProgressBar progressBar = new ProgressBar();
 
     private final PreviewTabPane tabPane;
     private final SendChannel<MainViewEvent> channel;
@@ -69,6 +70,15 @@ public final class MainFXView implements MainView, FXView {
     @Override
     public void focusOnSearch() {
         searchTextField.requestFocus();
+    }
+
+    @Override
+    public void setExporting(boolean exporting) {
+        Platform.runLater(() -> {
+            System.out.println("Exporting: " + exporting);
+            view.setDisable(exporting);
+            progressBar.setVisible(exporting);
+        });
     }
 
     private void selectPath(TreeItem<String> treeItem) {
@@ -197,14 +207,13 @@ public final class MainFXView implements MainView, FXView {
         var pane = new Pane();
         HBox.setHgrow(pane, Priority.ALWAYS);
 
-        var rightStatus = new Label("Right status");
-        rightStatus.setTextFill(Color.color(0.625, 0.625, 0.625));
-        HBox.setHgrow(rightStatus, Priority.NEVER);
+        progressBar.setVisible(false);
+        progressBar.setPrefWidth(200);
 
         var hBox = new HBox(
             searchTextField, searchClearButton,
             pane,
-            rightStatus
+            progressBar
         );
         hBox.setAlignment(Pos.CENTER_LEFT);
         hBox.setSpacing(5.0);
@@ -223,6 +232,14 @@ public final class MainFXView implements MainView, FXView {
         var pane = new Pane();
         HBox.setHgrow(pane, Priority.ALWAYS);
 
+        var exportButton = new Button("Export");
+        exportButton.setOnAction(_ -> {
+            var selectedAsset = tableView.getSelectionModel().getSelectedItem();
+            if (selectedAsset != null) {
+                channel.send(new MainViewEvent.ExportClicked(selectedAsset));
+            }
+        });
+
         var previewButton = new ToggleButton("Preview");
         previewButton.selectedProperty().addListener((_, _, newValue) -> {
             setPreviewEnabled(newValue);
@@ -232,11 +249,11 @@ public final class MainFXView implements MainView, FXView {
         settingsButton.setDisable(true);
 
         return new ToolBar(
-            loadGame,
-            archiveChooser,
+            loadGame, archiveChooser,
             pane,
-            previewButton,
-            settingsButton
+            exportButton,
+            new Separator(),
+            previewButton, settingsButton
         );
     }
 

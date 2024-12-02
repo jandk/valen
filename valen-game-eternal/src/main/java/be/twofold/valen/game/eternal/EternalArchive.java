@@ -23,7 +23,7 @@ public final class EternalArchive implements Archive {
     private final ResourcesCollection resources;
     private final List<ResourceReader<?>> readers;
 
-    public EternalArchive(StreamDbCollection streams, ResourcesCollection common, ResourcesCollection resources) {
+    EternalArchive(StreamDbCollection streams, ResourcesCollection common, ResourcesCollection resources) {
         this.streams = Check.notNull(streams);
         this.common = Check.notNull(common);
         this.resources = Check.notNull(resources);
@@ -54,17 +54,17 @@ public final class EternalArchive implements Archive {
     private Asset toAsset(Resource resource) {
         return new Asset(
             resource.key(),
-            mapType(resource.type()),
+            mapType(resource.key().type()),
             resource.uncompressedSize(),
             Map.of("hash", resource.hash())
         );
     }
 
-    private AssetType mapType(ResourceType type) {
+    private AssetType<?> mapType(ResourceType type) {
         return switch (type) {
-            case Image -> AssetType.Texture;
-            case BaseModel, Model -> AssetType.Model;
-            default -> AssetType.Binary;
+            case Image -> AssetType.TEXTURE;
+            case BaseModel, Model -> AssetType.MODEL;
+            default -> AssetType.BINARY;
         };
     }
 
@@ -76,9 +76,21 @@ public final class EternalArchive implements Archive {
     }
 
     @Override
-    public Object loadAsset(AssetID id) throws IOException {
-        var resource = getResource(id);
-        byte[] bytes = readResource(resource);
+    public <T> T loadAsset(AssetID id, Class<T> clazz) throws IOException {
+        var resource = resources.get((ResourceKey) id)
+            .or(() -> common.get((ResourceKey) id))
+            .orElseThrow(() -> new IllegalArgumentException("Resource not found: " + id));
+
+        byte[] bytes;
+        if (resources.get(resource.key()).isPresent()) {
+            bytes = resources.read(resource);
+        } else {
+            bytes = common.read(resource);
+        }
+
+        if (clazz == byte[].class) {
+            return (T) bytes;
+        }
 
         var reader = readers.stream()
             .filter(r -> r.canRead(resource.key()))
@@ -86,14 +98,8 @@ public final class EternalArchive implements Archive {
             .orElseThrow(() -> new IllegalArgumentException("No reader found for resource: " + resource));
 
         try (var source = DataSource.fromArray(bytes)) {
-            return reader.read(source, toAsset(resource));
+            return clazz.cast(reader.read(source, toAsset(resource)));
         }
-    }
-
-    @Override
-    public byte[] loadRawAsset(AssetID id) throws IOException {
-        var resource = getResource(id);
-        return readResource(resource);
     }
 
     public boolean containsStream(long identifier) {
@@ -102,19 +108,5 @@ public final class EternalArchive implements Archive {
 
     public byte[] readStream(long identifier, int uncompressedSize) throws IOException {
         return streams.read(identifier, uncompressedSize);
-    }
-
-    private Resource getResource(AssetID id) {
-        return resources.get((ResourceKey) id)
-            .or(() -> common.get((ResourceKey) id))
-            .orElseThrow(() -> new IllegalArgumentException("Resource not found: " + id));
-    }
-
-    private byte[] readResource(Resource resource) throws IOException {
-        if (resources.get(resource.key()).isPresent()) {
-            return resources.read(resource);
-        } else {
-            return common.read(resource);
-        }
     }
 }

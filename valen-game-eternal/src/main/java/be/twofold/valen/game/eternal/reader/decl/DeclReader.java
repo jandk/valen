@@ -87,7 +87,7 @@ public final class DeclReader implements ResourceReader<JsonObject> {
             return object;
         }
 
-        var bytes = archive.loadRawAsset(resourceKey);
+        var bytes = archive.loadAsset(resourceKey, byte[].class);
         parent = DeclParser.parse(decode(bytes));
         parent = loadInherit(parent, fullName);
         declCache.put(key, parent);

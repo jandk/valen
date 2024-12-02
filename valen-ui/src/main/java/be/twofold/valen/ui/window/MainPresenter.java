@@ -1,6 +1,8 @@
 package be.twofold.valen.ui.window;
 
+import be.twofold.valen.core.export.*;
 import be.twofold.valen.core.game.*;
+import be.twofold.valen.core.util.*;
 import be.twofold.valen.ui.*;
 import be.twofold.valen.ui.event.*;
 import be.twofold.valen.ui.util.*;
@@ -9,6 +11,7 @@ import javafx.application.*;
 
 import java.io.*;
 import java.util.*;
+import java.util.concurrent.*;
 
 public final class MainPresenter extends AbstractPresenter<MainView> {
     private final SendChannel<MainEvent> channel;
@@ -31,6 +34,7 @@ public final class MainPresenter extends AbstractPresenter<MainView> {
                     case MainViewEvent.AssetSelected(var name) -> selectAsset(name);
                     case MainViewEvent.PreviewVisibilityChanged(var visible) -> showPreview(visible);
                     case MainViewEvent.LoadGameClicked _ -> channel.send(new MainEvent.GameLoadRequested());
+                    case MainViewEvent.ExportClicked(var asset) -> exportSelectedAsset(asset);
                 }
             });
     }
@@ -59,12 +63,8 @@ public final class MainPresenter extends AbstractPresenter<MainView> {
     private void selectAsset(Asset asset) {
         if (getView().isPreviewVisible()) {
             try {
-                Object assetData;
-                if (asset.type() == AssetType.Binary) {
-                    assetData = archive.loadRawAsset(asset.id());
-                } else {
-                    assetData = archive.loadAsset(asset.id());
-                }
+                var type = asset.type() == AssetType.BINARY ? byte[].class : Object.class;
+                var assetData = archive.loadAsset(asset.id(), type);
                 Platform.runLater(() -> {
                     getView().setupPreview(asset, assetData);
                 });
@@ -79,6 +79,30 @@ public final class MainPresenter extends AbstractPresenter<MainView> {
         if (visible && lastAsset != null) {
             selectAsset(lastAsset);
         }
+    }
+
+    private void exportSelectedAsset(Asset asset) {
+        if (asset == null) {
+            return;
+        }
+
+        // TODO: Clean this up
+        var extension = Exporter.forType(asset.type().clazz()).stream().findFirst().orElseThrow().getExtension();
+        var filename = extension.isEmpty()
+            ? asset.id().fileName()
+            : Filenames.removeExtension(asset.id().fileName()) + "." + extension;
+
+        channel.send(new MainEvent.SaveFileRequested(filename, path -> {
+            getView().setExporting(true);
+
+            var exportTask = new ExportTask(path, archive, asset);
+            CompletableFuture
+                .runAsync(exportTask::export0)
+                .handle((_, _) -> {
+                    getView().setExporting(false);
+                    return null;
+                });
+        }));
     }
 
     public void setGame(Game game) {
@@ -96,9 +120,9 @@ public final class MainPresenter extends AbstractPresenter<MainView> {
             var node = root;
             var path = asset.id().pathName();
             if (!path.isEmpty()) {
-                String[] split = path.split("/");
-                for (int i = 0; i < split.length; i++) {
-                    boolean hasFiles = i == split.length - 1;
+                var split = path.split("/");
+                for (var i = 0; i < split.length; i++) {
+                    var hasFiles = i == split.length - 1;
                     node = node.get(split[i], hasFiles);
                 }
             }

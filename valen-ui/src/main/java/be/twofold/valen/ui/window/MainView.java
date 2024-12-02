@@ -19,4 +19,6 @@ public interface MainView {
 
     void focusOnSearch();
 
+    void setExporting(boolean exporting);
+
 }

@@ -36,7 +36,7 @@ public final class Md6ModelReader implements ResourceReader<Model> {
         var model = Md6Model.read(source);
         var meshes = new ArrayList<>(readMeshes(model, (Long) asset.properties().get("hash")));
         var skeletonKey = ResourceKey.from(model.header().md6SkelName(), ResourceType.Skeleton);
-        var skeleton = (Skeleton) archive.loadAsset(skeletonKey);
+        var skeleton = archive.loadAsset(skeletonKey, Skeleton.class);
 
         if (readMaterials) {
             var materials = new HashMap<String, Material>();
@@ -46,7 +46,7 @@ public final class Md6ModelReader implements ResourceReader<Model> {
                 var materialFile = "generated/decls/material2/" + materialName + ".decl";
                 if (!materials.containsKey(materialName)) {
                     var assetId = ResourceKey.from(materialFile, ResourceType.RsStreamFile);
-                    var material = (Material) archive.loadAsset(assetId);
+                    var material = archive.loadAsset(assetId, Material.class);
                     materials.put(materialName, material);
                 }
                 meshes.set(i, meshes.get(i)

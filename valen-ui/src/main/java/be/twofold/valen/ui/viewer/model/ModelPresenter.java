@@ -19,8 +19,8 @@ public final class ModelPresenter extends AbstractPresenter<ModelView> implement
     }
 
     @Override
-    public boolean canPreview(AssetType type) {
-        return type == AssetType.Model;
+    public boolean canPreview(AssetType<?> type) {
+        return type == AssetType.MODEL;
     }
 
     @Override

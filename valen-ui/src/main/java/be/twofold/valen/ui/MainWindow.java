@@ -12,6 +12,7 @@ import javafx.stage.*;
 import java.io.*;
 import java.nio.file.*;
 import java.util.*;
+import java.util.function.*;
 import java.util.stream.*;
 
 public final class MainWindow extends Application {
@@ -39,6 +40,7 @@ public final class MainWindow extends Application {
             .consume(event -> {
                 switch (event) {
                     case MainEvent.GameLoadRequested() -> selectAndLoadGame();
+                    case MainEvent.SaveFileRequested(var filename, var consumer) -> saveFile(filename, consumer);
                 }
             });
 
@@ -72,6 +74,20 @@ public final class MainWindow extends Application {
             }));
     }
 
+    private void saveFile(String initialFilename, Consumer<Path> consumer) {
+        Platform.runLater(() -> {
+            var fileChooser = new FileChooser();
+            fileChooser.setTitle("Select the output file");
+            fileChooser.setInitialFileName(initialFilename);
+            var file = fileChooser.showSaveDialog(primaryStage);
+            if (file == null) {
+                return;
+            }
+
+            consumer.accept(file.toPath());
+        });
+    }
+
     private Optional<Path> chooseGame() {
         var fileChooser = new FileChooser();
         fileChooser.setTitle("Select the game executable");
@@ -93,5 +109,4 @@ public final class MainWindow extends Application {
             e.printStackTrace(System.err);
         }
     }
-
 }

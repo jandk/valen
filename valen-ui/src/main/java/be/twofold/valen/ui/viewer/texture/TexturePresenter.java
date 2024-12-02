@@ -6,7 +6,6 @@ import be.twofold.valen.ui.*;
 import be.twofold.valen.ui.event.*;
 import be.twofold.valen.ui.viewer.*;
 import jakarta.inject.*;
-import javafx.scene.*;
 import javafx.scene.image.*;
 
 import java.nio.*;
@@ -32,8 +31,8 @@ public final class TexturePresenter extends AbstractPresenter<TextureView> imple
     }
 
     @Override
-    public boolean canPreview(AssetType type) {
-        return type == AssetType.Texture;
+    public boolean canPreview(AssetType<?> type) {
+        return type == AssetType.TEXTURE;
     }
 
     @Override

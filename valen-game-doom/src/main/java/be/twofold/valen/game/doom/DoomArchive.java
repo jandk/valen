@@ -17,7 +17,7 @@ class DoomArchive implements Archive {
     @Override
     public List<Asset> assets() {
         return index.entries().stream()
-            .map(e -> new Asset(new DoomAssetID(e.fileName()), AssetType.Binary, e.size(), Map.of()))
+            .map(e -> new Asset(new DoomAssetID(e.fileName()), AssetType.BINARY, e.size(), Map.of()))
             .toList();
     }
 
@@ -27,12 +27,7 @@ class DoomArchive implements Archive {
     }
 
     @Override
-    public byte[] loadRawAsset(AssetID identifier) {
-        return null;
-    }
-
-    @Override
-    public Object loadAsset(AssetID identifier) {
+    public <T> T loadAsset(AssetID identifier, Class<T> clazz) {
         return null;
     }
 }

@@ -17,4 +17,7 @@ sealed interface MainViewEvent {
 
     record LoadGameClicked() implements MainViewEvent {
     }
+
+    record ExportClicked(Asset asset) implements MainViewEvent {
+    }
 }

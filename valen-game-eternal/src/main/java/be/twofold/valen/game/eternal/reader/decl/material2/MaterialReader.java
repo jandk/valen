@@ -79,7 +79,7 @@ public final class MaterialReader implements ResourceReader<Material> {
             var resourceKey = ResourceKey.from(filename, ResourceType.Image);
             if (archive.exists(resourceKey)) {
                 var textureType = mapTextureType(kind);
-                var supplier = ThrowingSupplier.lazy(() -> (Texture) archive.loadAsset(resourceKey));
+                var supplier = ThrowingSupplier.lazy(() -> archive.loadAsset(resourceKey, Texture.class));
                 references.add(new TextureReference(filename, textureType, supplier));
             }
         });
@@ -162,7 +162,7 @@ public final class MaterialReader implements ResourceReader<Material> {
 
     private RenderParm loadRenderParm(String name) throws IOException {
         var fullName = "generated/decls/renderparm/" + name + ".decl";
-        return (RenderParm) archive.loadAsset(ResourceKey.from(fullName, ResourceType.RsStreamFile));
+        return archive.loadAsset(ResourceKey.from(fullName, ResourceType.RsStreamFile), RenderParm.class);
     }
 
     private MaterialImageOpts parseOptions(JsonObject options) {

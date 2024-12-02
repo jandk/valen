@@ -9,8 +9,6 @@ public interface Archive {
 
     boolean exists(AssetID identifier);
 
-    Object loadAsset(AssetID identifier) throws IOException;
-
-    byte[] loadRawAsset(AssetID identifier) throws IOException;
+    <T> T loadAsset(AssetID identifier, Class<T> clazz) throws IOException;
 
 }
