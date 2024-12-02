@@ -162,16 +162,12 @@ public final class MainFXView implements MainView, FXView {
     }
 
     private TreeView<String> buildTreeView() {
-        treeView.getSelectionModel().selectedItemProperty().addListener((_, _, newValue) -> {
-            selectPath(newValue);
-        });
+        treeView.getSelectionModel().selectedItemProperty().addListener((_, _, newValue) -> selectPath(newValue));
         return treeView;
     }
 
     private TableView<Asset> buildTableView() {
-        tableView.getSelectionModel().selectedItemProperty().addListener((_, _, newValue) -> {
-            selectAsset(newValue);
-        });
+        tableView.getSelectionModel().selectedItemProperty().addListener((_, _, newValue) -> selectAsset(newValue));
         var nameColumn = new TableColumn<Asset, String>();
         nameColumn.setText("Name");
         nameColumn.setPrefWidth(200);
@@ -225,9 +221,7 @@ public final class MainFXView implements MainView, FXView {
         var loadGame = new Button("Load Game");
         loadGame.setOnAction(_ -> channel.send(new MainViewEvent.LoadGameClicked()));
 
-        archiveChooser.getSelectionModel().selectedItemProperty().addListener((_, _, newValue) -> {
-            selectArchive(newValue);
-        });
+        archiveChooser.getSelectionModel().selectedItemProperty().addListener((_, _, newValue) -> selectArchive(newValue));
 
         var pane = new Pane();
         HBox.setHgrow(pane, Priority.ALWAYS);
@@ -241,9 +235,7 @@ public final class MainFXView implements MainView, FXView {
         });
 
         var previewButton = new ToggleButton("Preview");
-        previewButton.selectedProperty().addListener((_, _, newValue) -> {
-            setPreviewEnabled(newValue);
-        });
+        previewButton.selectedProperty().addListener((_, _, newValue) -> setPreviewEnabled(newValue));
 
         var settingsButton = new Button("Settings");
         settingsButton.setDisable(true);

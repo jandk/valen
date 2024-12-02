@@ -25,6 +25,6 @@ public final class PathNode<T> {
     }
 
     public PathNode<T> get(T name, boolean hasFiles) {
-        return children.computeIfAbsent(name, s -> new PathNode<T>(s, hasFiles));
+        return children.computeIfAbsent(name, s -> new PathNode<>(s, hasFiles));
     }
 }

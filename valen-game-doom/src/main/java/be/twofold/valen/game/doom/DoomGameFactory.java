@@ -2,7 +2,6 @@ package be.twofold.valen.game.doom;
 
 import be.twofold.valen.core.game.*;
 
-import java.io.*;
 import java.nio.file.*;
 import java.util.*;
 

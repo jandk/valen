@@ -25,7 +25,7 @@ final class XXHash64 implements HashFunction {
             // Step 1: Initialize internal accumulators
             long acc1 = seed + PRIME64_1 + PRIME64_2;
             long acc2 = seed + PRIME64_2;
-            long acc3 = seed + 0;
+            long acc3 = seed;
             long acc4 = seed - PRIME64_1;
 
             // Step 2: Process stripes

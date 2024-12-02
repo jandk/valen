@@ -1,6 +1,5 @@
 module valen.game.eternal {
     requires com.google.gson;
-    requires java.desktop; // For testing only
     requires java.sql; // For import only
     requires valen.core;
 

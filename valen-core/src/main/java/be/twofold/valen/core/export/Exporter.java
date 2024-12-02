@@ -1,7 +1,5 @@
 package be.twofold.valen.core.export;
 
-import be.twofold.valen.core.game.*;
-
 import java.io.*;
 import java.nio.file.*;
 import java.util.*;

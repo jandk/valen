@@ -5,7 +5,6 @@ import jakarta.inject.*;
 import java.lang.ref.*;
 import java.util.*;
 import java.util.concurrent.*;
-import java.util.function.*;
 
 @Singleton
 public final class EventBus {

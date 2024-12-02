@@ -9,9 +9,7 @@ public final class SubSceneResizer extends Pane {
 
     public SubSceneResizer(ObjectProperty<SubScene> subScene) {
         updateSubScene(subScene.get());
-        subScene.addListener((_, _, newValue) -> {
-            updateSubScene(newValue);
-        });
+        subScene.addListener((_, _, newValue) -> updateSubScene(newValue));
         setMinSize(50, 50);
         setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
     }

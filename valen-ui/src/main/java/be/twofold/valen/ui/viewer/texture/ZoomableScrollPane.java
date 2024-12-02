@@ -13,12 +13,8 @@ final class ZoomableScrollPane extends ScrollPane {
 
     public ZoomableScrollPane(Node target) {
         this.target = target;
-        this.target.boundsInLocalProperty().addListener((_, _, newValue) -> {
-            zoomToFit(newValue);
-        });
-        viewportBoundsProperty().addListener((_, _, newValue) -> {
-            zoomToFit(this.target.getBoundsInLocal());
-        });
+        this.target.boundsInLocalProperty().addListener((_, _, newValue) -> zoomToFit(newValue));
+        viewportBoundsProperty().addListener((_, _, _) -> zoomToFit(this.target.getBoundsInLocal()));
 
         this.zoomNode = new Group(target);
 

@@ -42,9 +42,7 @@ public final class MainPresenter extends AbstractPresenter<MainView> {
     private void selectArchive(String archiveName) {
         try {
             archive = game.loadArchive(archiveName);
-            Platform.runLater(() -> {
-                getView().setFileTree(buildNodeTree(archive.assets()));
-            });
+            Platform.runLater(() -> getView().setFileTree(buildNodeTree(archive.assets())));
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
@@ -55,9 +53,7 @@ public final class MainPresenter extends AbstractPresenter<MainView> {
             .filter(r -> r.id().pathName().equals(path))
             .toList();
 
-        Platform.runLater(() -> {
-            getView().setFilteredAssets(assets);
-        });
+        Platform.runLater(() -> getView().setFilteredAssets(assets));
     }
 
     private void selectAsset(Asset asset) {
@@ -65,9 +61,7 @@ public final class MainPresenter extends AbstractPresenter<MainView> {
             try {
                 var type = asset.type() == AssetType.BINARY ? byte[].class : Object.class;
                 var assetData = archive.loadAsset(asset.id(), type);
-                Platform.runLater(() -> {
-                    getView().setupPreview(asset, assetData);
-                });
+                Platform.runLater(() -> getView().setupPreview(asset, assetData));
             } catch (IOException e) {
                 throw new UncheckedIOException(e);
             }
