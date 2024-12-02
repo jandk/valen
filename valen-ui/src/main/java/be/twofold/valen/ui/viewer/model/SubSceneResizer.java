@@ -9,18 +9,16 @@ public final class SubSceneResizer extends Pane {
 
     public SubSceneResizer(ObjectProperty<SubScene> subScene) {
         updateSubScene(subScene.get());
-        subScene.addListener((observable, oldValue, newValue) -> {
-            updateSubScene(newValue);
-        });
+        subScene.addListener((_, _, newValue) -> updateSubScene(newValue));
         setMinSize(50, 50);
         setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
     }
 
     private void updateSubScene(SubScene newValue) {
         this.subScene = newValue;
-        if (this.subScene != null) {
-            setPrefSize(this.subScene.getWidth(), this.subScene.getHeight());
-            getChildren().setAll(this.subScene);
+        if (subScene != null) {
+            setPrefSize(subScene.getWidth(), subScene.getHeight());
+            getChildren().setAll(subScene);
         }
     }
 

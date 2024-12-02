@@ -5,39 +5,39 @@ import be.twofold.valen.core.io.*;
 import java.io.*;
 
 public record ResourcesIndexEntry(
-    int id,
-    String name1,
-    String name2,
-    String name3,
+    int index,
+    String typeName,
+    String resourceName,
+    String fileName,
     long offset,
     int size,
     int sizeCompressed,
     int unknown,
-    byte patchFileNumber
+    byte fileId
 ) {
     public static ResourcesIndexEntry read(DataSource source) throws IOException {
-        var id = source.readIntBE();
-        var name1 = source.readPString();
-        var name2 = source.readPString();
-        var name3 = source.readPString();
+        var index = source.readIntBE();
+        var typeName = source.readPString();
+        var resourceName = source.readPString();
+        var fileName = source.readPString();
 
         var offset = source.readLongBE();
         var size = source.readIntBE();
         var sizeCompressed = source.readIntBE();
 
         var unknown = source.readInt();
-        var patchFileNumber = source.readByte();
+        var fileId = source.readByte();
 
         return new ResourcesIndexEntry(
-            id,
-            name1,
-            name2,
-            name3,
+            index,
+            typeName,
+            resourceName,
+            fileName,
             offset,
             size,
             sizeCompressed,
             unknown,
-            patchFileNumber
+            fileId
         );
     }
 }

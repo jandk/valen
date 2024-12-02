@@ -1,7 +1,7 @@
 package be.twofold.valen.export.png;
 
+import be.twofold.valen.core.export.*;
 import be.twofold.valen.core.texture.*;
-import be.twofold.valen.export.*;
 
 import java.io.*;
 
@@ -22,10 +22,34 @@ public final class PngExporter implements Exporter<Texture> {
         var surface = texture.surfaces().getFirst();
         var chosenFormat = chooseFormat(texture.format());
         var decoded = SurfaceConverter.convert(surface, chosenFormat);
-        var format = mapPngFormat(surface, chosenFormat);
+        var stripped = stripAlpha(decoded);
+        var format = mapPngFormat(surface, stripped.format());
 
         // TODO: How to handle closing the output stream?
-        new PngOutputStream(out, format).writeImage(decoded.data());
+        new PngOutputStream(out, format).writeImage(stripped.data());
+    }
+
+    @SuppressWarnings("PointlessArithmeticExpression")
+    private static Surface stripAlpha(Surface surface) {
+        if (surface.format() == TextureFormat.R8G8B8A8_UNORM) {
+            // Try to strip alpha
+            byte[] array = surface.data();
+            for (int i = 3; i < array.length; i += 4) {
+                if (array[i] != (byte) 0xFF) {
+                    return surface;
+                }
+            }
+
+            // Found no alpha, so strip it
+            byte[] newArray = new byte[array.length / 4 * 3];
+            for (int i = 0, o = 0; i < array.length; i += 4, o += 3) {
+                newArray[o + 0] = array[i + 0];
+                newArray[o + 1] = array[i + 1];
+                newArray[o + 2] = array[i + 2];
+            }
+            return new Surface(surface.width(), surface.height(), TextureFormat.R8G8B8_UNORM, newArray);
+        }
+        return surface;
     }
 
     private TextureFormat chooseFormat(TextureFormat format) {

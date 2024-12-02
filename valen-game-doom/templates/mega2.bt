@@ -8,19 +8,19 @@
 //  ID Bytes: 21 BB 3F A6
 //------------------------------------------------
 struct Mega2Header {
-    uint magic;
-    uint textureCountMaybe;
-    uint unknown08;
-    uint levelCount;
-    uint xResolution1;
-    uint yResolution1;
-    uint xBlockResolution1;
-    uint yBlockResolution1;
-    uint xResolution2;
-    uint yResolution2;
-    uint xBlockResolution2;
-    uint yBlockResolution2;
-    uint unknown44;
+    uint signature;
+    uint version;
+    uint unknown2;
+    uint level_count;
+    uint totalXRes;
+    uint totalYRes;
+    uint totalXBlocks;
+    uint totalYBlocks;
+    uint xRes;
+    uint yRes;
+    uint xBlocks;
+    uint yBlocks;
+    uint unknown7;
     uint quadtreeLevelCount;
     uquad pointerOffset;
     uquad quadtreeOffset;

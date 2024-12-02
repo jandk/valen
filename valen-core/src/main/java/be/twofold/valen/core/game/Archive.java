@@ -1,7 +1,6 @@
 package be.twofold.valen.core.game;
 
 import java.io.*;
-import java.nio.*;
 import java.util.*;
 
 public interface Archive {
@@ -10,8 +9,6 @@ public interface Archive {
 
     boolean exists(AssetID identifier);
 
-    Object loadAsset(AssetID identifier) throws IOException;
-
-    ByteBuffer loadRawAsset(AssetID identifier) throws IOException;
+    <T> T loadAsset(AssetID identifier, Class<T> clazz) throws IOException;
 
 }

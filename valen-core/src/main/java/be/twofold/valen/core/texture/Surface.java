@@ -19,9 +19,6 @@ public record Surface(
     public static Surface create(int width, int height, TextureFormat format) {
         Check.argument(width > 0, "width must be greater than 0");
         Check.argument(height > 0, "height must be greater than 0");
-        // TODO: This check fails on the lowest mips
-        // Check.argument(width % format.block().width() == 0, "width must be a multiple of " + format.block().width());
-        // Check.argument(height % format.block().height() == 0, "height must be a multiple of " + format.block().height());
 
         var data = new byte[format.block().surfaceSize(width, height)];
         return new Surface(width, height, format, data);
@@ -58,6 +55,7 @@ public record Surface(
         return "Surface(" +
             "width=" + width + ", " +
             "height=" + height + ", " +
+            "format=" + format + ", " +
             "data=[" + data.length + " bytes]" +
             ")";
     }

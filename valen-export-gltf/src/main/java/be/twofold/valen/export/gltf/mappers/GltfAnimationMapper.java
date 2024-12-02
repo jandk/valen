@@ -3,7 +3,10 @@ package be.twofold.valen.export.gltf.mappers;
 import be.twofold.valen.core.animation.*;
 import be.twofold.valen.core.math.*;
 import be.twofold.valen.gltf.*;
-import be.twofold.valen.gltf.model.*;
+import be.twofold.valen.gltf.model.accessor.*;
+import be.twofold.valen.gltf.model.animation.*;
+import be.twofold.valen.gltf.model.buffer.*;
+import be.twofold.valen.gltf.model.node.*;
 
 import java.nio.*;
 import java.util.*;
@@ -28,43 +31,43 @@ public final class GltfAnimationMapper {
                     var keyFrameBuffer = buildKeyFrameBuffer(rotation.keyFrames(), animation.frameRate());
                     var rotationBuffer = buildRotationBuffer(rotation.keyFrames());
 
-                    var keyFrameBufferView = context.createBufferView(keyFrameBuffer, keyFrameBuffer.capacity() * Float.BYTES, null);
-                    var rotationBufferView = context.createBufferView(rotationBuffer, rotationBuffer.capacity() * Float.BYTES, null);
+                    var keyFrameBufferView = context.createBufferView(keyFrameBuffer);
+                    var rotationBufferView = context.createBufferView(rotationBuffer);
 
                     var input = buildAccessor(keyFrameBufferView, rotation.keyFrames().size(), min(keyFrameBuffer), max(keyFrameBuffer));
                     var output = buildAccessor(rotationBufferView, rotation.keyFrames().size(), AccessorType.VEC4);
                     samplers.add(AnimationSamplerSchema.builder().input(input).output(output).build());
 
-                    var channelTargetSchema = animationChannelTarget(rotation, AnimationChannelTargetPath.Rotation);
-                    channels.add(AnimationChannelSchema.builder().sampler(AnimationSamplerId.of(samplers.size() - 1)).target(channelTargetSchema).build());
+                    var channelTargetSchema = animationChannelTarget(rotation, AnimationChannelTargetPath.ROTATION);
+                    channels.add(AnimationChannelSchema.builder().sampler(AnimationSamplerID.of(samplers.size() - 1)).target(channelTargetSchema).build());
                 }
                 case Track.Scale scale -> {
                     var keyFrameBuffer = buildKeyFrameBuffer(scale.keyFrames(), animation.frameRate());
                     var scaleBuffer = buildScaleTranslationBuffer(scale.keyFrames());
 
-                    var keyFrameBufferView = context.createBufferView(keyFrameBuffer, keyFrameBuffer.capacity() * Float.BYTES, null);
-                    var scaleBufferView = context.createBufferView(scaleBuffer, scaleBuffer.capacity() * Float.BYTES, null);
+                    var keyFrameBufferView = context.createBufferView(keyFrameBuffer);
+                    var scaleBufferView = context.createBufferView(scaleBuffer);
 
                     var input = buildAccessor(keyFrameBufferView, scale.keyFrames().size(), min(keyFrameBuffer), max(keyFrameBuffer));
                     var output = buildAccessor(scaleBufferView, scale.keyFrames().size(), AccessorType.VEC3);
                     samplers.add(AnimationSamplerSchema.builder().input(input).output(output).build());
 
-                    var channelTargetSchema = animationChannelTarget(scale, AnimationChannelTargetPath.Scale);
-                    channels.add(AnimationChannelSchema.builder().sampler(AnimationSamplerId.of(samplers.size() - 1)).target(channelTargetSchema).build());
+                    var channelTargetSchema = animationChannelTarget(scale, AnimationChannelTargetPath.SCALE);
+                    channels.add(AnimationChannelSchema.builder().sampler(AnimationSamplerID.of(samplers.size() - 1)).target(channelTargetSchema).build());
                 }
                 case Track.Translation translation -> {
                     var keyFrameBuffer = buildKeyFrameBuffer(translation.keyFrames(), animation.frameRate());
                     var translationBuffer = buildScaleTranslationBuffer(translation.keyFrames());
 
-                    var keyFrameBufferView = context.createBufferView(keyFrameBuffer, keyFrameBuffer.capacity() * Float.BYTES, null);
-                    var translationBufferView = context.createBufferView(translationBuffer, translationBuffer.capacity() * Float.BYTES, null);
+                    var keyFrameBufferView = context.createBufferView(keyFrameBuffer);
+                    var translationBufferView = context.createBufferView(translationBuffer);
 
                     var input = buildAccessor(keyFrameBufferView, translation.keyFrames().size(), min(keyFrameBuffer), max(keyFrameBuffer));
                     var output = buildAccessor(translationBufferView, translation.keyFrames().size(), AccessorType.VEC3);
                     samplers.add(AnimationSamplerSchema.builder().input(input).output(output).build());
 
-                    var channelTargetSchema = animationChannelTarget(translation, AnimationChannelTargetPath.Translation);
-                    channels.add(AnimationChannelSchema.builder().sampler(AnimationSamplerId.of(samplers.size() - 1)).target(channelTargetSchema).build());
+                    var channelTargetSchema = animationChannelTarget(translation, AnimationChannelTargetPath.TRANSLATION);
+                    channels.add(AnimationChannelSchema.builder().sampler(AnimationSamplerID.of(samplers.size() - 1)).target(channelTargetSchema).build());
                 }
             }
         }
@@ -80,7 +83,7 @@ public final class GltfAnimationMapper {
         AnimationChannelTargetPath path
     ) {
         return AnimationChannelTargetSchema.builder()
-            .node(NodeId.of(track.boneId()))
+            .node(NodeID.of(track.boneId()))
             .path(path)
             .build();
     }
@@ -96,7 +99,10 @@ public final class GltfAnimationMapper {
     private FloatBuffer buildRotationBuffer(List<KeyFrame<Quaternion>> keyFrames) {
         var buffer = FloatBuffer.allocate(keyFrames.size() * 4);
         for (var keyFrame : keyFrames) {
-            keyFrame.value().put(buffer);
+            buffer.put(keyFrame.value().x());
+            buffer.put(keyFrame.value().y());
+            buffer.put(keyFrame.value().z());
+            buffer.put(keyFrame.value().w());
         }
         return buffer.flip();
     }
@@ -104,7 +110,9 @@ public final class GltfAnimationMapper {
     private FloatBuffer buildScaleTranslationBuffer(List<KeyFrame<Vector3>> keyFrames) {
         var buffer = FloatBuffer.allocate(keyFrames.size() * 3);
         for (var keyFrame : keyFrames) {
-            keyFrame.value().put(buffer);
+            buffer.put(keyFrame.value().x());
+            buffer.put(keyFrame.value().y());
+            buffer.put(keyFrame.value().z());
         }
         return buffer.flip();
     }
@@ -125,7 +133,7 @@ public final class GltfAnimationMapper {
         return new float[]{max};
     }
 
-    private AccessorId buildAccessor(BufferViewId bufferView, int count, AccessorType type) {
+    private AccessorID buildAccessor(BufferViewID bufferView, int count, AccessorType type) {
         var accessor = AccessorSchema.builder()
             .bufferView(bufferView)
             .componentType(AccessorComponentType.FLOAT)
@@ -135,7 +143,7 @@ public final class GltfAnimationMapper {
         return context.addAccessor(accessor);
     }
 
-    private AccessorId buildAccessor(BufferViewId bufferView, int count, float[] min, float[] max) {
+    private AccessorID buildAccessor(BufferViewID bufferView, int count, float[] min, float[] max) {
         var accessor = AccessorSchema.builder()
             .bufferView(bufferView)
             .componentType(AccessorComponentType.FLOAT)

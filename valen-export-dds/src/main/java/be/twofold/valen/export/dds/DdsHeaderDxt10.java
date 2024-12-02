@@ -1,5 +1,7 @@
 package be.twofold.valen.export.dds;
 
+import be.twofold.valen.core.util.*;
+
 import java.nio.*;
 
 record DdsHeaderDxt10(
@@ -27,8 +29,7 @@ record DdsHeaderDxt10(
     public static final int SIZE = 20;
 
     public ByteBuffer toBuffer() {
-        return ByteBuffer.allocate(SIZE)
-            .order(ByteOrder.LITTLE_ENDIAN)
+        return Buffers.allocate(SIZE)
             .putInt(dxgiFormat)
             .putInt(resourceDimension)
             .putInt(miscFlag)

@@ -7,66 +7,49 @@ import com.google.gson.*;
 
 import java.io.*;
 import java.nio.*;
+import java.nio.charset.*;
 import java.util.*;
 
 abstract class GltfCommon {
-    static final Gson GSON = new GsonBuilder()
+    private static final Gson GSON = new GsonBuilder()
         // .setPrettyPrinting()
-        .registerTypeHierarchyAdapter(AbstractId.class, new AbstractIdTypeAdapter().nullSafe())
+        .registerTypeHierarchyAdapter(GltfID.class, new GltfIDTypeAdapter().nullSafe())
+        .registerTypeHierarchyAdapter(ValueEnum.class, new ValueEnumTypeAdapter().nullSafe())
         .registerTypeHierarchyAdapter(Collection.class, new CollectionSerializer())
         .registerTypeHierarchyAdapter(Map.class, new MapSerializer())
-        .registerTypeAdapter(AccessorComponentType.class, new AccessorComponentTypeTypeAdapter())
-        .registerTypeAdapter(AnimationChannelTargetPath.class, new AnimationChannelTargetPathTypeAdapter())
-        .registerTypeAdapter(AnimationSamplerInterpolation.class, new AnimationSamplerInterpolationTypeAdapter().nullSafe())
-        .registerTypeAdapter(BufferViewTarget.class, new BufferViewTargetTypeAdapter().nullSafe())
-        .registerTypeAdapter(MimeType.class, new MimeTypeTypeAdapter().nullSafe())
-        .registerTypeAdapter(Mat2.class, new Mat2.Adapter().nullSafe())
-        .registerTypeAdapter(Mat3.class, new Mat3.Adapter().nullSafe())
-        .registerTypeAdapter(Mat4.class, new Mat4.Adapter().nullSafe())
-        .registerTypeAdapter(Vec2.class, new Vec2.Adapter().nullSafe())
-        .registerTypeAdapter(Vec3.class, new Vec3.Adapter().nullSafe())
-        .registerTypeAdapter(Vec4.class, new Vec4.Adapter().nullSafe())
+        .registerTypeAdapter(Mat2.class, new Mat2TypeAdapter().nullSafe())
+        .registerTypeAdapter(Mat3.class, new Mat3TypeAdapter().nullSafe())
+        .registerTypeAdapter(Mat4.class, new Mat4TypeAdapter().nullSafe())
+        .registerTypeAdapter(Vec2.class, new Vec2TypeAdapter().nullSafe())
+        .registerTypeAdapter(Vec3.class, new Vec3TypeAdapter().nullSafe())
+        .registerTypeAdapter(Vec4.class, new Vec4TypeAdapter().nullSafe())
         .create();
 
-    final GltfContext context;
+    private final GltfContext context;
 
     GltfCommon(GltfContext context) {
         this.context = context;
     }
 
-    int alignedLength(int length) {
-        return (length + 3) & ~3;
+    GltfContext getContext() {
+        return context;
     }
 
-    void align(OutputStream output, int length, byte pad) throws IOException {
-        byte[] padding = new byte[alignedLength(length) - length];
-        Arrays.fill(padding, pad);
-        output.write(padding);
+    byte[] toRawJson() {
+        return GSON
+            .toJson(context.buildGltf())
+            .getBytes(StandardCharsets.UTF_8);
     }
 
-    void writeBuffer(OutputStream output, Buffer buffer) {
-        var byteBuffer = toArray(buffer);
-        try {
-            output.write(byteBuffer);
-            align(output, byteBuffer.length, (byte) 0);
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
+    public void writeBuffers(OutputStream out) throws IOException {
+        for (var buffer : context.getBinaryBuffers()) {
+            var byteBuffer = toArray(buffer);
+            out.write(byteBuffer);
+            GltfUtils.align(out, byteBuffer.length, (byte) 0);
         }
     }
 
-    int size(Buffer buffer) {
-        return switch (buffer) {
-            case ByteBuffer bb -> bb.capacity();
-            case ShortBuffer sb -> sb.capacity() * Short.BYTES;
-            case IntBuffer ib -> ib.capacity() * Integer.BYTES;
-            case LongBuffer lb -> lb.capacity() * Long.BYTES;
-            case FloatBuffer fb -> fb.capacity() * Float.BYTES;
-            case DoubleBuffer db -> db.capacity() * Double.BYTES;
-            case CharBuffer cb -> cb.capacity() * Character.BYTES;
-        };
-    }
-
-    byte[] toArray(Buffer buffer) {
+    private byte[] toArray(Buffer buffer) {
         buffer.rewind();
         switch (buffer) {
             case ByteBuffer byteBuffer -> {
@@ -74,42 +57,42 @@ abstract class GltfCommon {
             }
             case ShortBuffer shortBuffer -> {
                 var bb = ByteBuffer
-                    .allocate(shortBuffer.capacity() * Short.BYTES)
+                    .allocate(shortBuffer.limit() * Short.BYTES)
                     .order(ByteOrder.LITTLE_ENDIAN);
                 bb.asShortBuffer().put(shortBuffer);
                 return bb.array();
             }
             case IntBuffer intBuffer -> {
                 var bb = ByteBuffer
-                    .allocate(intBuffer.capacity() * Integer.BYTES)
+                    .allocate(intBuffer.limit() * Integer.BYTES)
                     .order(ByteOrder.LITTLE_ENDIAN);
                 bb.asIntBuffer().put(intBuffer);
                 return bb.array();
             }
             case LongBuffer longBuffer -> {
                 var bb = ByteBuffer
-                    .allocate(longBuffer.capacity() * Long.BYTES)
+                    .allocate(longBuffer.limit() * Long.BYTES)
                     .order(ByteOrder.LITTLE_ENDIAN);
                 bb.asLongBuffer().put(longBuffer);
                 return bb.array();
             }
             case FloatBuffer floatBuffer -> {
                 var bb = ByteBuffer
-                    .allocate(floatBuffer.capacity() * Float.BYTES)
+                    .allocate(floatBuffer.limit() * Float.BYTES)
                     .order(ByteOrder.LITTLE_ENDIAN);
                 bb.asFloatBuffer().put(floatBuffer);
                 return bb.array();
             }
             case DoubleBuffer doubleBuffer -> {
                 var bb = ByteBuffer
-                    .allocate(doubleBuffer.capacity() * Double.BYTES)
+                    .allocate(doubleBuffer.limit() * Double.BYTES)
                     .order(ByteOrder.LITTLE_ENDIAN);
                 bb.asDoubleBuffer().put(doubleBuffer);
                 return bb.array();
             }
             case CharBuffer charBuffer -> {
                 var bb = ByteBuffer
-                    .allocate(charBuffer.capacity() * Character.BYTES)
+                    .allocate(charBuffer.limit() * Character.BYTES)
                     .order(ByteOrder.LITTLE_ENDIAN);
                 bb.asCharBuffer().put(charBuffer);
                 return bb.array();

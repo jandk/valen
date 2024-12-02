@@ -14,8 +14,6 @@ public record ImageMipInfo(
     int compressedSize,
     int cumulativeSizeStreamDB
 ) {
-    public static final int BYTES = 36;
-
     public static ImageMipInfo read(DataSource source) throws IOException {
         var mipLevel = source.readInt();
         var mipSlice = source.readInt();

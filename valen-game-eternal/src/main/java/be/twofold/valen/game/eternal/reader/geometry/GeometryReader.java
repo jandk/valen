@@ -5,6 +5,7 @@ import be.twofold.valen.core.io.*;
 
 import java.io.*;
 import java.util.*;
+import java.util.stream.*;
 
 public final class GeometryReader {
     public static Mesh readEmbeddedMesh(DataSource source, LodInfo lodInfo) throws IOException {
@@ -17,22 +18,18 @@ public final class GeometryReader {
             .sum();
 
         var offset = 0;
-        var accessors = new ArrayList<Geo.Accessor>();
-
+        var vertexAccessors = new ArrayList<Geo.Accessor<?>>();
         for (var mask : masks) {
-            for (var info : buildAccessor(mask, false)) {
-                var reader = reader(mask, info.semantic(), lodInfo);
-                var accessor = new Geo.Accessor(offset, lodInfo.numVertices(), stride, info, reader);
-                accessors.add(accessor);
-            }
+            var accessors = buildAccessors(offset, lodInfo.numVertices(), stride, mask, lodInfo, false);
+            vertexAccessors.addAll(accessors);
             offset += mask.size();
         }
 
         offset += stride * (lodInfo.numVertices() - 1);
-        var faceInfo = new VertexBuffer.Info(null, ElementType.Scalar, ComponentType.UnsignedShort, false);
-        var faceAccessor = new Geo.Accessor(offset, lodInfo.numFaces() * 3, 2, faceInfo, Geometry.readFace());
+        var faceInfo = new VertexBuffer.Info<>(null, ElementType.Scalar, ComponentType.UnsignedShort, false);
+        var faceAccessor = new Geo.Accessor<>(offset, lodInfo.numFaces() * 3, 2, faceInfo, Geometry.readFace());
 
-        return new Geo(true).readMesh(source, accessors, faceAccessor);
+        return new Geo(true).readMesh(source, vertexAccessors, faceAccessor);
     }
 
     public static List<Mesh> readStreamedMesh(
@@ -41,30 +38,31 @@ public final class GeometryReader {
         List<GeometryMemoryLayout> layouts,
         boolean animated
     ) throws IOException {
-        var meshes = new ArrayList<Mesh>();
-        for (var layout : layouts) {
-            var offsets = Arrays.copyOf(layout.vertexOffsets(), layout.numVertexStreams());
-            var indexOffset = layout.indexOffset();
+        var offsetsByLayout = layouts.stream().collect(Collectors.toUnmodifiableMap(
+            GeometryMemoryLayout::combinedVertexMask,
+            layout -> new Offsets(
+                layout.indexOffset(),
+                Arrays.copyOf(layout.vertexOffsets(), layout.numVertexStreams())
+            )));
 
-            for (var lodInfo : lods) {
+        var meshes = new ArrayList<Mesh>();
+        for (var lodInfo : lods) {
+            for (var layout : layouts) {
                 if (lodInfo.vertexMask() != layout.combinedVertexMask()) {
                     continue;
                 }
 
-                var vertexAccessors = new ArrayList<Geo.Accessor>();
+                var offsets = offsetsByLayout.get(layout.combinedVertexMask());
+                var vertexAccessors = new ArrayList<Geo.Accessor<?>>();
                 for (var v = 0; v < layout.numVertexStreams(); v++) {
                     var mask = GeometryVertexMask.from(layout.vertexMasks()[v]);
-                    for (var info : buildAccessor(mask, animated)) {
-                        var reader = reader(mask, info.semantic(), lodInfo);
-                        var accessor = new Geo.Accessor(offsets[v], lodInfo.numVertices(), mask.size(), info, reader);
-                        vertexAccessors.add(accessor);
-                    }
-                    offsets[v] += mask.size() * lodInfo.numVertices();
+                    vertexAccessors.addAll(buildAccessors(offsets.vertexOffsets[v], lodInfo.numVertices(), mask.size(), mask, lodInfo, animated));
+                    offsets.vertexOffsets[v] += lodInfo.numVertices() * mask.size();
                 }
 
-                var faceInfo = new VertexBuffer.Info(null, ElementType.Scalar, ComponentType.UnsignedShort, false);
-                var faceAccessor = new Geo.Accessor(indexOffset, lodInfo.numFaces() * 3, 2, faceInfo, Geometry.readFace());
-                indexOffset += lodInfo.numFaces() * 3 * Short.BYTES;
+                var faceInfo = VertexBuffer.Info.faces(ComponentType.UnsignedShort);
+                var faceAccessor = new Geo.Accessor<>(offsets.indexOffset, lodInfo.numFaces() * 3, 2, faceInfo, Geometry.readFace());
+                offsets.indexOffset += lodInfo.numFaces() * 3 * Short.BYTES;
 
                 meshes.add(new Geo(true).readMesh(source, vertexAccessors, faceAccessor));
             }
@@ -72,44 +70,52 @@ public final class GeometryReader {
         return meshes;
     }
 
-    private static List<VertexBuffer.Info> buildAccessor(GeometryVertexMask mask, boolean animated) {
+    private static List<Geo.Accessor<?>> buildAccessors(int offset, int count, int stride, GeometryVertexMask mask, LodInfo lodInfo, boolean animated) {
         return switch (mask) {
-            case WGVS_POSITION_SHORT, WGVS_POSITION -> List.of(
-                new VertexBuffer.Info(Semantic.Position, ElementType.Vector3, ComponentType.Float, false)
+            case WGVS_POSITION_SHORT -> List.of(
+                new Geo.Accessor<>(offset, count, stride, VertexBuffer.Info.POSITION, Geometry.readPackedPosition(lodInfo.vertexScale(), lodInfo.vertexOffset()))
+            );
+            case WGVS_POSITION -> List.of(
+                new Geo.Accessor<>(offset, count, stride, VertexBuffer.Info.POSITION, Geometry.readPosition(lodInfo.vertexScale(), lodInfo.vertexOffset()))
             );
             case WGVS_NORMAL_TANGENT -> {
-                var normal = new VertexBuffer.Info(Semantic.Normal, ElementType.Vector3, ComponentType.Float, false);
-                var tangent = new VertexBuffer.Info(Semantic.Tangent, ElementType.Vector4, ComponentType.Float, false);
-                var weights0 = new VertexBuffer.Info(Semantic.Weights0, ElementType.Vector4, ComponentType.UnsignedByte, true);
+                var normal = new Geo.Accessor<>(offset, count, stride, VertexBuffer.Info.NORMAL, Geometry.readPackedNormal());
+                var tangent = new Geo.Accessor<>(offset, count, stride, VertexBuffer.Info.TANGENT, Geometry.readPackedTangent());
+                var weights0 = new Geo.Accessor<>(offset, count, stride, VertexBuffer.Info.weights(0, ComponentType.UnsignedByte), Geometry.readWeight());
                 yield animated ? List.of(normal, tangent, weights0) : List.of(normal, tangent);
             }
-            case WGVS_LIGHTMAP_UV_SHORT, WGVS_LIGHTMAP_UV -> List.of(
-                new VertexBuffer.Info(Semantic.TexCoord1, ElementType.Vector2, ComponentType.Float, false)
+            case WGVS_LIGHTMAP_UV_SHORT -> List.of(
+                new Geo.Accessor<>(offset, count, stride, VertexBuffer.Info.texCoords(1), Geometry.readPackedUV(lodInfo.uvScale(), lodInfo.uvOffset()))
             );
-            case WGVS_MATERIAL_UV_SHORT, WGVS_MATERIAL_UV -> List.of(
-                new VertexBuffer.Info(Semantic.TexCoord0, ElementType.Vector2, ComponentType.Float, false)
+            case WGVS_LIGHTMAP_UV -> List.of(
+                new Geo.Accessor<>(offset, count, stride, VertexBuffer.Info.texCoords(1), Geometry.readUV(lodInfo.uvScale(), lodInfo.uvOffset()))
             );
-            case WGVS_COLOR -> animated ?
-                List.of(new VertexBuffer.Info(Semantic.Joints0, ElementType.Vector4, ComponentType.UnsignedByte, false)) :
-                List.of(new VertexBuffer.Info(Semantic.Color0, ElementType.Vector4, ComponentType.UnsignedByte, true));
+            case WGVS_MATERIAL_UV_SHORT -> List.of(
+                new Geo.Accessor<>(offset, count, stride, VertexBuffer.Info.texCoords(0), Geometry.readPackedUV(lodInfo.uvScale(), lodInfo.uvOffset()))
+            );
+            case WGVS_MATERIAL_UV -> List.of(
+                new Geo.Accessor<>(offset, count, stride, VertexBuffer.Info.texCoords(0), Geometry.readUV(lodInfo.uvScale(), lodInfo.uvOffset()))
+            );
+            case WGVS_COLOR -> {
+                var info = animated
+                    ? VertexBuffer.Info.joints(0, ComponentType.UnsignedByte)
+                    : VertexBuffer.Info.colors(0, ComponentType.UnsignedByte);
+
+                yield List.of(
+                    new Geo.Accessor<>(offset, count, stride, info, Geometry.readColor())
+                );
+            }
             case WGVS_MATERIALS -> List.of();
         };
     }
 
-    private static Geo.Reader reader(GeometryVertexMask mask, Semantic semantic, LodInfo lodInfo) {
-        return switch (mask) {
-            case WGVS_POSITION_SHORT -> Geometry.readPackedPosition(lodInfo.vertexOffset(), lodInfo.vertexScale());
-            case WGVS_POSITION -> Geometry.readPosition(lodInfo.vertexOffset(), lodInfo.vertexScale());
-            case WGVS_NORMAL_TANGENT -> switch (semantic) {
-                case Semantic.Normal() -> Geometry.readPackedNormal();
-                case Semantic.Tangent() -> Geometry.readPackedTangent();
-                case Semantic.Weights(var ignored) -> Geometry.readWeight();
-                default -> throw new IllegalStateException("Unexpected value: " + semantic);
-            };
-            case WGVS_LIGHTMAP_UV_SHORT, WGVS_MATERIAL_UV_SHORT -> Geometry.readPackedUV(lodInfo.uvOffset(), lodInfo.uvScale());
-            case WGVS_LIGHTMAP_UV, WGVS_MATERIAL_UV -> Geometry.readUV(lodInfo.uvOffset(), lodInfo.uvScale());
-            case WGVS_COLOR -> Geometry.readColor();
-            case WGVS_MATERIALS -> throw new UnsupportedOperationException();
-        };
+    private static final class Offsets {
+        private int indexOffset;
+        private final int[] vertexOffsets;
+
+        private Offsets(int indexOffset, int[] vertexOffsets) {
+            this.indexOffset = indexOffset;
+            this.vertexOffsets = vertexOffsets;
+        }
     }
 }

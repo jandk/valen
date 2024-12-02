@@ -7,7 +7,6 @@ import be.twofold.valen.ui.*;
 import be.twofold.valen.ui.viewer.*;
 import jakarta.inject.*;
 import javafx.collections.*;
-import javafx.scene.*;
 import javafx.scene.shape.*;
 
 import java.nio.*;
@@ -20,21 +19,20 @@ public final class ModelPresenter extends AbstractPresenter<ModelView> implement
     }
 
     @Override
-    public boolean canPreview(AssetType type) {
-        return type == AssetType.Model;
+    public boolean canPreview(AssetType<?> type) {
+        return type == AssetType.MODEL;
     }
 
     @Override
     public void setData(Object data) {
-        var model = (Model) data;
+        if (data == null) {
+            getView().setMeshes(List.of());
+            return;
+        }
 
+        var model = (Model) data;
         var meshes = mapModel(model);
         getView().setMeshes(meshes);
-    }
-
-    @Override
-    public Node getNode() {
-        return getView().getView();
     }
 
     @Override

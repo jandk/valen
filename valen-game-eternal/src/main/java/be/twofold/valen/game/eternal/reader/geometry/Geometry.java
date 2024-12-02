@@ -21,120 +21,86 @@ public final class Geometry {
     private Geometry() {
     }
 
-    public static Geo.Reader readPosition(Vector3 offset, float scale) {
-        return (source, dst) -> readPosition(source, (FloatBuffer) dst, offset, scale);
+    public static Geo.Reader<FloatBuffer> readPosition(float scale, Vector3 offset) {
+        return (source, dst) -> Vector3.read(source).fma(scale, offset).toBuffer(dst);
     }
 
-    public static Geo.Reader readPackedPosition(Vector3 offset, float scale) {
-        return (source, dst) -> readPackedPosition(source, (FloatBuffer) dst, offset, scale);
+    public static Geo.Reader<FloatBuffer> readPackedPosition(float scale, Vector3 offset) {
+        return (source, dst) -> readVector4UNorm16(source).toVector3().fma(scale, offset).toBuffer(dst);
     }
 
-    public static Geo.Reader readPackedNormal() {
-        return (source, dst) -> readPackedNormal(source, (FloatBuffer) dst);
+    public static Geo.Reader<FloatBuffer> readPackedNormal() {
+        return (source, dst) -> readVector3UNorm8Normal(source).normalize().toBuffer(dst);
     }
 
-    public static Geo.Reader readPackedTangent() {
-        return (source, dst) -> readPackedTangent(source, (FloatBuffer) dst);
+    public static Geo.Reader<FloatBuffer> readPackedTangent() {
+        return (source, dst) -> {
+            source.skip(4); // skip normal
+
+            Vector3 xyz = readVector3UNorm8Normal(source).normalize();
+            float w = Float.intBitsToFloat(((source.readByte() & 0x80) << 24) | 0x3F800000);
+            new Vector4(xyz, w).toBuffer(dst);
+        };
     }
 
-    public static Geo.Reader readWeight() {
-        return (source, dst) -> readWeight(source, (ByteBuffer) dst);
+    public static Geo.Reader<ByteBuffer> readWeight() {
+        return (source, dst) -> {
+            source.skip(3); // skip normal
+            byte wn = source.readByte();
+            source.skip(3); // skip tangent
+            byte wt = source.readByte();
+
+            byte y = (byte) (wt & 0x7f);
+            byte z = WeightTableZ[(wn & 0xf0) >>> 4];
+            byte w = WeightTableW[(wn & 0x0f)];
+            byte x = (byte) (255 - y - z - w);
+
+            dst.put(x);
+            dst.put(y);
+            dst.put(z);
+            dst.put(w);
+        };
     }
 
-    public static Geo.Reader readUV(Vector2 offset, float scale) {
-        return (source, dst) -> readUV(source, (FloatBuffer) dst, offset, scale);
+    public static Geo.Reader<FloatBuffer> readUV(float scale, Vector2 offset) {
+        return (source, dst) -> Vector2.read(source).fma(scale, offset).toBuffer(dst);
     }
 
-    public static Geo.Reader readPackedUV(Vector2 offset, float scale) {
-        return (source, dst) -> readPackedUV(source, (FloatBuffer) dst, offset, scale);
+    public static Geo.Reader<FloatBuffer> readPackedUV(float scale, Vector2 offset) {
+        return (source, dst) -> readVector2UNorm16(source).fma(scale, offset).toBuffer(dst);
     }
 
-    public static Geo.Reader readColor() {
-        return (source, dst) -> readColor(source, (ByteBuffer) dst);
+    public static Geo.Reader<ByteBuffer> readColor() {
+        return (source, dst) -> {
+            dst.put(source.readByte());
+            dst.put(source.readByte());
+            dst.put(source.readByte());
+            dst.put(source.readByte());
+        };
     }
 
-    public static Geo.Reader readFace() {
-        return (source, dst) -> readFace(source, (ShortBuffer) dst);
+    public static Geo.Reader<ShortBuffer> readFace() {
+        return (source, dst) -> dst.put(source.readShort());
     }
 
-    public static void readPosition(DataSource source, FloatBuffer dst, Vector3 offset, float scale) throws IOException {
-        dst.put(Math.fma(source.readFloat(), scale, offset.x()));
-        dst.put(Math.fma(source.readFloat(), scale, offset.y()));
-        dst.put(Math.fma(source.readFloat(), scale, offset.z()));
+    private static Vector2 readVector2UNorm16(DataSource source) throws IOException {
+        float x = MathF.unpackUNorm16(source.readShort());
+        float y = MathF.unpackUNorm16(source.readShort());
+        return new Vector2(x, y);
     }
 
-    public static void readPackedPosition(DataSource source, FloatBuffer dst, Vector3 offset, float scale) throws IOException {
-        dst.put(Math.fma(MathF.unpackUNorm16(source.readShort()), scale, offset.x()));
-        dst.put(Math.fma(MathF.unpackUNorm16(source.readShort()), scale, offset.y()));
-        dst.put(Math.fma(MathF.unpackUNorm16(source.readShort()), scale, offset.z()));
-        source.expectShort((short) 0);
-    }
-
-    public static void readPackedNormal(DataSource source, FloatBuffer dst) throws IOException {
+    private static Vector3 readVector3UNorm8Normal(DataSource source) throws IOException {
         float x = MathF.unpackUNorm8Normal(source.readByte());
         float y = MathF.unpackUNorm8Normal(source.readByte());
         float z = MathF.unpackUNorm8Normal(source.readByte());
-
-        float scale = 1.0f / MathF.sqrt(x * x + y * y + z * z);
-
-        dst.put(x * scale);
-        dst.put(y * scale);
-        dst.put(z * scale);
-
-        source.skip(5); // skip tangent
+        return new Vector3(x, y, z);
     }
 
-    public static void readPackedTangent(DataSource source, FloatBuffer dst) throws IOException {
-        source.skip(4); // skip normal
-
-        float x = MathF.unpackUNorm8Normal(source.readByte());
-        float y = MathF.unpackUNorm8Normal(source.readByte());
-        float z = MathF.unpackUNorm8Normal(source.readByte());
-        float w = (source.readByte() & 0x80) == 0 ? 1 : -1;
-
-        float scale = 1.0f / MathF.sqrt(x * x + y * y + z * z);
-
-        dst.put(x * scale);
-        dst.put(y * scale);
-        dst.put(z * scale);
-        dst.put(w);
-    }
-
-    public static void readWeight(DataSource source, ByteBuffer dst) throws IOException {
-        source.skip(3); // skip normal
-        byte wn = source.readByte();
-        source.skip(3); // skip tangent
-        byte wt = source.readByte();
-
-        byte y = (byte) (wt & 0x7f);
-        byte z = WeightTableZ[(wn & 0xf0) >>> 4];
-        byte w = WeightTableW[(wn & 0x0f)];
-        byte x = (byte) (255 - y - z - w);
-
-        dst.put(x);
-        dst.put(y);
-        dst.put(z);
-        dst.put(w);
-    }
-
-    public static void readUV(DataSource source, FloatBuffer dst, Vector2 offset, float scale) throws IOException {
-        dst.put(Math.fma(source.readFloat(), scale, offset.x()));
-        dst.put(Math.fma(source.readFloat(), scale, offset.y()));
-    }
-
-    public static void readPackedUV(DataSource source, FloatBuffer dst, Vector2 offset, float scale) throws IOException {
-        dst.put(Math.fma(MathF.unpackUNorm16(source.readShort()), scale, offset.x()));
-        dst.put(Math.fma(MathF.unpackUNorm16(source.readShort()), scale, offset.y()));
-    }
-
-    public static void readFace(DataSource source, ShortBuffer dst) throws IOException {
-        dst.put(source.readShort());
-    }
-
-    public static void readColor(DataSource source, ByteBuffer dst) throws IOException {
-        dst.put(source.readByte());
-        dst.put(source.readByte());
-        dst.put(source.readByte());
-        dst.put(source.readByte());
+    private static Vector4 readVector4UNorm16(DataSource source) throws IOException {
+        float x = MathF.unpackUNorm16(source.readShort());
+        float y = MathF.unpackUNorm16(source.readShort());
+        float z = MathF.unpackUNorm16(source.readShort());
+        float w = MathF.unpackUNorm16(source.readShort());
+        return new Vector4(x, y, z, w);
     }
 }

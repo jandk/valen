@@ -10,12 +10,12 @@ import dagger.*;
 abstract class ViewModule {
 
     @Binds
-    abstract MainView bindMainView(MainViewFx mainView);
+    abstract MainView bindMainView(MainFXView mainView);
 
     @Binds
-    abstract ModelView bindModelView(ModelViewFx textureView);
+    abstract ModelView bindModelView(ModelFXView textureView);
 
     @Binds
-    abstract TextureView bindTextureView(TextureViewFx textureView);
+    abstract TextureView bindTextureView(TextFXView textureView);
 
 }

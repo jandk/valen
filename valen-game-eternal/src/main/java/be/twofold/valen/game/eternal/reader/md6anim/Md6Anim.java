@@ -126,7 +126,7 @@ public record Md6Anim(
     }
 
     static int[] decodeRLE(DataSource source, int numJoints) throws IOException {
-        var size = Byte.toUnsignedInt(source.readByte());
+        var size = source.readByteAsInt();
         var length = Math.min(size, numJoints);
 
         var result = new int[length];
@@ -139,7 +139,7 @@ public record Md6Anim(
                 continue;
             }
 
-            int value = Byte.toUnsignedInt(source.readByte());
+            int value = source.readByteAsInt();
             for (var i = 0; i < count; i++) {
                 result[o++] = value + i;
             }

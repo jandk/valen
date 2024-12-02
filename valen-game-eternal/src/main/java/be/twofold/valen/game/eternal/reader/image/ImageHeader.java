@@ -22,8 +22,6 @@ public record ImageHeader(
     boolean fftBloom,
     int streamDBMipCount
 ) {
-    public static final int BYTES = 63;
-
     public static ImageHeader read(DataSource source) throws IOException {
         source.expectByte((byte) 'B');
         source.expectByte((byte) 'I');

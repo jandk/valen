@@ -5,11 +5,11 @@ import javafx.scene.*;
 
 public interface Viewer {
 
-    boolean canPreview(AssetType type);
+    boolean canPreview(AssetType<?> type);
 
     void setData(Object data);
 
-    Node getNode();
+    Node getFXNode();
 
     String getName();
 }

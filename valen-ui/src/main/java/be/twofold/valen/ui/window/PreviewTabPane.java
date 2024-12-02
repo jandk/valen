@@ -1,27 +1,23 @@
 package be.twofold.valen.ui.window;
 
 import be.twofold.valen.core.game.*;
-import be.twofold.valen.ui.viewer.data.*;
-import be.twofold.valen.ui.viewer.model.*;
-import be.twofold.valen.ui.viewer.text.*;
-import be.twofold.valen.ui.viewer.texture.*;
+import be.twofold.valen.ui.viewer.*;
+import jakarta.inject.*;
 import javafx.scene.control.*;
 
 import java.util.*;
 
-public class PreviewTabPane extends TabPane {
+final class PreviewTabPane extends TabPane {
     final List<PreviewTab> viewers;
 
-    public PreviewTabPane() {
-        viewers = List.of(
-            new PreviewTab(new ModelPresenter(new ModelViewFx())),
-            new PreviewTab(new TexturePresenter(new TextureViewFx())),
-            new PreviewTab(new DataViewer()),
-            new PreviewTab(new TextViewer())
-        );
+    @Inject
+    PreviewTabPane(Set<Viewer> viewers) {
+        this.viewers = viewers.stream()
+            .map(PreviewTab::new)
+            .toList();
     }
 
-    public void setData(AssetType type, Object assetData) {
+    void setData(AssetType<?> type, Object assetData) {
         getTabs().removeIf(tab -> {
             var viewer = ((PreviewTab) tab).getViewer();
             if (!viewer.canPreview(type)) {
@@ -42,5 +38,6 @@ public class PreviewTabPane extends TabPane {
         }
 
         getTabs().sort(Comparator.comparing(Tab::getText));
+        getSelectionModel().selectLast();
     }
 }
