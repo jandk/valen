@@ -10,9 +10,14 @@ import jakarta.inject.*;
 import javafx.scene.image.*;
 
 public final class TexturePresenter extends AbstractPresenter<TextureView> implements Viewer {
-    private WritableImage image;
+    private byte[] imagePixels;
     private IntPixelOp decoded;
-    private byte[] pixels;
+    private WritableImage image;
+
+    private boolean red;
+    private boolean green;
+    private boolean blue;
+    private boolean alpha;
 
     @Inject
     public TexturePresenter(TextureView view, EventBus eventBus) {
@@ -45,32 +50,43 @@ public final class TexturePresenter extends AbstractPresenter<TextureView> imple
             getView().setImage(null);
             image = null;
             decoded = null;
-            pixels = null;
+            imagePixels = null;
             return;
         }
 
         // Let's try our new ops
         var surface = ((Texture) data).surfaces().getFirst();
-        decoded = PixelOp.source(surface).asInt();
-        var swizzled = decoded
-            .swizzleBGRA()
-            .toSurface(surface.width(), surface.height());
+        int width = surface.width();
+        int height = surface.height();
 
-        image = new WritableImage(surface.width(), surface.height());
+        imagePixels = new byte[width * height * 4];
+
+        decoded = PixelOp.source(surface).asInt();
+        decoded
+            .swizzleBGRA()
+            .toPixels(width, height, imagePixels);
+
+        image = new WritableImage(width, height);
         image.getPixelWriter().setPixels(
-            0, 0, surface.width(), surface.height(),
+            0, 0, width, height,
             PixelFormat.getByteBgraPreInstance(),
-            swizzled.data(), 0, surface.width() * 4
+            imagePixels, 0, width * 4
         );
+
+        filterImage(red, green, blue, alpha);
         getView().setImage(image);
     }
 
     private void filterImage(boolean red, boolean green, boolean blue, boolean alpha) {
+        this.red = red;
+        this.green = green;
+        this.blue = blue;
+        this.alpha = alpha;
+
         var width = (int) image.getWidth();
         var height = (int) image.getHeight();
 
-        if (pixels == null) {
-            pixels = new byte[width * height * 4];
+        if (imagePixels == null) {
         }
 
         // Check which channels are selected
@@ -90,12 +106,12 @@ public final class TexturePresenter extends AbstractPresenter<TextureView> imple
 
         combined
             .swizzleBGRA()
-            .toPixels(width, height, pixels);
+            .toPixels(width, height, imagePixels);
 
         image.getPixelWriter().setPixels(
             0, 0, width, height,
             PixelFormat.getByteBgraPreInstance(),
-            pixels, 0, width * 4
+            imagePixels, 0, width * 4
         );
     }
 }
