@@ -11,7 +11,7 @@ import javafx.scene.layout.*;
 
 import java.util.*;
 
-public final class TextFXView implements TextureView, FXView {
+public final class TextureFXView implements TextureView, FXView {
     private static final Map<String, String> ButtonColors = Map.of(
         "R", "red",
         "G", "green",
@@ -30,7 +30,7 @@ public final class TextFXView implements TextureView, FXView {
     private final SendChannel<TextureViewEvent> channel;
 
     @Inject
-    TextFXView(EventBus eventBus) {
+    TextureFXView(EventBus eventBus) {
         this.channel = eventBus.senderFor(TextureViewEvent.class);
         buildUI();
     }

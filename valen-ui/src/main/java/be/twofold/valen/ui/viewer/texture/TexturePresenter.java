@@ -2,18 +2,17 @@ package be.twofold.valen.ui.viewer.texture;
 
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.texture.*;
+import be.twofold.valen.core.texture.op.*;
 import be.twofold.valen.ui.*;
 import be.twofold.valen.ui.event.*;
 import be.twofold.valen.ui.viewer.*;
 import jakarta.inject.*;
 import javafx.scene.image.*;
 
-import java.nio.*;
-
 public final class TexturePresenter extends AbstractPresenter<TextureView> implements Viewer {
-    private Image sourceImage;
-    private int[] targetPixels;
-    private WritableImage targetImage;
+    private WritableImage image;
+    private IntPixelOp decoded;
+    private byte[] pixels;
 
     @Inject
     public TexturePresenter(TextureView view, EventBus eventBus) {
@@ -31,6 +30,11 @@ public final class TexturePresenter extends AbstractPresenter<TextureView> imple
     }
 
     @Override
+    public String getName() {
+        return "Texture";
+    }
+
+    @Override
     public boolean canPreview(AssetType<?> type) {
         return type == AssetType.TEXTURE;
     }
@@ -39,86 +43,59 @@ public final class TexturePresenter extends AbstractPresenter<TextureView> imple
     public void setData(Object data) {
         if (data == null) {
             getView().setImage(null);
-            sourceImage = null;
-            targetImage = null;
+            image = null;
+            decoded = null;
+            pixels = null;
             return;
         }
-        var texture = (Texture) data;
-        var converted = SurfaceConverter.convert(texture.surfaces().getFirst(), TextureFormat.B8G8R8A8_UNORM);
 
-        var pixelBuffer = new PixelBuffer<>(
-            texture.width(),
-            texture.height(),
-            ByteBuffer.wrap(converted.data()),
-            PixelFormat.getByteBgraPreInstance()
+        // Let's try our new ops
+        var surface = ((Texture) data).surfaces().getFirst();
+        decoded = PixelOp.source(surface).asInt();
+        var swizzled = decoded
+            .swizzleBGRA()
+            .toSurface(surface.width(), surface.height());
+
+        image = new WritableImage(surface.width(), surface.height());
+        image.getPixelWriter().setPixels(
+            0, 0, surface.width(), surface.height(),
+            PixelFormat.getByteBgraPreInstance(),
+            swizzled.data(), 0, surface.width() * 4
         );
-        sourceImage = new WritableImage(pixelBuffer);
-        targetImage = new WritableImage((int) sourceImage.getWidth(), (int) sourceImage.getHeight());
-        targetPixels = new int[texture.width() * texture.height()];
-
-        filterImage(true, true, true, true);
-        getView().setImage(targetImage);
+        getView().setImage(image);
     }
-
-    @Override
-    public String getName() {
-        return "Texture";
-    }
-
 
     private void filterImage(boolean red, boolean green, boolean blue, boolean alpha) {
-        var width = (int) sourceImage.getWidth();
-        var height = (int) sourceImage.getHeight();
+        var width = (int) image.getWidth();
+        var height = (int) image.getHeight();
+
+        if (pixels == null) {
+            pixels = new byte[width * height * 4];
+        }
 
         // Check which channels are selected
-
-        var reader = sourceImage.getPixelReader();
-        var writer = targetImage.getPixelWriter();
-        if (red && green && blue && alpha) {
-             writer.setPixels(0, 0, width, height, reader, 0, 0);
-
-             // TODO: Proper non-premultiplied alpha support
-//            for (int y = 0, i = 0; y < height; y++) {
-//                for (var x = 0; x < width; x++, i++) {
-//                    var argb = reader.getArgb(x, y);
-//                    int a = (argb >> 24) & 0xff;
-//                    int r = (argb >> 16) & 0xff;
-//                    int g = (argb >> 8) & 0xff;
-//                    int b = (argb) & 0xff;
-//
-//                    r = (r * a) >> 8;
-//                    g = (g * a) >> 8;
-//                    b = (b * a) >> 8;
-//
-//                    targetPixels[i] = a << 24 | r << 16 | g << 8 | b;
-//                }
-//            }
-//            writer.setPixels(0, 0, width, height, PixelFormat.getIntArgbPreInstance(), targetPixels, 0, width);
-            return;
-        }
-
-        var numChannels = (red ? 1 : 0) + (green ? 1 : 0) + (blue ? 1 : 0) + (alpha ? 1 : 0);
-        if (numChannels == 1) {
+        IntPixelOp combined;
+        if ((red ? 1 : 0) + (green ? 1 : 0) + (blue ? 1 : 0) + (alpha ? 1 : 0) == 1) {
             // Do gray expansion
-            var channel = red ? 2 : green ? 1 : blue ? 0 : 3;
-            for (int y = 0, i = 0; y < height; y++) {
-                for (var x = 0; x < width; x++, i++) {
-                    var argb = reader.getArgb(x, y);
-                    var v = (argb >> channel * 8) & 0xFF;
-                    var newArgb = 0xFF000000 | v * 0x010101;
-                    targetPixels[i] = newArgb;
-                }
-            }
+            var channel = red ? decoded.red() : green ? decoded.green() : blue ? decoded.blue() : decoded.alpha();
+            combined = channel.rgba();
         } else {
             // Do color masking
-            var mask = (alpha ? 0 : 0xFF000000) | (red ? 0x00FF0000 : 0) | (green ? 0x0000FF00 : 0) | (blue ? 0x000000FF : 0);
-            for (int y = 0, i = 0; y < height; y++) {
-                for (var x = 0; x < width; x++, i++) {
-                    targetPixels[i] = reader.getArgb(x, y) & mask;
-                }
-            }
+            var rOp = red ? decoded.red() : ChannelOp.constant(0);
+            var gOp = green ? decoded.green() : ChannelOp.constant(0);
+            var bOp = blue ? decoded.blue() : ChannelOp.constant(0);
+            var aOp = alpha ? decoded.alpha() : ChannelOp.constant(255);
+            combined = IntPixelOp.combine(rOp, gOp, bOp, aOp);
         }
 
-        writer.setPixels(0, 0, width, height, PixelFormat.getIntArgbPreInstance(), targetPixels, 0, width);
+        combined
+            .swizzleBGRA()
+            .toPixels(width, height, pixels);
+
+        image.getPixelWriter().setPixels(
+            0, 0, width, height,
+            PixelFormat.getByteBgraPreInstance(),
+            pixels, 0, width * 4
+        );
     }
 }

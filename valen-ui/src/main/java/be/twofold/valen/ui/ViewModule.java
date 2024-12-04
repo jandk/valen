@@ -16,6 +16,6 @@ abstract class ViewModule {
     abstract ModelView bindModelView(ModelFXView textureView);
 
     @Binds
-    abstract TextureView bindTextureView(TextFXView textureView);
+    abstract TextureView bindTextureView(TextureFXView textureView);
 
 }

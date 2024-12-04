@@ -37,4 +37,25 @@ public final class ByteArrays {
     public static double getDouble(byte[] bytes, int offset) {
         return (double) DOUBLE_VH_LE.get(bytes, offset);
     }
+
+
+    public static void setShort(byte[] bytes, int offset, short value) {
+        SHORT_VH_LE.set(bytes, offset, value);
+    }
+
+    public static void setInt(byte[] bytes, int offset, int value) {
+        INT_VH_LE.set(bytes, offset, value);
+    }
+
+    public static void setLong(byte[] bytes, int offset, long value) {
+        LONG_VH_LE.set(bytes, offset, value);
+    }
+
+    public static void setFloat(byte[] bytes, int offset, float value) {
+        FLOAT_VH_LE.set(bytes, offset, value);
+    }
+
+    public static void setDouble(byte[] bytes, int offset, double value) {
+        DOUBLE_VH_LE.set(bytes, offset, value);
+    }
 }

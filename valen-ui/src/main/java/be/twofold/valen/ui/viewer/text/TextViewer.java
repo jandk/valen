@@ -24,7 +24,7 @@ public final class TextViewer extends TextArea implements Viewer {
     }
 
     @Override
-    public Node getFXNode() {
+    public Parent getFXNode() {
         return this;
     }
 
