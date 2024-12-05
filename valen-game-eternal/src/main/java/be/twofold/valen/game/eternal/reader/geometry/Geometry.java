@@ -37,10 +37,8 @@ public final class Geometry {
         return (source, dst) -> {
             source.skip(4); // skip normal
 
-            // Branch-less version, but eh
-            // float w = Float.intBitsToFloat(((i & 0x80) << 24) | 0x3F800000);
             Vector3 xyz = readVector3UNorm8Normal(source).normalize();
-            float w = (source.readByte() & 0x80) == 0 ? 1.0f : -1.0f;
+            float w = Float.intBitsToFloat(((source.readByte() & 0x80) << 24) | 0x3F800000);
             new Vector4(xyz, w).toBuffer(dst);
         };
     }

@@ -15,16 +15,17 @@ import be.twofold.valen.game.eternal.reader.staticmodel.*;
 import be.twofold.valen.game.eternal.resource.*;
 
 import java.io.*;
-import java.nio.*;
 import java.util.*;
 
 public final class EternalArchive implements Archive {
     private final StreamDbCollection streams;
+    private final ResourcesCollection common;
     private final ResourcesCollection resources;
     private final List<ResourceReader<?>> readers;
 
-    public EternalArchive(StreamDbCollection streams, ResourcesCollection resources) {
+    EternalArchive(StreamDbCollection streams, ResourcesCollection common, ResourcesCollection resources) {
         this.streams = Check.notNull(streams);
+        this.common = Check.notNull(common);
         this.resources = Check.notNull(resources);
 
         var declReader = new DeclReader(this);
@@ -44,6 +45,7 @@ public final class EternalArchive implements Archive {
     public List<Asset> assets() {
         return resources.getEntries().stream()
             .map(this::toAsset)
+            .filter(asset -> asset.size() != 0)
             .distinct()
             .sorted()
             .toList();
@@ -52,54 +54,59 @@ public final class EternalArchive implements Archive {
     private Asset toAsset(Resource resource) {
         return new Asset(
             resource.key(),
-            mapType(resource.type()),
+            mapType(resource.key().type()),
             resource.uncompressedSize(),
             Map.of("hash", resource.hash())
         );
     }
 
-    @Override
-    public boolean exists(AssetID id) {
-        return resources.get((ResourceKey) id).isPresent();
+    private AssetType<?> mapType(ResourceType type) {
+        return switch (type) {
+            case Image -> AssetType.TEXTURE;
+            case BaseModel, Model -> AssetType.MODEL;
+            default -> AssetType.BINARY;
+        };
     }
 
     @Override
-    public Object loadAsset(AssetID id) throws IOException {
+    public boolean exists(AssetID id) {
+        return resources.get((ResourceKey) id)
+            .or(() -> common.get((ResourceKey) id))
+            .isPresent();
+    }
+
+    @Override
+    public <T> T loadAsset(AssetID id, Class<T> clazz) throws IOException {
         var resource = resources.get((ResourceKey) id)
+            .or(() -> common.get((ResourceKey) id))
             .orElseThrow(() -> new IllegalArgumentException("Resource not found: " + id));
+
+        byte[] bytes;
+        if (resources.get(resource.key()).isPresent()) {
+            bytes = resources.read(resource);
+        } else {
+            bytes = common.read(resource);
+        }
+
+        if (clazz == byte[].class) {
+            return (T) bytes;
+        }
 
         var reader = readers.stream()
             .filter(r -> r.canRead(resource.key()))
             .findFirst()
             .orElseThrow(() -> new IllegalArgumentException("No reader found for resource: " + resource));
 
-        var buffer = resources.read(resource);
-        try (var source = DataSource.fromBuffer(buffer)) {
-            return reader.read(source, toAsset(resource));
+        try (var source = DataSource.fromArray(bytes)) {
+            return clazz.cast(reader.read(source, toAsset(resource)));
         }
-    }
-
-    @Override
-    public ByteBuffer loadRawAsset(AssetID id) throws IOException {
-        var resource = resources.get((ResourceKey) id)
-            .orElseThrow(() -> new IllegalArgumentException("Resource not found: " + id));
-
-        return resources.read(resource);
     }
 
     public boolean containsStream(long identifier) {
         return streams.exists(identifier);
     }
 
-    public ByteBuffer readStream(long identifier, int uncompressedSize) throws IOException {
+    public byte[] readStream(long identifier, int uncompressedSize) throws IOException {
         return streams.read(identifier, uncompressedSize);
-    }
-
-    private AssetType mapType(ResourceType type) {
-        return switch (type) {
-            case Image -> AssetType.Texture;
-            case BaseModel, Model -> AssetType.Model;
-            default -> AssetType.Binary;
-        };
     }
 }

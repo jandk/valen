@@ -55,6 +55,7 @@ public record Surface(
         return "Surface(" +
             "width=" + width + ", " +
             "height=" + height + ", " +
+            "format=" + format + ", " +
             "data=[" + data.length + " bytes]" +
             ")";
     }

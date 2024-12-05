@@ -1,20 +1,17 @@
 package be.twofold.valen.core.compression.oodle;
 
-import be.twofold.valen.core.compression.jna.*;
-
-public enum OodleLZ_Decode_ThreadPhase implements NativeEnum {
-    Phase1(1),
-    Phase2(2),
+public enum OodleLZ_Decode_ThreadPhase {
+    One(1),
+    Two(2),
     All(3);
 
-    private final int nativeValue;
+    private final int value;
 
-    OodleLZ_Decode_ThreadPhase(int nativeValue) {
-        this.nativeValue = nativeValue;
+    OodleLZ_Decode_ThreadPhase(int value) {
+        this.value = value;
     }
 
-    @Override
-    public int nativeValue() {
-        return nativeValue;
+    public int value() {
+        return value;
     }
 }

@@ -3,7 +3,6 @@ package be.twofold.valen.game.doom.resources;
 import be.twofold.valen.core.compression.*;
 import be.twofold.valen.core.io.*;
 
-import java.nio.*;
 import java.nio.file.*;
 
 public class Main {
@@ -20,11 +19,11 @@ public class Main {
                 }
 
                 source.seek(entry.offset());
-                var compressed = source.readBytes(entry.sizeCompressed());
+                byte[] compressed = source.readBytes(entry.sizeCompressed());
                 byte[] decompressed = compressed;
 
                 if (entry.size() != entry.sizeCompressed()) {
-                    decompressed = Compression.InflateRaw.decompress(ByteBuffer.wrap(compressed), entry.size()).array();
+                    decompressed = Decompressor.inflate(true).decompress(compressed, entry.size());
                 }
 
                 var dest = Path.of("D:\\Projects\\2016\\Extracted").resolve(entry.fileName());

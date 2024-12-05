@@ -34,22 +34,27 @@ public final class MapFileStaticInstancesReader implements ResourceReader<Scene>
             var geometry = staticInstances.modelInstanceGeometries().get(i);
             var instanceName = staticInstances.modelInstanceNames().get(i);
             var modelName = staticInstances.models().get(geometry.modelIndex());
-            instances.add(mapToInstance(modelName, instanceName, geometry));
+            mapToInstance(modelName, instanceName, geometry)
+                .ifPresent(instances::add);
         }
         return new Scene(instances);
     }
 
-    private Instance mapToInstance(String modelName, String instanceName, MapFileStaticInstancesModelGeometry geometry) {
+    private Optional<Instance> mapToInstance(String modelName, String instanceName, MapFileStaticInstancesModelGeometry geometry) {
         var resourceKey = ResourceKey.from(modelName, ResourceType.Model);
-        var supplier = ThrowingSupplier.lazy(() -> (Model) archive.loadAsset(resourceKey));
+        if (!archive.exists(resourceKey)) {
+            return Optional.empty();
+        }
+
+        var supplier = ThrowingSupplier.lazy(() -> archive.loadAsset(resourceKey, Model.class));
         var reference = new ModelReference(modelName, supplier);
 
-        return new Instance(
+        return Optional.of(new Instance(
             instanceName,
             reference,
             geometry.translation(),
             geometry.rotation().toRotation(),
             geometry.scale()
-        );
+        ));
     }
 }

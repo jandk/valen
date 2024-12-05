@@ -45,7 +45,7 @@ public final class StaticModelReader implements ResourceReader<Model> {
                 var materialFile = "generated/decls/material2/" + materialName + ".decl";
                 if (!materials.containsKey(materialName)) {
                     var assetId = ResourceKey.from(materialFile, ResourceType.RsStreamFile);
-                    var material = (Material) archive.loadAsset(assetId);
+                    var material = archive.loadAsset(assetId, Material.class);
                     materials.put(materialName, material);
                 }
                 meshes.set(i, meshes.get(i)
@@ -81,8 +81,8 @@ public final class StaticModelReader implements ResourceReader<Model> {
             .toList();
         var layouts = model.streamDiskLayouts().get(lod).memoryLayouts();
 
-        var buffer = archive.readStream(streamHash, uncompressedSize);
-        var source = DataSource.fromBuffer(buffer);
+        var bytes = archive.readStream(streamHash, uncompressedSize);
+        var source = DataSource.fromArray(bytes);
         return GeometryReader.readStreamedMesh(source, lods, layouts, false);
     }
 

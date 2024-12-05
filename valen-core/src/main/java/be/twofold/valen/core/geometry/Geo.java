@@ -13,7 +13,11 @@ public final class Geo {
         this.invertFaces = invertFaces;
     }
 
-    public Mesh readMesh(DataSource source, List<Accessor<?>> vertexAccessors, Accessor<?> faceAccessor) throws IOException {
+    public Mesh readMesh(
+        DataSource source,
+        List<Accessor<?>> vertexAccessors,
+        Accessor<?> faceAccessor
+    ) throws IOException {
         var startPos = source.tell();
 
         var vertexBuffers = new HashMap<Semantic, VertexBuffer>();
@@ -35,28 +39,34 @@ public final class Geo {
 
     private void invertFaces(Buffer buffer) {
         switch (buffer) {
-            case ByteBuffer bb -> {
-                for (int i = 0, lim = bb.limit(); i < lim; i += 3) {
-                    var temp = bb.get(i);
-                    bb.put(i, bb.get(i + 2));
-                    bb.put(i + 2, temp);
-                }
-            }
-            case ShortBuffer sb -> {
-                for (int i = 0, lim = sb.limit(); i < lim; i += 3) {
-                    var temp = sb.get(i);
-                    sb.put(i, sb.get(i + 2));
-                    sb.put(i + 2, temp);
-                }
-            }
-            case IntBuffer ib -> {
-                for (int i = 0, lim = ib.limit(); i < lim; i += 3) {
-                    var temp = ib.get(i);
-                    ib.put(i, ib.get(i + 2));
-                    ib.put(i + 2, temp);
-                }
-            }
+            case ByteBuffer bb -> invert(bb);
+            case ShortBuffer sb -> invert(sb);
+            case IntBuffer ib -> invert(ib);
             default -> throw new UnsupportedOperationException("Unsupported buffer type: " + buffer.getClass());
+        }
+    }
+
+    private void invert(ByteBuffer bb) {
+        for (int i = 0, lim = bb.limit(); i < lim; i += 3) {
+            var temp = bb.get(i);
+            bb.put(i, bb.get(i + 2));
+            bb.put(i + 2, temp);
+        }
+    }
+
+    private void invert(ShortBuffer sb) {
+        for (int i = 0, lim = sb.limit(); i < lim; i += 3) {
+            var temp = sb.get(i);
+            sb.put(i, sb.get(i + 2));
+            sb.put(i + 2, temp);
+        }
+    }
+
+    private void invert(IntBuffer ib) {
+        for (int i = 0, lim = ib.limit(); i < lim; i += 3) {
+            var temp = ib.get(i);
+            ib.put(i, ib.get(i + 2));
+            ib.put(i + 2, temp);
         }
     }
 

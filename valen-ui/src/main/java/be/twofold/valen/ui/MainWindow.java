@@ -2,62 +2,111 @@ package be.twofold.valen.ui;
 
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.ui.settings.*;
+import be.twofold.valen.ui.window.*;
 import javafx.application.*;
 import javafx.scene.*;
+import javafx.scene.image.*;
+import javafx.scene.input.*;
 import javafx.stage.*;
 
 import java.io.*;
 import java.nio.file.*;
 import java.util.*;
+import java.util.function.*;
+import java.util.stream.*;
 
-public class MainWindow extends Application {
-    @Override
-    public void start(Stage primaryStage) throws IOException {
-        if (SettingsManager.get().getGameExecutable().isEmpty()) {
-            var fileChooser = new FileChooser();
-            fileChooser.setTitle("Select the game executable");
-            fileChooser.getExtensionFilters().addAll(
-                new FileChooser.ExtensionFilter("Game executable", "*.exe")
-            );
-            var selectedFile = fileChooser.showOpenDialog(primaryStage);
-            if (selectedFile != null) {
-                SettingsManager.get().setGameExecutable(selectedFile.toPath());
-            }
-        }
+public final class MainWindow extends Application {
+    private final Settings settings;
+    private Stage primaryStage;
+    private MainPresenter presenter;
 
-        // var path = SettingsManager.get().getGameExecutable().get();
-        // TODO: Don't hardcode this
-        var path = Path.of("D:\\SteamLibrary\\steamapps\\common\\Space Marine 2\\Warhammer 40000 Space Marine 2.exe");
-//        var path = SettingsManager.get().getGameDirectory().get().resolve("DOOMEternalx64vk.exe");
-        var game = resolveGameFactory(path).load(path);
-        var archive = game.loadArchive("client_pc");
-//        var manager = DaggerManagerFactory.create().fileManager();
-//        manager.load(SettingsManager.get().getGameDirectory().get().resolve("base"));
-//        try {
-//            manager.select("common");
-//        } catch (IOException e) {
-//            System.out.println("Failed to select common");
-//            throw new UncheckedIOException(e);
-//        }
-
-        var presenter = DaggerPresenterFactory.create().presenter();
-        presenter.setArchive(archive);
-        var scene = new Scene(presenter.getView().getView());
-//        System.out.println("Mnemonics:");
-//        scene.getMnemonics().forEach((key, value) -> System.out.println(key + " -> " + value));
-//        System.out.println("Accelerators:");
-//        scene.getAccelerators().forEach((key, value) -> System.out.println(key + " -> " + value));
-//        scene.getAccelerators().put(KeyCombination.valueOf("Ctrl+P"), window::togglePreview);
-
-        primaryStage.setScene(scene);
-        primaryStage.show();
+    public MainWindow() {
+        this(SettingsManager.get());
     }
 
-    private static GameFactory<?> resolveGameFactory(Path path) {
-        return ServiceLoader.load(GameFactory.class).stream()
-            .map(ServiceLoader.Provider::get)
-            .filter(factory -> factory.canLoad(path))
-            .findFirst()
-            .orElseThrow(() -> new IllegalArgumentException("No GameFactory found for " + path));
+    MainWindow(Settings settings) {
+        this.settings = settings;
+    }
+
+    @Override
+    @SuppressWarnings("DataFlowIssue")
+    public void start(Stage primaryStage) {
+        this.primaryStage = primaryStage;
+
+        var factory = DaggerMainFactory.create();
+
+        factory.eventBus()
+            .receiverFor(MainEvent.class)
+            .consume(event -> {
+                switch (event) {
+                    case MainEvent.GameLoadRequested() -> selectAndLoadGame();
+                    case MainEvent.SaveFileRequested(var filename, var consumer) -> saveFile(filename, consumer);
+                }
+            });
+
+        presenter = factory.presenter();
+
+        var icons = Stream.of(16, 24, 32, 48, 64, 96, 128)
+            .map(i -> new Image(getClass().getResourceAsStream("/appicon/valen-" + i + ".png")))
+            .toList();
+
+        var scene = new Scene(presenter.getFXNode());
+        scene.getAccelerators().put(KeyCombination.keyCombination("Ctrl+F"), presenter::focusOnSearch);
+        scene.getStylesheets().add(getClass().getResource("/style.css").toExternalForm());
+
+        primaryStage.setTitle("Valen");
+        primaryStage.getIcons().setAll(icons);
+        primaryStage.setScene(scene);
+        primaryStage.show();
+
+        if (settings.getGameExecutable().isPresent()) {
+            loadGame(settings.getGameExecutable().get());
+        } else {
+            selectAndLoadGame();
+        }
+    }
+
+    private void selectAndLoadGame() {
+        Platform.runLater(() -> chooseGame()
+            .ifPresent(path -> {
+                settings.setGameExecutable(path);
+                loadGame(path);
+            }));
+    }
+
+    private void saveFile(String initialFilename, Consumer<Path> consumer) {
+        Platform.runLater(() -> {
+            var fileChooser = new FileChooser();
+            fileChooser.setTitle("Select the output file");
+            fileChooser.setInitialFileName(initialFilename);
+            var file = fileChooser.showSaveDialog(primaryStage);
+            if (file == null) {
+                return;
+            }
+
+            consumer.accept(file.toPath());
+        });
+    }
+
+    private Optional<Path> chooseGame() {
+        var fileChooser = new FileChooser();
+        fileChooser.setTitle("Select the game executable");
+        fileChooser.getExtensionFilters().addAll(
+            new FileChooser.ExtensionFilter("Game executable", "*.exe")
+        );
+
+        return Optional.ofNullable(fileChooser.showOpenDialog(primaryStage))
+            .map(File::toPath)
+            .filter(path -> GameFactory.resolve(path).isPresent());
+    }
+
+    private void loadGame(Path path) {
+        try {
+            var game = GameFactory.resolve(path).orElseThrow().load(path);
+            presenter.setGame(game);
+        } catch (IOException e) {
+            System.err.println("Could not load game " + path);
+            e.printStackTrace(System.err);
+        }
     }
 }

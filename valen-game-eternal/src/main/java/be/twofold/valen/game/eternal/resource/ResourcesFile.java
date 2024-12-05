@@ -1,6 +1,5 @@
 package be.twofold.valen.game.eternal.resource;
 
-import be.twofold.valen.core.compression.*;
 import be.twofold.valen.core.io.*;
 import be.twofold.valen.game.eternal.reader.resource.*;
 
@@ -10,7 +9,7 @@ import java.util.*;
 import java.util.function.*;
 import java.util.stream.*;
 
-public final class ResourcesFile implements AutoCloseable {
+public final class ResourcesFile implements Closeable {
     private final Map<ResourceKey, Resource> index;
     private DataSource source;
 
@@ -60,18 +59,10 @@ public final class ResourcesFile implements AutoCloseable {
             entry.dataOffset(),
             entry.dataSize(),
             entry.uncompressedSize(),
-            mapCompressionType(entry.compMode()),
-            entry.defaultHash()
+            entry.compMode(),
+            entry.defaultHash(),
+            entry.dataCheckSum()
         );
-    }
-
-    private Compression mapCompressionType(ResourceCompressionMode mode) {
-        return switch (mode) {
-            case RES_COMP_MODE_NONE -> Compression.None;
-            case RES_COMP_MODE_KRAKEN -> Compression.Oodle;
-            case RES_COMP_MODE_KRAKEN_CHUNKED -> Compression.OodleChunked;
-            default -> throw new UnsupportedOperationException("Unsupported compression mode: " + mode);
-        };
     }
 
     @Override

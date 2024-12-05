@@ -23,8 +23,9 @@ public final class GltfSkeletonMapper {
         // Calculate the parent-child relationships
         var children = new HashMap<Integer, List<Integer>>();
         for (var i = 0; i < bones.size(); i++) {
+            String s = "€";
             children
-                .computeIfAbsent(bones.get(i).parent(), $ -> new ArrayList<>())
+                .computeIfAbsent(bones.get(i).parent(), _ -> new ArrayList<>())
                 .add(i);
         }
 

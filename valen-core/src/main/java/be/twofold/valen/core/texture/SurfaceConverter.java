@@ -44,7 +44,7 @@ public final class SurfaceConverter {
             case BC2 -> BlockFormat.BC2;
             case BC3 -> BlockFormat.BC3;
             case BC4 -> BlockFormat.BC4Unsigned;
-            case BC5 -> BlockFormat.BC5UnsignedNormalized;
+            case BC5 -> BlockFormat.BC5Unsigned;
             case BC7 -> BlockFormat.BC7;
             default -> throw new UnsupportedOperationException("Unsupported block: " + source.format().block());
         };

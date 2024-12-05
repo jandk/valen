@@ -36,7 +36,7 @@ public final class Md6ModelReader implements ResourceReader<Model> {
         var model = Md6Model.read(source);
         var meshes = new ArrayList<>(readMeshes(model, (Long) asset.properties().get("hash")));
         var skeletonKey = ResourceKey.from(model.header().md6SkelName(), ResourceType.Skeleton);
-        var skeleton = (Skeleton) archive.loadAsset(skeletonKey);
+        var skeleton = archive.loadAsset(skeletonKey, Skeleton.class);
 
         if (readMaterials) {
             var materials = new HashMap<String, Material>();
@@ -46,7 +46,7 @@ public final class Md6ModelReader implements ResourceReader<Model> {
                 var materialFile = "generated/decls/material2/" + materialName + ".decl";
                 if (!materials.containsKey(materialName)) {
                     var assetId = ResourceKey.from(materialFile, ResourceType.RsStreamFile);
-                    var material = (Material) archive.loadAsset(assetId);
+                    var material = archive.loadAsset(assetId, Material.class);
                     materials.put(materialName, material);
                 }
                 meshes.set(i, meshes.get(i)
@@ -60,11 +60,6 @@ public final class Md6ModelReader implements ResourceReader<Model> {
     private List<Mesh> readMeshes(Md6Model md6, long hash) throws IOException {
         var meshes = readStreamedGeometry(md6, 0, hash);
         fixJointIndices(md6, meshes);
-
-        // Add names to all meshes
-        for (int i = 0; i < meshes.size(); i++) {
-            meshes.set(i, meshes.get(i).withName(md6.meshInfos().get(i).meshName()));
-        }
         return meshes;
     }
 
@@ -80,8 +75,8 @@ public final class Md6ModelReader implements ResourceReader<Model> {
         var layouts = md6.layouts().get(lod).memoryLayouts();
 
         var identity = (hash << 4) | lod;
-        var buffer = archive.readStream(identity, uncompressedSize);
-        try (var source = DataSource.fromBuffer(buffer)) {
+        var bytes = archive.readStream(identity, uncompressedSize);
+        try (var source = DataSource.fromArray(bytes)) {
             return GeometryReader.readStreamedMesh(source, lodInfos, layouts, true);
         }
     }

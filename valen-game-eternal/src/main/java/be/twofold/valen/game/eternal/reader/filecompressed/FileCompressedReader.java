@@ -8,9 +8,14 @@ import be.twofold.valen.game.eternal.reader.*;
 import be.twofold.valen.game.eternal.resource.*;
 
 import java.io.*;
-import java.nio.*;
 
 public final class FileCompressedReader implements ResourceReader<byte[]> {
+    private final Decompressor decompressor;
+
+    public FileCompressedReader(Decompressor decompressor) {
+        this.decompressor = Check.notNull(decompressor);
+    }
+
     @Override
     public boolean canRead(ResourceKey key) {
         return key.type() == ResourceType.CompFile
@@ -25,7 +30,6 @@ public final class FileCompressedReader implements ResourceReader<byte[]> {
         }
 
         var compressed = source.readBytes(header.compressedSize());
-        return Buffers.toArray(Compression.Oodle
-            .decompress(ByteBuffer.wrap(compressed), header.uncompressedSize()));
+        return decompressor.decompress(compressed, header.uncompressedSize());
     }
 }

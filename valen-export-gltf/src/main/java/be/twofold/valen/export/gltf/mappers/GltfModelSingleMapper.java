@@ -14,13 +14,18 @@ public final class GltfModelSingleMapper extends GltfModelMapper {
         super(context);
     }
 
-    public MeshID map(ModelReference modelReference) throws IOException {
-        var existingNodeID = models.get(modelReference.name());
-        if (existingNodeID != null) {
-            return existingNodeID;
+    public Optional<MeshID> map(ModelReference modelReference) throws IOException {
+        if (models.containsKey(modelReference.name())) {
+            return Optional.ofNullable(models.get(modelReference.name()));
         }
 
         var model = modelReference.supplier().get();
+        if (model.meshes().isEmpty()) {
+            System.out.println("Skipping model without meshes: " + modelReference.name());
+            models.put(modelReference.name(), null);
+            return Optional.empty();
+        }
+
         if (model.skeleton() != null) {
             System.out.println("Skipping skeleton for scene on " + model.name());
             model = new Model(model.name(), model.meshes(), null);
@@ -28,7 +33,7 @@ public final class GltfModelSingleMapper extends GltfModelMapper {
 
         var meshID = mapModel(model);
         models.put(modelReference.name(), meshID);
-        return meshID;
+        return Optional.of(meshID);
     }
 
     private MeshID mapModel(Model model) throws IOException {
@@ -43,5 +48,4 @@ public final class GltfModelSingleMapper extends GltfModelMapper {
             .build();
         return context.addMesh(meshSchema);
     }
-
 }

@@ -1,32 +1,40 @@
 package be.twofold.valen.core.compression;
 
+import be.twofold.valen.core.util.*;
+
 import java.io.*;
-import java.nio.*;
 import java.util.zip.*;
 
-public final class InflateDecompressor extends Decompressor {
-    private final boolean nowrap;
+final class InflateDecompressor implements Decompressor {
+    private final boolean raw;
 
-    public InflateDecompressor(boolean nowrap) {
-        this.nowrap = nowrap;
+    InflateDecompressor(boolean raw) {
+        this.raw = raw;
     }
 
     @Override
-    public ByteBuffer decompress(ByteBuffer src, int dstLength) throws IOException {
-        var inflater = new Inflater(nowrap);
-        inflater.setInput(src);
-        var dst = ByteBuffer.allocate(dstLength);
+    public void decompress(
+        byte[] src, int srcOff, int srcLen,
+        byte[] dst, int dstOff, int dstLen
+    ) throws IOException {
+        Check.fromIndexSize(srcOff, srcLen, src.length);
+        Check.fromIndexSize(dstOff, dstLen, dst.length);
+
+        var inflater = new Inflater(raw);
+        inflater.setInput(src, srcOff, srcLen);
+
         while (!inflater.finished()) {
             try {
-                int count = inflater.inflate(dst);
+                int count = inflater.inflate(dst, dstOff, dstLen);
                 if (count == 0) {
                     break;
                 }
+                dstOff += count;
+                dstLen -= count;
             } catch (DataFormatException e) {
                 throw new IOException("Invalid compressed data", e);
             }
         }
         inflater.end();
-        return dst.flip();
     }
 }
