@@ -15,7 +15,7 @@ public class TextReader implements Reader<String> {
 
     @Override
     public boolean canRead(Asset asset) {
-        return asset.type() == AssetType.Text;
+        return asset.type() == AssetType.TEXT;
     }
 
     private Charset detectCharset(DataSource source) throws IOException {

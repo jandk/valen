@@ -22,7 +22,7 @@ public class VpkArchive implements Provider {
         this.parent = parent;
         this.root = path.getParent();
 
-        try (var source = new ChannelDataSource(Files.newByteChannel(path))) {
+        try (var source = DataSource.fromPath(path)) {
             source.expectInt(0x55aa1234);
             short versionMj = source.readShort();
             short versionMn = source.readShort();
@@ -98,21 +98,27 @@ public class VpkArchive implements Provider {
     }
 
     @Override
-    public Object loadAsset(AssetID identifier) throws IOException {
+    public <T> T loadAsset(AssetID identifier, Class<T> clazz) throws IOException {
         final Asset asset = assets.get(identifier);
         if (identifier instanceof SourceAssetID sourceIdentifier) {
             var reader = getReaders().stream().filter(rdr -> rdr.canRead(asset)).findFirst();
             if (reader.isEmpty()) {
                 return null;
             }
-            ByteBuffer buffer = loadRawAsset(sourceIdentifier);
-            return reader.get().read(getParent(), asset, ByteArrayDataSource.fromBuffer(buffer));
+            byte[] bytes = loadRawAsset(sourceIdentifier);
+            if (clazz == byte[].class) {
+                return (T) bytes;
+            }
+
+            try (var source = DataSource.fromArray(bytes)) {
+                return clazz.cast(reader.get().read(getParent(), asset, source));
+            }
         }
         return null;
     }
 
-    @Override
-    public ByteBuffer loadRawAsset(AssetID identifier) throws IOException {
+
+    public byte[] loadRawAsset(AssetID identifier) throws IOException {
         Asset asset = assets.get(identifier);
         short archiveId = (short) asset.properties().get("archiveId");
         long offset = Integer.toUnsignedLong((int) asset.properties().get("offset"));
@@ -131,6 +137,6 @@ public class VpkArchive implements Provider {
                 channel.read(data, offset);
             }
         }
-        return data.flip();
+        return data.array();
     }
 }

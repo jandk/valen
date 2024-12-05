@@ -35,16 +35,16 @@ public enum PixelFormat {
     public TextureFormat toTextureFormat() {
         switch (this) {
             case DXT1 -> {
-                return TextureFormat.Bc1UNorm;
+                return TextureFormat.BC1_UNORM;
             }
             case DXT3 -> {
-                return TextureFormat.Bc2UNorm;
+                return TextureFormat.BC2_UNORM;
             }
             case DXT5 -> {
-                return TextureFormat.Bc3UNorm;
+                return TextureFormat.BC3_UNORM;
             }
             case RGBA8888 -> {
-                return TextureFormat.R8G8B8A8UNorm;
+                return TextureFormat.R8G8B8A8_UNORM;
             }
             default -> {
                 throw new RuntimeException("VTF texture format not supported: " + this.name());

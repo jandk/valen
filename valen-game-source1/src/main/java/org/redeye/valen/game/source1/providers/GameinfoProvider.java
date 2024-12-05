@@ -4,7 +4,6 @@ import be.twofold.valen.core.game.*;
 import org.redeye.valen.game.source1.utils.keyvalues.*;
 
 import java.io.*;
-import java.nio.*;
 import java.nio.file.*;
 import java.util.*;
 import java.util.stream.*;
@@ -127,20 +126,10 @@ public class GameinfoProvider implements Provider {
     }
 
     @Override
-    public Object loadAsset(AssetID identifier) throws IOException {
+    public <T> T loadAsset(AssetID identifier, Class<T> clazz) throws IOException {
         for (Provider provider : providers) {
             if (provider.exists(identifier)) {
-                return provider.loadAsset(identifier);
-            }
-        }
-        return null;
-    }
-
-    @Override
-    public ByteBuffer loadRawAsset(AssetID identifier) throws IOException {
-        for (Provider provider : providers) {
-            if (provider.exists(identifier)) {
-                return provider.loadRawAsset(identifier);
+                return provider.loadAsset(identifier, clazz);
             }
         }
         return null;

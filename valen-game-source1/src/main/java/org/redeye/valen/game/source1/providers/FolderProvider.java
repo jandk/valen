@@ -5,7 +5,6 @@ import be.twofold.valen.core.io.*;
 import org.redeye.valen.game.source1.*;
 
 import java.io.*;
-import java.nio.*;
 import java.nio.file.*;
 import java.util.*;
 
@@ -56,17 +55,24 @@ public class FolderProvider implements Provider {
     }
 
     @Override
-    public Object loadAsset(AssetID identifier) throws IOException {
+    public <T> T loadAsset(AssetID identifier, Class<T> clazz) throws IOException {
         final Asset asset = assets.get(identifier);
         if (identifier instanceof SourceAssetID sourceIdentifier) {
-            var reader = getReaders().stream().filter(rdr -> rdr.canRead(asset)).findFirst().orElseThrow();
-            return reader.read(getParent(), asset, ByteArrayDataSource.fromBuffer(loadRawAsset(sourceIdentifier)));
+            var bytes = Files.readAllBytes(root.resolve(identifier.fullName()));
+
+            if (clazz == byte[].class) {
+                return (T) bytes;
+            }
+
+            var reader = getReaders().stream()
+                .filter(r -> r.canRead(asset))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("No reader found for resource: " + asset.toString()));
+
+            try (var source = DataSource.fromArray(bytes)) {
+                return clazz.cast(reader.read(getParent(), asset, source));
+            }
         }
         return null;
-    }
-
-    @Override
-    public ByteBuffer loadRawAsset(AssetID identifier) throws IOException {
-        return ByteBuffer.wrap(Files.readAllBytes(root.resolve(identifier.fullName())));
     }
 }

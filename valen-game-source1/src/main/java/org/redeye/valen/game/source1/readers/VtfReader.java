@@ -67,7 +67,7 @@ public class VtfReader implements Reader<Texture> {
         for (int mipId = (mipCount - 1); mipId >= 0; mipId--) {
             final int mipWidth = Math.max(width >> (mipId), minRes);
             final int mipHeight = Math.max(height >> (mipId), minRes);
-            final Surface surface = new Surface(mipWidth, mipHeight, source.readBytes((mipHeight / minRes) * (mipWidth / minRes) * hiResFormat.blockSize()));
+            final Surface surface = new Surface(mipWidth, mipHeight, hiResFormat.toTextureFormat(), source.readBytes((mipHeight / minRes) * (mipWidth / minRes) * hiResFormat.blockSize()));
             surfaces.add(surface);
         }
 

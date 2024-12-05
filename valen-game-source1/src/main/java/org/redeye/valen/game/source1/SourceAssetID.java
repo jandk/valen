@@ -26,12 +26,12 @@ public record SourceAssetID(String source, String name) implements AssetID {
     }
 
 
-    public AssetType identifyAssetType() {
+    public AssetType<?> identifyAssetType() {
         return switch (extension()) {
-            case "vtf" -> AssetType.Image;
-            case "vmt", "cfg", "txt", "res", "vdf" -> AssetType.Text;
-            case "mdl" -> AssetType.Model;
-            default -> AssetType.Binary;
+            case "vtf" -> AssetType.TEXTURE;
+            case "vmt", "cfg", "txt", "res", "vdf" -> AssetType.TEXT;
+            case "mdl" -> AssetType.MODEL;
+            default -> AssetType.BINARY;
         };
     }
 
