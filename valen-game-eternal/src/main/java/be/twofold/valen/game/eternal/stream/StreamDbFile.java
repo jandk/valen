@@ -9,15 +9,13 @@ import java.util.*;
 import java.util.function.*;
 import java.util.stream.*;
 
-public final class StreamDbFile implements AutoCloseable {
+public final class StreamDbFile implements Closeable {
     private final Map<Long, StreamDbEntry> index;
     private DataSource source;
 
     public StreamDbFile(Path path) throws IOException {
         System.out.println("Loading streamdb: " + path);
-
-        var channel = Files.newByteChannel(path, StandardOpenOption.READ);
-        this.source = new ChannelDataSource(channel);
+        this.source = DataSource.fromPath(path);
 
         var entries = StreamDb.read(source).entries();
         this.index = entries.stream()

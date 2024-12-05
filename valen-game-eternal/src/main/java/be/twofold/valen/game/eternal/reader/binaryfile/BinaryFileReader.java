@@ -47,8 +47,8 @@ public final class BinaryFileReader implements ResourceReader<byte[]> {
             var parameterSpec = new IvParameterSpec(iVec);
             cipher.init(Cipher.DECRYPT_MODE, keySpec, parameterSpec);
             return cipher.doFinal(text);
-        } catch (Exception e) {
-            throw new RuntimeException("Error reading binary file", e);
+        } catch (GeneralSecurityException e) {
+            throw new RuntimeException(e);
         }
     }
 }

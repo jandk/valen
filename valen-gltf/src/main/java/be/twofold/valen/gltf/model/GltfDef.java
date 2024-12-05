@@ -1,5 +1,18 @@
 package be.twofold.valen.gltf.model;
 
+import be.twofold.valen.gltf.model.accessor.*;
+import be.twofold.valen.gltf.model.animation.*;
+import be.twofold.valen.gltf.model.asset.*;
+import be.twofold.valen.gltf.model.buffer.*;
+import be.twofold.valen.gltf.model.camera.*;
+import be.twofold.valen.gltf.model.image.*;
+import be.twofold.valen.gltf.model.material.*;
+import be.twofold.valen.gltf.model.mesh.*;
+import be.twofold.valen.gltf.model.node.*;
+import be.twofold.valen.gltf.model.sampler.*;
+import be.twofold.valen.gltf.model.scene.*;
+import be.twofold.valen.gltf.model.skin.*;
+import be.twofold.valen.gltf.model.texture.*;
 import org.immutables.value.*;
 
 import java.util.*;
@@ -10,6 +23,11 @@ import java.util.*;
 @SchemaStyle
 @Value.Immutable(copy = false)
 public interface GltfDef extends GltfProperty {
+    /**
+     * Metadata about the glTF asset.
+     */
+    AssetSchema getAsset();
+
     /**
      * Names of glTF extensions used in this asset.
      */
@@ -29,11 +47,6 @@ public interface GltfDef extends GltfProperty {
      * An array of keyframe animations.
      */
     List<AnimationSchema> getAnimations();
-
-    /**
-     * Metadata about the glTF asset.
-     */
-    AssetSchema getAsset();
 
     /**
      * An array of buffers.
@@ -78,7 +91,7 @@ public interface GltfDef extends GltfProperty {
     /**
      * The index of the default scene.
      */
-    OptionalInt getScene();
+    Optional<SceneID> getScene();
 
     /**
      * An array of scenes.

@@ -15,15 +15,6 @@
             <groupId>be.twofold</groupId>
             <artifactId>valen-core</artifactId>
         </dependency>
-        <dependency>
-            <groupId>be.twofold</groupId>
-            <artifactId>valen-export</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>be.twofold</groupId>
-            <artifactId>tinybcdec</artifactId>
-        </dependency>
     </dependencies>
 
 </project>

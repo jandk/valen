@@ -19,8 +19,6 @@ public record ResourcesEntry(
     short variation,
     short numDependencies
 ) {
-    public static final int BYTES = 144;
-
     public static ResourcesEntry read(DataSource source) throws IOException {
         source.expectLong(0); // resourceTypeString
         source.expectLong(1); // nameString

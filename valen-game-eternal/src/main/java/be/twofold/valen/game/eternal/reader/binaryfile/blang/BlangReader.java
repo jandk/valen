@@ -24,6 +24,6 @@ public final class BlangReader implements ResourceReader<Blang> {
     @Override
     public Blang read(DataSource source, Asset asset) throws IOException {
         byte[] bytes = binaryFileReader.read(source, asset);
-        return Blang.read(new ByteArrayDataSource(bytes));
+        return Blang.read(DataSource.fromArray(bytes));
     }
 }

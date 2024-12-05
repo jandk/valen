@@ -1,0 +1,25 @@
+typedef struct {
+    char value[0x400];
+} Name <read=Str("%s", this.value)>;
+
+struct HavokShapeData {
+    uint contentFlags;
+    uint surfaceType;
+    uint surfaceFlags;
+    uint surfaceVelocityGroup;
+    float dynamicFriction;
+    float staticFriction;
+    float restitution;
+    uint unkown;
+};
+
+struct HavokShape {
+    uint shapeCount;
+    HavokShapeData shapes[shapeCount];
+
+    uint nameCount;    
+    Name names[nameCount];
+    
+    uint  tagFileSize;
+    ubyte tagFile[tagFileSize];
+} shape;

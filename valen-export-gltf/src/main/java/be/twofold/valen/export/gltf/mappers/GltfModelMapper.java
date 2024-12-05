@@ -3,54 +3,55 @@ package be.twofold.valen.export.gltf.mappers;
 import be.twofold.valen.core.geometry.*;
 import be.twofold.valen.core.math.*;
 import be.twofold.valen.gltf.*;
-import be.twofold.valen.gltf.model.*;
+import be.twofold.valen.gltf.model.accessor.*;
+import be.twofold.valen.gltf.model.buffer.*;
+import be.twofold.valen.gltf.model.mesh.*;
 import com.google.gson.*;
 
+import java.io.*;
 import java.nio.*;
 
-public final class GltfModelMapper {
-    private final GltfContext context;
+public abstract class GltfModelMapper {
+    final GltfContext context;
+    final GltfMaterialMapper materialMapper;
 
     public GltfModelMapper(GltfContext context) {
         this.context = context;
+        this.materialMapper = new GltfMaterialMapper(context);
     }
 
-    public MeshSchema map(Model model) {
-        // First we do the meshes
-        var primitives = model.meshes().stream()
-            .map(this::mapMesh)
-            .toList();
+    MeshPrimitiveSchema mapMeshPrimitive(Mesh mesh) throws IOException {
+        // Add the material
+        var materialID = materialMapper.map(mesh.material());
 
-        return MeshSchema.builder()
-            .primitives(primitives)
-            .build();
-    }
-
-    private MeshPrimitiveSchema mapMesh(Mesh mesh) {
         // Have to fix up the joints and weights first
         fixJointsAndWeights(mesh);
 
         var attributes = new JsonObject();
         for (var entry : mesh.vertexBuffers().entrySet()) {
+            if (entry.getKey() instanceof Semantic.Color) {
+                // TODO: Make Blender ignore vertex colors
+                continue;
+            }
             var semantic = mapSemantic(entry.getKey());
             var accessor = buildAccessor(entry.getValue(), entry.getKey());
-            attributes.addProperty(semantic, accessor.getId());
+            attributes.addProperty(semantic, accessor.id());
         }
 
         var faceAccessor = buildAccessor(mesh.faceBuffer(), null);
         return MeshPrimitiveSchema.builder()
             .attributes(attributes)
             .indices(faceAccessor)
+            .material(materialID)
             .build();
     }
 
-    private AccessorId buildAccessor(VertexBuffer buffer, Semantic semantic) {
+    private AccessorID buildAccessor(VertexBuffer buffer, Semantic semantic) {
         var target = semantic == null
             ? BufferViewTarget.ELEMENT_ARRAY_BUFFER
             : BufferViewTarget.ARRAY_BUFFER;
 
-        var length = buffer.buffer().limit() * buffer.componentType().size();
-        var bufferView = context.createBufferView(buffer.buffer(), length, target);
+        var bufferView = context.createBufferView(buffer.buffer(), target);
 
         var bounds = semantic == Semantic.Position
             ? Bounds.calculate(((FloatBuffer) buffer.buffer()))
@@ -60,11 +61,11 @@ public final class GltfModelMapper {
             .bufferView(bufferView)
             .componentType(mapComponentType(buffer.componentType()))
             .count(buffer.count())
-            .type(mapElementType(buffer.elementType()));
+            .type(GltfModelMapper.mapElementType(buffer.elementType()));
 
         if (bounds != null) {
-            accessor.min(bounds.min().toArray());
-            accessor.max(bounds.max().toArray());
+            accessor.min(GltfUtils.mapVector3(bounds.min()));
+            accessor.max(GltfUtils.mapVector3(bounds.max()));
         }
         if (buffer.normalized()) {
             accessor.normalized(true);
@@ -73,7 +74,7 @@ public final class GltfModelMapper {
         return context.addAccessor(accessor.build());
     }
 
-    private void fixJointsAndWeights(Mesh mesh) {
+    void fixJointsAndWeights(Mesh mesh) {
         // TODO: Loop over joints and weights and fix them
         mesh.getBuffer(Semantic.Joints0).ifPresent(joints -> mesh
             .getBuffer(Semantic.Weights0).ifPresent(weights -> {
@@ -87,18 +88,25 @@ public final class GltfModelMapper {
             }));
     }
 
-    private AccessorComponentType mapComponentType(ComponentType componentType) {
-        return switch (componentType) {
-            case Byte -> AccessorComponentType.SIGNED_BYTE;
-            case UnsignedByte -> AccessorComponentType.UNSIGNED_BYTE;
-            case Short -> AccessorComponentType.SIGNED_SHORT;
-            case UnsignedShort -> AccessorComponentType.UNSIGNED_SHORT;
-            case UnsignedInt -> AccessorComponentType.UNSIGNED_INT;
-            case Float -> AccessorComponentType.FLOAT;
-        };
+    AccessorComponentType mapComponentType(ComponentType<?> componentType) {
+        if (componentType == ComponentType.Byte) {
+            return AccessorComponentType.BYTE;
+        } else if (componentType == ComponentType.UnsignedByte) {
+            return AccessorComponentType.UNSIGNED_BYTE;
+        } else if (componentType == ComponentType.Short) {
+            return AccessorComponentType.SHORT;
+        } else if (componentType == ComponentType.UnsignedShort) {
+            return AccessorComponentType.UNSIGNED_SHORT;
+        } else if (componentType == ComponentType.UnsignedInt) {
+            return AccessorComponentType.UNSIGNED_INT;
+        } else if (componentType == ComponentType.Float) {
+            return AccessorComponentType.FLOAT;
+        } else {
+            throw new UnsupportedOperationException("Unsupported component type: " + componentType);
+        }
     }
 
-    public static AccessorType mapElementType(ElementType type) {
+    static AccessorType mapElementType(ElementType type) {
         return switch (type) {
             case Scalar -> AccessorType.SCALAR;
             case Vector2 -> AccessorType.VEC2;
@@ -110,7 +118,7 @@ public final class GltfModelMapper {
         };
     }
 
-    private String mapSemantic(Semantic semantic) {
+    String mapSemantic(Semantic semantic) {
         return switch (semantic) {
             case Semantic.Position() -> "POSITION";
             case Semantic.Normal() -> "NORMAL";

@@ -1,13 +1,14 @@
 package be.twofold.valen.core.io;
 
-import java.io.*;
-import java.util.*;
+import be.twofold.valen.core.util.*;
 
-public final class InputStreamDataSource extends DataSource {
+import java.io.*;
+
+final class InputStreamDataSource extends DataSource {
     private final InputStream stream;
 
-    public InputStreamDataSource(InputStream stream) {
-        this.stream = Objects.requireNonNull(stream);
+    InputStreamDataSource(InputStream stream) {
+        this.stream = Check.notNull(stream);
     }
 
     @Override
@@ -21,7 +22,7 @@ public final class InputStreamDataSource extends DataSource {
 
     @Override
     public void readBytes(byte[] dst, int off, int len, boolean buffered) throws IOException {
-        Objects.checkFromIndexSize(off, len, dst.length);
+        Check.fromIndexSize(off, len, dst.length);
 
         while (len > 0) {
             int read = stream.read(dst, off, len);

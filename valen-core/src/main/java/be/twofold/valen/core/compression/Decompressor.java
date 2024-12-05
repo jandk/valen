@@ -1,21 +1,41 @@
 package be.twofold.valen.core.compression;
 
-import be.twofold.valen.core.compression.oodle.*;
-
 import java.io.*;
-import java.nio.*;
-import java.util.*;
+import java.nio.file.*;
 
-public abstract class Decompressor {
-    private static final Map<CompressionType, Decompressor> decompressors = Map.of(
-        CompressionType.None, new NullDecompressor(),
-        CompressionType.Kraken, new OodleDecompressor(false),
-        CompressionType.KrakenChunked, new OodleDecompressor(true)
-    );
-
-    public static Decompressor forType(CompressionType compressionType) {
-        return decompressors.get(compressionType);
+@FunctionalInterface
+public interface Decompressor {
+    static Decompressor none() {
+        return new NoneDecompressor();
     }
 
-    public abstract ByteBuffer decompress(ByteBuffer src, int dstLength) throws IOException;
+    static Decompressor fastLZ() {
+        return new FastLZDecompressor();
+    }
+
+    static Decompressor inflate(boolean raw) {
+        return new InflateDecompressor(raw);
+    }
+
+    static Decompressor lz4() {
+        return new LZ4Decompressor();
+    }
+
+    static Decompressor oodle(Path path) {
+        return new OodleDecompressor(path);
+    }
+
+    default byte[] decompress(byte[] compressed, int uncompressedSize) throws IOException {
+        byte[] decompressed = new byte[uncompressedSize];
+        decompress(
+            compressed, 0, compressed.length,
+            decompressed, 0, decompressed.length
+        );
+        return decompressed;
+    }
+
+    void decompress(
+        byte[] src, int srcOff, int srcLen,
+        byte[] dst, int dstOff, int dstLen
+    ) throws IOException;
 }

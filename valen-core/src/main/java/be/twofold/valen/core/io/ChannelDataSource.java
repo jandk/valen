@@ -1,15 +1,13 @@
 package be.twofold.valen.core.io;
 
+import be.twofold.valen.core.util.*;
+
 import java.io.*;
 import java.nio.*;
 import java.nio.channels.*;
-import java.util.*;
 
-public final class ChannelDataSource extends DataSource {
-    private final ByteBuffer buffer = ByteBuffer
-        .allocate(8192)
-        .order(ByteOrder.LITTLE_ENDIAN)
-        .limit(0);
+final class ChannelDataSource extends DataSource {
+    private final ByteBuffer buffer = Buffers.allocate(8192).limit(0);
 
     private final SeekableByteChannel channel;
     private final long offset;
@@ -17,12 +15,12 @@ public final class ChannelDataSource extends DataSource {
     private final long lim;
     private long bufPos;
 
-    public ChannelDataSource(SeekableByteChannel channel) throws IOException {
+    ChannelDataSource(SeekableByteChannel channel) throws IOException {
         this(channel, 0, channel.size());
     }
 
-    public ChannelDataSource(SeekableByteChannel channel, long offset, long length) throws IOException {
-        Objects.checkFromIndexSize(offset, length, channel.size());
+    ChannelDataSource(SeekableByteChannel channel, long offset, long length) throws IOException {
+        Check.fromIndexSize(offset, length, channel.size());
         this.channel = channel;
         this.offset = offset;
         this.length = length;
@@ -135,19 +133,15 @@ public final class ChannelDataSource extends DataSource {
     // Helper methods
     //
 
-    private void readInternal(ByteBuffer buffer) {
+    private void readInternal(ByteBuffer buffer) throws IOException {
         while (buffer.hasRemaining()) {
-            try {
-                if (channel.read(buffer) == -1) {
-                    throw new EOFException();
-                }
-            } catch (IOException e) {
-                throw new UncheckedIOException(e);
+            if (channel.read(buffer) == -1) {
+                throw new EOFException();
             }
         }
     }
 
-    private void refillWhen(int n) throws EOFException {
+    private void refillWhen(int n) throws IOException {
         if (buffer.remaining() < n) {
             refill();
             if (buffer.remaining() < n) {
@@ -156,7 +150,7 @@ public final class ChannelDataSource extends DataSource {
         }
     }
 
-    private void refill() {
+    private void refill() throws IOException {
         long start = bufPos + buffer.position();
         long end = Math.min(start + buffer.capacity(), lim);
         buffer.compact();

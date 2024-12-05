@@ -1,8 +1,39 @@
 package be.twofold.valen.core.math;
 
+import be.twofold.valen.core.io.*;
+
+import java.io.*;
 import java.nio.*;
 
-public record Vector4(float x, float y, float z, float w) {
+public record Vector4(
+    float x,
+    float y,
+    float z,
+    float w
+) {
+    public static Vector4 Zero = new Vector4(0.0f, 0.0f, 0.0f, 0.0f);
+    public static Vector4 One = new Vector4(1.0f, 1.0f, 1.0f, 1.0f);
+    public static Vector4 X = new Vector4(1.0f, 0.0f, 0.0f, 0.0f);
+    public static Vector4 Y = new Vector4(0.0f, 1.0f, 0.0f, 0.0f);
+    public static Vector4 Z = new Vector4(0.0f, 0.0f, 1.0f, 0.0f);
+    public static Vector4 W = new Vector4(0.0f, 0.0f, 0.0f, 1.0f);
+
+    public static Vector4 splat(float value) {
+        return new Vector4(value, value, value, value);
+    }
+
+    public static Vector4 read(DataSource source) throws IOException {
+        float x = source.readFloat();
+        float y = source.readFloat();
+        float z = source.readFloat();
+        float w = source.readFloat();
+        return new Vector4(x, y, z, w);
+    }
+
+    public Vector4(Vector3 v, float w) {
+        this(v.x(), v.y(), v.z(), w);
+    }
+
     public Vector4 add(Vector4 other) {
         return new Vector4(x + other.x, y + other.y, z + other.z, w + other.w);
     }
@@ -11,8 +42,16 @@ public record Vector4(float x, float y, float z, float w) {
         return add(other.negate());
     }
 
+    public Vector4 multiply(Vector4 other) {
+        return new Vector4(x * other.x, y * other.y, z * other.z, w * other.w);
+    }
+
     public Vector4 multiply(float scalar) {
         return new Vector4(x * scalar, y * scalar, z * scalar, w * scalar);
+    }
+
+    public Vector4 divide(Vector4 other) {
+        return new Vector4(x / other.x, y / other.y, z / other.z, w / other.w);
     }
 
     public Vector4 divide(float scalar) {
@@ -39,17 +78,27 @@ public record Vector4(float x, float y, float z, float w) {
         return divide(length());
     }
 
-    // TODO: Move this method somewhere else
-    public void put(FloatBuffer dst) {
+    public Vector4 fma(float scale, Vector4 offset) {
+        return fma(splat(scale), offset);
+    }
+
+    public Vector4 fma(Vector4 scale, Vector4 offset) {
+        float x = Math.fma(this.x, scale.x, offset.x);
+        float y = Math.fma(this.y, scale.y, offset.y);
+        float z = Math.fma(this.z, scale.z, offset.z);
+        float w = Math.fma(this.w, scale.w, offset.w);
+        return new Vector4(x, y, z, w);
+    }
+
+    public void toBuffer(FloatBuffer dst) {
         dst.put(x);
         dst.put(y);
         dst.put(z);
         dst.put(w);
     }
 
-    // TODO: Move this method somewhere else
-    public float[] toArray() {
-        return new float[]{x, y, z, w};
+    public Vector3 toVector3() {
+        return new Vector3(x, y, z);
     }
 
     @Override

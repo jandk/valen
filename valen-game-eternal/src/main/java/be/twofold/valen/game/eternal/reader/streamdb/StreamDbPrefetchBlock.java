@@ -9,8 +9,6 @@ public record StreamDbPrefetchBlock(
     int firstItemIndex,
     int numItems
 ) {
-    public static final int BYTES = 16;
-
     public static StreamDbPrefetchBlock read(DataSource source) throws IOException {
         var name = source.readLong();
         var firstItemIndex = source.readInt();

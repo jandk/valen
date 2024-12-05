@@ -1,44 +1,25 @@
 package be.twofold.valen.core.io;
 
+import be.twofold.valen.core.util.*;
+
 import java.io.*;
-import java.lang.invoke.*;
-import java.nio.*;
-import java.util.*;
 
-public final class ByteArrayDataSource extends DataSource {
-    private static final VarHandle ShortVarHandle =
-        MethodHandles.byteArrayViewVarHandle(short[].class, ByteOrder.LITTLE_ENDIAN);
-    private static final VarHandle IntVarHandle =
-        MethodHandles.byteArrayViewVarHandle(int[].class, ByteOrder.LITTLE_ENDIAN);
-    private static final VarHandle LongVarHandle =
-        MethodHandles.byteArrayViewVarHandle(long[].class, ByteOrder.LITTLE_ENDIAN);
-    private static final VarHandle FloatVarHandle =
-        MethodHandles.byteArrayViewVarHandle(float[].class, ByteOrder.LITTLE_ENDIAN);
-    private static final VarHandle DoubleVarHandle =
-        MethodHandles.byteArrayViewVarHandle(double[].class, ByteOrder.LITTLE_ENDIAN);
-
+final class ByteArrayDataSource extends DataSource {
     private final byte[] bytes;
     private final int offset;
     private final int lim;
     private int pos;
 
-    public ByteArrayDataSource(byte[] bytes) {
+    ByteArrayDataSource(byte[] bytes) {
         this(bytes, 0, bytes.length);
     }
 
-    public ByteArrayDataSource(byte[] bytes, int offset, int length) {
-        Objects.checkFromIndexSize(offset, length, bytes.length);
+    ByteArrayDataSource(byte[] bytes, int offset, int length) {
+        Check.fromIndexSize(offset, length, bytes.length);
         this.bytes = bytes;
         this.offset = offset;
         this.pos = offset;
         this.lim = offset + length;
-    }
-
-    public static ByteArrayDataSource fromBuffer(ByteBuffer buffer) {
-        if (!buffer.hasArray()) {
-            throw new IllegalArgumentException("ByteBuffer must be backed by an array");
-        }
-        return new ByteArrayDataSource(buffer.array(), buffer.arrayOffset(), buffer.limit());
     }
 
     @Override
@@ -51,7 +32,7 @@ public final class ByteArrayDataSource extends DataSource {
 
     @Override
     public void readBytes(byte[] dst, int off, int len, boolean buffered) throws IOException {
-        Objects.checkFromIndexSize(off, len, dst.length);
+        Check.fromIndexSize(off, len, dst.length);
         if (pos + len > lim) {
             throw new EOFException();
         }
@@ -66,8 +47,9 @@ public final class ByteArrayDataSource extends DataSource {
 
     @Override
     public void seek(long pos) {
-        Objects.checkIndex(pos, lim - offset + 1);
-        this.pos = (int) (this.offset + pos);
+        int intPos = Math.toIntExact(pos);
+        Check.index(intPos, lim - offset + 1);
+        this.pos = offset + intPos;
     }
 
     @Override
@@ -80,42 +62,37 @@ public final class ByteArrayDataSource extends DataSource {
         // Do nothing
     }
 
-    public ByteArrayDataSource slice(int offset, int length) {
-        Objects.checkFromIndexSize(offset, length, lim - this.offset);
-        return new ByteArrayDataSource(bytes, this.offset + offset, length);
-    }
-
     @Override
-    public short readShort() throws IOException {
-        var value = (short) ShortVarHandle.get(bytes, pos);
+    public short readShort() {
+        var value = ByteArrays.getShort(bytes, pos);
         pos += Short.BYTES;
         return value;
     }
 
     @Override
-    public int readInt() throws IOException {
-        var value = (int) IntVarHandle.get(bytes, pos);
+    public int readInt() {
+        var value = ByteArrays.getInt(bytes, pos);
         pos += Integer.BYTES;
         return value;
     }
 
     @Override
-    public long readLong() throws IOException {
-        var value = (long) LongVarHandle.get(bytes, pos);
+    public long readLong() {
+        var value = ByteArrays.getLong(bytes, pos);
         pos += Long.BYTES;
         return value;
     }
 
     @Override
-    public float readFloat() throws IOException {
-        var value = (float) FloatVarHandle.get(bytes, pos);
+    public float readFloat() {
+        var value = ByteArrays.getFloat(bytes, pos);
         pos += Float.BYTES;
         return value;
     }
 
     @Override
-    public double readDouble() throws IOException {
-        var value = (double) DoubleVarHandle.get(bytes, pos);
+    public double readDouble() {
+        var value = ByteArrays.getDouble(bytes, pos);
         pos += Double.BYTES;
         return value;
     }

@@ -71,13 +71,6 @@ public final class Check {
         return index;
     }
 
-    public static int fromIndex(int index, int length) {
-        if (index < 0 || index >= length) {
-            throw new IndexOutOfBoundsException(String.format("Index %s out of bounds for length %s", index, length));
-        }
-        return index;
-    }
-
     public static int fromToIndex(int fromIndex, int toIndex, int size) {
         if (fromIndex < 0 || fromIndex > toIndex || toIndex > size) {
             throw new IndexOutOfBoundsException(String.format("Range [%s, %s) out of bounds for length %s", fromIndex, toIndex, size));
@@ -86,6 +79,13 @@ public final class Check {
     }
 
     public static int fromIndexSize(int fromIndex, int size, int length) {
+        if ((length | fromIndex | size) < 0 || size > length - fromIndex) {
+            throw new IndexOutOfBoundsException(String.format("Range [%s, %<s + %s) out of bounds for length %s", fromIndex, size, length));
+        }
+        return fromIndex;
+    }
+
+    public static long fromIndexSize(long fromIndex, long size, long length) {
         if ((length | fromIndex | size) < 0 || size > length - fromIndex) {
             throw new IndexOutOfBoundsException(String.format("Range [%s, %<s + %s) out of bounds for length %s", fromIndex, size, length));
         }

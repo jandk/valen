@@ -10,8 +10,6 @@ public record StreamDbHeader(
     int numEntries,
     Set<StreamDbHeaderFlag> flags
 ) {
-    public static final int BYTES = 32;
-
     public static StreamDbHeader read(DataSource source) throws IOException {
         source.expectLong(0x61c7f32e29c2a550L); // magic
         var length = source.readInt();

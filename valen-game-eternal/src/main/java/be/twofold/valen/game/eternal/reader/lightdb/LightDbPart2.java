@@ -9,8 +9,6 @@ public record LightDbPart2(
     float unk1,
     float unk2
 ) {
-    public static final int BYTES = 12;
-
     public static LightDbPart2 read(DataSource source) throws IOException {
         var id = source.readInt();
         var unk1 = source.readFloat();

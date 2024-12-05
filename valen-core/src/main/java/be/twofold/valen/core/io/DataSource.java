@@ -1,10 +1,35 @@
 package be.twofold.valen.core.io;
 
+import be.twofold.valen.core.util.*;
+
 import java.io.*;
+import java.nio.*;
 import java.nio.charset.*;
+import java.nio.file.*;
 import java.util.*;
 
-public abstract class DataSource implements AutoCloseable {
+public abstract class DataSource implements Closeable {
+
+    public static DataSource fromArray(byte[] array) {
+        return new ByteArrayDataSource(array);
+    }
+
+    public static DataSource fromArray(byte[] array, int offset, int length) {
+        return new ByteArrayDataSource(array, offset, length);
+    }
+
+    public static DataSource fromBuffer(ByteBuffer buffer) {
+        Check.argument(buffer.hasArray(), "ByteBuffer must be backed by an array");
+        return new ByteArrayDataSource(buffer.array(), buffer.arrayOffset(), buffer.limit());
+    }
+
+    public static DataSource fromPath(Path path) throws IOException {
+        return new ChannelDataSource(Files.newByteChannel(path, StandardOpenOption.READ));
+    }
+
+    public static DataSource fromStream(InputStream stream) {
+        return new InputStreamDataSource(stream);
+    }
 
     public abstract byte readByte() throws IOException;
 
@@ -26,6 +51,14 @@ public abstract class DataSource implements AutoCloseable {
         seek(tell() + count);
     }
 
+    public int readByteAsInt() throws IOException {
+        return Byte.toUnsignedInt(readByte());
+    }
+
+    public long readByteAsLong() throws IOException {
+        return Byte.toUnsignedLong(readByte());
+    }
+
     public byte[] readBytes(int len) throws IOException {
         var result = new byte[len];
         readBytes(result, 0, len);
@@ -33,13 +66,17 @@ public abstract class DataSource implements AutoCloseable {
     }
 
     public short readShort() throws IOException {
-        var b0 = Byte.toUnsignedInt(readByte());
-        var b1 = Byte.toUnsignedInt(readByte());
+        var b0 = readByteAsInt();
+        var b1 = readByteAsInt();
         return (short) (b0 | (b1 << 8));
     }
 
+    public short readShortBE() throws IOException {
+        return Short.reverseBytes(readShort());
+    }
+
     public void readShorts(short[] array, int offset, int length) throws IOException {
-        Objects.checkFromIndexSize(offset, length, array.length);
+        Check.fromIndexSize(offset, length, array.length);
         for (var i = 0; i < length; i++) {
             array[offset + i] = readShort();
         }
@@ -52,15 +89,19 @@ public abstract class DataSource implements AutoCloseable {
     }
 
     public int readInt() throws IOException {
-        var b0 = Byte.toUnsignedInt(readByte());
-        var b1 = Byte.toUnsignedInt(readByte());
-        var b2 = Byte.toUnsignedInt(readByte());
-        var b3 = Byte.toUnsignedInt(readByte());
+        int b0 = readByteAsInt();
+        int b1 = readByteAsInt();
+        int b2 = readByteAsInt();
+        int b3 = readByteAsInt();
         return b0 | (b1 << 8) | (b2 << 16) | (b3 << 24);
     }
 
+    public int readIntBE() throws IOException {
+        return Integer.reverseBytes(readInt());
+    }
+
     public void readInts(int[] array, int offset, int length) throws IOException {
-        Objects.checkFromIndexSize(offset, length, array.length);
+        Check.fromIndexSize(offset, length, array.length);
         for (var i = 0; i < length; i++) {
             array[offset + i] = readInt();
         }
@@ -73,19 +114,23 @@ public abstract class DataSource implements AutoCloseable {
     }
 
     public long readLong() throws IOException {
-        var b0 = Byte.toUnsignedLong(readByte());
-        var b1 = Byte.toUnsignedLong(readByte());
-        var b2 = Byte.toUnsignedLong(readByte());
-        var b3 = Byte.toUnsignedLong(readByte());
-        var b4 = Byte.toUnsignedLong(readByte());
-        var b5 = Byte.toUnsignedLong(readByte());
-        var b6 = Byte.toUnsignedLong(readByte());
-        var b7 = Byte.toUnsignedLong(readByte());
+        long b0 = readByteAsLong();
+        long b1 = readByteAsLong();
+        long b2 = readByteAsLong();
+        long b3 = readByteAsLong();
+        long b4 = readByteAsLong();
+        long b5 = readByteAsLong();
+        long b6 = readByteAsLong();
+        long b7 = readByteAsLong();
         return b0 | (b1 << 8) | (b2 << 16) | (b3 << 24) | (b4 << 32) | (b5 << 40) | (b6 << 48) | (b7 << 56);
     }
 
+    public long readLongBE() throws IOException {
+        return Long.reverseBytes(readLong());
+    }
+
     public void readLongs(long[] array, int offset, int length) throws IOException {
-        Objects.checkFromIndexSize(offset, length, array.length);
+        Check.fromIndexSize(offset, length, array.length);
         for (var i = 0; i < length; i++) {
             array[offset + i] = readLong();
         }
@@ -102,7 +147,7 @@ public abstract class DataSource implements AutoCloseable {
     }
 
     public void readFloats(float[] array, int offset, int length) throws IOException {
-        Objects.checkFromIndexSize(offset, length, array.length);
+        Check.fromIndexSize(offset, length, array.length);
         for (var i = 0; i < length; i++) {
             array[offset + i] = readFloat();
         }
@@ -119,7 +164,7 @@ public abstract class DataSource implements AutoCloseable {
     }
 
     public void readDoubles(double[] array, int offset, int length) throws IOException {
-        Objects.checkFromIndexSize(offset, length, array.length);
+        Check.fromIndexSize(offset, length, array.length);
         for (var i = 0; i < length; i++) {
             array[offset + i] = readDouble();
         }
@@ -190,7 +235,7 @@ public abstract class DataSource implements AutoCloseable {
         for (var i = 0; i < count; i++) {
             result.add(mapper.read(this));
         }
-        return result;
+        return List.copyOf(result);
     }
 
     public void expectByte(byte expected) throws IOException {

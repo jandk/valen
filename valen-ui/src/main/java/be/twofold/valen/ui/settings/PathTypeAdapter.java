@@ -6,7 +6,7 @@ import com.google.gson.stream.*;
 import java.io.*;
 import java.nio.file.*;
 
-public final class PathTypeAdapter extends TypeAdapter<Path> {
+final class PathTypeAdapter extends TypeAdapter<Path> {
     @Override
     public void write(JsonWriter out, Path value) throws IOException {
         out.value(value.toString());

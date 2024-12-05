@@ -35,9 +35,7 @@ public record HavokShape(
     public static void main(String[] args) throws IOException {
         var bytes = Files.readAllBytes(Path.of("D:\\Eternal\\DOOMExtracted\\maps\\game\\hub\\hub\\_combo\\world.hkshape"));
 
-        var buffer = new ByteArrayDataSource(bytes);
-        var shape = HavokShape.read(buffer);
-
-        HkTagFile.read(ByteBuffer.wrap(shape.data));
+        var shape = HavokShape.read(DataSource.fromArray(bytes));
+        HkTagFile.read(ByteBuffer.wrap(shape.data()));
     }
 }

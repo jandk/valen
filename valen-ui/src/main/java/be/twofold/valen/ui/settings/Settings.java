@@ -4,13 +4,16 @@ import java.nio.file.*;
 import java.util.*;
 
 public final class Settings {
-    private Path gameDirectory;
+    private Path gameExecutable;
 
-    public Optional<Path> getGameDirectory() {
-        return Optional.ofNullable(gameDirectory);
+    Settings() {
     }
 
-    public void setGameDirectory(Path gameDirectory) {
-        this.gameDirectory = gameDirectory;
+    public Optional<Path> getGameExecutable() {
+        return Optional.ofNullable(gameExecutable);
+    }
+
+    public void setGameExecutable(Path gameExecutable) {
+        this.gameExecutable = gameExecutable;
     }
 }

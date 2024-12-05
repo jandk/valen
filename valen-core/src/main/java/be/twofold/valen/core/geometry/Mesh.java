@@ -1,13 +1,15 @@
 package be.twofold.valen.core.geometry;
 
+import be.twofold.valen.core.material.*;
 import be.twofold.valen.core.util.*;
 
 import java.util.*;
 
 public record Mesh(
+    String name,
     VertexBuffer faceBuffer,
     Map<Semantic, VertexBuffer> vertexBuffers,
-    int materialIndex
+    Material material
 ) {
     public Mesh {
         Check.notNull(faceBuffer, "faceBuffer must not be null");
@@ -18,7 +20,11 @@ public record Mesh(
         return Optional.ofNullable(vertexBuffers.get(semantic));
     }
 
-    public Mesh withMaterialIndex(int materialIndex) {
-        return new Mesh(faceBuffer, vertexBuffers, materialIndex);
+    public Mesh withName(String name) {
+        return new Mesh(name, faceBuffer, vertexBuffers, material);
+    }
+
+    public Mesh withMaterial(Material material) {
+        return new Mesh(name, faceBuffer, vertexBuffers, material);
     }
 }

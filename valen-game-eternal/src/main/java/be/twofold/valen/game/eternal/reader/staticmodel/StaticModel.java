@@ -1,8 +1,6 @@
 package be.twofold.valen.game.eternal.reader.staticmodel;
 
-import be.twofold.valen.core.geometry.*;
 import be.twofold.valen.core.io.*;
-import be.twofold.valen.core.material.*;
 import be.twofold.valen.game.eternal.reader.geometry.*;
 
 import java.io.*;
@@ -14,9 +12,7 @@ public record StaticModel(
     StaticModelSettings settings,
     StaticModelGeoDecals geoDecals,
     List<Boolean> streamedLods,
-    List<GeometryDiskLayout> streamDiskLayouts,
-    List<Mesh> meshes,
-    List<Material> materials
+    List<GeometryDiskLayout> streamDiskLayouts
 ) {
     public static final int LodCount = 5;
 
@@ -34,9 +30,7 @@ public record StaticModel(
             settings,
             geoDecals,
             streamedLods,
-            layouts,
-            List.of(),
-            List.of()
+            layouts
         );
     }
 
@@ -47,31 +41,5 @@ public record StaticModel(
             layouts.add(GeometryDiskLayout.read(source, memoryLayouts));
         }
         return layouts;
-    }
-
-    public StaticModel withMeshes(List<Mesh> meshes) {
-        return new StaticModel(
-            header,
-            meshInfos,
-            settings,
-            geoDecals,
-            streamedLods,
-            streamDiskLayouts,
-            meshes,
-            materials
-        );
-    }
-
-    public StaticModel withMaterials(List<Material> materials) {
-        return new StaticModel(
-            header,
-            meshInfos,
-            settings,
-            geoDecals,
-            streamedLods,
-            streamDiskLayouts,
-            meshes,
-            materials
-        );
     }
 }

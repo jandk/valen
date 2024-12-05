@@ -14,22 +14,20 @@
         <module>valen-export-dds</module>
         <module>valen-export-gltf</module>
         <module>valen-export-png</module>
-        <module>valen-export</module>
         <module>valen-game-doom</module>
         <module>valen-game-eternal</module>
         <module>valen-game-source1</module>
         <module>valen-gltf</module>
-        <module>valen-jlink</module>
         <module>valen-ui</module>
     </modules>
 
     <properties>
-        <maven.compiler.source>21</maven.compiler.source>
-        <maven.compiler.target>21</maven.compiler.target>
+        <maven.compiler.source>23</maven.compiler.source>
+        <maven.compiler.target>23</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <dapper.version>2.41.2</dapper.version>
-        <javafx.version>21.0.4</javafx.version>
+        <javafx.version>23.0.1</javafx.version>
         <immutables.version>2.10.1</immutables.version>
     </properties>
 
@@ -38,7 +36,6 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.11.0</version>
                 <configuration>
                     <annotationProcessorPaths>
                         <path>
@@ -54,22 +51,22 @@
                     </annotationProcessorPaths>
                 </configuration>
             </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jlink-plugin</artifactId>
-                <version>3.2.0</version>
-                <extensions>true</extensions>
-                <configuration>
-                    <compress>zip-9</compress>
-                    <includeLocales>en</includeLocales>
-                    <launcher>valen=valen.app/be.twofold.valen.Main</launcher>
-                    <noHeaderFiles>true</noHeaderFiles>
-                    <noManPages>true</noManPages>
-                    <stripDebug>true</stripDebug>
-                    <verbose>true</verbose>
-                </configuration>
-            </plugin>
         </plugins>
+
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>3.13.0</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-jar-plugin</artifactId>
+                    <version>3.4.2</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
     </build>
 
     <dependencies>
@@ -91,11 +88,6 @@
             <!-- Project -->
             <dependency>
                 <groupId>be.twofold</groupId>
-                <artifactId>valen-app</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>be.twofold</groupId>
                 <artifactId>valen-core</artifactId>
                 <version>${project.version}</version>
             </dependency>
@@ -112,11 +104,6 @@
             <dependency>
                 <groupId>be.twofold</groupId>
                 <artifactId>valen-export-png</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>be.twofold</groupId>
-                <artifactId>valen-export</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -149,7 +136,7 @@
             <dependency>
                 <groupId>be.twofold</groupId>
                 <artifactId>tinybcdec</artifactId>
-                <version>0.1.1</version>
+                <version>0.2</version>
             </dependency>
             <dependency>
                 <groupId>com.google.code.gson</groupId>
@@ -166,11 +153,6 @@
                 <groupId>io.github.jbock-java</groupId>
                 <artifactId>dapper</artifactId>
                 <version>${dapper.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>net.java.dev.jna</groupId>
-                <artifactId>jna-jpms</artifactId>
-                <version>5.14.0</version>
             </dependency>
             <dependency>
                 <groupId>org.openjfx</groupId>
@@ -195,7 +177,7 @@
             <dependency>
                 <groupId>org.junit.jupiter</groupId>
                 <artifactId>junit-jupiter</artifactId>
-                <version>5.10.3</version>
+                <version>5.11.3</version>
                 <scope>test</scope>
             </dependency>
             <dependency>
