@@ -1,16 +1,17 @@
 package org.redeye.valen.game.spacemarines2;
 
+import be.twofold.valen.core.export.*;
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.geometry.*;
 import be.twofold.valen.core.scene.*;
 import be.twofold.valen.core.texture.*;
 import be.twofold.valen.core.util.*;
-import be.twofold.valen.export.*;
 import be.twofold.valen.export.gltf.*;
 import be.twofold.valen.export.png.*;
 import com.google.gson.*;
 import org.junit.jupiter.api.*;
 import org.redeye.valen.game.spacemarines2.psSection.*;
+import org.redeye.valen.game.spacemarines2.types.*;
 import org.redeye.valen.game.spacemarines2.types.lwi.*;
 
 import java.io.*;
@@ -34,8 +35,8 @@ public class TPLtest {
         for (Asset asset : archive.assets()) {
             if (asset.id().fileName().endsWith(".td")) {
                 System.out.println(asset.id());
-                var rawData = archive.loadRawAsset(asset.id());
-                var res = PsSectionAscii.parseFromString(new String(rawData.array(), StandardCharsets.UTF_8));
+                var rawData = archive.loadAsset(asset.id(), byte[].class);
+                var res = PsSectionAscii.parseFromString(new String(rawData, StandardCharsets.UTF_8));
                 System.out.println(res);
             }
         }
@@ -181,7 +182,7 @@ public class TPLtest {
         var archive = game.loadArchive("client_pc");
 
         EmperorAssetId resourceId = new EmperorAssetId("scenes/story_tower.scn/story_tower.lg");
-        var model = archive.loadAsset(resourceId);
+        var model = archive.loadAsset(resourceId, Model.class);
         String mdlName = resourceId.fileName().substring(0, resourceId.fileName().indexOf('.'));
         var outputPath = Path.of("dump");
         outputPath = outputPath.resolve(mdlName);
@@ -195,7 +196,7 @@ public class TPLtest {
         var archive = game.loadArchive("client_pc");
 
         EmperorAssetId resourceId = new EmperorAssetId("scenes/story_blackstone_2.scn/terrain/terrain.terrain");
-        var model = archive.loadAsset(resourceId);
+        var model = archive.loadAsset(resourceId, Model.class);
         String mdlName = resourceId.fileName().substring(0, resourceId.fileName().indexOf('.'));
         var outputPath = Path.of("dump");
         outputPath = outputPath.resolve(mdlName);
@@ -210,7 +211,7 @@ public class TPLtest {
         var archive = game.loadArchive("client_pc");
 
         EmperorAssetId resourceId = new EmperorAssetId("scenes/story_tower.scn/story_tower.class_list");
-        var data = archive.loadAsset(resourceId);
+        var data = (List<ScnInstanceClassData>) archive.loadAsset(resourceId, List.class);
         // System.out.println(data);
     }
 
@@ -220,7 +221,7 @@ public class TPLtest {
         var archive = game.loadArchive("client_pc");
 
         EmperorAssetId resourceId = new EmperorAssetId("scenes/story_tower.scn/story_tower.cd_list");
-        var data = archive.loadAsset(resourceId);
+        var data = (List<SceneInstanceCreateData>) archive.loadAsset(resourceId, List.class);
         // System.out.println(data);
     }
 
@@ -230,7 +231,7 @@ public class TPLtest {
         var archive = game.loadArchive("client_pc");
 
         EmperorAssetId resourceId = new EmperorAssetId("scenes/story_tower.scn/story_tower.lwi_inst");
-        var data = archive.loadAsset(resourceId);
+        var data = archive.loadAsset(resourceId, StaticInstanceData.class);
         System.out.println(data);
     }
 
@@ -240,7 +241,7 @@ public class TPLtest {
         var archive = game.loadArchive("client_pc");
 
         EmperorAssetId resourceId = new EmperorAssetId("scenes/story_blackstone_2.scn/story_blackstone_2.lwi_container");
-        var data = (LwiContainerStatic) archive.loadAsset(resourceId);
+        var data = archive.loadAsset(resourceId, LwiContainerStatic.class);
         var modelInfos = data.modelList();
 
         var instances = new ArrayList<Instance>();
@@ -261,7 +262,7 @@ public class TPLtest {
                         var model = alreadyLoaded.computeIfAbsent(identifier, assetId -> {
                             System.out.println(assetId);
                             try {
-                                return (Model) archive.loadAsset(identifier);
+                                return archive.loadAsset(identifier, Model.class);
                             } catch (IOException e) {
                                 throw new RuntimeException(e);
                             }
@@ -334,14 +335,14 @@ public class TPLtest {
         Files.createDirectories(outputPath);
 
 
-        var rawData = archive.loadRawAsset(tplId);
-        Files.write(outputPath.resolve(tplId.fileName()), rawData.array());
-        JsonObject resInfo = (JsonObject) archive.loadAsset(tplPath);
+        var rawData = archive.loadAsset(tplId, byte[].class);
+        Files.write(outputPath.resolve(tplId.fileName()), rawData);
+        JsonObject resInfo = archive.loadAsset(tplPath, JsonObject.class);
         for (JsonElement materialLink : resInfo.getAsJsonArray("linksTd")) {
-            JsonObject matInfo = (JsonObject) archive.loadAsset(new EmperorAssetId(materialLink.getAsString().substring(6)));
+            JsonObject matInfo = archive.loadAsset(new EmperorAssetId(materialLink.getAsString().substring(6)), JsonObject.class);
             for (JsonElement textureLink : (matInfo.getAsJsonArray("linksPct"))) {
                 String textureLinkString = textureLink.getAsString();
-                Texture texture = (Texture) archive.loadAsset(new EmperorAssetId(textureLinkString.substring(6)));
+                Texture texture = archive.loadAsset(new EmperorAssetId(textureLinkString.substring(6)), Texture.class);
                 var outName = textureLinkString.substring(10, textureLinkString.length() - 13);
                 Path pngPath = outputPath.resolve(outName + ".png");
                 if (!Files.exists(pngPath)) {
@@ -351,7 +352,7 @@ public class TPLtest {
                 }
             }
         }
-        Model model = (Model) archive.loadAsset(tplId);
+        Model model = archive.loadAsset(tplId, Model.class);
         saveModel(mdlName, model, outputPath);
     }
 

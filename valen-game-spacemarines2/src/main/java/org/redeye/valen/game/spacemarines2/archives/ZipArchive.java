@@ -1,10 +1,10 @@
 package org.redeye.valen.game.spacemarines2.archives;
 
 import be.twofold.valen.core.game.*;
+import be.twofold.valen.core.io.*;
 import org.redeye.valen.game.spacemarines2.*;
 
 import java.io.*;
-import java.nio.*;
 import java.nio.file.*;
 import java.util.*;
 import java.util.zip.*;
@@ -12,8 +12,10 @@ import java.util.zip.*;
 public class ZipArchive implements Archive {
     private final ZipFile zipFile;
     private final List<Asset> assets = new ArrayList<>();
+    private final PackArchive parent;
 
-    public ZipArchive(Path path) throws IOException {
+    public ZipArchive(Path path, PackArchive parent) throws IOException {
+        this.parent = parent;
         zipFile = new ZipFile(new File(path.toString()));
         Enumeration<? extends ZipEntry> entries = zipFile.entries();
         while (entries.hasMoreElements()) {
@@ -37,16 +39,24 @@ public class ZipArchive implements Archive {
     }
 
     @Override
-    public Object loadAsset(AssetID identifier) throws IOException {
-        return null;
-    }
-
-    @Override
-    public ByteBuffer loadRawAsset(AssetID identifier) throws IOException {
+    public <T> T loadAsset(AssetID identifier, Class<T> clazz) throws IOException {
         var entry = zipFile.getEntry(identifier.fullName());
         if (entry == null) {
             throw new FileNotFoundException(identifier.fullName());
         }
-        return ByteBuffer.wrap(zipFile.getInputStream(entry).readAllBytes());
+        var bytes = zipFile.getInputStream(entry).readAllBytes();
+
+        if (clazz == byte[].class) {
+            return (T) bytes;
+        }
+
+        var reader = AllReaders.READERS.stream().filter(r -> r.canRead(identifier)).findFirst();
+        if (reader.isEmpty()) {
+            return null;
+        }
+        var asset = assets().stream().filter(a -> a.id().equals(identifier)).findFirst().orElseThrow();
+        try (var source = DataSource.fromArray(bytes)) {
+            return clazz.cast(reader.get().read(parent, asset, source));
+        }
     }
 }

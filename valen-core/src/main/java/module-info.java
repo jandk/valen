@@ -1,5 +1,6 @@
 module valen.core {
     requires be.twofold.tinybcdec;
+    requires com.google.gson;
 
     exports be.twofold.valen.core.animation;
     exports be.twofold.valen.core.compression;

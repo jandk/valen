@@ -33,7 +33,7 @@ public class LGReader implements Reader<Model> {
         List<ByteBuffer> vStreams = new ArrayList<>(vBufferInfo.size());
 
         if (archive.exists(lgId.withExt(".lg_data"))) {
-            var streamDataTmp = archive.loadRawAsset(lgId.withExt(".lg_data"));
+            var streamDataTmp = ByteBuffer.wrap(archive.loadAsset(lgId.withExt(".lg_data"), byte[].class));
             streamDataTmp.position(16);
             for (int i = 0; i < vBufferInfo.size(); i++) {
                 ObjGeomVBufferInfo objGeomVBufferInfo = vBufferInfo.get(i);

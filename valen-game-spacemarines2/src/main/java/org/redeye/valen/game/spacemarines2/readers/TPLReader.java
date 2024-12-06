@@ -34,7 +34,7 @@ public class TPLReader implements Reader<Model> {
 
         ByteBuffer streamData = null;
         if (archive.exists(tplId.withExt(".tpl_data"))) {
-            streamData = archive.loadRawAsset(tplId.withExt(".tpl_data"));
+            streamData = ByteBuffer.wrap(archive.loadAsset(tplId.withExt(".tpl_data"), byte[].class));
         }
 
         var geometryManager = animTemplate.geometryManager;
@@ -61,7 +61,7 @@ public class TPLReader implements Reader<Model> {
     @Override
     public boolean canRead(AssetID id) {
         if (id instanceof EmperorAssetId emperorAssetId) {
-            return emperorAssetId.inferAssetType() == AssetType.Model && id.fileName().endsWith(".tpl");
+            return emperorAssetId.inferAssetType() == AssetType.MODEL && id.fileName().endsWith(".tpl");
         }
         return false;
     }

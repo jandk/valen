@@ -8,7 +8,6 @@ import org.redeye.valen.game.spacemarines2.types.*;
 import org.yaml.snakeyaml.*;
 
 import java.io.*;
-import java.nio.*;
 import java.util.*;
 
 public class PCTReader implements Reader<Texture> {
@@ -30,11 +29,11 @@ public class PCTReader implements Reader<Texture> {
         TextureFormat texFormat = format.mapToTextureFormat();
         for (int i = 0; i < mipMapLinks.size(); i++) {
             String mipMapLink = mipMapLinks.get(i);
-            ByteBuffer rawMipData = archive.loadRawAsset(new EmperorAssetId("pct/" + mipMapLink));
+            var rawMipData = archive.loadAsset(new EmperorAssetId("pct/" + mipMapLink), byte[].class);
             var minBlockSize = texFormat.block().height();
             var mipWidth = Math.max(width >> i, minBlockSize);
             var mipHeight = Math.max(height >> i, minBlockSize);
-            Surface surface = new Surface(mipWidth, mipHeight, texFormat, rawMipData.array());
+            Surface surface = new Surface(mipWidth, mipHeight, texFormat, rawMipData);
             surfaces.add(surface);
         }
         return new Texture(width, height, texFormat, surfaces, false);
@@ -43,7 +42,7 @@ public class PCTReader implements Reader<Texture> {
     @Override
     public boolean canRead(AssetID id) {
         if (id instanceof EmperorAssetId emperorAssetId) {
-            return emperorAssetId.inferAssetType() == AssetType.Texture && emperorAssetId.fileName().endsWith(".pct.resource");
+            return emperorAssetId.inferAssetType() == AssetType.TEXTURE && emperorAssetId.fileName().endsWith(".pct.resource");
         }
         return false;
     }

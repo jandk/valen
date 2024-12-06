@@ -1,27 +1,12 @@
 package org.redeye.valen.game.spacemarines2.archives;
 
 import be.twofold.valen.core.game.*;
-import be.twofold.valen.core.io.*;
-import org.redeye.valen.game.spacemarines2.readers.Reader;
-import org.redeye.valen.game.spacemarines2.readers.*;
 
 import java.io.*;
-import java.nio.*;
 import java.nio.file.*;
 import java.util.*;
 
 public class PackArchive implements Archive {
-    private static final List<Reader<?>> READERS = List.of(new ResourceReader(),
-        new TDReader(),
-        new TPLReader(),
-        new LGReader(),
-        new ClassListReader(),
-        new TerrainReader(),
-        new CdListReader(),
-        new StaticInstanceDataReader(),
-        new LwiContainerReader(),
-        new PCTReader()
-    );
 
     private final List<ZipArchive> mounted = new ArrayList<>();
 
@@ -32,14 +17,14 @@ public class PackArchive implements Archive {
             default -> throw new IllegalStateException("Unexpected Pack name: " + name);
         };
         var paksFolder = root.resolve("%s\\root\\paks\\%s".formatted(name, packName));
-        mounted.add(new ZipArchive(paksFolder.resolve("resources.pak")));
+        mounted.add(new ZipArchive(paksFolder.resolve("resources.pak"), this));
         try (var files = Files.walk(paksFolder.resolve("default"))) {
             files.forEach(file -> {
                 if (!file.toString().endsWith(".pak")) {
                     return;
                 }
                 try {
-                    mounted.add(new ZipArchive(file));
+                    mounted.add(new ZipArchive(file, this));
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
@@ -51,7 +36,7 @@ public class PackArchive implements Archive {
                     return;
                 }
                 try {
-                    mounted.add(new ZipArchive(file));
+                    mounted.add(new ZipArchive(file, this));
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
@@ -69,22 +54,12 @@ public class PackArchive implements Archive {
         return mounted.stream().anyMatch(zipArchive -> zipArchive.exists(identifier));
     }
 
-    @Override
-    public Object loadAsset(AssetID identifier) throws IOException {
-        var reader = READERS.stream().filter(r -> r.canRead(identifier)).findFirst();
-        if (reader.isEmpty()) {
-            return null;
-        }
-        var raw = loadRawAsset(identifier);
-        var asset = assets().stream().filter(a -> a.id().equals(identifier)).findFirst().orElseThrow();
-        return reader.get().read(this, asset, DataSource.fromBuffer(raw));
-    }
 
     @Override
-    public ByteBuffer loadRawAsset(AssetID identifier) throws IOException {
+    public <T> T loadAsset(AssetID identifier, Class<T> clazz) throws IOException {
         for (ZipArchive zipArchive : mounted) {
             if (zipArchive.exists(identifier)) {
-                return zipArchive.loadRawAsset(identifier);
+                return zipArchive.loadAsset(identifier, clazz);
             }
         }
         throw new FileNotFoundException("File '" + identifier + "' not found");

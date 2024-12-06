@@ -11,17 +11,17 @@ import java.util.*;
 
 public class MaterialConverter {
     public ArrayList<Material> convertMaterials(Archive archive, EmperorAssetId resourceId) throws IOException {
-        JsonObject resInfo = (JsonObject) archive.loadAsset(resourceId);
+        JsonObject resInfo = archive.loadAsset(resourceId, JsonObject.class);
         var materials = new ArrayList<Material>();
         for (JsonElement materialLink : (resInfo.getAsJsonArray("linksTd"))) {
             System.out.println("Exporting " + materialLink);
-            JsonObject matResourceInfo = (JsonObject) archive.loadAsset(new EmperorAssetId(materialLink.getAsString().substring(6)));
+            JsonObject matResourceInfo = archive.loadAsset(new EmperorAssetId(materialLink.getAsString().substring(6)), JsonObject.class);
             var textureRefs = new ArrayList<TextureReference>();
             boolean useAlpha = false;
             for (JsonElement textureLink : matResourceInfo.getAsJsonArray("linksPct")) {
                 String textureLinkString = textureLink.getAsString();
                 String tdFilePath = "td" + textureLinkString.substring(9, textureLinkString.length() - 13) + ".td";
-                JsonObject tdData = (JsonObject) archive.loadAsset(new EmperorAssetId(tdFilePath));
+                JsonObject tdData = archive.loadAsset(new EmperorAssetId(tdFilePath), JsonObject.class);
 
                 String usageInfo;
                 if (tdData.has("convert_settings")) {
@@ -33,41 +33,41 @@ public class MaterialConverter {
                 switch (tdData.get("usage").getAsString()) {
                     case "MD", "" -> {
                         if (outName.endsWith("_dm") || outName.endsWith("_diffdet") || outName.endsWith("_det") || outName.startsWith("gradient_")) {
-                            textureRefs.add(new TextureReference(outName, TextureType.Unknown, () -> (Texture) archive.loadAsset(new EmperorAssetId(textureLinkString.substring(6)))));
+                            textureRefs.add(new TextureReference(outName, TextureType.Unknown, () -> archive.loadAsset(new EmperorAssetId(textureLinkString.substring(6)), Texture.class)));
                         } else {
-                            textureRefs.add(new TextureReference(outName, TextureType.Albedo, () -> (Texture) archive.loadAsset(new EmperorAssetId(textureLinkString.substring(6)))));
+                            textureRefs.add(new TextureReference(outName, TextureType.Albedo, () -> archive.loadAsset(new EmperorAssetId(textureLinkString.substring(6)), Texture.class)));
                         }
                     }
                     case "MD+MAK" -> {
-                        textureRefs.add(new TextureReference(outName, TextureType.Albedo, () -> (Texture) archive.loadAsset(new EmperorAssetId(textureLinkString.substring(6)))));
+                        textureRefs.add(new TextureReference(outName, TextureType.Albedo, () -> archive.loadAsset(new EmperorAssetId(textureLinkString.substring(6)), Texture.class)));
                         useAlpha = true;
                     }
                     case "MD+MRGH" -> {
-                        textureRefs.add(new TextureReference(outName, TextureType.Albedo, () -> (Texture) archive.loadAsset(new EmperorAssetId(textureLinkString.substring(6)))));
+                        textureRefs.add(new TextureReference(outName, TextureType.Albedo, () -> archive.loadAsset(new EmperorAssetId(textureLinkString.substring(6)), Texture.class)));
                     }
                     case "MD+MT" -> {
-                        textureRefs.add(new TextureReference(outName, TextureType.Albedo, () -> (Texture) archive.loadAsset(new EmperorAssetId(textureLinkString.substring(6)))));
+                        textureRefs.add(new TextureReference(outName, TextureType.Albedo, () -> archive.loadAsset(new EmperorAssetId(textureLinkString.substring(6)), Texture.class)));
                         useAlpha = false;
                     }
                     case "MDTM" -> {
-                        textureRefs.add(new TextureReference(outName, TextureType.DetailMask, () -> (Texture) archive.loadAsset(new EmperorAssetId(textureLinkString.substring(6)))));
+                        textureRefs.add(new TextureReference(outName, TextureType.DetailMask, () -> archive.loadAsset(new EmperorAssetId(textureLinkString.substring(6)), Texture.class)));
                     }
                     case "MEM" -> {
-                        textureRefs.add(new TextureReference(outName, TextureType.Emissive, () -> (Texture) archive.loadAsset(new EmperorAssetId(textureLinkString.substring(6)))));
+                        textureRefs.add(new TextureReference(outName, TextureType.Emissive, () -> archive.loadAsset(new EmperorAssetId(textureLinkString.substring(6)), Texture.class)));
                     }
                     case "MH" -> {
-                        textureRefs.add(new TextureReference(outName, TextureType.Height, () -> (Texture) archive.loadAsset(new EmperorAssetId(textureLinkString.substring(6)))));
+                        textureRefs.add(new TextureReference(outName, TextureType.Height, () -> archive.loadAsset(new EmperorAssetId(textureLinkString.substring(6)), Texture.class)));
                     }
                     case "MAO" -> {
-                        textureRefs.add(new TextureReference(outName, TextureType.AmbientOcclusion, () -> (Texture) archive.loadAsset(new EmperorAssetId(textureLinkString.substring(6)))));
+                        textureRefs.add(new TextureReference(outName, TextureType.AmbientOcclusion, () -> archive.loadAsset(new EmperorAssetId(textureLinkString.substring(6)), Texture.class)));
                     }
                     case "MD+MSP" -> {
-                        textureRefs.add(new TextureReference(outName, TextureType.Albedo, () -> (Texture) archive.loadAsset(new EmperorAssetId(textureLinkString.substring(6)))));
+                        textureRefs.add(new TextureReference(outName, TextureType.Albedo, () -> archive.loadAsset(new EmperorAssetId(textureLinkString.substring(6)), Texture.class)));
                     }
                     case "MNM" -> {
 
                         textureRefs.add(new TextureReference(outName, TextureType.Normal, () -> {
-                            var texture = (Texture) archive.loadAsset(new EmperorAssetId(textureLinkString.substring(6)));
+                            var texture = archive.loadAsset(new EmperorAssetId(textureLinkString.substring(6)), Texture.class);
                             var converted = SurfaceConverter.convert(texture.surfaces().getFirst(), TextureFormat.R8G8B8A8_UNORM);
                             var data = converted.data();
                             for (int p = 0; p < converted.data().length; p += 4) {
@@ -83,7 +83,7 @@ public class MaterialConverter {
                     }
                     case "MDT" -> {
                         textureRefs.add(new TextureReference(outName, TextureType.DetailNormal, () -> {
-                            var texture = (Texture) archive.loadAsset(new EmperorAssetId(textureLinkString.substring(6)));
+                            var texture = (Texture) archive.loadAsset(new EmperorAssetId(textureLinkString.substring(6)), Texture.class);
                             var converted = SurfaceConverter.convert(texture.surfaces().getFirst(), TextureFormat.R8G8B8A8_UNORM);
                             var data = converted.data();
                             for (int p = 0; p < converted.data().length; p += 4) {
@@ -100,7 +100,7 @@ public class MaterialConverter {
                     case "MSCRGHAO" -> {
 
                         textureRefs.add(new TextureReference(outName, TextureType.ORM, () -> {
-                            var texture = (Texture) archive.loadAsset(new EmperorAssetId(textureLinkString.substring(6)));
+                            var texture = (Texture) archive.loadAsset(new EmperorAssetId(textureLinkString.substring(6)), Texture.class);
                             var converted = SurfaceConverter.convert(texture.surfaces().getFirst(), TextureFormat.R8G8B8A8_UNORM);
                             var data = converted.data();
                             for (int p = 0; p < converted.data().length; p += 4) {
@@ -117,7 +117,7 @@ public class MaterialConverter {
                         }));
                     }
                     case "MEM+MAO" -> {
-                        var texture = (Texture) archive.loadAsset(new EmperorAssetId(textureLinkString.substring(6)));
+                        var texture = (Texture) archive.loadAsset(new EmperorAssetId(textureLinkString.substring(6)), Texture.class);
                         var converted = SurfaceConverter.convert(texture.surfaces().getFirst(), TextureFormat.R8G8B8A8_UNORM);
                         var data = converted.data();
                         var emissiveSurface = Surface.create(converted.width(), converted.height(), TextureFormat.R8G8B8A8_UNORM);
@@ -150,7 +150,7 @@ public class MaterialConverter {
                         textureRefs.add(new TextureReference(outName, TextureType.AmbientOcclusion, () -> aoTexture));
                     }
                     case "MH+MDTM" -> {
-                        var texture = (Texture) archive.loadAsset(new EmperorAssetId(textureLinkString.substring(6)));
+                        var texture = (Texture) archive.loadAsset(new EmperorAssetId(textureLinkString.substring(6)), Texture.class);
                         var converted = SurfaceConverter.convert(texture.surfaces().getFirst(), TextureFormat.R8G8B8A8_UNORM);
                         var data = converted.data();
                         var heightSurface = Surface.create(converted.width(), converted.height(), TextureFormat.R8G8B8A8_UNORM);
@@ -183,7 +183,7 @@ public class MaterialConverter {
                         textureRefs.add(new TextureReference(outName, TextureType.DetailMask, () -> detailMaskTexture));
                     }
                     case "MSCG+MRGH" -> {
-                        var texture = (Texture) archive.loadAsset(new EmperorAssetId(textureLinkString.substring(6)));
+                        var texture = (Texture) archive.loadAsset(new EmperorAssetId(textureLinkString.substring(6)), Texture.class);
                         var converted = SurfaceConverter.convert(texture.surfaces().getFirst(), TextureFormat.R8G8B8A8_UNORM);
                         var data = converted.data();
                         var newData = new byte[TextureFormat.R8G8B8A8_UNORM.block().surfaceSize(converted.width(), converted.height())];

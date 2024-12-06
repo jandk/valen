@@ -2,12 +2,14 @@ package be.twofold.valen.core.game;
 
 import be.twofold.valen.core.geometry.*;
 import be.twofold.valen.core.texture.*;
+import com.google.gson.*;
 
 public final class AssetType<T> {
     public static final AssetType<byte[]> BINARY = new AssetType<>(byte[].class, "Binary");
     public static final AssetType<Texture> TEXTURE = new AssetType<>(Texture.class, "Texture");
     public static final AssetType<Model> MODEL = new AssetType<>(Model.class, "Model");
     public static final AssetType<String> TEXT = new AssetType<>(String.class, "Text");
+    public static final AssetType<JsonObject> DATA = new AssetType<>(JsonObject.class, "Text");
     private final Class<T> clazz;
     private final String name;
 

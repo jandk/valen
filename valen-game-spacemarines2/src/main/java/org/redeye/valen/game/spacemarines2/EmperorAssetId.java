@@ -20,22 +20,22 @@ public record EmperorAssetId(String path) implements AssetID {
         return index == -1 ? path : path.substring(index + 1);
     }
 
-    public AssetType inferAssetType() {
+    public AssetType<?> inferAssetType() {
         var index = fileName().indexOf('.');
         if (index == -1) {
-            return AssetType.Binary;
+            return AssetType.BINARY;
         }
         String ext = fileName().substring(index + 1);
 
         return switch (ext) {
-            case "pct.resource" -> AssetType.Texture;
-            case "tpl" -> AssetType.Model;
-            case "td" -> AssetType.Data;
+            case "pct.resource" -> AssetType.TEXTURE;
+            case "tpl" -> AssetType.MODEL;
+            case "td" -> AssetType.DATA;
             default -> {
                 if (ext.endsWith(".resource")) {
-                    yield AssetType.Data;
+                    yield AssetType.DATA;
                 }
-                yield AssetType.Binary;
+                yield AssetType.BINARY;
             }
         };
     }

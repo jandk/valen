@@ -20,7 +20,7 @@ public class ResourceReader implements Reader<JsonObject> {
     @Override
     public boolean canRead(AssetID id) {
         if (id instanceof EmperorAssetId emperorAssetId) {
-            return emperorAssetId.inferAssetType() == AssetType.Data && emperorAssetId.fileName().endsWith(".resource");
+            return emperorAssetId.inferAssetType() == AssetType.DATA && emperorAssetId.fileName().endsWith(".resource");
         }
         return false;
     }
