@@ -1,0 +1,40 @@
+//------------------------------------------------
+//--- 010 Editor v15.0.1 Binary Template
+//
+//      File: streamdb.bt
+//   Authors: JanDK
+//   Version: 0.1
+//   Purpose: .streamdb from The Great Circle
+//  Category: Archive
+// File Mask: *.streamdb
+//  ID Bytes: 51 A5 C2 29 2E F3 C7 61
+//------------------------------------------------
+struct streamDatabaseMainHeader_t {
+    uquad magic;
+    uint headerLengthOrPad;
+    uint version;
+    uint pad0;
+    uint subBlockTableSize;
+    uint numEntries;
+    uint flags;
+};
+
+struct streamDatabaseHeaderHashes_t {
+    uint hashTypeOrPad;
+    uint entryHashesListOffset;
+    ubyte entriesTablesHash[32];
+    ubyte entryHashesHash[32];
+    ubyte headerHash[32];
+};
+
+struct streamDatabaseFullHeader_t {
+    streamDatabaseMainHeader_t main     <style=sHeading1>;
+    streamDatabaseHeaderHashes_t hashes <style=sHeading2>;
+} header;
+uquad identities[header.main.numEntries] <style=sSection1>;
+
+struct streamDatabaseEntry4_t {
+    uint offset16;
+    uint length;
+    uint what;
+} entries[header.main.numEntries] <style=sSection2>;

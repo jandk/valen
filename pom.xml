@@ -18,6 +18,7 @@
         <module>valen-game-eternal</module>
         <module>valen-gltf</module>
         <module>valen-ui</module>
+        <module>valen-game-greatcircle</module>
     </modules>
 
     <properties>
@@ -113,6 +114,11 @@
             <dependency>
                 <groupId>be.twofold</groupId>
                 <artifactId>valen-game-eternal</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>be.twofold</groupId>
+                <artifactId>valen-game-greatcircle</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

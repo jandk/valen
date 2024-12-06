@@ -12,6 +12,7 @@ import javafx.application.*;
 import java.io.*;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.stream.*;
 
 public final class MainPresenter extends AbstractPresenter<MainView> {
     private final SendChannel<MainEvent> channel;
@@ -19,6 +20,7 @@ public final class MainPresenter extends AbstractPresenter<MainView> {
     private Game game;
     private Archive archive;
     private Asset lastAsset;
+    private Map<String, List<Asset>> assetIndex;
 
     @Inject
     MainPresenter(MainView view, EventBus eventBus) {
@@ -42,17 +44,19 @@ public final class MainPresenter extends AbstractPresenter<MainView> {
     private void selectArchive(String archiveName) {
         try {
             archive = game.loadArchive(archiveName);
-            Platform.runLater(() -> getView().setFileTree(buildNodeTree(archive.assets())));
+
+            var archiveAssets = archive.assets();
+            assetIndex = archiveAssets.stream()
+                .collect(Collectors.groupingBy(asset -> asset.id().pathName()));
+
+            Platform.runLater(() -> getView().setFileTree(buildNodeTree(archiveAssets)));
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
     }
 
     private void selectPath(String path) {
-        var assets = archive.assets().stream()
-            .filter(r -> r.id().pathName().equals(path))
-            .toList();
-
+        var assets = assetIndex.getOrDefault(path, List.of());
         Platform.runLater(() -> getView().setFilteredAssets(assets));
     }
 
