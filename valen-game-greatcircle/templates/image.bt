@@ -7,9 +7,48 @@
 //   Purpose: 
 //  Category: 
 // File Mask: 
-//  ID Bytes: 
+//  ID Bytes: 42 49 4D 1F
 //   History: 
 //------------------------------------------------
+enum textureType_t {
+    TT_2D = 0,
+    TT_3D = 1,
+    TT_CUBIC = 2,
+};
+
+enum textureMaterialKind_t {
+    TMK_NONE = 0,
+    TMK_ALBEDO = 1,
+    TMK_SPECULAR = 2,
+    TMK_NORMAL = 3,
+    TMK_SMOOTHNESS = 4,
+    TMK_COVER = 5,
+    TMK_SSSMASK = 6,
+    TMK_COLORMASK = 7,
+    TMK_BLOOMMASK = 8,
+    TMK_HEIGHTMAP = 9,
+    TMK_DECALALBEDO = 10,
+    TMK_DECALNORMAL = 11,
+    TMK_DECALSPECULAR = 12,
+    TMK_LIGHTPROJECT = 13,
+    TMK_PARTICLE = 14,
+    TMK_UNUSED_1 = 15,
+    TMK_UNUSED_2 = 16,
+    TMK_UNUSED_3 = 17,
+    TMK_UI = 18,
+    TMK_FONT = 19,
+    TMK_LEGACY_FLASH_UI = 20,
+    TMK_UNUSED_4 = 21,
+    TMK_BLENDMASK = 22,
+    TMK_TINTMASK = 23,
+    TMK_TERRAIN_SPLATMAP = 24,
+    TMK_ECOTOPE_LAYER = 25,
+    TMK_DECALHEIGHTMAP = 26,
+    TMK_ALBEDO_UNSCALED = 27,
+    TMK_ALBEDO_DETAILS = 28,
+    TMK_COUNT = 29,
+};
+
 enum textureFormat_t {
     FMT_NONE = 0,
     FMT_RGBA32F = 1,
@@ -75,59 +114,46 @@ enum textureFormat_t {
     FMT_NEXTAVAILABLE = 61,
 };
 
-enum textureMaterialKind_t {
-    TMK_NONE = 0,
-    TMK_ALBEDO = 1,
-    TMK_SPECULAR = 2,
-    TMK_NORMAL = 3,
-    TMK_SMOOTHNESS = 4,
-    TMK_COVER = 5,
-    TMK_SSSMASK = 6,
-    TMK_COLORMASK = 7,
-    TMK_BLOOMMASK = 8,
-    TMK_HEIGHTMAP = 9,
-    TMK_DECALALBEDO = 10,
-    TMK_DECALNORMAL = 11,
-    TMK_DECALSPECULAR = 12,
-    TMK_LIGHTPROJECT = 13,
-    TMK_PARTICLE = 14,
-    TMK_UNUSED_1 = 15,
-    TMK_UNUSED_2 = 16,
-    TMK_UNUSED_3 = 17,
-    TMK_UI = 18,
-    TMK_FONT = 19,
-    TMK_LEGACY_FLASH_UI = 20,
-    TMK_UNUSED_4 = 21,
-    TMK_BLENDMASK = 22,
-    TMK_TINTMASK = 23,
-    TMK_TERRAIN_SPLATMAP = 24,
-    TMK_ECOTOPE_LAYER = 25,
-    TMK_DECALHEIGHTMAP = 26,
-    TMK_ALBEDO_UNSCALED = 27,
-    TMK_ALBEDO_DETAILS = 28,
-    TMK_COUNT = 29,
-};
-
 struct ImageHeader {
     uint32 magic;
-    uint32 textureType;
+    textureType_t textureType;
     textureMaterialKind_t textureMaterialKind;
     uint32 pixelWidth;
     uint32 pixelHeight;
     uint32 depth;
-    uint32 unknown;
+    uint32 count;
     uint32 mipCount;
     float unkFloat1;
     float unkFloat2;
     float unkFloat3;
     ubyte padding1;
     textureFormat_t textureFormat;
-    uint32 always7;
-    uint32 padding2;
     uint16 padding3;
     ubyte streamed;
-    ubyte unkBool1;
-    ubyte unkBool2;
-    ubyte unkBool3;
-    uint streamDBMipCount;
+    ubyte singleStream;
+    ubyte noMips;
+    ubyte fftBloom;
+    uint unknown;
+    uint always7;
+    uint something;
+    ubyte something;
+    // uint streamDBMipCount;
 } header;
+
+local int numSlices = header.mipCount * (header.count > 0 ? header.count : 1);
+if (header.textureType == TT_CUBIC) {
+    numSlices *= 6;
+};
+
+struct ImageMipInfo {
+    uint32 mipLevel;
+    uint32 mipSlice;
+    uint32 mipPixelWidth;
+    uint32 mipPixelHeight;
+    uint32 flagIsCompressed;
+    uint32 decompressedSize;
+    uquad  hash;
+    uint meh;
+    uint32 compressedSize;
+    uint32 cumulativeSizeStreamDB;
+} mipInfo[numSlices];

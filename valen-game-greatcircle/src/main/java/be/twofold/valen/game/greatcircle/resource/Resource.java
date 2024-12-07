@@ -9,7 +9,8 @@ public record Resource(
     int uncompressedSize,
     ResourceCompressionMode compression,
     long hash,
-    long checksum
+    long checksum,
+    int version
 ) implements Comparable<Resource> {
     @Override
     public int compareTo(Resource o) {

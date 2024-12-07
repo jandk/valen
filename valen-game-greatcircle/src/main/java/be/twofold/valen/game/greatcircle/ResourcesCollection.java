@@ -62,10 +62,10 @@ final class ResourcesCollection {
                 decompressed, 0, decompressed.length
             );
 
-            long checksum = HashFunction.murmurHash64B(0xDEADBEEFL).hash(decompressed).asLong();
-            if (checksum != entry.get().checksum()) {
-                System.err.println("Checksum mismatch! (" + checksum + " != " + entry.get().checksum() + ")");
-            }
+//            long checksum = HashFunction.murmurHash64B(0xDEADBEEFL).hash(decompressed).asLong();
+//            if (checksum != entry.get().checksum()) {
+//                System.err.println("Checksum mismatch! (" + checksum + " != " + entry.get().checksum() + ")");
+//            }
             return decompressed;
         }
         throw new IOException("Unknown resource: " + resource.key());

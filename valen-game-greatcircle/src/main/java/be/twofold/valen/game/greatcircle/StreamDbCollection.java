@@ -7,6 +7,7 @@ import be.twofold.valen.game.greatcircle.reader.streamdb.*;
 import java.io.*;
 import java.nio.file.*;
 import java.util.*;
+import java.util.stream.*;
 
 final class StreamDbCollection {
     private final List<StreamDbFile> files;
@@ -15,6 +16,18 @@ final class StreamDbCollection {
     private StreamDbCollection(List<StreamDbFile> files, Decompressor decompressor) {
         this.files = List.copyOf(files);
         this.decompressor = Check.notNull(decompressor);
+
+        var longs = files.stream()
+            .flatMap(file -> file.index().keySet().stream())
+            .sorted()
+            .map(l -> String.format("0x%016X", l))
+            .collect(Collectors.joining("\n"));
+
+//        try {
+//            Files.writeString(Path.of("D:\\Projects\\The Great Circle\\hashes.txt"), longs);
+//        } catch (IOException e) {
+//            throw new RuntimeException(e);
+//        }
     }
 
     static StreamDbCollection load(List<Path> paths, Decompressor decompressor) throws IOException {

@@ -16,12 +16,22 @@ public final class StreamDbFile implements Closeable {
 
         var streamDb = StreamDb.read(source);
 
+        var combineds = new ArrayList<Combined>();
         Map<Long, StreamDbEntry> entries = new HashMap<>();
         for (var i = 0; i < streamDb.identities().length; i++) {
             var identity = streamDb.identities()[i];
             var entry = streamDb.entries().get(i);
+            var combined = new Combined(identity, entry.offset(), entry.length());
+            combineds.add(combined);
             entries.put(identity, entry);
         }
+
+        List<Combined> sorted = combineds.stream()
+            .sorted(Comparator.comparing(Combined::offset))
+            .toList();
+
+
+
         this.index = Map.copyOf(entries);
     }
 
@@ -42,5 +52,16 @@ public final class StreamDbFile implements Closeable {
             source.close();
             source = null;
         }
+    }
+
+    public Map<Long, StreamDbEntry> index() {
+        return index;
+    }
+
+    record Combined(
+        long identity,
+        long offset,
+        int size
+    ) {
     }
 }

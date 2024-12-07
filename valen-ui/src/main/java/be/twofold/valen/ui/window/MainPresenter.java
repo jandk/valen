@@ -45,7 +45,9 @@ public final class MainPresenter extends AbstractPresenter<MainView> {
         try {
             archive = game.loadArchive(archiveName);
 
-            var archiveAssets = archive.assets();
+            var archiveAssets = archive.assets().stream()
+                .filter(asset -> !asset.type().equals(AssetType.BINARY))
+                .toList();
             assetIndex = archiveAssets.stream()
                 .collect(Collectors.groupingBy(asset -> asset.id().pathName()));
 
