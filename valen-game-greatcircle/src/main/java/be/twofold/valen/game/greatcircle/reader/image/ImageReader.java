@@ -39,7 +39,7 @@ public final class ImageReader implements ResourceReader<Texture> {
              * What is also strange is that the "single stream" format is used only for light probes.
              */
             if (image.header().singleStream()) {
-                throw new UnsupportedOperationException();
+                throw new UnsupportedOperationException("Single stream not supported");
                 // readSingleStream(image, hash);
             } else {
                 readMultiStream(image);

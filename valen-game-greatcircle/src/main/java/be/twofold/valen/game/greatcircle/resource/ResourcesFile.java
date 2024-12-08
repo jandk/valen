@@ -55,10 +55,6 @@ public final class ResourcesFile implements Closeable {
         var resourceVariation = ResourceVariation.fromValue(entry.variation());
         var resourceKey = new ResourceKey(resourceName, resourceType, resourceVariation);
 
-        if(entry.defaultHash() == 8119285997658497211L){
-            System.out.println();
-        }
-
         return new Resource(
             resourceKey,
             entry.dataOffset(),

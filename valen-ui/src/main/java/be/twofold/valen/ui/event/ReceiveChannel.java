@@ -14,7 +14,11 @@ public interface ReceiveChannel<E> {
         // TODO: Properly dispose of this
         Thread.startVirtualThread(() -> {
             while (true) {
-                consumer.accept(receive());
+                try {
+                    consumer.accept(receive());
+                } catch (Exception e) {
+                    System.out.println("Exception: " + e);
+                }
             }
         });
     }
