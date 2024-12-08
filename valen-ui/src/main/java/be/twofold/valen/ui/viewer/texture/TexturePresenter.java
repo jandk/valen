@@ -14,10 +14,10 @@ public final class TexturePresenter extends AbstractPresenter<TextureView> imple
     private IntPixelOp decoded;
     private WritableImage image;
 
-    private boolean red;
-    private boolean green;
-    private boolean blue;
-    private boolean alpha;
+    private boolean red = true;
+    private boolean green = true;
+    private boolean blue = true;
+    private boolean alpha = true;
 
     @Inject
     public TexturePresenter(TextureView view, EventBus eventBus) {
@@ -61,11 +61,13 @@ public final class TexturePresenter extends AbstractPresenter<TextureView> imple
 
         imagePixels = new byte[width * height * 4];
 
-        decoded = PixelOp.source(surface).asInt();
-        decoded
-            .swizzleBGRA()
-            .toPixels(width, height, imagePixels);
+        long t0 = System.nanoTime();
+        decoded = PixelOp.source(surface)
+            .asInt()
+            .swizzleBGRA();
+        decoded.toPixels(width, height, imagePixels);
 
+        long t1 = System.nanoTime();
         image = new WritableImage(width, height);
         image.getPixelWriter().setPixels(
             0, 0, width, height,
@@ -73,8 +75,14 @@ public final class TexturePresenter extends AbstractPresenter<TextureView> imple
             imagePixels, 0, width * 4
         );
 
-        filterImage(red, green, blue, alpha);
+        long t2 = System.nanoTime();
+        if (!(red && green && blue && alpha)) {
+            filterImage(red, green, blue, alpha);
+        }
         getView().setImage(image);
+
+        long t3 = System.nanoTime();
+        System.out.printf("Decode: %.1f, Create: %.1f, Filter: %.1f\n", (t1 - t0) / 1e6, (t2 - t1) / 1e6, (t3 - t2) / 1e6);
     }
 
     private void filterImage(boolean red, boolean green, boolean blue, boolean alpha) {
@@ -85,9 +93,6 @@ public final class TexturePresenter extends AbstractPresenter<TextureView> imple
 
         var width = (int) image.getWidth();
         var height = (int) image.getHeight();
-
-        if (imagePixels == null) {
-        }
 
         // Check which channels are selected
         IntPixelOp combined;
@@ -104,9 +109,7 @@ public final class TexturePresenter extends AbstractPresenter<TextureView> imple
             combined = IntPixelOp.combine(rOp, gOp, bOp, aOp);
         }
 
-        combined
-            .swizzleBGRA()
-            .toPixels(width, height, imagePixels);
+        combined.toPixels(width, height, imagePixels);
 
         image.getPixelWriter().setPixels(
             0, 0, width, height,

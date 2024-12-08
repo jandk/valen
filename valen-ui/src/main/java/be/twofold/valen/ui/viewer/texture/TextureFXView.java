@@ -8,22 +8,23 @@ import javafx.scene.control.*;
 import javafx.scene.image.*;
 import javafx.scene.input.*;
 import javafx.scene.layout.*;
+import javafx.scene.paint.*;
 
 import java.util.*;
 
 public final class TextureFXView implements TextureView, FXView {
-    private static final Map<String, String> ButtonColors = Map.of(
-        "R", "red",
-        "G", "green",
-        "B", "blue",
-        "A", "grey"
+    private static final Map<String, Color> ButtonColors = Map.of(
+        "Red", Color.RED,
+        "Green", Color.GREEN,
+        "Blue", Color.BLUE,
+        "Alpha", Color.GRAY
     );
 
     private final VBox view = new VBox();
-    private final ToggleButton rButton = new ToggleButton("R");
-    private final ToggleButton gButton = new ToggleButton("G");
-    private final ToggleButton bButton = new ToggleButton("B");
-    private final ToggleButton aButton = new ToggleButton("A");
+    private final ToggleButton rButton = new ToggleButton("Red");
+    private final ToggleButton gButton = new ToggleButton("Green");
+    private final ToggleButton bButton = new ToggleButton("Blue");
+    private final ToggleButton aButton = new ToggleButton("Alpha");
     private final ImageView imageView = new ImageView();
     private final ZoomableScrollPane scrollPane = new ZoomableScrollPane(imageView);
 
@@ -54,7 +55,8 @@ public final class TextureFXView implements TextureView, FXView {
         for (var button : buttons) {
             button.setSelected(true);
             button.setOnAction(_ -> fireColorEvent());
-            button.setStyle("-fx-base: " + ButtonColors.get(button.getText()) + ";");
+            String unselected = ButtonColors.get(button.getText()).toString().replace("0x", "#");
+            button.setStyle("-fx-base: " + unselected + ";");
 
             button.setOnMouseClicked(e -> {
                 if (e.getButton() != MouseButton.SECONDARY) {
