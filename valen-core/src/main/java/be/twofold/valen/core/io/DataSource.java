@@ -45,6 +45,7 @@ public abstract class DataSource implements Closeable {
 
     public abstract long size();
 
+    @Override
     public abstract void close() throws IOException;
 
     public void skip(long count) throws IOException {

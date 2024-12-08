@@ -6,13 +6,18 @@ import be.twofold.valen.core.texture.*;
 import java.io.*;
 import java.util.*;
 
-public final class DdsExporter implements Exporter<Texture> {
+public final class DdsExporter implements TextureExporter {
     private static final Map<TextureFormat, DxgiFormat> FORMATS = Map.ofEntries(
-        Map.entry(TextureFormat.R8G8B8A8_UNORM, DxgiFormat.R8G8B8A8_UNORM),
-        Map.entry(TextureFormat.R16G16_SFLOAT, DxgiFormat.R16G16_FLOAT),
+        Map.entry(TextureFormat.R8_UNORM, DxgiFormat.R8_UNORM),
         Map.entry(TextureFormat.R8G8_UNORM, DxgiFormat.R8G8_UNORM),
+        Map.entry(TextureFormat.R8G8B8_UNORM, DxgiFormat.R8G8B8A8_UNORM),
+        Map.entry(TextureFormat.R8G8B8A8_UNORM, DxgiFormat.R8G8B8A8_UNORM),
+        Map.entry(TextureFormat.B8G8R8_UNORM, DxgiFormat.B8G8R8A8_UNORM),
+        Map.entry(TextureFormat.B8G8R8A8_UNORM, DxgiFormat.B8G8R8A8_UNORM),
+        Map.entry(TextureFormat.R16_UNORM, DxgiFormat.R16_UNORM),
         Map.entry(TextureFormat.R16_SFLOAT, DxgiFormat.R16_FLOAT),
-        Map.entry(TextureFormat.R8_UNORM, DxgiFormat.A8_UNORM),
+        Map.entry(TextureFormat.R16G16_SFLOAT, DxgiFormat.R16G16_FLOAT),
+        Map.entry(TextureFormat.R16G16B16A16_SFLOAT, DxgiFormat.R16G16B16A16_FLOAT),
         Map.entry(TextureFormat.BC1_UNORM, DxgiFormat.BC1_UNORM),
         Map.entry(TextureFormat.BC1_SRGB, DxgiFormat.BC1_UNORM_SRGB),
         Map.entry(TextureFormat.BC2_UNORM, DxgiFormat.BC2_UNORM),
@@ -37,6 +42,15 @@ public final class DdsExporter implements Exporter<Texture> {
     @Override
     public Class<Texture> getSupportedType() {
         return Texture.class;
+    }
+
+    @Override
+    public TextureFormat chooseFormat(TextureFormat format) {
+        return switch (format) {
+            case R8G8B8_UNORM -> TextureFormat.R8G8B8A8_UNORM;
+            case B8G8R8_UNORM -> TextureFormat.B8G8R8A8_UNORM;
+            default -> format;
+        };
     }
 
     @Override

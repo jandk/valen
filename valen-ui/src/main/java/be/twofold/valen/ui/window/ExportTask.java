@@ -16,9 +16,9 @@ final class ExportTask extends Task<Void> {
     private final Asset asset;
 
     ExportTask(Path path, Archive archive, Asset asset) {
-        this.path = Check.notNull(path);
-        this.archive = Check.notNull(archive);
-        this.asset = Check.notNull(asset);
+        this.path = Check.notNull(path, "path");
+        this.archive = Check.notNull(archive, "archive");
+        this.asset = Check.notNull(asset, "asset");
     }
 
     @Override

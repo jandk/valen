@@ -5,7 +5,7 @@ import be.twofold.valen.core.texture.*;
 
 import java.io.*;
 
-public final class PngExporter implements Exporter<Texture> {
+public final class PngExporter implements TextureExporter {
 
     @Override
     public String getExtension() {
@@ -18,10 +18,29 @@ public final class PngExporter implements Exporter<Texture> {
     }
 
     @Override
+    public TextureFormat chooseFormat(TextureFormat format) {
+        if (format.isCompressed()) {
+            return switch (format.block()) {
+                case BC1, BC2, BC3, BC7 -> TextureFormat.R8G8B8A8_UNORM;
+                case BC4 -> TextureFormat.R8_UNORM;
+                case BC5 -> TextureFormat.R8G8B8_UNORM;
+                default -> throw new UnsupportedOperationException("Unsupported format: " + format.block());
+            };
+        }
+
+        return switch (format.order().orElseThrow()) {
+            case R -> TextureFormat.R8_UNORM;
+            case RGB -> TextureFormat.R8G8B8_UNORM;
+            case RGBA -> TextureFormat.R8G8B8A8_UNORM;
+            default -> throw new UnsupportedOperationException("Unsupported order: " + format.order());
+        };
+    }
+
+    @Override
     public void export(Texture texture, OutputStream out) throws IOException {
         var surface = texture.surfaces().getFirst();
         var chosenFormat = chooseFormat(texture.format());
-        var decoded = SurfaceConverter.convert(surface, chosenFormat);
+        var decoded = surface.convertTo(chosenFormat);
         var stripped = stripAlpha(decoded);
         var format = mapPngFormat(surface, stripped.format());
 
@@ -50,24 +69,6 @@ public final class PngExporter implements Exporter<Texture> {
             return new Surface(surface.width(), surface.height(), TextureFormat.R8G8B8_UNORM, newArray);
         }
         return surface;
-    }
-
-    private TextureFormat chooseFormat(TextureFormat format) {
-        if (format.isCompressed()) {
-            return switch (format.block()) {
-                case BC1, BC2, BC3, BC7 -> TextureFormat.R8G8B8A8_UNORM;
-                case BC4 -> TextureFormat.R8_UNORM;
-                case BC5 -> TextureFormat.R8G8B8_UNORM;
-                default -> throw new UnsupportedOperationException("Unsupported format: " + format.block());
-            };
-        }
-
-        return switch (format.order().orElseThrow()) {
-            case R -> TextureFormat.R8_UNORM;
-            case RGB -> TextureFormat.R8G8B8_UNORM;
-            case RGBA -> TextureFormat.R8G8B8A8_UNORM;
-            default -> throw new UnsupportedOperationException("Unsupported order: " + format.order());
-        };
     }
 
     private PngFormat mapPngFormat(Surface surface, TextureFormat format) {

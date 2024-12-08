@@ -9,7 +9,7 @@ final class StringNumber extends Number {
     private final String value;
 
     StringNumber(String value) {
-        this.value = Check.notNull(value);
+        this.value = Check.notNull(value, "value");
     }
 
     @Override

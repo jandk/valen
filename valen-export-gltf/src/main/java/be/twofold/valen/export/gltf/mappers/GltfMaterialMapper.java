@@ -4,11 +4,14 @@ import be.twofold.valen.core.material.*;
 import be.twofold.valen.gltf.*;
 import be.twofold.valen.gltf.model.material.*;
 import be.twofold.valen.gltf.model.texture.*;
+import org.slf4j.*;
 
 import java.io.*;
 import java.util.*;
 
 public final class GltfMaterialMapper {
+    private static final Logger log = LoggerFactory.getLogger(GltfMaterialMapper.class);
+
     private final Map<String, MaterialID> materials = new HashMap<>();
 
     private final GltfContext context;
@@ -31,7 +34,7 @@ public final class GltfMaterialMapper {
             switch (reference.type()) {
                 case Albedo -> pbrBuilder.baseColorTexture(textureSchema(textureMapper.map(reference)));
                 case Normal -> builder.normalTexture(normalTextureInfoSchema(textureMapper.map(reference)));
-                // case Smoothness -> pbrBuilder.metallicRoughnessTexture(textureSchema(textureID));
+                // case Smoothness -> pbrBuilder.metallicRoughnessTexture(textureSchema(textureMapper.map(reference)));
             }
         }
 
@@ -40,13 +43,11 @@ public final class GltfMaterialMapper {
             .build();
 
         if (materialSchema.getNormalTexture().isEmpty() || materialSchema.getPbrMetallicRoughness().get().getBaseColorTexture().isEmpty()) {
-            System.out.println("Material without textures: " + material.name());
+            log.warn("Material without textures: {}", material.name());
         }
 
         var materialID = context.addMaterial(materialSchema);
-
         materials.put(material.name(), materialID);
-
         return materialID;
     }
 

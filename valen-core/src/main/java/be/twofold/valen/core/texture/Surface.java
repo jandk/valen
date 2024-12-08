@@ -1,5 +1,6 @@
 package be.twofold.valen.core.texture;
 
+import be.twofold.valen.core.texture.op.*;
 import be.twofold.valen.core.util.*;
 
 public record Surface(
@@ -22,6 +23,15 @@ public record Surface(
 
         var data = new byte[format.block().surfaceSize(width, height)];
         return new Surface(width, height, format, data);
+    }
+
+    public Surface convertTo(TextureFormat format) {
+        if (this.format == format) {
+            return this;
+        }
+
+        return PixelOp.source(this)
+            .toSurface(width, height, format);
     }
 
     public void copyFrom(Surface src, int x, int y) {

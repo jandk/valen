@@ -2,6 +2,7 @@ package be.twofold.valen.game.eternal.stream;
 
 import be.twofold.valen.core.io.*;
 import be.twofold.valen.game.eternal.reader.streamdb.*;
+import org.slf4j.*;
 
 import java.io.*;
 import java.nio.file.*;
@@ -10,11 +11,13 @@ import java.util.function.*;
 import java.util.stream.*;
 
 public final class StreamDbFile implements Closeable {
+    private static final Logger log = LoggerFactory.getLogger(StreamDbFile.class);
+
     private final Map<Long, StreamDbEntry> index;
     private DataSource source;
 
     public StreamDbFile(Path path) throws IOException {
-        System.out.println("Loading streamdb: " + path);
+        log.info("Loading streamdb: {}", path);
         this.source = DataSource.fromPath(path);
 
         var entries = StreamDb.read(source).entries();
@@ -31,6 +34,7 @@ public final class StreamDbFile implements Closeable {
     }
 
     public byte[] read(StreamDbEntry entry) throws IOException {
+        log.info("Reading stream: {}", String.format("%016X", entry.identity()));
         source.seek(entry.offset());
         return source.readBytes(entry.length());
     }
