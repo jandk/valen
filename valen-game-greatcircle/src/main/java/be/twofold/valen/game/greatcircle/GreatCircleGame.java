@@ -14,8 +14,6 @@ public final class GreatCircleGame implements Game {
     private final Path base;
     private final PackageMapSpec spec;
     private final Decompressor decompressor;
-//    private final StreamDbCollection streamDbCollection;
-//    private final ResourcesCollection commonCollection;
 
     public GreatCircleGame(Path path) {
         this.base = path.resolve("base");
@@ -45,14 +43,12 @@ public final class GreatCircleGame implements Game {
             .filter(s -> s.endsWith(".streamdb"))
             .map(base::resolve)
             .toList();
-
         var streamDbCollection = StreamDbCollection.load(streamDbs, decompressor);
 
         var resources = files.stream()
             .filter(s -> s.endsWith(".resources"))
             .map(base::resolve)
             .toList();
-
         var resourcesCollection = ResourcesCollection.load(resources, decompressor);
 
         return new GreatCircleArchive(streamDbCollection, resourcesCollection);

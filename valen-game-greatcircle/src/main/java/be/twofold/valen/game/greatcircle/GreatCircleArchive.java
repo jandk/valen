@@ -5,6 +5,7 @@ import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.util.*;
 import be.twofold.valen.game.greatcircle.reader.*;
 import be.twofold.valen.game.greatcircle.reader.image.*;
+import be.twofold.valen.game.greatcircle.reader.staticmodel.*;
 import be.twofold.valen.game.greatcircle.resource.*;
 
 import java.io.*;
@@ -20,7 +21,8 @@ public final class GreatCircleArchive implements Archive {
         this.resources = Check.notNull(resources);
 
         this.readers = List.of(
-            new ImageReader(this)
+            new ImageReader(this),
+            new StaticModelReader(this)
         );
     }
 
@@ -39,13 +41,17 @@ public final class GreatCircleArchive implements Archive {
             resource.key(),
             mapType(resource.key().type()),
             resource.uncompressedSize(),
-            Map.of("hash", resource.hash())
+            Map.of(
+                "hash", resource.hash(),
+                "version", resource.version()
+            )
         );
     }
 
     private AssetType<?> mapType(ResourceType type) {
         return switch (type) {
             case image -> AssetType.TEXTURE;
+            case model -> AssetType.MODEL;
             default -> AssetType.BINARY;
         };
     }
