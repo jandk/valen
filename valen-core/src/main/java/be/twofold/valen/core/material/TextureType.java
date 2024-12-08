@@ -4,7 +4,6 @@ public enum TextureType {
     Unknown,
     Albedo,
     Emissive,
-    Height,
     Normal,
     Smoothness,
     Specular,

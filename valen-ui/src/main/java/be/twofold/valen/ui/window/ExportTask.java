@@ -6,11 +6,14 @@ import be.twofold.valen.core.util.*;
 import javafx.application.*;
 import javafx.concurrent.*;
 import javafx.scene.control.*;
+import org.slf4j.*;
 
 import java.nio.file.*;
 import java.util.concurrent.*;
 
 final class ExportTask extends Task<Void> {
+    private static final Logger log = LoggerFactory.getLogger(ExportTask.class);
+
     private final Path path;
     private final Archive archive;
     private final Asset asset;
@@ -41,6 +44,7 @@ final class ExportTask extends Task<Void> {
             T rawAsset = archive.loadAsset(asset.id(), clazz);
             exporter.export(rawAsset, out);
         } catch (Exception e) {
+            log.error(e.getMessage(), e);
             showExceptionDialog(e);
         }
     }
