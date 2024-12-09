@@ -21,8 +21,8 @@ import java.util.*;
 
 public final class GltfContext {
     private final Map<String, Extension> extensions = new TreeMap<>();
-    private final List<String> extensionsUsed = new ArrayList<>();
-    private final List<String> extensionsRequired = new ArrayList<>();
+    private final Set<String> extensionsUsed = new TreeSet<>();
+    private final Set<String> extensionsRequired = new TreeSet<>();
     private final List<AccessorSchema> accessors = new ArrayList<>();
     private final List<AnimationSchema> animations = new ArrayList<>();
     private final List<BufferSchema> buffers = new ArrayList<>();
@@ -41,15 +41,6 @@ public final class GltfContext {
     private int binaryBufferSize = 0;
 
     // region Getters
-
-    // TODO: Fix this method
-    public void addExtension(String name, Extension extension, boolean required) {
-        extensionsUsed.add(name);
-        if (required) {
-            extensionsRequired.add(name);
-        }
-        extensions.put(name, extension);
-    }
 
     public List<AccessorSchema> getAccessors() {
         return Collections.unmodifiableList(accessors);
@@ -111,67 +102,97 @@ public final class GltfContext {
 
     // region Adders
 
+    public void registerExtension(Extension extension) {
+        extensionsUsed.add(extension.getName());
+        if (extension.isRequired()) {
+            extensionsRequired.add(extension.getName());
+        }
+    }
+
+    public void registerExtensions(GltfProperty property) {
+        property.getExtensions().values()
+            .forEach(this::registerExtension);
+    }
+
+    public void addExtension(Extension extension) {
+        extensions.put(extension.getName(), extension);
+        registerExtension(extension);
+    }
+
     public AccessorID addAccessor(AccessorSchema accessor) {
         accessors.add(accessor);
+        registerExtensions(accessor);
         return AccessorID.of(accessors.size() - 1);
     }
 
     public void addAnimation(AnimationSchema animation) {
+        registerExtensions(animation);
         animations.add(animation);
     }
 
     public BufferID addBuffer(BufferSchema buffer) {
         buffers.add(buffer);
+        registerExtensions(buffer);
         return BufferID.of(buffers.size() - 1);
     }
 
     public BufferViewID addBufferView(BufferViewSchema bufferView) {
         bufferViews.add(bufferView);
+        registerExtensions(bufferView);
         return BufferViewID.of(bufferViews.size() - 1);
     }
 
     public CameraID addCamera(CameraSchema camera) {
         cameras.add(camera);
+        registerExtensions(camera);
         return CameraID.of(cameras.size() - 1);
     }
 
     public ImageID addImage(ImageSchema image) {
         images.add(image);
+        registerExtensions(image);
         return ImageID.of(images.size() - 1);
     }
 
     public MaterialID addMaterial(MaterialSchema material) {
         materials.add(material);
+        registerExtensions(material);
         return MaterialID.of(materials.size() - 1);
     }
 
     public MeshID addMesh(MeshSchema mesh) {
         meshes.add(mesh);
+        registerExtensions(mesh);
         return MeshID.of(meshes.size() - 1);
     }
 
     public NodeID addNode(NodeSchema node) {
         nodes.add(node);
+        registerExtensions(node);
         return NodeID.of(nodes.size() - 1);
     }
 
     public SamplerID addSampler(SamplerSchema sampler) {
         samplers.add(sampler);
+        registerExtensions(sampler);
         return SamplerID.of(samplers.size() - 1);
     }
 
     public SceneID addScene(SceneSchema scene) {
         scenes.add(scene);
+        registerExtensions(scene);
         return SceneID.of(scenes.size() - 1);
     }
 
     public SkinID addSkin(SkinSchema skin) {
         skins.add(skin);
+        registerExtensions(skin);
         return SkinID.of(skins.size() - 1);
     }
 
     public TextureID addTexture(TextureSchema texture) {
         textures.add(texture);
+        registerExtensions(texture);
         return TextureID.of(textures.size() - 1);
     }
 

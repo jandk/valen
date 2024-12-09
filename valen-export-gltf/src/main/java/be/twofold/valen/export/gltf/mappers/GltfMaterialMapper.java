@@ -4,6 +4,7 @@ import be.twofold.valen.core.material.*;
 import be.twofold.valen.core.texture.*;
 import be.twofold.valen.core.texture.op.*;
 import be.twofold.valen.gltf.*;
+import be.twofold.valen.gltf.model.extension.specular.*;
 import be.twofold.valen.gltf.model.material.*;
 import be.twofold.valen.gltf.model.texture.*;
 import org.slf4j.*;
@@ -41,6 +42,12 @@ public final class GltfMaterialMapper {
                 case Emissive -> builder.emissiveTexture(textureSchema(textureMapper.map(reference)));
                 case Normal -> builder.normalTexture(normalTextureInfoSchema(textureMapper.map(reference)));
                 case Smoothness -> roughness = reference;
+                case Specular -> {
+                    var extension = KHRMaterialsSpecularSchema.builder()
+                        .specularColorTexture(textureSchema(textureMapper.map(reference)))
+                        .build();
+                    builder.putExtensions(extension.getName(), extension);
+                }
             }
         }
 
