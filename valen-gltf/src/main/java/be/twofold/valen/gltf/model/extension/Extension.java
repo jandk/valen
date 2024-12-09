@@ -1,4 +1,4 @@
-package be.twofold.valen.gltf.model;
+package be.twofold.valen.gltf.model.extension;
 
 /**
  * JSON object with extension-specific objects.

@@ -7,7 +7,7 @@ module valen.gltf {
     exports be.twofold.valen.gltf.model.asset;
     exports be.twofold.valen.gltf.model.buffer;
     exports be.twofold.valen.gltf.model.camera;
-    exports be.twofold.valen.gltf.model.extension.specular;
+    exports be.twofold.valen.gltf.model.extension;
     exports be.twofold.valen.gltf.model.image;
     exports be.twofold.valen.gltf.model.material;
     exports be.twofold.valen.gltf.model.mesh;
@@ -26,7 +26,7 @@ module valen.gltf {
     opens be.twofold.valen.gltf.model.asset to com.google.gson;
     opens be.twofold.valen.gltf.model.buffer to com.google.gson;
     opens be.twofold.valen.gltf.model.camera to com.google.gson;
-    opens be.twofold.valen.gltf.model.extension.specular to com.google.gson;
+    opens be.twofold.valen.gltf.model.extension to com.google.gson;
     opens be.twofold.valen.gltf.model.image to com.google.gson;
     opens be.twofold.valen.gltf.model.material to com.google.gson;
     opens be.twofold.valen.gltf.model.mesh to com.google.gson;
@@ -36,6 +36,5 @@ module valen.gltf {
     opens be.twofold.valen.gltf.model.skin to com.google.gson;
     opens be.twofold.valen.gltf.model.texture to com.google.gson;
     opens be.twofold.valen.gltf.types to com.google.gson;
-    exports be.twofold.valen.gltf.gson;
     opens be.twofold.valen.gltf.gson to com.google.gson;
 }

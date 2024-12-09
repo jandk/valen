@@ -44,6 +44,14 @@ public interface U8PixelOp extends PixelOp {
         };
     }
 
+    static U8PixelOp combine(U8PixelOp rgb, U8ChannelOp alpha) {
+        return index -> {
+            int rgbValue = rgb.get(index);
+            int alphaValue = alpha.get(index);
+            return rgbValue & 0x00FFFFFF | alphaValue << 24;
+        };
+    }
+
     private static int r(int rgba) {
         return (rgba) & 0xFF;
     }
@@ -118,6 +126,10 @@ public interface U8PixelOp extends PixelOp {
 
     default U8ChannelOp alpha() {
         return index -> a(get(index));
+    }
+
+    default U8PixelOp rgb() {
+        return index -> get(index) & 0x00FFFFFF | 0xFF000000;
     }
 
     default U8PixelOp premultiplyAlpha() {

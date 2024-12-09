@@ -1,4 +1,4 @@
-package be.twofold.valen.gltf.model.extension.specular;
+package be.twofold.valen.gltf.model.extension;
 
 import be.twofold.valen.gltf.model.*;
 import be.twofold.valen.gltf.model.texture.*;
@@ -17,7 +17,7 @@ public interface KHRMaterialsSpecularDef extends GltfProperty, Extension {
 
     @Override
     default boolean isRequired() {
-        return true;
+        return false;
     }
 
     /**

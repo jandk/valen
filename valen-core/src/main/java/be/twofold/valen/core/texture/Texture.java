@@ -17,4 +17,14 @@ public record Texture(
         Check.notNull(format, "format");
         surfaces = List.copyOf(surfaces);
     }
+
+    public static Texture fromSurface(Surface surface) {
+        return new Texture(
+            surface.width(),
+            surface.height(),
+            surface.format(),
+            List.of(surface),
+            false
+        );
+    }
 }

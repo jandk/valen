@@ -6,6 +6,7 @@ import be.twofold.valen.gltf.model.animation.*;
 import be.twofold.valen.gltf.model.asset.*;
 import be.twofold.valen.gltf.model.buffer.*;
 import be.twofold.valen.gltf.model.camera.*;
+import be.twofold.valen.gltf.model.extension.*;
 import be.twofold.valen.gltf.model.image.*;
 import be.twofold.valen.gltf.model.material.*;
 import be.twofold.valen.gltf.model.mesh.*;
