@@ -6,7 +6,6 @@ import be.twofold.valen.core.texture.*;
 import java.io.*;
 
 public final class PngExporter implements TextureExporter {
-
     @Override
     public String getExtension() {
         return "png";
@@ -19,20 +18,31 @@ public final class PngExporter implements TextureExporter {
 
     @Override
     public TextureFormat chooseFormat(TextureFormat format) {
-        if (format.isCompressed()) {
-            return switch (format.block()) {
-                case BC1, BC2, BC3, BC7 -> TextureFormat.R8G8B8A8_UNORM;
-                case BC4 -> TextureFormat.R8_UNORM;
-                case BC5 -> TextureFormat.R8G8B8_UNORM;
-                default -> throw new UnsupportedOperationException("Unsupported format: " + format.block());
-            };
-        }
-
-        return switch (format.order().orElseThrow()) {
-            case R -> TextureFormat.R8_UNORM;
-            case RGB -> TextureFormat.R8G8B8_UNORM;
-            case RGBA -> TextureFormat.R8G8B8A8_UNORM;
-            default -> throw new UnsupportedOperationException("Unsupported order: " + format.order());
+        return switch (format) {
+            case R8_UNORM,
+                 BC4_UNORM,
+                 BC4_SNORM -> TextureFormat.R8_UNORM;
+            case R8G8_UNORM,
+                 R8G8B8_UNORM,
+                 B8G8R8_UNORM,
+                 BC5_UNORM,
+                 BC5_SNORM -> TextureFormat.R8G8B8_UNORM;
+            case R8G8B8A8_UNORM, B8G8R8A8_UNORM,
+                 BC1_UNORM,
+                 BC1_SRGB,
+                 BC2_UNORM,
+                 BC2_SRGB,
+                 BC3_UNORM,
+                 BC3_SRGB,
+                 BC7_UNORM,
+                 BC7_SRGB -> TextureFormat.R8G8B8A8_UNORM;
+            case R16_UNORM -> TextureFormat.R16_UNORM;
+            case R16G16B16A16_UNORM -> TextureFormat.R16G16B16A16_UNORM;
+            case R16_SFLOAT,
+                 R16G16_SFLOAT,
+                 R16G16B16A16_SFLOAT,
+                 BC6H_UFLOAT,
+                 BC6H_SFLOAT -> null;
         };
     }
 
@@ -40,8 +50,8 @@ public final class PngExporter implements TextureExporter {
     public void export(Texture texture, OutputStream out) throws IOException {
         var surface = texture.surfaces().getFirst();
         var chosenFormat = chooseFormat(texture.format());
-        var decoded = surface.convertTo(chosenFormat);
-        var stripped = stripAlpha(decoded);
+        var decoded = TextureConverter.convert(texture.firstOnly(), chosenFormat);
+        var stripped = stripAlpha(decoded.surfaces().getFirst());
         var format = mapPngFormat(surface, stripped.format());
 
         // TODO: How to handle closing the output stream?
@@ -72,14 +82,15 @@ public final class PngExporter implements TextureExporter {
     }
 
     private PngFormat mapPngFormat(Surface surface, TextureFormat format) {
-        var colorType = switch (format) {
-            case R8_UNORM -> PngColorType.Gray;
-            case R8G8B8_UNORM -> PngColorType.Rgb;
-            case R8G8B8A8_UNORM -> PngColorType.RgbAlpha;
+        var w = surface.width();
+        var h = surface.height();
+        return switch (format) {
+            case R8_UNORM -> new PngFormat(w, h, PngColorType.Gray, 8, false);
+            case R8G8B8_UNORM -> new PngFormat(w, h, PngColorType.Rgb, 8, false);
+            case R8G8B8A8_UNORM -> new PngFormat(w, h, PngColorType.RgbAlpha, 8, false);
+            case R16_UNORM -> new PngFormat(w, h, PngColorType.Gray, 16, false);
+            case R16G16B16A16_UNORM -> new PngFormat(w, h, PngColorType.RgbAlpha, 16, false);
             default -> throw new UnsupportedOperationException("Unsupported format: " + format);
         };
-        boolean linear = surface.format().interp() == TextureFormat.Interp.UNorm;
-        return new PngFormat(surface.width(), surface.height(), colorType, 8, linear);
     }
-
 }

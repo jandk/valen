@@ -14,7 +14,7 @@ public final class TexturePresenter extends AbstractPresenter<TextureView> imple
     private static final Logger log = LoggerFactory.getLogger(TexturePresenter.class);
 
     private byte[] imagePixels;
-    private U8PixelOp decoded;
+    private Texture decoded;
     private WritableImage image;
 
     private boolean showRed = true;
@@ -58,22 +58,22 @@ public final class TexturePresenter extends AbstractPresenter<TextureView> imple
         }
 
         // Let's try our new ops
-        var surface = ((Texture) data).surfaces().getFirst();
-        int width = surface.width();
-        int height = surface.height();
+        Texture texture = ((Texture) data).firstOnly();
 
-        imagePixels = new byte[width * height * 4];
 
         long t0 = System.nanoTime();
-        decoded = PixelOp.source(surface).asU8();
-        decoded.swizzleBGRA().toPixels(width, height, imagePixels);
+        decoded = TextureConverter.convert(texture, TextureFormat.R8G8B8A8_UNORM);
+        imagePixels = new byte[texture.width() * texture.height() * 4];
+        imagePixels = TextureConverter
+            .convert(decoded, TextureFormat.B8G8R8A8_UNORM)
+            .surfaces().getFirst().data();
 
         long t1 = System.nanoTime();
-        image = new WritableImage(width, height);
+        image = new WritableImage(texture.width(), texture.height());
         image.getPixelWriter().setPixels(
-            0, 0, width, height,
+            0, 0, texture.width(), texture.height(),
             PixelFormat.getByteBgraPreInstance(),
-            imagePixels, 0, width * 4
+            imagePixels, 0, texture.width() * 4
         );
 
         long t2 = System.nanoTime();
@@ -97,20 +97,20 @@ public final class TexturePresenter extends AbstractPresenter<TextureView> imple
 
         // Check which channels are selected
         U8PixelOp combined;
-        if ((red ? 1 : 0) + (green ? 1 : 0) + (blue ? 1 : 0) + (alpha ? 1 : 0) == 1) {
-            // Do gray expansion
-            var channel = red ? decoded.red() : green ? decoded.green() : blue ? decoded.blue() : decoded.alpha();
-            combined = channel.rgba();
-        } else {
-            // Do color masking
-            var rOp = red ? decoded.red() : U8ChannelOp.constant(0);
-            var gOp = green ? decoded.green() : U8ChannelOp.constant(0);
-            var bOp = blue ? decoded.blue() : U8ChannelOp.constant(0);
-            var aOp = alpha ? decoded.alpha() : U8ChannelOp.constant(255);
-            combined = U8PixelOp.combine(rOp, gOp, bOp, aOp);
-        }
+//        if ((red ? 1 : 0) + (green ? 1 : 0) + (blue ? 1 : 0) + (alpha ? 1 : 0) == 1) {
+//            // Do gray expansion
+//            var channel = red ? decoded.red() : green ? decoded.green() : blue ? decoded.blue() : decoded.alpha();
+//            combined = channel.rgba();
+//        } else {
+//            // Do color masking
+//            var rOp = red ? decoded.red() : U8ChannelOp.constant(0);
+//            var gOp = green ? decoded.green() : U8ChannelOp.constant(0);
+//            var bOp = blue ? decoded.blue() : U8ChannelOp.constant(0);
+//            var aOp = alpha ? decoded.alpha() : U8ChannelOp.constant(255);
+//            combined = U8PixelOp.combine(rOp, gOp, bOp, aOp);
+//        }
 
-        combined.swizzleBGRA().toPixels(width, height, imagePixels);
+//        combined.swizzleBGRA().toPixels(width, height, imagePixels);
 
         image.getPixelWriter().setPixels(
             0, 0, width, height,

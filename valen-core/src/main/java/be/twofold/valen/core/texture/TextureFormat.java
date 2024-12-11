@@ -57,7 +57,16 @@ public enum TextureFormat {
     }
 
     public boolean isCompressed() {
-        return order().isEmpty();
+        return switch (this) {
+            case BC1_SRGB, BC1_UNORM,
+                 BC2_SRGB, BC2_UNORM,
+                 BC3_SRGB, BC3_UNORM,
+                 BC4_SNORM, BC4_UNORM,
+                 BC5_SNORM, BC5_UNORM,
+                 BC6H_SFLOAT, BC6H_UFLOAT,
+                 BC7_SRGB, BC7_UNORM -> true;
+            default -> false;
+        };
     }
 
     public enum Block {
