@@ -13,7 +13,7 @@ public interface PixelOp {
                 case BC4_SNORM -> BlockFormat.BC4Signed;
                 case BC4_UNORM -> BlockFormat.BC4Unsigned;
                 case BC5_SNORM -> BlockFormat.BC5Signed;
-                case BC5_UNORM -> BlockFormat.BC5Unsigned;
+                case BC5_UNORM -> BlockFormat.BC5UnsignedNormalized;
                 case BC6H_SFLOAT -> BlockFormat.BC6Signed;
                 case BC6H_UFLOAT -> BlockFormat.BC6Unsigned;
                 case BC7_SRGB, BC7_UNORM -> BlockFormat.BC7;
@@ -30,18 +30,21 @@ public interface PixelOp {
                 .decode(input.width(), input.height(), input.data(), 0, decoded.data(), 0);
 
             if (input.format().block() == TextureFormat.Block.BC6H) {
-                return LongPixelOp.source(decoded);
+                return F16PixelOp.source(decoded);
             }
-            return IntPixelOp.source(decoded);
+            return U8PixelOp.source(decoded);
         }
 
         return switch (input.format()) {
             case R8_UNORM, R8G8_UNORM, R8G8B8_UNORM, R8G8B8A8_UNORM, B8G8R8_UNORM, B8G8R8A8_UNORM ->
-                IntPixelOp.source(input);
-            case R16_SFLOAT, R16G16_SFLOAT, R16G16B16A16_SFLOAT -> LongPixelOp.source(input);
+                U8PixelOp.source(input);
+            case R16_UNORM -> U16PixelOp.source(input);
+            case R16_SFLOAT, R16G16_SFLOAT, R16G16B16A16_SFLOAT -> F16PixelOp.source(input);
             default -> throw new UnsupportedOperationException("Unsupported format: " + input.format());
         };
     }
 
-    IntPixelOp asInt();
+    U8PixelOp asU8();
+
+    Surface toSurface(int width, int height, TextureFormat format);
 }

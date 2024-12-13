@@ -24,9 +24,9 @@ public final class EternalArchive implements Archive {
     private final List<ResourceReader<?>> readers;
 
     EternalArchive(StreamDbCollection streams, ResourcesCollection common, ResourcesCollection resources) {
-        this.streams = Check.notNull(streams);
-        this.common = Check.notNull(common);
-        this.resources = Check.notNull(resources);
+        this.streams = Check.notNull(streams, "streams");
+        this.common = Check.notNull(common, "common");
+        this.resources = Check.notNull(resources, "resources");
 
         var declReader = new DeclReader(this);
         this.readers = List.of(

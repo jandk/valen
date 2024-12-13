@@ -13,7 +13,7 @@ public final class FileCompressedReader implements ResourceReader<byte[]> {
     private final Decompressor decompressor;
 
     public FileCompressedReader(Decompressor decompressor) {
-        this.decompressor = Check.notNull(decompressor);
+        this.decompressor = Check.notNull(decompressor, "decompressor");
     }
 
     @Override

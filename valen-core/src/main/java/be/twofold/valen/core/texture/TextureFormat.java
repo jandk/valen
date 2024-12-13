@@ -9,6 +9,8 @@ public enum TextureFormat {
     R8G8B8A8_UNORM(Block.Bits32, Interp.UNorm, Order.RGBA),
     B8G8R8_UNORM(Block.Bits24, Interp.UNorm, Order.BGR),
     B8G8R8A8_UNORM(Block.Bits32, Interp.UNorm, Order.BGRA),
+    R16_UNORM(Block.Bits16, Interp.UNorm, Order.R),
+    R16G16B16A16_UNORM(Block.Bits64, Interp.UNorm, Order.RGBA),
     R16_SFLOAT(Block.Bits16, Interp.SFloat, Order.R),
     R16G16_SFLOAT(Block.Bits32, Interp.SFloat, Order.RG),
     R16G16B16A16_SFLOAT(Block.Bits64, Interp.SFloat, Order.RGBA),
@@ -55,7 +57,16 @@ public enum TextureFormat {
     }
 
     public boolean isCompressed() {
-        return order().isEmpty();
+        return switch (this) {
+            case BC1_SRGB, BC1_UNORM,
+                 BC2_SRGB, BC2_UNORM,
+                 BC3_SRGB, BC3_UNORM,
+                 BC4_SNORM, BC4_UNORM,
+                 BC5_SNORM, BC5_UNORM,
+                 BC6H_SFLOAT, BC6H_UFLOAT,
+                 BC7_SRGB, BC7_UNORM -> true;
+            default -> false;
+        };
     }
 
     public enum Block {

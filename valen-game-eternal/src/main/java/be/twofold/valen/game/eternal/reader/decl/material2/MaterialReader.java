@@ -97,7 +97,7 @@ public final class MaterialReader implements ResourceReader<Material> {
             // case TMK_SSSMASK -> TextureType.Unknown;
             // case TMK_COLORMASK -> TextureType.Unknown;
             case TMK_BLOOMMASK -> TextureType.Emissive;
-            case TMK_HEIGHTMAP -> TextureType.Height;
+            // case TMK_HEIGHTMAP -> TextureType.Height;
             default -> TextureType.Unknown;
         };
     }

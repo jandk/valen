@@ -2,19 +2,22 @@ package be.twofold.valen.core.compression;
 
 import be.twofold.valen.core.compression.oodle.*;
 import be.twofold.valen.core.compression.oodle.ffm.*;
+import org.slf4j.*;
 
 import java.io.*;
 import java.lang.foreign.*;
 import java.nio.file.*;
 
 final class OodleDecompressor implements Decompressor {
+    private static final Logger log = LoggerFactory.getLogger(OodleDecompressor.class);
+
     private final Arena arena = Arena.ofAuto();
     private final OodleFFM oodleFFM;
     private final MemorySegment decodeBuffer;
 
     OodleDecompressor(Path path) {
         oodleFFM = new OodleFFM(path, arena);
-        System.out.println("Loaded oodle version " + getVersion());
+        log.info("Loaded Oodle version {}", getVersion());
 
         int memorySizeNeeded = oodleFFM.OodleLZDecoder_MemorySizeNeeded(OodleLZ_Compressor.Invalid.value(), -1);
         decodeBuffer = arena.allocate(memorySizeNeeded);

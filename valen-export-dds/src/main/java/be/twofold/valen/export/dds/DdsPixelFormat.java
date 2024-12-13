@@ -1,7 +1,5 @@
 package be.twofold.valen.export.dds;
 
-import be.twofold.valen.core.util.*;
-
 import java.nio.*;
 
 record DdsPixelFormat(
@@ -24,7 +22,8 @@ record DdsPixelFormat(
     public static final int SIZE = 32;
 
     public ByteBuffer toBuffer() {
-        return Buffers.allocate(SIZE)
+        return ByteBuffer.allocate(SIZE)
+            .order(ByteOrder.LITTLE_ENDIAN)
             .putInt(SIZE)
             .putInt(flags)
             .putInt(fourCC)

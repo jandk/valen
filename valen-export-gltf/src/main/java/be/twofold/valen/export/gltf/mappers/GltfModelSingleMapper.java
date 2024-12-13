@@ -3,11 +3,14 @@ package be.twofold.valen.export.gltf.mappers;
 import be.twofold.valen.core.geometry.*;
 import be.twofold.valen.gltf.*;
 import be.twofold.valen.gltf.model.mesh.*;
+import org.slf4j.*;
 
 import java.io.*;
 import java.util.*;
 
 public final class GltfModelSingleMapper extends GltfModelMapper {
+    private static final Logger log = LoggerFactory.getLogger(GltfModelSingleMapper.class);
+
     private final Map<String, MeshID> models = new HashMap<>();
 
     public GltfModelSingleMapper(GltfContext context) {
@@ -21,13 +24,13 @@ public final class GltfModelSingleMapper extends GltfModelMapper {
 
         var model = modelReference.supplier().get();
         if (model.meshes().isEmpty()) {
-            System.out.println("Skipping model without meshes: " + modelReference.name());
+            log.warn("Skipping model without meshes {}", modelReference.name());
             models.put(modelReference.name(), null);
             return Optional.empty();
         }
 
         if (model.skeleton() != null) {
-            System.out.println("Skipping skeleton for scene on " + model.name());
+            log.warn("Skipping skeleton for scene on {}", model.name());
             model = new Model(model.name(), model.meshes(), null);
         }
 

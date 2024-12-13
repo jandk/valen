@@ -11,10 +11,13 @@ import javafx.geometry.*;
 import javafx.scene.*;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
+import org.slf4j.*;
 
 import java.util.*;
 
 public final class MainFXView implements MainView, FXView {
+    private static final Logger log = LoggerFactory.getLogger(MainFXView.class);
+
     private final BorderPane view = new BorderPane();
     private final SplitPane splitPane = new SplitPane();
 
@@ -75,7 +78,7 @@ public final class MainFXView implements MainView, FXView {
     @Override
     public void setExporting(boolean exporting) {
         Platform.runLater(() -> {
-            System.out.println("Exporting: " + exporting);
+            log.info("Exporting: {}", exporting);
             view.setDisable(exporting);
             progressBar.setVisible(exporting);
         });
