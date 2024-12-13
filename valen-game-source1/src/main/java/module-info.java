@@ -7,6 +7,8 @@ module valen.game.source1 {
 
     exports org.redeye.valen.game.source1;
 
+    opens org.redeye.valen.game.source1.utils.keyvalues;
+
     provides be.twofold.valen.core.game.GameFactory
         with org.redeye.valen.game.source1.HalfLife2GameFactory,
             org.redeye.valen.game.source1.PortalGameFactory,
