@@ -16,6 +16,7 @@
         <module>valen-export-png</module>
         <module>valen-game-doom</module>
         <module>valen-game-eternal</module>
+        <module>valen-game-goldsrc</module>
         <module>valen-gltf</module>
         <module>valen-ui</module>
     </modules>
@@ -121,6 +122,11 @@
                 <groupId>be.twofold</groupId>
                 <artifactId>valen-game-eternal</artifactId>
                 <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.redeye</groupId>
+                <artifactId>valen-game-goldsrc</artifactId>
+                <version>1.0-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>be.twofold</groupId>
