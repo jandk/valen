@@ -60,8 +60,8 @@ public final class DecompressOperation implements Operation {
             case BC3_SRGB, BC3_UNORM -> BlockFormat.BC3;
             case BC4_SNORM -> BlockFormat.BC4Signed;
             case BC4_UNORM -> BlockFormat.BC4Unsigned;
-            case BC5_SNORM -> BlockFormat.BC5Signed;
-            case BC5_UNORM -> BlockFormat.BC5Unsigned;
+            case BC5_SNORM -> BlockFormat.BC5SignedNormalized;
+            case BC5_UNORM -> BlockFormat.BC5UnsignedNormalized;
             case BC6H_SFLOAT -> BlockFormat.BC6Signed;
             case BC6H_UFLOAT -> BlockFormat.BC6Unsigned;
             case BC7_SRGB, BC7_UNORM -> BlockFormat.BC7;

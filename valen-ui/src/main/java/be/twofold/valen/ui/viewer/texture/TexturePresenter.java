@@ -2,7 +2,6 @@ package be.twofold.valen.ui.viewer.texture;
 
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.texture.*;
-import be.twofold.valen.core.texture.op.*;
 import be.twofold.valen.ui.*;
 import be.twofold.valen.ui.event.*;
 import be.twofold.valen.ui.viewer.*;
@@ -96,7 +95,7 @@ public final class TexturePresenter extends AbstractPresenter<TextureView> imple
         var height = (int) image.getHeight();
 
         // Check which channels are selected
-        U8PixelOp combined;
+//        U8PixelOp combined;
 //        if ((red ? 1 : 0) + (green ? 1 : 0) + (blue ? 1 : 0) + (alpha ? 1 : 0) == 1) {
 //            // Do gray expansion
 //            var channel = red ? decoded.red() : green ? decoded.green() : blue ? decoded.blue() : decoded.alpha();

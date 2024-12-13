@@ -38,8 +38,8 @@ public final class Geometry {
             source.skip(4); // skip normal
 
             Vector3 xyz = readVector3UNorm8Normal(source).normalize();
-            float w = Float.intBitsToFloat(((source.readByte() & 0x80) << 24) | 0x3F800000);
-            new Vector4(xyz, w).toBuffer(dst);
+            // float w = Float.intBitsToFloat(((source.readByte() & 0x80) << 24) | 0x3F800000);
+            new Vector4(xyz, 1.0f).toBuffer(dst);
         };
     }
 

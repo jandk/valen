@@ -13,7 +13,6 @@ module valen.core {
     exports be.twofold.valen.core.material;
     exports be.twofold.valen.core.math;
     exports be.twofold.valen.core.scene;
-    exports be.twofold.valen.core.texture.op;
     exports be.twofold.valen.core.texture;
     exports be.twofold.valen.core.util.fi;
     exports be.twofold.valen.core.util;
