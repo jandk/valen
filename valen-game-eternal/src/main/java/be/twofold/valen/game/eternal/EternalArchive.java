@@ -52,11 +52,18 @@ public final class EternalArchive implements Archive {
     }
 
     private Asset toAsset(Resource resource) {
+        var properties = new HashMap<String, Object>();
+        properties.put("hash", resource.hash());
+        properties.put("Type", resource.key().type().toString());
+        if (resource.key().variation() != ResourceVariation.None) {
+            properties.put("Variation", resource.key().variation());
+        }
+
         return new Asset(
             resource.key(),
             mapType(resource.key().type()),
             resource.uncompressedSize(),
-            Map.of("hash", resource.hash())
+            Map.copyOf(properties)
         );
     }
 

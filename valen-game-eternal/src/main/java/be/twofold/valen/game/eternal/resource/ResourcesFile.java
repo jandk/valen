@@ -14,11 +14,13 @@ public final class ResourcesFile implements Closeable {
     private static final Logger log = LoggerFactory.getLogger(ResourcesFile.class);
 
     private final Map<ResourceKey, Resource> index;
+    private final Path path;
     private DataSource source;
 
     public ResourcesFile(Path path) throws IOException {
         log.info("Loading resources: {}", path);
         this.source = DataSource.fromPath(path);
+        this.path = path;
 
         var resources = mapResources(Resources.read(source));
         this.index = resources.stream()
@@ -75,5 +77,12 @@ public final class ResourcesFile implements Closeable {
             source.close();
             source = null;
         }
+    }
+
+    @Override
+    public String toString() {
+        return "ResourcesFile(" +
+            "path=" + path +
+            ")";
     }
 }

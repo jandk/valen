@@ -7,6 +7,7 @@ import be.twofold.valen.ui.util.*;
 import jakarta.inject.*;
 import javafx.application.*;
 import javafx.beans.property.*;
+import javafx.beans.value.*;
 import javafx.geometry.*;
 import javafx.scene.*;
 import javafx.scene.control.*;
@@ -14,6 +15,7 @@ import javafx.scene.layout.*;
 import org.slf4j.*;
 
 import java.util.*;
+import java.util.stream.*;
 
 public final class MainFXView implements MainView, FXView {
     private static final Logger log = LoggerFactory.getLogger(MainFXView.class);
@@ -173,25 +175,32 @@ public final class MainFXView implements MainView, FXView {
         tableView.getSelectionModel().selectedItemProperty().addListener((_, _, newValue) -> selectAsset(newValue));
         var nameColumn = new TableColumn<Asset, String>();
         nameColumn.setText("Name");
-        nameColumn.setPrefWidth(200);
-        nameColumn.setCellValueFactory(param -> new ReadOnlyObjectWrapper<>(param.getValue().id().fileName()));
+        nameColumn.setPrefWidth(160);
+        nameColumn.setCellValueFactory(param -> new ReadOnlyObjectWrapper<>(param.getValue().id().fullName()));
 
         var typeColumn = new TableColumn<Asset, String>();
         typeColumn.setText("Type");
         typeColumn.setPrefWidth(40);
         typeColumn.setCellValueFactory(param -> new ReadOnlyObjectWrapper<>(param.getValue().type().name()));
 
-//        TableColumn<Asset<?>, Size> compressedColumn = new TableColumn<>();
-//        compressedColumn.setText("Compressed");
-//        compressedColumn.setCellValueFactory(param -> new ReadOnlyObjectWrapper<>(new Size(param.getValue().compressedSize())));
-//
-//        TableColumn<Asset<?>, Size> uncompressedColumn = new TableColumn<>();
-//        uncompressedColumn.setText("Uncompressed");
-//        uncompressedColumn.setCellValueFactory(param -> new ReadOnlyObjectWrapper<>(new Size(param.getValue().uncompressedSize())));
+        var propertiesColumn = new TableColumn<Asset, String>();
+        propertiesColumn.setText("Properties");
+        propertiesColumn.setPrefWidth(80);
+        propertiesColumn.setCellValueFactory(param -> mapPropertiesColumn(param.getValue()));
 
-        tableView.getColumns().addAll(nameColumn, typeColumn/*, compressedColumn, uncompressedColumn*/);
+        tableView.getColumns().addAll(nameColumn, typeColumn, propertiesColumn);
         tableView.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN); // TODO: Maybe change this?
         return tableView;
+    }
+
+    private ObservableStringValue mapPropertiesColumn(Asset asset) {
+        var stringified = asset.properties().entrySet().stream()
+            .filter(e -> Character.isUpperCase(e.getKey().charAt(0)))
+            .sorted(Map.Entry.comparingByKey())
+            .map(e -> e.getKey() + ": " + e.getValue())
+            .collect(Collectors.joining(", "));
+
+        return new ReadOnlyStringWrapper(stringified);
     }
 
     private HBox buildStatusBar() {
