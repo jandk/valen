@@ -25,14 +25,13 @@ final class PreviewValueTreeItem extends TreeItem<PreviewItem> {
 
     @Override
     public boolean isLeaf() {
-        var value = getValue();
+        var value = getValue().value();
         if (value.getClass().isRecord()) {
             return false;
         }
-        return switch (value.value()) {
-            case Map<?, ?> map -> false;
-            case List<?> list -> false;
-            case null, default -> true;
+        return switch (value) {
+            case List<?> _, Map<?, ?> _ -> false;
+            default -> true;
         };
     }
 
