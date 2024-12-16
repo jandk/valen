@@ -12,11 +12,13 @@ import be.twofold.valen.game.eternal.reader.decl.renderparm.*;
 import be.twofold.valen.game.eternal.reader.image.*;
 import be.twofold.valen.game.eternal.resource.*;
 import com.google.gson.*;
+import org.slf4j.*;
 
 import java.io.*;
 import java.util.*;
 
 public final class MaterialReader implements ResourceReader<Material> {
+    private static final Logger log = LoggerFactory.getLogger(MaterialReader.class);
     private static final Map<String, RenderParm> RenderParmCache = new HashMap<>();
 
     private final EternalArchive archive;
@@ -77,11 +79,13 @@ public final class MaterialReader implements ResourceReader<Material> {
 
             var filename = builder.toString();
             var resourceKey = ResourceKey.from(filename, ResourceType.Image);
-            if (archive.exists(resourceKey)) {
-                var textureType = mapTextureType(kind);
-                var supplier = ThrowingSupplier.lazy(() -> archive.loadAsset(resourceKey, Texture.class));
-                references.add(new TextureReference(filename, textureType, supplier));
+            if (!archive.exists(resourceKey)) {
+                log.warn("Missing image file: {}", filename);
+                return;
             }
+            var textureType = mapTextureType(kind);
+            var supplier = ThrowingSupplier.lazy(() -> archive.loadAsset(resourceKey, Texture.class));
+            references.add(new TextureReference(filename, textureType, supplier));
         });
 
         return new Material(materialName, references);
@@ -97,7 +101,7 @@ public final class MaterialReader implements ResourceReader<Material> {
             // case TMK_SSSMASK -> TextureType.Unknown;
             // case TMK_COLORMASK -> TextureType.Unknown;
             case TMK_BLOOMMASK -> TextureType.Emissive;
-            case TMK_HEIGHTMAP -> TextureType.Height;
+            // case TMK_HEIGHTMAP -> TextureType.Height;
             default -> TextureType.Unknown;
         };
     }

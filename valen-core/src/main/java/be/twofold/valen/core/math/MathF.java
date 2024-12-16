@@ -26,6 +26,10 @@ public final class MathF {
         return (float) Math.sqrt(a);
     }
 
+    public static float pow(float a, float b) {
+        return (float) Math.pow(a, b);
+    }
+
     public static float clamp(float value, float min, float max) {
         assert min <= max : "min > max";
         return Math.min(max, Math.max(value, min));

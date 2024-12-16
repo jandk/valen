@@ -21,7 +21,7 @@ public final class ComponentType<T extends Buffer> {
 
     private ComponentType(int size, IntFunction<T> allocator) {
         this.size = size;
-        this.allocator = Check.notNull(allocator);
+        this.allocator = Check.notNull(allocator, "allocator");
     }
 
     public T allocate(int count) {

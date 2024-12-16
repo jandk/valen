@@ -12,8 +12,10 @@ public final class ImageMapper {
         TextureFormat format = toImageFormat(image.header().textureFormat());
         List<Surface> surfaces = convertMipMaps(image);
         boolean isCubeMap = image.header().textureType() == ImageTextureType.TT_CUBIC;
+        float scale = image.header().albedoSpecularScale();
+        float bias = image.header().albedoSpecularBias();
 
-        return new Texture(width, height, format, surfaces, isCubeMap);
+        return new Texture(width, height, format, surfaces, isCubeMap, scale, bias);
     }
 
     private List<Surface> convertMipMaps(Image image) {

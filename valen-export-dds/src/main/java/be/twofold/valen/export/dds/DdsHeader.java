@@ -1,7 +1,5 @@
 package be.twofold.valen.export.dds;
 
-import be.twofold.valen.core.util.*;
-
 import java.nio.*;
 
 record DdsHeader(
@@ -52,7 +50,8 @@ record DdsHeader(
         var dxt10Size = header10 == null ? 0 : DdsHeaderDxt10.SIZE;
         var dxt10Buffer = header10 == null ? ByteBuffer.allocate(0) : header10.toBuffer();
 
-        return Buffers.allocate(4 + SIZE + dxt10Size)
+        return ByteBuffer.allocate(4 + SIZE + dxt10Size)
+            .order(ByteOrder.LITTLE_ENDIAN)
             .putInt(0x20534444) // "DDS "
             .putInt(SIZE) // size
             .putInt(flags)

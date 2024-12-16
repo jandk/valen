@@ -2,6 +2,7 @@ package be.twofold.valen.game.eternal.reader.md6anim;
 
 import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.math.*;
+import org.slf4j.*;
 
 import java.io.*;
 import java.util.*;
@@ -15,6 +16,8 @@ public record Md6Anim(
     List<Vector3> constS,
     List<Vector3> constT
 ) {
+    private static final Logger log = LoggerFactory.getLogger(Md6Anim.class);
+
     public static Md6Anim read(DataSource source) throws IOException {
         var header = Md6AnimHeader.read(source);
 
@@ -22,7 +25,7 @@ public record Md6Anim(
         var data = Md6AnimData.read(source);
         var animMaps = readAnimMaps(source);
         if (animMaps.size() > 1) {
-            System.out.println("Multiple animMaps found, using the first one");
+            log.warn("Multiple animMaps found, using the first one");
         }
 
         var animMap = animMaps.getFirst();

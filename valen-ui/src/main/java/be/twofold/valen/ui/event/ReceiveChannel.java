@@ -1,15 +1,18 @@
 package be.twofold.valen.ui.event;
 
 import be.twofold.valen.core.util.*;
+import org.slf4j.*;
 
 import java.util.function.*;
 
 @FunctionalInterface
 public interface ReceiveChannel<E> {
+    Logger log = LoggerFactory.getLogger(ReceiveChannel.class);
+
     E receive();
 
     default void consume(Consumer<E> consumer) {
-        Check.notNull(consumer);
+        Check.notNull(consumer, "consumer");
 
         // TODO: Properly dispose of this
         Thread.startVirtualThread(() -> {
@@ -17,7 +20,7 @@ public interface ReceiveChannel<E> {
                 try {
                     consumer.accept(receive());
                 } catch (Exception e) {
-                    System.out.println("Exception: " + e);
+                    log.error("Error while executing listener", e);
                 }
             }
         });

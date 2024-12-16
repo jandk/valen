@@ -17,7 +17,7 @@ final class ResourcesCollection {
 
     ResourcesCollection(List<ResourcesFile> files, Decompressor decompressor) {
         this.files = List.copyOf(files);
-        this.decompressor = Check.notNull(decompressor);
+        this.decompressor = Check.notNull(decompressor, "decompressor");
     }
 
     static ResourcesCollection load(Path base, PackageMapSpec spec, Decompressor decompressor, String... names) throws IOException {

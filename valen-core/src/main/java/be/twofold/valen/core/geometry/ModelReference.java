@@ -13,4 +13,11 @@ public record ModelReference(
         Check.notNull(name, "name");
         Check.notNull(supplier, "supplier");
     }
+
+    @Override
+    public String toString() {
+        return "ModelReference(" +
+            "name=" + name +
+            ")";
+    }
 }

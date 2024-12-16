@@ -7,7 +7,7 @@ public abstract class AbstractPresenter<T> {
     private final T view;
 
     protected AbstractPresenter(T view) {
-        this.view = Check.notNull(view);
+        this.view = Check.notNull(view, "view");
     }
 
     public T getView() {

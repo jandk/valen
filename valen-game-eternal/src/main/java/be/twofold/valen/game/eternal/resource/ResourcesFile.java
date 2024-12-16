@@ -2,6 +2,7 @@ package be.twofold.valen.game.eternal.resource;
 
 import be.twofold.valen.core.io.*;
 import be.twofold.valen.game.eternal.reader.resource.*;
+import org.slf4j.*;
 
 import java.io.*;
 import java.nio.file.*;
@@ -10,12 +11,16 @@ import java.util.function.*;
 import java.util.stream.*;
 
 public final class ResourcesFile implements Closeable {
+    private static final Logger log = LoggerFactory.getLogger(ResourcesFile.class);
+
     private final Map<ResourceKey, Resource> index;
+    private final Path path;
     private DataSource source;
 
     public ResourcesFile(Path path) throws IOException {
-        System.out.println("Loading resources: " + path);
+        log.info("Loading resources: {}", path);
         this.source = DataSource.fromPath(path);
+        this.path = path;
 
         var resources = mapResources(Resources.read(source));
         this.index = resources.stream()
@@ -31,6 +36,7 @@ public final class ResourcesFile implements Closeable {
     }
 
     public byte[] read(Resource resource) throws IOException {
+        log.info("Reading resource: {}", resource.key().name());
         source.seek(resource.offset());
         return source.readBytes(resource.compressedSize());
     }
@@ -71,5 +77,12 @@ public final class ResourcesFile implements Closeable {
             source.close();
             source = null;
         }
+    }
+
+    @Override
+    public String toString() {
+        return "ResourcesFile(" +
+            "path=" + path +
+            ")";
     }
 }

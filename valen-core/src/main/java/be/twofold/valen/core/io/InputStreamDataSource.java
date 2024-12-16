@@ -8,7 +8,7 @@ final class InputStreamDataSource extends DataSource {
     private final InputStream stream;
 
     InputStreamDataSource(InputStream stream) {
-        this.stream = Check.notNull(stream);
+        this.stream = Check.notNull(stream, "stream");
     }
 
     @Override

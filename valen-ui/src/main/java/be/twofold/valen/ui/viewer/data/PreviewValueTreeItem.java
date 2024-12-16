@@ -18,26 +18,27 @@ final class PreviewValueTreeItem extends TreeItem<PreviewItem> {
     public ObservableList<TreeItem<PreviewItem>> getChildren() {
         if (isFirstTimeChildren) {
             isFirstTimeChildren = false;
-            super.getChildren().setAll(buildChildren(this));
+            super.getChildren().setAll(buildChildren(this.getValue().value()));
         }
         return super.getChildren();
     }
 
     @Override
     public boolean isLeaf() {
-        var value = getValue();
+        var value = getValue().value();
+        if (value == null) {
+            return true;
+        }
         if (value.getClass().isRecord()) {
             return false;
         }
-        return switch (value.value()) {
-            case Map<?, ?> map -> false;
-            case List<?> list -> false;
-            case null, default -> true;
+        return switch (value) {
+            case List<?> _, Map<?, ?> _ -> false;
+            default -> true;
         };
     }
 
-    private List<PreviewValueTreeItem> buildChildren(PreviewValueTreeItem item) {
-        Object value = item.getValue().value();
+    private List<PreviewValueTreeItem> buildChildren(Object value) {
         if (value == null) {
             return List.of();
         }
@@ -47,6 +48,7 @@ final class PreviewValueTreeItem extends TreeItem<PreviewItem> {
                 .map(c -> create(c.getName(), getComponent(value, c)))
                 .toList();
         }
+
         return switch (value) {
             case Map<?, ?> map -> map.entrySet().stream()
                 .map(e -> create(e.getKey().toString(), e.getValue()))
@@ -58,15 +60,15 @@ final class PreviewValueTreeItem extends TreeItem<PreviewItem> {
         };
     }
 
-    private PreviewValueTreeItem create(String name, Object invoke) {
-        return new PreviewValueTreeItem(new PreviewItem(name, invoke));
+    private PreviewValueTreeItem create(String name, Object value) {
+        return new PreviewValueTreeItem(new PreviewItem(name, value));
     }
 
     private Object getComponent(Object value, RecordComponent component) {
         try {
             return component.getAccessor().invoke(value);
         } catch (IllegalAccessException | InvocationTargetException e) {
-            throw new RuntimeException(e);
+            return e.getMessage();
         }
     }
 }

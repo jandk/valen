@@ -1,4 +1,12 @@
 package be.twofold.valen.ui.viewer.data;
 
-record PreviewItem(String name, Object value) {
+import be.twofold.valen.core.util.*;
+
+record PreviewItem(
+    String name,
+    Object value
+) {
+    PreviewItem {
+        Check.notNull(name);
+    }
 }

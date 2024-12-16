@@ -1,6 +1,7 @@
 package be.twofold.valen.export.png;
 
 import be.twofold.valen.core.util.*;
+import org.slf4j.*;
 
 import java.io.*;
 import java.nio.*;
@@ -13,6 +14,8 @@ import java.util.zip.*;
  * So here we are. Good thing it's not that hard to write a PNG file.
  */
 final class PngOutputStream implements Closeable {
+    private static final Logger log = LoggerFactory.getLogger(PngOutputStream.class);
+
     private static final byte[] Magic = new byte[]{(byte) 0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a};
     private static final int IHDR = 0x49484452;
     private static final int PLTE = 0x504c5445;
@@ -55,7 +58,8 @@ final class PngOutputStream implements Closeable {
         for (int y = 0; y < format.height(); y++) {
             writeRow(image, y * format.bytesPerRow());
         }
-        System.out.printf("Filter counts - None: %d, Sub: %d, Up: %d, Average: %d, Paeth: %d%n",
+
+        log.debug("Filter counts - None: {}, Sub: {}, Up: {}, Average: {}, Paeth: {}",
             filterCounts[0], filterCounts[1], filterCounts[2], filterCounts[3], filterCounts[4]);
 
         flush();

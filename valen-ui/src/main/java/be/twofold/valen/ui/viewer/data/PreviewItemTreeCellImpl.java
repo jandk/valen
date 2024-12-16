@@ -32,7 +32,7 @@ final class PreviewItemTreeCellImpl extends TreeCell<PreviewItem> {
             return "null";
         }
         if (value.getClass().isArray()) {
-            return "%s[%d]".formatted(value.getClass().componentType().getSimpleName(), Array.getLength(value));
+            return String.format("%s [%d items]", value.getClass().componentType().getSimpleName(), Array.getLength(value));
         }
         return value.toString();
     }

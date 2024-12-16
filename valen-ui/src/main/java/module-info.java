@@ -5,6 +5,7 @@ module valen.ui {
     requires javafx.controls;
     requires javafx.graphics;
     requires valen.core;
+    requires org.slf4j;
 
     exports be.twofold.valen.ui;
 

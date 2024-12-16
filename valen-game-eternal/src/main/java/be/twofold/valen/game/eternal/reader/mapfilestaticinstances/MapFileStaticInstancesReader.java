@@ -50,11 +50,11 @@ public final class MapFileStaticInstancesReader implements ResourceReader<Scene>
         var reference = new ModelReference(modelName, supplier);
 
         return Optional.of(new Instance(
-            instanceName,
             reference,
             geometry.translation(),
             geometry.rotation().toRotation(),
-            geometry.scale()
+            geometry.scale(),
+            instanceName
         ));
     }
 }
