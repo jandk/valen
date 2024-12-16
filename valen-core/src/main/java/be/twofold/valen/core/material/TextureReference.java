@@ -16,4 +16,12 @@ public record TextureReference(
         Check.notNull(type, "type");
         Check.notNull(supplier, "supplier");
     }
+
+    @Override
+    public String toString() {
+        return "TextureReference(" +
+            "type=" + type + ", " +
+            "name=" + name +
+            ")";
+    }
 }

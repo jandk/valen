@@ -34,7 +34,7 @@ public final class StreamDbFile implements Closeable {
     }
 
     public byte[] read(StreamDbEntry entry) throws IOException {
-        log.info("Reading stream: {}", String.format("%016X", entry.identity()));
+        log.debug("Reading stream: {}", String.format("%016X", entry.identity()));
         source.seek(entry.offset());
         return source.readBytes(entry.length());
     }
