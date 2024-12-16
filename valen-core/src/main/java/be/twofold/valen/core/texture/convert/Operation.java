@@ -8,9 +8,11 @@ import java.util.function.*;
 public interface Operation extends Function<Surface, Surface> {
     Surface apply(Surface surface);
 
-    default Texture map(Texture source, TextureFormat ignored) {
+    default Texture map(Texture source, TextureFormat format) {
         var surfaces = source.surfaces().stream().map(this).toList();
-        return new Texture(source.width(), source.height(), ignored, surfaces, source.isCubeMap());
+        return source
+            .withFormat(format)
+            .withSurfaces(surfaces);
     }
 
     static RuntimeException uoe(TextureFormat format) {

@@ -37,7 +37,10 @@ public final class DecompressOperation implements Operation {
                 return result;
             })
             .toList();
-        return new Texture(source.width(), source.height(), format, surfaces, source.isCubeMap());
+
+        return source
+            .withFormat(format)
+            .withSurfaces(surfaces);
     }
 
     private static TextureFormat getTextureFormat(TextureFormat source) {

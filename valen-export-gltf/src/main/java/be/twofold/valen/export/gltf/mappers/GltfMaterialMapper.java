@@ -43,22 +43,7 @@ public final class GltfMaterialMapper {
 
         if (groups.containsKey(TextureType.Specular)) {
             var specular = groups.get(TextureType.Specular).getFirst();
-            var specularTexture = TextureConverter.convert(specular.supplier().get().firstOnly(), TextureFormat.R8G8B8A8_UNORM);
-            var specularReference = new TextureReference(specular.name(), specular.type(), () -> specularTexture);
-
-            // Workaround for specular in metal-rough
-            //  - Set metallic to 0
-            //  - Set IOR to 0 or a huge value
-            //  - Set specular
-            pbrBuilder.metallicFactor(0);
-
-            var iorExtension = KHRMaterialsIORSchema.builder().ior(1000).build();
-            builder.putExtensions(iorExtension.getName(), iorExtension);
-
-            var specularExtension = KHRMaterialsSpecularSchema.builder()
-                .specularColorTexture(textureSchema(textureMapper.map(specularReference)))
-                .build();
-            builder.putExtensions(specularExtension.getName(), specularExtension);
+            mapSpecular(specular, builder, pbrBuilder);
         }
 
         if (groups.containsKey(TextureType.Smoothness)) {
@@ -79,6 +64,35 @@ public final class GltfMaterialMapper {
         return materialID;
     }
 
+    private void mapSpecular(
+        TextureReference reference,
+        MaterialSchema.Builder builder,
+        PbrMetallicRoughnessSchema.Builder pbrBuilder
+    ) throws IOException {
+        var texture = reference.supplier().get().firstOnly();
+        var specularSchemaBuilder = KHRMaterialsSpecularSchema.builder();
+        if (/*texture.scale() == 0*/false) {
+            specularSchemaBuilder.specularFactor(texture.bias());
+        } else {
+            var specularTexture = TextureConverter.convert(texture, TextureFormat.R8G8B8A8_UNORM);
+            var specularReference = new TextureReference(reference.name(), reference.type(), () -> specularTexture);
+            specularSchemaBuilder
+                .specularColorTexture(textureSchema(textureMapper.map(specularReference)));
+        }
+
+        // Workaround for specular in metal-rough
+        //  - Set metallic to 0
+        //  - Set IOR to 0 or a huge value
+        //  - Set specular
+        pbrBuilder.metallicFactor(0);
+
+        var iorSchema = KHRMaterialsIORSchema.builder().ior(1000).build();
+        builder.putExtensions(iorSchema.getName(), iorSchema);
+
+        var specularSchema = specularSchemaBuilder.build();
+        builder.putExtensions(specularSchema.getName(), specularSchema);
+    }
+
     private Texture mapSmoothness(Texture texture) {
         var surface = Surface.create(texture.width(), texture.height(), TextureFormat.R8G8B8A8_UNORM);
 
@@ -90,7 +104,7 @@ public final class GltfMaterialMapper {
             dst[o + 3] = (byte) (255);
         }
 
-        return Texture.fromSurface(surface);
+        return Texture.fromSurface(surface, texture.scale(), texture.bias());
     }
 
     private static TextureInfoSchema textureSchema(TextureID textureID) {

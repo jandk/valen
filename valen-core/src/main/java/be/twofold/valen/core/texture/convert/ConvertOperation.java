@@ -20,7 +20,9 @@ public final class ConvertOperation implements Operation {
     @Override
     public Texture map(Texture source, TextureFormat ignored) {
         var surfaces = source.surfaces().stream().map(this).toList();
-        return new Texture(source.width(), source.height(), surfaces.getFirst().format(), surfaces, source.isCubeMap());
+        return source
+            .withFormat(surfaces.getFirst().format())
+            .withSurfaces(surfaces);
     }
 
     private Surface convertU16(Surface surface, TextureFormat format) {

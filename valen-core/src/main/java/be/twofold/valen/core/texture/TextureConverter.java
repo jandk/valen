@@ -29,6 +29,8 @@ public final class TextureConverter {
             .map(surfaceMapper)
             .toList();
 
-        return new Texture(source.width(), source.height(), format, surfaces, source.isCubeMap());
+        return source
+            .withFormat(format)
+            .withSurfaces(surfaces);
     }
 }
