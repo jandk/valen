@@ -1,14 +1,17 @@
 package be.twofold.valen.export.gltf.mappers;
 
 import be.twofold.valen.core.material.*;
+import be.twofold.valen.core.math.*;
 import be.twofold.valen.core.texture.*;
 import be.twofold.valen.gltf.*;
 import be.twofold.valen.gltf.model.extension.*;
 import be.twofold.valen.gltf.model.material.*;
 import be.twofold.valen.gltf.model.texture.*;
+import be.twofold.valen.gltf.types.*;
 
 import java.io.*;
 import java.util.*;
+import java.util.function.*;
 import java.util.stream.*;
 
 public final class GltfMaterialMapper {
@@ -32,8 +35,10 @@ public final class GltfMaterialMapper {
         var pbrBuilder = PbrMetallicRoughnessSchema.builder();
         for (var reference : material.textures()) {
             switch (reference.type()) {
-                case Albedo -> pbrBuilder.baseColorTexture(textureSchema(textureMapper.map(reference)));
-                case Emissive -> builder.emissiveTexture(textureSchema(textureMapper.map(reference)));
+                case Albedo ->
+                    mapTextureAndFactor4(textureMapper.map(reference), pbrBuilder::baseColorTexture, pbrBuilder::baseColorFactor);
+                case Emissive ->
+                    mapTextureAndFactor3(textureMapper.map(reference), builder::emissiveTexture, builder::emissiveFactor);
                 case Normal -> builder.normalTexture(normalTextureInfoSchema(textureMapper.map(reference)));
             }
         }
@@ -52,7 +57,11 @@ public final class GltfMaterialMapper {
             var metalRoughnessTexture = mapSmoothness(smoothnessTexture);
             var roughnessReference = new TextureReference(smoothness.name(), smoothness.type(), () -> metalRoughnessTexture);
 
-            pbrBuilder.metallicRoughnessTexture(textureSchema(textureMapper.map(roughnessReference)));
+            var roughnessTexture = textureMapper.map(roughnessReference);
+            if (!Vector4.One.equals(roughnessTexture.factor())) {
+                throw new UnsupportedOperationException("Unsupported roughness factor: " + roughnessTexture.factor());
+            }
+            pbrBuilder.metallicRoughnessTexture(textureSchema(roughnessTexture.textureID()));
         }
 
         var materialSchema = builder
@@ -69,16 +78,10 @@ public final class GltfMaterialMapper {
         MaterialSchema.Builder builder,
         PbrMetallicRoughnessSchema.Builder pbrBuilder
     ) throws IOException {
-        var texture = reference.supplier().get().firstOnly();
-        var specularSchemaBuilder = KHRMaterialsSpecularSchema.builder();
-        if (/*texture.scale() == 0*/false) {
-            specularSchemaBuilder.specularFactor(texture.bias());
-        } else {
-            var specularTexture = TextureConverter.convert(texture, TextureFormat.R8G8B8A8_UNORM);
-            var specularReference = new TextureReference(reference.name(), reference.type(), () -> specularTexture);
-            specularSchemaBuilder
-                .specularColorTexture(textureSchema(textureMapper.map(specularReference)));
-        }
+        var specularBuilder = KHRMaterialsSpecularSchema.builder();
+
+        var specularTexture = textureMapper.map(reference);
+        mapTextureAndFactor3(specularTexture, specularBuilder::specularColorTexture, specularBuilder::specularColorFactor);
 
         // Workaround for specular in metal-rough
         //  - Set metallic to 0
@@ -89,8 +92,26 @@ public final class GltfMaterialMapper {
         var iorSchema = KHRMaterialsIORSchema.builder().ior(1000).build();
         builder.putExtensions(iorSchema.getName(), iorSchema);
 
-        var specularSchema = specularSchemaBuilder.build();
+        var specularSchema = specularBuilder.build();
         builder.putExtensions(specularSchema.getName(), specularSchema);
+    }
+
+    private static void mapTextureAndFactor3(TextureIDAndFactor specularTexture, Consumer<TextureInfoSchema> textureConsumer, Consumer<Vec3> factorConsumer) {
+        if (specularTexture.textureID() != null) {
+            textureConsumer.accept(textureSchema(specularTexture.textureID()));
+        }
+        if (!Vector4.One.equals(specularTexture.factor())) {
+            factorConsumer.accept(GltfUtils.mapVector3(specularTexture.factor().toVector3()));
+        }
+    }
+
+    private static void mapTextureAndFactor4(TextureIDAndFactor specularTexture, Consumer<TextureInfoSchema> textureConsumer, Consumer<Vec4> factorConsumer) {
+        if (specularTexture.textureID() != null) {
+            textureConsumer.accept(textureSchema(specularTexture.textureID()));
+        }
+        if (!Vector4.One.equals(specularTexture.factor())) {
+            factorConsumer.accept(GltfUtils.mapVector4(specularTexture.factor()));
+        }
     }
 
     private Texture mapSmoothness(Texture texture) {
@@ -113,9 +134,12 @@ public final class GltfMaterialMapper {
             .build();
     }
 
-    private static NormalTextureInfoSchema normalTextureInfoSchema(TextureID textureID) {
+    private static NormalTextureInfoSchema normalTextureInfoSchema(TextureIDAndFactor textureIDAndFactor) {
+        if (!Vector4.One.equals(textureIDAndFactor.factor())) {
+            throw new UnsupportedOperationException("Unsupported factor: " + textureIDAndFactor.factor());
+        }
         return NormalTextureInfoSchema.builder()
-            .index(textureID)
+            .index(textureIDAndFactor.textureID())
             .build();
     }
 }
