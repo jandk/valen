@@ -39,7 +39,7 @@ public final class GltfMaterialMapper {
                     mapTextureAndFactor4(textureMapper.map(reference), pbrBuilder::baseColorTexture, pbrBuilder::baseColorFactor);
                 case Emissive ->
                     mapTextureAndFactor3(textureMapper.map(reference), builder::emissiveTexture, builder::emissiveFactor);
-                case Normal -> builder.normalTexture(normalTextureInfoSchema(textureMapper.map(reference)));
+                case Normal -> builder.normalTexture(normalTextureInfoSchema(textureMapper.mapSimple(reference)));
             }
         }
 
@@ -57,11 +57,9 @@ public final class GltfMaterialMapper {
             var metalRoughnessTexture = mapSmoothness(smoothnessTexture);
             var roughnessReference = new TextureReference(smoothness.name(), smoothness.type(), () -> metalRoughnessTexture);
 
-            var roughnessTexture = textureMapper.map(roughnessReference);
-            if (!Vector4.One.equals(roughnessTexture.factor())) {
-                throw new UnsupportedOperationException("Unsupported roughness factor: " + roughnessTexture.factor());
-            }
-            pbrBuilder.metallicRoughnessTexture(textureSchema(roughnessTexture.textureID()));
+            // TODO: Proper support for metallic and roughness factors
+            var roughnessTexture = textureMapper.mapSimple(roughnessReference);
+            pbrBuilder.metallicRoughnessTexture(textureSchema(roughnessTexture));
         }
 
         var materialSchema = builder
@@ -134,12 +132,9 @@ public final class GltfMaterialMapper {
             .build();
     }
 
-    private static NormalTextureInfoSchema normalTextureInfoSchema(TextureIDAndFactor textureIDAndFactor) {
-        if (!Vector4.One.equals(textureIDAndFactor.factor())) {
-            throw new UnsupportedOperationException("Unsupported factor: " + textureIDAndFactor.factor());
-        }
+    private static NormalTextureInfoSchema normalTextureInfoSchema(TextureID textureID) {
         return NormalTextureInfoSchema.builder()
-            .index(textureIDAndFactor.textureID())
+            .index(textureID)
             .build();
     }
 }

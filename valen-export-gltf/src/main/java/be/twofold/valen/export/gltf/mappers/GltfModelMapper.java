@@ -29,10 +29,8 @@ public abstract class GltfModelMapper {
 
         var attributes = new JsonObject();
         for (var entry : mesh.vertexBuffers().entrySet()) {
-            if (entry.getKey() instanceof Semantic.Color ||
-                entry.getKey() instanceof Semantic.Tangent) {
+            if (entry.getKey() instanceof Semantic.Color) {
                 // TODO: Make Blender ignore vertex colors
-                // TODO: Fix those tangents, or just not export them ever
                 continue;
             }
             var semantic = mapSemantic(entry.getKey());
