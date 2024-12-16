@@ -11,13 +11,13 @@ import java.util.*;
 public final class DataViewer extends TreeView<PreviewItem> implements Viewer {
     @Inject
     public DataViewer() {
-        setCellFactory(p -> new PreviewItemTreeCellImpl());
+        setCellFactory(_ -> new PreviewItemTreeCellImpl());
     }
 
     @Override
     public boolean canPreview(AssetType<?> type) {
-        // TODO: Add other supported types
-        return type == AssetType.TEXTURE || type == AssetType.TEXT || type == AssetType.MODEL;
+        return type == AssetType.MODEL
+            || type == AssetType.TEXTURE;
     }
 
     @Override
