@@ -1,0 +1,97 @@
+typedef struct {
+    uint size;
+    char value[size];
+} SString<read=Str("%s", size > 0 ? this.value : "")>;
+
+struct Vector3 {
+    float x;
+    float y;
+    float z;
+};
+
+struct Vector4 {
+    float x;
+    float y;
+    float z;
+    float w;
+};
+
+struct Mat3x4 {
+    float mat[12];
+};
+
+struct MD6SklHeader {
+    uint size;
+    uint inverseBasePoseOffset;
+    uint basePoseOffset;
+    uint skeletonCrc;
+    uint userChannelCrc;
+    uint combinedCrc;
+    ushort numJoints;
+    ushort numUserChannels;
+    ushort numRigControls;
+    ushort animationMaskOffset;
+    ushort parentTblOffset;
+    ushort lastChildTblOffset;
+    ushort jointHandleTblOffset;
+    ushort userChannelHandleTblOffset;
+    ushort rigControlHandleTblOffset;
+    ushort jointWeightOffsets[8];
+    ushort userWeightOffsets[8];
+    ubyte pad[6];
+};
+
+struct MD6Skl {
+    local int base = FTell();
+    MD6SklHeader header <style=sHeading1>;
+     
+    local int numJoints8 = (header.numJoints + 7) & ~7;
+    Printf("Number of joints rounded up to multiple of 8: %d\n", numJoints8);
+    
+    local int numUserChannels8 = (header.numUserChannels + 7) & ~7;
+    Printf("Number of user channels rounded up to multiple of 8: %d\n", numUserChannels8);
+    
+    local int numRigControls8 = (header.numRigControls + 7) & ~7;
+    Printf("Number of rig controls rounded up to multiple of 8: %d\n", numRigControls8);
+    
+    FSeek(base + header.animationMaskOffset);
+    ubyte animationMask[numJoints8] <style=sSection1>;
+    
+    FSeek(base + header.parentTblOffset);
+    short parentTbl[numJoints8] <style=sSection2>;
+    
+    FSeek(base + header.lastChildTblOffset);
+    short lastChildTbl[numJoints8] <style=sSection3>;
+    
+    FSeek(base + header.jointHandleTblOffset);
+    short jointHandleTbl[numJoints8] <style=sSection4>;
+    
+    FSeek(base + header.userChannelHandleTblOffset);
+    short userChannelHandleTbl[numUserChannels8] <style=sSection1>;
+    
+    FSeek(base + header.rigControlHandleTblOffset);
+    short rigControlHandleTbl[numRigControls8] <style=sSection2>;
+    
+    FSeek(base + header.basePoseOffset);
+    Vector4 rotations[numJoints8] <style=sSection1>;
+    Vector3 scales[numJoints8] <style=sSection2>;
+    Vector3 translations[numJoints8] <style=sSection3>;
+    
+    FSeek(base + header.inverseBasePoseOffset);
+    Mat3x4 inverseBasePoses[numJoints8] <style=sSection4>;
+    
+    FSeek(base + header.size);
+    uint unknown[numUserChannels8] <style=sSection1, optimize=false>;
+    SString jointNames[numJoints8] <style=sSection2, optimize=false>;
+    SString userChannelNames[numUserChannels8] <style=sSection3, optimize=false>;
+    SString rigControlNames[numRigControls8] <style=sSection3, optimize=false>;
+};
+
+int size1;
+if (size1) {
+    MD6Skl skeleton1;
+}
+int size2;
+if (size2) {
+    MD6Skl skeleton2;
+}
