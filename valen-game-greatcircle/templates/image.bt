@@ -124,8 +124,8 @@ struct ImageHeader {
     uint32 count;
     uint32 mipCount;
     float unkFloat1;
-    float unkFloat2;
-    float unkFloat3;
+    float albedoSpecularBias;
+    float albedoSpecularScale;
     ubyte padding1;
     textureFormat_t textureFormat;
     uint16 padding3;

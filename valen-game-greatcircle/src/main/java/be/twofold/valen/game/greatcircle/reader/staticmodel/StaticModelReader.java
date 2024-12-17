@@ -3,6 +3,7 @@ package be.twofold.valen.game.greatcircle.reader.staticmodel;
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.geometry.*;
 import be.twofold.valen.core.io.*;
+import be.twofold.valen.core.material.*;
 import be.twofold.valen.core.util.*;
 import be.twofold.valen.game.greatcircle.*;
 import be.twofold.valen.game.greatcircle.reader.*;
@@ -36,21 +37,20 @@ public final class StaticModelReader implements ResourceReader<Model> {
         var model = StaticModel.read(source, (Integer) asset.properties().get("version"));
         var meshes = new ArrayList<>(readMeshes(model, source, hash));
 
-//        if (readMaterials) {
-//            var materials = new HashMap<String, Material>();
-//            for (int i = 0; i < meshes.size(); i++) {
-//                var meshInfo = model.meshInfos().get(i);
-//                var materialName = meshInfo.mtlDecl();
-//                var materialFile = "generated/decls/material2/" + materialName + ".decl";
-//                if (!materials.containsKey(materialName)) {
-//                    var assetId = ResourceKey.from(materialFile, ResourceType.material2);
-//                    var material = archive.loadAsset(assetId, Material.class);
-//                    materials.put(materialName, material);
-//                }
-//                meshes.set(i, meshes.get(i)
-//                    .withMaterial(materials.get(materialName)));
-//            }
-//        }
+        if (readMaterials) {
+            var materials = new HashMap<String, Material>();
+            for (int i = 0; i < meshes.size(); i++) {
+                var meshInfo = model.meshInfos().get(i);
+                var materialName = meshInfo.mtlDecl();
+                if (!materials.containsKey(materialName)) {
+                    var assetId = ResourceKey.from(materialName, ResourceType.material2);
+                    var material = archive.loadAsset(assetId, Material.class);
+                    materials.put(materialName, material);
+                }
+                meshes.set(i, meshes.get(i)
+                    .withMaterial(materials.get(materialName)));
+            }
+        }
         return new Model(asset.id().fullName(), meshes, null);
     }
 

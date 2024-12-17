@@ -30,12 +30,16 @@ public final class GreatCircleGame implements Game {
 
     @Override
     public Archive loadArchive(String name) throws IOException {
+        var common = spec.maps().stream()
+            .filter(m -> m.name().equals("common"))
+            .findFirst().orElseThrow();
+
         var map = spec.maps().stream()
             .filter(m -> m.name().equals(name))
             .findFirst().orElseThrow();
 
         var files = spec.files().stream()
-            .filter(f -> map.fileRefs().contains(f.id()))
+            .filter(f -> map.fileRefs().contains(f.id()) || common.fileRefs().contains(f.id()))
             .map(File::name)
             .toList();
 

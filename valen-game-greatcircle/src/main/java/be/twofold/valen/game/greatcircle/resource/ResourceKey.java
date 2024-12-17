@@ -27,21 +27,13 @@ public record ResourceKey(
 ////            ResourceVariation.RenderProgVulkanPcBaseRetail
 ////        )
 //    ));
-
-//    public static ResourceKey from(String name, String type) {
-//        var variations = Variations
-//            .getOrDefault(type, Set.of(ResourceVariation.RES_VAR_NONE));
-//
-//        if (variations.size() > 1) {
-//            throw new IllegalArgumentException("Multiple variations found for type: " + type + " (" + variations + ")");
-//        }
-//
-//        return new ResourceKey(
-//            new ResourceName(name),
-//            type,
-//            variations.iterator().next()
-//        );
-//    }
+public static ResourceKey from(String name, ResourceType type) {
+    return new ResourceKey(
+        new ResourceName(name),
+        type,
+        ResourceVariation.RES_VAR_NONE
+    );
+}
 //
 //    public static ResourceKey from(String name, String type, ResourceVariation variation) {
 //        if (!Variations.getOrDefault(type, Set.of(ResourceVariation.RES_VAR_NONE)).contains(variation)) {

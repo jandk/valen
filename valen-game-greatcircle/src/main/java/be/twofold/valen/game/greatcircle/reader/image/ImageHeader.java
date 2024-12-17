@@ -14,8 +14,8 @@ public record ImageHeader(
     int count,
     int mipCount,
     int unknown1,
-    float unkFloat2,
-    float unkFloat3,
+    float bias,
+    float scale,
     ImageTextureFormat textureFormat,
     boolean streamed,
     boolean singleStream,
@@ -40,8 +40,8 @@ public record ImageHeader(
         var count = version < 31 ? 1 : source.readInt();
         var mipCount = source.readInt();
         var unknown1 = source.readInt();
-        var unkFloat2 = source.readFloat();
-        var unkFloat3 = source.readFloat();
+        var bias = source.readFloat();
+        var scale = source.readFloat();
         source.expectByte((byte) 0);
         var textureFormat = ImageTextureFormat.fromCode(source.readInt());
         source.expectShort((short) 0);
@@ -64,8 +64,8 @@ public record ImageHeader(
             count,
             mipCount,
             unknown1,
-            unkFloat2,
-            unkFloat3,
+            bias,
+            scale,
             textureFormat,
             streamed,
             singleStream,

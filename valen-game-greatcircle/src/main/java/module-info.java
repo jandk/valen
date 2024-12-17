@@ -1,6 +1,7 @@
 module valen.game.greatcircle {
     requires com.google.gson;
     requires java.sql; // For import only
+    requires org.slf4j;
     requires valen.core;
 
     provides be.twofold.valen.core.game.GameFactory
