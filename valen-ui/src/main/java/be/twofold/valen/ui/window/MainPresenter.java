@@ -109,16 +109,21 @@ public final class MainPresenter extends AbstractPresenter<MainView> {
     }
 
     private PathNode<String> buildNodeTree(List<Asset> assets) {
+        var paths = assets.stream()
+            .map(asset -> asset.id().pathName())
+            .distinct().sorted().toList();
+
         var root = new PathNode<>("root", true);
-        for (var asset : assets) {
+        for (var path : paths) {
+            if (path.isBlank()) {
+                continue;
+            }
+
             var node = root;
-            var path = asset.id().pathName();
-            if (!path.isEmpty()) {
-                var split = path.split("/");
-                for (var i = 0; i < split.length; i++) {
-                    var hasFiles = i == split.length - 1;
-                    node = node.get(split[i], hasFiles);
-                }
+            var split = path.split("/");
+            for (var i = 0; i < split.length; i++) {
+                var hasFiles = i == split.length - 1;
+                node = node.get(split[i], hasFiles);
             }
         }
         return root;

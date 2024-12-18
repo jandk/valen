@@ -6,6 +6,8 @@ public interface AssetID extends Comparable<AssetID> {
 
     String fullName();
 
+    String displayName();
+
     default String pathName() {
         return Filenames.pathName(fullName());
     }

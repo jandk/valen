@@ -92,7 +92,7 @@ public final class MainFXView implements MainView, FXView {
         }
         var parts = new ArrayList<String>();
         for (var item = treeItem; item != null; item = item.getParent()) {
-            parts.add(item.getValue());
+            parts.add(item.getValue().replace("\u2009", ""));
         }
         Collections.reverse(parts);
         var path = String.join("/", parts.subList(1, parts.size()));
@@ -131,7 +131,7 @@ public final class MainFXView implements MainView, FXView {
     private TreeItem<String> convert(PathNode<String> node) {
         if (node.children().size() == 1 && !node.hasFiles()) {
             var child = convert(node.children().values().iterator().next());
-            child.setValue(node.name() + "/" + child.getValue());
+            child.setValue(node.name() + "\u2009/\u2009" + child.getValue());
             return child;
         }
 
