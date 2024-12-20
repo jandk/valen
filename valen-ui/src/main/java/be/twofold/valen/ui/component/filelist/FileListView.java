@@ -1,0 +1,15 @@
+package be.twofold.valen.ui.component.filelist;
+
+import be.twofold.valen.core.game.*;
+
+import java.util.*;
+
+public interface FileListView {
+
+    void setFileTree(PathNode<String> tree);
+
+    void setFilteredAssets(List<Asset> assets);
+
+    Asset getSelectedAsset();
+
+}
