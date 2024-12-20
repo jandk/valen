@@ -1,60 +1,35 @@
 package be.twofold.valen.game.eternal.resource;
 
-import java.util.*;
-import java.util.stream.*;
-
 public record ResourceName(
     String name
 ) implements Comparable<ResourceName> {
-    public String fullPath() {
-        var index = name.indexOf('$');
-        return index < 0 ? name : name.substring(0, index);
+    public String pathname() {
+        return name.substring(0, slashIndex(propIndex()));
     }
 
-    public String path() {
-        var fullPath = fullPath();
-        var index = fullPath.lastIndexOf('/');
-        return index < 0 ? "" : fullPath.substring(0, index);
+    public String filename() {
+        return name.substring(slashIndex(propIndex()));
     }
 
-    public String file() {
-        var fullPath = fullPath();
-        var index = fullPath.lastIndexOf('/');
-        return index < 0 ? fullPath : fullPath.substring(index + 1);
-    }
-
-    public String fileWithoutExtension() {
-        var file = file();
-        var index = file.lastIndexOf('.');
-        return index < 0 ? file : file.substring(0, index);
+    public String filenameWithoutProperties() {
+        int propIndex = propIndex();
+        var slashIndex = slashIndex(propIndex);
+        return name.substring(slashIndex > 0 ? slashIndex + 1 : 0, propIndex);
     }
 
     public String extension() {
-        var file = file();
+        var file = filenameWithoutProperties();
         var index = file.lastIndexOf('.');
         return index < 0 ? "" : file.substring(index + 1);
     }
 
-    public Map<String, String> attributes() {
+    private int propIndex() {
         var index = name.indexOf('$');
-        if (index < 0) {
-            return Map.of();
-        }
-
-        var split = name.substring(index + 1).split("\\$");
-        return Arrays.stream(split)
-            .map(this::property)
-            .collect(Collectors.toUnmodifiableMap(
-                Map.Entry::getKey,
-                Map.Entry::getValue
-            ));
+        return index == -1 ? name.length() : index;
     }
 
-    private Map.Entry<String, String> property(String s) {
-        var index = s.indexOf('=');
-        var key = index < 0 ? s : s.substring(0, index);
-        var value = index < 0 ? s : s.substring(index + 1);
-        return Map.entry(key, value);
+    private int slashIndex(int from) {
+        return Math.max(name.lastIndexOf('/', from - 1), 0);
     }
 
     @Override

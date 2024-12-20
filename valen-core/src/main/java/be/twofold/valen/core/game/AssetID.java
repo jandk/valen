@@ -6,7 +6,9 @@ public interface AssetID extends Comparable<AssetID> {
 
     String fullName();
 
-    String displayName();
+    default String displayName() {
+        return fullName();
+    }
 
     default String pathName() {
         return Filenames.pathName(fullName());
@@ -18,11 +20,7 @@ public interface AssetID extends Comparable<AssetID> {
 
     @Override
     default int compareTo(AssetID o) {
-        var result = pathName().compareTo(o.pathName());
-        if (result != 0) {
-            return result;
-        }
-        return fileName().compareTo(o.fileName());
+        return fullName().compareTo(o.fullName());
     }
 
 }

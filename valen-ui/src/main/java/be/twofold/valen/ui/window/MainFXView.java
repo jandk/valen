@@ -176,7 +176,7 @@ public final class MainFXView implements MainView, FXView {
         var nameColumn = new TableColumn<Asset, String>();
         nameColumn.setText("Name");
         nameColumn.setPrefWidth(160);
-        nameColumn.setCellValueFactory(param -> new ReadOnlyObjectWrapper<>(param.getValue().id().fullName()));
+        nameColumn.setCellValueFactory(param -> new ReadOnlyObjectWrapper<>(param.getValue().id().fileName()));
 
         var typeColumn = new TableColumn<Asset, String>();
         typeColumn.setText("Type");
