@@ -29,7 +29,6 @@ public class HalfLifeMod implements Game {
 
     @Override
     public Archive loadArchive(String name) throws IOException {
-
         return providers.get(name);
     }
 }

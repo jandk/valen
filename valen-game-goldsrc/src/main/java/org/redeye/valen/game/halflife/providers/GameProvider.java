@@ -9,7 +9,7 @@ import java.util.*;
 public class GameProvider implements Provider {
     private final Path root;
     private final FolderProvider looseFiles;
-    private final Map<String, WadProvider> wads = new HashMap<>();
+    private final List<WadProvider> wads = new ArrayList<>();
 
     public GameProvider(Path root) {
         this.root = root;
@@ -17,7 +17,7 @@ public class GameProvider implements Provider {
             files.forEach(file -> {
                 if (file.getFileName().toString().endsWith(".wad")) {
                     try {
-                        wads.put(file.getFileName().toString(), new WadProvider(file, this));
+                        wads.add(new WadProvider(file, this));
                     } catch (IOException e) {
                         throw new RuntimeException(e);
                     }
@@ -50,11 +50,20 @@ public class GameProvider implements Provider {
     }
 
     @Override
-    public <T> T loadAsset(AssetID identifier, Class<T> clazz) {
-        return null;
+    public <T> T loadAsset(AssetID identifier, Class<T> clazz) throws IOException {
+        var asset = looseFiles.loadAsset(identifier, clazz);
+        if (asset == null) {
+            for (WadProvider wad : wads) {
+                asset = wad.loadAsset(identifier, clazz);
+                if (asset != null) {
+                    return asset;
+                }
+            }
+        }
+        return asset;
     }
 
     public List<WadProvider> getWads() {
-        return wads.values().stream().toList();
+        return wads;
     }
 }

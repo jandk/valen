@@ -57,22 +57,22 @@ public class FolderProvider implements Provider {
     @Override
     public <T> T loadAsset(AssetID identifier, Class<T> clazz) throws IOException {
         final Asset asset = assets.get(identifier);
-        if (identifier instanceof HalfLifeMod) {
-            var bytes = Files.readAllBytes(root.resolve(identifier.fullName()));
-
-            if (clazz == byte[].class) {
-                return (T) bytes;
-            }
-
-            var reader = getReaders().stream()
-                .filter(r -> r.canRead(asset))
-                .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("No reader found for resource: " + asset.toString()));
-
-            try (var source = DataSource.fromArray(bytes)) {
-                return clazz.cast(reader.read(getParent(), asset, source));
-            }
+        if (asset == null) {
+            return null;
         }
-        return null;
+        var bytes = Files.readAllBytes(root.resolve(identifier.fullName()));
+
+        if (clazz == byte[].class) {
+            return (T) bytes;
+        }
+
+        var reader = getReaders().stream()
+            .filter(r -> r.canRead(asset))
+            .findFirst()
+            .orElseThrow(() -> new IllegalArgumentException("No reader found for resource: " + asset.toString()));
+
+        try (var source = DataSource.fromArray(bytes)) {
+            return clazz.cast(reader.read(getParent(), asset, source));
+        }
     }
 }

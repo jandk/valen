@@ -7,7 +7,7 @@ import java.util.*;
 
 public interface Provider extends Archive {
     default List<Reader<?>> getReaders() {
-        return List.of();
+        return List.of(new MdlV10());
     }
 
     String getName();

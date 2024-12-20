@@ -59,11 +59,11 @@ public final class MainWindow extends Application {
         primaryStage.setScene(scene);
         primaryStage.show();
 
-        // if (settings.getGameExecutable().isPresent()) {
-        //     loadGame(settings.getGameExecutable().get());
-        // } else {
+        if (settings.getGameExecutable().isPresent()) {
+            loadGame(settings.getGameExecutable().get());
+        } else {
             selectAndLoadGame();
-        // }
+        }
     }
 
     private void selectAndLoadGame() {
