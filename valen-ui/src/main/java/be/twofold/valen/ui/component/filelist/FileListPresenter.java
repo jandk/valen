@@ -46,21 +46,32 @@ public final class FileListPresenter extends AbstractFXPresenter<FileListView> {
         getView().setFilteredAssets(assets);
     }
 
-    private PathNode<String> buildPathTree() {
+    private PathNode<PathCombo> buildPathTree() {
         var paths = new ArrayList<>(assetIndex.keySet());
         paths.sort(Comparator.naturalOrder());
 
-        var root = new PathNode<>("root", true);
+        var root = new PathNode<>(new PathCombo("", "root"), true);
         for (var path : paths) {
             if (path.isBlank()) {
                 continue;
             }
 
+            var indices = new ArrayList<Integer>();
+            indices.add(-1);
+            for (int i = 0; i < path.length(); i++) {
+                if (path.charAt(i) == '/') {
+                    indices.add(i);
+                }
+            }
+            indices.add(path.length());
+
             var node = root;
-            var split = path.split("/");
-            for (var i = 0; i < split.length; i++) {
-                var hasFiles = i == split.length - 1;
-                node = node.get(split[i], hasFiles);
+            for (var i = 0; i < indices.size() - 1; i++) {
+                var part = path.substring(indices.get(i) + 1, indices.get(i + 1));
+                node = node.get(
+                    new PathCombo(path.substring(0, indices.get(i + 1)), part),
+                    i == indices.size() - 2
+                );
             }
         }
         return root;

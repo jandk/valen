@@ -1,7 +1,6 @@
 package be.twofold.valen.ui.component.filelist;
 
 import be.twofold.valen.core.game.*;
-import be.twofold.valen.core.util.*;
 import be.twofold.valen.ui.common.*;
 import be.twofold.valen.ui.common.event.*;
 import jakarta.inject.*;
@@ -21,7 +20,7 @@ public final class FileListFXView implements FileListView, FXView {
     private static final String SEPARATOR = SPACE + "/" + SPACE;
 
     private final SplitPane splitPane = new SplitPane();
-    private final TreeView<String> treeView = new TreeView<>();
+    private final TreeView<PathCombo> treeView = new TreeView<>();
     private final TableView<Asset> tableView = new TableView<>();
 
     private final SendChannel<FileListViewEvent> channel;
@@ -38,13 +37,36 @@ public final class FileListFXView implements FileListView, FXView {
     }
 
     @Override
-    public void setFileTree(PathNode<String> tree) {
+    public void setFileTree(PathNode<PathCombo> tree) {
         var root = convert(tree);
         Platform.runLater(() -> {
+            var selectedItem = treeView.getSelectionModel().getSelectedItem();
+            var selectedValue = selectedItem != null ? selectedItem.getValue() : null;
+            var selectedTreeItem = findSelected(root, selectedValue);
+
             treeView.setRoot(root);
-            treeView.getSelectionModel().select(root);
+            if (selectedTreeItem != null) {
+                selectedTreeItem.setExpanded(selectedItem != null && selectedItem.isExpanded());
+                treeView.getSelectionModel().select(selectedTreeItem);
+            }
             root.setExpanded(true);
         });
+    }
+
+    private <T> TreeItem<T> findSelected(TreeItem<T> item, T selectedValue) {
+        if (selectedValue == null) {
+            return item;
+        }
+        for (TreeItem<T> child : item.getChildren()) {
+            if (child.getValue().equals(selectedValue)) {
+                return child;
+            }
+            var found = findSelected(child, selectedValue);
+            if (found != null) {
+                return found;
+            }
+        }
+        return null;
     }
 
     @Override
@@ -57,17 +79,11 @@ public final class FileListFXView implements FileListView, FXView {
         return tableView.getSelectionModel().getSelectedItem();
     }
 
-    private void selectPath(TreeItem<String> treeItem) {
+    private void selectPath(TreeItem<PathCombo> treeItem) {
         if (treeItem == null) {
             return;
         }
-        var parts = new ArrayList<String>();
-        for (var item = treeItem; item != null; item = item.getParent()) {
-            parts.add(item.getValue().replace(SEPARATOR, "/"));
-        }
-        Collections.reverse(parts);
-        var path = String.join("/", parts.subList(1, parts.size()));
-        channel.send(new FileListViewEvent.PathSelected(path));
+        channel.send(new FileListViewEvent.PathSelected(treeItem.getValue().full()));
     }
 
     private void selectAsset(Asset asset) {
@@ -77,15 +93,18 @@ public final class FileListFXView implements FileListView, FXView {
         channel.send(new FileListViewEvent.AssetSelected(asset));
     }
 
-    private TreeItem<String> convert(PathNode<String> node) {
+    private TreeItem<PathCombo> convert(PathNode<PathCombo> node) {
         if (node.children().size() == 1 && !node.hasFiles()) {
             var child = convert(node.children().values().iterator().next());
-            child.setValue(node.name() + SEPARATOR + child.getValue());
+            child.setValue(new PathCombo(
+                child.getValue().full(),
+                node.name().name() + SEPARATOR + child.getValue().name())
+            );
             return child;
         }
 
         var children = node.children().entrySet().stream()
-            .sorted(Map.Entry.comparingByKey(AlphanumericComparator.instance()))
+            .sorted(Map.Entry.comparingByKey())
             .map(Map.Entry::getValue)
             .toList();
 
@@ -109,8 +128,20 @@ public final class FileListFXView implements FileListView, FXView {
         VBox.setVgrow(splitPane, Priority.ALWAYS);
     }
 
-    private TreeView<String> buildTreeView() {
+    private TreeView<PathCombo> buildTreeView() {
         treeView.getSelectionModel().selectedItemProperty().addListener((_, _, newValue) -> selectPath(newValue));
+        treeView.setCellFactory(_ -> new TreeCell<>() {
+            @Override
+            protected void updateItem(PathCombo item, boolean empty) {
+                super.updateItem(item, empty);
+
+                if (item == null || empty) {
+                    setText(null);
+                } else {
+                    setText(item.name());
+                }
+            }
+        });
         return treeView;
     }
 

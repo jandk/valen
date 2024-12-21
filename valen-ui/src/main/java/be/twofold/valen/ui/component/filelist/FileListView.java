@@ -6,7 +6,7 @@ import java.util.*;
 
 public interface FileListView {
 
-    void setFileTree(PathNode<String> tree);
+    void setFileTree(PathNode<PathCombo> tree);
 
     void setFilteredAssets(List<Asset> assets);
 
