@@ -4,17 +4,17 @@ public record ResourceName(
     String name
 ) implements Comparable<ResourceName> {
     public String pathname() {
-        return name.substring(0, slashIndex(propIndex()));
+        return name.substring(0, Math.max(slashIndex(propIndex()), 0));
     }
 
     public String filename() {
-        return name.substring(slashIndex(propIndex()));
+        return name.substring(slashIndex(propIndex()) + 1);
     }
 
     public String filenameWithoutProperties() {
         int propIndex = propIndex();
         var slashIndex = slashIndex(propIndex);
-        return name.substring(slashIndex > 0 ? slashIndex + 1 : 0, propIndex);
+        return name.substring(slashIndex + 1, propIndex);
     }
 
     public String extension() {
@@ -29,7 +29,7 @@ public record ResourceName(
     }
 
     private int slashIndex(int from) {
-        return Math.max(name.lastIndexOf('/', from - 1), 0);
+        return name.lastIndexOf('/', from - 1);
     }
 
     @Override
