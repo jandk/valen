@@ -12,4 +12,7 @@ sealed interface MainViewEvent {
 
     record ExportClicked() implements MainViewEvent {
     }
+
+    record SearchChanged(String query) implements MainViewEvent {
+    }
 }

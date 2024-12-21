@@ -12,6 +12,7 @@ import jakarta.inject.*;
 import javafx.application.*;
 
 import java.io.*;
+import java.util.*;
 import java.util.concurrent.*;
 
 public final class MainPresenter extends AbstractFXPresenter<MainView> {
@@ -38,6 +39,7 @@ public final class MainPresenter extends AbstractFXPresenter<MainView> {
                     case MainViewEvent.PreviewVisibilityChanged(var visible) -> showPreview(visible);
                     case MainViewEvent.LoadGameClicked _ -> channel.send(new MainEvent.GameLoadRequested());
                     case MainViewEvent.ExportClicked() -> exportSelectedAsset();
+                    case MainViewEvent.SearchChanged(var query) -> searchAssets(query);
                 }
             });
 
@@ -97,6 +99,18 @@ public final class MainPresenter extends AbstractFXPresenter<MainView> {
                     return null;
                 });
         }));
+    }
+
+    private void searchAssets(String query) {
+        List<Asset> assets;
+        if (query.isBlank()) {
+            assets = archive.assets();
+        } else {
+            assets = archive.assets().stream()
+                .filter(asset -> asset.id().fullName().contains(query))
+                .toList();
+        }
+        fileList.setAssets(assets);
     }
 
     public void setGame(Game game) {

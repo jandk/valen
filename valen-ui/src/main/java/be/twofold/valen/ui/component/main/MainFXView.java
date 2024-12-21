@@ -6,6 +6,7 @@ import be.twofold.valen.ui.common.event.*;
 import be.twofold.valen.ui.component.filelist.*;
 import be.twofold.valen.ui.component.preview.*;
 import jakarta.inject.*;
+import javafx.animation.*;
 import javafx.application.*;
 import javafx.geometry.*;
 import javafx.scene.*;
@@ -109,8 +110,13 @@ public final class MainFXView implements MainView, FXView {
     }
 
     private HBox buildStatusBar() {
+        var pause = new PauseTransition();
         searchTextField.setId("searchTextField");
         searchTextField.setPromptText("Search");
+        searchTextField.textProperty().addListener((_, _, newValue) -> {
+            pause.setOnFinished(_ -> channel.send(new MainViewEvent.SearchChanged(newValue)));
+            pause.playFromStart();
+        });
 
         var searchClearButton = new Button("Clear");
         searchClearButton.setDisable(true);
