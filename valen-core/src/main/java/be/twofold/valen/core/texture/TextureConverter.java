@@ -105,6 +105,10 @@ final class TextureConverter {
 
     private static Texture tonemap(Texture texture) {
         var operatorFormat = tonemapOperator(texture.format());
+        if (operatorFormat == null) {
+            return texture;
+        }
+
         return map(texture, operatorFormat.format(), operatorFormat.operator());
     }
 
@@ -120,7 +124,7 @@ final class TextureConverter {
                 new OperatorFormat(surface -> tonemapF16(surface, TextureFormat.R8G8_UNORM), TextureFormat.R8G8_UNORM);
             case R16G16B16A16_SFLOAT ->
                 new OperatorFormat(surface -> tonemapF16(surface, TextureFormat.R8G8B8A8_UNORM), TextureFormat.R8G8B8A8_UNORM);
-            default -> new OperatorFormat(UnaryOperator.identity(), format);
+            default -> null;
         };
     }
 
@@ -155,79 +159,83 @@ final class TextureConverter {
             return texture;
         }
 
-        var operator = unpackOperator(texture.format(), format);
-        if (operator == null) {
+        var operatorFormat = unpackOperator(texture.format(), format);
+        if (operatorFormat == null) {
             return texture;
         }
-        return map(texture, format, operator);
+        return map(texture, operatorFormat.format(), operatorFormat.operator());
     }
 
     @SuppressWarnings("SwitchStatementWithTooFewBranches")
-    private static UnaryOperator<Surface> unpackOperator(TextureFormat srcFormat, TextureFormat dstFormat) {
+    private static OperatorFormat unpackOperator(TextureFormat srcFormat, TextureFormat dstFormat) {
         switch (srcFormat) {
             case R8_UNORM -> {
                 switch (dstFormat) {
                     case R8G8_UNORM -> {
-                        return surface -> unpack(surface, TextureFormat.R8G8_UNORM, 1, new byte[]{0x00});
+                        return unpackOperator(TextureFormat.R8G8_UNORM, 1, new byte[]{0x00});
                     }
-                    case R8G8B8_UNORM -> {
-                        return surface -> unpack(surface, TextureFormat.R8G8B8_UNORM, 1, new byte[]{0x00, 0x00});
+                    case R8G8B8_UNORM, B8G8R8_UNORM -> {
+                        return unpackOperator(TextureFormat.R8G8B8_UNORM, 1, new byte[]{0x00, 0x00});
                     }
-                    case R8G8B8A8_UNORM -> {
-                        return surface -> unpack(surface, TextureFormat.R8G8B8A8_UNORM, 1, new byte[]{0x00, 0x00, (byte) 0xFF});
+                    case R8G8B8A8_UNORM, B8G8R8A8_UNORM -> {
+                        return unpackOperator(TextureFormat.R8G8B8A8_UNORM, 1, new byte[]{0x00, 0x00, (byte) 0xFF});
                     }
                 }
             }
             case R8G8_UNORM -> {
                 switch (dstFormat) {
-                    case R8G8B8_UNORM -> {
-                        return surface -> unpack(surface, TextureFormat.R8G8B8_UNORM, 2, new byte[]{0x00});
+                    case R8G8B8_UNORM, B8G8R8_UNORM -> {
+                        return unpackOperator(TextureFormat.R8G8B8_UNORM, 2, new byte[]{0x00});
                     }
-                    case R8G8B8A8_UNORM -> {
-                        return surface -> unpack(surface, TextureFormat.R8G8B8A8_UNORM, 2, new byte[]{0x00, (byte) 0xFF});
+                    case R8G8B8A8_UNORM, B8G8R8A8_UNORM -> {
+                        return unpackOperator(TextureFormat.R8G8B8A8_UNORM, 2, new byte[]{0x00, (byte) 0xFF});
                     }
                 }
             }
             case R8G8B8_UNORM -> {
                 switch (dstFormat) {
-                    case R8G8B8A8_UNORM -> {
-                        return surface -> unpack(surface, TextureFormat.R8G8B8A8_UNORM, 3, new byte[]{(byte) 0xFF});
+                    case R8G8B8A8_UNORM, B8G8R8A8_UNORM -> {
+                        return unpackOperator(TextureFormat.R8G8B8A8_UNORM, 3, new byte[]{(byte) 0xFF});
                     }
                 }
             }
             case B8G8R8_UNORM -> {
                 switch (dstFormat) {
-                    case B8G8R8A8_UNORM -> {
-                        return surface -> unpack(surface, TextureFormat.B8G8R8A8_UNORM, 3, new byte[]{(byte) 0xFF});
+                    case R8G8B8A8_UNORM, B8G8R8A8_UNORM -> {
+                        return unpackOperator(TextureFormat.B8G8R8A8_UNORM, 3, new byte[]{(byte) 0xFF});
                     }
                 }
             }
             case R16_UNORM -> {
                 switch (dstFormat) {
                     case R16G16B16A16_UNORM -> {
-                        return surface -> unpack(surface, TextureFormat.R16G16B16A16_UNORM, 2, new byte[]{0x00, 0x00, 0x00, 0x00, (byte) 0xFF, (byte) 0xFF});
+                        return unpackOperator(TextureFormat.R16G16B16A16_UNORM, 2, new byte[]{0x00, 0x00, 0x00, 0x00, (byte) 0xFF, (byte) 0xFF});
                     }
                 }
             }
             case R16_SFLOAT -> {
                 switch (dstFormat) {
                     case R16G16_SFLOAT -> {
-                        return surface -> unpack(surface, TextureFormat.R16G16_SFLOAT, 2, new byte[]{0x00, 0x00});
+                        return unpackOperator(TextureFormat.R16G16_SFLOAT, 2, new byte[]{0x00, 0x00});
                     }
                     case R16G16B16A16_SFLOAT -> {
-                        return surface -> unpack(surface, TextureFormat.R16G16B16A16_SFLOAT, 2, new byte[]{0x00, 0x00, 0x00, 0x00, 0x00, 0x3C});
+                        return unpackOperator(TextureFormat.R16G16B16A16_SFLOAT, 2, new byte[]{0x00, 0x00, 0x00, 0x00, 0x00, 0x3C});
                     }
                 }
             }
             case R16G16_SFLOAT -> {
                 switch (dstFormat) {
                     case R16G16B16A16_SFLOAT -> {
-                        return surface -> unpack(surface, TextureFormat.R16G16B16A16_SFLOAT, 4, new byte[]{0x00, 0x00, 0x00, 0x3C});
+                        return unpackOperator(TextureFormat.R16G16B16A16_SFLOAT, 4, new byte[]{0x00, 0x00, 0x00, 0x3C});
                     }
                 }
             }
         }
         return null;
+    }
+
+    private static OperatorFormat unpackOperator(TextureFormat format, int stride, byte[] filler) {
+        return new OperatorFormat(surface -> unpack(surface, format, stride, filler), format);
     }
 
     private static Surface unpack(Surface surface, TextureFormat format, int stride, byte[] filler) {
@@ -255,29 +263,33 @@ final class TextureConverter {
             return texture;
         }
 
-        var operator = swizzleOperator(texture.format(), format);
-        return map(texture, format, operator);
+        var operatorFormat = swizzleOperator(texture.format(), format);
+        if (operatorFormat == null) {
+            return texture;
+        }
+
+        return map(texture, operatorFormat.format(), operatorFormat.operator());
     }
 
-    private static UnaryOperator<Surface> swizzleOperator(TextureFormat srcFormat, TextureFormat dstFormat) {
+    private static OperatorFormat swizzleOperator(TextureFormat srcFormat, TextureFormat dstFormat) {
         if (srcFormat == TextureFormat.R8G8B8_UNORM) {
             if (dstFormat == TextureFormat.B8G8R8_UNORM) {
-                return surface -> rgba_bgra(surface, 3);
+                return new OperatorFormat(surface -> rgba_bgra(surface, 3), dstFormat);
             }
         } else if (srcFormat == TextureFormat.R8G8B8A8_UNORM) {
             if (dstFormat == TextureFormat.B8G8R8A8_UNORM) {
-                return surface -> rgba_bgra(surface, 4);
+                return new OperatorFormat(surface -> rgba_bgra(surface, 4), dstFormat);
             }
         } else if (srcFormat == TextureFormat.B8G8R8_UNORM) {
             if (dstFormat == TextureFormat.R8G8B8_UNORM) {
-                return surface -> rgba_bgra(surface, 3);
+                return new OperatorFormat(surface -> rgba_bgra(surface, 3), dstFormat);
             }
         } else if (srcFormat == TextureFormat.B8G8R8A8_UNORM) {
             if (dstFormat == TextureFormat.R8G8B8A8_UNORM) {
-                return surface -> rgba_bgra(surface, 4);
+                return new OperatorFormat(surface -> rgba_bgra(surface, 4), dstFormat);
             }
         }
-        return UnaryOperator.identity();
+        return null;
     }
 
     private static Surface rgba_bgra(Surface surface, int stride) {

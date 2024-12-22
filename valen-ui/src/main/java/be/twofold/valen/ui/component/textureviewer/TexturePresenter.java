@@ -69,6 +69,7 @@ public final class TexturePresenter extends AbstractFXPresenter<TextureView> imp
             PixelFormat.getByteBgraPreInstance(),
             decoded.surfaces().getFirst().data(), 0, decoded.width() * 4
         );
+        imagePixels = null;
 
         long t2 = System.nanoTime();
         if (channel != Channel.ALL) {
