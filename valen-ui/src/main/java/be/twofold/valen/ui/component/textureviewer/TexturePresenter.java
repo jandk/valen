@@ -2,12 +2,15 @@ package be.twofold.valen.ui.component.textureviewer;
 
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.texture.*;
+import be.twofold.valen.core.util.*;
 import be.twofold.valen.ui.common.*;
 import be.twofold.valen.ui.common.event.*;
 import be.twofold.valen.ui.component.*;
 import jakarta.inject.*;
 import javafx.scene.image.*;
 import org.slf4j.*;
+
+import java.util.function.*;
 
 public final class TexturePresenter extends AbstractFXPresenter<TextureView> implements Viewer {
     private static final Logger log = LoggerFactory.getLogger(TexturePresenter.class);
@@ -16,10 +19,7 @@ public final class TexturePresenter extends AbstractFXPresenter<TextureView> imp
     private Texture decoded;
     private WritableImage image;
 
-    private boolean showRed = true;
-    private boolean showGreen = true;
-    private boolean showBlue = true;
-    private boolean showAlpha = true;
+    private Channel channel = Channel.ALL;
 
     @Inject
     public TexturePresenter(TextureView view, EventBus eventBus) {
@@ -30,8 +30,7 @@ public final class TexturePresenter extends AbstractFXPresenter<TextureView> imp
             .receiverFor(TextureViewEvent.class)
             .consume(event -> {
                 switch (event) {
-                    case TextureViewEvent.ColorsToggled(var red, var green, var blue, var alpha) ->
-                        filterImage(red, green, blue, alpha);
+                    case TextureViewEvent.ChannelSelected(var selectedChannel) -> filterImage(selectedChannel);
                 }
             });
     }
@@ -61,55 +60,55 @@ public final class TexturePresenter extends AbstractFXPresenter<TextureView> imp
 
 
         long t0 = System.nanoTime();
-        decoded = TextureConverter.convert(texture, TextureFormat.R8G8B8A8_UNORM);
-        imagePixels = new byte[texture.width() * texture.height() * 4];
-        imagePixels = TextureConverter
-            .convert(decoded, TextureFormat.B8G8R8A8_UNORM)
-            .surfaces().getFirst().data();
+        decoded = texture.convert(TextureFormat.B8G8R8A8_UNORM);
 
         long t1 = System.nanoTime();
-        image = new WritableImage(texture.width(), texture.height());
+        image = new WritableImage(decoded.width(), decoded.height());
         image.getPixelWriter().setPixels(
-            0, 0, texture.width(), texture.height(),
+            0, 0, decoded.width(), decoded.height(),
             PixelFormat.getByteBgraPreInstance(),
-            imagePixels, 0, texture.width() * 4
+            decoded.surfaces().getFirst().data(), 0, decoded.width() * 4
         );
 
         long t2 = System.nanoTime();
-        if (!(showRed && showGreen && showBlue && showAlpha)) {
-            filterImage(showRed, showGreen, showBlue, showAlpha);
+        if (channel != Channel.ALL) {
+            filterImage(channel);
         }
         getView().setImage(image);
+
+        var status = String.format("%s\u2009-\u2009%dx%d", texture.format(), texture.width(), texture.height());
+        getView().setStatus(status);
 
         long t3 = System.nanoTime();
         log.info("Decode: {}, Create: {}, Filter: {}", (t1 - t0) / 1e6, (t2 - t1) / 1e6, (t3 - t2) / 1e6);
     }
 
-    private void filterImage(boolean red, boolean green, boolean blue, boolean alpha) {
-        this.showRed = red;
-        this.showGreen = green;
-        this.showBlue = blue;
-        this.showAlpha = alpha;
+    private void filterImage(Channel channel) {
+        this.channel = channel;
 
         var width = (int) image.getWidth();
         var height = (int) image.getHeight();
+        var data = decoded.surfaces().getFirst().data();
 
-        // Check which channels are selected
-//        U8PixelOp combined;
-//        if ((red ? 1 : 0) + (green ? 1 : 0) + (blue ? 1 : 0) + (alpha ? 1 : 0) == 1) {
-//            // Do gray expansion
-//            var channel = red ? decoded.red() : green ? decoded.green() : blue ? decoded.blue() : decoded.alpha();
-//            combined = channel.rgba();
-//        } else {
-//            // Do color masking
-//            var rOp = red ? decoded.red() : U8ChannelOp.constant(0);
-//            var gOp = green ? decoded.green() : U8ChannelOp.constant(0);
-//            var bOp = blue ? decoded.blue() : U8ChannelOp.constant(0);
-//            var aOp = alpha ? decoded.alpha() : U8ChannelOp.constant(255);
-//            combined = U8PixelOp.combine(rOp, gOp, bOp, aOp);
-//        }
+        if (imagePixels == null) {
+            imagePixels = new byte[decoded.width() * decoded.height() * 4];
+        }
 
-//        combined.swizzleBGRA().toPixels(width, height, imagePixels);
+        // B8G8R8A8
+        IntUnaryOperator operator = switch (channel) {
+            case RED -> rgba -> ((rgba >> 16) & 0xFF) * 0x010101 | 0xFF000000;
+            case GREEN -> rgba -> ((rgba >> 8) & 0xFF) * 0x010101 | 0xFF000000;
+            case BLUE -> rgba -> (rgba & 0xFF) * 0x010101 | 0xFF000000;
+            case ALPHA -> rgba -> ((rgba >> 24) & 0xFF) * 0x010101 | 0xFF000000;
+            case RGB -> rgba -> (rgba & 0x00FFFFFF) | 0xFF000000;
+            case ALL -> IntUnaryOperator.identity();
+        };
+
+        for (int i = 0; i < data.length; i += 4) {
+            int bgra = ByteArrays.getInt(data, i);
+            bgra = operator.applyAsInt(bgra);
+            ByteArrays.setInt(imagePixels, i, bgra);
+        }
 
         image.getPixelWriter().setPixels(
             0, 0, width, height,

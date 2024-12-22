@@ -8,8 +8,8 @@ public record Texture(
     int width,
     int height,
     TextureFormat format,
-    List<Surface> surfaces,
     boolean isCubeMap,
+    List<Surface> surfaces,
     float scale,
     float bias
 ) {
@@ -22,24 +22,28 @@ public record Texture(
     }
 
     public Texture withFormat(TextureFormat format) {
-        return new Texture(width, height, format, surfaces, isCubeMap, scale, bias);
+        return new Texture(width, height, format, isCubeMap, surfaces, scale, bias);
     }
 
     public Texture withSurfaces(List<Surface> surfaces) {
-        return new Texture(width, height, format, surfaces, isCubeMap, scale, bias);
+        return new Texture(width, height, format, isCubeMap, surfaces, scale, bias);
     }
 
     public Texture firstOnly() {
-        return fromSurface(surfaces.getFirst(), scale, bias);
+        return fromSurface(surfaces.getFirst(), format, scale, bias);
     }
 
-    public static Texture fromSurface(Surface surface, float scale, float bias) {
+    public Texture convert(TextureFormat format) {
+        return TextureConverter.convert(this, format);
+    }
+
+    public static Texture fromSurface(Surface surface, TextureFormat format, float scale, float bias) {
         return new Texture(
             surface.width(),
             surface.height(),
-            surface.format(),
-            List.of(surface),
+            format,
             false,
+            List.of(surface),
             scale,
             bias
         );

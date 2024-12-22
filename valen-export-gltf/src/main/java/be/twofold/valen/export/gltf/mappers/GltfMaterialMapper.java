@@ -53,7 +53,7 @@ public final class GltfMaterialMapper {
 
         if (groups.containsKey(TextureType.Smoothness)) {
             var smoothness = groups.get(TextureType.Smoothness).getFirst();
-            var smoothnessTexture = TextureConverter.convert(smoothness.supplier().get().firstOnly(), TextureFormat.R8_UNORM);
+            var smoothnessTexture = smoothness.supplier().get().firstOnly().convert(TextureFormat.R8_UNORM);
             var metalRoughnessTexture = mapSmoothness(smoothnessTexture);
             var roughnessReference = new TextureReference(smoothness.name(), smoothness.type(), () -> metalRoughnessTexture);
 
@@ -123,7 +123,7 @@ public final class GltfMaterialMapper {
             dst[o + 3] = (byte) (255);
         }
 
-        return Texture.fromSurface(surface, texture.scale(), texture.bias());
+        return Texture.fromSurface(surface, TextureFormat.R8G8B8A8_UNORM, texture.scale(), texture.bias());
     }
 
     private static TextureInfoSchema textureSchema(TextureID textureID) {

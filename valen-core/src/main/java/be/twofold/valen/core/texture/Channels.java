@@ -1,6 +1,4 @@
-package be.twofold.valen.core.texture.convert;
-
-import be.twofold.valen.core.texture.*;
+package be.twofold.valen.core.texture;
 
 import java.util.*;
 import java.util.stream.*;
@@ -25,8 +23,7 @@ public record Channels(
             return true; // If it doesn't exist, it matches
         }
         return first.width() == second.width()
-            && first.height() == second.height()
-            && first.format() == second.format();
+            && first.height() == second.height();
     }
 
     public int width() {
@@ -35,10 +32,6 @@ public record Channels(
 
     public int height() {
         return getFirstSurface().height();
-    }
-
-    public TextureFormat format() {
-        return getFirstSurface().format();
     }
 
     private Surface getFirstSurface() {

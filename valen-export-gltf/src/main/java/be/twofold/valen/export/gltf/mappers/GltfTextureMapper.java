@@ -91,7 +91,7 @@ public final class GltfTextureMapper {
         var bias = texture.bias();
 
         var format = chooseFormat(texture.format());
-        var decoded = TextureConverter.convert(texture, format);
+        var decoded = texture.convert(format);
         var data = decoded.surfaces().getFirst().data();
 
         // Some games like to have textures for everything, even a single color...

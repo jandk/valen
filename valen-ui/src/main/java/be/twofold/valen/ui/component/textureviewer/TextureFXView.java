@@ -6,25 +6,22 @@ import jakarta.inject.*;
 import javafx.scene.*;
 import javafx.scene.control.*;
 import javafx.scene.image.*;
-import javafx.scene.input.*;
 import javafx.scene.layout.*;
-import javafx.scene.paint.*;
 
 import java.util.*;
 
 public final class TextureFXView implements TextureView, FXView {
-    private static final Map<String, Color> ButtonColors = Map.of(
-        "Red", Color.RED,
-        "Green", Color.GREEN,
-        "Blue", Color.BLUE,
-        "Alpha", Color.GRAY
+    private static final Map<Channel, String> CHANNELS = Map.of(
+        Channel.RED, "R",
+        Channel.GREEN, "G",
+        Channel.BLUE, "B",
+        Channel.ALPHA, "A",
+        Channel.RGB, "RGB",
+        Channel.ALL, "RGBA"
     );
 
     private final VBox view = new VBox();
-    private final ToggleButton rButton = new ToggleButton("Red");
-    private final ToggleButton gButton = new ToggleButton("Green");
-    private final ToggleButton bButton = new ToggleButton("Blue");
-    private final ToggleButton aButton = new ToggleButton("Alpha");
+    private final Label statusLabel = new Label();
     private final ImageView imageView = new ImageView();
     private final ZoomableScrollPane scrollPane = new ZoomableScrollPane(imageView);
 
@@ -47,52 +44,59 @@ public final class TextureFXView implements TextureView, FXView {
         scrollPane.lockZoomToFit();
     }
 
+    @Override
+    public void setStatus(String status) {
+        statusLabel.setText(status);
+    }
+
     private void buildUI() {
         view.setPrefSize(900, 600);
 
+
         // .setFill(new ImagePattern(new Image("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQAQMAAAAlPW0iAAAABlBMVEW/v7////+Zw/90AAAAD0lEQVR4XmNg+I8V4RIGAH6/D/EjO09fAAAAAElFTkSuQmCC")));
-        var buttons = List.of(rButton, gButton, bButton, aButton);
-        for (var button : buttons) {
-            button.setSelected(true);
-            button.setOnAction(_ -> fireColorEvent());
-            String unselected = ButtonColors.get(button.getText()).toString().replace("0x", "#");
-            button.setStyle("-fx-base: " + unselected + ";");
+        var buttons = CHANNELS.entrySet().stream()
+            .sorted(Map.Entry.comparingByKey())
+            .map(this::createButton)
+            .toList();
 
-            button.setOnMouseClicked(e -> {
-                if (e.getButton() != MouseButton.SECONDARY) {
-                    return;
-                }
+        var toggleGroup = new ToggleGroup();
+        toggleGroup.getToggles().addAll(buttons);
+        toggleGroup.selectToggle(toggleGroup.getToggles().getLast()); // lol
+        toggleGroup.selectedToggleProperty().addListener((_, oldValue, newValue) -> {
+            if (newValue == null) {
+                oldValue.setSelected(true);
+                return;
+            }
 
-                for (var toggleButton : buttons) {
-                    toggleButton.setSelected(toggleButton == button);
-                }
-                fireColorEvent();
-            });
-        }
+            channel.send(new TextureViewEvent.ChannelSelected(((Channel) newValue.getUserData())));
+        });
 
         imageView.setPreserveRatio(true);
 
-        var buttonBox = new ToolBar();
-        buttonBox.getItems().addAll(buttons);
-        // buttonBox.getItems().add(new Separator());
-        // buttonBox.getItems().add(new Slider(-10, 10, 0));
-        // buttonBox.getItems().add(new Button("100%"));
+        var separatorPane = new Pane();
+        HBox.setHgrow(separatorPane, Priority.ALWAYS);
+
+        var toolBar = new ToolBar();
+        toolBar.getItems().add(new Label("Channel"));
+        toolBar.getItems().addAll(buttons);
+        toolBar.getItems().add(separatorPane);
+        toolBar.getItems().add(statusLabel);
+        // toolBar.getItems().add(new Separator());
+        // toolBar.getItems().add(new Slider(-10, 10, 0));
+        // toolBar.getItems().add(new Button("100%"));
 
         var stackPane = new StackPane();
         stackPane.getChildren().add(new Label("No image loaded"));
         stackPane.getChildren().add(scrollPane);
-
         VBox.setVgrow(stackPane, Priority.ALWAYS);
 
-        view.getChildren().addAll(buttonBox, stackPane);
+        view.getChildren().addAll(toolBar, stackPane);
     }
 
-    private void fireColorEvent() {
-        channel.send(new TextureViewEvent.ColorsToggled(
-            rButton.isSelected(),
-            gButton.isSelected(),
-            bButton.isSelected(),
-            aButton.isSelected()
-        ));
+    private ToggleButton createButton(Map.Entry<Channel, String> e) {
+        var button = new ToggleButton(e.getValue());
+        button.setUserData(e.getKey());
+        return button;
     }
+
 }
