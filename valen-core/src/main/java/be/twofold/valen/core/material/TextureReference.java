@@ -7,19 +7,16 @@ import java.io.*;
 
 public record TextureReference(
     String name,
-    TextureType type,
     ThrowingSupplier<Texture, IOException> supplier
 ) {
     public TextureReference {
         Check.notNull(name, "name");
-        Check.notNull(type, "type");
         Check.notNull(supplier, "supplier");
     }
 
     @Override
     public String toString() {
         return "TextureReference(" +
-            "type=" + type + ", " +
             "name=" + name +
             ")";
     }

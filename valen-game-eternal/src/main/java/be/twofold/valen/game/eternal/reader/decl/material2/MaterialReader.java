@@ -64,7 +64,7 @@ public final class MaterialReader implements ResourceReader<Material> {
 
         parseRenderParms(parms, renderParms, filenames, options);
 
-        var references = new ArrayList<TextureReference>();
+        var properties = new ArrayList<MaterialProperty>();
 
         renderParms.forEach((kind, parm) -> {
             var opts = options.get(kind);
@@ -83,26 +83,26 @@ public final class MaterialReader implements ResourceReader<Material> {
                 log.warn("Missing image file: {}", filename);
                 return;
             }
-            var textureType = mapTextureType(kind);
+            var type = mapTextureType(kind);
             var supplier = ThrowingSupplier.lazy(() -> archive.loadAsset(resourceKey, Texture.class));
-            references.add(new TextureReference(filename, textureType, supplier));
+            properties.add(new MaterialProperty(type, null, new TextureReference(filename, supplier)));
         });
 
-        return new Material(materialName, references);
+        return new Material(materialName, properties);
     }
 
-    private TextureType mapTextureType(ImageTextureMaterialKind kind) {
+    private TexturePropertyType mapTextureType(ImageTextureMaterialKind kind) {
         return switch (kind) {
-            case TMK_ALBEDO -> TextureType.Albedo;
-            case TMK_SPECULAR -> TextureType.Specular;
-            case TMK_NORMAL -> TextureType.Normal;
-            case TMK_SMOOTHNESS -> TextureType.Smoothness;
+            case TMK_ALBEDO -> TexturePropertyType.Albedo;
+            case TMK_SPECULAR -> TexturePropertyType.Specular;
+            case TMK_NORMAL -> TexturePropertyType.Normal;
+            case TMK_SMOOTHNESS -> TexturePropertyType.Smoothness;
             // case TMK_COVER -> TextureType.Unknown;
             // case TMK_SSSMASK -> TextureType.Unknown;
             // case TMK_COLORMASK -> TextureType.Unknown;
-            case TMK_BLOOMMASK -> TextureType.Emissive;
+            case TMK_BLOOMMASK -> TexturePropertyType.Emissive;
             // case TMK_HEIGHTMAP -> TextureType.Height;
-            default -> TextureType.Unknown;
+            default -> TexturePropertyType.Unknown;
         };
     }
 
@@ -142,11 +142,7 @@ public final class MaterialReader implements ResourceReader<Material> {
         Map<ImageTextureMaterialKind, MaterialImageOpts> options
     ) throws IOException {
         for (var entry : parms.entrySet()) {
-            var renderParm = RenderParmCache.get(entry.getKey());
-            if (renderParm == null) {
-                renderParm = loadRenderParm(entry.getKey());
-                RenderParmCache.put(entry.getKey(), renderParm);
-            }
+            var renderParm = getRenderParm(entry.getKey());
 
             renderParms.put(renderParm.materialKind, renderParm);
 
@@ -164,9 +160,14 @@ public final class MaterialReader implements ResourceReader<Material> {
         }
     }
 
-    private RenderParm loadRenderParm(String name) throws IOException {
-        var fullName = "generated/decls/renderparm/" + name + ".decl";
-        return archive.loadAsset(ResourceKey.from(fullName, ResourceType.RsStreamFile), RenderParm.class);
+    private RenderParm getRenderParm(String name) throws IOException {
+        var renderParm = RenderParmCache.get(name);
+        if (renderParm == null) {
+            var fullName = "generated/decls/renderparm/" + name + ".decl";
+            renderParm = archive.loadAsset(ResourceKey.from(fullName, ResourceType.RsStreamFile), RenderParm.class);
+            RenderParmCache.put(name, renderParm);
+        }
+        return renderParm;
     }
 
     private MaterialImageOpts parseOptions(JsonObject options) {

@@ -6,10 +6,10 @@ import java.util.*;
 
 public record Material(
     String name,
-    List<TextureReference> textures
+    List<MaterialProperty> properties
 ) {
     public Material {
         Check.notNull(name, "name");
-        textures = List.copyOf(textures);
+        properties = List.copyOf(properties);
     }
 }
