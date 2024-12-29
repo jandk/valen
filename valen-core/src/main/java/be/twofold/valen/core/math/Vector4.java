@@ -97,6 +97,15 @@ public record Vector4(
         dst.put(w);
     }
 
+    public Vector4 map(FloatUnaryOperator operator) {
+        var x = operator.applyAsFloat(this.x);
+        var y = operator.applyAsFloat(this.y);
+        var z = operator.applyAsFloat(this.z);
+        var w = operator.applyAsFloat(this.w);
+        return new Vector4(x, y, z, w);
+    }
+
+
     public Vector3 toVector3() {
         return new Vector3(x, y, z);
     }

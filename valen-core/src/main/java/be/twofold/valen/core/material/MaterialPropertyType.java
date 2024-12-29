@@ -1,10 +1,10 @@
 package be.twofold.valen.core.material;
 
-public enum TexturePropertyType {
+public enum MaterialPropertyType {
     Unknown,
     Albedo,
-    Emissive,
     Normal,
-    Smoothness,
     Specular,
+    Smoothness,
+    Emissive,
 }

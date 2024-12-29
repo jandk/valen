@@ -98,6 +98,13 @@ public record Vector3(
         buffer.put(z);
     }
 
+    public Vector3 map(FloatUnaryOperator operator) {
+        var x = operator.applyAsFloat(this.x);
+        var y = operator.applyAsFloat(this.y);
+        var z = operator.applyAsFloat(this.z);
+        return new Vector3(x, y, z);
+    }
+
     // Object methods
 
     @Override

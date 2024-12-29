@@ -2,6 +2,7 @@ package be.twofold.valen.game.eternal.reader.decl.renderparm;
 
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.io.*;
+import be.twofold.valen.core.math.*;
 import be.twofold.valen.game.eternal.reader.*;
 import be.twofold.valen.game.eternal.reader.decl.parser.*;
 import be.twofold.valen.game.eternal.reader.decl.renderparm.enums.*;
@@ -137,11 +138,11 @@ public final class RenderParmReader implements ResourceReader<RenderParm> {
     private Object parseValue(DeclParser parser, RenderParm renderParm) {
         switch (renderParm.parmType) {
             case PT_F32_VEC4:
-                return readVector(parser, 4);
+                return readVector4(parser);
             case PT_F32_VEC3:
-                return readVector(parser, 3);
+                return readVector3(parser);
             case PT_F32_VEC2:
-                return readVector(parser, 2);
+                return readVector2(parser);
             case PT_F32:
                 return parser.expectNumber().floatValue();
             case PT_UI32:
@@ -202,6 +203,21 @@ public final class RenderParmReader implements ResourceReader<RenderParm> {
             default:
                 throw new UnsupportedOperationException("Unsupported type: " + renderParm);
         }
+    }
+
+    private Vector2 readVector2(DeclParser parser) {
+        var floats = readVector(parser, 2);
+        return new Vector2(floats[0], floats[1]);
+    }
+
+    private Vector3 readVector3(DeclParser parser) {
+        var floats = readVector(parser, 3);
+        return new Vector3(floats[0], floats[1], floats[2]);
+    }
+
+    private Vector4 readVector4(DeclParser parser) {
+        var floats = readVector(parser, 4);
+        return new Vector4(floats[0], floats[1], floats[2], floats[3]);
     }
 
     private static final Set<String> Skipped = Set.of(

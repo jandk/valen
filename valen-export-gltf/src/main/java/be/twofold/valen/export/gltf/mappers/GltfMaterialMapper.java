@@ -36,24 +36,23 @@ public final class GltfMaterialMapper {
             switch (property.type()) {
                 case Albedo -> mapProperty(property, pbrBuilder::baseColorTexture,
                     v -> pbrBuilder.baseColorFactor(GltfUtils.mapVector4(v)));
-                case Emissive -> mapProperty(property, builder::emissiveTexture,
-                    v -> builder.emissiveFactor(GltfUtils.mapVector3(v.toVector3())));
                 case Normal ->
                     builder.normalTexture(normalTextureInfoSchema(textureMapper.mapSimple(property.reference())));
+                case Emissive -> mapEmissive(property, builder);
             }
         }
 
         var groups = material.properties().stream()
             .collect(Collectors.groupingBy(MaterialProperty::type));
 
-        if (groups.containsKey(TexturePropertyType.Specular)) {
-            var specular = groups.get(TexturePropertyType.Specular).getFirst();
+        if (groups.containsKey(MaterialPropertyType.Specular)) {
+            var specular = groups.get(MaterialPropertyType.Specular).getFirst();
             mapSpecular(specular, builder, pbrBuilder);
         }
 
         // TODO: Check this code
-        if (groups.containsKey(TexturePropertyType.Smoothness)) {
-            var property = groups.get(TexturePropertyType.Smoothness).getFirst();
+        if (groups.containsKey(MaterialPropertyType.Smoothness)) {
+            var property = groups.get(MaterialPropertyType.Smoothness).getFirst();
             var reference = property.reference();
             var smoothnessTexture = reference.supplier().get().firstOnly().convert(TextureFormat.R8_UNORM);
             var metalRoughnessTexture = mapSmoothness(smoothnessTexture);
@@ -71,6 +70,24 @@ public final class GltfMaterialMapper {
         var materialID = context.addMaterial(materialSchema);
         materials.put(material.name(), materialID);
         return materialID;
+    }
+
+    private void mapEmissive(
+        MaterialProperty property,
+        MaterialSchema.Builder builder
+    ) throws IOException {
+        var emissiveFactor = new Vector4(property.factor().toVector3(), 1.0f);
+        mapProperty(property.withFactor(emissiveFactor), builder::emissiveTexture,
+            v -> builder.emissiveFactor(GltfUtils.mapVector3(v.toVector3())));
+
+        var emissiveScale = property.factor().w();
+        if (emissiveScale != 1.0f) {
+            var emissiveStrengthSchema = KHRMaterialsEmissiveStrengthSchema.builder()
+                .emissiveStrength(emissiveScale)
+                .build();
+
+            builder.putExtensions(emissiveStrengthSchema.getName(), emissiveStrengthSchema);
+        }
     }
 
     private void mapSpecular(
@@ -112,7 +129,10 @@ public final class GltfMaterialMapper {
         if (textureID != null) {
             textureConsumer.accept(textureSchema(textureID));
         }
-        if (!Vector4.One.equals(factor)) {
+
+        // The default in GLTF is 0, 0, 0 for emissive
+        var reference = property.type() == MaterialPropertyType.Emissive ? Vector4.W : Vector4.One;
+        if (!reference.equals(factor)) {
             factorConsumer.accept(factor);
         }
     }

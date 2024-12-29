@@ -12,7 +12,6 @@ import java.util.*;
 
 abstract class GltfCommon {
     private static final Gson GSON = new GsonBuilder()
-        // .setPrettyPrinting()
         .registerTypeHierarchyAdapter(GltfID.class, new GltfIDTypeAdapter().nullSafe())
         .registerTypeHierarchyAdapter(ValueEnum.class, new ValueEnumTypeAdapter().nullSafe())
         .registerTypeHierarchyAdapter(Collection.class, new CollectionSerializer())
@@ -23,6 +22,7 @@ abstract class GltfCommon {
         .registerTypeAdapter(Vec2.class, new Vec2TypeAdapter().nullSafe())
         .registerTypeAdapter(Vec3.class, new Vec3TypeAdapter().nullSafe())
         .registerTypeAdapter(Vec4.class, new Vec4TypeAdapter().nullSafe())
+        .disableHtmlEscaping()
         .create();
 
     private final GltfContext context;
