@@ -13,7 +13,7 @@ import java.util.*;
 
 public final class GlbSceneExporter implements Exporter<Scene> {
     private final GltfContext context = new GltfContext();
-    private final GltfModelSingleMapper modelMapper = new GltfModelSingleMapper(context);
+    private final GltfModelSingleMapper modelMapper = new GltfModelSingleMapper(context, null);
 
     @Override
     public String getExtension() {

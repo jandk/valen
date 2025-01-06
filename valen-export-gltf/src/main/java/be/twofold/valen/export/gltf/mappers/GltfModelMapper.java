@@ -5,24 +5,30 @@ import be.twofold.valen.core.math.*;
 import be.twofold.valen.gltf.*;
 import be.twofold.valen.gltf.model.accessor.*;
 import be.twofold.valen.gltf.model.buffer.*;
+import be.twofold.valen.gltf.model.material.*;
 import be.twofold.valen.gltf.model.mesh.*;
 import com.google.gson.*;
 
 import java.io.*;
 import java.nio.*;
+import java.nio.file.*;
+import java.util.*;
 
 public abstract class GltfModelMapper {
     final GltfContext context;
     final GltfMaterialMapper materialMapper;
 
-    public GltfModelMapper(GltfContext context) {
+    public GltfModelMapper(GltfContext context, Path exportPath) {
         this.context = context;
-        this.materialMapper = new GltfMaterialMapper(context);
+        this.materialMapper = new GltfMaterialMapper(context, exportPath);
     }
 
     MeshPrimitiveSchema mapMeshPrimitive(Mesh mesh) throws IOException {
         // Add the material
-        var materialID = materialMapper.map(mesh.material());
+        var materialID = (MaterialID) null;
+        if (mesh.materialOpt().isPresent()) {
+            materialID = materialMapper.map(mesh.materialOpt().get());
+        }
 
         // Have to fix up the joints and weights first
         fixJointsAndWeights(mesh);
@@ -42,7 +48,7 @@ public abstract class GltfModelMapper {
         return MeshPrimitiveSchema.builder()
             .attributes(attributes)
             .indices(faceAccessor)
-            .material(materialID)
+            .material(Optional.ofNullable(materialID))
             .build();
     }
 

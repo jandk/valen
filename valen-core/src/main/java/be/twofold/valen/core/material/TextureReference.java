@@ -7,10 +7,12 @@ import java.io.*;
 
 public record TextureReference(
     String name,
+    String filename,
     ThrowingSupplier<Texture, IOException> supplier
 ) {
     public TextureReference {
         Check.notNull(name, "name");
+        Check.notNull(filename, "filename");
         Check.notNull(supplier, "supplier");
     }
 

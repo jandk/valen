@@ -40,9 +40,9 @@ final class ExportTask extends Task<Void> {
 
     private <T> void exporty(Class<T> clazz) {
         var exporter = Exporter.forType(clazz).getFirst();
-        try (var out = Files.newOutputStream(path)) {
+        try {
             T rawAsset = archive.loadAsset(asset.id(), clazz);
-            exporter.export(rawAsset, out);
+            exporter.export(rawAsset, path);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             showExceptionDialog(e);

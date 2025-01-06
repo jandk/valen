@@ -6,6 +6,7 @@ import be.twofold.valen.gltf.model.mesh.*;
 import be.twofold.valen.gltf.model.node.*;
 
 import java.io.*;
+import java.nio.file.*;
 import java.util.*;
 
 public final class GltfModelMultiMapper extends GltfModelMapper {
@@ -14,8 +15,8 @@ public final class GltfModelMultiMapper extends GltfModelMapper {
     private final GltfContext context;
     private final GltfSkeletonMapper skeletonMapper;
 
-    public GltfModelMultiMapper(GltfContext context) {
-        super(context);
+    public GltfModelMultiMapper(GltfContext context, Path exportPath) {
+        super(context, exportPath);
         this.context = context;
         this.skeletonMapper = new GltfSkeletonMapper(context);
     }
@@ -36,13 +37,13 @@ public final class GltfModelMultiMapper extends GltfModelMapper {
             .map(context::addMesh)
             .toList();
 
-        var nodeIDs = model.skeleton() == null
-            ? mapStaticModel(meshIDs)
-            : mapAnimatedModel(meshIDs, model.skeleton());
+        var nodeIDs = model.skeletonOpt()
+            .map(skeleton -> mapAnimatedModel(meshIDs, skeleton))
+            .orElseGet(() -> mapStaticModel(meshIDs));
 
         return context.addNode(
             NodeSchema.builder()
-                .name(Optional.ofNullable(model.name()))
+                .name(model.nameOpt())
                 .addAllChildren(nodeIDs)
                 .build());
     }
@@ -78,7 +79,7 @@ public final class GltfModelMultiMapper extends GltfModelMapper {
         var primitiveSchema = mapMeshPrimitive(mesh);
 
         return MeshSchema.builder()
-            .name(Optional.ofNullable(mesh.name()))
+            .name(mesh.nameOpt())
             .addPrimitives(primitiveSchema)
             .build();
     }

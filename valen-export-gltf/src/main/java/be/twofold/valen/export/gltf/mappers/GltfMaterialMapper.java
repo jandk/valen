@@ -9,6 +9,7 @@ import be.twofold.valen.gltf.model.material.*;
 import be.twofold.valen.gltf.model.texture.*;
 
 import java.io.*;
+import java.nio.file.*;
 import java.util.*;
 import java.util.function.*;
 import java.util.stream.*;
@@ -19,12 +20,15 @@ public final class GltfMaterialMapper {
     private final GltfContext context;
     private final GltfTextureMapper textureMapper;
 
-    public GltfMaterialMapper(GltfContext context) {
+    public GltfMaterialMapper(GltfContext context, Path exportPath) {
         this.context = context;
-        this.textureMapper = new GltfTextureMapper(context);
+        this.textureMapper = new GltfTextureMapper(context, exportPath);
     }
 
     public MaterialID map(Material material) throws IOException {
+        if (material == null) {
+            return null;
+        }
         var existingMaterialID = materials.get(material.name());
         if (existingMaterialID != null) {
             return existingMaterialID;
@@ -56,7 +60,7 @@ public final class GltfMaterialMapper {
             var reference = property.reference();
             var smoothnessTexture = reference.supplier().get().firstOnly().convert(TextureFormat.R8_UNORM);
             var metalRoughnessTexture = mapSmoothness(smoothnessTexture);
-            var roughnessReference = new TextureReference(reference.name(), () -> metalRoughnessTexture);
+            var roughnessReference = new TextureReference(reference.name(), reference.filename(), () -> metalRoughnessTexture);
 
             // TODO: Proper support for metallic and roughness factors
             var roughnessTexture = textureMapper.mapSimple(roughnessReference);

@@ -6,6 +6,7 @@ import be.twofold.valen.gltf.model.mesh.*;
 import org.slf4j.*;
 
 import java.io.*;
+import java.nio.file.*;
 import java.util.*;
 
 public final class GltfModelSingleMapper extends GltfModelMapper {
@@ -13,8 +14,8 @@ public final class GltfModelSingleMapper extends GltfModelMapper {
 
     private final Map<String, MeshID> models = new HashMap<>();
 
-    public GltfModelSingleMapper(GltfContext context) {
-        super(context);
+    public GltfModelSingleMapper(GltfContext context, Path exportPath) {
+        super(context, exportPath);
     }
 
     public Optional<MeshID> map(ModelReference modelReference) throws IOException {
@@ -29,9 +30,9 @@ public final class GltfModelSingleMapper extends GltfModelMapper {
             return Optional.empty();
         }
 
-        if (model.skeleton() != null) {
-            log.warn("Skipping skeleton for scene on {}", model.name());
-            model = new Model(model.name(), model.meshes(), null);
+        if (model.skeletonOpt().isPresent()) {
+            log.warn("Skipping skeleton for scene on {}", model.nameOpt().orElse(""));
+            model = model.withSkeleton(null);
         }
 
         var meshID = mapModel(model);
@@ -46,7 +47,7 @@ public final class GltfModelSingleMapper extends GltfModelMapper {
         }
 
         var meshSchema = MeshSchema.builder()
-            .name(Optional.ofNullable(model.name()))
+            .name(model.nameOpt())
             .addAllPrimitives(primitiveSchemas)
             .build();
         return context.addMesh(meshSchema);

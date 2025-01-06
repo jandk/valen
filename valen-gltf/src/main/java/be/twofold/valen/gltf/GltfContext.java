@@ -236,7 +236,7 @@ public final class GltfContext {
 
         return GltfSchema.builder()
             .asset(asset)
-            // .extensions(extensions)
+            .extensions(extensions)
             .extensionsUsed(extensionsUsed)
             .extensionsRequired(extensionsRequired)
             .accessors(accessors)

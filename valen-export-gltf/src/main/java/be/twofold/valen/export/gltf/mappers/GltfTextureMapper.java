@@ -8,21 +8,22 @@ import be.twofold.valen.export.png.*;
 import be.twofold.valen.gltf.*;
 import be.twofold.valen.gltf.model.image.*;
 import be.twofold.valen.gltf.model.texture.*;
-import org.slf4j.*;
 
 import java.io.*;
 import java.nio.*;
+import java.nio.file.*;
 import java.util.*;
 
 public final class GltfTextureMapper {
-    private static final Logger log = LoggerFactory.getLogger(GltfTextureMapper.class);
     private final PngExporter pngExporter = new PngExporter();
     private final Map<String, TextureIDAndFactor> textures = new HashMap<>();
 
     private final GltfContext context;
+    private final Path exportPath;
 
-    public GltfTextureMapper(GltfContext context) {
+    public GltfTextureMapper(GltfContext context, Path exportPath) {
         this.context = context;
+        this.exportPath = exportPath;
     }
 
     public TextureIDAndFactor map(TextureReference reference) throws IOException {
@@ -37,7 +38,7 @@ public final class GltfTextureMapper {
             return new TextureIDAndFactor(null, scaleAndBias.factor());
         }
 
-        return map(reference.name(), scaleAndBias.texture(), scaleAndBias.factor());
+        return map(reference, scaleAndBias.texture(), scaleAndBias.factor());
     }
 
     public TextureID mapSimple(TextureReference reference) throws IOException {
@@ -47,33 +48,38 @@ public final class GltfTextureMapper {
         }
 
         var texture = reference.supplier().get();
-        return map(reference.name(), texture, Vector4.One).textureID();
+        return map(reference, texture, Vector4.One).textureID();
     }
 
-    private TextureIDAndFactor map(String name, Texture texture, Vector4 factor) throws IOException {
-        var existingSchema = textures.get(name);
-        if (existingSchema != null) {
-            return existingSchema;
-        }
-
+    private TextureIDAndFactor map(TextureReference reference, Texture texture, Vector4 factor) throws IOException {
+        ImageSchema imageSchema;
         var buffer = textureToPng(texture);
-        var bufferViewID = context.createBufferView(buffer);
+        if (exportPath == null) {
+            var bufferViewID = context.createBufferView(buffer);
 
-        var imageSchema = ImageSchema.builder()
-            .name(name)
-            .mimeType(ImageMimeType.IMAGE_PNG)
-            .bufferView(bufferViewID)
-            .build();
+            imageSchema = ImageSchema.builder()
+                .name(reference.name())
+                .mimeType(ImageMimeType.IMAGE_PNG)
+                .bufferView(bufferViewID)
+                .build();
+        } else {
+            var filename = Filenames.removeExtension(reference.filename()) + ".png";
+            var exportFile = exportPath.resolve(filename);
+
+            imageSchema = ImageSchema.builder()
+                .uri(exportPath.toUri())
+                .build();
+        }
         var imageID = context.addImage(imageSchema);
 
         var textureSchema = TextureSchema.builder()
-            .name(name)
+            .name(reference.name())
             .source(imageID)
             .build();
         var textureID = context.addTexture(textureSchema);
 
         var textureIDAndFactor = new TextureIDAndFactor(textureID, factor);
-        textures.put(name, textureIDAndFactor);
+        textures.put(reference.name(), textureIDAndFactor);
         return textureIDAndFactor;
     }
 
