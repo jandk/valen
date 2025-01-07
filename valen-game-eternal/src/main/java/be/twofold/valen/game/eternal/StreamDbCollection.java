@@ -15,7 +15,7 @@ final class StreamDbCollection {
 
     private StreamDbCollection(List<StreamDbFile> files, Decompressor decompressor) {
         this.files = List.copyOf(files);
-        this.decompressor = Check.notNull(decompressor);
+        this.decompressor = Check.notNull(decompressor, "decompressor");
     }
 
     static StreamDbCollection load(Path base, PackageMapSpec spec, Decompressor decompressor) throws IOException {

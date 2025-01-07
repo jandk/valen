@@ -60,13 +60,18 @@ public record ResourceKey(
     }
 
     @Override
+    public String displayName() {
+        return name.filename();
+    }
+
+    @Override
     public String pathName() {
-        return name.path();
+        return name.pathname();
     }
 
     @Override
     public String fileName() {
-        return name.file();
+        return name.filenameWithoutProperties();
     }
 
     @Override

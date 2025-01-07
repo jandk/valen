@@ -29,6 +29,7 @@
         <dapper.version>2.41.2</dapper.version>
         <javafx.version>23.0.1</javafx.version>
         <immutables.version>2.10.1</immutables.version>
+        <slf4j.version>2.0.16</slf4j.version>
     </properties>
 
     <build>
@@ -70,6 +71,12 @@
     </build>
 
     <dependencies>
+        <!-- Logging for all -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+        </dependency>
+
         <!-- Testing for all -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
@@ -163,6 +170,16 @@
                 <groupId>org.openjfx</groupId>
                 <artifactId>javafx-graphics</artifactId>
                 <version>${javafx.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-api</artifactId>
+                <version>${slf4j.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-simple</artifactId>
+                <version>${slf4j.version}</version>
             </dependency>
 
             <!-- Annotations -->

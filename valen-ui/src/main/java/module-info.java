@@ -5,8 +5,10 @@ module valen.ui {
     requires javafx.controls;
     requires javafx.graphics;
     requires valen.core;
+    requires org.slf4j;
 
     exports be.twofold.valen.ui;
 
-    opens be.twofold.valen.ui.settings to com.google.gson;
+    opens be.twofold.valen.ui.common.settings to com.google.gson;
+    exports be.twofold.valen.ui.common;
 }

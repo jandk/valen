@@ -5,11 +5,11 @@ import be.twofold.valen.core.math.*;
 import be.twofold.valen.core.util.*;
 
 public record Instance(
-    String name,
     ModelReference modelReference,
     Vector3 translation,
     Quaternion rotation,
-    Vector3 scale
+    Vector3 scale,
+    String name
 ) {
     public Instance {
         Check.notNull(modelReference, "modelReference");

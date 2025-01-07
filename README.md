@@ -29,16 +29,6 @@ The only way to make it do anything right now is to write some code.
 
 Which reminds me that I should probably throw in a sample here, or at least a simple main method.
 
-## Compared to Vega
-
-Vega being closed source is what ticked me off enough to just dig in myself. A fun weekend project turned into a
-full-blown project, and I'm not even sure if I'll ever finish it. But I'm having fun, and that's what matters.
-
-- Vega is closed source, this is not.
-- Vega is a GUI, this is not (yet).
-- Vega exports the wrong textures, this creates a full DDS with all LODs.
-- Vega exports some models incorrectly, this exports them correctly.
-
 ## Credits
 
 - SamPT (@brongo) - He did most of the leg work, and his work is the basis for this project.

@@ -24,9 +24,9 @@ public final class EternalArchive implements Archive {
     private final List<ResourceReader<?>> readers;
 
     EternalArchive(StreamDbCollection streams, ResourcesCollection common, ResourcesCollection resources) {
-        this.streams = Check.notNull(streams);
-        this.common = Check.notNull(common);
-        this.resources = Check.notNull(resources);
+        this.streams = Check.notNull(streams, "streams");
+        this.common = Check.notNull(common, "common");
+        this.resources = Check.notNull(resources, "resources");
 
         var declReader = new DeclReader(this);
         this.readers = List.of(
@@ -52,11 +52,18 @@ public final class EternalArchive implements Archive {
     }
 
     private Asset toAsset(Resource resource) {
+        var properties = new HashMap<String, Object>();
+        properties.put("hash", resource.hash());
+        properties.put("Type", resource.key().type().toString());
+        if (resource.key().variation() != ResourceVariation.None) {
+            properties.put("Variation", resource.key().variation());
+        }
+
         return new Asset(
             resource.key(),
             mapType(resource.key().type()),
             resource.uncompressedSize(),
-            Map.of("hash", resource.hash())
+            Map.copyOf(properties)
         );
     }
 

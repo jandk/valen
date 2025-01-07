@@ -12,9 +12,9 @@ public record ImageHeader(
     int pixelHeight,
     int depth,
     int mipCount,
-    float unkFloat1,
-    float unkFloat2,
-    float unkFloat3,
+    int unkFlags,
+    float albedoSpecularBias,
+    float albedoSpecularScale,
     ImageTextureFormat textureFormat,
     boolean streamed,
     boolean singleStream,
@@ -34,9 +34,9 @@ public record ImageHeader(
         var pixelHeight = source.readInt();
         var depth = source.readInt();
         var mipCount = source.readInt();
-        var unkFloat1 = source.readFloat();
-        var unkFloat2 = source.readFloat();
-        var unkFloat3 = source.readFloat();
+        var unkFlags = source.readInt();
+        var albedoSpecularBias = source.readFloat();
+        var albedoSpecularScale = source.readFloat();
         source.expectByte((byte) 0);
         var textureFormat = ImageTextureFormat.fromCode(source.readInt());
         source.expectInt(7); // always 7
@@ -56,9 +56,9 @@ public record ImageHeader(
             pixelHeight,
             depth,
             mipCount,
-            unkFloat1,
-            unkFloat2,
-            unkFloat3,
+            unkFlags,
+            albedoSpecularBias,
+            albedoSpecularScale,
             textureFormat,
             streamed,
             singleStream,

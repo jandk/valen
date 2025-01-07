@@ -3,8 +3,9 @@ package be.twofold.valen.game.eternal.reader.decl.material2;
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.material.*;
+import be.twofold.valen.core.math.*;
 import be.twofold.valen.core.texture.*;
-import be.twofold.valen.core.util.fi.*;
+import be.twofold.valen.core.util.*;
 import be.twofold.valen.game.eternal.*;
 import be.twofold.valen.game.eternal.reader.*;
 import be.twofold.valen.game.eternal.reader.decl.*;
@@ -12,11 +13,15 @@ import be.twofold.valen.game.eternal.reader.decl.renderparm.*;
 import be.twofold.valen.game.eternal.reader.image.*;
 import be.twofold.valen.game.eternal.resource.*;
 import com.google.gson.*;
+import org.slf4j.*;
 
 import java.io.*;
 import java.util.*;
+import java.util.function.*;
+import java.util.stream.*;
 
 public final class MaterialReader implements ResourceReader<Material> {
+    private static final Logger log = LoggerFactory.getLogger(MaterialReader.class);
     private static final Map<String, RenderParm> RenderParmCache = new HashMap<>();
 
     private final EternalArchive archive;
@@ -55,54 +60,88 @@ public final class MaterialReader implements ResourceReader<Material> {
             .getAsJsonArray("RenderLayers")
             .get(0).getAsJsonObject()
             .getAsJsonObject("parms");
+        var renderLayerParms = parseRenderLayerParms(parms);
+        var standardParms = parseParms(object.getAsJsonObject("Parms"));
+        var allParms = Stream.of(renderLayerParms, standardParms)
+            .flatMap(Collection::stream)
+            .collect(Collectors.toUnmodifiableMap(Parm::name, r -> r));
 
-        var renderParms = new EnumMap<ImageTextureMaterialKind, RenderParm>(ImageTextureMaterialKind.class);
-        var filenames = new EnumMap<ImageTextureMaterialKind, String>(ImageTextureMaterialKind.class);
-        var options = new EnumMap<ImageTextureMaterialKind, MaterialImageOpts>(ImageTextureMaterialKind.class);
+        var albedo = mapSimpleTexture(allParms, "albedo", MaterialPropertyType.Albedo);
+        var normal = mapSimpleTexture(allParms, "normal", MaterialPropertyType.Normal);
+        var specular = mapSimpleTexture(allParms, "specular", MaterialPropertyType.Specular);
+        var smoothness = mapSimpleTexture(allParms, "smoothness", MaterialPropertyType.Smoothness);
+        var emissive = mapEmissive(allParms);
 
-        parseRenderParms(parms, renderParms, filenames, options);
+        var properties = Stream.of(albedo, normal, specular, smoothness, emissive)
+            .filter(Objects::nonNull)
+            .toList();
 
-        var references = new ArrayList<TextureReference>();
+//        var properties = new ArrayList<MaterialProperty>();
+//        renderLayerParms.forEach(parm -> {
+//            MaterialProperty property = mapProperty(parm, allParms);
+//            if (property == null) {
+//                return;
+//            }
+//            properties.add(property);
+//        });
 
-        renderParms.forEach((kind, parm) -> {
-            var opts = options.get(kind);
-
-            var builder = new StringBuilder(filenames.get(kind));
-            if (kind == ImageTextureMaterialKind.TMK_SMOOTHNESS) {
-                builder
-                    .append("$smoothnessnormal=")
-                    .append(filenames.get(parm.smoothnessNormalParm));
-            }
-            mapOptions(builder, kind, parm, opts);
-
-            var filename = builder.toString();
-            var resourceKey = ResourceKey.from(filename, ResourceType.Image);
-            if (archive.exists(resourceKey)) {
-                var textureType = mapTextureType(kind);
-                var supplier = ThrowingSupplier.lazy(() -> archive.loadAsset(resourceKey, Texture.class));
-                references.add(new TextureReference(filename, textureType, supplier));
-            }
-        });
-
-        return new Material(materialName, references);
+        return new Material(materialName, properties);
     }
 
-    private TextureType mapTextureType(ImageTextureMaterialKind kind) {
-        return switch (kind) {
-            case TMK_ALBEDO -> TextureType.Albedo;
-            case TMK_SPECULAR -> TextureType.Specular;
-            case TMK_NORMAL -> TextureType.Normal;
-            case TMK_SMOOTHNESS -> TextureType.Smoothness;
-            // case TMK_COVER -> TextureType.Unknown;
-            // case TMK_SSSMASK -> TextureType.Unknown;
-            // case TMK_COLORMASK -> TextureType.Unknown;
-            case TMK_BLOOMMASK -> TextureType.Emissive;
-            case TMK_HEIGHTMAP -> TextureType.Height;
-            default -> TextureType.Unknown;
-        };
+    private MaterialProperty mapEmissive(Map<String, Parm> allParms) {
+        var emissive = mapSimpleTexture(allParms, "bloommaskmap", MaterialPropertyType.Emissive);
+        var emissiveColor = allParms.get("surfaceemissivecolor") != null ? (Vector3) allParms.get("surfaceemissivecolor").value() : Vector3.One;
+        var emissiveScale = allParms.get("surfaceemissivescale") != null ? (Float) allParms.get("surfaceemissivescale").value() : 1.0f;
+        Vector4 emissiveFactor = new Vector4(emissiveColor, emissiveScale);
+
+        if (emissive == null) {
+            return new MaterialProperty(MaterialPropertyType.Specular, null, emissiveFactor);
+        }
+        return emissive.withFactor(emissiveFactor);
     }
 
-    private void mapOptions(StringBuilder builder, ImageTextureMaterialKind kind, RenderParm renderParm, MaterialImageOpts opts) {
+    private MaterialProperty mapSimpleTexture(Map<String, Parm> parms, String name, MaterialPropertyType propertyType) {
+        var albedoParm = parms.get(name);
+        if (albedoParm == null) {
+            return null;
+        }
+
+        var reference = mapTex2D(albedoParm, parms);
+        if (reference == null) {
+            return null;
+        }
+
+        return new MaterialProperty(propertyType, reference, null);
+    }
+
+    private TextureReference mapTex2D(Parm parm, Map<String, Parm> allParms) {
+        var builder = new StringBuilder(((Tex2D) parm.value).filePath());
+        if (parm.renderParm().materialKind == ImageTextureMaterialKind.TMK_SMOOTHNESS) {
+            var smoothnessNormal = allParms.entrySet().stream()
+                .filter(rlp -> rlp.getValue().renderParm().materialKind == parm.renderParm().smoothnessNormalParm)
+                .findFirst().orElseThrow();
+
+            builder
+                .append("$smoothnessnormal=")
+                .append(((Tex2D) smoothnessNormal.getValue().value()).filePath());
+        }
+        mapOptions(builder, parm);
+
+        var filename = builder.toString();
+        var resourceKey = ResourceKey.from(filename, ResourceType.Image);
+        if (!archive.exists(resourceKey)) {
+            log.warn("Missing image file: {}", filename);
+            return null;
+        }
+
+        var supplier = ThrowingSupplier.lazy(() -> archive.loadAsset(resourceKey, Texture.class));
+        return new TextureReference(filename, supplier);
+    }
+
+    private void mapOptions(StringBuilder builder, Parm parm) {
+        var tex2d = (Tex2D) parm.value();
+        var opts = tex2d.options();
+        var kind = parm.renderParm().materialKind;
         if (opts != null) {
             if (opts.format() != ImageTextureFormat.FMT_NONE) {
                 if (kind.getCode() > 7 && kind != ImageTextureMaterialKind.TMK_BLENDMASK) {
@@ -118,7 +157,7 @@ public final class MaterialReader implements ResourceReader<Material> {
             if (opts.fullScaleBias()) {
                 builder.append("$fullscalebias");
             }
-            if (renderParm.streamed) {
+            if (parm.renderParm().streamed) {
                 builder.append("$streamed");
             }
             if (opts.noMips()) {
@@ -131,44 +170,83 @@ public final class MaterialReader implements ResourceReader<Material> {
         }
     }
 
-    private void parseRenderParms(
-        JsonObject parms,
-        Map<ImageTextureMaterialKind, RenderParm> renderParms,
-        Map<ImageTextureMaterialKind, String> filenames,
-        Map<ImageTextureMaterialKind, MaterialImageOpts> options
-    ) throws IOException {
+    private List<Parm> parseRenderLayerParms(JsonObject parms) throws IOException {
+        var renderLayerParms = new ArrayList<Parm>();
         for (var entry : parms.entrySet()) {
-            var renderParm = RenderParmCache.get(entry.getKey());
-            if (renderParm == null) {
-                renderParm = loadRenderParm(entry.getKey());
-                RenderParmCache.put(entry.getKey(), renderParm);
+            var renderParm = getRenderParm(entry.getKey());
+            if (renderParm.isEmpty()) {
+                log.warn("Skipping unknown render layer parm: {}", entry.getKey());
+                continue;
             }
 
-            renderParms.put(renderParm.materialKind, renderParm);
-
-            filenames.put(
-                renderParm.materialKind,
-                entry.getValue().getAsJsonObject()
-                    .get("filePath").getAsString()
-            );
-
-            options.put(
-                renderParm.materialKind,
-                parseOptions(entry.getValue().getAsJsonObject()
-                    .getAsJsonObject("options"))
-            );
+            var tex2d = parseTex2D(entry);
+            renderLayerParms.add(new Parm(entry.getKey(), renderParm.get(), tex2d));
         }
+        return renderLayerParms;
     }
 
-    private RenderParm loadRenderParm(String name) throws IOException {
+    private List<Parm> parseParms(JsonObject parms) throws IOException {
+        var result = new ArrayList<Parm>();
+        parseParm(parms, "surfaceemissivecolor", e -> parseVector3(e).map(MathF::srgbToLinear))
+            .ifPresent(result::add);
+        parseParm(parms, "surfaceemissivescale", e -> e.getAsJsonPrimitive().getAsFloat())
+            .ifPresent(result::add);
+        return result;
+    }
+
+    private Optional<Parm> parseParm(JsonObject parms, String name, Function<JsonElement, Object> parser) throws IOException {
+        if (!parms.has(name)) {
+            return Optional.empty();
+        }
+
+        var renderParm = getRenderParm(name);
+        if (renderParm.isEmpty()) {
+            return Optional.empty();
+        }
+
+        var value = parser.apply(parms.get(name));
+        return Optional.of(new Parm(name, renderParm.get(), value));
+    }
+
+    private Vector3 parseVector3(JsonElement element) {
+        var object = element.getAsJsonObject();
+        var x = object.getAsJsonPrimitive("x") != null ? object.getAsJsonPrimitive("x").getAsFloat() : 1.0f;
+        var y = object.getAsJsonPrimitive("y") != null ? object.getAsJsonPrimitive("y").getAsFloat() : 1.0f;
+        var z = object.getAsJsonPrimitive("z") != null ? object.getAsJsonPrimitive("z").getAsFloat() : 1.0f;
+        return new Vector3(x, y, z);
+    }
+
+    private Optional<RenderParm> getRenderParm(String name) throws IOException {
+        if (RenderParmCache.containsKey(name)) {
+            return Optional.ofNullable(RenderParmCache.get(name));
+        }
+
         var fullName = "generated/decls/renderparm/" + name + ".decl";
-        return archive.loadAsset(ResourceKey.from(fullName, ResourceType.RsStreamFile), RenderParm.class);
+        var resourceKey = ResourceKey.from(fullName, ResourceType.RsStreamFile);
+        if (!archive.exists(resourceKey)) {
+            RenderParmCache.put(fullName, null);
+            return Optional.empty();
+        }
+
+        var renderParm = archive.loadAsset(resourceKey, RenderParm.class);
+        RenderParmCache.put(name, renderParm);
+        return Optional.of(renderParm);
+    }
+
+    private Tex2D parseTex2D(Map.Entry<String, JsonElement> entry) {
+        var filePath = entry.getValue().getAsJsonObject()
+            .get("filePath").getAsString();
+        var options = parseOptions(entry.getValue().getAsJsonObject()
+            .getAsJsonObject("options"));
+
+        return new Tex2D(filePath, options);
     }
 
     private MaterialImageOpts parseOptions(JsonObject options) {
         if (options == null) {
             return null;
         }
+
         var type = ImageTextureType.valueOf(options.get("type").getAsString());
         var filter = ImageTextureFilter.valueOf(options.get("filter").getAsString());
         var repeat = ImageTextureRepeat.valueOf(options.get("repeat").getAsString());
@@ -251,5 +329,18 @@ public final class MaterialReader implements ResourceReader<Material> {
             case TMK_BLENDMASK -> "$mtlkind=blendmask";
             default -> "";
         };
+    }
+
+    private record Parm(
+        String name,
+        RenderParm renderParm,
+        Object value
+    ) {
+    }
+
+    private record Tex2D(
+        String filePath,
+        MaterialImageOpts options
+    ) {
     }
 }
