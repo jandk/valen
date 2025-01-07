@@ -84,6 +84,9 @@ public final class DdsExporter implements TextureExporter {
             case R16_SFLOAT -> DxgiFormat.R16_FLOAT;
             case R16G16_SFLOAT -> DxgiFormat.R16G16_FLOAT;
             case R16G16B16A16_SFLOAT -> DxgiFormat.R16G16B16A16_FLOAT;
+            case R32_SFLOAT -> DxgiFormat.R32_FLOAT;
+            case R32G32_SFLOAT -> DxgiFormat.R32G32_FLOAT;
+            case R32G32B32A32_SFLOAT -> DxgiFormat.R32G32B32A32_FLOAT;
             case BC1_UNORM -> DxgiFormat.BC1_UNORM;
             case BC1_SRGB -> DxgiFormat.BC1_UNORM_SRGB;
             case BC2_UNORM -> DxgiFormat.BC2_UNORM;

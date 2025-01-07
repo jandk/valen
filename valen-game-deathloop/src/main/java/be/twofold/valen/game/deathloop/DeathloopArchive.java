@@ -46,7 +46,7 @@ public final class DeathloopArchive implements Archive {
     @Override
     public List<Asset> assets() {
         return index.entries().stream()
-            .filter(e -> !FILTER.contains(e.typeName()) || e.fileName().endsWith(".bimage"))
+            // .filter(e -> !FILTER.contains(e.typeName()) || e.fileName().endsWith(".bimage"))
             .map(this::mapIndexEntry)
             .toList();
     }
@@ -56,7 +56,7 @@ public final class DeathloopArchive implements Archive {
             mapToAssetID(entry),
             mapAssetType(entry),
             entry.uncompressedLength(),
-            Map.of()
+            Map.of("Type", entry.typeName())
         );
     }
 
@@ -93,6 +93,10 @@ public final class DeathloopArchive implements Archive {
                 uncompressed, 0, uncompressed.length
             );
             bytes = uncompressed;
+        }
+
+        if (clazz == byte[].class) {
+            return (T) bytes;
         }
 
         switch (entry.typeName()) {

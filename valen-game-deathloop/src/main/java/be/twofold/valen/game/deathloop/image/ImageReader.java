@@ -29,7 +29,7 @@ public final class ImageReader {
             var externalLevels = header.levels() - header.embeddedLevels();
             for (int i = 0, w = header.width(), h = header.height(); i < externalLevels; i++, w /= 2, h /= 2) {
                 var mipData = archive.loadAsset(new DeathloopAssetID(entry.fileName() + "_mip" + i), byte[].class);
-                var surface = new Surface(w, h, format, mipData);
+                var surface = new Surface(w, h, mipData);
                 surfaces.add(surface);
             }
         }
@@ -40,7 +40,7 @@ public final class ImageReader {
             for (int slice = 0; slice < depth; slice++) {
                 var sliceHeader = ImageMipHeader.read(source);
                 var sliceData = source.readBytes(sliceHeader.dataSize());
-                var surface = new Surface(width, height, format, sliceData);
+                var surface = new Surface(width, height, sliceData);
                 surfaces.add(surface);
             }
             width /= 2;
@@ -48,7 +48,7 @@ public final class ImageReader {
         }
         source.expectEnd();
 
-        return new Texture(header.width(), header.height(), format, surfaces, false);
+        return new Texture(header.width(), header.height(), format, false, surfaces, 1.0f, 0.0f);
     }
 
     private TextureFormat mapFormat(ImageTextureFormat textureFormat) {
