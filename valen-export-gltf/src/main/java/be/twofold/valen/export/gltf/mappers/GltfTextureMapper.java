@@ -52,27 +52,19 @@ public final class GltfTextureMapper {
     }
 
     private TextureIDAndFactor map(TextureReference reference, Texture texture, Vector4 factor) throws IOException {
-        ImageSchema imageSchema;
-        var buffer = textureToPng(texture);
-        if (exportPath == null) {
-            var bufferViewID = context.createBufferView(buffer);
-
-            imageSchema = ImageSchema.builder()
-                .name(reference.name())
-                .mimeType(ImageMimeType.IMAGE_PNG)
-                .bufferView(bufferViewID)
-                .build();
-        } else {
-            var filename = Filenames.removeExtension(reference.filename()) + ".png";
-            var exportFile = exportPath.resolve(filename);
-
-            imageSchema = ImageSchema.builder()
-                .uri(exportPath.toUri())
-                .build();
+        var existingSchema = textures.get(reference.name());
+        if (existingSchema != null) {
+            return existingSchema;
         }
-        var imageID = context.addImage(imageSchema);
 
-        var textureSchema = TextureSchema.builder()
+        var imageID = context.createImage(
+            textureToPng(texture),
+            reference.name(),
+            reference.filename(),
+            ImageMimeType.IMAGE_PNG
+        );
+
+        var textureSchema = ImmutableTexture.builder()
             .name(reference.name())
             .source(imageID)
             .build();

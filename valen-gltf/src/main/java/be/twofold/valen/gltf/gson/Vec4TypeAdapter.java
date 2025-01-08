@@ -6,7 +6,7 @@ import com.google.gson.stream.*;
 
 import java.io.*;
 
-public final class Vec4TypeAdapter extends TypeAdapter<Vec4> {
+final class Vec4TypeAdapter extends TypeAdapter<Vec4> {
     @Override
     public void write(JsonWriter out, Vec4 value) throws IOException {
         out.beginArray();

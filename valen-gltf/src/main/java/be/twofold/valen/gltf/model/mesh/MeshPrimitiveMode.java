@@ -2,7 +2,7 @@ package be.twofold.valen.gltf.model.mesh;
 
 import be.twofold.valen.gltf.model.*;
 
-public enum MeshPrimitiveMode implements ValueEnum<Integer> {
+public enum MeshPrimitiveMode implements SerializableEnum<Integer> {
     POINTS(0),
     LINES(1),
     LINE_LOOP(2),
@@ -19,6 +19,6 @@ public enum MeshPrimitiveMode implements ValueEnum<Integer> {
 
     @Override
     public Integer value() {
-        return value;
+        return 0;
     }
 }

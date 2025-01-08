@@ -5,7 +5,7 @@ import com.google.gson.*;
 import java.lang.reflect.*;
 import java.util.*;
 
-public final class MapSerializer implements JsonSerializer<Map<?, ?>> {
+final class MapSerializer implements JsonSerializer<Map<?, ?>> {
     @Override
     public JsonElement serialize(Map<?, ?> src, Type typeOfSrc, JsonSerializationContext context) {
         if (src == null || src.isEmpty()) {

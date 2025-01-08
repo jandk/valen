@@ -6,6 +6,7 @@ import be.twofold.valen.export.gltf.mappers.*;
 import be.twofold.valen.gltf.*;
 
 import java.io.*;
+import java.nio.file.*;
 import java.util.*;
 
 public final class GlbModelExporter implements Exporter<Model> {
@@ -24,11 +25,16 @@ public final class GlbModelExporter implements Exporter<Model> {
 
     @Override
     public void export(Model model, OutputStream out) throws IOException {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void export(Model model, Path path) throws IOException {
         var rootNodeID = modelMapper.map(model);
 
         context.addScene(List.of(rootNodeID));
 
-        var writer = new GlbWriter(context);
-        writer.write(out);
+        var writer = new GltfWriter(context);
+        writer.write(path);
     }
 }

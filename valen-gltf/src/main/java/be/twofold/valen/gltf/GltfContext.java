@@ -5,6 +5,7 @@ import be.twofold.valen.gltf.model.accessor.*;
 import be.twofold.valen.gltf.model.animation.*;
 import be.twofold.valen.gltf.model.asset.*;
 import be.twofold.valen.gltf.model.buffer.*;
+import be.twofold.valen.gltf.model.bufferview.*;
 import be.twofold.valen.gltf.model.camera.*;
 import be.twofold.valen.gltf.model.extension.*;
 import be.twofold.valen.gltf.model.image.*;
@@ -16,14 +17,17 @@ import be.twofold.valen.gltf.model.scene.*;
 import be.twofold.valen.gltf.model.skin.*;
 import be.twofold.valen.gltf.model.texture.*;
 
+import java.io.*;
 import java.net.*;
 import java.nio.*;
+import java.nio.charset.*;
+import java.nio.file.*;
 import java.util.*;
 
 public final class GltfContext {
-    private final Map<String, Extension> extensions = new TreeMap<>();
-    private final Set<String> extensionsUsed = new TreeSet<>();
-    private final Set<String> extensionsRequired = new TreeSet<>();
+    private final Map<String, Extension> extensions = new HashMap<>();
+    private final Set<String> extensionsRequired = new HashSet<>();
+    private final Set<String> extensionsUsed = new HashSet<>();
     private final List<AccessorSchema> accessors = new ArrayList<>();
     private final List<AnimationSchema> animations = new ArrayList<>();
     private final List<BufferSchema> buffers = new ArrayList<>();
@@ -38,82 +42,17 @@ public final class GltfContext {
     private final List<SkinSchema> skins = new ArrayList<>();
     private final List<TextureSchema> textures = new ArrayList<>();
 
-    private final List<Buffer> binaryBuffers = new ArrayList<>();
-    private int binaryBufferSize = 0;
+    private final List<NodeID> sceneNodes = new ArrayList<>();
 
-    // region Getters
+    private final BufferManager bufferManager;
+    private final JsonWriter jsonWriter;
 
-    public List<AccessorSchema> getAccessors() {
-        return Collections.unmodifiableList(accessors);
+    public GltfContext() {
+        bufferManager = BufferManager.create();
+        jsonWriter = JsonWriter.create();
     }
-
-    public List<AnimationSchema> getAnimations() {
-        return Collections.unmodifiableList(animations);
-    }
-
-    public List<BufferSchema> getBuffers() {
-        return Collections.unmodifiableList(buffers);
-    }
-
-    public List<BufferViewSchema> getBufferViews() {
-        return Collections.unmodifiableList(bufferViews);
-    }
-
-    public List<CameraSchema> getCameras() {
-        return Collections.unmodifiableList(cameras);
-    }
-
-    public List<ImageSchema> getImages() {
-        return Collections.unmodifiableList(images);
-    }
-
-    public List<MaterialSchema> getMaterials() {
-        return Collections.unmodifiableList(materials);
-    }
-
-    public List<MeshSchema> getMeshes() {
-        return Collections.unmodifiableList(meshes);
-    }
-
-    public List<NodeSchema> getNodes() {
-        return Collections.unmodifiableList(nodes);
-    }
-
-    public List<SamplerSchema> getSamplers() {
-        return Collections.unmodifiableList(samplers);
-    }
-
-    public List<SceneSchema> getScenes() {
-        return Collections.unmodifiableList(scenes);
-    }
-
-    public List<SkinSchema> getSkins() {
-        return Collections.unmodifiableList(skins);
-    }
-
-    public List<TextureSchema> getTextures() {
-        return Collections.unmodifiableList(textures);
-    }
-
-    public List<Buffer> getBinaryBuffers() {
-        return Collections.unmodifiableList(binaryBuffers);
-    }
-
-    // endregion
 
     // region Adders
-
-    public void registerExtension(Extension extension) {
-        extensionsUsed.add(extension.getName());
-        if (extension.isRequired()) {
-            extensionsRequired.add(extension.getName());
-        }
-    }
-
-    public void registerExtensions(GltfProperty property) {
-        property.getExtensions().values()
-            .forEach(this::registerExtension);
-    }
 
     public void addExtension(Extension extension) {
         extensions.put(extension.getName(), extension);
@@ -127,8 +66,8 @@ public final class GltfContext {
     }
 
     public void addAnimation(AnimationSchema animation) {
-        registerExtensions(animation);
         animations.add(animation);
+        registerExtensions(animation);
     }
 
     public BufferID addBuffer(BufferSchema buffer) {
@@ -188,6 +127,7 @@ public final class GltfContext {
     public SkinID addSkin(SkinSchema skin) {
         skins.add(skin);
         registerExtensions(skin);
+        skin.getSkeleton().ifPresent(sceneNodes::add);
         return SkinID.of(skins.size() - 1);
     }
 
@@ -197,48 +137,40 @@ public final class GltfContext {
         return TextureID.of(textures.size() - 1);
     }
 
+    public void registerExtension(Extension extension) {
+        extensionsUsed.add(extension.getName());
+        if (extension.isRequired()) {
+            extensionsRequired.add(extension.getName());
+        }
+    }
+
+    private void registerExtensions(GltfProperty property) {
+        property.getExtensions().values()
+            .forEach(this::registerExtension);
+    }
+
     // endregion
 
     public void addScene(List<NodeID> nodes) {
-        var skinNodes = skins.stream()
-            .flatMap(skin -> skin.getSkeleton().stream())
-            .toList();
-
-        scenes.add(SceneSchema.builder()
+        var scene = ImmutableScene.builder()
             .addAllNodes(nodes)
-            .addAllNodes(skinNodes)
-            .build());
-    }
-
-    public BufferViewID createBufferView(Buffer buffer) {
-        return createBufferView(buffer, null);
-    }
-
-    public BufferViewID createBufferView(Buffer buffer, BufferViewTarget target) {
-        var bufferView = BufferViewSchema.builder()
-            .buffer(BufferID.of(0))
-            .byteLength(size(buffer))
-            .byteOffset(binaryBufferSize)
-            .target(Optional.ofNullable(target))
+            .addAllNodes(sceneNodes)
             .build();
 
-        binaryBuffers.add(buffer);
-        binaryBufferSize = GltfUtils.alignedLength(binaryBufferSize + size(buffer));
-
-        return addBufferView(bufferView);
+        addScene(scene);
     }
 
     public GltfSchema buildGltf() {
-        var asset = AssetSchema.builder()
+        var asset = ImmutableAsset.builder()
             .version("2.0")
             .generator("Valen")
             .build();
 
-        return GltfSchema.builder()
+        return ImmutableGltf.builder()
             .asset(asset)
-            .extensions(extensions)
-            .extensionsUsed(extensionsUsed)
             .extensionsRequired(extensionsRequired)
+            .extensionsUsed(extensionsUsed)
+            .extensions(extensions)
             .accessors(accessors)
             .animations(animations)
             .buffers(buffers)
@@ -259,24 +191,77 @@ public final class GltfContext {
         return NodeID.of(nodes.size());
     }
 
-    public int updateBufferViews(URI uri) {
-        buffers.clear();
-        addBuffer(BufferSchema.builder()
-            .byteLength(binaryBufferSize)
-            .uri(Optional.ofNullable(uri))
+    // region BufferManager proxies
+
+    public ImageID createImage(ByteBuffer buffer, String name, String filename, ImageMimeType mimeType) throws IOException {
+        var builder = ImmutableImage.builder()
+            .name(name)
+            .mimeType(mimeType);
+
+        var offsetLength = bufferManager.addImageBuffer(buffer, filename);
+        if (offsetLength != null) {
+            var bufferViewID = createBufferView(offsetLength, null);
+            return addImage(ImmutableImage.builder()
+                .bufferView(bufferViewID)
+                .build());
+        }
+
+        return addImage(builder
+            .uri(Path.of(filename).toUri())
             .build());
-        return binaryBufferSize;
     }
 
-    private int size(Buffer buffer) {
-        return switch (buffer) {
-            case ByteBuffer bb -> bb.limit();
-            case ShortBuffer sb -> sb.limit() * Short.BYTES;
-            case IntBuffer ib -> ib.limit() * Integer.BYTES;
-            case LongBuffer lb -> lb.limit() * Long.BYTES;
-            case FloatBuffer fb -> fb.limit() * Float.BYTES;
-            case DoubleBuffer db -> db.limit() * Double.BYTES;
-            case CharBuffer cb -> cb.limit() * Character.BYTES;
-        };
+    public BufferViewID createBufferView(Buffer buffer, BufferViewTarget target) throws IOException {
+        var offsetLength = bufferManager.addBuffer(buffer);
+        return createBufferView(offsetLength, target);
+    }
+
+    private BufferViewID createBufferView(OffsetLength offsetLength, BufferViewTarget target) {
+        var bufferView = ImmutableBufferView.builder()
+            .buffer(BufferID.ZERO)
+            .byteOffset(offsetLength.length)
+            .byteLength(offsetLength.offset)
+            .target(Optional.ofNullable(target))
+            .build();
+
+        return addBufferView(bufferView);
+    }
+
+    public void finalizeBuffers(URI uri) {
+        var buffer = ImmutableBuffer.builder()
+            .byteLength(bufferManager.totalLength())
+            .uri(Optional.ofNullable(uri))
+            .build();
+
+        addBuffer(buffer);
+    }
+
+    public int buffersLength() {
+        return bufferManager.totalLength();
+    }
+
+    public void writeBuffers(OutputStream out) throws IOException {
+        bufferManager.write(out);
+    }
+
+    // endregion
+
+
+    byte[] toRawJson() throws IOException {
+        try (var baos = new ByteArrayOutputStream();
+             var writer = new OutputStreamWriter(baos, StandardCharsets.UTF_8)) {
+            jsonWriter.writeJson(buildGltf(), writer, false);
+            return baos.toByteArray();
+        }
+    }
+
+    static final class OffsetLength {
+        private final int offset;
+        private final int length;
+
+        OffsetLength(int offset, int length) {
+            this.offset = offset;
+            this.length = length;
+        }
     }
 }

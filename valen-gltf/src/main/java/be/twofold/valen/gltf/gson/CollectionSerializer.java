@@ -5,7 +5,7 @@ import com.google.gson.*;
 import java.lang.reflect.*;
 import java.util.*;
 
-public final class CollectionSerializer implements JsonSerializer<Collection<?>> {
+final class CollectionSerializer implements JsonSerializer<Collection<?>> {
     @Override
     public JsonElement serialize(Collection<?> src, Type typeOfSrc, JsonSerializationContext context) {
         if (src == null || src.isEmpty()) {

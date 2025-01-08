@@ -2,7 +2,7 @@ package be.twofold.valen.gltf.model.accessor;
 
 import be.twofold.valen.gltf.model.*;
 
-public enum AccessorComponentType implements ValueEnum<Integer> {
+public enum AccessorComponentType implements SerializableEnum<Integer> {
     BYTE(5120, 1),
     UNSIGNED_BYTE(5121, 1),
     SHORT(5122, 2),

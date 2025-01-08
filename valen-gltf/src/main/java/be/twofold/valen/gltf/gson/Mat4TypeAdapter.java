@@ -6,7 +6,7 @@ import com.google.gson.stream.*;
 
 import java.io.*;
 
-public final class Mat4TypeAdapter extends TypeAdapter<Mat4> {
+final class Mat4TypeAdapter extends TypeAdapter<Mat4> {
     @Override
     public void write(JsonWriter out, Mat4 value) throws IOException {
         out.beginArray();

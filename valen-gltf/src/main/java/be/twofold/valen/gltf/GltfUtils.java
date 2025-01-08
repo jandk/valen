@@ -16,4 +16,5 @@ final class GltfUtils {
             output.write(pad);
         }
     }
+
 }

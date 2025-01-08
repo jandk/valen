@@ -2,7 +2,7 @@ package be.twofold.valen.gltf.model.animation;
 
 import be.twofold.valen.gltf.model.*;
 
-public enum AnimationChannelTargetPath implements ValueEnum<String> {
+public enum AnimationChannelTargetPath implements SerializableEnum<String> {
     TRANSLATION("translation"),
     ROTATION("rotation"),
     SCALE("scale"),

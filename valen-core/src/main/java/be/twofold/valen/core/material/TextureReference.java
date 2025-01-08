@@ -19,7 +19,7 @@ public record TextureReference(
     @Override
     public String toString() {
         return "TextureReference(" +
-            "name=" + name +
-            ")";
+            "name=" + name + ", " +
+            "filename=" + filename + ")";
     }
 }

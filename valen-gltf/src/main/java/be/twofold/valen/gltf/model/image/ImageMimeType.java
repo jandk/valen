@@ -2,7 +2,7 @@ package be.twofold.valen.gltf.model.image;
 
 import be.twofold.valen.gltf.model.*;
 
-public enum ImageMimeType implements ValueEnum<String> {
+public enum ImageMimeType implements SerializableEnum<String> {
     IMAGE_JPEG("image/jpeg"),
     IMAGE_PNG("image/png");
 

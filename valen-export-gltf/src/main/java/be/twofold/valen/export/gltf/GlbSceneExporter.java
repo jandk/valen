@@ -9,6 +9,7 @@ import be.twofold.valen.gltf.model.mesh.*;
 import be.twofold.valen.gltf.model.node.*;
 
 import java.io.*;
+import java.nio.file.*;
 import java.util.*;
 
 public final class GlbSceneExporter implements Exporter<Scene> {
@@ -26,7 +27,7 @@ public final class GlbSceneExporter implements Exporter<Scene> {
     }
 
     @Override
-    public void export(Scene scene, OutputStream out) throws IOException {
+    public void export(Scene scene, Path path) throws IOException {
         var instanceNodes = new ArrayList<NodeID>();
         for (var instance : scene.instances()) {
             modelMapper.map(instance.modelReference())
@@ -35,12 +36,17 @@ public final class GlbSceneExporter implements Exporter<Scene> {
 
         context.addScene(instanceNodes);
 
-        var writer = new GlbWriter(context);
-        writer.write(out);
+        var writer = new GltfWriter(context);
+        writer.write(path);
+    }
+
+    @Override
+    public void export(Scene scene, OutputStream out) throws IOException {
+        throw new UnsupportedOperationException("Cannot export a scene to a stream for now");
     }
 
     private NodeID mapInstance(Instance instance, MeshID meshID) {
-        return context.addNode(NodeSchema.builder()
+        return context.addNode(ImmutableNode.builder()
             .name(Optional.ofNullable(instance.name()))
             .translation(GltfUtils.mapVector3(instance.translation()))
             .rotation(GltfUtils.mapQuaternion(instance.rotation()))
