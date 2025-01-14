@@ -18,6 +18,7 @@
         <module>valen-game-eternal</module>
         <module>valen-gltf</module>
         <module>valen-ui</module>
+        <module>valen-game-fear</module>
     </modules>
 
     <properties>
