@@ -42,6 +42,10 @@
         </dependency>
         <dependency>
             <groupId>be.twofold</groupId>
+            <artifactId>valen-game-fear</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>be.twofold</groupId>
             <artifactId>valen-ui</artifactId>
         </dependency>
 

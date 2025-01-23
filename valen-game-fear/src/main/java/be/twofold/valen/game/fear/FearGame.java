@@ -25,7 +25,7 @@ public final class FearGame implements Game {
     }
 
     @Override
-    public Archive loadArchive(String name) throws IOException {
+    public FearArchive loadArchive(String name) throws IOException {
         return new FearArchive(base.resolve(name + ".Arch00"));
     }
 }
