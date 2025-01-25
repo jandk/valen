@@ -15,7 +15,7 @@ public final class GltfModelSingleMapper extends GltfModelMapper {
     private final Map<String, MeshID> models = new HashMap<>();
 
     public GltfModelSingleMapper(GltfContext context, Path exportPath) {
-        super(context, exportPath);
+        super(context);
     }
 
     public Optional<MeshID> map(ModelReference modelReference) throws IOException {
@@ -46,9 +46,9 @@ public final class GltfModelSingleMapper extends GltfModelMapper {
             primitiveSchemas.add(mapMeshPrimitive(mesh));
         }
 
-        var meshSchema = MeshSchema.builder()
-            .name(model.nameOpt())
-            .addAllPrimitives(primitiveSchemas)
+        var meshSchema = ImmutableMesh.builder()
+            .name(Optional.ofNullable(model.name()))
+            .primitives(primitiveSchemas)
             .build();
         return context.addMesh(meshSchema);
     }

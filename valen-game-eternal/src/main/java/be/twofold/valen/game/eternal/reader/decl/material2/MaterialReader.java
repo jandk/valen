@@ -206,16 +206,18 @@ public final class MaterialReader implements ResourceReader<Material> {
         }
         mapOptions(builder, parm);
 
-        var filename = builder.toString();
-        var resourceName = new ResourceName(filename);
+        var name = builder.toString();
+        var resourceName = new ResourceName(name);
         var resourceKey = ResourceKey.from(resourceName, ResourceType.Image);
         if (!archive.exists(resourceKey)) {
-            log.warn("Missing image file: {}", filename);
+            log.warn("Missing image file: {}", name);
             return null;
         }
 
         var supplier = ThrowingSupplier.lazy(() -> archive.loadAsset(resourceKey, Texture.class));
-        return new TextureReference(filename, Filenames.fileName(filePath), supplier);
+        var rawHash = (Long) archive.getAsset(resourceKey).properties().get("hash");
+        var hash = String.format("%016x", rawHash);
+        return new TextureReference(name, Filenames.fileNameWithoutExtension(filePath) + "_" + hash, supplier);
     }
 
     private void mapOptions(StringBuilder builder, Parm parm) {
