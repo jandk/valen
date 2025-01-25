@@ -5,7 +5,6 @@ import be.twofold.valen.core.geometry.*;
 import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.scene.*;
 import be.twofold.valen.core.util.*;
-import be.twofold.valen.core.util.fi.*;
 import be.twofold.valen.game.eternal.*;
 import be.twofold.valen.game.eternal.reader.*;
 import be.twofold.valen.game.eternal.resource.*;

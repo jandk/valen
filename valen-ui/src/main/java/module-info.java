@@ -9,5 +9,6 @@ module valen.ui {
 
     exports be.twofold.valen.ui;
 
-    opens be.twofold.valen.ui.settings to com.google.gson;
+    opens be.twofold.valen.ui.common.settings to com.google.gson;
+    exports be.twofold.valen.ui.common;
 }

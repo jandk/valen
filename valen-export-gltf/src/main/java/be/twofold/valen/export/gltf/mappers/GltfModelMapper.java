@@ -2,12 +2,11 @@ package be.twofold.valen.export.gltf.mappers;
 
 import be.twofold.valen.core.geometry.*;
 import be.twofold.valen.core.math.*;
-import be.twofold.valen.gltf.*;
-import be.twofold.valen.gltf.model.accessor.*;
-import be.twofold.valen.gltf.model.buffer.*;
-import be.twofold.valen.gltf.model.material.*;
-import be.twofold.valen.gltf.model.mesh.*;
-import com.google.gson.*;
+import be.twofold.valen.format.gltf.*;
+import be.twofold.valen.format.gltf.model.accessor.*;
+import be.twofold.valen.format.gltf.model.bufferview.*;
+import be.twofold.valen.format.gltf.model.material.*;
+import be.twofold.valen.format.gltf.model.mesh.*;
 
 import java.io.*;
 import java.nio.*;
@@ -24,53 +23,53 @@ public abstract class GltfModelMapper {
 
     MeshPrimitiveSchema mapMeshPrimitive(Mesh mesh) throws IOException {
         // Add the material
-        MaterialID materialID = mesh.material() != null
-            ? materialMapper.map(mesh.material())
-            : null;
+        var materialID = (MaterialID) null;
+        if (mesh.materialOpt().isPresent()) {
+            materialID = materialMapper.map(mesh.materialOpt().get());
+        }
 
         // Have to fix up the joints and weights first
         fixJointsAndWeights(mesh);
 
-        var attributes = new JsonObject();
+        Map<String, AccessorID> attributes = new HashMap<>();
         for (var entry : mesh.vertexBuffers().entrySet()) {
             if (entry.getKey() instanceof Semantic.Color) {
                 // TODO: Make Blender ignore vertex colors
                 continue;
             }
             var semantic = mapSemantic(entry.getKey());
-            var accessor = buildAccessor(entry.getValue(), entry.getKey());
-            attributes.addProperty(semantic, accessor.id());
+            var accessorID = buildAccessor(entry.getValue(), entry.getKey());
+            attributes.put(semantic, accessorID);
         }
 
         var faceAccessor = buildAccessor(mesh.faceBuffer(), null);
-        return MeshPrimitiveSchema.builder()
+        return ImmutableMeshPrimitive.builder()
             .attributes(attributes)
             .indices(faceAccessor)
             .material(Optional.ofNullable(materialID))
             .build();
     }
 
-    private AccessorID buildAccessor(VertexBuffer buffer, Semantic semantic) {
+    private AccessorID buildAccessor(VertexBuffer buffer, Semantic semantic) throws IOException {
         var target = semantic == null
             ? BufferViewTarget.ELEMENT_ARRAY_BUFFER
             : BufferViewTarget.ARRAY_BUFFER;
 
         var bufferView = context.createBufferView(buffer.buffer(), target);
 
-        var bounds = semantic == Semantic.Position
-            ? Bounds.calculate(((FloatBuffer) buffer.buffer()))
-            : null;
-
-        var accessor = AccessorSchema.builder()
+        var accessor = ImmutableAccessor.builder()
             .bufferView(bufferView)
             .componentType(mapComponentType(buffer.componentType()))
             .count(buffer.count())
             .type(GltfModelMapper.mapElementType(buffer.elementType()));
 
-        if (bounds != null) {
-            accessor.min(GltfUtils.mapVector3(bounds.min()));
-            accessor.max(GltfUtils.mapVector3(bounds.max()));
+        if (semantic == Semantic.Position) {
+            var bounds = Bounds.calculate((FloatBuffer) buffer.buffer());
+            accessor
+                .min(GltfUtils.mapVector3(bounds.min()))
+                .max(GltfUtils.mapVector3(bounds.max()));
         }
+
         if (buffer.normalized()) {
             accessor.normalized(true);
         }

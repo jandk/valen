@@ -1,7 +1,7 @@
 package be.twofold.valen.export.gltf.mappers;
 
 import be.twofold.valen.core.math.*;
-import be.twofold.valen.gltf.types.*;
+import be.twofold.valen.format.gltf.types.*;
 
 public final class GltfUtils {
     private GltfUtils() {

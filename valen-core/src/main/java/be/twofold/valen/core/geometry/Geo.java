@@ -34,7 +34,7 @@ public final class Geo {
         }
 
         source.seek(startPos);
-        return new Mesh(null, faceBuffer, vertexBuffers, null);
+        return new Mesh(faceBuffer, vertexBuffers);
     }
 
     private void invertFaces(Buffer buffer) {

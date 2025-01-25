@@ -1,8 +1,8 @@
 package be.twofold.valen.ui;
 
-import be.twofold.valen.ui.event.*;
-import be.twofold.valen.ui.viewer.*;
-import be.twofold.valen.ui.window.*;
+import be.twofold.valen.ui.common.event.*;
+import be.twofold.valen.ui.component.*;
+import be.twofold.valen.ui.component.main.*;
 import dagger.*;
 import jakarta.inject.*;
 

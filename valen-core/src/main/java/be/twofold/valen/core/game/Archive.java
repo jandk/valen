@@ -9,6 +9,8 @@ public interface Archive {
 
     boolean exists(AssetID identifier);
 
+    Asset getAsset(AssetID identifier);
+
     <T> T loadAsset(AssetID identifier, Class<T> clazz) throws IOException;
 
 }

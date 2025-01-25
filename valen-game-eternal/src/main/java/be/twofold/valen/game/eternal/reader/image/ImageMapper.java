@@ -15,7 +15,7 @@ public final class ImageMapper {
         float scale = image.header().albedoSpecularScale();
         float bias = image.header().albedoSpecularBias();
 
-        return new Texture(width, height, format, surfaces, isCubeMap, scale, bias);
+        return new Texture(width, height, format, isCubeMap, surfaces, scale, bias);
     }
 
     private List<Surface> convertMipMaps(Image image) {
@@ -30,7 +30,6 @@ public final class ImageMapper {
                 surfaces.add(new Surface(
                     image.mipInfos().get(mipIndex).mipPixelWidth(),
                     image.mipInfos().get(mipIndex).mipPixelHeight(),
-                    toImageFormat(image.header().textureFormat()),
                     image.mipData()[mipIndex]
                 ));
             }
