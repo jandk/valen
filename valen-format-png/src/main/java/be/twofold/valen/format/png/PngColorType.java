@@ -1,4 +1,4 @@
-package be.twofold.valen.export.png;
+package be.twofold.valen.format.png;
 
 public enum PngColorType {
     Gray(0, 1),

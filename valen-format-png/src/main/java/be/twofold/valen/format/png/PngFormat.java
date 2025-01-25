@@ -1,6 +1,6 @@
-package be.twofold.valen.export.png;
+package be.twofold.valen.format.png;
 
-import be.twofold.valen.core.util.*;
+import java.util.*;
 
 public record PngFormat(
     int width,
@@ -18,7 +18,7 @@ public record PngFormat(
     }
 
     public PngFormat {
-        Check.notNull(colorType, "colorType is null");
+        Objects.requireNonNull(colorType, "colorType is null");
         if (width <= 0) {
             throw new IllegalArgumentException("width must be greater than 0");
         }

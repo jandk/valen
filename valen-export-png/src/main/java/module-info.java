@@ -1,6 +1,7 @@
 module valen.export.png {
-    requires valen.core;
     requires org.slf4j;
+    requires valen.core;
+    requires valen.format.png;
 
     exports be.twofold.valen.export.png
         to valen.export.gltf;

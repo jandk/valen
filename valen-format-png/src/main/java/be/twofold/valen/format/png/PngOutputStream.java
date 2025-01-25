@@ -1,10 +1,8 @@
-package be.twofold.valen.export.png;
-
-import be.twofold.valen.core.util.*;
-import org.slf4j.*;
+package be.twofold.valen.format.png;
 
 import java.io.*;
 import java.nio.*;
+import java.util.*;
 import java.util.zip.*;
 
 /**
@@ -13,9 +11,7 @@ import java.util.zip.*;
  * <p>
  * So here we are. Good thing it's not that hard to write a PNG file.
  */
-final class PngOutputStream implements Closeable {
-    private static final Logger log = LoggerFactory.getLogger(PngOutputStream.class);
-
+public final class PngOutputStream implements Closeable {
     private static final byte[] Magic = new byte[]{(byte) 0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a};
     private static final int IHDR = 0x49484452;
     private static final int PLTE = 0x504c5445;
@@ -27,7 +23,7 @@ final class PngOutputStream implements Closeable {
 
     // Filtering
     private final byte[][] filtered;
-    private final int[] filterCounts = new int[5];
+    // private final int[] filterCounts = new int[5];
     private byte[] previous;
     private byte[] current;
 
@@ -36,9 +32,9 @@ final class PngOutputStream implements Closeable {
     private final byte[] idatBuffer = new byte[32 * 1024];
     private int idatLength = 0;
 
-    PngOutputStream(OutputStream output, PngFormat format) {
-        this.output = Check.notNull(output, "output is null");
-        this.format = Check.notNull(format, "format is null");
+    public PngOutputStream(OutputStream output, PngFormat format) {
+        this.output = Objects.requireNonNull(output, "output is null");
+        this.format = Objects.requireNonNull(format, "format is null");
         this.filtered = new byte[5][format.bytesPerPixel() + format.bytesPerRow()];
         this.previous = new byte[format.bytesPerPixel() + format.bytesPerRow()];
         this.current = new byte[format.bytesPerPixel() + format.bytesPerRow()];
@@ -51,7 +47,7 @@ final class PngOutputStream implements Closeable {
         }
     }
 
-    void writeImage(byte[] image) throws IOException {
+    public void writeImage(byte[] image) throws IOException {
         if (image.length != format.bytesPerImage()) {
             throw new IllegalArgumentException("image has wrong size, expected " + format.bytesPerImage() + " but was " + image.length);
         }
@@ -59,8 +55,8 @@ final class PngOutputStream implements Closeable {
             writeRow(image, y * format.bytesPerRow());
         }
 
-        log.debug("Filter counts - None: {}, Sub: {}, Up: {}, Average: {}, Paeth: {}",
-            filterCounts[0], filterCounts[1], filterCounts[2], filterCounts[3], filterCounts[4]);
+        // log.debug("Filter counts - None: {}, Sub: {}, Up: {}, Average: {}, Paeth: {}",
+        //     filterCounts[0], filterCounts[1], filterCounts[2], filterCounts[3], filterCounts[4]);
 
         flush();
     }
@@ -70,7 +66,7 @@ final class PngOutputStream implements Closeable {
             throw new IllegalArgumentException("image has wrong size, expected at least " + (offset + format.bytesPerRow()) + " but was " + image.length);
         }
         int filterMethod = filter(image, offset);
-        filterCounts[filterMethod]++;
+        // filterCounts[filterMethod]++;
         deflate(new byte[]{(byte) filterMethod}, 0, 1);
         deflate(filtered[filterMethod], format.bytesPerPixel(), format.bytesPerRow());
     }

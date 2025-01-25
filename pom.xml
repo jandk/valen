@@ -15,6 +15,7 @@
         <module>valen-export-gltf</module>
         <module>valen-export-png</module>
         <module>valen-format-gltf</module>
+        <module>valen-format-png</module>
         <module>valen-game-eternal</module>
         <module>valen-ui</module>
     </modules>
@@ -114,6 +115,11 @@
             <dependency>
                 <groupId>be.twofold</groupId>
                 <artifactId>valen-format-gltf</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>be.twofold</groupId>
+                <artifactId>valen-format-png</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
