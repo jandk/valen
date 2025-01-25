@@ -76,17 +76,26 @@ public final class EternalArchive implements Archive {
     }
 
     @Override
-    public boolean exists(AssetID id) {
-        return resources.get((ResourceKey) id)
-            .or(() -> common.get((ResourceKey) id))
+    public boolean exists(AssetID identifier) {
+        return resources.get((ResourceKey) identifier)
+            .or(() -> common.get((ResourceKey) identifier))
             .isPresent();
     }
 
     @Override
-    public <T> T loadAsset(AssetID id, Class<T> clazz) throws IOException {
-        var resource = resources.get((ResourceKey) id)
-            .or(() -> common.get((ResourceKey) id))
-            .orElseThrow(() -> new IllegalArgumentException("Resource not found: " + id));
+    public Asset getAsset(AssetID identifier) {
+        var resource = resources.get((ResourceKey) identifier)
+            .or(() -> common.get((ResourceKey) identifier))
+            .orElseThrow(() -> new IllegalArgumentException("Resource not found: " + identifier));
+
+        return toAsset(resource);
+    }
+
+    @Override
+    public <T> T loadAsset(AssetID identifier, Class<T> clazz) throws IOException {
+        var resource = resources.get((ResourceKey) identifier)
+            .or(() -> common.get((ResourceKey) identifier))
+            .orElseThrow(() -> new IllegalArgumentException("Resource not found: " + identifier));
 
         byte[] bytes;
         if (resources.get(resource.key()).isPresent()) {
