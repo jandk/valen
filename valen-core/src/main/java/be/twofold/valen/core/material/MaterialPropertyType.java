@@ -7,4 +7,5 @@ public enum MaterialPropertyType {
     Specular,
     Smoothness,
     Emissive,
+    Occlusion
 }

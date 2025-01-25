@@ -29,6 +29,10 @@ public record ResourceKey(
     ));
 
     public static ResourceKey from(String name, ResourceType type) {
+        return from(new ResourceName(name), type);
+    }
+
+    public static ResourceKey from(ResourceName name, ResourceType type) {
         var variations = Variations
             .getOrDefault(type, Set.of(ResourceVariation.None));
 
@@ -37,7 +41,7 @@ public record ResourceKey(
         }
 
         return new ResourceKey(
-            new ResourceName(name),
+            name,
             type,
             variations.iterator().next()
         );

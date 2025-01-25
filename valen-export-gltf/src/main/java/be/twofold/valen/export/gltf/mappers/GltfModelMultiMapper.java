@@ -1,9 +1,9 @@
 package be.twofold.valen.export.gltf.mappers;
 
 import be.twofold.valen.core.geometry.*;
-import be.twofold.valen.gltf.*;
-import be.twofold.valen.gltf.model.mesh.*;
-import be.twofold.valen.gltf.model.node.*;
+import be.twofold.valen.format.gltf.*;
+import be.twofold.valen.format.gltf.model.mesh.*;
+import be.twofold.valen.format.gltf.model.node.*;
 
 import java.io.*;
 import java.util.*;
@@ -36,30 +36,30 @@ public final class GltfModelMultiMapper extends GltfModelMapper {
             .map(context::addMesh)
             .toList();
 
-        var nodeIDs = model.skeleton() == null
-            ? mapStaticModel(meshIDs)
-            : mapAnimatedModel(meshIDs, model.skeleton());
+        var nodeIDs = model.skeleton() != null
+            ? mapAnimatedModel(meshIDs, model.skeleton())
+            : mapStaticModel(meshIDs);
 
         return context.addNode(
-            NodeSchema.builder()
+            ImmutableNode.builder()
                 .name(Optional.ofNullable(model.name()))
-                .addAllChildren(nodeIDs)
+                .children(nodeIDs)
                 .build());
     }
 
     private List<NodeID> mapStaticModel(List<MeshID> meshIDs) {
         return meshIDs.stream()
-            .map(meshID -> context.addNode(NodeSchema.builder()
+            .map(meshID -> context.addNode(ImmutableNode.builder()
                 .mesh(meshID)
                 .build()))
             .toList();
     }
 
-    private List<NodeID> mapAnimatedModel(List<MeshID> meshIDs, Skeleton skeleton) {
+    private List<NodeID> mapAnimatedModel(List<MeshID> meshIDs, Skeleton skeleton) throws IOException {
         var skinID = skeletonMapper.map(skeleton);
 
         return meshIDs.stream()
-            .map(meshID -> context.addNode(NodeSchema.builder()
+            .map(meshID -> context.addNode(ImmutableNode.builder()
                 .mesh(meshID)
                 .skin(skinID)
                 .build()))
@@ -77,7 +77,7 @@ public final class GltfModelMultiMapper extends GltfModelMapper {
     private MeshSchema mapMesh(Mesh mesh) throws IOException {
         var primitiveSchema = mapMeshPrimitive(mesh);
 
-        return MeshSchema.builder()
+        return ImmutableMesh.builder()
             .name(Optional.ofNullable(mesh.name()))
             .addPrimitives(primitiveSchema)
             .build();

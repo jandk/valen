@@ -2,11 +2,12 @@ package be.twofold.valen.export.gltf.mappers;
 
 import be.twofold.valen.core.geometry.*;
 import be.twofold.valen.core.math.*;
-import be.twofold.valen.gltf.*;
-import be.twofold.valen.gltf.model.accessor.*;
-import be.twofold.valen.gltf.model.node.*;
-import be.twofold.valen.gltf.model.skin.*;
+import be.twofold.valen.format.gltf.*;
+import be.twofold.valen.format.gltf.model.accessor.*;
+import be.twofold.valen.format.gltf.model.node.*;
+import be.twofold.valen.format.gltf.model.skin.*;
 
+import java.io.*;
 import java.nio.*;
 import java.util.*;
 
@@ -17,7 +18,7 @@ public final class GltfSkeletonMapper {
         this.context = context;
     }
 
-    public SkinID map(Skeleton skeleton) {
+    public SkinID map(Skeleton skeleton) throws IOException {
         var bones = skeleton.bones();
 
         // Calculate the parent-child relationships
@@ -54,8 +55,8 @@ public final class GltfSkeletonMapper {
         }
         buffer.flip();
 
-        var bufferView = context.createBufferView(buffer);
-        var accessor = AccessorSchema.builder()
+        var bufferView = context.createBufferView(buffer, null);
+        var accessor = ImmutableAccessor.builder()
             .bufferView(bufferView)
             .componentType(AccessorComponentType.FLOAT)
             .count(bones.size())
@@ -63,7 +64,7 @@ public final class GltfSkeletonMapper {
             .build();
         var inverseBindMatrices = context.addAccessor(accessor);
 
-        var skinSchema = SkinSchema.builder()
+        var skinSchema = ImmutableSkin.builder()
             .skeleton(skeletonNodeId)
             .joints(jointIndices)
             .inverseBindMatrices(inverseBindMatrices)
@@ -73,7 +74,7 @@ public final class GltfSkeletonMapper {
 
     @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
     private NodeID buildSkeletonJoint(Bone joint, List<NodeID> children, Optional<Quaternion> rotation) {
-        var builder = NodeSchema.builder()
+        var builder = ImmutableNode.builder()
             .name(joint.name())
             .children(children)
             .rotation(GltfUtils.mapQuaternion(joint.rotation()))

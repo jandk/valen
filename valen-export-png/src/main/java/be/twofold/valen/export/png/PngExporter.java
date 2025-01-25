@@ -2,6 +2,7 @@ package be.twofold.valen.export.png;
 
 import be.twofold.valen.core.export.*;
 import be.twofold.valen.core.texture.*;
+import be.twofold.valen.format.png.*;
 
 import java.io.*;
 
@@ -51,7 +52,6 @@ public final class PngExporter implements TextureExporter {
 
     @Override
     public void export(Texture texture, OutputStream out) throws IOException {
-        var surface = texture.surfaces().getFirst();
         var chosenFormat = chooseFormat(texture.format());
         var decoded = texture.firstOnly().convert(chosenFormat);
         var stripped = stripAlpha(decoded);
