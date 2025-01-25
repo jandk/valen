@@ -11,7 +11,6 @@ import be.twofold.valen.gltf.model.texture.*;
 
 import java.io.*;
 import java.nio.*;
-import java.nio.file.*;
 import java.util.*;
 
 public final class GltfTextureMapper {
@@ -19,11 +18,9 @@ public final class GltfTextureMapper {
     private final Map<String, TextureIDAndFactor> textures = new HashMap<>();
 
     private final GltfContext context;
-    private final Path exportPath;
 
-    public GltfTextureMapper(GltfContext context, Path exportPath) {
+    public GltfTextureMapper(GltfContext context) {
         this.context = context;
-        this.exportPath = exportPath;
     }
 
     public TextureIDAndFactor map(TextureReference reference) throws IOException {

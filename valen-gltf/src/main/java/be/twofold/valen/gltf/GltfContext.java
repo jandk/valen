@@ -23,8 +23,9 @@ import java.nio.*;
 import java.nio.charset.*;
 import java.nio.file.*;
 import java.util.*;
+import java.util.function.*;
 
-public final class GltfContext {
+public class GltfContext {
     private final Map<String, Extension> extensions = new HashMap<>();
     private final Set<String> extensionsRequired = new HashSet<>();
     private final Set<String> extensionsUsed = new HashSet<>();
@@ -44,12 +45,12 @@ public final class GltfContext {
 
     private final List<NodeID> sceneNodes = new ArrayList<>();
 
-    private final BufferManager bufferManager;
     private final JsonWriter jsonWriter;
 
-    public GltfContext() {
-        bufferManager = BufferManager.create();
+    public GltfContext(OutputStream binOutput, Path imagePath) {
         jsonWriter = JsonWriter.create();
+        this.binOutput = binOutput;
+        this.imagePath = imagePath;
     }
 
     // region Adders
@@ -151,6 +152,112 @@ public final class GltfContext {
 
     // endregion
 
+    // region Buffers
+
+    private final List<Buffer> buffersToWrite = new ArrayList<>();
+    private final OutputStream binOutput;
+    private final Path imagePath;
+    private int buffersLength;
+
+    public ImageID createImage(ByteBuffer buffer, String name, String filename, ImageMimeType mimeType) throws IOException {
+        var builder = ImmutableImage.builder()
+            .name(name)
+            .mimeType(mimeType);
+
+        if (imagePath != null) {
+            var outPath = imagePath.resolve(filename);
+            Files.write(outPath, buffer.array());
+            return addImage(builder
+                .uri(outPath.toUri())
+                .build());
+        } else {
+            var bufferViewID = createBufferView(buffer, null);
+
+            return addImage(builder
+                .bufferView(bufferViewID)
+                .build());
+        }
+    }
+
+    public BufferViewID createBufferView(Buffer buffer, BufferViewTarget target) throws IOException {
+        int offset = buffersLength;
+        int length = byteSize(buffer);
+
+        if (binOutput != null) {
+            binOutput.write(toByteArray(buffer));
+            GltfUtils.align(binOutput, length, (byte) 0);
+        } else {
+            buffersToWrite.add(buffer);
+        }
+
+        buffersLength = GltfUtils.alignedLength(buffersLength + length);
+
+        var bufferView = ImmutableBufferView.builder()
+            .buffer(BufferID.ZERO)
+            .byteOffset(offset)
+            .byteLength(length)
+            .target(Optional.ofNullable(target))
+            .build();
+
+        return addBufferView(bufferView);
+    }
+
+    public void finalizeBuffers(URI uri) {
+        var buffer = ImmutableBuffer.builder()
+            .byteLength(buffersLength)
+            .uri(Optional.ofNullable(uri))
+            .build();
+
+        addBuffer(buffer);
+    }
+
+    public int buffersLength() {
+        return buffersLength;
+    }
+
+    public void writeBuffers(OutputStream out) throws IOException {
+        for (var buffer : buffersToWrite) {
+            var array = toByteArray(buffer);
+            out.write(array);
+            GltfUtils.align(out, array.length, (byte) 0);
+        }
+    }
+
+    private int byteSize(Buffer buffer) {
+        return switch (buffer) {
+            case ByteBuffer bb -> bb.limit();
+            case ShortBuffer sb -> sb.limit() * Short.BYTES;
+            case IntBuffer ib -> ib.limit() * Integer.BYTES;
+            case LongBuffer lb -> lb.limit() * Long.BYTES;
+            case FloatBuffer fb -> fb.limit() * Float.BYTES;
+            case DoubleBuffer db -> db.limit() * Double.BYTES;
+            case CharBuffer cb -> cb.limit() * Character.BYTES;
+        };
+    }
+
+    private byte[] toByteArray(Buffer buffer) {
+        buffer.rewind();
+        return switch (buffer) {
+            case ByteBuffer bb -> bb.array();
+            case ShortBuffer sb -> allocateAndApply(buffer, bb -> bb.asShortBuffer().put(sb));
+            case IntBuffer ib -> allocateAndApply(buffer, bb -> bb.asIntBuffer().put(ib));
+            case LongBuffer lb -> allocateAndApply(buffer, bb -> bb.asLongBuffer().put(lb));
+            case FloatBuffer fb -> allocateAndApply(buffer, bb -> bb.asFloatBuffer().put(fb));
+            case DoubleBuffer db -> allocateAndApply(buffer, bb -> bb.asDoubleBuffer().put(db));
+            case CharBuffer cb -> allocateAndApply(buffer, bb -> bb.asCharBuffer().put(cb));
+        };
+    }
+
+    private byte[] allocateAndApply(Buffer buffer, Consumer<ByteBuffer> consumer) {
+        var byteBuffer = ByteBuffer
+            .allocate(byteSize(buffer))
+            .order(ByteOrder.LITTLE_ENDIAN);
+        consumer.accept(byteBuffer);
+        return byteBuffer.array();
+    }
+
+    // endregion
+
     public void addScene(List<NodeID> nodes) {
         var scene = ImmutableScene.builder()
             .addAllNodes(nodes)
@@ -191,77 +298,10 @@ public final class GltfContext {
         return NodeID.of(nodes.size());
     }
 
-    // region BufferManager proxies
-
-    public ImageID createImage(ByteBuffer buffer, String name, String filename, ImageMimeType mimeType) throws IOException {
-        var builder = ImmutableImage.builder()
-            .name(name)
-            .mimeType(mimeType);
-
-        var offsetLength = bufferManager.addImageBuffer(buffer, filename);
-        if (offsetLength != null) {
-            var bufferViewID = createBufferView(offsetLength, null);
-            return addImage(ImmutableImage.builder()
-                .bufferView(bufferViewID)
-                .build());
-        }
-
-        return addImage(builder
-            .uri(Path.of(filename).toUri())
-            .build());
-    }
-
-    public BufferViewID createBufferView(Buffer buffer, BufferViewTarget target) throws IOException {
-        var offsetLength = bufferManager.addBuffer(buffer);
-        return createBufferView(offsetLength, target);
-    }
-
-    private BufferViewID createBufferView(OffsetLength offsetLength, BufferViewTarget target) {
-        var bufferView = ImmutableBufferView.builder()
-            .buffer(BufferID.ZERO)
-            .byteOffset(offsetLength.length)
-            .byteLength(offsetLength.offset)
-            .target(Optional.ofNullable(target))
-            .build();
-
-        return addBufferView(bufferView);
-    }
-
-    public void finalizeBuffers(URI uri) {
-        var buffer = ImmutableBuffer.builder()
-            .byteLength(bufferManager.totalLength())
-            .uri(Optional.ofNullable(uri))
-            .build();
-
-        addBuffer(buffer);
-    }
-
-    public int buffersLength() {
-        return bufferManager.totalLength();
-    }
-
-    public void writeBuffers(OutputStream out) throws IOException {
-        bufferManager.write(out);
-    }
-
-    // endregion
-
-
     byte[] toRawJson() throws IOException {
-        try (var baos = new ByteArrayOutputStream();
-             var writer = new OutputStreamWriter(baos, StandardCharsets.UTF_8)) {
+        try (var writer = new StringWriter()) {
             jsonWriter.writeJson(buildGltf(), writer, false);
-            return baos.toByteArray();
-        }
-    }
-
-    static final class OffsetLength {
-        private final int offset;
-        private final int length;
-
-        OffsetLength(int offset, int length) {
-            this.offset = offset;
-            this.length = length;
+            return writer.toString().getBytes(StandardCharsets.UTF_8);
         }
     }
 }

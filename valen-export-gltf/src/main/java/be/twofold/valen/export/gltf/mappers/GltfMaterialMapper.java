@@ -9,7 +9,6 @@ import be.twofold.valen.gltf.model.material.*;
 import be.twofold.valen.gltf.model.texture.*;
 
 import java.io.*;
-import java.nio.file.*;
 import java.util.*;
 import java.util.function.*;
 import java.util.stream.*;
@@ -20,9 +19,9 @@ public final class GltfMaterialMapper {
     private final GltfContext context;
     private final GltfTextureMapper textureMapper;
 
-    public GltfMaterialMapper(GltfContext context, Path exportPath) {
+    public GltfMaterialMapper(GltfContext context) {
         this.context = context;
-        this.textureMapper = new GltfTextureMapper(context, exportPath);
+        this.textureMapper = new GltfTextureMapper(context);
     }
 
     public MaterialID map(Material material) throws IOException {

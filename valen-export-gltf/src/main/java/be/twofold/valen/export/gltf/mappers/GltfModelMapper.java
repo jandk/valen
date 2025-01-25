@@ -10,16 +10,15 @@ import be.twofold.valen.gltf.model.mesh.*;
 
 import java.io.*;
 import java.nio.*;
-import java.nio.file.*;
 import java.util.*;
 
 public abstract class GltfModelMapper {
     final GltfContext context;
     final GltfMaterialMapper materialMapper;
 
-    public GltfModelMapper(GltfContext context, Path exportPath) {
+    public GltfModelMapper(GltfContext context) {
         this.context = context;
-        this.materialMapper = new GltfMaterialMapper(context, exportPath);
+        this.materialMapper = new GltfMaterialMapper(context);
     }
 
     MeshPrimitiveSchema mapMeshPrimitive(Mesh mesh) throws IOException {

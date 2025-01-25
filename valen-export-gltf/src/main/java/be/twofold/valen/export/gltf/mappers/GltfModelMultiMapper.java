@@ -6,7 +6,6 @@ import be.twofold.valen.gltf.model.mesh.*;
 import be.twofold.valen.gltf.model.node.*;
 
 import java.io.*;
-import java.nio.file.*;
 import java.util.*;
 
 public final class GltfModelMultiMapper extends GltfModelMapper {
@@ -15,8 +14,8 @@ public final class GltfModelMultiMapper extends GltfModelMapper {
     private final GltfContext context;
     private final GltfSkeletonMapper skeletonMapper;
 
-    public GltfModelMultiMapper(GltfContext context, Path exportPath) {
-        super(context, exportPath);
+    public GltfModelMultiMapper(GltfContext context) {
+        super(context);
         this.context = context;
         this.skeletonMapper = new GltfSkeletonMapper(context);
     }

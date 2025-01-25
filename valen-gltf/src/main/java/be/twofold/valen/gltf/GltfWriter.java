@@ -6,24 +6,30 @@ import java.io.*;
 import java.net.*;
 import java.nio.charset.*;
 import java.nio.file.*;
-import java.util.*;
 
-public final class GltfWriter {
-    private final GltfContext context;
+public final class GltfWriter extends GltfContext implements Closeable {
+    private GltfWriter(OutputStream binOutput, Path imagePath) {
+        super(binOutput, imagePath);
+    }
 
-    public GltfWriter(GltfContext context) {
-        this.context = Objects.requireNonNull(context);
+    public static GltfWriter createGlbWriter() {
+        return new GltfWriter(null, null);
+    }
+
+    public static GltfWriter createSplitWriter(Path binPath, Path imagePath) throws IOException {
+        var output = Files.newOutputStream(binPath);
+        return new GltfWriter(output, imagePath);
     }
 
     public void write(Path path) throws IOException {
-        writeGltfPlusBin(path);
+        writeGlb(path);
     }
 
     private void writeGlb(Path path) throws IOException {
-        context.finalizeBuffers(null);
-        var rawJson = context.toRawJson();
+        finalizeBuffers(null);
+        var rawJson = toRawJson();
         var jsonSize = GltfUtils.alignedLength(rawJson.length);
-        var binSize = context.buffersLength();
+        var binSize = buffersLength();
 
         var totalSize = GlbHeader.BYTES + GlbChunkHeader.BYTES + jsonSize + GlbChunkHeader.BYTES + binSize;
 
@@ -33,7 +39,7 @@ public final class GltfWriter {
             out.write(rawJson);
             GltfUtils.align(out, rawJson.length, (byte) ' ');
             out.write(new GlbChunkHeader(binSize, GlbChunkType.BIN).toBuffer().array());
-            context.writeBuffers(out);
+            writeBuffers(out);
         }
     }
 
@@ -43,14 +49,20 @@ public final class GltfWriter {
         var fileNameWithoutExtension = fileName.substring(0, fileName.lastIndexOf('.'));
 
         var binFileName = fileNameWithoutExtension + ".bin";
+        var imagePath = outputDirectory.resolve("_images");
+        Files.createDirectories(imagePath);
         try (var out = Files.newOutputStream(outputDirectory.resolve(binFileName))) {
-            context.finalizeBuffers(URI.create(binFileName));
-            context.writeBuffers(out);
+            finalizeBuffers(URI.create(binFileName));
+            writeBuffers(out);
         }
 
         try (var output = Files.newOutputStream(outputDirectory.resolve(fileNameWithoutExtension + ".gltf"));
              var writer = new OutputStreamWriter(output, StandardCharsets.UTF_8)) {
-            JsonWriter.create().writeJson(context.buildGltf(), writer, true);
+            JsonWriter.create().writeJson(buildGltf(), writer, true);
         }
+    }
+
+    @Override
+    public void close() throws IOException {
     }
 }

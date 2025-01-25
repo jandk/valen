@@ -10,8 +10,6 @@ import java.nio.file.*;
 import java.util.*;
 
 public final class GlbModelExporter implements Exporter<Model> {
-    private final GltfContext context = new GltfContext();
-    private final GltfModelMultiMapper modelMapper = new GltfModelMultiMapper(context, null);
 
     @Override
     public String getExtension() {
@@ -30,11 +28,10 @@ public final class GlbModelExporter implements Exporter<Model> {
 
     @Override
     public void export(Model model, Path path) throws IOException {
+        var writer = GltfWriter.createGlbWriter();
+        var modelMapper = new GltfModelMultiMapper(writer);
         var rootNodeID = modelMapper.map(model);
-
-        context.addScene(List.of(rootNodeID));
-
-        var writer = new GltfWriter(context);
+        writer.addScene(List.of(rootNodeID));
         writer.write(path);
     }
 }

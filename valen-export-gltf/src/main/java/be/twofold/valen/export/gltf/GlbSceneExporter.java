@@ -13,8 +13,8 @@ import java.nio.file.*;
 import java.util.*;
 
 public final class GlbSceneExporter implements Exporter<Scene> {
-    private final GltfContext context = new GltfContext();
-    private final GltfModelSingleMapper modelMapper = new GltfModelSingleMapper(context, null);
+    private final GltfWriter writer = GltfWriter.createGlbWriter();
+    private final GltfModelSingleMapper modelMapper = new GltfModelSingleMapper(writer, null);
 
     @Override
     public String getExtension() {
@@ -34,9 +34,7 @@ public final class GlbSceneExporter implements Exporter<Scene> {
                 .ifPresent(meshID -> instanceNodes.add(mapInstance(instance, meshID)));
         }
 
-        context.addScene(instanceNodes);
-
-        var writer = new GltfWriter(context);
+        writer.addScene(instanceNodes);
         writer.write(path);
     }
 
@@ -46,7 +44,7 @@ public final class GlbSceneExporter implements Exporter<Scene> {
     }
 
     private NodeID mapInstance(Instance instance, MeshID meshID) {
-        return context.addNode(ImmutableNode.builder()
+        return writer.addNode(ImmutableNode.builder()
             .name(Optional.ofNullable(instance.name()))
             .translation(GltfUtils.mapVector3(instance.translation()))
             .rotation(GltfUtils.mapQuaternion(instance.rotation()))

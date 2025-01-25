@@ -15,7 +15,7 @@ public final class GltfModelSingleMapper extends GltfModelMapper {
     private final Map<String, MeshID> models = new HashMap<>();
 
     public GltfModelSingleMapper(GltfContext context, Path exportPath) {
-        super(context, exportPath);
+        super(context);
     }
 
     public Optional<MeshID> map(ModelReference modelReference) throws IOException {
