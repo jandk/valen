@@ -4,7 +4,7 @@ import be.twofold.valen.core.export.*;
 import be.twofold.valen.core.geometry.*;
 import be.twofold.valen.core.util.*;
 import be.twofold.valen.export.gltf.mappers.*;
-import be.twofold.valen.gltf.*;
+import be.twofold.valen.format.gltf.*;
 
 import java.io.*;
 import java.nio.file.*;

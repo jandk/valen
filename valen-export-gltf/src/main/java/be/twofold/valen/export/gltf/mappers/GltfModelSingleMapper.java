@@ -1,8 +1,8 @@
 package be.twofold.valen.export.gltf.mappers;
 
 import be.twofold.valen.core.geometry.*;
-import be.twofold.valen.gltf.*;
-import be.twofold.valen.gltf.model.mesh.*;
+import be.twofold.valen.format.gltf.*;
+import be.twofold.valen.format.gltf.model.mesh.*;
 import org.slf4j.*;
 
 import java.io.*;

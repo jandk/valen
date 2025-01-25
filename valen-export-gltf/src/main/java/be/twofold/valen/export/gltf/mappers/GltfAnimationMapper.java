@@ -2,12 +2,12 @@ package be.twofold.valen.export.gltf.mappers;
 
 import be.twofold.valen.core.animation.*;
 import be.twofold.valen.core.math.*;
-import be.twofold.valen.gltf.*;
-import be.twofold.valen.gltf.model.accessor.*;
-import be.twofold.valen.gltf.model.animation.*;
-import be.twofold.valen.gltf.model.bufferview.*;
-import be.twofold.valen.gltf.model.node.*;
-import be.twofold.valen.gltf.types.*;
+import be.twofold.valen.format.gltf.*;
+import be.twofold.valen.format.gltf.model.accessor.*;
+import be.twofold.valen.format.gltf.model.animation.*;
+import be.twofold.valen.format.gltf.model.bufferview.*;
+import be.twofold.valen.format.gltf.model.node.*;
+import be.twofold.valen.format.gltf.types.*;
 
 import java.io.*;
 import java.nio.*;

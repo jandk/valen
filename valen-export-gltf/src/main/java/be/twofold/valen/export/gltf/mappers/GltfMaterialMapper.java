@@ -3,10 +3,10 @@ package be.twofold.valen.export.gltf.mappers;
 import be.twofold.valen.core.material.*;
 import be.twofold.valen.core.math.*;
 import be.twofold.valen.core.texture.*;
-import be.twofold.valen.gltf.*;
-import be.twofold.valen.gltf.model.extension.*;
-import be.twofold.valen.gltf.model.material.*;
-import be.twofold.valen.gltf.model.texture.*;
+import be.twofold.valen.format.gltf.*;
+import be.twofold.valen.format.gltf.model.extension.*;
+import be.twofold.valen.format.gltf.model.material.*;
+import be.twofold.valen.format.gltf.model.texture.*;
 
 import java.io.*;
 import java.util.*;

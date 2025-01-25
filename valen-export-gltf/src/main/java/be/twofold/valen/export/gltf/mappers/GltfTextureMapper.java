@@ -5,9 +5,9 @@ import be.twofold.valen.core.math.*;
 import be.twofold.valen.core.texture.*;
 import be.twofold.valen.core.util.*;
 import be.twofold.valen.export.png.*;
-import be.twofold.valen.gltf.*;
-import be.twofold.valen.gltf.model.image.*;
-import be.twofold.valen.gltf.model.texture.*;
+import be.twofold.valen.format.gltf.*;
+import be.twofold.valen.format.gltf.model.image.*;
+import be.twofold.valen.format.gltf.model.texture.*;
 
 import java.io.*;
 import java.nio.*;
