@@ -79,6 +79,12 @@ public final class DeathloopArchive implements Archive {
     }
 
     @Override
+    public Asset getAsset(AssetID identifier) {
+        var entry = indexEntries.get(identifier);
+        return mapIndexEntry(entry);
+    }
+
+    @Override
     public <T> T loadAsset(AssetID identifier, Class<T> clazz) throws IOException {
         var entry = indexEntries.get(identifier);
 
