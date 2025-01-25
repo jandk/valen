@@ -1,4 +1,4 @@
-module valen.gltf {
+module valen.format.gltf {
     requires com.google.gson;
     requires static org.immutables.value;
 

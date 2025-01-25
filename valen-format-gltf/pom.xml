@@ -8,17 +8,12 @@
         <version>1.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>valen-gltf</artifactId>
+    <artifactId>valen-format-gltf</artifactId>
 
     <dependencies>
         <dependency>
             <groupId>com.google.code.gson</groupId>
             <artifactId>gson</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>commons-io</groupId>
-            <artifactId>commons-io</artifactId>
-            <version>2.18.0</version>
         </dependency>
         <dependency>
             <groupId>org.immutables</groupId>
