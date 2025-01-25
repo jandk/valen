@@ -64,6 +64,11 @@ public final class FearArchive implements Archive {
     }
 
     @Override
+    public Asset getAsset(AssetID identifier) {
+        return null;
+    }
+
+    @Override
     public <T> T loadAsset(AssetID identifier, Class<T> clazz) throws IOException {
         return null;
     }

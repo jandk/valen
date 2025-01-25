@@ -13,6 +13,8 @@ import java.io.*;
 import java.util.*;
 
 public final class RenderParmReader implements ResourceReader<RenderParm> {
+    public static final Map<RenderParmType, Set<String>> ParmsByType = new EnumMap<>(RenderParmType.class);
+
     public RenderParmReader() {
     }
 
@@ -30,6 +32,10 @@ public final class RenderParmReader implements ResourceReader<RenderParm> {
         var result = new RenderParm();
         parser.expect(DeclTokenType.OpenBrace);
         result.parmType = parseParmType(parser.expectName());
+        ParmsByType
+            .computeIfAbsent(result.parmType, k -> new HashSet<>())
+            .add(asset.id().fileName().replace(".decl", ""));
+
         result.declaredValue = parseValue(parser, result);
         parseExtras(parser, result);
         parser.expect(DeclTokenType.CloseBrace);

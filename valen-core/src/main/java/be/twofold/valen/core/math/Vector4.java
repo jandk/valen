@@ -30,6 +30,10 @@ public record Vector4(
         return new Vector4(x, y, z, w);
     }
 
+    public Vector4(Vector2 v, float z, float w) {
+        this(v.x(), v.y(), z, w);
+    }
+
     public Vector4(Vector3 v, float w) {
         this(v.x(), v.y(), v.z(), w);
     }

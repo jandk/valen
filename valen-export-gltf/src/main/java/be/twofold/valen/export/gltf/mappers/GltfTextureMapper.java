@@ -5,17 +5,15 @@ import be.twofold.valen.core.math.*;
 import be.twofold.valen.core.texture.*;
 import be.twofold.valen.core.util.*;
 import be.twofold.valen.export.png.*;
-import be.twofold.valen.gltf.*;
-import be.twofold.valen.gltf.model.image.*;
-import be.twofold.valen.gltf.model.texture.*;
-import org.slf4j.*;
+import be.twofold.valen.format.gltf.*;
+import be.twofold.valen.format.gltf.model.image.*;
+import be.twofold.valen.format.gltf.model.texture.*;
 
 import java.io.*;
 import java.nio.*;
 import java.util.*;
 
 public final class GltfTextureMapper {
-    private static final Logger log = LoggerFactory.getLogger(GltfTextureMapper.class);
     private final PngExporter pngExporter = new PngExporter();
     private final Map<String, TextureIDAndFactor> textures = new HashMap<>();
 
@@ -37,7 +35,7 @@ public final class GltfTextureMapper {
             return new TextureIDAndFactor(null, scaleAndBias.factor());
         }
 
-        return map(reference.name(), scaleAndBias.texture(), scaleAndBias.factor());
+        return map(reference, scaleAndBias.texture(), scaleAndBias.factor());
     }
 
     public TextureID mapSimple(TextureReference reference) throws IOException {
@@ -47,33 +45,30 @@ public final class GltfTextureMapper {
         }
 
         var texture = reference.supplier().get();
-        return map(reference.name(), texture, Vector4.One).textureID();
+        return map(reference, texture, Vector4.One).textureID();
     }
 
-    private TextureIDAndFactor map(String name, Texture texture, Vector4 factor) throws IOException {
-        var existingSchema = textures.get(name);
+    private TextureIDAndFactor map(TextureReference reference, Texture texture, Vector4 factor) throws IOException {
+        var existingSchema = textures.get(reference.name());
         if (existingSchema != null) {
             return existingSchema;
         }
 
-        var buffer = textureToPng(texture);
-        var bufferViewID = context.createBufferView(buffer);
+        var imageID = context.createImage(
+            textureToPng(texture),
+            reference.name(),
+            reference.filename(),
+            ImageMimeType.IMAGE_PNG
+        );
 
-        var imageSchema = ImageSchema.builder()
-            .name(name)
-            .mimeType(ImageMimeType.IMAGE_PNG)
-            .bufferView(bufferViewID)
-            .build();
-        var imageID = context.addImage(imageSchema);
-
-        var textureSchema = TextureSchema.builder()
-            .name(name)
+        var textureSchema = ImmutableTexture.builder()
+            .name(reference.name())
             .source(imageID)
             .build();
         var textureID = context.addTexture(textureSchema);
 
         var textureIDAndFactor = new TextureIDAndFactor(textureID, factor);
-        textures.put(name, textureIDAndFactor);
+        textures.put(reference.name(), textureIDAndFactor);
         return textureIDAndFactor;
     }
 

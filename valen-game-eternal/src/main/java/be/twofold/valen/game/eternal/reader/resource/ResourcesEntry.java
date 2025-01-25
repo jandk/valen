@@ -41,7 +41,8 @@ public record ResourcesEntry(
         source.expectInt(0); // reserved2
         source.expectLong(0); // reservedForVariations
         source.expectShort((short) 2); // numStrings
-        source.expectShort((short) 0); // numSources
+        // source.expectShort((short) 0); // numSources
+        source.readShort(); // numSources
         var numDependencies = source.readShort();
         source.expectShort((short) 0); // numSpecialHashes
         source.expectShort((short) 0); // numMetaEntries

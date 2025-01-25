@@ -14,11 +14,11 @@
         <module>valen-export-dds</module>
         <module>valen-export-gltf</module>
         <module>valen-export-png</module>
-        <module>valen-game-doom</module>
+        <module>valen-format-gltf</module>
+        <module>valen-format-png</module>
         <module>valen-game-eternal</module>
-        <module>valen-gltf</module>
-        <module>valen-ui</module>
         <module>valen-game-fear</module>
+        <module>valen-ui</module>
     </modules>
 
     <properties>
@@ -115,7 +115,12 @@
             </dependency>
             <dependency>
                 <groupId>be.twofold</groupId>
-                <artifactId>valen-game-doom</artifactId>
+                <artifactId>valen-format-gltf</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>be.twofold</groupId>
+                <artifactId>valen-format-png</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -126,11 +131,6 @@
             <dependency>
                 <groupId>be.twofold</groupId>
                 <artifactId>valen-game-fear</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>be.twofold</groupId>
-                <artifactId>valen-gltf</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
