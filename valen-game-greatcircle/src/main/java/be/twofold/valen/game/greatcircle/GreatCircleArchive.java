@@ -69,9 +69,17 @@ public final class GreatCircleArchive implements Archive {
     }
 
     @Override
-    public <T> T loadAsset(AssetID id, Class<T> clazz) throws IOException {
-        var resource = resources.get((ResourceKey) id)
-            .orElseThrow(() -> new IllegalArgumentException("Resource not found: " + id));
+    public Asset getAsset(AssetID identifier) {
+        var resource = resources.get((ResourceKey) identifier)
+            .orElseThrow(() -> new IllegalArgumentException("Resource not found: " + identifier));
+
+        return toAsset(resource);
+    }
+
+    @Override
+    public <T> T loadAsset(AssetID identifier, Class<T> clazz) throws IOException {
+        var resource = resources.get((ResourceKey) identifier)
+            .orElseThrow(() -> new IllegalArgumentException("Resource not found: " + identifier));
 
         byte[] bytes = resources.read(resource);
 

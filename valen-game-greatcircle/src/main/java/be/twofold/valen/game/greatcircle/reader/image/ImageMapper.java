@@ -13,7 +13,7 @@ public final class ImageMapper {
         List<Surface> surfaces = convertMipMaps(image);
         boolean isCubeMap = image.header().type() == ImageTextureType.TT_CUBIC;
 
-        return new Texture(width, height, format, surfaces, isCubeMap, image.header().scale(), image.header().bias());
+        return new Texture(width, height, format, isCubeMap, surfaces, image.header().scale(), image.header().bias());
     }
 
     private List<Surface> convertMipMaps(Image image) {
@@ -28,7 +28,6 @@ public final class ImageMapper {
                 surfaces.add(new Surface(
                     image.sliceInfos().get(mipIndex).width(),
                     image.sliceInfos().get(mipIndex).height(),
-                    toImageFormat(image.header().textureFormat()),
                     image.slices()[mipIndex]
                 ));
             }

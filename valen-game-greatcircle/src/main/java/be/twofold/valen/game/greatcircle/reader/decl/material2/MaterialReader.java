@@ -3,8 +3,9 @@ package be.twofold.valen.game.greatcircle.reader.decl.material2;
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.material.*;
+import be.twofold.valen.core.math.*;
 import be.twofold.valen.core.texture.*;
-import be.twofold.valen.core.util.fi.*;
+import be.twofold.valen.core.util.*;
 import be.twofold.valen.game.greatcircle.*;
 import be.twofold.valen.game.greatcircle.reader.*;
 import be.twofold.valen.game.greatcircle.reader.decl.*;
@@ -59,7 +60,7 @@ public final class MaterialReader implements ResourceReader<Material> {
 
         parseRenderParms(parms, renderParms, filenames, options);
 
-        var references = new ArrayList<TextureReference>();
+        var properties = new ArrayList<MaterialProperty>();
 
         renderParms.forEach((kind, parm) -> {
             var opts = options.get(kind);
@@ -80,24 +81,25 @@ public final class MaterialReader implements ResourceReader<Material> {
             }
             var textureType = mapTextureType(kind);
             var supplier = ThrowingSupplier.lazy(() -> archive.loadAsset(resourceKey, Texture.class));
-            references.add(new TextureReference(filename, textureType, supplier));
+            var reference = new TextureReference(filename, filename, supplier);
+            properties.add(new MaterialProperty(textureType, reference, Vector4.One));
         });
 
-        return new Material(name, references);
+        return new Material(name, properties);
     }
 
-    private TextureType mapTextureType(ImageTextureMaterialKind kind) {
+    private MaterialPropertyType mapTextureType(ImageTextureMaterialKind kind) {
         return switch (kind) {
-            case TMK_ALBEDO -> TextureType.Albedo;
-            case TMK_SPECULAR -> TextureType.Specular;
-            case TMK_NORMAL -> TextureType.Normal;
-            case TMK_SMOOTHNESS -> TextureType.Smoothness;
-            // case TMK_COVER -> TextureType.Unknown;
-            // case TMK_SSSMASK -> TextureType.Unknown;
-            // case TMK_COLORMASK -> TextureType.Unknown;
-            case TMK_BLOOMMASK -> TextureType.Emissive;
-            // case TMK_HEIGHTMAP -> TextureType.Height;
-            default -> TextureType.Unknown;
+            case TMK_ALBEDO -> MaterialPropertyType.Albedo;
+            case TMK_SPECULAR -> MaterialPropertyType.Specular;
+            case TMK_NORMAL -> MaterialPropertyType.Normal;
+            case TMK_SMOOTHNESS -> MaterialPropertyType.Smoothness;
+            // case TMK_COVER -> MaterialPropertyType.Unknown;
+            // case TMK_SSSMASK -> MaterialPropertyType.Unknown;
+            // case TMK_COLORMASK -> MaterialPropertyType.Unknown;
+            case TMK_BLOOMMASK -> MaterialPropertyType.Emissive;
+            // case TMK_HEIGHTMAP -> MaterialPropertyType.Height;
+            default -> MaterialPropertyType.Unknown;
         };
     }
 
