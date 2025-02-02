@@ -50,7 +50,7 @@ final class FarmHashFingerprint64 implements HashFunction {
     public HashCode hash(byte[] array, int offset, int length) {
         Check.fromIndexSize(offset, length, array.length);
         long hash = fingerprint(array, offset, length);
-        return new HashCode.LongHashCode(hash);
+        return HashCode.ofLong(hash);
     }
 
     // End of public functions.

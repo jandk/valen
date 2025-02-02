@@ -31,13 +31,10 @@ final class XXHash64 implements HashFunction {
             // Step 2: Process stripes
             do {
                 acc1 = round(acc1, ByteArrays.getLong(array, offset));
-                offset += 8;
-                acc2 = round(acc2, ByteArrays.getLong(array, offset));
-                offset += 8;
-                acc3 = round(acc3, ByteArrays.getLong(array, offset));
-                offset += 8;
-                acc4 = round(acc4, ByteArrays.getLong(array, offset));
-                offset += 8;
+                acc2 = round(acc2, ByteArrays.getLong(array, offset + 8));
+                acc3 = round(acc3, ByteArrays.getLong(array, offset + 16));
+                acc4 = round(acc4, ByteArrays.getLong(array, offset + 24));
+                offset += 32;
             } while (offset <= limit - 32);
 
             // Step 3: Accumulator convergence
@@ -89,7 +86,7 @@ final class XXHash64 implements HashFunction {
         acc = acc * PRIME64_3;
         acc = acc ^ (acc >>> 32);
 
-        return new HashCode.LongHashCode(acc);
+        return HashCode.ofLong(acc);
     }
 
     private static long round(long accN, long laneN) {
