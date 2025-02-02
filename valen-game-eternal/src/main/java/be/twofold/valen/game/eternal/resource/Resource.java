@@ -1,6 +1,9 @@
 package be.twofold.valen.game.eternal.resource;
 
+import be.twofold.valen.core.game.*;
 import be.twofold.valen.game.eternal.reader.resource.*;
+
+import java.util.*;
 
 public record Resource(
     ResourceKey key,
@@ -10,10 +13,35 @@ public record Resource(
     ResourceCompressionMode compression,
     long hash,
     long checksum
-) implements Comparable<Resource> {
+) implements Asset {
     @Override
-    public int compareTo(Resource o) {
-        return key.compareTo(o.key);
+    public AssetID id() {
+        return key;
+    }
+
+    @Override
+    public AssetType<?> type() {
+        return switch (key.type()) {
+            case Image -> AssetType.TEXTURE;
+            case BaseModel, Model -> AssetType.MODEL;
+            default -> AssetType.BINARY;
+        };
+    }
+
+    @Override
+    public int size() {
+        return uncompressedSize;
+    }
+
+    @Override
+    public Map<String, Object> properties() {
+        var properties = new HashMap<String, Object>();
+        properties.put("hash", hash);
+        properties.put("Type", key.type().toString());
+        if (key.variation() != ResourceVariation.None) {
+            properties.put("Variation", key.variation());
+        }
+        return properties;
     }
 
     @Override

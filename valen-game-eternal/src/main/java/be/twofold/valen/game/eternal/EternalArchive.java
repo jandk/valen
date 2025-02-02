@@ -16,6 +16,7 @@ import be.twofold.valen.game.eternal.resource.*;
 
 import java.io.*;
 import java.util.*;
+import java.util.stream.*;
 
 public final class EternalArchive implements Archive {
     private final StreamDbCollection streams;
@@ -44,35 +45,10 @@ public final class EternalArchive implements Archive {
     @Override
     public List<Asset> assets() {
         return resources.getEntries().stream()
-            .map(this::toAsset)
             .filter(asset -> asset.size() != 0)
             .distinct()
             .sorted()
-            .toList();
-    }
-
-    private Asset toAsset(Resource resource) {
-        var properties = new HashMap<String, Object>();
-        properties.put("hash", resource.hash());
-        properties.put("Type", resource.key().type().toString());
-        if (resource.key().variation() != ResourceVariation.None) {
-            properties.put("Variation", resource.key().variation());
-        }
-
-        return new Asset(
-            resource.key(),
-            mapType(resource.key().type()),
-            resource.uncompressedSize(),
-            Map.copyOf(properties)
-        );
-    }
-
-    private AssetType<?> mapType(ResourceType type) {
-        return switch (type) {
-            case Image -> AssetType.TEXTURE;
-            case BaseModel, Model -> AssetType.MODEL;
-            default -> AssetType.BINARY;
-        };
+            .collect(Collectors.toUnmodifiableList());
     }
 
     @Override
@@ -83,19 +59,15 @@ public final class EternalArchive implements Archive {
     }
 
     @Override
-    public Asset getAsset(AssetID identifier) {
-        var resource = resources.get((ResourceKey) identifier)
+    public Resource getAsset(AssetID identifier) {
+        return resources.get((ResourceKey) identifier)
             .or(() -> common.get((ResourceKey) identifier))
             .orElseThrow(() -> new IllegalArgumentException("Resource not found: " + identifier));
-
-        return toAsset(resource);
     }
 
     @Override
     public <T> T loadAsset(AssetID identifier, Class<T> clazz) throws IOException {
-        var resource = resources.get((ResourceKey) identifier)
-            .or(() -> common.get((ResourceKey) identifier))
-            .orElseThrow(() -> new IllegalArgumentException("Resource not found: " + identifier));
+        var resource = getAsset(identifier);
 
         byte[] bytes;
         if (resources.get(resource.key()).isPresent()) {
@@ -114,7 +86,7 @@ public final class EternalArchive implements Archive {
             .orElseThrow(() -> new IllegalArgumentException("No reader found for resource: " + resource));
 
         try (var source = DataSource.fromArray(bytes)) {
-            return clazz.cast(reader.read(source, toAsset(resource)));
+            return clazz.cast(reader.read(source, resource));
         }
     }
 
