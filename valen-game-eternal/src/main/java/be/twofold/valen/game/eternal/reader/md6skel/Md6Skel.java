@@ -38,8 +38,7 @@ public record Md6Skel(
     private static List<Matrix4> readInverseBasePoses(DataSource source, Md6SkelHeader header) throws IOException {
         List<Matrix4> inverseBasePoses = new ArrayList<>();
         for (var i = 0; i < header.numJoints8(); i++) {
-            var floats = new float[16];
-            source.readFloats(floats, 0, 12);
+            var floats = Arrays.copyOf(source.readFloats(12), 16);
             floats[15] = 1;
             Matrix4 matrix4 = Matrix4.fromArray(floats).transpose();
             inverseBasePoses.add(matrix4);
