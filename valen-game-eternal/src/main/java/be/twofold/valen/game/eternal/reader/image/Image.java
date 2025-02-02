@@ -13,7 +13,7 @@ public record Image(
 ) {
     public static Image read(DataSource source) throws IOException {
         var header = ImageHeader.read(source);
-        var mipInfos = source.readStructs(header.totalMipCount(), ImageMipInfo::read);
+        var mipInfos = source.readObjects(header.totalMipCount(), ImageMipInfo::read);
         var mipData = new byte[mipInfos.size()][];
 
         for (int i = header.startMip(); i < header.totalMipCount(); i++) {

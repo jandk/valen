@@ -14,8 +14,8 @@ public record HavokShape(
     byte[] data
 ) {
     public static HavokShape read(DataSource source) throws IOException {
-        var infos = source.readStructs(source.readInt(), HavokShapeInfo::read);
-        var names = source.readStructs(source.readInt(), bb -> readFixedString(bb, 1024));
+        var infos = source.readObjects(source.readInt(), HavokShapeInfo::read);
+        var names = source.readObjects(source.readInt(), bb -> readFixedString(bb, 1024));
         var data = source.readBytes(source.readInt());
 
         source.expectEnd();

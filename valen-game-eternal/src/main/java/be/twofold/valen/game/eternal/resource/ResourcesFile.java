@@ -37,7 +37,7 @@ public final class ResourcesFile implements Closeable {
 
     public byte[] read(Resource resource) throws IOException {
         log.info("Reading resource: {}", resource.key().name());
-        source.seek(resource.offset());
+        source.position(resource.offset());
         return source.readBytes(resource.compressedSize());
     }
 

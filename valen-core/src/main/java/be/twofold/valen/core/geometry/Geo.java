@@ -18,22 +18,22 @@ public final class Geo {
         List<Accessor<?>> vertexAccessors,
         Accessor<?> faceAccessor
     ) throws IOException {
-        var startPos = source.tell();
+        var startPos = source.position();
 
         var vertexBuffers = new HashMap<Semantic, VertexBuffer>();
         for (var accessor : vertexAccessors) {
-            source.seek(startPos);
+            source.position(startPos);
             var vertexBuffer = accessor.read(source);
             vertexBuffers.put(accessor.info().semantic(), vertexBuffer);
         }
 
-        source.seek(startPos);
+        source.position(startPos);
         var faceBuffer = faceAccessor.read(source);
         if (invertFaces) {
             invertFaces(faceBuffer.buffer());
         }
 
-        source.seek(startPos);
+        source.position(startPos);
         return new Mesh(faceBuffer, vertexBuffers);
     }
 
@@ -86,9 +86,9 @@ public final class Geo {
             var numPrimitives = count * info.elementType().size();
             var buffer = info.componentType().allocate(numPrimitives);
 
-            var start = source.tell() + offset;
+            var start = source.position() + offset;
             for (var i = 0L; i < count; i++) {
-                source.seek(start + i * stride);
+                source.position(start + i * stride);
                 reader.read(source, buffer);
             }
 

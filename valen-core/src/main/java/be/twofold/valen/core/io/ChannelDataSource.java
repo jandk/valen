@@ -65,24 +65,24 @@ final class ChannelDataSource extends DataSource {
     }
 
     @Override
-    public long tell() {
+    public long position() {
         return bufPos + buffer.position();
     }
 
     @Override
-    public void seek(long pos) throws IOException {
-        if (pos > lim) {
-            throw new EOFException("Seek position " + pos + " is beyond EOF");
+    public void position(long position) throws IOException {
+        if (position > lim) {
+            throw new EOFException("Seek position " + position + " is beyond EOF");
         }
 
-        if (pos >= bufPos && pos < bufPos + buffer.limit()) {
-            buffer.position((int) (pos - bufPos));
+        if (position >= bufPos && position < bufPos + buffer.limit()) {
+            buffer.position((int) (position - bufPos));
             return;
         }
 
-        bufPos = pos;
+        bufPos = position;
         buffer.limit(0);
-        channel.position(pos);
+        channel.position(position);
     }
 
     @Override

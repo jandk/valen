@@ -27,10 +27,6 @@ public abstract class DataSource implements Closeable {
         return new ChannelDataSource(Files.newByteChannel(path, StandardOpenOption.READ));
     }
 
-    public static DataSource fromStream(InputStream stream) {
-        return new InputStreamDataSource(stream);
-    }
-
     public abstract byte readByte() throws IOException;
 
     public void readBytes(byte[] dst, int off, int len) throws IOException {
@@ -39,9 +35,9 @@ public abstract class DataSource implements Closeable {
 
     public abstract void readBytes(byte[] dst, int off, int len, boolean buffered) throws IOException;
 
-    public abstract long tell();
+    public abstract long position();
 
-    public abstract void seek(long pos) throws IOException;
+    public abstract void position(long position) throws IOException;
 
     public abstract long size();
 
@@ -49,7 +45,7 @@ public abstract class DataSource implements Closeable {
     public abstract void close() throws IOException;
 
     public void skip(long count) throws IOException {
-        seek(tell() + count);
+        position(position() + count);
     }
 
     public int readByteAsInt() throws IOException {
@@ -231,7 +227,7 @@ public abstract class DataSource implements Closeable {
         return readString(readInt());
     }
 
-    public <T> List<T> readStructs(int count, StructMapper<T> mapper) throws IOException {
+    public <T> List<T> readObjects(int count, ObjectMapper<T> mapper) throws IOException {
         var result = new ArrayList<T>(count);
         for (var i = 0; i < count; i++) {
             result.add(mapper.read(this));
@@ -268,15 +264,15 @@ public abstract class DataSource implements Closeable {
     }
 
     public void expectPosition(long expected) throws IOException {
-        var actual = tell();
+        var actual = position();
         if (actual != expected) {
             throw new IOException("Expected position " + expected + ", but got " + actual);
         }
     }
 
     public void expectEnd() throws IOException {
-        if (tell() != size()) {
-            throw new IOException("Expected end of file, but got " + tell() + " of " + size());
+        if (position() != size()) {
+            throw new IOException("Expected end of file, but got " + position() + " of " + size());
         }
     }
 }

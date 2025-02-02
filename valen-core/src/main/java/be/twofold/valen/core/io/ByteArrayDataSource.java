@@ -41,13 +41,13 @@ final class ByteArrayDataSource extends DataSource {
     }
 
     @Override
-    public long tell() {
+    public long position() {
         return pos - offset;
     }
 
     @Override
-    public void seek(long pos) {
-        int intPos = Math.toIntExact(pos);
+    public void position(long position) {
+        int intPos = Math.toIntExact(position);
         Check.index(intPos, lim - offset + 1);
         this.pos = offset + intPos;
     }

@@ -25,7 +25,7 @@ public record LightDb(
         var header = LightDbHeader.read(source);
 
         source.expectPosition(header.indexOffset());
-        var indexEntries = source.readStructs(header.hashLength(), LightDbIndexEntry::read);
+        var indexEntries = source.readObjects(header.hashLength(), LightDbIndexEntry::read);
 
         source.expectPosition(header.hashOffset());
         var hashes = source.readLongs(header.hashLength());
@@ -42,15 +42,15 @@ public record LightDb(
         source.expectPosition(header.nameOffset());
         var nameGroupMagic = source.readInt();
         Check.state(nameGroupMagic == 0x758ac962 || nameGroupMagic == 0x758ac961, "Invalid name group magic");
-        var nameGroups = source.readStructs(source.readInt(), LightDbNameGroup::read);
+        var nameGroups = source.readObjects(source.readInt(), LightDbNameGroup::read);
 
         var unknownInts = source.readInts(6);
         var numParts1 = source.readInt();
         var numParts2 = source.readInt();
         source.expectInt(0);
 
-        List<LightDbPart1> parts1 = source.readStructs(numParts1, LightDbPart1::read);
-        List<LightDbPart2> parts2 = source.readStructs(numParts2, LightDbPart2::read);
+        List<LightDbPart1> parts1 = source.readObjects(numParts1, LightDbPart1::read);
+        List<LightDbPart2> parts2 = source.readObjects(numParts2, LightDbPart2::read);
 
         StreamDb streamDb = StreamDb.read(source);
 

@@ -11,7 +11,7 @@ public record LightDbNameGroup(
 ) {
     public static LightDbNameGroup read(DataSource source) throws IOException {
         int id = source.readInt();
-        var names = source.readStructs(source.readInt(), DataSource::readPString);
+        var names = source.readObjects(source.readInt(), DataSource::readPString);
         return new LightDbNameGroup(id, names);
     }
 }

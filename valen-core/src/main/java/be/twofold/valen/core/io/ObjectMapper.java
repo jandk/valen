@@ -3,6 +3,6 @@ package be.twofold.valen.core.io;
 import java.io.*;
 
 @FunctionalInterface
-public interface StructMapper<T> {
+public interface ObjectMapper<T> {
     T read(DataSource source) throws IOException;
 }
