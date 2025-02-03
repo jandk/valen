@@ -5,7 +5,7 @@ import java.util.*;
 
 public interface Archive {
 
-    List<Asset> assets();
+    List<? extends Asset> assets();
 
     boolean exists(AssetID identifier);
 

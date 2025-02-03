@@ -34,7 +34,7 @@ public final class FileListPresenter extends AbstractFXPresenter<FileListView> {
         return getView().getSelectedAsset();
     }
 
-    public void setAssets(List<Asset> assets) {
+    public void setAssets(List<? extends Asset> assets) {
         assetIndex = assets.stream()
             .collect(Collectors.groupingBy(asset -> asset.id().pathName()));
 

@@ -102,7 +102,7 @@ public final class MainPresenter extends AbstractFXPresenter<MainView> {
     }
 
     private void searchAssets(String query) {
-        List<Asset> assets;
+        List<? extends Asset> assets;
         if (query.isBlank()) {
             assets = archive.assets();
         } else {

@@ -12,6 +12,7 @@ import be.twofold.valen.game.eternal.reader.mapfilestaticinstances.*;
 import be.twofold.valen.game.eternal.reader.md6model.*;
 import be.twofold.valen.game.eternal.reader.md6skel.*;
 import be.twofold.valen.game.eternal.reader.staticmodel.*;
+import be.twofold.valen.game.eternal.reader.streamdb.*;
 import be.twofold.valen.game.eternal.resource.*;
 
 import java.io.*;
@@ -19,12 +20,16 @@ import java.util.*;
 import java.util.stream.*;
 
 public final class EternalArchive implements Archive {
-    private final StreamDbCollection streams;
-    private final ResourcesCollection common;
-    private final ResourcesCollection resources;
+    private final Container<Long, StreamDbEntry> streams;
+    private final Container<ResourceKey, Resource> common;
+    private final Container<ResourceKey, Resource> resources;
     private final List<ResourceReader<?>> readers;
 
-    EternalArchive(StreamDbCollection streams, ResourcesCollection common, ResourcesCollection resources) {
+    EternalArchive(
+        Container<Long, StreamDbEntry> streams,
+        Container<ResourceKey, Resource> common,
+        Container<ResourceKey, Resource> resources
+    ) {
         this.streams = Check.notNull(streams, "streams");
         this.common = Check.notNull(common, "common");
         this.resources = Check.notNull(resources, "resources");
@@ -44,7 +49,7 @@ public final class EternalArchive implements Archive {
 
     @Override
     public List<Asset> assets() {
-        return resources.getEntries().stream()
+        return resources.getAll()
             .filter(asset -> asset.size() != 0)
             .distinct()
             .sorted()
@@ -71,9 +76,9 @@ public final class EternalArchive implements Archive {
 
         byte[] bytes;
         if (resources.get(resource.key()).isPresent()) {
-            bytes = resources.read(resource);
+            bytes = resources.read(resource.key());
         } else {
-            bytes = common.read(resource);
+            bytes = common.read(resource.key());
         }
 
         if (clazz == byte[].class) {
@@ -91,7 +96,7 @@ public final class EternalArchive implements Archive {
     }
 
     public boolean containsStream(long identifier) {
-        return streams.exists(identifier);
+        return streams.get(identifier).isPresent();
     }
 
     public byte[] readStream(long identifier, int uncompressedSize) throws IOException {
