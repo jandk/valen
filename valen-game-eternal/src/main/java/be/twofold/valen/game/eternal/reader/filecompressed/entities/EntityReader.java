@@ -25,7 +25,7 @@ public final class EntityReader implements AssetReader<EntityFile, Resource> {
 
     @Override
     public EntityFile read(DataSource source, Resource resource) throws IOException {
-        byte[] bytes = fileCompressedReader.read(source, resource).array();
+        byte[] bytes = fileCompressedReader.read(source, resource);
         String input = new String(bytes, StandardCharsets.UTF_8);
 
         var parser = new DeclParser(input);

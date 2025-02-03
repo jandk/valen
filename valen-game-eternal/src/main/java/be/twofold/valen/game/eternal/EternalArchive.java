@@ -16,13 +16,12 @@ import be.twofold.valen.game.eternal.resource.*;
 
 import java.io.*;
 import java.util.*;
-import java.util.stream.*;
 
 public final class EternalArchive implements Archive {
     private final Container<Long, StreamDbEntry> streams;
     private final Container<ResourceKey, Resource> common;
     private final Container<ResourceKey, Resource> resources;
-    private final List<AssetReader<?, Resource>> readers;
+    private final AssetReaders<Resource> readers;
 
     EternalArchive(
         Container<Long, StreamDbEntry> streams,
@@ -34,7 +33,8 @@ public final class EternalArchive implements Archive {
         this.resources = Check.notNull(resources, "resources");
 
         var declReader = new DeclReader(this);
-        this.readers = List.of(
+
+        this.readers = new AssetReaders<>(List.of(
             declReader,
             new ImageReader(this),
             new MapFileStaticInstancesReader(this),
@@ -43,54 +43,38 @@ public final class EternalArchive implements Archive {
             new Md6SkelReader(),
             new RenderParmReader(),
             new StaticModelReader(this)
-        );
+        ));
     }
 
     @Override
-    public List<Asset> assets() {
+    public List<Resource> assets() {
         return resources.getAll()
             .filter(asset -> asset.size() != 0)
-            .distinct()
-            .sorted()
-            .collect(Collectors.toUnmodifiableList());
+            .distinct().sorted()
+            .toList();
     }
 
     @Override
-    public boolean exists(AssetID identifier) {
+    public Optional<Resource> get(AssetID identifier) {
         return resources.get((ResourceKey) identifier)
-            .or(() -> common.get((ResourceKey) identifier))
-            .isPresent();
-    }
-
-    @Override
-    public Resource getAsset(AssetID identifier) {
-        return resources.get((ResourceKey) identifier)
-            .or(() -> common.get((ResourceKey) identifier))
-            .orElseThrow(() -> new IllegalArgumentException("Resource not found: " + identifier));
+            .or(() -> common.get((ResourceKey) identifier));
     }
 
     @Override
     public <T> T loadAsset(AssetID identifier, Class<T> clazz) throws IOException {
-        var resource = getAsset(identifier);
+        var resource = get(identifier)
+            .orElseThrow(FileNotFoundException::new);
 
-        byte[] bytes;
-        if (resources.get(resource.key()).isPresent()) {
-            bytes = resources.read(resource.key());
-        } else {
-            bytes = common.read(resource.key());
-        }
+        var bytes = resources.get(resource.key()).isPresent()
+            ? resources.read(resource.key())
+            : common.read(resource.key());
 
         if (clazz == byte[].class) {
             return (T) bytes;
         }
 
-        var reader = readers.stream()
-            .filter(r -> r.canRead(resource))
-            .findFirst()
-            .orElseThrow(() -> new IllegalArgumentException("No reader found for resource: " + resource));
-
         try (var source = DataSource.fromArray(bytes)) {
-            return clazz.cast(reader.read(source, resource));
+            return readers.read(resource, source, clazz);
         }
     }
 

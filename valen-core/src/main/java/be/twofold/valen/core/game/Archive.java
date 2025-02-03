@@ -7,10 +7,12 @@ public interface Archive {
 
     List<? extends Asset> assets();
 
-    boolean exists(AssetID identifier);
-
-    Asset getAsset(AssetID identifier);
+    Optional<? extends Asset> get(AssetID identifier);
 
     <T> T loadAsset(AssetID identifier, Class<T> clazz) throws IOException;
+
+    default boolean exists(AssetID identifier) {
+        return get(identifier).isPresent();
+    }
 
 }
