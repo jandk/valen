@@ -6,14 +6,13 @@ import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.material.*;
 import be.twofold.valen.core.util.*;
 import be.twofold.valen.game.eternal.*;
-import be.twofold.valen.game.eternal.reader.*;
 import be.twofold.valen.game.eternal.reader.geometry.*;
 import be.twofold.valen.game.eternal.resource.*;
 
 import java.io.*;
 import java.util.*;
 
-public final class StaticModelReader implements ResourceReader<Model> {
+public final class StaticModelReader implements AssetReader<Model, Resource> {
     private final EternalArchive archive;
     private final boolean readMaterials;
 
@@ -27,13 +26,13 @@ public final class StaticModelReader implements ResourceReader<Model> {
     }
 
     @Override
-    public boolean canRead(ResourceKey key) {
-        return key.type() == ResourceType.Model;
+    public boolean canRead(Resource resource) {
+        return resource.key().type() == ResourceType.Model;
     }
 
     @Override
-    public Model read(DataSource source, Asset asset) throws IOException {
-        long hash = (Long) asset.properties().get("hash");
+    public Model read(DataSource source, Resource resource) throws IOException {
+        long hash = (Long) resource.properties().get("hash");
         var model = StaticModel.read(source);
         var meshes = new ArrayList<>(readMeshes(model, source, hash));
 
@@ -52,7 +51,7 @@ public final class StaticModelReader implements ResourceReader<Model> {
                     .withMaterial(materials.get(materialName)));
             }
         }
-        return new Model(meshes).withName(asset.id().fullName());
+        return new Model(meshes).withName(resource.id().fullName());
     }
 
     private List<Mesh> readMeshes(StaticModel model, DataSource source, long hash) throws IOException {

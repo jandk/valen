@@ -7,7 +7,6 @@ import be.twofold.valen.core.math.*;
 import be.twofold.valen.core.texture.*;
 import be.twofold.valen.core.util.*;
 import be.twofold.valen.game.eternal.*;
-import be.twofold.valen.game.eternal.reader.*;
 import be.twofold.valen.game.eternal.reader.decl.*;
 import be.twofold.valen.game.eternal.reader.decl.renderparm.*;
 import be.twofold.valen.game.eternal.reader.decl.renderparm.enums.*;
@@ -20,7 +19,7 @@ import java.io.*;
 import java.util.*;
 import java.util.stream.*;
 
-public final class MaterialReader implements ResourceReader<Material> {
+public final class MaterialReader implements AssetReader<Material, Resource> {
     private static final Map<MaterialPropertyType, List<String>> ParmTextures = Map.of(
         MaterialPropertyType.Albedo, List.of(
             "albedo",
@@ -85,15 +84,15 @@ public final class MaterialReader implements ResourceReader<Material> {
     }
 
     @Override
-    public boolean canRead(ResourceKey key) {
-        return key.type() == ResourceType.RsStreamFile
-            && key.name().name().startsWith("generated/decls/material2/");
+    public boolean canRead(Resource resource) {
+        return resource.key().type() == ResourceType.RsStreamFile
+            && resource.key().name().name().startsWith("generated/decls/material2/");
     }
 
     @Override
-    public Material read(DataSource source, Asset asset) throws IOException {
-        var object = declReader.read(source, asset);
-        return parseMaterial(object, asset.id().fullName());
+    public Material read(DataSource source, Resource resource) throws IOException {
+        var object = declReader.read(source, resource);
+        return parseMaterial(object, resource.id().fullName());
     }
 
     public static final Set<String> RenderProgs = new HashSet<>();

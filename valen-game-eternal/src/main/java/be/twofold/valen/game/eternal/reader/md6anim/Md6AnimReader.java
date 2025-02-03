@@ -4,21 +4,20 @@ import be.twofold.valen.core.animation.*;
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.math.*;
-import be.twofold.valen.game.eternal.reader.*;
 import be.twofold.valen.game.eternal.resource.*;
 
 import java.io.*;
 import java.util.*;
 import java.util.stream.*;
 
-public final class Md6AnimReader implements ResourceReader<Animation> {
+public final class Md6AnimReader implements AssetReader<Animation, Resource> {
     @Override
-    public boolean canRead(ResourceKey key) {
-        return key.type() == ResourceType.Anim;
+    public boolean canRead(Resource resource) {
+        return resource.key().type() == ResourceType.Anim;
     }
 
     @Override
-    public Animation read(DataSource source, Asset asset) throws IOException {
+    public Animation read(DataSource source, Resource resource) throws IOException {
         var anim = Md6Anim.read(source);
 
         List<Track<?>> tracks = new ArrayList<>();

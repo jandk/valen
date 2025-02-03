@@ -3,7 +3,6 @@ package be.twofold.valen.game.eternal.reader.decl;
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.io.*;
 import be.twofold.valen.game.eternal.*;
-import be.twofold.valen.game.eternal.reader.*;
 import be.twofold.valen.game.eternal.reader.decl.parser.*;
 import be.twofold.valen.game.eternal.resource.*;
 import com.google.gson.*;
@@ -14,7 +13,7 @@ import java.nio.charset.*;
 import java.util.*;
 import java.util.regex.*;
 
-public final class DeclReader implements ResourceReader<JsonObject> {
+public final class DeclReader implements AssetReader<JsonObject, Resource> {
     private static final String RootPrefix = "generated/decls/";
     private static final Pattern ItemPattern = Pattern.compile("^\\w+\\[(\\d+)]$");
     private static final CharsetDecoder Utf8Decoder = StandardCharsets.UTF_8.newDecoder();
@@ -40,24 +39,26 @@ public final class DeclReader implements ResourceReader<JsonObject> {
     }
 
     @Override
-    public boolean canRead(ResourceKey key) {
-        if (key.type() != ResourceType.RsStreamFile) {
-            return false;
-        }
-        if (!key.name().name().startsWith(RootPrefix)) {
+    public boolean canRead(Resource resource) {
+        if (resource.key().type() != ResourceType.RsStreamFile) {
             return false;
         }
 
-        var basePath = getBasePath(key.name().name());
+        var name = resource.key().name().name();
+        if (!name.startsWith(RootPrefix)) {
+            return false;
+        }
+
+        var basePath = getBasePath(name);
         return !Unsupported.contains(basePath);
     }
 
     @Override
-    public JsonObject read(DataSource source, Asset asset) throws IOException {
+    public JsonObject read(DataSource source, Resource resource) throws IOException {
         var bytes = source.readBytes(Math.toIntExact(source.size()));
         var object = DeclParser.parse(decode(bytes));
 
-        var result = loadInherit(object, asset.id().fullName());
+        var result = loadInherit(object, resource.id().fullName());
         result = result.deepCopy();
         postProcessArrays(result);
 

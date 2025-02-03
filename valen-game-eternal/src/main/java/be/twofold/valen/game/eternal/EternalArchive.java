@@ -3,7 +3,6 @@ package be.twofold.valen.game.eternal;
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.util.*;
-import be.twofold.valen.game.eternal.reader.*;
 import be.twofold.valen.game.eternal.reader.decl.*;
 import be.twofold.valen.game.eternal.reader.decl.material2.*;
 import be.twofold.valen.game.eternal.reader.decl.renderparm.*;
@@ -23,7 +22,7 @@ public final class EternalArchive implements Archive {
     private final Container<Long, StreamDbEntry> streams;
     private final Container<ResourceKey, Resource> common;
     private final Container<ResourceKey, Resource> resources;
-    private final List<ResourceReader<?>> readers;
+    private final List<AssetReader<?, Resource>> readers;
 
     EternalArchive(
         Container<Long, StreamDbEntry> streams,
@@ -86,7 +85,7 @@ public final class EternalArchive implements Archive {
         }
 
         var reader = readers.stream()
-            .filter(r -> r.canRead(resource.key()))
+            .filter(r -> r.canRead(resource))
             .findFirst()
             .orElseThrow(() -> new IllegalArgumentException("No reader found for resource: " + resource));
 

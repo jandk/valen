@@ -4,12 +4,12 @@ import be.twofold.valen.core.compression.*;
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.util.*;
-import be.twofold.valen.game.eternal.reader.*;
 import be.twofold.valen.game.eternal.resource.*;
 
 import java.io.*;
+import java.nio.*;
 
-public final class FileCompressedReader implements ResourceReader<byte[]> {
+public final class FileCompressedReader implements AssetReader<ByteBuffer, Resource> {
     private final Decompressor decompressor;
 
     public FileCompressedReader(Decompressor decompressor) {
@@ -17,19 +17,19 @@ public final class FileCompressedReader implements ResourceReader<byte[]> {
     }
 
     @Override
-    public boolean canRead(ResourceKey key) {
-        return key.type() == ResourceType.CompFile
-            && !key.name().extension().equals("entities");
+    public boolean canRead(Resource resource) {
+        return resource.key().type() == ResourceType.CompFile
+            && !resource.key().name().extension().equals("entities");
     }
 
     @Override
-    public byte[] read(DataSource source, Asset asset) throws IOException {
+    public ByteBuffer read(DataSource source, Resource resource) throws IOException {
         var header = FileCompressedHeader.read(source);
         if (header.compressedSize() == -1) {
-            return source.readBytes(header.uncompressedSize());
+            return ByteBuffer.wrap(source.readBytes(header.uncompressedSize()));
         }
 
         var compressed = source.readBytes(header.compressedSize());
-        return decompressor.decompress(compressed, header.uncompressedSize());
+        return ByteBuffer.wrap(decompressor.decompress(compressed, header.uncompressedSize()));
     }
 }
