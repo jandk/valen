@@ -34,15 +34,14 @@ public final class FileListPresenter extends AbstractFXPresenter<FileListView> {
         return getView().getSelectedAsset();
     }
 
-    public void setAssets(List<? extends Asset> assets) {
-        assetIndex = assets.stream()
-            .collect(Collectors.groupingBy(asset -> asset.id().pathName()));
+    public void setAssets(Stream<? extends Asset> assets) {
+        assetIndex = assets.collect(Collectors.groupingBy(asset -> asset.id().pathName()));
 
         getView().setFileTree(buildPathTree());
     }
 
     private void selectPath(String path) {
-        var assets = assetIndex.getOrDefault(path, List.of());
+        var assets = assetIndex.getOrDefault(path, List.of()).stream().sorted().toList();
         getView().setFilteredAssets(assets);
     }
 

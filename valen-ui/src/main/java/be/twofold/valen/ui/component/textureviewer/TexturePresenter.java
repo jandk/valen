@@ -41,7 +41,7 @@ public final class TexturePresenter extends AbstractFXPresenter<TextureView> imp
     }
 
     @Override
-    public boolean canPreview(AssetType<?> type) {
+    public boolean canPreview(AssetType type) {
         return type == AssetType.TEXTURE;
     }
 

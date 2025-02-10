@@ -48,6 +48,8 @@ public final class FileListFXView implements FileListView, FXView {
             if (selectedTreeItem != null) {
                 selectedTreeItem.setExpanded(selectedItem != null && selectedItem.isExpanded());
                 treeView.getSelectionModel().select(selectedTreeItem);
+            } else {
+                treeView.getSelectionModel().select(root);
             }
             root.setExpanded(true);
         });
@@ -155,7 +157,7 @@ public final class FileListFXView implements FileListView, FXView {
         var typeColumn = new TableColumn<Asset, String>();
         typeColumn.setText("Type");
         typeColumn.setPrefWidth(40);
-        typeColumn.setCellValueFactory(param -> new ReadOnlyObjectWrapper<>(param.getValue().type().name()));
+        typeColumn.setCellValueFactory(param -> new ReadOnlyObjectWrapper<>(param.getValue().type().getName()));
 
         var propertiesColumn = new TableColumn<Asset, String>();
         propertiesColumn.setText("Properties");

@@ -35,7 +35,7 @@ final class ExportTask extends Task<Void> {
     }
 
     void export0() {
-        exporty(asset.type().clazz());
+        exporty(asset.type().getType());
     }
 
     private <T> void exporty(Class<T> clazz) {

@@ -20,7 +20,7 @@ public record Resource(
     }
 
     @Override
-    public AssetType<?> type() {
+    public AssetType type() {
         return switch (key.type()) {
             case Image -> AssetType.TEXTURE;
             case BaseModel, Model -> AssetType.MODEL;

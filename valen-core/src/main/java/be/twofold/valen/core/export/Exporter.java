@@ -6,6 +6,10 @@ import java.util.*;
 
 public interface Exporter<T> {
 
+    String getID();
+
+    String getName();
+
     String getExtension();
 
     Class<T> getSupportedType();

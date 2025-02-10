@@ -32,9 +32,8 @@ public final class StaticModelReader implements AssetReader<Model, Resource> {
 
     @Override
     public Model read(DataSource source, Resource resource) throws IOException {
-        long hash = (Long) resource.properties().get("hash");
         var model = StaticModel.read(source);
-        var meshes = new ArrayList<>(readMeshes(model, source, hash));
+        var meshes = new ArrayList<>(readMeshes(model, source, resource.hash()));
 
         if (readMaterials) {
             var materials = new HashMap<String, Material>();

@@ -19,7 +19,7 @@ public final class ModelPresenter extends AbstractFXPresenter<ModelView> impleme
     }
 
     @Override
-    public boolean canPreview(AssetType<?> type) {
+    public boolean canPreview(AssetType type) {
         return type == AssetType.MODEL;
     }
 

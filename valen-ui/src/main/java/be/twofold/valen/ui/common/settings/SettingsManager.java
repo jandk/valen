@@ -1,6 +1,7 @@
 package be.twofold.valen.ui.common.settings;
 
 import be.twofold.valen.core.util.*;
+import be.twofold.valen.ui.common.settings.gson.*;
 import com.google.gson.*;
 
 import java.io.*;
@@ -10,6 +11,7 @@ import java.util.*;
 public final class SettingsManager {
     private static final Gson GSON = new GsonBuilder()
         .registerTypeHierarchyAdapter(Path.class, new PathTypeAdapter().nullSafe())
+        .registerTypeAdapterFactory(new SettingTypeAdapterFactory())
         .setPrettyPrinting()
         .create();
 

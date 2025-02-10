@@ -3,7 +3,6 @@ package be.twofold.valen.ui.component;
 import be.twofold.valen.ui.component.dataviewer.*;
 import be.twofold.valen.ui.component.modelviewer.*;
 import be.twofold.valen.ui.component.textureviewer.*;
-import be.twofold.valen.ui.component.textviewer.*;
 import dagger.Module;
 import dagger.*;
 import dagger.multibindings.*;
@@ -23,8 +22,8 @@ public abstract class ViewerModule {
     @IntoSet
     abstract Viewer textureViewer(TexturePresenter viewer);
 
-    @Binds
-    @IntoSet
-    abstract Viewer textViewer(TextViewer viewer);
+    // @Binds
+    // @IntoSet
+    // abstract Viewer textViewer(TextViewer viewer);
 
 }

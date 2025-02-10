@@ -7,6 +7,16 @@ import java.io.*;
 
 public final class DdsExporter implements TextureExporter {
     @Override
+    public String getID() {
+        return "texture.dds";
+    }
+
+    @Override
+    public String getName() {
+        return "DDS (DirectDraw Surface)";
+    }
+
+    @Override
     public String getExtension() {
         return "dds";
     }

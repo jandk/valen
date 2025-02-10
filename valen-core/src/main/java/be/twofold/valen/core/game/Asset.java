@@ -6,7 +6,7 @@ public interface Asset extends Comparable<Asset> {
 
     AssetID id();
 
-    AssetType<?> type();
+    AssetType type();
 
     int size();
 

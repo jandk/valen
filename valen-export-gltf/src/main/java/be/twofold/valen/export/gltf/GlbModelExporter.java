@@ -11,6 +11,15 @@ import java.nio.file.*;
 import java.util.*;
 
 public final class GlbModelExporter implements Exporter<Model> {
+    @Override
+    public String getID() {
+        return "model.gltf";
+    }
+
+    @Override
+    public String getName() {
+        return "glTF/GLB (GL Transmission Format)";
+    }
 
     @Override
     public String getExtension() {
@@ -36,8 +45,8 @@ public final class GlbModelExporter implements Exporter<Model> {
         var binPath = outputDirectory.resolve(fileNameWithoutExtension + ".bin");
         var imagePath = outputDirectory.resolve("_images");
 
-        try (var writer = GltfWriter.createSplitWriter(path, binPath, imagePath)) {
-//        try (var writer = GltfWriter.createGlbWriter(path)) {
+        // try (var writer = GltfWriter.createSplitWriter(path, binPath, imagePath)) {
+        try (var writer = GltfWriter.createGlbWriter(path)) {
             var modelMapper = new GltfModelMultiMapper(writer);
             var rootNodeID = modelMapper.map(model);
             writer.addScene(List.of(rootNodeID));

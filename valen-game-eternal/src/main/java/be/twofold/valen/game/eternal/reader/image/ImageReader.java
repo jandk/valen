@@ -28,7 +28,7 @@ public final class ImageReader implements AssetReader<Texture, Resource> {
 
     @Override
     public Texture read(DataSource source, Resource resource) throws IOException {
-        var image = read(source, (Long) resource.properties().get("hash"));
+        var image = read(source, resource.hash());
         return new ImageMapper().map(image);
     }
 

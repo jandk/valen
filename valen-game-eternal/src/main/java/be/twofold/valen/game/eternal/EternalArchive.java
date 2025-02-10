@@ -16,6 +16,7 @@ import be.twofold.valen.game.eternal.resource.*;
 
 import java.io.*;
 import java.util.*;
+import java.util.stream.*;
 
 public final class EternalArchive implements Archive {
     private final Container<Long, StreamDbEntry> streams;
@@ -47,22 +48,21 @@ public final class EternalArchive implements Archive {
     }
 
     @Override
-    public List<Resource> assets() {
+    public Stream<? extends Asset> assets() {
         return resources.getAll()
             .filter(asset -> asset.size() != 0)
-            .distinct().sorted()
-            .toList();
+            .distinct();
     }
 
     @Override
-    public Optional<Resource> get(AssetID identifier) {
+    public Optional<Resource> getAsset(AssetID identifier) {
         return resources.get((ResourceKey) identifier)
             .or(() -> common.get((ResourceKey) identifier));
     }
 
     @Override
     public <T> T loadAsset(AssetID identifier, Class<T> clazz) throws IOException {
-        var resource = get(identifier)
+        var resource = getAsset(identifier)
             .orElseThrow(FileNotFoundException::new);
 
         var bytes = resources.get(resource.key()).isPresent()

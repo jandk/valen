@@ -5,6 +5,7 @@ import be.twofold.valen.ui.common.*;
 import be.twofold.valen.ui.common.event.*;
 import be.twofold.valen.ui.component.filelist.*;
 import be.twofold.valen.ui.component.preview.*;
+import be.twofold.valen.ui.component.settings.*;
 import jakarta.inject.*;
 import javafx.animation.*;
 import javafx.application.*;
@@ -15,7 +16,9 @@ import javafx.scene.layout.*;
 import org.slf4j.*;
 
 import java.util.*;
+import java.util.function.*;
 
+@Singleton
 public final class MainFXView implements MainView, FXView {
     private static final Logger log = LoggerFactory.getLogger(MainFXView.class);
 
@@ -27,11 +30,13 @@ public final class MainFXView implements MainView, FXView {
     private final ProgressBar progressBar = new ProgressBar();
 
     private final PreviewTabPane tabPane;
+    private final SettingsFXView settingsView;
     private final SendChannel<MainViewEvent> channel;
 
     @Inject
-    MainFXView(PreviewTabPane tabPane, FileListFXView fileListView, EventBus eventBus) {
+    MainFXView(FileListFXView fileListView, PreviewTabPane tabPane, SettingsFXView settingsView, EventBus eventBus) {
         this.tabPane = tabPane;
+        this.settingsView = settingsView;
         this.channel = eventBus.senderFor(MainViewEvent.class);
 
         buildUI();
@@ -45,13 +50,14 @@ public final class MainFXView implements MainView, FXView {
     }
 
     @Override
-    public boolean isPreviewVisible() {
+    public boolean isSidePaneVisible() {
         return splitPane.getItems().size() == 2;
     }
 
     @Override
     public void setArchives(List<String> archives) {
         archiveChooser.getItems().setAll(archives);
+        archiveChooser.getSelectionModel().select(0);
     }
 
     @Override
@@ -78,20 +84,28 @@ public final class MainFXView implements MainView, FXView {
     }
 
     private void setPreviewEnabled(boolean enabled) {
+        setSidePanelEnabled(enabled, tabPane, MainViewEvent.PreviewVisibilityChanged::new);
+    }
+
+    private void setSettingsEnabled(boolean enabled) {
+        setSidePanelEnabled(enabled, settingsView.getFXNode(), MainViewEvent.SettingVisibilityChanged::new);
+    }
+
+    private void setSidePanelEnabled(boolean enabled, Node node, Function<Boolean, MainViewEvent> eventFunction) {
         if (enabled) {
-            if (isPreviewVisible()) {
+            if (isSidePaneVisible()) {
                 return;
             }
-            splitPane.getItems().add(tabPane);
+            splitPane.getItems().add(node);
             splitPane.setDividerPositions(0.60);
-            channel.send(new MainViewEvent.PreviewVisibilityChanged(true));
+            channel.send(eventFunction.apply(true));
         } else {
-            if (!isPreviewVisible()) {
+            if (!isSidePaneVisible()) {
                 return;
             }
             splitPane.getItems().remove(1);
             splitPane.setDividerPositions();
-            channel.send(new MainViewEvent.PreviewVisibilityChanged(false));
+            channel.send(eventFunction.apply(false));
         }
     }
 
@@ -154,11 +168,15 @@ public final class MainFXView implements MainView, FXView {
             channel.send(new MainViewEvent.ExportClicked());
         });
 
+        var sidePane = new ToggleGroup();
+
         var previewButton = new ToggleButton("Preview");
+        previewButton.setToggleGroup(sidePane);
         previewButton.selectedProperty().addListener((_, _, newValue) -> setPreviewEnabled(newValue));
 
-        var settingsButton = new Button("Settings");
-        settingsButton.setDisable(true);
+        var settingsButton = new ToggleButton("Settings");
+        settingsButton.setToggleGroup(sidePane);
+        settingsButton.selectedProperty().addListener((_, _, newValue) -> setSettingsEnabled(newValue));
 
         return new ToolBar(
             loadGame, archiveChooser,

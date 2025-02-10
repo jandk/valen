@@ -6,7 +6,7 @@ import java.util.*;
 
 public interface MainView {
 
-    boolean isPreviewVisible();
+    boolean isSidePaneVisible();
 
     void setArchives(List<String> archives);
 

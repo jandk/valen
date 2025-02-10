@@ -208,14 +208,14 @@ public final class MaterialReader implements AssetReader<Material, Resource> {
         var name = builder.toString();
         var resourceName = new ResourceName(name);
         var resourceKey = ResourceKey.from(resourceName, ResourceType.Image);
-        if (!archive.exists(resourceKey)) {
+        var resource = archive.getAsset(resourceKey);
+        if (resource.isEmpty()) {
             log.warn("Missing image file: {}", name);
             return null;
         }
 
         var supplier = ThrowingSupplier.lazy(() -> archive.loadAsset(resourceKey, Texture.class));
-        var rawHash = (Long) archive.getAsset(resourceKey).properties().get("hash");
-        var hash = String.format("%016x", rawHash);
+        var hash = HexFormat.of().toHexDigits(resource.get().hash());
         return new TextureReference(name, Filenames.fileNameWithoutExtension(filePath) + "_" + hash, supplier);
     }
 

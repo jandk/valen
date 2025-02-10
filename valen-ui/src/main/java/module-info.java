@@ -4,8 +4,9 @@ module valen.ui {
     requires jakarta.inject;
     requires javafx.controls;
     requires javafx.graphics;
-    requires valen.core;
+    requires org.jetbrains.annotations;
     requires org.slf4j;
+    requires valen.core;
 
     exports be.twofold.valen.ui;
 

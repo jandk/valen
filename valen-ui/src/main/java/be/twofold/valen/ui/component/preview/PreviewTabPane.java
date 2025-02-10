@@ -17,7 +17,7 @@ public final class PreviewTabPane extends TabPane {
             .toList();
     }
 
-    public void setData(AssetType<?> type, Object assetData) {
+    public void setData(AssetType type, Object assetData) {
         getTabs().removeIf(tab -> {
             var viewer = ((PreviewTab) tab).getViewer();
             if (!viewer.canPreview(type)) {

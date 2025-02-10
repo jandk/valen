@@ -14,6 +14,16 @@ import java.util.*;
 public final class GlbSceneExporter implements Exporter<Scene> {
 
     @Override
+    public String getID() {
+        return "scene.gltf";
+    }
+
+    @Override
+    public String getName() {
+        return "glTF/GLB (GL Transmission Format)";
+    }
+
+    @Override
     public String getExtension() {
         return "glb";
     }

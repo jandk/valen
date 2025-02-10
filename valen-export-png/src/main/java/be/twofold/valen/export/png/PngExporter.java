@@ -8,6 +8,16 @@ import java.io.*;
 
 public final class PngExporter implements TextureExporter {
     @Override
+    public String getID() {
+        return "texture.png";
+    }
+
+    @Override
+    public String getName() {
+        return "PNG (Portable Network Graphics)";
+    }
+
+    @Override
     public String getExtension() {
         return "png";
     }

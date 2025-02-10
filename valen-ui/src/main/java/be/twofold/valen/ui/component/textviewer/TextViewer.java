@@ -12,7 +12,7 @@ public final class TextViewer extends TextArea implements Viewer {
     }
 
     @Override
-    public boolean canPreview(AssetType<?> type) {
+    public boolean canPreview(AssetType type) {
         return type == AssetType.TEXT;
     }
 
