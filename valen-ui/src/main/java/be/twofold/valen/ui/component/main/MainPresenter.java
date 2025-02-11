@@ -8,7 +8,6 @@ import be.twofold.valen.ui.common.*;
 import be.twofold.valen.ui.common.event.*;
 import be.twofold.valen.ui.common.settings.*;
 import be.twofold.valen.ui.component.filelist.*;
-import be.twofold.valen.ui.component.settings.*;
 import be.twofold.valen.ui.events.*;
 import jakarta.inject.*;
 import javafx.application.*;
@@ -21,8 +20,7 @@ import java.util.function.*;
 
 public final class MainPresenter extends AbstractFXPresenter<MainView> {
     private final SendChannel<MainEvent> channel;
-    private final FileListPresenter fileListPresenter;
-    private final SettingsPresenter settingsPresenter;
+    private final FileListPresenter fileList;
     private final Settings settings;
 
     private @Nullable Game game;
@@ -34,15 +32,14 @@ public final class MainPresenter extends AbstractFXPresenter<MainView> {
     MainPresenter(
         MainView view,
         EventBus eventBus,
-        FileListPresenter fileListPresenter,
-        SettingsPresenter settingsPresenter,
+        FileListPresenter fileList,
+        // SettingsPresenter settingsPresenter,
         Settings settings
     ) {
         super(view);
 
         this.channel = eventBus.senderFor(MainEvent.class);
-        this.fileListPresenter = fileListPresenter;
-        this.settingsPresenter = settingsPresenter;
+        this.fileList = fileList;
         this.settings = settings;
 
         eventBus
@@ -105,7 +102,7 @@ public final class MainPresenter extends AbstractFXPresenter<MainView> {
     }
 
     private void exportSelectedAsset() {
-        var asset = fileListPresenter.getSelectedAsset();
+        var asset = fileList.getSelectedAsset();
         if (asset == null) {
             return;
         }
@@ -135,7 +132,7 @@ public final class MainPresenter extends AbstractFXPresenter<MainView> {
         }
         var predicate = buildPredicate(query, settings.assetTypes().get().orElse(Set.of()));
         var assets = archive.assets().filter(predicate);
-        fileListPresenter.setAssets(assets);
+        fileList.setAssets(assets);
     }
 
     private Predicate<Asset> buildPredicate(String assetName, Collection<AssetType> assetTypes) {

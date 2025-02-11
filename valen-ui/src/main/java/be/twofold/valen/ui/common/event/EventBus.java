@@ -8,11 +8,10 @@ import java.util.concurrent.*;
 
 @Singleton
 public final class EventBus {
-    private final Map<Class<?>, Set<WeakReference<Channel<?>>>> channels;
+    private static final Map<Class<?>, Set<WeakReference<Channel<?>>>> channels = new IdentityHashMap<>();
 
     @Inject
     EventBus() {
-        channels = new IdentityHashMap<>();
     }
 
     public <E> SendChannel<E> senderFor(Class<E> clazz) {

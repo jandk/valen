@@ -3,9 +3,9 @@ package be.twofold.valen.ui.component.main;
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.ui.common.*;
 import be.twofold.valen.ui.common.event.*;
+import be.twofold.valen.ui.component.*;
 import be.twofold.valen.ui.component.filelist.*;
 import be.twofold.valen.ui.component.preview.*;
-import be.twofold.valen.ui.component.settings.*;
 import jakarta.inject.*;
 import javafx.animation.*;
 import javafx.application.*;
@@ -30,13 +30,13 @@ public final class MainFXView implements MainView, FXView {
     private final ProgressBar progressBar = new ProgressBar();
 
     private final PreviewTabPane tabPane;
-    private final SettingsFXView settingsView;
+    private final Parent settingsView;
     private final SendChannel<MainViewEvent> channel;
 
     @Inject
-    MainFXView(FileListFXView fileListView, PreviewTabPane tabPane, SettingsFXView settingsView, EventBus eventBus) {
+    MainFXView(FileListFXView fileListView, PreviewTabPane tabPane, EventBus eventBus) {
         this.tabPane = tabPane;
-        this.settingsView = settingsView;
+        this.settingsView = ViewLoader.INSTANCE.load("/fxml/Settings.fxml");
         this.channel = eventBus.senderFor(MainViewEvent.class);
 
         buildUI();
@@ -88,7 +88,7 @@ public final class MainFXView implements MainView, FXView {
     }
 
     private void setSettingsEnabled(boolean enabled) {
-        setSidePanelEnabled(enabled, settingsView.getFXNode(), MainViewEvent.SettingVisibilityChanged::new);
+        setSidePanelEnabled(enabled, settingsView, MainViewEvent.SettingVisibilityChanged::new);
     }
 
     private void setSidePanelEnabled(boolean enabled, Node node, Function<Boolean, MainViewEvent> eventFunction) {

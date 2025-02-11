@@ -7,13 +7,18 @@ import be.twofold.valen.ui.component.main.*;
 import dagger.*;
 import jakarta.inject.*;
 
+import java.util.*;
+
 @Singleton
 @Component(modules = {
+    ControllerModule.class,
     SettingsModule.class,
     ViewModule.class,
     ViewerModule.class,
 })
-interface MainFactory {
+public interface MainFactory {
+
+    Map<Class<?>, Provider<Controller>> controllerProviders();
 
     EventBus eventBus();
 
