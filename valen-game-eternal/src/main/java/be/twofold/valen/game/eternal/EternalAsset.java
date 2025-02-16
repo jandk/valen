@@ -1,12 +1,13 @@
-package be.twofold.valen.game.eternal.resource;
+package be.twofold.valen.game.eternal;
 
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.game.eternal.reader.resource.*;
+import be.twofold.valen.game.eternal.resource.*;
 
 import java.util.*;
 
-public record Resource(
-    ResourceKey key,
+public record EternalAsset(
+    EternalAssetID key,
     int offset,
     int compressedSize,
     int uncompressedSize,
@@ -46,7 +47,7 @@ public record Resource(
 
     @Override
     public boolean equals(Object obj) {
-        return obj instanceof Resource other
+        return obj instanceof EternalAsset other
             && key.equals(other.key);
     }
 

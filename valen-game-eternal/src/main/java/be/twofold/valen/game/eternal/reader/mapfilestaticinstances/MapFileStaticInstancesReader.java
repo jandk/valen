@@ -11,7 +11,7 @@ import be.twofold.valen.game.eternal.resource.*;
 import java.io.*;
 import java.util.*;
 
-public final class MapFileStaticInstancesReader implements AssetReader<Scene, Resource> {
+public final class MapFileStaticInstancesReader implements AssetReader<Scene, EternalAsset> {
     private final EternalArchive archive;
 
     public MapFileStaticInstancesReader(EternalArchive archive) {
@@ -19,12 +19,12 @@ public final class MapFileStaticInstancesReader implements AssetReader<Scene, Re
     }
 
     @Override
-    public boolean canRead(Resource resource) {
+    public boolean canRead(EternalAsset resource) {
         return resource.key().type() == ResourceType.StaticInstances;
     }
 
     @Override
-    public Scene read(DataSource source, Resource resource) throws IOException {
+    public Scene read(DataSource source, EternalAsset resource) throws IOException {
         var staticInstances = MapFileStaticInstances.read(source);
 
         var instances = new ArrayList<Instance>();
@@ -39,7 +39,7 @@ public final class MapFileStaticInstancesReader implements AssetReader<Scene, Re
     }
 
     private Optional<Instance> mapToInstance(String modelName, String instanceName, MapFileStaticInstancesModelGeometry geometry) {
-        var resourceKey = ResourceKey.from(modelName, ResourceType.Model);
+        var resourceKey = EternalAssetID.from(modelName, ResourceType.Model);
         if (!archive.exists(resourceKey)) {
             return Optional.empty();
         }

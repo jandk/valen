@@ -12,7 +12,7 @@ import be.twofold.valen.game.eternal.resource.*;
 import java.io.*;
 import java.util.*;
 
-public final class StaticModelReader implements AssetReader<Model, Resource> {
+public final class StaticModelReader implements AssetReader<Model, EternalAsset> {
     private final EternalArchive archive;
     private final boolean readMaterials;
 
@@ -26,12 +26,12 @@ public final class StaticModelReader implements AssetReader<Model, Resource> {
     }
 
     @Override
-    public boolean canRead(Resource resource) {
+    public boolean canRead(EternalAsset resource) {
         return resource.key().type() == ResourceType.Model;
     }
 
     @Override
-    public Model read(DataSource source, Resource resource) throws IOException {
+    public Model read(DataSource source, EternalAsset resource) throws IOException {
         var model = StaticModel.read(source);
         var meshes = new ArrayList<>(readMeshes(model, source, resource.hash()));
 
@@ -42,7 +42,7 @@ public final class StaticModelReader implements AssetReader<Model, Resource> {
                 var materialName = meshInfo.mtlDecl();
                 var materialFile = "generated/decls/material2/" + materialName + ".decl";
                 if (!materials.containsKey(materialName)) {
-                    var assetId = ResourceKey.from(materialFile, ResourceType.RsStreamFile);
+                    var assetId = EternalAssetID.from(materialFile, ResourceType.RsStreamFile);
                     var material = archive.loadAsset(assetId, Material.class);
                     materials.put(materialName, material);
                 }

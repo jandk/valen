@@ -2,6 +2,7 @@ package be.twofold.valen.game.eternal.reader.binaryfile;
 
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.io.*;
+import be.twofold.valen.game.eternal.*;
 import be.twofold.valen.game.eternal.resource.*;
 
 import javax.crypto.*;
@@ -10,14 +11,14 @@ import java.io.*;
 import java.security.*;
 import java.util.*;
 
-public final class BinaryFileReader implements AssetReader<byte[], Resource> {
+public final class BinaryFileReader implements AssetReader<byte[], EternalAsset> {
     @Override
-    public boolean canRead(Resource resource) {
+    public boolean canRead(EternalAsset resource) {
         return resource.key().type() == ResourceType.BinaryFile;
     }
 
     @Override
-    public byte[] read(DataSource source, Resource resource) throws IOException {
+    public byte[] read(DataSource source, EternalAsset resource) throws IOException {
         try {
             var salt = source.readBytes(12);
             var iVec = source.readBytes(16);

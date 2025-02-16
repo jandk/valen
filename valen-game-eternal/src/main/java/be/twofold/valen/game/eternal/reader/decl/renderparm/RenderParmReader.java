@@ -3,6 +3,7 @@ package be.twofold.valen.game.eternal.reader.decl.renderparm;
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.math.*;
+import be.twofold.valen.game.eternal.*;
 import be.twofold.valen.game.eternal.reader.decl.parser.*;
 import be.twofold.valen.game.eternal.reader.decl.renderparm.enums.*;
 import be.twofold.valen.game.eternal.reader.image.*;
@@ -11,20 +12,20 @@ import be.twofold.valen.game.eternal.resource.*;
 import java.io.*;
 import java.util.*;
 
-public final class RenderParmReader implements AssetReader<RenderParm, Resource> {
+public final class RenderParmReader implements AssetReader<RenderParm, EternalAsset> {
     public static final Map<RenderParmType, Set<String>> ParmsByType = new EnumMap<>(RenderParmType.class);
 
     public RenderParmReader() {
     }
 
     @Override
-    public boolean canRead(Resource resource) {
+    public boolean canRead(EternalAsset resource) {
         return resource.key().type() == ResourceType.RsStreamFile
             && resource.key().name().name().startsWith("generated/decls/renderparm/");
     }
 
     @Override
-    public RenderParm read(DataSource source, Resource resource) throws IOException {
+    public RenderParm read(DataSource source, EternalAsset resource) throws IOException {
         var bytes = source.readBytes(Math.toIntExact(source.size()));
         var parser = new DeclParser(new String(bytes), true);
 

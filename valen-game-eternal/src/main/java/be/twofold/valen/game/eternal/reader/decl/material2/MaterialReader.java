@@ -19,7 +19,7 @@ import java.io.*;
 import java.util.*;
 import java.util.stream.*;
 
-public final class MaterialReader implements AssetReader<Material, Resource> {
+public final class MaterialReader implements AssetReader<Material, EternalAsset> {
     private static final Map<MaterialPropertyType, List<String>> ParmTextures = Map.of(
         MaterialPropertyType.Albedo, List.of(
             "albedo",
@@ -84,13 +84,13 @@ public final class MaterialReader implements AssetReader<Material, Resource> {
     }
 
     @Override
-    public boolean canRead(Resource resource) {
+    public boolean canRead(EternalAsset resource) {
         return resource.key().type() == ResourceType.RsStreamFile
             && resource.key().name().name().startsWith("generated/decls/material2/");
     }
 
     @Override
-    public Material read(DataSource source, Resource resource) throws IOException {
+    public Material read(DataSource source, EternalAsset resource) throws IOException {
         var object = declReader.read(source, resource);
         return parseMaterial(object, resource.id().fullName());
     }
@@ -207,7 +207,7 @@ public final class MaterialReader implements AssetReader<Material, Resource> {
 
         var name = builder.toString();
         var resourceName = new ResourceName(name);
-        var resourceKey = ResourceKey.from(resourceName, ResourceType.Image);
+        var resourceKey = EternalAssetID.from(resourceName, ResourceType.Image);
         var resource = archive.getAsset(resourceKey);
         if (resource.isEmpty()) {
             log.warn("Missing image file: {}", name);
@@ -371,7 +371,7 @@ public final class MaterialReader implements AssetReader<Material, Resource> {
         }
 
         var fullName = "generated/decls/renderparm/" + name + ".decl";
-        var resourceKey = ResourceKey.from(fullName, ResourceType.RsStreamFile);
+        var resourceKey = EternalAssetID.from(fullName, ResourceType.RsStreamFile);
         if (!archive.exists(resourceKey)) {
             RenderParmCache.put(fullName, null);
             return Optional.empty();

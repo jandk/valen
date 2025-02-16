@@ -13,7 +13,7 @@ import java.nio.charset.*;
 import java.util.*;
 import java.util.regex.*;
 
-public final class DeclReader implements AssetReader<JsonObject, Resource> {
+public final class DeclReader implements AssetReader<JsonObject, EternalAsset> {
     private static final String RootPrefix = "generated/decls/";
     private static final Pattern ItemPattern = Pattern.compile("^\\w+\\[(\\d+)]$");
     private static final CharsetDecoder Utf8Decoder = StandardCharsets.UTF_8.newDecoder();
@@ -39,7 +39,7 @@ public final class DeclReader implements AssetReader<JsonObject, Resource> {
     }
 
     @Override
-    public boolean canRead(Resource resource) {
+    public boolean canRead(EternalAsset resource) {
         if (resource.key().type() != ResourceType.RsStreamFile) {
             return false;
         }
@@ -54,7 +54,7 @@ public final class DeclReader implements AssetReader<JsonObject, Resource> {
     }
 
     @Override
-    public JsonObject read(DataSource source, Resource resource) throws IOException {
+    public JsonObject read(DataSource source, EternalAsset resource) throws IOException {
         var bytes = source.readBytes(Math.toIntExact(source.size()));
         var object = DeclParser.parse(decode(bytes));
 
@@ -83,7 +83,7 @@ public final class DeclReader implements AssetReader<JsonObject, Resource> {
         }
 
         var fullName = RootPrefix + key + ".decl";
-        var resourceKey = ResourceKey.from(fullName, ResourceType.RsStreamFile);
+        var resourceKey = EternalAssetID.from(fullName, ResourceType.RsStreamFile);
         if (!archive.exists(resourceKey)) {
             return object;
         }

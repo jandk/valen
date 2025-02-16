@@ -12,7 +12,6 @@ import be.twofold.valen.game.eternal.reader.md6model.*;
 import be.twofold.valen.game.eternal.reader.md6skel.*;
 import be.twofold.valen.game.eternal.reader.staticmodel.*;
 import be.twofold.valen.game.eternal.reader.streamdb.*;
-import be.twofold.valen.game.eternal.resource.*;
 
 import java.io.*;
 import java.util.*;
@@ -20,14 +19,14 @@ import java.util.stream.*;
 
 public final class EternalArchive implements Archive {
     private final Container<Long, StreamDbEntry> streams;
-    private final Container<ResourceKey, Resource> common;
-    private final Container<ResourceKey, Resource> resources;
-    private final AssetReaders<Resource> readers;
+    private final Container<EternalAssetID, EternalAsset> common;
+    private final Container<EternalAssetID, EternalAsset> resources;
+    private final AssetReaders<EternalAsset> readers;
 
     EternalArchive(
         Container<Long, StreamDbEntry> streams,
-        Container<ResourceKey, Resource> common,
-        Container<ResourceKey, Resource> resources
+        Container<EternalAssetID, EternalAsset> common,
+        Container<EternalAssetID, EternalAsset> resources
     ) {
         this.streams = Check.notNull(streams, "streams");
         this.common = Check.notNull(common, "common");
@@ -55,9 +54,9 @@ public final class EternalArchive implements Archive {
     }
 
     @Override
-    public Optional<Resource> getAsset(AssetID identifier) {
-        return resources.get((ResourceKey) identifier)
-            .or(() -> common.get((ResourceKey) identifier));
+    public Optional<EternalAsset> getAsset(AssetID identifier) {
+        return resources.get((EternalAssetID) identifier)
+            .or(() -> common.get((EternalAssetID) identifier));
     }
 
     @Override

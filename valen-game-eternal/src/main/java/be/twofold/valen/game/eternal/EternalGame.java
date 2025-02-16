@@ -16,7 +16,7 @@ public final class EternalGame implements Game {
     private final PackageMapSpec spec;
     private final Decompressor decompressor;
     private final Container<Long, StreamDbEntry> streamDbCollection;
-    private final Container<ResourceKey, Resource> commonCollection;
+    private final Container<EternalAssetID, EternalAsset> commonCollection;
 
     EternalGame(Path path) throws IOException {
         this.base = path.resolve("base");
@@ -26,14 +26,14 @@ public final class EternalGame implements Game {
         this.commonCollection = loadResources(base, spec, decompressor, "common", "warehouse");
     }
 
-    static Container<ResourceKey, Resource> loadResources(Path base, PackageMapSpec spec, Decompressor decompressor, String... names) throws IOException {
+    static Container<EternalAssetID, EternalAsset> loadResources(Path base, PackageMapSpec spec, Decompressor decompressor, String... names) throws IOException {
         var paths = Arrays.stream(names)
             .flatMap(name -> spec.mapFiles().get(name).stream())
             .filter(s -> s.endsWith(".resources"))
             .map(base::resolve)
             .toList();
 
-        var files = new ArrayList<Container<ResourceKey, Resource>>();
+        var files = new ArrayList<Container<EternalAssetID, EternalAsset>>();
         for (var path : paths) {
             files.add(new ResourcesFile(path, decompressor));
         }

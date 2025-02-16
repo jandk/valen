@@ -1,18 +1,19 @@
-package be.twofold.valen.game.eternal.resource;
+package be.twofold.valen.game.eternal;
 
 import be.twofold.valen.core.game.*;
+import be.twofold.valen.game.eternal.resource.*;
 
 import java.util.*;
 
-public record ResourceKey(
+public record EternalAssetID(
     ResourceName name,
     ResourceType type,
     ResourceVariation variation
 ) implements Comparable<AssetID>, AssetID {
-    private static final Comparator<ResourceKey> COMPARATOR = Comparator
-        .comparing(ResourceKey::name)
-        .thenComparing(ResourceKey::type)
-        .thenComparing(ResourceKey::variation);
+    private static final Comparator<EternalAssetID> COMPARATOR = Comparator
+        .comparing(EternalAssetID::name)
+        .thenComparing(EternalAssetID::type)
+        .thenComparing(EternalAssetID::variation);
 
     private static final Map<ResourceType, Set<ResourceVariation>> Variations = new EnumMap<>(Map.of(
         ResourceType.HavokShape, EnumSet.of(ResourceVariation.HkMsvc64),
@@ -28,11 +29,11 @@ public record ResourceKey(
         )
     ));
 
-    public static ResourceKey from(String name, ResourceType type) {
+    public static EternalAssetID from(String name, ResourceType type) {
         return from(new ResourceName(name), type);
     }
 
-    public static ResourceKey from(ResourceName name, ResourceType type) {
+    public static EternalAssetID from(ResourceName name, ResourceType type) {
         var variations = Variations
             .getOrDefault(type, Set.of(ResourceVariation.None));
 
@@ -40,18 +41,18 @@ public record ResourceKey(
             throw new IllegalArgumentException("Multiple variations found for type: " + type + " (" + variations + ")");
         }
 
-        return new ResourceKey(
+        return new EternalAssetID(
             name,
             type,
             variations.iterator().next()
         );
     }
 
-    public static ResourceKey from(String name, ResourceType type, ResourceVariation variation) {
+    public static EternalAssetID from(String name, ResourceType type, ResourceVariation variation) {
         if (!Variations.getOrDefault(type, Set.of(ResourceVariation.None)).contains(variation)) {
             throw new IllegalArgumentException("Invalid variation for type: " + type + " (" + variation + ")");
         }
-        return new ResourceKey(
+        return new EternalAssetID(
             new ResourceName(name),
             type,
             variation
@@ -80,6 +81,6 @@ public record ResourceKey(
 
     @Override
     public int compareTo(AssetID o) {
-        return COMPARATOR.compare(this, (ResourceKey) o);
+        return COMPARATOR.compare(this, (EternalAssetID) o);
     }
 }

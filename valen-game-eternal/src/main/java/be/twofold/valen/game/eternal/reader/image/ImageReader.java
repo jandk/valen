@@ -8,7 +8,7 @@ import be.twofold.valen.game.eternal.resource.*;
 
 import java.io.*;
 
-public final class ImageReader implements AssetReader<Texture, Resource> {
+public final class ImageReader implements AssetReader<Texture, EternalAsset> {
     private final EternalArchive archive;
     private final boolean readStreams;
 
@@ -22,12 +22,12 @@ public final class ImageReader implements AssetReader<Texture, Resource> {
     }
 
     @Override
-    public boolean canRead(Resource resource) {
+    public boolean canRead(EternalAsset resource) {
         return resource.key().type() == ResourceType.Image;
     }
 
     @Override
-    public Texture read(DataSource source, Resource resource) throws IOException {
+    public Texture read(DataSource source, EternalAsset resource) throws IOException {
         var image = read(source, resource.hash());
         return new ImageMapper().map(image);
     }

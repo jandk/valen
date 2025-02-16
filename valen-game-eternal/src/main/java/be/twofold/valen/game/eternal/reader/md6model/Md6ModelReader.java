@@ -12,7 +12,7 @@ import java.io.*;
 import java.nio.*;
 import java.util.*;
 
-public final class Md6ModelReader implements AssetReader<Model, Resource> {
+public final class Md6ModelReader implements AssetReader<Model, EternalAsset> {
     private final EternalArchive archive;
     private final boolean readMaterials;
 
@@ -26,15 +26,15 @@ public final class Md6ModelReader implements AssetReader<Model, Resource> {
     }
 
     @Override
-    public boolean canRead(Resource resource) {
+    public boolean canRead(EternalAsset resource) {
         return resource.key().type() == ResourceType.BaseModel;
     }
 
     @Override
-    public Model read(DataSource source, Resource resource) throws IOException {
+    public Model read(DataSource source, EternalAsset resource) throws IOException {
         var model = Md6Model.read(source);
         var meshes = new ArrayList<>(readMeshes(model, resource.hash()));
-        var skeletonKey = ResourceKey.from(model.header().md6SkelName(), ResourceType.Skeleton);
+        var skeletonKey = EternalAssetID.from(model.header().md6SkelName(), ResourceType.Skeleton);
         var skeleton = archive.loadAsset(skeletonKey, Skeleton.class);
 
         if (readMaterials) {
@@ -44,7 +44,7 @@ public final class Md6ModelReader implements AssetReader<Model, Resource> {
                 var materialName = meshInfo.materialName();
                 var materialFile = "generated/decls/material2/" + materialName + ".decl";
                 if (!materials.containsKey(materialName)) {
-                    var assetId = ResourceKey.from(materialFile, ResourceType.RsStreamFile);
+                    var assetId = EternalAssetID.from(materialFile, ResourceType.RsStreamFile);
                     var material = archive.loadAsset(assetId, Material.class);
                     materials.put(materialName, material);
                 }
