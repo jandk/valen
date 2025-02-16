@@ -7,16 +7,16 @@ import java.nio.*;
 import java.util.*;
 
 public final class Geo {
-    private final boolean invertFaces;
+    private final boolean flipWindingOrder;
 
-    public Geo(boolean invertFaces) {
-        this.invertFaces = invertFaces;
+    public Geo(boolean flipWindingOrder) {
+        this.flipWindingOrder = flipWindingOrder;
     }
 
     public Mesh readMesh(
         DataSource source,
         List<Accessor<?>> vertexAccessors,
-        Accessor<?> faceAccessor
+        Accessor<?> indexAccessor
     ) throws IOException {
         var startPos = source.position();
 
@@ -28,16 +28,16 @@ public final class Geo {
         }
 
         source.position(startPos);
-        var faceBuffer = faceAccessor.read(source);
-        if (invertFaces) {
-            invertFaces(faceBuffer.buffer());
+        var indexBuffer = indexAccessor.read(source);
+        if (flipWindingOrder) {
+            invertIndices(indexBuffer.buffer());
         }
 
         source.position(startPos);
-        return new Mesh(faceBuffer, vertexBuffers);
+        return new Mesh(indexBuffer, vertexBuffers);
     }
 
-    private void invertFaces(Buffer buffer) {
+    private void invertIndices(Buffer buffer) {
         switch (buffer) {
             case ByteBuffer bb -> invert(bb);
             case ShortBuffer sb -> invert(sb);

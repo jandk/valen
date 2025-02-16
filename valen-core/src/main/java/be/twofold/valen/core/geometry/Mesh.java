@@ -6,21 +6,21 @@ import be.twofold.valen.core.util.*;
 import java.util.*;
 
 public record Mesh(
-    VertexBuffer faceBuffer,
+    VertexBuffer indexBuffer,
     Map<Semantic, VertexBuffer> vertexBuffers,
     Material material,
     String name
 ) {
     public Mesh {
-        Check.notNull(faceBuffer, "faceBuffer must not be null");
+        Check.notNull(indexBuffer, "indexBuffer must not be null");
         vertexBuffers = Map.copyOf(vertexBuffers);
     }
 
     public Mesh(
-        VertexBuffer faceBuffer,
+        VertexBuffer indexBuffer,
         Map<Semantic, VertexBuffer> vertexBuffers
     ) {
-        this(faceBuffer, vertexBuffers, null, null);
+        this(indexBuffer, vertexBuffers, null, null);
     }
 
     public Optional<VertexBuffer> getBuffer(Semantic semantic) {
@@ -36,10 +36,10 @@ public record Mesh(
     }
 
     public Mesh withMaterial(Material material) {
-        return new Mesh(faceBuffer, vertexBuffers, material, name);
+        return new Mesh(indexBuffer, vertexBuffers, material, name);
     }
 
     public Mesh withName(String name) {
-        return new Mesh(faceBuffer, vertexBuffers, material, name);
+        return new Mesh(indexBuffer, vertexBuffers, material, name);
     }
 }

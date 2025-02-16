@@ -31,7 +31,7 @@ public abstract class GltfModelMapper {
         // Have to fix up the joints and weights first
         fixJointsAndWeights(mesh);
 
-        Map<String, AccessorID> attributes = new HashMap<>();
+        var attributes = new HashMap<String, AccessorID>();
         for (var entry : mesh.vertexBuffers().entrySet()) {
             if (entry.getKey() instanceof Semantic.Color) {
                 // TODO: Make Blender ignore vertex colors
@@ -42,10 +42,10 @@ public abstract class GltfModelMapper {
             attributes.put(semantic, accessorID);
         }
 
-        var faceAccessor = buildAccessor(mesh.faceBuffer(), null);
+        var indices = buildAccessor(mesh.indexBuffer(), null);
         return ImmutableMeshPrimitive.builder()
             .attributes(attributes)
-            .indices(faceAccessor)
+            .indices(indices)
             .material(Optional.ofNullable(materialID))
             .build();
     }

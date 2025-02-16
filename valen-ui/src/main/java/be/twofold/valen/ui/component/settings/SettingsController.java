@@ -19,6 +19,7 @@ import java.util.stream.*;
 public final class SettingsController implements Controller {
     private @FXML CheckBox typeTexture;
     private @FXML CheckBox typeModel;
+    private @FXML CheckBox typeMaterial;
     private @FXML CheckBox typeRaw;
     private @FXML VBox assetTypes;
     private @FXML ComboBox<Map.Entry<String, String>> textureFormat;
@@ -38,7 +39,7 @@ public final class SettingsController implements Controller {
     public void initialize() {
         var textureFormats = Exporter.forType(Texture.class).stream()
             .map(exporter -> Map.entry(exporter.getID(), exporter.getName()))
-            .sorted(Comparator.comparing(Map.Entry::getKey))
+            .sorted(Map.Entry.comparingByKey())
             .collect(Collectors.toList());
 
         textureFormat.getItems().setAll(textureFormats);
@@ -51,6 +52,7 @@ public final class SettingsController implements Controller {
                 .collect(Collectors.toUnmodifiableSet()));
         typeTexture.setSelected(assetTypes.contains(AssetType.TEXTURE));
         typeModel.setSelected(assetTypes.contains(AssetType.MODEL));
+        typeMaterial.setSelected(assetTypes.contains(AssetType.MATERIAL));
         typeRaw.setSelected(assetTypes.contains(AssetType.BINARY));
 
         var textureExporter = settings.textureExporter().get()
@@ -72,6 +74,9 @@ public final class SettingsController implements Controller {
         }
         if (typeModel.isSelected()) {
             assetTypes.add(AssetType.MODEL);
+        }
+        if (typeMaterial.isSelected()) {
+            assetTypes.add(AssetType.MATERIAL);
         }
         if (typeRaw.isSelected()) {
             assetTypes.add(AssetType.BINARY);

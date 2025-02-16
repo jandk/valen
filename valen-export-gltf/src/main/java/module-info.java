@@ -7,6 +7,8 @@ module valen.export.gltf {
     requires valen.export.png;
     requires valen.format.gltf;
 
-    provides be.twofold.valen.core.export.Exporter
-        with be.twofold.valen.export.gltf.GlbModelExporter, be.twofold.valen.export.gltf.GlbSceneExporter;
+    provides be.twofold.valen.core.export.Exporter with
+        be.twofold.valen.export.gltf.GltfMaterialExporter,
+        be.twofold.valen.export.gltf.GltfModelExporter,
+        be.twofold.valen.export.gltf.GltfSceneExporter;
 }

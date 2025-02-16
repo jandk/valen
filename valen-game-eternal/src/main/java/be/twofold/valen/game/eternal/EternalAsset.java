@@ -22,9 +22,12 @@ public record EternalAsset(
 
     @Override
     public AssetType type() {
+        if (key.name().name().startsWith("generated/decls/material2/")) {
+            return AssetType.MATERIAL;
+        }
         return switch (key.type()) {
-            case Image -> AssetType.TEXTURE;
             case BaseModel, Model -> AssetType.MODEL;
+            case Image -> AssetType.TEXTURE;
             default -> AssetType.BINARY;
         };
     }

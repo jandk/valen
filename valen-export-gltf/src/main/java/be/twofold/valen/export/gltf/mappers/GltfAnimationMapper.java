@@ -121,7 +121,7 @@ public final class GltfAnimationMapper {
 
     private float min(FloatBuffer buffer) {
         var min = Float.POSITIVE_INFINITY;
-        for (var i = 0; i < buffer.capacity(); i++) {
+        for (var i = 0; i < buffer.limit(); i++) {
             min = Math.min(min, buffer.get(i));
         }
         return min;
@@ -129,7 +129,7 @@ public final class GltfAnimationMapper {
 
     private float max(FloatBuffer buffer) {
         var max = Float.NEGATIVE_INFINITY;
-        for (var i = 0; i < buffer.capacity(); i++) {
+        for (var i = 0; i < buffer.limit(); i++) {
             max = Math.max(max, buffer.get(i));
         }
         return max;

@@ -1,21 +1,13 @@
 package be.twofold.valen.export.gltf;
 
 import be.twofold.valen.core.export.*;
-import be.twofold.valen.core.geometry.*;
 import be.twofold.valen.core.util.*;
-import be.twofold.valen.export.gltf.mappers.*;
 import be.twofold.valen.format.gltf.*;
 
 import java.io.*;
 import java.nio.file.*;
-import java.util.*;
 
-public final class GlbModelExporter implements Exporter<Model> {
-    @Override
-    public String getID() {
-        return "model.gltf";
-    }
-
+public abstract class AbstractGltfExporter<T> implements Exporter<T> {
     @Override
     public String getName() {
         return "glTF/GLB (GL Transmission Format)";
@@ -27,17 +19,12 @@ public final class GlbModelExporter implements Exporter<Model> {
     }
 
     @Override
-    public Class<Model> getSupportedType() {
-        return Model.class;
-    }
-
-    @Override
-    public void export(Model model, OutputStream out) throws IOException {
+    public void export(T value, OutputStream out) throws IOException {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public void export(Model model, Path path) throws IOException {
+    public void export(T value, Path path) throws IOException {
         var outputDirectory = path.getParent();
         var fileName = path.getFileName().toString();
         var fileNameWithoutExtension = Filenames.removeExtension(fileName);
@@ -47,9 +34,9 @@ public final class GlbModelExporter implements Exporter<Model> {
 
         // try (var writer = GltfWriter.createSplitWriter(path, binPath, imagePath)) {
         try (var writer = GltfWriter.createGlbWriter(path)) {
-            var modelMapper = new GltfModelMultiMapper(writer);
-            var rootNodeID = modelMapper.map(model);
-            writer.addScene(List.of(rootNodeID));
+            doExport(value, writer);
         }
     }
+
+    abstract void doExport(T object, GltfWriter writer) throws IOException;
 }

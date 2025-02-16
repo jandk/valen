@@ -55,7 +55,7 @@ public final class ModelPresenter extends AbstractFXPresenter<ModelView> impleme
         copyPoints(pointBuffer, result.getPoints());
         copy(normalBuffer, result.getNormals());
         copy(texCoordBuffer, result.getTexCoords());
-        copyFaces(mesh.faceBuffer(), result.getFaces());
+        copyIndices(mesh.indexBuffer(), result.getFaces());
         return result;
     }
 
@@ -79,11 +79,11 @@ public final class ModelPresenter extends AbstractFXPresenter<ModelView> impleme
         floatArray.setAll(array);
     }
 
-    private void copyFaces(VertexBuffer buffer, ObservableFaceArray faces) {
+    private void copyIndices(VertexBuffer buffer, ObservableFaceArray faces) {
         switch (buffer.buffer()) {
             case ByteBuffer byteBuffer -> throw new UnsupportedOperationException("ByteBuffer not supported yet");
             case ShortBuffer shortBuffer -> {
-                int capacity = shortBuffer.capacity();
+                int capacity = shortBuffer.limit();
                 int[] indices = new int[capacity * 3];
                 for (int i = 0, o = 0; i < capacity; i++) {
                     int index = Short.toUnsignedInt(shortBuffer.get(i));
