@@ -59,7 +59,7 @@ public final class FileListFXView implements FileListView, FXView {
         if (selectedValue == null) {
             return item;
         }
-        for (TreeItem<T> child : item.getChildren()) {
+        for (var child : item.getChildren()) {
             if (child.getValue().equals(selectedValue)) {
                 return child;
             }
@@ -82,17 +82,15 @@ public final class FileListFXView implements FileListView, FXView {
     }
 
     private void selectPath(TreeItem<PathCombo> treeItem) {
-        if (treeItem == null) {
-            return;
+        if (treeItem != null) {
+            channel.send(new FileListViewEvent.PathSelected(treeItem.getValue().full()));
         }
-        channel.send(new FileListViewEvent.PathSelected(treeItem.getValue().full()));
     }
 
     private void selectAsset(Asset asset) {
-        if (asset == null) {
-            return;
+        if (asset != null) {
+            channel.send(new FileListViewEvent.AssetSelected(asset));
         }
-        channel.send(new FileListViewEvent.AssetSelected(asset));
     }
 
     private TreeItem<PathCombo> convert(PathNode<PathCombo> node) {
