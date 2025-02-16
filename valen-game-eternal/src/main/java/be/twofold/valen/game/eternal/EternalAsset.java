@@ -28,7 +28,7 @@ public record EternalAsset(
         return switch (key.type()) {
             case BaseModel, Model -> AssetType.MODEL;
             case Image -> AssetType.TEXTURE;
-            default -> AssetType.BINARY;
+            default -> AssetType.RAW;
         };
     }
 

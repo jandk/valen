@@ -8,8 +8,7 @@ public enum AssetType {
     MATERIAL(Material.class, "Material"),
     MODEL(Model.class, "Model"),
     TEXTURE(Texture.class, "Texture"),
-    BINARY(byte[].class, "Binary"),
-    TEXT(String.class, "Text"),
+    RAW(byte[].class, "Raw"),
     ;
 
     private final Class<?> type;

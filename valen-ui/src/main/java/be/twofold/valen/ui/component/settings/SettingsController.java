@@ -48,12 +48,12 @@ public final class SettingsController implements Controller {
 
         var assetTypes = settings.assetTypes().get()
             .orElseGet(() -> Arrays.stream(AssetType.values())
-                .filter(type -> type != AssetType.BINARY)
+                .filter(type -> type != AssetType.RAW)
                 .collect(Collectors.toUnmodifiableSet()));
         typeTexture.setSelected(assetTypes.contains(AssetType.TEXTURE));
         typeModel.setSelected(assetTypes.contains(AssetType.MODEL));
         typeMaterial.setSelected(assetTypes.contains(AssetType.MATERIAL));
-        typeRaw.setSelected(assetTypes.contains(AssetType.BINARY));
+        typeRaw.setSelected(assetTypes.contains(AssetType.RAW));
 
         var textureExporter = settings.textureExporter().get()
             .orElse("texture.png");
@@ -79,7 +79,7 @@ public final class SettingsController implements Controller {
             assetTypes.add(AssetType.MATERIAL);
         }
         if (typeRaw.isSelected()) {
-            assetTypes.add(AssetType.BINARY);
+            assetTypes.add(AssetType.RAW);
         }
         settings.assetTypes().set(assetTypes);
         settings.textureExporter().set(textureFormat.getValue().getKey());

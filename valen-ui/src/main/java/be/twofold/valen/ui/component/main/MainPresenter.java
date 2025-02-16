@@ -82,7 +82,7 @@ public final class MainPresenter extends AbstractFXPresenter<MainView> {
     private void selectAsset(Asset asset) {
         if (getView().isSidePaneVisible() && archive != null) {
             try {
-                var type = asset.type() == AssetType.BINARY ? byte[].class : Object.class;
+                var type = asset.type() == AssetType.RAW ? byte[].class : Object.class;
                 var assetData = archive.loadAsset(asset.id(), type);
                 Platform.runLater(() -> getView().setupPreview(asset, assetData));
             } catch (IOException e) {

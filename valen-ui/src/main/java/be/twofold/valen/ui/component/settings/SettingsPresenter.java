@@ -39,11 +39,7 @@ public final class SettingsPresenter extends AbstractFXPresenter<SettingsView> {
     }
 
     private void setupView() {
-        var assetTypes = Arrays.stream(AssetType.values())
-            .filter(t -> t != AssetType.TEXT)
-            .collect(Collectors.toUnmodifiableSet());
-
-        getView().setAssetTypeSelection(assetTypes);
+        getView().setAssetTypeSelection(Set.of(AssetType.values()));
 
         var textureExporters = Exporter.forType(Texture.class).stream()
             .map(exporter -> Map.entry(exporter.getID(), exporter.getName()))
@@ -55,7 +51,7 @@ public final class SettingsPresenter extends AbstractFXPresenter<SettingsView> {
     private void loadSettingsIntoView() {
         var assetTypes = settings.assetTypes().get()
             .orElseGet(() -> Arrays.stream(AssetType.values())
-                .filter(type -> type != AssetType.BINARY)
+                .filter(type -> type != AssetType.RAW)
                 .collect(Collectors.toUnmodifiableSet()));
         getView().setAssetTypes(assetTypes);
 
