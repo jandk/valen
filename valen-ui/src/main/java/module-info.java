@@ -8,6 +8,8 @@ module valen.ui {
     requires org.jetbrains.annotations;
     requires org.slf4j;
     requires valen.core;
+    requires java.desktop;
+    requires java.sql;
 
     exports be.twofold.valen.ui;
 
