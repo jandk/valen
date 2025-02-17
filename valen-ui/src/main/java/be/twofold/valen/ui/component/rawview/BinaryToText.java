@@ -33,7 +33,7 @@ final class BinaryToText {
             return Arrays.stream(ByteOrderMark.values())
                 .filter(bom -> checkSingleBom(array, offset, length, bom))
                 .findFirst()
-                .map(bom -> new String(array, offset + bom.length(), length, bom.charset));
+                .map(bom -> new String(array, offset + bom.length(), length, bom.charset()));
         }
 
         private boolean checkSingleBom(byte[] array, int offset, int length, ByteOrderMark bom) {
