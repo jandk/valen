@@ -83,6 +83,12 @@ public record Vector2(
         buffer.put(y);
     }
 
+    public Vector2 map(FloatUnaryOperator operator) {
+        var x = operator.applyAsFloat(this.x);
+        var y = operator.applyAsFloat(this.y);
+        return new Vector2(x, y);
+    }
+
     @Override
     public boolean equals(Object obj) {
         return this == obj || obj instanceof Vector2 other

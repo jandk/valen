@@ -31,13 +31,10 @@ final class XXHash32 implements HashFunction {
             // Step 2: Process stripes
             do {
                 acc1 = round(acc1, ByteArrays.getInt(array, offset));
-                offset += 4;
-                acc2 = round(acc2, ByteArrays.getInt(array, offset));
-                offset += 4;
-                acc3 = round(acc3, ByteArrays.getInt(array, offset));
-                offset += 4;
-                acc4 = round(acc4, ByteArrays.getInt(array, offset));
-                offset += 4;
+                acc2 = round(acc2, ByteArrays.getInt(array, offset + 4));
+                acc3 = round(acc3, ByteArrays.getInt(array, offset + 8));
+                acc4 = round(acc4, ByteArrays.getInt(array, offset + 12));
+                offset += 16;
             } while (offset <= limit - 16);
 
             // Step 3: Accumulator convergence
@@ -75,7 +72,7 @@ final class XXHash32 implements HashFunction {
         acc = acc * PRIME32_3;
         acc = acc ^ (acc >>> 16);
 
-        return new HashCode.IntHashCode(acc);
+        return HashCode.ofInt(acc);
     }
 
     private static int round(int acc, int lane) {

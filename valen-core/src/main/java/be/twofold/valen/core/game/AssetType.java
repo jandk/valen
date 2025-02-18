@@ -1,26 +1,31 @@
 package be.twofold.valen.core.game;
 
+import be.twofold.valen.core.animation.*;
 import be.twofold.valen.core.geometry.*;
+import be.twofold.valen.core.material.*;
 import be.twofold.valen.core.texture.*;
 
-public final class AssetType<T> {
-    public static final AssetType<byte[]> BINARY = new AssetType<>(byte[].class, "Binary");
-    public static final AssetType<Texture> TEXTURE = new AssetType<>(Texture.class, "Texture");
-    public static final AssetType<Model> MODEL = new AssetType<>(Model.class, "Model");
-    public static final AssetType<String> TEXT = new AssetType<>(String.class, "Text");
-    private final Class<T> clazz;
+public enum AssetType {
+    ANIMATION(Animation.class, "Animation"),
+    MATERIAL(Material.class, "Material"),
+    MODEL(Model.class, "Model"),
+    TEXTURE(Texture.class, "Texture"),
+    RAW(byte[].class, "Raw"),
+    ;
+
+    private final Class<?> type;
     private final String name;
 
-    private AssetType(Class<T> clazz, String name) {
-        this.clazz = clazz;
+    AssetType(Class<?> type, String name) {
+        this.type = type;
         this.name = name;
     }
 
-    public Class<T> clazz() {
-        return clazz;
+    public Class<?> getType() {
+        return type;
     }
 
-    public String name() {
+    public String getName() {
         return name;
     }
 }

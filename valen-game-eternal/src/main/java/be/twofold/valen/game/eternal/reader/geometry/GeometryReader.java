@@ -60,7 +60,7 @@ public final class GeometryReader {
                     offsets.vertexOffsets[v] += lodInfo.numVertices() * mask.size();
                 }
 
-                var faceInfo = VertexBuffer.Info.faces(ComponentType.UnsignedShort);
+                var faceInfo = VertexBuffer.Info.indices(ComponentType.UnsignedShort);
                 var faceAccessor = new Geo.Accessor<>(offsets.indexOffset, lodInfo.numFaces() * 3, 2, faceInfo, Geometry.readFace());
                 offsets.indexOffset += lodInfo.numFaces() * 3 * Short.BYTES;
 

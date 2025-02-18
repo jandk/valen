@@ -3,7 +3,7 @@ package be.twofold.valen.core.hashing;
 import be.twofold.valen.core.util.*;
 
 final class MurmurHash64B implements HashFunction {
-    private static final int M32 = 0x5bd1e995;
+    private static final int M32 = 0x5BD1E995;
     private static final int R32 = 24;
 
     private final long seed;
@@ -22,9 +22,8 @@ final class MurmurHash64B implements HashFunction {
 
         while (offset <= limit - 8) {
             h1 = round(h1, ByteArrays.getInt(array, offset));
-            offset += 4;
-            h2 = round(h2, ByteArrays.getInt(array, offset));
-            offset += 4;
+            h2 = round(h2, ByteArrays.getInt(array, offset + 4));
+            offset += 8;
         }
 
         if (offset <= limit - 4) {
@@ -49,7 +48,7 @@ final class MurmurHash64B implements HashFunction {
 
         long l1 = Integer.toUnsignedLong(h1);
         long l2 = Integer.toUnsignedLong(h2);
-        return new HashCode.LongHashCode((l1 << 32) | l2);
+        return HashCode.ofLong(l1 << 32 | l2);
     }
 
     private int round(int h, int k) {

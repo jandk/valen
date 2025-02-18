@@ -4,58 +4,108 @@ import java.lang.invoke.*;
 import java.nio.*;
 
 public final class ByteArrays {
-    private static final VarHandle SHORT_VH_LE =
-        MethodHandles.byteArrayViewVarHandle(short[].class, ByteOrder.LITTLE_ENDIAN);
-    private static final VarHandle INT_VH_LE =
-        MethodHandles.byteArrayViewVarHandle(int[].class, ByteOrder.LITTLE_ENDIAN);
-    private static final VarHandle LONG_VH_LE =
-        MethodHandles.byteArrayViewVarHandle(long[].class, ByteOrder.LITTLE_ENDIAN);
-    private static final VarHandle FLOAT_VH_LE =
-        MethodHandles.byteArrayViewVarHandle(float[].class, ByteOrder.LITTLE_ENDIAN);
-    private static final VarHandle DOUBLE_VH_LE =
-        MethodHandles.byteArrayViewVarHandle(double[].class, ByteOrder.LITTLE_ENDIAN);
+    private static final VarHandle SHORT_LE = MethodHandles.byteArrayViewVarHandle(short[].class, ByteOrder.LITTLE_ENDIAN);
+    private static final VarHandle SHORT_BE = MethodHandles.byteArrayViewVarHandle(short[].class, ByteOrder.BIG_ENDIAN);
+    private static final VarHandle INT_LE = MethodHandles.byteArrayViewVarHandle(int[].class, ByteOrder.LITTLE_ENDIAN);
+    private static final VarHandle INT_BE = MethodHandles.byteArrayViewVarHandle(int[].class, ByteOrder.BIG_ENDIAN);
+    private static final VarHandle LONG_LE = MethodHandles.byteArrayViewVarHandle(long[].class, ByteOrder.LITTLE_ENDIAN);
+    private static final VarHandle LONG_BE = MethodHandles.byteArrayViewVarHandle(long[].class, ByteOrder.BIG_ENDIAN);
+    private static final VarHandle FLOAT_LE = MethodHandles.byteArrayViewVarHandle(float[].class, ByteOrder.LITTLE_ENDIAN);
+    private static final VarHandle FLOAT_BE = MethodHandles.byteArrayViewVarHandle(float[].class, ByteOrder.BIG_ENDIAN);
+    private static final VarHandle DOUBLE_LE = MethodHandles.byteArrayViewVarHandle(double[].class, ByteOrder.LITTLE_ENDIAN);
+    private static final VarHandle DOUBLE_BE = MethodHandles.byteArrayViewVarHandle(double[].class, ByteOrder.BIG_ENDIAN);
 
     private ByteArrays() {
     }
 
-    public static short getShort(byte[] bytes, int offset) {
-        return (short) SHORT_VH_LE.get(bytes, offset);
+    public static short getShort(byte[] array, int offset) {
+        return getShort(array, offset, ByteOrder.LITTLE_ENDIAN);
     }
 
-    public static int getInt(byte[] bytes, int offset) {
-        return (int) INT_VH_LE.get(bytes, offset);
+    public static short getShort(byte[] array, int offset, ByteOrder order) {
+        var handle = order == ByteOrder.LITTLE_ENDIAN ? SHORT_LE : SHORT_BE;
+        return (short) handle.get(array, offset);
     }
 
-    public static long getLong(byte[] bytes, int offset) {
-        return (long) LONG_VH_LE.get(bytes, offset);
+    public static int getInt(byte[] array, int offset) {
+        return getInt(array, offset, ByteOrder.LITTLE_ENDIAN);
     }
 
-    public static float getFloat(byte[] bytes, int offset) {
-        return (float) FLOAT_VH_LE.get(bytes, offset);
+    public static int getInt(byte[] array, int offset, ByteOrder order) {
+        var handle = order == ByteOrder.LITTLE_ENDIAN ? INT_LE : INT_BE;
+        return (int) handle.get(array, offset);
     }
 
-    public static double getDouble(byte[] bytes, int offset) {
-        return (double) DOUBLE_VH_LE.get(bytes, offset);
+    public static long getLong(byte[] array, int offset) {
+        return getLong(array, offset, ByteOrder.LITTLE_ENDIAN);
+    }
+
+    public static long getLong(byte[] array, int offset, ByteOrder order) {
+        var handle = order == ByteOrder.LITTLE_ENDIAN ? LONG_LE : LONG_BE;
+        return (long) handle.get(array, offset);
+    }
+
+    public static float getFloat(byte[] array, int offset) {
+        return getFloat(array, offset, ByteOrder.LITTLE_ENDIAN);
+    }
+
+    public static float getFloat(byte[] array, int offset, ByteOrder order) {
+        var handle = order == ByteOrder.LITTLE_ENDIAN ? FLOAT_LE : FLOAT_BE;
+        return (float) handle.get(array, offset);
+    }
+
+    public static double getDouble(byte[] array, int offset) {
+        return getDouble(array, offset, ByteOrder.LITTLE_ENDIAN);
+    }
+
+    public static double getDouble(byte[] array, int offset, ByteOrder order) {
+        var handle = order == ByteOrder.LITTLE_ENDIAN ? DOUBLE_LE : DOUBLE_BE;
+        return (double) handle.get(array, offset);
     }
 
 
-    public static void setShort(byte[] bytes, int offset, short value) {
-        SHORT_VH_LE.set(bytes, offset, value);
+    public static void setShort(byte[] array, int offset, short value) {
+        setShort(array, offset, value, ByteOrder.LITTLE_ENDIAN);
     }
 
-    public static void setInt(byte[] bytes, int offset, int value) {
-        INT_VH_LE.set(bytes, offset, value);
+    public static void setShort(byte[] array, int offset, short value, ByteOrder order) {
+        var handle = order == ByteOrder.LITTLE_ENDIAN ? SHORT_LE : SHORT_BE;
+        handle.set(array, offset, value);
     }
 
-    public static void setLong(byte[] bytes, int offset, long value) {
-        LONG_VH_LE.set(bytes, offset, value);
+    public static void setInt(byte[] array, int offset, int value) {
+        setInt(array, offset, value, ByteOrder.LITTLE_ENDIAN);
     }
 
-    public static void setFloat(byte[] bytes, int offset, float value) {
-        FLOAT_VH_LE.set(bytes, offset, value);
+    public static void setInt(byte[] array, int offset, int value, ByteOrder order) {
+        var handle = order == ByteOrder.LITTLE_ENDIAN ? INT_LE : INT_BE;
+        handle.set(array, offset, value);
     }
 
-    public static void setDouble(byte[] bytes, int offset, double value) {
-        DOUBLE_VH_LE.set(bytes, offset, value);
+    public static void setLong(byte[] array, int offset, long value) {
+        setLong(array, offset, value, ByteOrder.LITTLE_ENDIAN);
+    }
+
+    public static void setLong(byte[] array, int offset, long value, ByteOrder order) {
+        var handle = order == ByteOrder.LITTLE_ENDIAN ? LONG_LE : LONG_BE;
+        handle.set(array, offset, value);
+    }
+
+    public static void setFloat(byte[] array, int offset, float value) {
+        setFloat(array, offset, value, ByteOrder.LITTLE_ENDIAN);
+    }
+
+    public static void setFloat(byte[] array, int offset, float value, ByteOrder order) {
+        var handle = order == ByteOrder.LITTLE_ENDIAN ? FLOAT_LE : FLOAT_BE;
+        handle.set(array, offset, value);
+    }
+
+    public static void setDouble(byte[] array, int offset, double value) {
+        setDouble(array, offset, value, ByteOrder.LITTLE_ENDIAN);
+    }
+
+    public static void setDouble(byte[] array, int offset, double value, ByteOrder order) {
+        var handle = order == ByteOrder.LITTLE_ENDIAN ? DOUBLE_LE : DOUBLE_BE;
+        handle.set(array, offset, value);
     }
 }

@@ -22,7 +22,7 @@
         </dependency>
         <dependency>
             <groupId>be.twofold</groupId>
-            <artifactId>valen-gltf</artifactId>
+            <artifactId>valen-format-gltf</artifactId>
         </dependency>
 
         <!-- External -->

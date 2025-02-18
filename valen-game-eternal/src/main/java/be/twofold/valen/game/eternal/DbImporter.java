@@ -12,7 +12,7 @@ import java.sql.*;
 import java.util.*;
 import java.util.stream.*;
 
-public final class DbImporter {
+final class DbImporter {
     private static final String TABLE_SQL = """
         create table if not exists file
         (

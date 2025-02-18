@@ -26,6 +26,10 @@ public final class MathF {
         return (float) Math.sqrt(a);
     }
 
+    public static float pow(float a, float b) {
+        return (float) Math.pow(a, b);
+    }
+
     public static float clamp(float value, float min, float max) {
         assert min <= max : "min > max";
         return Math.min(max, Math.max(value, min));
@@ -99,5 +103,21 @@ public final class MathF {
 
     public static float unpackUNorm16(short value) {
         return Short.toUnsignedInt(value) * (1.0f / 65535.0f);
+    }
+
+    public static float linearToSrgb(float f) {
+        if (f <= (0.04045f / 12.92f)) {
+            return f * 12.92f;
+        } else {
+            return Math.fma(pow(f, 1.0f / 2.4f), 1.055f, -0.055f);
+        }
+    }
+
+    public static float srgbToLinear(float f) {
+        if (f <= 0.04045f) {
+            return f * (1.0f / 12.92f);
+        } else {
+            return pow(Math.fma(f, 1.0f / 1.055f, 0.055f / 1.055f), 2.4f);
+        }
     }
 }

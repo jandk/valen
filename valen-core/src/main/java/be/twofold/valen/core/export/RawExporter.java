@@ -4,6 +4,16 @@ import java.io.*;
 
 public final class RawExporter implements Exporter<byte[]> {
     @Override
+    public String getID() {
+        return "binary.raw";
+    }
+
+    @Override
+    public String getName() {
+        return "Raw Bytes";
+    }
+
+    @Override
     public String getExtension() {
         return "";
     }

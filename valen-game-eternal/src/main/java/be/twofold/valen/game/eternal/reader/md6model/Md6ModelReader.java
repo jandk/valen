@@ -5,7 +5,6 @@ import be.twofold.valen.core.geometry.*;
 import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.material.*;
 import be.twofold.valen.game.eternal.*;
-import be.twofold.valen.game.eternal.reader.*;
 import be.twofold.valen.game.eternal.reader.geometry.*;
 import be.twofold.valen.game.eternal.resource.*;
 
@@ -13,7 +12,7 @@ import java.io.*;
 import java.nio.*;
 import java.util.*;
 
-public final class Md6ModelReader implements ResourceReader<Model> {
+public final class Md6ModelReader implements AssetReader<Model, EternalAsset> {
     private final EternalArchive archive;
     private final boolean readMaterials;
 
@@ -27,15 +26,15 @@ public final class Md6ModelReader implements ResourceReader<Model> {
     }
 
     @Override
-    public boolean canRead(ResourceKey key) {
-        return key.type() == ResourceType.BaseModel;
+    public boolean canRead(EternalAsset resource) {
+        return resource.key().type() == ResourceType.BaseModel;
     }
 
     @Override
-    public Model read(DataSource source, Asset asset) throws IOException {
+    public Model read(DataSource source, EternalAsset resource) throws IOException {
         var model = Md6Model.read(source);
-        var meshes = new ArrayList<>(readMeshes(model, (Long) asset.properties().get("hash")));
-        var skeletonKey = ResourceKey.from(model.header().md6SkelName(), ResourceType.Skeleton);
+        var meshes = new ArrayList<>(readMeshes(model, resource.hash()));
+        var skeletonKey = EternalAssetID.from(model.header().md6SkelName(), ResourceType.Skeleton);
         var skeleton = archive.loadAsset(skeletonKey, Skeleton.class);
 
         if (readMaterials) {
@@ -45,7 +44,7 @@ public final class Md6ModelReader implements ResourceReader<Model> {
                 var materialName = meshInfo.materialName();
                 var materialFile = "generated/decls/material2/" + materialName + ".decl";
                 if (!materials.containsKey(materialName)) {
-                    var assetId = ResourceKey.from(materialFile, ResourceType.RsStreamFile);
+                    var assetId = EternalAssetID.from(materialFile, ResourceType.RsStreamFile);
                     var material = archive.loadAsset(assetId, Material.class);
                     materials.put(materialName, material);
                 }
@@ -54,7 +53,7 @@ public final class Md6ModelReader implements ResourceReader<Model> {
                     .withMaterial(materials.get(materialName)));
             }
         }
-        return new Model(asset.id().fullName(), meshes, skeleton);
+        return new Model(meshes, skeleton, resource.id().fullName());
     }
 
     private List<Mesh> readMeshes(Md6Model md6, long hash) throws IOException {

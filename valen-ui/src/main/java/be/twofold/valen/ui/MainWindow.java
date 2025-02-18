@@ -1,8 +1,8 @@
 package be.twofold.valen.ui;
 
 import be.twofold.valen.core.game.*;
-import be.twofold.valen.ui.settings.*;
-import be.twofold.valen.ui.window.*;
+import be.twofold.valen.ui.common.settings.*;
+import be.twofold.valen.ui.component.main.*;
 import javafx.application.*;
 import javafx.scene.*;
 import javafx.scene.image.*;
@@ -16,17 +16,9 @@ import java.util.function.*;
 import java.util.stream.*;
 
 public final class MainWindow extends Application {
-    private final Settings settings;
     private Stage primaryStage;
     private MainPresenter presenter;
-
-    public MainWindow() {
-        this(SettingsManager.get());
-    }
-
-    MainWindow(Settings settings) {
-        this.settings = settings;
-    }
+    private Settings settings;
 
     @Override
     @SuppressWarnings("DataFlowIssue")
@@ -45,6 +37,7 @@ public final class MainWindow extends Application {
             });
 
         presenter = factory.presenter();
+        settings = factory.settings();
 
         var icons = Stream.of(16, 24, 32, 48, 64, 96, 128)
             .map(i -> new Image(getClass().getResourceAsStream("/appicon/valen-" + i + ".png")))
@@ -59,17 +52,17 @@ public final class MainWindow extends Application {
         primaryStage.setScene(scene);
         primaryStage.show();
 
-        if (settings.getGameExecutable().isPresent()) {
-            loadGame(settings.getGameExecutable().get());
-        } else {
-            selectAndLoadGame();
-        }
+        settings.gameExecutable().get()
+            .ifPresentOrElse(
+                this::loadGame,
+                this::selectAndLoadGame
+            );
     }
 
     private void selectAndLoadGame() {
         Platform.runLater(() -> chooseGame()
             .ifPresent(path -> {
-                settings.setGameExecutable(path);
+                settings.gameExecutable().set(path);
                 loadGame(path);
             }));
     }

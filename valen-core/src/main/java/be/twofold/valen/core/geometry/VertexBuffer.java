@@ -50,7 +50,7 @@ public record VertexBuffer(
             return new Info<>(new Semantic.Weights(n), ElementType.Vector4, componentType, true);
         }
 
-        public static <T extends Buffer> Info<T> faces(ComponentType<T> componentType) {
+        public static <T extends Buffer> Info<T> indices(ComponentType<T> componentType) {
             return new Info<>(null, ElementType.Scalar, componentType, false);
         }
     }

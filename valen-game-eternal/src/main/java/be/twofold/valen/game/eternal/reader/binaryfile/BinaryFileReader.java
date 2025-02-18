@@ -2,7 +2,7 @@ package be.twofold.valen.game.eternal.reader.binaryfile;
 
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.io.*;
-import be.twofold.valen.game.eternal.reader.*;
+import be.twofold.valen.game.eternal.*;
 import be.twofold.valen.game.eternal.resource.*;
 
 import javax.crypto.*;
@@ -11,14 +11,14 @@ import java.io.*;
 import java.security.*;
 import java.util.*;
 
-public final class BinaryFileReader implements ResourceReader<byte[]> {
+public final class BinaryFileReader implements AssetReader<byte[], EternalAsset> {
     @Override
-    public boolean canRead(ResourceKey key) {
-        return key.type() == ResourceType.BinaryFile;
+    public boolean canRead(EternalAsset resource) {
+        return resource.key().type() == ResourceType.BinaryFile;
     }
 
     @Override
-    public byte[] read(DataSource source, Asset asset) throws IOException {
+    public byte[] read(DataSource source, EternalAsset resource) throws IOException {
         try {
             var salt = source.readBytes(12);
             var iVec = source.readBytes(16);
@@ -28,7 +28,7 @@ public final class BinaryFileReader implements ResourceReader<byte[]> {
             var digest = MessageDigest.getInstance("SHA-256");
             digest.update(salt);
             digest.update("swapTeam\n\0".getBytes());
-            digest.update(asset.id().fullName().getBytes());
+            digest.update(resource.id().fullName().getBytes());
             var key = digest.digest();
 
             var mac = Mac.getInstance("HmacSHA256");

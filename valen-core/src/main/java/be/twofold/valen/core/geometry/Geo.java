@@ -7,37 +7,37 @@ import java.nio.*;
 import java.util.*;
 
 public final class Geo {
-    private final boolean invertFaces;
+    private final boolean flipWindingOrder;
 
-    public Geo(boolean invertFaces) {
-        this.invertFaces = invertFaces;
+    public Geo(boolean flipWindingOrder) {
+        this.flipWindingOrder = flipWindingOrder;
     }
 
     public Mesh readMesh(
         DataSource source,
         List<Accessor<?>> vertexAccessors,
-        Accessor<?> faceAccessor
+        Accessor<?> indexAccessor
     ) throws IOException {
-        var startPos = source.tell();
+        var startPos = source.position();
 
         var vertexBuffers = new HashMap<Semantic, VertexBuffer>();
         for (var accessor : vertexAccessors) {
-            source.seek(startPos);
+            source.position(startPos);
             var vertexBuffer = accessor.read(source);
             vertexBuffers.put(accessor.info().semantic(), vertexBuffer);
         }
 
-        source.seek(startPos);
-        var faceBuffer = faceAccessor.read(source);
-        if (invertFaces) {
-            invertFaces(faceBuffer.buffer());
+        source.position(startPos);
+        var indexBuffer = indexAccessor.read(source);
+        if (flipWindingOrder) {
+            invertIndices(indexBuffer.buffer());
         }
 
-        source.seek(startPos);
-        return new Mesh(null, faceBuffer, vertexBuffers, null);
+        source.position(startPos);
+        return new Mesh(indexBuffer, vertexBuffers);
     }
 
-    private void invertFaces(Buffer buffer) {
+    private void invertIndices(Buffer buffer) {
         switch (buffer) {
             case ByteBuffer bb -> invert(bb);
             case ShortBuffer sb -> invert(sb);
@@ -86,9 +86,9 @@ public final class Geo {
             var numPrimitives = count * info.elementType().size();
             var buffer = info.componentType().allocate(numPrimitives);
 
-            var start = source.tell() + offset;
+            var start = source.position() + offset;
             for (var i = 0L; i < count; i++) {
-                source.seek(start + i * stride);
+                source.position(start + i * stride);
                 reader.read(source, buffer);
             }
 
