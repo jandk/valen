@@ -31,9 +31,9 @@ public class VtfReader implements Reader<Texture> {
         source.skip(4); // padding
         source.skip(16); // reflectivity
         source.skip(4); // float Bump scale
-        final PixelFormat hiResFormat = PixelFormat.values()[source.readInt() + 1];
+        final ImageFormat hiResFormat = ImageFormat.fromValue(source.readInt());
         final byte mipCount = source.readByte();
-        final PixelFormat loResFormat = PixelFormat.values()[source.readInt() + 1];
+        final ImageFormat loResFormat = ImageFormat.fromValue(source.readInt());
         final byte loWidth = source.readByte();
         final byte loHeight = source.readByte();
         final short depth = versionMn >= 2 ? source.readShort() : 0;
@@ -63,12 +63,11 @@ public class VtfReader implements Reader<Texture> {
             source.position(resource.offset());
         }
 
-        final int minRes = hiResFormat.isBlockCompressed() ? 4 : 1;
         for (int mipId = (mipCount - 1); mipId >= 0; mipId--) {
-            final int mipWidth = Math.max(width >> (mipId), minRes);
-            final int mipHeight = Math.max(height >> (mipId), minRes);
-            final Surface surface = new Surface(mipWidth, mipHeight, source.readBytes((mipHeight / minRes) * (mipWidth / minRes) * hiResFormat.blockSize()));
-            surfaces.add(surface);
+            int mipWidth = Math.max(width >> mipId, 1);
+            int mipHeight = Math.max(height >> mipId, 1);
+            int size = textureFormat.block().surfaceSize(mipWidth, mipHeight);
+            surfaces.add(new Surface(mipWidth, mipHeight, source.readBytes(size)));
         }
 
         return new Texture(width, height, textureFormat, false, surfaces.reversed(), 1.0f, 0.0f);

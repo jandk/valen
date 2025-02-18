@@ -102,15 +102,15 @@ public class VpkArchive implements Provider {
     public <T> T loadAsset(AssetID identifier, Class<T> clazz) throws IOException {
         final Asset asset = assets.get(identifier);
         if (identifier instanceof SourceAssetID sourceIdentifier) {
-            var reader = getReaders().stream().filter(rdr -> rdr.canRead(asset)).findFirst();
-            if (reader.isEmpty()) {
-                return null;
-            }
             byte[] bytes = loadRawAsset(sourceIdentifier);
             if (clazz == byte[].class) {
                 return (T) bytes;
             }
 
+            var reader = getReaders().stream().filter(rdr -> rdr.canRead(asset)).findFirst();
+            if (reader.isEmpty()) {
+                return null;
+            }
             try (var source = DataSource.fromArray(bytes)) {
                 return clazz.cast(reader.get().read(getParent(), asset, source));
             }
