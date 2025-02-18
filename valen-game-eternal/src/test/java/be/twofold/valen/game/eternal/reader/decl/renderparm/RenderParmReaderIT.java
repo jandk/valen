@@ -1,15 +1,13 @@
-package be.twofold.valen.game.eternal.reader.md6model;
+package be.twofold.valen.game.eternal.reader.decl.renderparm;
 
 import be.twofold.valen.game.eternal.*;
 import org.junit.jupiter.api.*;
 
 import java.io.*;
 
-class Md6ModelReaderTest {
-
+class RenderParmReaderIT {
     @Test
     void testCanReadAll() throws IOException {
-        TestUtils.testReader(Md6ModelReader::new);
+        TestUtils.testReader(archive -> new RenderParmReader());
     }
-
 }

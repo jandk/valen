@@ -5,7 +5,7 @@ import org.junit.jupiter.api.*;
 
 import java.io.*;
 
-class StaticModelReaderTest {
+class StaticModelReaderIT {
 
     @Test
     void testCanReadAll() throws IOException {

@@ -6,7 +6,7 @@ import org.junit.jupiter.api.*;
 
 import java.io.*;
 
-class MaterialReaderTest {
+class MaterialReaderIT {
     @Test
     void testCanReadAll() throws IOException {
         TestUtils.testReader(archive -> {

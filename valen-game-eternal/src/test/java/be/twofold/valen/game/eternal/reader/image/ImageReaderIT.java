@@ -5,11 +5,11 @@ import org.junit.jupiter.api.*;
 
 import java.io.*;
 
-class ImageReaderTest {
+class ImageReaderIT {
 
     @Test
     void testCanReadAll() throws IOException {
-        TestUtils.testReader(archive -> new ImageReader(archive, false));
+        TestUtils.testReader(archive -> new ImageReader(archive, true));
     }
 
 }

@@ -1,15 +1,13 @@
-package be.twofold.valen.game.eternal.reader.md6anim;
+package be.twofold.valen.game.eternal.reader.decl;
 
 import be.twofold.valen.game.eternal.*;
 import org.junit.jupiter.api.*;
 
 import java.io.*;
 
-class Md6AnimReaderTest {
-
+class DeclReaderIT {
     @Test
     void testCanReadAll() throws IOException {
-        TestUtils.testReader(archive -> new Md6AnimReader());
+        TestUtils.testReader(DeclReader::new);
     }
-
 }
