@@ -20,6 +20,7 @@ public final class SettingsController implements Controller {
     private @FXML CheckBox typeTexture;
     private @FXML CheckBox typeModel;
     private @FXML CheckBox typeMaterial;
+    private @FXML CheckBox typeAnimation;
     private @FXML CheckBox typeRaw;
     private @FXML VBox assetTypes;
     private @FXML ComboBox<Map.Entry<String, String>> textureFormat;
@@ -53,6 +54,7 @@ public final class SettingsController implements Controller {
         typeTexture.setSelected(assetTypes.contains(AssetType.TEXTURE));
         typeModel.setSelected(assetTypes.contains(AssetType.MODEL));
         typeMaterial.setSelected(assetTypes.contains(AssetType.MATERIAL));
+        typeAnimation.setSelected(assetTypes.contains(AssetType.ANIMATION));
         typeRaw.setSelected(assetTypes.contains(AssetType.RAW));
 
         var textureExporter = settings.textureExporter().get()
@@ -77,6 +79,9 @@ public final class SettingsController implements Controller {
         }
         if (typeMaterial.isSelected()) {
             assetTypes.add(AssetType.MATERIAL);
+        }
+        if (typeAnimation.isSelected()) {
+            assetTypes.add(AssetType.ANIMATION);
         }
         if (typeRaw.isSelected()) {
             assetTypes.add(AssetType.RAW);

@@ -16,6 +16,7 @@
                 <CheckBox fx:id="typeTexture" text="Show Textures"/>
                 <CheckBox fx:id="typeModel" text="Show Models"/>
                 <CheckBox fx:id="typeMaterial" text="Show Materials"/>
+                <CheckBox fx:id="typeAnimation" text="Show Animations"/>
                 <CheckBox fx:id="typeRaw" text="Show Raw Files"/>
             </VBox>
         </VBox>

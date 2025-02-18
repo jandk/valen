@@ -2,6 +2,7 @@ package be.twofold.valen.game.eternal.reader.md6anim;
 
 import be.twofold.valen.core.animation.*;
 import be.twofold.valen.core.game.*;
+import be.twofold.valen.core.geometry.*;
 import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.math.*;
 import be.twofold.valen.game.eternal.*;
@@ -12,6 +13,12 @@ import java.util.*;
 import java.util.stream.*;
 
 public final class Md6AnimReader implements AssetReader<Animation, EternalAsset> {
+    private final EternalArchive archive;
+
+    public Md6AnimReader(EternalArchive archive) {
+        this.archive = archive;
+    }
+
     @Override
     public boolean canRead(EternalAsset resource) {
         return resource.key().type() == ResourceType.Anim;
@@ -21,12 +28,15 @@ public final class Md6AnimReader implements AssetReader<Animation, EternalAsset>
     public Animation read(DataSource source, EternalAsset resource) throws IOException {
         var anim = Md6Anim.read(source);
 
+        var skeletonKey = EternalAssetID.from(anim.header().skelName(), ResourceType.Skeleton);
+        var skeleton = archive.loadAsset(skeletonKey, Skeleton.class);
+
         List<Track<?>> tracks = new ArrayList<>();
         tracks.addAll(mapRotations(anim));
         tracks.addAll(mapScales(anim));
         tracks.addAll(mapTranslations(anim));
 
-        return new Animation(anim.data().frameRate(), tracks);
+        return new Animation(skeleton, anim.data().frameRate(), tracks);
     }
 
     private List<Track<?>> mapRotations(Md6Anim anim) {

@@ -9,11 +9,16 @@ import java.io.*;
 final class ScalarTypeAdapter extends TypeAdapter<Scalar> {
     @Override
     public void write(JsonWriter out, Scalar value) throws IOException {
+        out.beginArray();
         out.value(value.value());
+        out.endArray();
     }
 
     @Override
     public Scalar read(JsonReader in) throws IOException {
-        return new Scalar((float) in.nextDouble());
+        in.beginArray();
+        var result = new Scalar((float) in.nextDouble());
+        in.endArray();
+        return result;
     }
 }

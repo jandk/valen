@@ -26,6 +26,7 @@ public record EternalAsset(
             return AssetType.MATERIAL;
         }
         return switch (key.type()) {
+            case Anim -> AssetType.ANIMATION;
             case BaseModel, Model -> AssetType.MODEL;
             case Image -> AssetType.TEXTURE;
             default -> AssetType.RAW;

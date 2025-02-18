@@ -8,6 +8,7 @@ import be.twofold.valen.game.eternal.reader.decl.material2.*;
 import be.twofold.valen.game.eternal.reader.decl.renderparm.*;
 import be.twofold.valen.game.eternal.reader.image.*;
 import be.twofold.valen.game.eternal.reader.mapfilestaticinstances.*;
+import be.twofold.valen.game.eternal.reader.md6anim.*;
 import be.twofold.valen.game.eternal.reader.md6model.*;
 import be.twofold.valen.game.eternal.reader.md6skel.*;
 import be.twofold.valen.game.eternal.reader.staticmodel.*;
@@ -39,6 +40,7 @@ public final class EternalArchive implements Archive {
             new ImageReader(this),
             new MapFileStaticInstancesReader(this),
             new MaterialReader(this, declReader),
+            new Md6AnimReader(this),
             new Md6ModelReader(this),
             new Md6SkelReader(),
             new RenderParmReader(),
