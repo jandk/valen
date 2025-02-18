@@ -33,45 +33,27 @@ public enum PixelFormat {
     UVLX8888;
 
     public TextureFormat toTextureFormat() {
-        switch (this) {
-            case DXT1 -> {
-                return TextureFormat.BC1_UNORM;
-            }
-            case DXT3 -> {
-                return TextureFormat.BC2_UNORM;
-            }
-            case DXT5 -> {
-                return TextureFormat.BC3_UNORM;
-            }
-            case RGBA8888 -> {
-                return TextureFormat.R8G8B8A8_UNORM;
-            }
-            default -> {
-                throw new RuntimeException("VTF texture format not supported: " + this.name());
-            }
-        }
+        return switch (this) {
+            case DXT1 -> TextureFormat.BC1_UNORM;
+            case DXT3 -> TextureFormat.BC2_UNORM;
+            case DXT5 -> TextureFormat.BC3_UNORM;
+            case RGBA8888 -> TextureFormat.R8G8B8A8_UNORM;
+            default -> throw new UnsupportedOperationException("VTF texture format not supported: " + name());
+        };
     }
 
     public boolean isBlockCompressed() {
-        switch (this) {
-            case DXT1, DXT3, DXT5, DXT1_ONEBITALPHA:
-                return true;
-            default:
-                return false;
-        }
+        return switch (this) {
+            case DXT1, DXT3, DXT5, DXT1_ONEBITALPHA -> true;
+            default -> false;
+        };
     }
 
     public int blockSize() {
-        switch (this) {
-            case DXT1, DXT1_ONEBITALPHA -> {
-                return 8;
-            }
-            case DXT3, DXT5 -> {
-                return 16;
-            }
-            default -> {
-                return 0;
-            }
-        }
+        return switch (this) {
+            case DXT1, DXT1_ONEBITALPHA -> 8;
+            case DXT3, DXT5 -> 16;
+            default -> 0;
+        };
     }
 }

@@ -56,22 +56,22 @@ public class VtfReader implements Reader<Texture> {
         }
         final List<Surface> surfaces = new ArrayList<>();
         if (resourceCount == 0) {
-            source.seek(headerSize);
+            source.position(headerSize);
             source.skip((long) (loWidth / 4) * (loHeight / 4) * loResFormat.blockSize());
         } else {
             var resource = resources.stream().filter(e -> Arrays.equals(e.tag(), HiResKey)).findFirst().orElseThrow();
-            source.seek(resource.offset());
+            source.position(resource.offset());
         }
 
         final int minRes = hiResFormat.isBlockCompressed() ? 4 : 1;
         for (int mipId = (mipCount - 1); mipId >= 0; mipId--) {
             final int mipWidth = Math.max(width >> (mipId), minRes);
             final int mipHeight = Math.max(height >> (mipId), minRes);
-            final Surface surface = new Surface(mipWidth, mipHeight, hiResFormat.toTextureFormat(), source.readBytes((mipHeight / minRes) * (mipWidth / minRes) * hiResFormat.blockSize()));
+            final Surface surface = new Surface(mipWidth, mipHeight, source.readBytes((mipHeight / minRes) * (mipWidth / minRes) * hiResFormat.blockSize()));
             surfaces.add(surface);
         }
 
-        return new Texture(width, height, textureFormat, surfaces.reversed(), false);
+        return new Texture(width, height, textureFormat, false, surfaces.reversed(), 1.0f, 0.0f);
     }
 
     @Override

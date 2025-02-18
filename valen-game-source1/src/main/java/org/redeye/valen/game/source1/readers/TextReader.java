@@ -2,20 +2,25 @@ package org.redeye.valen.game.source1.readers;
 
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.io.*;
+import org.redeye.valen.game.source1.*;
 
 import java.io.*;
 import java.nio.charset.*;
+import java.util.*;
 
 public class TextReader implements Reader<String> {
+    private static final Set<String> EXTENSIONS = Set.of("vmt", "cfg", "txt", "res", "vdf");
+
     @Override
     public String read(Archive archive, Asset asset, DataSource source) throws IOException {
         Charset charset = detectCharset(source);
-        return new String(source.readBytes(Math.toIntExact(source.size() - source.tell())), charset);
+        return new String(source.readBytes(Math.toIntExact(source.size() - source.position())), charset);
     }
 
     @Override
     public boolean canRead(Asset asset) {
-        return asset.type() == AssetType.TEXT;
+        return asset.type() == AssetType.RAW
+            && EXTENSIONS.contains(((SourceAssetID) asset.id()).extension());
     }
 
     private Charset detectCharset(DataSource source) throws IOException {
@@ -47,7 +52,7 @@ public class TextReader implements Reader<String> {
             }
         }
 
-        source.seek(0);
+        source.position(0);
         return StandardCharsets.UTF_8;
     }
 }

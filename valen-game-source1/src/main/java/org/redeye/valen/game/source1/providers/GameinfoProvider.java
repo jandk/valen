@@ -103,7 +103,7 @@ public class GameinfoProvider implements Provider {
 
     @Override
     public String getName() {
-        return this.path.getParent().getFileName().toString();
+        return path.getParent().getFileName().toString();
     }
 
     @Override
@@ -112,17 +112,16 @@ public class GameinfoProvider implements Provider {
     }
 
     @Override
-    public List<Asset> assets() {
-        final List<Asset> allAssets = new ArrayList<>();
-        for (Provider provider : providers) {
-            allAssets.addAll(provider.assets());
-        }
-        return allAssets;
+    public Stream<? extends Asset> assets() {
+        return providers.stream()
+            .flatMap(Archive::assets);
     }
 
     @Override
-    public boolean exists(AssetID identifier) {
-        return providers.stream().anyMatch(provider -> provider.exists(identifier));
+    public Optional<? extends Asset> getAsset(AssetID identifier) {
+        return providers.stream()
+            .flatMap(provider -> provider.getAsset(identifier).stream())
+            .findFirst();
     }
 
     @Override

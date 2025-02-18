@@ -7,6 +7,7 @@ import org.redeye.valen.game.source1.*;
 import java.io.*;
 import java.nio.file.*;
 import java.util.*;
+import java.util.stream.*;
 
 public class FolderProvider implements Provider {
     private final Path root;
@@ -23,7 +24,7 @@ public class FolderProvider implements Provider {
                     if (!Files.isDirectory(file)) {
                         String relativePath = root.relativize(file).toString().replace('\\', '/');
                         SourceAssetID id = new SourceAssetID(root.getFileName().toString(), relativePath);
-                        assets.put(id, new Asset(id, id.identifyAssetType(), (int) Files.size(file), Map.of()));
+                        assets.put(id, new SourceAsset(id, id.identifyAssetType(), (int) Files.size(file), Map.of()));
                     }
                 } catch (IOException e) {
                     throw new RuntimeException(e);
@@ -36,22 +37,22 @@ public class FolderProvider implements Provider {
 
     @Override
     public String getName() {
-        return this.root.getFileName().toString();
+        return root.getFileName().toString();
     }
 
     @Override
     public Provider getParent() {
-        return this.parent == null ? this : this.parent.getParent();
+        return parent == null ? this : parent.getParent();
     }
 
     @Override
-    public List<Asset> assets() {
-        return List.copyOf(assets.values());
+    public Stream<? extends Asset> assets() {
+        return assets.values().stream();
     }
 
     @Override
-    public boolean exists(AssetID identifier) {
-        return assets.containsKey(identifier);
+    public Optional<? extends Asset> getAsset(AssetID identifier) {
+        return Optional.ofNullable(assets.get(identifier));
     }
 
     @Override

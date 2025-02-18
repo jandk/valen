@@ -10,6 +10,7 @@ import java.nio.*;
 import java.nio.channels.*;
 import java.nio.file.*;
 import java.util.*;
+import java.util.stream.*;
 
 public class VpkArchive implements Provider {
     private final Path path;
@@ -57,15 +58,15 @@ public class VpkArchive implements Provider {
                         int offset = source.readInt();
                         int size = source.readInt();
                         Check.state(source.readShort() == -1);
-                        Map<String, Object> properties = new HashMap<>(3);
+
+                        var properties = new HashMap<String, Object>();
                         properties.put("offset", offset);
                         properties.put("archiveId", archiveId);
-
                         if (preloadSize > 0) {
                             byte[] preload = source.readBytes(preloadSize);
                             properties.put("preload", preload);
                         }
-                        assets.put(id, new Asset(id, id.identifyAssetType(), size + preloadSize, Collections.unmodifiableMap(properties)));
+                        assets.put(id, new SourceAsset(id, id.identifyAssetType(), size + preloadSize, properties));
                     }
                 }
             }
@@ -88,13 +89,13 @@ public class VpkArchive implements Provider {
     }
 
     @Override
-    public List<Asset> assets() {
-        return List.copyOf(assets.values());
+    public Stream<? extends Asset> assets() {
+        return assets.values().stream();
     }
 
     @Override
-    public boolean exists(AssetID identifier) {
-        return assets.containsKey(identifier);
+    public Optional<? extends Asset> getAsset(AssetID identifier) {
+        return Optional.ofNullable(assets.get(identifier));
     }
 
     @Override
