@@ -20,6 +20,8 @@ package be.twofold.valen.core.hashing;
 
 import be.twofold.valen.core.util.*;
 
+import java.nio.*;
+
 /**
  * Implementation of FarmHash Fingerprint64, an open-source fingerprinting algorithm for strings.
  *
@@ -51,6 +53,11 @@ final class FarmHashFingerprint64 implements HashFunction {
         Check.fromIndexSize(offset, length, array.length);
         long hash = fingerprint(array, offset, length);
         return HashCode.ofLong(hash);
+    }
+
+    @Override
+    public HashCode hash(ByteBuffer buffer) {
+        throw new UnsupportedOperationException();
     }
 
     // End of public functions.

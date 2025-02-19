@@ -1,6 +1,6 @@
 package be.twofold.valen.core.hashing;
 
-import be.twofold.valen.core.util.*;
+import java.nio.*;
 
 final class XXHash64 implements HashFunction {
     private static final long PRIME64_1 = 0x9E3779B185EBCA87L;
@@ -16,12 +16,12 @@ final class XXHash64 implements HashFunction {
     }
 
     @Override
-    public HashCode hash(byte[] array, int offset, int length) {
-        Check.fromIndexSize(offset, length, array.length);
-        int limit = offset + length;
+    public HashCode hash(ByteBuffer buffer) {
+        var src = buffer.slice().order(ByteOrder.LITTLE_ENDIAN);
+        var len = buffer.remaining();
 
         long acc;
-        if (offset <= limit - 32) {
+        if (src.remaining() >= 32) {
             // Step 1: Initialize internal accumulators
             long acc1 = seed + PRIME64_1 + PRIME64_2;
             long acc2 = seed + PRIME64_2;
@@ -30,12 +30,11 @@ final class XXHash64 implements HashFunction {
 
             // Step 2: Process stripes
             do {
-                acc1 = round(acc1, ByteArrays.getLong(array, offset));
-                acc2 = round(acc2, ByteArrays.getLong(array, offset + 8));
-                acc3 = round(acc3, ByteArrays.getLong(array, offset + 16));
-                acc4 = round(acc4, ByteArrays.getLong(array, offset + 24));
-                offset += 32;
-            } while (offset <= limit - 32);
+                acc1 = round(acc1, src.getLong());
+                acc2 = round(acc2, src.getLong());
+                acc3 = round(acc3, src.getLong());
+                acc4 = round(acc4, src.getLong());
+            } while (src.remaining() >= 32);
 
             // Step 3: Accumulator convergence
             acc = Long.rotateLeft(acc1, 1)
@@ -53,30 +52,27 @@ final class XXHash64 implements HashFunction {
         }
 
         // Step 4: Add input length
-        acc = acc + length;
+        acc = acc + len;
 
         // Step 5: Consume remaining input
-        while (offset <= limit - 8) {
-            long lane = ByteArrays.getLong(array, offset);
+        while (src.remaining() >= 8) {
+            long lane = src.getLong();
             acc = acc ^ round(0, lane);
             acc = Long.rotateLeft(acc, 27) * PRIME64_1;
             acc = acc + PRIME64_4;
-            offset += 8;
         }
 
-        if (offset <= limit - 4) {
-            long lane = Integer.toUnsignedLong(ByteArrays.getInt(array, offset));
+        if (src.remaining() >= 4) {
+            long lane = Integer.toUnsignedLong(src.getInt());
             acc = acc ^ (lane * PRIME64_1);
             acc = Long.rotateLeft(acc, 23) * PRIME64_2;
             acc = acc + PRIME64_3;
-            offset += 4;
         }
 
-        while (offset < limit) {
-            long lane = Byte.toUnsignedLong(array[offset]);
+        while (src.hasRemaining()) {
+            long lane = Byte.toUnsignedLong(src.get());
             acc = acc ^ (lane * PRIME64_5);
             acc = Long.rotateLeft(acc, 11) * PRIME64_1;
-            offset += 1;
         }
 
         // Step 6: Final mix (avalanche)

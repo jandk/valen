@@ -91,10 +91,10 @@ public final class ResourcesFile implements Container<EternalAssetID, EternalAss
         };
         int offset = resource.compression() == ResourceCompressionMode.RES_COMP_MODE_KRAKEN_CHUNKED ? 12 : 0;
 
-        var decompressed = Buffers.toArray(decompressor.decompress(
+        var decompressed = decompressor.decompress(
             ByteBuffer.wrap(compressed, offset, compressed.length - offset),
             resource.uncompressedSize()
-        ));
+        );
 
         // Check hash
         long checksum = HashFunction.murmurHash64B(0xDEADBEEFL).hash(decompressed).asLong();
@@ -102,7 +102,7 @@ public final class ResourcesFile implements Container<EternalAssetID, EternalAss
             System.err.println("Checksum mismatch! (" + checksum + " != " + resource.checksum() + ")");
         }
 
-        return decompressed;
+        return Buffers.toArray(decompressed);
     }
 
     @Override

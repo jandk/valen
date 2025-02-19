@@ -67,7 +67,7 @@ class FastLZDecompressorTest {
 
     @ParameterizedTest
     @ValueSource(ints = {0, 100})
-    void testFastLZ1BB(int offset) throws Exception {
+    void testFastLZ1(int offset) throws Exception {
         byte[] temp;
         try (var input = getClass().getResourceAsStream("ls.fastlz1")) {
             temp = input.readAllBytes();
@@ -90,7 +90,7 @@ class FastLZDecompressorTest {
 
     @ParameterizedTest
     @ValueSource(ints = {0, 100})
-    void testFastLZ2BB(int offset) throws Exception {
+    void testFastLZ2(int offset) throws Exception {
         byte[] temp;
         try (var input = getClass().getResourceAsStream("ls.fastlz2")) {
             temp = input.readAllBytes();
