@@ -8,6 +8,7 @@ import be.twofold.valen.game.eternal.reader.streamdb.*;
 import org.slf4j.*;
 
 import java.io.*;
+import java.nio.*;
 import java.nio.file.*;
 import java.util.*;
 import java.util.function.*;
@@ -57,7 +58,7 @@ public final class StreamDbFile implements Container<Long, StreamDbEntry> {
             return compressed;
         }
 
-        return decompressor.decompress(compressed, uncompressedSize);
+        return Buffers.toArray(decompressor.decompress(ByteBuffer.wrap(compressed), uncompressedSize));
     }
 
     @Override

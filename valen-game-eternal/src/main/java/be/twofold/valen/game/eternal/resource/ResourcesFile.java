@@ -10,6 +10,7 @@ import be.twofold.valen.game.eternal.reader.resource.*;
 import org.slf4j.*;
 
 import java.io.*;
+import java.nio.*;
 import java.nio.file.*;
 import java.util.*;
 import java.util.function.*;
@@ -90,11 +91,10 @@ public final class ResourcesFile implements Container<EternalAssetID, EternalAss
         };
         int offset = resource.compression() == ResourceCompressionMode.RES_COMP_MODE_KRAKEN_CHUNKED ? 12 : 0;
 
-        byte[] decompressed = new byte[resource.uncompressedSize()];
-        decompressor.decompress(
-            compressed, offset, compressed.length - offset,
-            decompressed, 0, decompressed.length
-        );
+        var decompressed = Buffers.toArray(decompressor.decompress(
+            ByteBuffer.wrap(compressed, offset, compressed.length - offset),
+            resource.uncompressedSize()
+        ));
 
         // Check hash
         long checksum = HashFunction.murmurHash64B(0xDEADBEEFL).hash(decompressed).asLong();

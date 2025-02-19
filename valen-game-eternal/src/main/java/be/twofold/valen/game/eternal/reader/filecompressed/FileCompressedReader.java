@@ -8,8 +8,9 @@ import be.twofold.valen.game.eternal.*;
 import be.twofold.valen.game.eternal.resource.*;
 
 import java.io.*;
+import java.nio.*;
 
-public final class FileCompressedReader implements AssetReader<byte[], EternalAsset> {
+public final class FileCompressedReader implements AssetReader<ByteBuffer, EternalAsset> {
     private final Decompressor decompressor;
 
     public FileCompressedReader(Decompressor decompressor) {
@@ -23,13 +24,13 @@ public final class FileCompressedReader implements AssetReader<byte[], EternalAs
     }
 
     @Override
-    public byte[] read(DataSource source, EternalAsset resource) throws IOException {
+    public ByteBuffer read(DataSource source, EternalAsset resource) throws IOException {
         var header = FileCompressedHeader.read(source);
         if (header.compressedSize() == -1) {
-            return source.readBytes(header.uncompressedSize());
+            return ByteBuffer.wrap(source.readBytes(header.uncompressedSize()));
         }
 
-        var compressed = source.readBytes(header.compressedSize());
+        var compressed = ByteBuffer.wrap(source.readBytes(header.compressedSize()));
         return decompressor.decompress(compressed, header.uncompressedSize());
     }
 }

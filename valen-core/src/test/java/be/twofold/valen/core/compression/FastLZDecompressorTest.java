@@ -5,6 +5,7 @@ import org.junit.jupiter.params.*;
 import org.junit.jupiter.params.provider.*;
 
 import java.io.*;
+import java.nio.*;
 import java.security.*;
 import java.util.*;
 
@@ -26,7 +27,7 @@ class FastLZDecompressorTest {
         var expected = new byte[]{0x41, 0x42, 0x43};
         var target = new byte[expected.length];
 
-        decompressor.decompress(source, 0, source.length, target, 0, target.length);
+        decompressor.decompress(ByteBuffer.wrap(source), ByteBuffer.wrap(target));
 
         assertThat(target).isEqualTo(expected);
     }
@@ -37,7 +38,7 @@ class FastLZDecompressorTest {
         var expected = new byte[]{0x41, 0x42, 0x43, 0x44, 0x42, 0x43, 0x44};
         var target = new byte[expected.length];
 
-        decompressor.decompress(source, 0, source.length, target, 0, target.length);
+        decompressor.decompress(ByteBuffer.wrap(source), ByteBuffer.wrap(target));
 
         assertThat(target).isEqualTo(expected);
     }
@@ -48,7 +49,7 @@ class FastLZDecompressorTest {
         var expected = new byte[]{0x61, 0x61, 0x61, 0x61, 0x61};
         var target = new byte[expected.length];
 
-        decompressor.decompress(source, 0, source.length, target, 0, target.length);
+        decompressor.decompress(ByteBuffer.wrap(source), ByteBuffer.wrap(target));
 
         assertThat(target).isEqualTo(expected);
     }
@@ -59,14 +60,14 @@ class FastLZDecompressorTest {
         var expected = new byte[]{0x44, 0x45, 0x44, 0x45, 0x44, 0x45, 0x44, 0x45, 0x44, 0x45, 0x44, 0x45};
         var target = new byte[expected.length];
 
-        decompressor.decompress(source, 0, source.length, target, 0, target.length);
+        decompressor.decompress(ByteBuffer.wrap(source), ByteBuffer.wrap(target));
 
         assertThat(target).isEqualTo(expected);
     }
 
     @ParameterizedTest
     @ValueSource(ints = {0, 100})
-    void testFastLZ1(int offset) throws Exception {
+    void testFastLZ1BB(int offset) throws Exception {
         byte[] temp;
         try (var input = getClass().getResourceAsStream("ls.fastlz1")) {
             temp = input.readAllBytes();
@@ -75,10 +76,12 @@ class FastLZDecompressorTest {
         var source = new byte[temp.length + 2 * offset];
         System.arraycopy(temp, 0, source, offset, temp.length);
         var target = new byte[LENGTH + 2 * offset];
-        decompressor.decompress(
-            source, offset, source.length - 2 * offset,
-            target, offset, target.length - 2 * offset
-        );
+        var src = ByteBuffer.wrap(source, offset, source.length - 2 * offset);
+        var dst = ByteBuffer.wrap(target, offset, target.length - 2 * offset);
+        decompressor.decompress(src, dst);
+
+        assertThat(src.remaining()).isZero();
+        assertThat(dst.remaining()).isZero();
 
         sha256.update(target, offset, LENGTH);
         assertThat(HexFormat.of().formatHex(sha256.digest()))
@@ -87,7 +90,7 @@ class FastLZDecompressorTest {
 
     @ParameterizedTest
     @ValueSource(ints = {0, 100})
-    void testFastLZ2(int offset) throws Exception {
+    void testFastLZ2BB(int offset) throws Exception {
         byte[] temp;
         try (var input = getClass().getResourceAsStream("ls.fastlz2")) {
             temp = input.readAllBytes();
@@ -96,10 +99,12 @@ class FastLZDecompressorTest {
         var source = new byte[temp.length + 2 * offset];
         System.arraycopy(temp, 0, source, offset, temp.length);
         var target = new byte[LENGTH + 2 * offset];
-        decompressor.decompress(
-            source, offset, source.length - 2 * offset,
-            target, offset, target.length - 2 * offset
-        );
+        var src = ByteBuffer.wrap(source, offset, source.length - 2 * offset);
+        var dst = ByteBuffer.wrap(target, offset, target.length - 2 * offset);
+        decompressor.decompress(src, dst);
+
+        assertThat(src.remaining()).isZero();
+        assertThat(dst.remaining()).isZero();
 
         sha256.update(target, offset, LENGTH);
         assertThat(HexFormat.of().formatHex(sha256.digest()))
