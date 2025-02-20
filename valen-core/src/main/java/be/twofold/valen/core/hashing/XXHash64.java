@@ -16,9 +16,9 @@ final class XXHash64 implements HashFunction {
     }
 
     @Override
-    public HashCode hash(ByteBuffer buffer) {
-        var src = buffer.slice().order(ByteOrder.LITTLE_ENDIAN);
-        var len = buffer.remaining();
+    public HashCode hash(ByteBuffer src) {
+        src.order(ByteOrder.LITTLE_ENDIAN);
+        var len = src.remaining();
 
         long acc;
         if (src.remaining() >= 32) {

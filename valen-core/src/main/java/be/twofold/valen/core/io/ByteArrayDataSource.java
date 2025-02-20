@@ -22,7 +22,7 @@ final class ByteArrayDataSource implements DataSource, Closeable {
     @Override
     public void read(ByteBuffer dst) {
         int remaining = dst.remaining();
-        dst.put(array, offset, remaining);
+        dst.put(array, position, remaining);
         position += remaining;
     }
 

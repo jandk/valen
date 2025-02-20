@@ -13,9 +13,9 @@ final class MurmurHash64B implements HashFunction {
     }
 
     @Override
-    public HashCode hash(ByteBuffer buffer) {
-        var src = buffer.slice().order(ByteOrder.LITTLE_ENDIAN);
-        var len = buffer.remaining();
+    public HashCode hash(ByteBuffer src) {
+        src.order(ByteOrder.LITTLE_ENDIAN);
+        var len = src.remaining();
 
         int h1 = (int) (seed) ^ len;
         int h2 = (int) (seed >>> 32);
@@ -38,6 +38,7 @@ final class MurmurHash64B implements HashFunction {
                 h2 ^= Byte.toUnsignedInt(src.get());
                 h2 *= M32;
         }
+        src.position(src.limit());
 
         h1 = (h1 ^ (h2 >>> 18)) * M32;
         h2 = (h2 ^ (h1 >>> 22)) * M32;

@@ -24,5 +24,5 @@ public interface HashFunction {
         throw new UnsupportedOperationException();
     }
 
-    HashCode hash(ByteBuffer buffer);
+    HashCode hash(ByteBuffer src);
 }

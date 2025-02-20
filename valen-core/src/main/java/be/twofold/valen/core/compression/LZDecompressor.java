@@ -1,5 +1,7 @@
 package be.twofold.valen.core.compression;
 
+import be.twofold.valen.core.util.*;
+
 import java.io.*;
 import java.nio.*;
 
@@ -15,8 +17,7 @@ abstract class LZDecompressor implements Decompressor {
         if (len <= 0 || src.remaining() < len || dst.remaining() < len) {
             throw new IOException("Invalid literal");
         }
-        dst.put(src.slice().limit(len));
-        src.position(src.position() + len);
+        Buffers.copy(src, dst, len);
     }
 
     void copyReference(ByteBuffer dst, int offset, int length) throws IOException {

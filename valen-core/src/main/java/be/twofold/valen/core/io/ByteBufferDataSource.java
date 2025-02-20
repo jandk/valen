@@ -14,9 +14,7 @@ final class ByteBufferDataSource implements DataSource {
 
     @Override
     public void read(ByteBuffer dst) {
-        int remaining = dst.remaining();
-        dst.put(buffer.slice().limit(remaining));
-        buffer.position(buffer.position() + remaining);
+        Buffers.copy(buffer, dst);
     }
 
     @Override

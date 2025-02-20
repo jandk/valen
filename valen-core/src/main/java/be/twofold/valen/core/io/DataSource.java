@@ -18,9 +18,11 @@ public interface DataSource extends Closeable {
     }
 
     static DataSource fromBuffer(ByteBuffer buffer) {
-//        if (buffer.hasArray()) {
-//            return new ByteArrayDataSource(buffer.array(), buffer.arrayOffset(), buffer.limit());
-//        }
+        if (buffer.hasArray()) {
+            var dataSource = new ByteArrayDataSource(buffer.array(), buffer.arrayOffset(), buffer.limit());
+            dataSource.position(buffer.position());
+            return dataSource;
+        }
         return new ByteBufferDataSource(buffer);
     }
 
@@ -36,6 +38,7 @@ public interface DataSource extends Closeable {
 
     void position(long pos) throws IOException;
 
+    @Override
     default void close() throws IOException {
     }
 

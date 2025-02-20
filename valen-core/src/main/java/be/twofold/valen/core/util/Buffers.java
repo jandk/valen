@@ -6,6 +6,15 @@ public final class Buffers {
     private Buffers() {
     }
 
+    public static void copy(ByteBuffer src, ByteBuffer dst) {
+        copy(src, dst, dst.remaining());
+    }
+
+    public static void copy(ByteBuffer src, ByteBuffer dst, int length) {
+        dst.put(src.slice().limit(length));
+        src.position(src.position() + length);
+    }
+
     public static byte[] toArray(ByteBuffer buffer) {
         if (buffer.hasArray() &&
             buffer.position() == 0 &&

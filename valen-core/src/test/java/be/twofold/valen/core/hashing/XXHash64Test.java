@@ -14,10 +14,11 @@ class XXHash64Test {
     void testXXHash64(int length, String seedString, String expectedString) {
         long seed = Long.parseUnsignedLong(seedString, 16);
 
-        byte[] buffer = XXHashGenerator.generate(length);
-        long actual = new XXHash64(seed).hash(ByteBuffer.wrap(buffer)).asLong();
+        ByteBuffer buffer = XXHashGenerator.generate(length);
+        long actual = new XXHash64(seed).hash(buffer).asLong();
         long expected = Long.parseUnsignedLong(expectedString, 16);
         assertThat(actual).isEqualTo(expected);
+        assertThat(buffer.hasRemaining()).isFalse();
     }
 
     @Test

@@ -41,9 +41,9 @@ import java.nio.*;
  */
 final class FarmHashFingerprint64 implements HashFunction {
     // Some primes between 2^63 and 2^64 for various uses.
-    private static final long K0 = 0xc3a5c85c97cb3127L;
-    private static final long K1 = 0xb492b66fbe98f273L;
-    private static final long K2 = 0x9ae16a3b2f90404fL;
+    private static final long K0 = 0xC3A5C85C97CB3127L;
+    private static final long K1 = 0xB492B66FBE98F273L;
+    private static final long K2 = 0x9AE16A3B2F90404FL;
 
     FarmHashFingerprint64() {
     }
@@ -56,7 +56,7 @@ final class FarmHashFingerprint64 implements HashFunction {
     }
 
     @Override
-    public HashCode hash(ByteBuffer buffer) {
+    public HashCode hash(ByteBuffer src) {
         throw new UnsupportedOperationException();
     }
 

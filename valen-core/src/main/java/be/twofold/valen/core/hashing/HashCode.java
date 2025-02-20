@@ -18,10 +18,13 @@ public abstract class HashCode {
 
     public abstract long asLong();
 
+    @Override
     public abstract boolean equals(Object obj);
 
+    @Override
     public abstract int hashCode();
 
+    @Override
     public abstract String toString();
 
     private static final class IntHashCode extends HashCode {

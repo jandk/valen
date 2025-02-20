@@ -35,8 +35,8 @@ class LZ4DecompressorTest {
         var dst = ByteBuffer.wrap(target, offset, target.length - 2 * offset);
         decompressor.decompress(src, dst);
 
-        assertThat(src.remaining()).isZero();
-        assertThat(dst.remaining()).isZero();
+        assertThat(src.hasRemaining()).isFalse();
+        assertThat(dst.hasRemaining()).isFalse();
 
         sha256.update(target, offset, LENGTH);
         assertThat(HexFormat.of().formatHex(sha256.digest()))

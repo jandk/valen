@@ -15,10 +15,11 @@ class XXHash32Test {
     void testXXHash32(int length, String seedString, String expectedString) {
         int seed = Integer.parseUnsignedInt(seedString, 16);
 
-        byte[] buffer = XXHashGenerator.generate(length);
-        int actual = new XXHash32(seed).hash(ByteBuffer.wrap(buffer)).asInt();
+        var buffer = XXHashGenerator.generate(length);
+        int actual = new XXHash32(seed).hash(buffer).asInt();
         int expected = Integer.parseUnsignedInt(expectedString, 16);
         assertThat(actual).isEqualTo(expected);
+        assertThat(buffer.hasRemaining()).isFalse();
     }
 
     @Test

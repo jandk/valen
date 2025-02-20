@@ -24,15 +24,12 @@ final class ChannelDataSource implements DataSource, Closeable {
     public void read(ByteBuffer dst) throws IOException {
         int remaining = buffer.remaining();
         if (dst.remaining() <= remaining) {
-            int rem = dst.remaining();
-            dst.put(buffer.slice().limit(rem));
-            buffer.position(buffer.position() + rem);
+            Buffers.copy(buffer, dst);
             return;
         }
 
         if (remaining > 0) {
-            dst.put(buffer.slice().limit(remaining));
-            buffer.position(buffer.position() + remaining);
+            Buffers.copy(buffer, dst, remaining);
         }
 
         // If we can fit the remaining bytes in the buffer, do a normal refill and read
@@ -41,9 +38,7 @@ final class ChannelDataSource implements DataSource, Closeable {
             if (dst.remaining() > buffer.remaining()) {
                 throw new EOFException();
             }
-            int rem = dst.remaining();
-            dst.put(buffer.slice().limit(dst.remaining()));
-            buffer.position(buffer.position() + rem);
+            Buffers.copy(buffer, dst);
             return;
         }
 
