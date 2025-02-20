@@ -98,6 +98,7 @@ public final class ResourcesFile implements Container<EternalAssetID, EternalAss
         if (checksum != resource.checksum()) {
             System.err.println("Checksum mismatch! (" + checksum + " != " + resource.checksum() + ")");
         }
+        decompressed.rewind();
 
         return decompressed;
     }

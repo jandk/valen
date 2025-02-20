@@ -24,6 +24,6 @@ public final class MapResourcesReader implements AssetReader<MapResources, Etern
     @Override
     public MapResources read(DataSource source, EternalAsset resource) throws IOException {
         var file = fileReader.read(source, resource);
-        return MapResources.read(DataSource.fromArray(file.data()));
+        return MapResources.read(DataSource.fromBuffer(file.data()));
     }
 }

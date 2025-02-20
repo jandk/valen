@@ -5,6 +5,8 @@ import be.twofold.valen.ui.common.*;
 import be.twofold.valen.ui.component.*;
 import jakarta.inject.*;
 
+import java.nio.*;
+
 public final class RawPresenter extends AbstractFXPresenter<RawView> implements Viewer {
     private final BinaryToText binaryToText = new BinaryToText();
 
@@ -25,15 +27,19 @@ public final class RawPresenter extends AbstractFXPresenter<RawView> implements 
 
     @Override
     public void setData(Object data) {
-        if (!(data instanceof byte[] binary)) {
+        if (data == null) {
+            getView().setText(null);
+            return;
+        }
+        if (!(data instanceof ByteBuffer buffer)) {
             throw new UnsupportedOperationException("Unsupported data type: " + data.getClass());
         }
 
         binaryToText
-            .binaryToText(binary)
+            .binaryToText(buffer)
             .ifPresentOrElse(
                 text -> getView().setText(text),
-                () -> getView().setBinary(binary)
+                () -> getView().setBinary(buffer)
             );
     }
 }

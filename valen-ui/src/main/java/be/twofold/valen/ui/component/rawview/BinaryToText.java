@@ -1,9 +1,9 @@
 package be.twofold.valen.ui.component.rawview;
 
-import be.twofold.valen.core.util.*;
-
+import java.nio.*;
 import java.nio.charset.*;
 import java.util.*;
+import java.util.stream.*;
 
 final class BinaryToText {
     private final List<Converter> converters = List.of(
@@ -11,36 +11,29 @@ final class BinaryToText {
         new Utf8Converter()
     );
 
-    public Optional<String> binaryToText(byte[] array) {
-        return binaryToText(array, 0, array.length);
-    }
-
-    public Optional<String> binaryToText(byte[] array, int offset, int length) {
-        Check.fromIndexSize(offset, length, array.length);
-
+    public Optional<String> binaryToText(ByteBuffer buffer) {
         return converters.stream()
-            .flatMap(converter -> converter.convert(array, offset, length).stream())
+            .flatMap(converter -> converter.convert(buffer).stream())
             .findFirst();
     }
 
     private interface Converter {
-        Optional<String> convert(byte[] array, int offset, int length);
+        Optional<String> convert(ByteBuffer buffer);
     }
 
     static final class BomConverter implements Converter {
         @Override
-        public Optional<String> convert(byte[] array, int offset, int length) {
+        public Optional<String> convert(ByteBuffer buffer) {
             return Arrays.stream(ByteOrderMark.values())
-                .filter(bom -> checkSingleBom(array, offset, length, bom))
+                .filter(bom -> checkSingleBom(buffer, bom))
                 .findFirst()
-                .map(bom -> new String(array, offset + bom.length(), length - bom.length(), bom.charset()));
+                .map(bom -> bom.charset().decode(buffer.position(bom.length())).toString());
         }
 
-        private boolean checkSingleBom(byte[] array, int offset, int length, ByteOrderMark bom) {
-            return bom.length() <= length && Arrays.compare(
-                array, offset, offset + bom.length(),
-                bom.bytes(), 0, bom.length()
-            ) == 0;
+        private boolean checkSingleBom(ByteBuffer buffer, ByteOrderMark bom) {
+            return bom.length() <= buffer.remaining() &&
+                IntStream.range(0, bom.length())
+                    .noneMatch(i -> buffer.get(i) != bom.bytes()[i]);
         }
 
         private enum ByteOrderMark {
@@ -74,36 +67,33 @@ final class BinaryToText {
 
     static final class Utf8Converter implements Converter {
         @Override
-        public Optional<String> convert(byte[] array, int offset, int length) {
-            return isValid(array, offset, length)
-                ? Optional.of(new String(array, offset, length, StandardCharsets.UTF_8))
+        public Optional<String> convert(ByteBuffer buffer) {
+            return isValid(buffer.slice())
+                ? Optional.of(StandardCharsets.UTF_8.decode(buffer).toString())
                 : Optional.empty();
         }
 
-        private boolean isValid(byte[] array, int offset, int length) {
-            int index = offset;
-            int limit = offset + length;
-
-            while (index < limit) {
-                int b0 = array[index++] & 0xFF;
+        private boolean isValid(ByteBuffer buffer) {
+            while (buffer.hasRemaining()) {
+                int b0 = buffer.get() & 0xFF;
                 if ((b0 & 0x80) == 0) {
                     if (b0 == 0x00) {
                         return false;
                     }
                 } else if ((b0 & 0xE0) == 0xC0) {
-                    if (index >= limit) {
+                    if (buffer.remaining() < 1) {
                         return false;
                     }
-                    int b1 = array[index++] & 0xFF;
+                    int b1 = buffer.get() & 0xFF;
                     if (b0 < 0xC2 || badTail(b1)) {
                         return false;
                     }
                 } else if ((b0 & 0xF0) == 0xE0) {
-                    if (index >= limit - 1) {
+                    if (buffer.remaining() < 2) {
                         return false;
                     }
 
-                    int b1 = array[index++] & 0xFF;
+                    int b1 = buffer.get() & 0xFF;
                     if ((b0 == 0xE0) && (b1 < 0xA0 || b1 > 0xBF) ||
                         (b0 >= 0xE1 && b0 <= 0xEC) && badTail(b1) ||
                         (b0 == 0xED) && (b1 < 0x80 || b1 > 0x9F) ||
@@ -111,24 +101,24 @@ final class BinaryToText {
                         return false;
                     }
 
-                    int b2 = array[index++] & 0xFF;
+                    int b2 = buffer.get() & 0xFF;
                     if (badTail(b2)) {
                         return false;
                     }
                 } else if ((b0 & 0xF8) == 0xF0) {
-                    if (index >= limit - 2) {
+                    if (buffer.remaining() < 3) {
                         return false;
                     }
 
-                    int b1 = array[index++] & 0xFF;
+                    int b1 = buffer.get() & 0xFF;
                     if ((b0 == 0xF0) && (b1 < 0x90 || b1 > 0xBF) ||
                         (b0 >= 0xF1 && b0 <= 0xF3) && badTail(b1) ||
                         (b0 == 0xF4) && (b1 < 0x80 || b1 > 0x8F)) {
                         return false;
                     }
 
-                    int b2 = array[index++] & 0xFF;
-                    int b3 = array[index++] & 0xFF;
+                    int b2 = buffer.get() & 0xFF;
+                    int b3 = buffer.get() & 0xFF;
                     if (badTail(b2) || badTail(b3)) {
                         return false;
                     }

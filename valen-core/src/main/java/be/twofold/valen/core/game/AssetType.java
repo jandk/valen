@@ -5,12 +5,14 @@ import be.twofold.valen.core.geometry.*;
 import be.twofold.valen.core.material.*;
 import be.twofold.valen.core.texture.*;
 
+import java.nio.*;
+
 public enum AssetType {
     ANIMATION(Animation.class, "Animation"),
     MATERIAL(Material.class, "Material"),
     MODEL(Model.class, "Model"),
     TEXTURE(Texture.class, "Texture"),
-    RAW(byte[].class, "Raw"),
+    RAW(ByteBuffer.class, "Raw"),
     ;
 
     private final Class<?> type;

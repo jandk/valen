@@ -3,7 +3,6 @@ package be.twofold.valen.game.eternal.reader.resource;
 import be.twofold.valen.core.io.*;
 
 import java.io.*;
-import java.nio.*;
 import java.nio.charset.*;
 import java.util.*;
 
@@ -30,8 +29,8 @@ public record Resources(
         var numStrings = source.readLongAsInt();
         var offsets = source.readLongsAsInts(numStrings);
         var stringBufferLength = Math.toIntExact(header.addrDependencyEntries() - header.addrPathStringOffsets() - (numStrings + 1) * (long) Long.BYTES);
-        var stringBufferRaw = source.readBytes(stringBufferLength);
-        var stringBuffer = DECODER.decode(ByteBuffer.wrap(stringBufferRaw)).toString();
+        var stringBufferRaw = source.readBuffer(stringBufferLength);
+        var stringBuffer = DECODER.decode(stringBufferRaw).toString();
         var pathStrings = Arrays.stream(offsets)
             .mapToObj(i -> stringBuffer.substring(i, stringBuffer.indexOf('\0', i)))
             .toList();

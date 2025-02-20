@@ -63,6 +63,7 @@ public final class EternalArchive implements Archive {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public <T> T loadAsset(AssetID identifier, Class<T> clazz) throws IOException {
         var resource = getAsset(identifier)
             .orElseThrow(FileNotFoundException::new);
@@ -71,8 +72,8 @@ public final class EternalArchive implements Archive {
             ? resources.read(resource.key())
             : common.read(resource.key());
 
-        if (clazz == byte[].class) {
-            return (T) Buffers.toArray(buffer);
+        if (clazz == ByteBuffer.class) {
+            return (T) buffer;
         }
 
         try (var source = DataSource.fromBuffer(buffer)) {

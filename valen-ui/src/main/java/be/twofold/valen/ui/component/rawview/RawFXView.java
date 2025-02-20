@@ -10,6 +10,7 @@ import javafx.scene.layout.*;
 import javafx.scene.paint.*;
 import javafx.scene.text.*;
 
+import java.nio.*;
 import java.util.*;
 import java.util.stream.*;
 
@@ -28,7 +29,7 @@ public final class RawFXView implements RawView, FXView {
 
     @Inject
     public RawFXView() {
-        setBinary(new byte[0]);
+        setBinary(ByteBuffer.allocate(0));
 
         VBox.setVgrow(binaryView, Priority.ALWAYS);
         VBox.setVgrow(textView, Priority.ALWAYS);
@@ -58,13 +59,13 @@ public final class RawFXView implements RawView, FXView {
     }
 
     @Override
-    public void setBinary(byte[] binary) {
+    public void setBinary(ByteBuffer buffer) {
         textView.clear();
         view.getChildren().setAll(binaryView);
 
         // TODO: Choose themed color
-        hexDump = new HexDump(binary, MONOSPACED, Color.WHITE, Color.GRAY);
-        int numRows = (binary.length + 15) / 16;
+        hexDump = new HexDump(buffer, MONOSPACED, Color.WHITE, Color.GRAY);
+        int numRows = (buffer.limit() + 15) / 16;
         binaryView.scrollTo(0);
         binaryView.setItems(new IndexObservableList(numRows));
     }
