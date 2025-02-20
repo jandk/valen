@@ -75,26 +75,23 @@ public final class ResourcesFile implements Container<EternalAssetID, EternalAss
     }
 
     @Override
-    public byte[] read(EternalAssetID key, int uncompressedSize) throws IOException {
+    public ByteBuffer read(EternalAssetID key, int uncompressedSize) throws IOException {
         var resource = index.get(key);
         Check.state(resource != null, () -> "Resource not found: " + key.name());
 
-        // Read the chunk
-        source.position(resource.offset());
-        var compressed = source.readBytes(resource.compressedSize());
-
-        // Decompress it
+        // Get the correct decompressor first
         var decompressor = switch (resource.compression()) {
             case RES_COMP_MODE_NONE -> Decompressor.none();
             case RES_COMP_MODE_KRAKEN, RES_COMP_MODE_KRAKEN_CHUNKED -> this.decompressor;
             default -> throw new UnsupportedOperationException("Unsupported compression: " + resource.compression());
         };
-        int offset = resource.compression() == ResourceCompressionMode.RES_COMP_MODE_KRAKEN_CHUNKED ? 12 : 0;
 
-        var decompressed = decompressor.decompress(
-            ByteBuffer.wrap(compressed, offset, compressed.length - offset),
-            resource.uncompressedSize()
-        );
+        // Read the chunk
+        source.position(resource.offset());
+        var compressed = source
+            .readBuffer(resource.compressedSize())
+            .position(resource.compression() == ResourceCompressionMode.RES_COMP_MODE_KRAKEN_CHUNKED ? 12 : 0);
+        var decompressed = decompressor.decompress(compressed, resource.uncompressedSize());
 
         // Check hash
         long checksum = HashFunction.murmurHash64B(0xDEADBEEFL).hash(decompressed).asLong();
@@ -102,7 +99,7 @@ public final class ResourcesFile implements Container<EternalAssetID, EternalAss
             System.err.println("Checksum mismatch! (" + checksum + " != " + resource.checksum() + ")");
         }
 
-        return Buffers.toArray(decompressed);
+        return decompressed;
     }
 
     @Override

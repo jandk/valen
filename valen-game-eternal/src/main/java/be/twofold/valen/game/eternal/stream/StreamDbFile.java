@@ -47,18 +47,18 @@ public final class StreamDbFile implements Container<Long, StreamDbEntry> {
     }
 
     @Override
-    public byte[] read(Long key, int uncompressedSize) throws IOException {
+    public ByteBuffer read(Long key, int uncompressedSize) throws IOException {
         var entry = index.get(key);
         Check.state(entry != null, () -> "Stream not found: " + key);
 
         log.debug("Reading stream: {}", String.format("%016X", entry.identity()));
         source.position(entry.offset());
-        var compressed = source.readBytes(entry.length());
-        if (compressed.length == uncompressedSize) {
+        var compressed = source.readBuffer(entry.length());
+        if (compressed.remaining() == uncompressedSize) {
             return compressed;
         }
 
-        return Buffers.toArray(decompressor.decompress(ByteBuffer.wrap(compressed), uncompressedSize));
+        return decompressor.decompress(compressed, uncompressedSize);
     }
 
     @Override

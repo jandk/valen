@@ -79,8 +79,8 @@ public final class StaticModelReader implements AssetReader<Model, EternalAsset>
             .toList();
         var layouts = model.streamDiskLayouts().get(lod).memoryLayouts();
 
-        var bytes = archive.readStream(streamHash, uncompressedSize);
-        var source = DataSource.fromArray(bytes);
+        var buffer = archive.readStream(streamHash, uncompressedSize);
+        var source = DataSource.fromBuffer(buffer);
         return GeometryReader.readStreamedMesh(source, lods, layouts, false);
     }
 

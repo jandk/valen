@@ -18,15 +18,17 @@ public interface DataSource extends Closeable {
     }
 
     static DataSource fromBuffer(ByteBuffer buffer) {
-        Check.argument(buffer.hasArray(), "ByteBuffer must be backed by an array");
-        return new ByteArrayDataSource(buffer.array(), buffer.arrayOffset(), buffer.limit());
+//        if (buffer.hasArray()) {
+//            return new ByteArrayDataSource(buffer.array(), buffer.arrayOffset(), buffer.limit());
+//        }
+        return new ByteBufferDataSource(buffer);
     }
 
     static DataSource fromPath(Path path) throws IOException {
         return new ChannelDataSource(Files.newByteChannel(path, StandardOpenOption.READ));
     }
 
-    void readBytes(byte[] dst, int off, int len) throws IOException;
+    void read(ByteBuffer dst) throws IOException;
 
     long size();
 
@@ -34,7 +36,8 @@ public interface DataSource extends Closeable {
 
     void position(long pos) throws IOException;
 
-    void close() throws IOException;
+    default void close() throws IOException {
+    }
 
     default void skip(long count) throws IOException {
         position(position() + count);
@@ -52,10 +55,15 @@ public interface DataSource extends Closeable {
 
     double readDouble() throws IOException;
 
+    default ByteBuffer readBuffer(int len) throws IOException {
+        var buffer = ByteBuffer.allocate(len);
+        read(buffer);
+        buffer.flip();
+        return buffer;
+    }
+
     default byte[] readBytes(int len) throws IOException {
-        var result = new byte[len];
-        readBytes(result, 0, len);
-        return result;
+        return Buffers.toArray(readBuffer(len));
     }
 
     default short readShortBE() throws IOException {
@@ -137,7 +145,7 @@ public interface DataSource extends Closeable {
     }
 
     default String readString(int length) throws IOException {
-        return new String(readBytes(length), StandardCharsets.UTF_8);
+        return StandardCharsets.UTF_8.decode(readBuffer(length)).toString();
     }
 
     default String readCString() throws IOException {

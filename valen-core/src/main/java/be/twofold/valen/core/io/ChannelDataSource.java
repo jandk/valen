@@ -21,37 +21,38 @@ final class ChannelDataSource implements DataSource, Closeable {
     }
 
     @Override
-    public void readBytes(byte[] dst, int off, int len) throws IOException {
-        Check.fromIndexSize(off, len, dst.length);
-
+    public void read(ByteBuffer dst) throws IOException {
         int remaining = buffer.remaining();
-        if (len <= remaining) {
-            buffer.get(dst, off, len);
+        if (dst.remaining() <= remaining) {
+            int rem = dst.remaining();
+            dst.put(buffer.slice().limit(rem));
+            buffer.position(buffer.position() + rem);
             return;
         }
 
         if (remaining > 0) {
-            buffer.get(dst, off, remaining);
-            off += remaining;
-            len -= remaining;
+            dst.put(buffer.slice().limit(remaining));
+            buffer.position(buffer.position() + remaining);
         }
 
         // If we can fit the remaining bytes in the buffer, do a normal refill and read
-        if (len < buffer.capacity()) {
+        if (dst.remaining() < buffer.capacity()) {
             refill();
-            if (len > buffer.remaining()) {
+            if (dst.remaining() > buffer.remaining()) {
                 throw new EOFException();
             }
-            buffer.get(dst, off, len);
+            int rem = dst.remaining();
+            dst.put(buffer.slice().limit(dst.remaining()));
+            buffer.position(buffer.position() + rem);
             return;
         }
 
         // If we can't fit the remaining bytes in the buffer, read directly into the destination
-        long end = position + buffer.position() + len;
+        long end = position + buffer.position() + dst.remaining();
         if (end > size) {
             throw new EOFException();
         }
-        readInternal(ByteBuffer.wrap(dst, off, len));
+        readInternal(dst);
         position = end;
         buffer.limit(0);
     }

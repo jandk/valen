@@ -27,10 +27,10 @@ public final class FileCompressedReader implements AssetReader<ByteBuffer, Etern
     public ByteBuffer read(DataSource source, EternalAsset resource) throws IOException {
         var header = FileCompressedHeader.read(source);
         if (header.compressedSize() == -1) {
-            return ByteBuffer.wrap(source.readBytes(header.uncompressedSize()));
+            return source.readBuffer(header.uncompressedSize());
         }
 
-        var compressed = ByteBuffer.wrap(source.readBytes(header.compressedSize()));
+        var compressed = source.readBuffer(header.compressedSize());
         return decompressor.decompress(compressed, header.uncompressedSize());
     }
 }
