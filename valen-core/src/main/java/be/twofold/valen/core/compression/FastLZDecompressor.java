@@ -11,6 +11,7 @@ final class FastLZDecompressor extends LZDecompressor {
     public void decompress(ByteBuffer src, ByteBuffer dst) throws IOException {
         Level level = Level.from(src.get(src.position()));
 
+        src.order(ByteOrder.BIG_ENDIAN);
         int opcode = src.get() & 0x1F; // Could have had a pretty loop, but no
         while (true) {
             if ((opcode & 0xE0) == 0x00) {
@@ -43,7 +44,7 @@ final class FastLZDecompressor extends LZDecompressor {
                         offset += temp;
 
                         if (temp == 0xFF && (opcode & 0x1F) == 0x1F) {
-                            offset += getUnsignedByte(src) << 8 | getUnsignedByte(src);
+                            offset += Short.toUnsignedInt(src.getShort());
                         }
                     }
                 }

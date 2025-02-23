@@ -17,6 +17,7 @@ final class LZ4Decompressor extends LZDecompressor {
             return /*0*/;
         }
 
+        src.order(ByteOrder.LITTLE_ENDIAN);
         while (true) {
             int token = src.get();
 
@@ -41,7 +42,7 @@ final class LZ4Decompressor extends LZDecompressor {
             }
 
             // Get the match position, can't start before the output start
-            int offset = getUnsignedByte(src) | getUnsignedByte(src) << 8;
+            int offset = Short.toUnsignedInt(src.getShort());
 
             // Get the match length
             int matchLength = token & 0x0F;

@@ -8,8 +8,7 @@ final class ByteBufferDataSource implements DataSource {
     private final ByteBuffer buffer;
 
     ByteBufferDataSource(ByteBuffer buffer) {
-        this.buffer = Check.notNull(buffer)
-            .order(ByteOrder.LITTLE_ENDIAN);
+        this.buffer = buffer.order(ByteOrder.LITTLE_ENDIAN);
     }
 
     @Override
