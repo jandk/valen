@@ -11,37 +11,33 @@ import org.slf4j.*;
 import java.nio.file.*;
 import java.util.concurrent.*;
 
-final class ExportTask extends Task<Void> {
+final class ExportTask<T> extends Task<Void> {
     private static final Logger log = LoggerFactory.getLogger(ExportTask.class);
 
-    private final Path path;
+    private final Exporter<T> exporter;
     private final Archive archive;
     private final Asset asset;
+    private final Path path;
 
-    ExportTask(Path path, Archive archive, Asset asset) {
-        this.path = Check.notNull(path, "path");
+    ExportTask(Exporter<T> exporter, Archive archive, Asset asset, Path path) {
+        this.exporter = Check.notNull(exporter, "exporter");
         this.archive = Check.notNull(archive, "archive");
         this.asset = Check.notNull(asset, "asset");
+        this.path = Check.notNull(path, "path");
+        Check.argument(exporter.getSupportedType() == asset.type().getType(), () ->
+            String.format("Exporter type (%s) does not match asset type (%s)", exporter.getSupportedType(), asset.type()));
     }
 
     @Override
     protected Void call() {
-        export().join();
+        CompletableFuture.runAsync(this::export).join();
         return null;
     }
 
-    public CompletableFuture<Void> export() {
-        return CompletableFuture.runAsync(this::export0);
-    }
-
-    void export0() {
-        exporty(asset.type().getType());
-    }
-
-    private <T> void exporty(Class<T> clazz) {
-        var exporter = Exporter.forType(clazz).getFirst();
+    @SuppressWarnings("unchecked")
+    void export() {
         try {
-            T rawAsset = archive.loadAsset(asset.id(), clazz);
+            T rawAsset = (T) archive.loadAsset(asset.id(), asset.type().getType());
             exporter.export(rawAsset, path);
         } catch (Exception e) {
             log.error(e.getMessage(), e);

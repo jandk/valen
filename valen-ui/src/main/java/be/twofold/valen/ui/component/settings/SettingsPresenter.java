@@ -41,7 +41,7 @@ public final class SettingsPresenter extends AbstractFXPresenter<SettingsView> {
     private void setupView() {
         getView().setAssetTypeSelection(Set.of(AssetType.values()));
 
-        var textureExporters = Exporter.forType(Texture.class).stream()
+        var textureExporters = Exporter.forType(Texture.class)
             .map(exporter -> Map.entry(exporter.getID(), exporter.getName()))
             .collect(Collectors.toUnmodifiableSet());
 

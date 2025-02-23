@@ -38,7 +38,7 @@ public final class SettingsController implements Controller {
     }
 
     public void initialize() {
-        var textureFormats = Exporter.forType(Texture.class).stream()
+        var textureFormats = Exporter.forType(Texture.class)
             .map(exporter -> Map.entry(exporter.getID(), exporter.getName()))
             .sorted(Map.Entry.comparingByKey())
             .collect(Collectors.toList());
