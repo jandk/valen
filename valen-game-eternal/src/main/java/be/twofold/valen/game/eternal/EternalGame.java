@@ -61,6 +61,6 @@ public final class EternalGame implements Game {
     @Override
     public EternalArchive loadArchive(String name) throws IOException {
         var resourcesCollection = loadResources(base, spec, decompressor, name);
-        return new EternalArchive(streamDbCollection, commonCollection, resourcesCollection);
+        return new EternalArchive(streamDbCollection, commonCollection, resourcesCollection, decompressor);
     }
 }

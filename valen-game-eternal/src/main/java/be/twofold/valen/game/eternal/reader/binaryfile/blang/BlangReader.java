@@ -23,7 +23,7 @@ public final class BlangReader implements AssetReader<Blang, EternalAsset> {
 
     @Override
     public Blang read(DataSource source, EternalAsset resource) throws IOException {
-        byte[] bytes = binaryFileReader.read(source, resource);
-        return Blang.read(DataSource.fromArray(bytes));
+        var buffer = binaryFileReader.read(source, resource);
+        return Blang.read(DataSource.fromBuffer(buffer));
     }
 }

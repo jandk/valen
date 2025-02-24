@@ -8,17 +8,18 @@ import be.twofold.valen.game.eternal.resource.*;
 import javax.crypto.*;
 import javax.crypto.spec.*;
 import java.io.*;
+import java.nio.*;
 import java.security.*;
 import java.util.*;
 
-public final class BinaryFileReader implements AssetReader<byte[], EternalAsset> {
+public final class BinaryFileReader implements AssetReader<ByteBuffer, EternalAsset> {
     @Override
     public boolean canRead(EternalAsset resource) {
         return resource.key().type() == ResourceType.BinaryFile;
     }
 
     @Override
-    public byte[] read(DataSource source, EternalAsset resource) throws IOException {
+    public ByteBuffer read(DataSource source, EternalAsset resource) throws IOException {
         try {
             var salt = source.readBytes(12);
             var iVec = source.readBytes(16);
@@ -46,7 +47,7 @@ public final class BinaryFileReader implements AssetReader<byte[], EternalAsset>
             var keySpec = new SecretKeySpec(Arrays.copyOfRange(key, 0, 16), "AES");
             var parameterSpec = new IvParameterSpec(iVec);
             cipher.init(Cipher.DECRYPT_MODE, keySpec, parameterSpec);
-            return cipher.doFinal(text);
+            return ByteBuffer.wrap(cipher.doFinal(text));
         } catch (GeneralSecurityException e) {
             throw new RuntimeException(e);
         }

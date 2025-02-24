@@ -1,11 +1,15 @@
 package be.twofold.valen.game.eternal;
 
+import be.twofold.valen.core.compression.*;
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.util.*;
+import be.twofold.valen.game.eternal.reader.binaryfile.*;
 import be.twofold.valen.game.eternal.reader.decl.*;
 import be.twofold.valen.game.eternal.reader.decl.material2.*;
 import be.twofold.valen.game.eternal.reader.decl.renderparm.*;
+import be.twofold.valen.game.eternal.reader.file.FileReader;
+import be.twofold.valen.game.eternal.reader.filecompressed.*;
 import be.twofold.valen.game.eternal.reader.image.*;
 import be.twofold.valen.game.eternal.reader.mapfilestaticinstances.*;
 import be.twofold.valen.game.eternal.reader.md6anim.*;
@@ -28,16 +32,21 @@ public final class EternalArchive implements Archive {
     EternalArchive(
         Container<Long, StreamDbEntry> streams,
         Container<EternalAssetID, EternalAsset> common,
-        Container<EternalAssetID, EternalAsset> resources
+        Container<EternalAssetID, EternalAsset> resources,
+        Decompressor decompressor
     ) {
         this.streams = Check.notNull(streams, "streams");
         this.common = Check.notNull(common, "common");
         this.resources = Check.notNull(resources, "resources");
+        Check.notNull(decompressor, "decompressor");
 
         var declReader = new DeclReader(this);
 
         this.readers = new AssetReaders<>(List.of(
             declReader,
+            new BinaryFileReader(),
+            new FileCompressedReader(decompressor),
+            new FileReader(),
             new ImageReader(this),
             new MapFileStaticInstancesReader(this),
             new MaterialReader(this, declReader),
@@ -63,21 +72,16 @@ public final class EternalArchive implements Archive {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public <T> T loadAsset(AssetID identifier, Class<T> clazz) throws IOException {
-        var resource = getAsset(identifier)
+        var asset = getAsset(identifier)
             .orElseThrow(FileNotFoundException::new);
 
-        var buffer = resources.get(resource.key()).isPresent()
-            ? resources.read(resource.key())
-            : common.read(resource.key());
-
-        if (clazz == ByteBuffer.class) {
-            return (T) buffer;
-        }
+        var buffer = resources.get(asset.key()).isPresent()
+            ? resources.read(asset.key())
+            : common.read(asset.key());
 
         try (var source = DataSource.fromBuffer(buffer)) {
-            return readers.read(resource, source, clazz);
+            return readers.read(asset, source, clazz);
         }
     }
 
