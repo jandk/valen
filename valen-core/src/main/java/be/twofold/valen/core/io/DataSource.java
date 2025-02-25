@@ -93,6 +93,10 @@ public interface DataSource extends Closeable {
         return result;
     }
 
+    default long readLongBE() throws IOException {
+        return Long.reverseBytes(readLong());
+    }
+
     default long[] readLongs(int count) throws IOException {
         var result = new long[count];
         for (var i = 0; i < result.length; i++) {

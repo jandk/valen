@@ -11,6 +11,7 @@ import be.twofold.valen.game.eternal.reader.decl.renderparm.*;
 import be.twofold.valen.game.eternal.reader.file.FileReader;
 import be.twofold.valen.game.eternal.reader.filecompressed.*;
 import be.twofold.valen.game.eternal.reader.image.*;
+import be.twofold.valen.game.eternal.reader.json.*;
 import be.twofold.valen.game.eternal.reader.mapfilestaticinstances.*;
 import be.twofold.valen.game.eternal.reader.md6anim.*;
 import be.twofold.valen.game.eternal.reader.md6model.*;
@@ -44,9 +45,13 @@ public final class EternalArchive implements Archive {
 
         this.readers = new AssetReaders<>(List.of(
             declReader,
+            // Binary converters
             new BinaryFileReader(),
             new FileCompressedReader(decompressor),
             new FileReader(),
+            new JsonReader(),
+
+            // Actual readers
             new ImageReader(this),
             new MapFileStaticInstancesReader(this),
             new MaterialReader(this, declReader),
