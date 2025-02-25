@@ -23,27 +23,18 @@ public final class RawFXView implements RawView, FXView {
 
     private final VBox view = new VBox();
     private final ListView<Integer> binaryView = new ListView<>();
-    private final TextArea textView = new TextArea();
+    private final ListView<Integer> textView = new ListView<>();
 
     private HexDump hexDump;
+    private Lines lines;
 
     @Inject
     public RawFXView() {
-        setBinary(ByteBuffer.allocate(0));
+        setupListView(binaryView);
+        binaryView.setCellFactory(_ -> new BinaryListCell());
 
-        VBox.setVgrow(binaryView, Priority.ALWAYS);
-        VBox.setVgrow(textView, Priority.ALWAYS);
-
-        // Disable selection
-        // binaryView.addEventFilter(MouseEvent.MOUSE_PRESSED, Event::consume);
-        binaryView.setCellFactory(_ -> new HexdumpListCell());
-        binaryView.setFixedCellSize(20);
-        binaryView.setFocusModel(null);
-        binaryView.setSelectionModel(null);
-
-        // Disable editing
-        textView.setEditable(false);
-        textView.setFont(MONOSPACED);
+        setupListView(textView);
+        textView.setCellFactory(_ -> new TextListCell());
 
         // Little hack, but 8 is too much
         // TODO: Find a better solution
@@ -53,6 +44,13 @@ public final class RawFXView implements RawView, FXView {
         view.getStylesheets().add(url);
     }
 
+    private void setupListView(ListView<Integer> listView) {
+        VBox.setVgrow(listView, Priority.ALWAYS);
+        listView.setFixedCellSize(20);
+        listView.setFocusModel(null);
+        listView.setSelectionModel(null);
+    }
+
     @Override
     public Parent getFXNode() {
         return view;
@@ -60,25 +58,33 @@ public final class RawFXView implements RawView, FXView {
 
     @Override
     public void setBinary(ByteBuffer buffer) {
-        textView.clear();
-        view.getChildren().setAll(binaryView);
-
         // TODO: Choose themed color
         hexDump = new HexDump(buffer, MONOSPACED, Color.WHITE, Color.GRAY);
-        int numRows = (buffer.limit() + 15) / 16;
-        binaryView.scrollTo(0);
-        binaryView.setItems(new IndexObservableList(numRows));
+        lines = null;
+
+        binaryView.setItems(new IndexObservableList((buffer.limit() + 15) / 16));
+        textView.setItems(FXCollections.emptyObservableList());
     }
 
     @Override
     public void setText(String text) {
         hexDump = null;
+        lines = Lines.parse(text);
+
         binaryView.setItems(FXCollections.emptyObservableList());
-        view.getChildren().setAll(textView);
-        textView.setText(text);
+        textView.setItems(new IndexObservableList(lines.size()));
     }
 
-    private final class HexdumpListCell extends ListCell<Integer> {
+    @Override
+    public void clear() {
+        binaryView.setItems(FXCollections.emptyObservableList());
+        textView.setItems(FXCollections.emptyObservableList());
+
+        hexDump = null;
+        lines = null;
+    }
+
+    private final class BinaryListCell extends ListCell<Integer> {
         @Override
         protected void updateItem(Integer item, boolean empty) {
             super.updateItem(item, empty);
@@ -89,6 +95,24 @@ public final class RawFXView implements RawView, FXView {
             }
             setFont(MONOSPACED);
             setText(null);
+        }
+    }
+
+    private final class TextListCell extends ListCell<Integer> {
+        @Override
+        protected void updateItem(Integer item, boolean empty) {
+            super.updateItem(item, empty);
+            if (empty || item == null) {
+                setText(null);
+            } else {
+                if (item < lines.size()) {
+                    setText(lines.get(item).replace("\t", "    "));
+                } else {
+                    setText("");
+                }
+            }
+            setFont(MONOSPACED);
+            setGraphic(null);
         }
     }
 

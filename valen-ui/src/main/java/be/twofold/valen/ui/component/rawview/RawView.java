@@ -9,4 +9,6 @@ public interface RawView {
 
     void setText(String text);
 
+    void clear();
+
 }

@@ -28,7 +28,7 @@ public final class RawPresenter extends AbstractFXPresenter<RawView> implements 
     @Override
     public void setData(Object data) {
         if (data == null) {
-            getView().setText(null);
+            getView().clear();
             return;
         }
         if (!(data instanceof ByteBuffer buffer)) {
