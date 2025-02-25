@@ -64,6 +64,7 @@ public final class RawFXView implements RawView, FXView {
 
         binaryView.setItems(new IndexObservableList((buffer.limit() + 15) / 16));
         textView.setItems(FXCollections.emptyObservableList());
+        view.getChildren().setAll(binaryView);
     }
 
     @Override
@@ -73,6 +74,7 @@ public final class RawFXView implements RawView, FXView {
 
         binaryView.setItems(FXCollections.emptyObservableList());
         textView.setItems(new IndexObservableList(lines.size()));
+        view.getChildren().setAll(textView);
     }
 
     @Override
