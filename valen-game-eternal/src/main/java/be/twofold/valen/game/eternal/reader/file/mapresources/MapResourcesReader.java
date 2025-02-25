@@ -17,8 +17,8 @@ public final class MapResourcesReader implements AssetReader<MapResources, Etern
 
     @Override
     public boolean canRead(EternalAsset resource) {
-        return resource.key().type() == ResourceType.File
-            && resource.key().name().extension().equals("mapresources");
+        return resource.id().type() == ResourceType.File
+            && resource.id().name().extension().equals("mapresources");
     }
 
     @Override

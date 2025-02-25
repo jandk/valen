@@ -21,7 +21,7 @@ public final class Md6AnimReader implements AssetReader<Animation, EternalAsset>
 
     @Override
     public boolean canRead(EternalAsset resource) {
-        return resource.key().type() == ResourceType.Anim;
+        return resource.id().type() == ResourceType.Anim;
     }
 
     @Override

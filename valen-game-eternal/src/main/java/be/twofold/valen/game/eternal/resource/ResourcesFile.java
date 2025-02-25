@@ -34,7 +34,7 @@ public final class ResourcesFile implements Container<EternalAssetID, EternalAss
         var resources = mapResources(Resources.read(source));
         this.index = resources.stream()
             .collect(Collectors.toUnmodifiableMap(
-                EternalAsset::key,
+                EternalAsset::id,
                 Function.identity()
             ));
     }
@@ -91,7 +91,7 @@ public final class ResourcesFile implements Container<EternalAssetID, EternalAss
         var compressed = source
             .readBuffer(resource.compressedSize())
             .position(resource.compression() == ResourceCompressionMode.RES_COMP_MODE_KRAKEN_CHUNKED ? 12 : 0);
-        var decompressed = decompressor.decompress(compressed, resource.uncompressedSize());
+        var decompressed = decompressor.decompress(compressed, resource.size());
 
         // Check hash
         long checksum = HashFunction.murmurHash64B(0xDEADBEEFL).hash(decompressed).asLong();

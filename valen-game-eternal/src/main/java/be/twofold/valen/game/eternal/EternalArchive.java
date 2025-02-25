@@ -76,9 +76,9 @@ public final class EternalArchive implements Archive {
         var asset = getAsset(identifier)
             .orElseThrow(FileNotFoundException::new);
 
-        var buffer = resources.get(asset.key()).isPresent()
-            ? resources.read(asset.key())
-            : common.read(asset.key());
+        var buffer = resources.get(asset.id()).isPresent()
+            ? resources.read(asset.id())
+            : common.read(asset.id());
 
         try (var source = DataSource.fromBuffer(buffer)) {
             return readers.read(asset, source, clazz);

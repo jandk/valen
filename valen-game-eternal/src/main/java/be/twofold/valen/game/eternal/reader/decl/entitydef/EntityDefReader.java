@@ -12,8 +12,8 @@ import java.io.*;
 public final class EntityDefReader implements AssetReader<JsonObject, EternalAsset> {
     @Override
     public boolean canRead(EternalAsset resource) {
-        return resource.key().type() == ResourceType.RsStreamFile
-            && resource.key().name().name().startsWith("generated/decls/entitydef/");
+        return resource.id().type() == ResourceType.RsStreamFile
+            && resource.id().name().name().startsWith("generated/decls/entitydef/");
     }
 
     @Override

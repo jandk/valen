@@ -15,7 +15,7 @@ import java.util.*;
 public final class BinaryFileReader implements AssetReader<ByteBuffer, EternalAsset> {
     @Override
     public boolean canRead(EternalAsset resource) {
-        return resource.key().type() == ResourceType.BinaryFile;
+        return resource.id().type() == ResourceType.BinaryFile;
     }
 
     @Override

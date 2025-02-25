@@ -27,7 +27,7 @@ public final class Md6ModelReader implements AssetReader<Model, EternalAsset> {
 
     @Override
     public boolean canRead(EternalAsset resource) {
-        return resource.key().type() == ResourceType.BaseModel;
+        return resource.id().type() == ResourceType.BaseModel;
     }
 
     @Override

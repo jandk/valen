@@ -20,8 +20,8 @@ public final class EntityReader implements AssetReader<EntityFile, EternalAsset>
 
     @Override
     public boolean canRead(EternalAsset resource) {
-        return resource.key().type() == ResourceType.CompFile
-            && resource.key().name().extension().equals("entities");
+        return resource.id().type() == ResourceType.CompFile
+            && resource.id().name().extension().equals("entities");
     }
 
     @Override

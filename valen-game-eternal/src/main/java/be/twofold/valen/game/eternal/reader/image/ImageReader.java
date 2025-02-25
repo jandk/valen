@@ -23,7 +23,7 @@ public final class ImageReader implements AssetReader<Texture, EternalAsset> {
 
     @Override
     public boolean canRead(EternalAsset resource) {
-        return resource.key().type() == ResourceType.Image;
+        return resource.id().type() == ResourceType.Image;
     }
 
     @Override

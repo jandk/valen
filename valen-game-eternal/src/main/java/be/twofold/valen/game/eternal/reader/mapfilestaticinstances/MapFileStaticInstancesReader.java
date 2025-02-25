@@ -20,7 +20,7 @@ public final class MapFileStaticInstancesReader implements AssetReader<Scene, Et
 
     @Override
     public boolean canRead(EternalAsset resource) {
-        return resource.key().type() == ResourceType.StaticInstances;
+        return resource.id().type() == ResourceType.StaticInstances;
     }
 
     @Override

@@ -11,7 +11,7 @@ import java.nio.*;
 public final class FileReader implements AssetReader<ByteBuffer, EternalAsset> {
     @Override
     public boolean canRead(EternalAsset resource) {
-        return resource.key().type() == ResourceType.File;
+        return resource.id().type() == ResourceType.File;
     }
 
     @Override

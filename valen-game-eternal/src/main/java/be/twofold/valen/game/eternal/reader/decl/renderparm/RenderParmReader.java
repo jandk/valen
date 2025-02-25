@@ -20,8 +20,8 @@ public final class RenderParmReader implements AssetReader<RenderParm, EternalAs
 
     @Override
     public boolean canRead(EternalAsset resource) {
-        return resource.key().type() == ResourceType.RsStreamFile
-            && resource.key().name().name().startsWith("generated/decls/renderparm/");
+        return resource.id().type() == ResourceType.RsStreamFile
+            && resource.id().name().name().startsWith("generated/decls/renderparm/");
     }
 
     @Override
@@ -34,7 +34,7 @@ public final class RenderParmReader implements AssetReader<RenderParm, EternalAs
         result.parmType = parseParmType(parser.expectName());
         ParmsByType
             .computeIfAbsent(result.parmType, k -> new HashSet<>())
-            .add(resource.key().fileName().replace(".decl", ""));
+            .add(resource.id().fileName().replace(".decl", ""));
 
         result.declaredValue = parseValue(parser, result);
         parseExtras(parser, result);

@@ -27,7 +27,7 @@ public final class StaticModelReader implements AssetReader<Model, EternalAsset>
 
     @Override
     public boolean canRead(EternalAsset resource) {
-        return resource.key().type() == ResourceType.Model;
+        return resource.id().type() == ResourceType.Model;
     }
 
     @Override

@@ -85,8 +85,8 @@ public final class MaterialReader implements AssetReader<Material, EternalAsset>
 
     @Override
     public boolean canRead(EternalAsset resource) {
-        return resource.key().type() == ResourceType.RsStreamFile
-            && resource.key().name().name().startsWith("generated/decls/material2/");
+        return resource.id().type() == ResourceType.RsStreamFile
+            && resource.id().name().name().startsWith("generated/decls/material2/");
     }
 
     @Override

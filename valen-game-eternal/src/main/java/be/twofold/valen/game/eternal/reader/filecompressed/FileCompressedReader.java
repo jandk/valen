@@ -19,8 +19,8 @@ public final class FileCompressedReader implements AssetReader<ByteBuffer, Etern
 
     @Override
     public boolean canRead(EternalAsset resource) {
-        return resource.key().type() == ResourceType.CompFile
-            /*&& !resource.key().name().extension().equals("entities")*/;
+        return resource.id().type() == ResourceType.CompFile
+            /*&& !resource.id().name().extension().equals("entities")*/;
     }
 
     @Override

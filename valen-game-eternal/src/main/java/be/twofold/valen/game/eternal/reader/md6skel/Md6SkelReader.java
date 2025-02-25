@@ -12,7 +12,7 @@ import java.util.stream.*;
 public final class Md6SkelReader implements AssetReader<Skeleton, EternalAsset> {
     @Override
     public boolean canRead(EternalAsset resource) {
-        return resource.key().type() == ResourceType.Skeleton;
+        return resource.id().type() == ResourceType.Skeleton;
     }
 
     @Override

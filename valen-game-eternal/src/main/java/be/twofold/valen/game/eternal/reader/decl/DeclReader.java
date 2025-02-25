@@ -40,11 +40,11 @@ public final class DeclReader implements AssetReader<JsonObject, EternalAsset> {
 
     @Override
     public boolean canRead(EternalAsset resource) {
-        if (resource.key().type() != ResourceType.RsStreamFile) {
+        if (resource.id().type() != ResourceType.RsStreamFile) {
             return false;
         }
 
-        var name = resource.key().name().name();
+        var name = resource.id().name().name();
         if (!name.startsWith(RootPrefix)) {
             return false;
         }
@@ -162,7 +162,7 @@ public final class DeclReader implements AssetReader<JsonObject, EternalAsset> {
             }
             var matcher = ItemPattern.matcher(entry.getKey());
             if (!matcher.matches()) {
-                throw new IllegalArgumentException("Invalid key: " + entry.getKey());
+                throw new IllegalArgumentException("Invalid id: " + entry.getKey());
             }
             var index = Integer.parseInt(matcher.group(1));
             if (index >= size) {
