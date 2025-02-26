@@ -17,6 +17,7 @@ import java.util.function.*;
 public final class GltfAnimationMapper {
     private final List<AnimationSamplerSchema> samplers = new ArrayList<>();
     private final List<AnimationChannelSchema> channels = new ArrayList<>();
+    private final Map<List<Integer>, AccessorID> tracks = new HashMap<>();
     private final GltfContext context;
 
     public GltfAnimationMapper(GltfContext context) {
@@ -52,11 +53,16 @@ public final class GltfAnimationMapper {
         AnimationChannelTargetPath path,
         BiConsumer<T, FloatBuffer> toBuffer
     ) throws IOException {
-        var inputBuffer = buildInputBuffer(track.keyFrames(), frameRate);
-        var inputBufferView = context.createBufferView(inputBuffer, null);
-        var input = buildAccessor(inputBufferView, track.keyFrames().size(), AccessorType.SCALAR,
-            (float) track.keyFrames().getFirst().frame() / (float) frameRate,
-            (float) track.keyFrames().getLast().frame() / (float) frameRate);
+        var keyFrames = track.keyFrames().stream().map(KeyFrame::frame).toList();
+        var input = tracks.get(keyFrames);
+        if (input == null) {
+            var inputBuffer = buildInputBuffer(track.keyFrames(), frameRate);
+            var inputBufferView = context.createBufferView(inputBuffer, null);
+            input = buildAccessor(inputBufferView, track.keyFrames().size(), AccessorType.SCALAR,
+                (float) track.keyFrames().getFirst().frame() / (float) frameRate,
+                (float) track.keyFrames().getLast().frame() / (float) frameRate);
+            tracks.put(keyFrames, input);
+        }
 
         var outputBuffer = buildOutputBuffer(track.keyFrames(), toBuffer);
         var outputBufferView = context.createBufferView(outputBuffer, null);
