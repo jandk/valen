@@ -29,7 +29,7 @@ public record Mesh(
 
     public Optional<VertexBuffer<?>> getBuffer(Semantic semantic) {
         return vertexBuffers.stream()
-            .filter(vb -> vb.info().semantic() == semantic)
+            .filter(vb -> vb.info().semantic().equals(semantic))
             .findFirst();
     }
 
