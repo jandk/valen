@@ -6,6 +6,12 @@ public final class Buffers {
     private Buffers() {
     }
 
+    public static ByteBuffer allocate(int capacity) {
+        return ByteBuffer
+            .allocate(capacity)
+            .order(ByteOrder.LITTLE_ENDIAN);
+    }
+
     public static void copy(ByteBuffer src, ByteBuffer dst) {
         copy(src, dst, dst.remaining());
     }

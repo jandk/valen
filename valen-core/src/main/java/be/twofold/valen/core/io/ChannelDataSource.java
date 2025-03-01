@@ -7,8 +7,8 @@ import java.nio.*;
 import java.nio.channels.*;
 
 final class ChannelDataSource implements DataSource, Closeable {
-    private final ByteBuffer buffer = ByteBuffer.allocate(8192)
-        .order(ByteOrder.LITTLE_ENDIAN)
+    private final ByteBuffer buffer = Buffers
+        .allocate(8192)
         .limit(0);
 
     private final SeekableByteChannel channel;

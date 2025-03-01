@@ -92,7 +92,7 @@ public final class Md6ModelReader implements AssetReader<Model, EternalAsset> {
         for (var i = 0; i < meshes.size(); i++) {
             var meshInfo = md6.meshInfos().get(i);
             var joints = meshes.get(i)
-                .getBuffer(Semantic.Joints0)
+                .getBuffer(Semantic.JOINTS0)
                 .orElseThrow();
 
             // Just assume it's a byte buffer, because we read it as such

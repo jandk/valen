@@ -6,25 +6,31 @@ import be.twofold.valen.core.util.*;
 import java.util.*;
 
 public record Mesh(
-    VertexBuffer indexBuffer,
-    Map<Semantic, VertexBuffer> vertexBuffers,
+    VertexBuffer<?> indexBuffer,
+    List<VertexBuffer<?>> vertexBuffers,
     Material material,
     String name
 ) {
     public Mesh {
         Check.notNull(indexBuffer, "indexBuffer must not be null");
-        vertexBuffers = Map.copyOf(vertexBuffers);
+
+        var count = vertexBuffers.stream()
+            .map(vb -> vb.info().semantic())
+            .distinct().count();
+        if (vertexBuffers.size() != count) {
+            throw new IllegalArgumentException("Multiple buffers with the same semantic");
+        }
+        vertexBuffers = List.copyOf(vertexBuffers);
     }
 
-    public Mesh(
-        VertexBuffer indexBuffer,
-        Map<Semantic, VertexBuffer> vertexBuffers
-    ) {
+    public Mesh(VertexBuffer<?> indexBuffer, List<VertexBuffer<?>> vertexBuffers) {
         this(indexBuffer, vertexBuffers, null, null);
     }
 
-    public Optional<VertexBuffer> getBuffer(Semantic semantic) {
-        return Optional.ofNullable(vertexBuffers.get(semantic));
+    public Optional<VertexBuffer<?>> getBuffer(Semantic semantic) {
+        return vertexBuffers.stream()
+            .filter(vb -> vb.info().semantic() == semantic)
+            .findFirst();
     }
 
     public Optional<Material> materialOpt() {

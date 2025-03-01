@@ -42,7 +42,7 @@ public final class GltfModelMultiMapper extends GltfModelMapper {
 
         return context.addNode(
             ImmutableNode.builder()
-                .name(Optional.ofNullable(model.name()))
+                .name(model.nameOpt())
                 .children(nodeIDs)
                 .build());
     }
@@ -78,7 +78,7 @@ public final class GltfModelMultiMapper extends GltfModelMapper {
         var primitiveSchema = mapMeshPrimitive(mesh);
 
         return ImmutableMesh.builder()
-            .name(Optional.ofNullable(mesh.name()))
+            .name(mesh.nameOpt())
             .addPrimitives(primitiveSchema)
             .build();
     }

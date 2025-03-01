@@ -1,6 +1,7 @@
 package be.twofold.valen.core.math;
 
 import be.twofold.valen.core.io.*;
+import be.twofold.valen.core.util.*;
 
 import java.io.*;
 import java.nio.*;

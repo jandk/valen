@@ -47,9 +47,9 @@ public final class ModelPresenter extends AbstractFXPresenter<ModelView> impleme
     }
 
     private TriangleMesh mapMesh(Mesh mesh) {
-        var pointBuffer = mesh.getBuffer(Semantic.Position).orElseThrow();
-        var normalBuffer = mesh.getBuffer(Semantic.Normal).orElseThrow();
-        var texCoordBuffer = mesh.getBuffer(Semantic.TexCoord0).orElseThrow();
+        var pointBuffer = mesh.getBuffer(Semantic.POSITION).orElseThrow();
+        var normalBuffer = mesh.getBuffer(Semantic.NORMAL).orElseThrow();
+        var texCoordBuffer = mesh.getBuffer(Semantic.TEX_COORD0).orElseThrow();
 
         var result = new TriangleMesh(VertexFormat.POINT_NORMAL_TEXCOORD);
         copyPoints(pointBuffer, result.getPoints());
@@ -59,7 +59,7 @@ public final class ModelPresenter extends AbstractFXPresenter<ModelView> impleme
         return result;
     }
 
-    private void copy(VertexBuffer buffer, ObservableFloatArray floatArray) {
+    private void copy(VertexBuffer<?> buffer, ObservableFloatArray floatArray) {
         var floatBuffer = (FloatBuffer) buffer.buffer();
         var array = new float[floatBuffer.remaining()];
         floatBuffer.get(array);
@@ -67,7 +67,7 @@ public final class ModelPresenter extends AbstractFXPresenter<ModelView> impleme
         floatArray.setAll(array);
     }
 
-    private void copyPoints(VertexBuffer buffer, ObservableFloatArray floatArray) {
+    private void copyPoints(VertexBuffer<?> buffer, ObservableFloatArray floatArray) {
         var floatBuffer = (FloatBuffer) buffer.buffer();
         var array = new float[floatBuffer.remaining()];
         floatBuffer.get(array);
@@ -79,9 +79,9 @@ public final class ModelPresenter extends AbstractFXPresenter<ModelView> impleme
         floatArray.setAll(array);
     }
 
-    private void copyIndices(VertexBuffer buffer, ObservableFaceArray faces) {
+    private void copyIndices(VertexBuffer<?> buffer, ObservableFaceArray faces) {
         switch (buffer.buffer()) {
-            case ByteBuffer byteBuffer -> throw new UnsupportedOperationException("ByteBuffer not supported yet");
+            case ByteBuffer _ -> throw new UnsupportedOperationException("ByteBuffer not supported yet");
             case ShortBuffer shortBuffer -> {
                 int capacity = shortBuffer.limit();
                 int[] indices = new int[capacity * 3];
@@ -94,7 +94,7 @@ public final class ModelPresenter extends AbstractFXPresenter<ModelView> impleme
                 shortBuffer.rewind();
                 faces.addAll(indices);
             }
-            case IntBuffer intBuffer -> throw new UnsupportedOperationException("IntBuffer not supported yet");
+            case IntBuffer _ -> throw new UnsupportedOperationException("IntBuffer not supported yet");
             default -> throw new UnsupportedOperationException("Unexpected type: " + buffer.buffer().getClass());
         }
     }

@@ -47,7 +47,7 @@ public final class GltfModelSingleMapper extends GltfModelMapper {
         }
 
         var meshSchema = ImmutableMesh.builder()
-            .name(Optional.ofNullable(model.name()))
+            .name(model.nameOpt())
             .primitives(primitiveSchemas)
             .build();
         return context.addMesh(meshSchema);
