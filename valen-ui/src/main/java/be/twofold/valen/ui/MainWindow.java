@@ -95,6 +95,10 @@ public final class MainWindow extends Application {
 
     private void loadGame(Path path) {
         try {
+            if (!Files.exists(path)) {
+                selectAndLoadGame();
+                return;
+            }
             var game = GameFactory.resolve(path).orElseThrow().load(path);
             presenter.setGame(game);
         } catch (IOException e) {
