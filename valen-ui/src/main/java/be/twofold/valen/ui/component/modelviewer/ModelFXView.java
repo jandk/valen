@@ -11,6 +11,7 @@ import javafx.scene.shape.*;
 import javafx.scene.transform.*;
 
 import java.util.*;
+import java.util.stream.*;
 
 public final class ModelFXView implements ModelView, FXView {
     private final ObjectProperty<SubScene> subSceneProperty = new SimpleObjectProperty<>();
@@ -39,12 +40,18 @@ public final class ModelFXView implements ModelView, FXView {
         }
 
         var meshViews = meshes.stream()
-            .map(MeshView::new)
+            .map(this::toMeshView)
             .toList();
 
         center(meshViews);
 
         root.getChildren().addAll(meshViews);
+    }
+
+    private MeshView toMeshView(TriangleMesh mesh) {
+        var meshView = new MeshView(mesh);
+        meshView.setCullFace(CullFace.NONE);
+        return meshView;
     }
 
     private void center(List<MeshView> meshViews) {
@@ -53,8 +60,17 @@ public final class ModelFXView implements ModelView, FXView {
             .reduce(this::combine)
             .orElseThrow();
 
+        System.out.println("Bounds " + bounds);
+        double max = DoubleStream
+            .of(bounds.getWidth(), bounds.getHeight(), bounds.getDepth())
+            .max().getAsDouble();
+
+        // TODO: Figure out if we can make this a bit less arbitrary
+        double scale = 100.0 / max / 2.0;
+
         for (MeshView meshView : meshViews) {
             meshView.getTransforms().addAll(
+                new Scale(scale, scale, scale),
                 new Rotate(-90, Rotate.X_AXIS),
                 new Translate(
                     -((bounds.getWidth() / 2) + bounds.getMinX()),
