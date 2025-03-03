@@ -34,7 +34,7 @@ public final class SettingsManager {
 
         try {
             return Optional.of(GSON.fromJson(Files.readString(path), Settings.class));
-        } catch (IOException e) {
+        } catch (IOException | JsonParseException e) {
             return Optional.empty();
         }
     }
