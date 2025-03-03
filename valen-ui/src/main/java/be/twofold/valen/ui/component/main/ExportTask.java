@@ -3,9 +3,8 @@ package be.twofold.valen.ui.component.main;
 import be.twofold.valen.core.export.*;
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.util.*;
-import javafx.application.*;
+import be.twofold.valen.ui.component.*;
 import javafx.concurrent.*;
-import javafx.scene.control.*;
 import org.slf4j.*;
 
 import java.nio.file.*;
@@ -41,17 +40,7 @@ final class ExportTask<T> extends Task<Void> {
             exporter.export(rawAsset, path);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
-            showExceptionDialog(e);
+            FxUtils.showExceptionDialog(e, "Could not export asset");
         }
-    }
-
-    private void showExceptionDialog(Exception e) {
-        Platform.runLater(() -> {
-            var alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Error");
-            alert.setHeaderText("Export failed");
-            alert.setContentText(e.getMessage());
-            alert.showAndWait();
-        });
     }
 }

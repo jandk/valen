@@ -2,6 +2,7 @@ package be.twofold.valen.ui;
 
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.ui.common.settings.*;
+import be.twofold.valen.ui.component.*;
 import be.twofold.valen.ui.component.main.*;
 import javafx.application.*;
 import javafx.scene.*;
@@ -102,8 +103,7 @@ public final class MainWindow extends Application {
             var game = GameFactory.resolve(path).orElseThrow().load(path);
             presenter.setGame(game);
         } catch (IOException e) {
-            System.err.println("Could not load game " + path);
-            e.printStackTrace(System.err);
+            FxUtils.showExceptionDialog(e, "Could not load game");
         }
     }
 }
