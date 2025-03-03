@@ -157,7 +157,7 @@ public final class MainPresenter extends AbstractFXPresenter<MainView> {
 
     public void setGame(Game game) {
         this.game = game;
-        getView().setArchives(game.archiveNames());
+        getView().setArchives(game.archiveNames().stream().sorted().toList());
     }
 
     public void focusOnSearch() {
