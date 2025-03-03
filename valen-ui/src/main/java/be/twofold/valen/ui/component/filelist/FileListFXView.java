@@ -150,16 +150,19 @@ public final class FileListFXView implements FileListView, FXView {
         var nameColumn = new TableColumn<Asset, String>();
         nameColumn.setText("Name");
         nameColumn.setPrefWidth(160);
+        nameColumn.setCellFactory(TooltippedTableCell.forTableColumn());
         nameColumn.setCellValueFactory(param -> new ReadOnlyObjectWrapper<>(param.getValue().id().displayName()));
 
         var typeColumn = new TableColumn<Asset, String>();
         typeColumn.setText("Type");
         typeColumn.setPrefWidth(40);
+        typeColumn.setCellFactory(TooltippedTableCell.forTableColumn());
         typeColumn.setCellValueFactory(param -> new ReadOnlyObjectWrapper<>(param.getValue().type().getName()));
 
         var propertiesColumn = new TableColumn<Asset, String>();
         propertiesColumn.setText("Properties");
         propertiesColumn.setPrefWidth(80);
+        propertiesColumn.setCellFactory(TooltippedTableCell.forTableColumn());
         propertiesColumn.setCellValueFactory(param -> mapPropertiesColumn(param.getValue()));
 
         tableView.getColumns().addAll(nameColumn, typeColumn, propertiesColumn);
