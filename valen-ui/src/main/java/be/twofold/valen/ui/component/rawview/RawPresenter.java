@@ -22,7 +22,7 @@ public final class RawPresenter extends AbstractFXPresenter<RawView> implements 
 
     @Override
     public boolean canPreview(AssetType type) {
-        return type == AssetType.RAW;
+        return type != AssetType.MODEL && type != AssetType.TEXTURE;
     }
 
     @Override
