@@ -8,8 +8,8 @@ import java.nio.*;
 public record Quaternion(float x, float y, float z, float w) {
     public static final Quaternion Identity = new Quaternion(0.0f, 0.0f, 0.0f, 1.0f);
 
-    public static Quaternion fromAxisAngle(Vector3 axis, float angle) {
-        float halfAngle = angle * 0.5f;
+    public static Quaternion fromAxisAngle(Vector3 axis, float angle, Angle unit) {
+        float halfAngle = unit.toRadians(angle) * 0.5f;
         float sin = MathF.sin(halfAngle);
         float cos = MathF.cos(halfAngle);
         float x = axis.x() * sin;

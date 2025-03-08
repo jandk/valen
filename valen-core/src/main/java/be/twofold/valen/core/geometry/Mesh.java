@@ -8,8 +8,8 @@ import java.util.*;
 public record Mesh(
     VertexBuffer<?> indexBuffer,
     List<VertexBuffer<?>> vertexBuffers,
-    Material material,
-    String name
+    Optional<Material> material,
+    Optional<String> name
 ) {
     public Mesh {
         Check.notNull(indexBuffer, "indexBuffer must not be null");
@@ -24,7 +24,7 @@ public record Mesh(
     }
 
     public Mesh(VertexBuffer<?> indexBuffer, List<VertexBuffer<?>> vertexBuffers) {
-        this(indexBuffer, vertexBuffers, null, null);
+        this(indexBuffer, vertexBuffers, Optional.empty(), Optional.empty());
     }
 
     public Optional<VertexBuffer<?>> getBuffer(Semantic semantic) {
@@ -33,19 +33,13 @@ public record Mesh(
             .findFirst();
     }
 
-    public Optional<Material> materialOpt() {
-        return Optional.ofNullable(material);
-    }
-
-    public Optional<String> nameOpt() {
-        return Optional.ofNullable(name);
-    }
-
-    public Mesh withMaterial(Material material) {
+    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
+    public Mesh withMaterial(Optional<Material> material) {
         return new Mesh(indexBuffer, vertexBuffers, material, name);
     }
 
-    public Mesh withName(String name) {
+    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
+    public Mesh withName(Optional<String> name) {
         return new Mesh(indexBuffer, vertexBuffers, material, name);
     }
 }

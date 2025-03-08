@@ -2,6 +2,7 @@ package be.twofold.valen.export.gltf;
 
 import be.twofold.valen.core.geometry.*;
 import be.twofold.valen.core.material.*;
+import be.twofold.valen.core.math.*;
 import be.twofold.valen.format.gltf.*;
 
 import java.io.*;
@@ -24,8 +25,8 @@ public final class GltfMaterialExporter extends AbstractGltfExporter<Material> {
     void doExport(Material material, GltfWriter writer) throws IOException {
         var mesh = MeshGenerator
             .createSphere(16, 16)
-            .withMaterial(material);
-        var model = new Model(List.of(mesh));
+            .withMaterial(Optional.of(material));
+        var model = new Model(List.of(mesh), Axis.Y);
 
         modelExporter.doExport(model, writer);
     }

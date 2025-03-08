@@ -30,9 +30,9 @@ public final class GltfModelSingleMapper extends GltfModelMapper {
             return Optional.empty();
         }
 
-        if (model.skeletonOpt().isPresent()) {
-            log.warn("Skipping skeleton for scene on {}", model.nameOpt().orElse(""));
-            model = model.withSkeleton(null);
+        if (model.skeleton().isPresent()) {
+            log.warn("Skipping skeleton for scene on {}", model.name().orElse(""));
+            model = model.withSkeleton(Optional.empty());
         }
 
         var meshID = mapModel(model);
@@ -47,7 +47,7 @@ public final class GltfModelSingleMapper extends GltfModelMapper {
         }
 
         var meshSchema = ImmutableMesh.builder()
-            .name(model.nameOpt())
+            .name(model.name())
             .primitives(primitiveSchemas)
             .build();
         return context.addMesh(meshSchema);

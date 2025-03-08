@@ -24,8 +24,8 @@ public abstract class GltfModelMapper {
     MeshPrimitiveSchema mapMeshPrimitive(Mesh mesh) throws IOException {
         // Add the material
         var materialID = (MaterialID) null;
-        if (mesh.materialOpt().isPresent()) {
-            materialID = materialMapper.map(mesh.materialOpt().get());
+        if (mesh.material().isPresent()) {
+            materialID = materialMapper.map(mesh.material().get());
         }
 
         // Have to fix up the joints and weights first
