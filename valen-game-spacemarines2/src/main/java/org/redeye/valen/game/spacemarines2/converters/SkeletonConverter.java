@@ -53,13 +53,13 @@ public class SkeletonConverter {
             var bones = new ArrayList<Bone>();
             processNodes(rootNode.children().getFirst(), bones, boneMap);
             if (!bones.isEmpty()) {
-                return new Skeleton(bones);
+                return new Skeleton(bones, Axis.Y);
             }
         } else {
             var bones = new ArrayList<Bone>();
             processNodes(rootNode, bones, boneMap);
             if (!bones.isEmpty()) {
-                return new Skeleton(bones);
+                return new Skeleton(bones, Axis.Y);
             }
         }
         return null;

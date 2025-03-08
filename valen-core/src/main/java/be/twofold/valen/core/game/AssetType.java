@@ -4,11 +4,13 @@ import be.twofold.valen.core.animation.*;
 import be.twofold.valen.core.geometry.*;
 import be.twofold.valen.core.material.*;
 import be.twofold.valen.core.texture.*;
+import com.google.gson.*;
 
 import java.nio.*;
 
 public enum AssetType {
     ANIMATION(Animation.class, "Animation"),
+    DATA(JsonObject.class, "Data"),
     MATERIAL(Material.class, "Material"),
     MODEL(Model.class, "Model"),
     TEXTURE(Texture.class, "Texture"),

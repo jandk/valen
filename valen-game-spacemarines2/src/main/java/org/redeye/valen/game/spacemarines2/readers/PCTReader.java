@@ -33,10 +33,10 @@ public class PCTReader implements Reader<Texture> {
             var minBlockSize = texFormat.block().height();
             var mipWidth = Math.max(width >> i, minBlockSize);
             var mipHeight = Math.max(height >> i, minBlockSize);
-            Surface surface = new Surface(mipWidth, mipHeight, texFormat, rawMipData);
+            Surface surface = new Surface(mipWidth, mipHeight, rawMipData);
             surfaces.add(surface);
         }
-        return new Texture(width, height, texFormat, surfaces, false);
+        return new Texture(width, height, texFormat, false, surfaces);
     }
 
     @Override

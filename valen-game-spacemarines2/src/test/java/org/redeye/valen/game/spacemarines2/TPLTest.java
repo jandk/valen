@@ -19,8 +19,7 @@ import java.nio.charset.*;
 import java.nio.file.*;
 import java.util.*;
 
-public class TPLtest {
-
+public class TPLTest {
     static final PngExporter pngExporter = new PngExporter();
 
     @BeforeAll
@@ -32,14 +31,18 @@ public class TPLtest {
     void test_TDLexer() throws IOException {
         SpaceMarines2Game game = new SpaceMarines2GameFactory().load(Path.of("D:\\SteamLibrary\\steamapps\\common\\Space Marine 2\\Warhammer 40000 Space Marine 2.exe"));
         var archive = game.loadArchive("client_pc");
-        for (Asset asset : archive.assets()) {
-            if (asset.id().fileName().endsWith(".td")) {
-                System.out.println(asset.id());
-                var rawData = archive.loadAsset(asset.id(), byte[].class);
-                var res = PsSectionAscii.parseFromString(new String(rawData, StandardCharsets.UTF_8));
-                System.out.println(res);
-            }
-        }
+        archive.assets()
+            .filter(asset -> asset.id().fileName().endsWith(".td"))
+            .forEach(asset -> {
+                try {
+                    System.out.println(asset.id());
+                    var rawData = archive.loadAsset(asset.id(), byte[].class);
+                    var res = PsSectionAscii.parseFromString(new String(rawData, StandardCharsets.UTF_8));
+                    System.out.println(res);
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            });
     }
 
     @Test
@@ -257,7 +260,6 @@ public class TPLtest {
                 // if (child.subItems().isEmpty()) {
                 var matrix = modelInstance.mat();
                 Instance instance = new Instance(
-                    modelInfo.name(),
                     new ModelReference(modelInfo.tplName(), () -> {
                         var model = alreadyLoaded.computeIfAbsent(identifier, assetId -> {
                             System.out.println(assetId);
@@ -272,8 +274,13 @@ public class TPLtest {
                         //     return null;
                         // }
                         return model;
-                    }), matrix.toTranslation(), matrix.toRotation().normalize(), matrix.toScale()
+                    }),
+                    matrix.toTranslation(),
+                    matrix.toRotation().normalize(),
+                    matrix.toScale(),
+                    modelInfo.name()
                 );
+
                 instances.add(instance);
                 // } else {
                 //     for (LwiElementDataChildSubItem subItem : child.subItems()) {
@@ -298,10 +305,10 @@ public class TPLtest {
         }
         System.out.println("Exported scene with " + instances.size() + " instances");
         var scene = new Scene(instances);
-        EmperorAssetId withoutExt = resourceId.withExt("");
+        EmperorAssetId withoutExt = resourceId.withExtension("");
         Path outputPath = Path.of("dump").resolve(withoutExt.fileName());
         Files.createDirectories(outputPath);
-        GlbSceneExporter glbSceneExporter = new GlbSceneExporter();
+        GltfSceneExporter glbSceneExporter = new GltfSceneExporter();
         try (OutputStream outputStream = Files.newOutputStream(outputPath.resolve(withoutExt.fileName() + "." + glbSceneExporter.getExtension()))) {
             glbSceneExporter.export(scene, outputStream);
         }
@@ -329,7 +336,7 @@ public class TPLtest {
 
 
     private void exportModel(Archive archive, Path outputPath, EmperorAssetId tplPath) throws IOException {
-        EmperorAssetId tplId = tplPath.withExt("");
+        EmperorAssetId tplId = tplPath.withExtension("");
         String mdlName = tplId.fileName().substring(0, tplId.fileName().indexOf('.'));
         outputPath = outputPath.resolve(mdlName);
         Files.createDirectories(outputPath);
@@ -358,7 +365,7 @@ public class TPLtest {
 
     private static void saveModel(String name, Model model, Path outputPath) throws IOException {
         // Exporter<Model> exporter = new DmfModelExporter();
-        Exporter<Model> exporter = new GlbModelExporter();
+        Exporter<Model> exporter = new GltfModelExporter();
         try (OutputStream outputStream = Files.newOutputStream(outputPath.resolve(name + "." + exporter.getExtension()))) {
             exporter.export(model, outputStream);
         }

@@ -12,14 +12,12 @@
         <module>valen-app</module>
         <module>valen-core</module>
         <module>valen-export-dds</module>
-        <module>valen-export-dmf</module>
         <module>valen-export-gltf</module>
         <module>valen-export-png</module>
         <module>valen-format-gltf</module>
         <module>valen-format-png</module>
         <module>valen-game-eternal</module>
         <module>valen-game-spacemarines2</module>
-        <module>valen-gltf</module>
         <module>valen-ui</module>
     </modules>
 

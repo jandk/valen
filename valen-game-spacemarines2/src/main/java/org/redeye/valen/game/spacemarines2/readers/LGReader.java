@@ -26,14 +26,14 @@ public class LGReader implements Reader<Model> {
         ResourceHeader ignored = ResourceHeader.read(source);
         ScnSceneSerializer serializer = new ScnSceneSerializer();
         ScnScene scene = serializer.load(source);
-        var resourceId = lgId.withExt(".scn.resource");
+        var resourceId = lgId.withExtension(".scn.resource");
 
         ObjGeomVBufferMapping vBufferMapping = scene.getGeomManager().vBufferMapping;
         List<ObjGeomVBufferInfo> vBufferInfo = vBufferMapping.vBufferInfo;
         List<ByteBuffer> vStreams = new ArrayList<>(vBufferInfo.size());
 
-        if (archive.exists(lgId.withExt(".lg_data"))) {
-            var streamDataTmp = ByteBuffer.wrap(archive.loadAsset(lgId.withExt(".lg_data"), byte[].class));
+        if (archive.exists(lgId.withExtension(".lg_data"))) {
+            var streamDataTmp = ByteBuffer.wrap(archive.loadAsset(lgId.withExtension(".lg_data"), byte[].class));
             streamDataTmp.position(16);
             for (int i = 0; i < vBufferInfo.size(); i++) {
                 ObjGeomVBufferInfo objGeomVBufferInfo = vBufferInfo.get(i);

@@ -20,9 +20,9 @@ public class TxmTexListSerializer implements FioSerializer<TxmTex> {
                     refs.add(source.readString(source.readShort()));
                 }
             }
-            if (chunk.endOffset() != source.tell()) {
-                System.err.printf("TxmTexListSerializer: Under/over read of chunk. Expected %d, got %d%n%n", chunk.endOffset(), source.tell());
-                source.seek(chunk.endOffset());
+            if (chunk.endOffset() != source.position()) {
+                System.err.printf("TxmTexListSerializer: Under/over read of chunk. Expected %d, got %d%n%n", chunk.endOffset(), source.position());
+                source.position(chunk.endOffset());
             }
             chunk = Chunk.read(source);
         }

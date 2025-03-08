@@ -51,7 +51,7 @@ public class FioStructSerializer<T> implements FioSerializer<T> {
         for (int i = 0; i < Math.min(memberCount, members.size()); i++) {
             if (memberMask.get(i)) {
                 FioStructMember<T, ?> member = members.get(i);
-                // System.out.printf("Reading %s at %d%n", member.name(), source.tell());
+                // System.out.printf("Reading %s at %d%n", member.name(), source.position());
                 setMember(member, objectInstance, source);
             } else {
                 // System.out.printf("Skipped %s%n", members.get(i).name());

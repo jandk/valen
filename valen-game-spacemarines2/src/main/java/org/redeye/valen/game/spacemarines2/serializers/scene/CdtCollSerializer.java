@@ -15,9 +15,9 @@ public class CdtCollSerializer implements FioSerializer<CdtColl> {
                 break;
             }
 
-            if (chunk.endOffset() != source.tell()) {
-                System.err.printf("CdtCollSerializer: Under/over read of chunk. Expected %d, got %d%n%n", chunk.endOffset(), source.tell());
-                source.seek(chunk.endOffset());
+            if (chunk.endOffset() != source.position()) {
+                System.err.printf("CdtCollSerializer: Under/over read of chunk. Expected %d, got %d%n%n", chunk.endOffset(), source.position());
+                source.position(chunk.endOffset());
             }
         }
         return null;

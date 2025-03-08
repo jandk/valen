@@ -13,4 +13,8 @@ public record Material(
         Check.notNull(name, "name");
         properties = List.copyOf(properties);
     }
+
+    public Material(String name, List<MaterialProperty> properties) {
+        this(name, properties, false);
+    }
 }

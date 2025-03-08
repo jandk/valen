@@ -12,4 +12,5 @@ public enum MaterialPropertyType {
     AmbientOcclusion,
     DetailMask,
     DetailNormal,
+    Height,
 }

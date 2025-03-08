@@ -5,6 +5,7 @@ import be.twofold.valen.core.game.*;
 import java.io.*;
 import java.nio.file.*;
 import java.util.*;
+import java.util.stream.*;
 
 public class PackArchive implements Archive {
 
@@ -45,15 +46,16 @@ public class PackArchive implements Archive {
     }
 
     @Override
-    public List<Asset> assets() {
-        return mounted.stream().flatMap(zipArchive -> zipArchive.assets().stream()).toList();
+    public Stream<? extends Asset> assets() {
+        return mounted.stream().flatMap(ZipArchive::assets);
     }
 
     @Override
-    public boolean exists(AssetID identifier) {
-        return mounted.stream().anyMatch(zipArchive -> zipArchive.exists(identifier));
+    public Optional<? extends Asset> getAsset(AssetID identifier) {
+        return mounted.stream()
+            .flatMap(archive -> archive.getAsset(identifier).stream())
+            .findFirst();
     }
-
 
     @Override
     public <T> T loadAsset(AssetID identifier, Class<T> clazz) throws IOException {

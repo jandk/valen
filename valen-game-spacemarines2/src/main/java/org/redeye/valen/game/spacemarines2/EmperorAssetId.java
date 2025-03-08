@@ -8,22 +8,10 @@ public record EmperorAssetId(String path) implements AssetID {
         return path;
     }
 
-    @Override
-    public String pathName() {
-        var index = path.lastIndexOf('/');
-        return index == -1 ? "" : path.substring(0, index);
-    }
-
-    @Override
-    public String fileName() {
-        var index = path.lastIndexOf('/');
-        return index == -1 ? path : path.substring(index + 1);
-    }
-
-    public AssetType<?> inferAssetType() {
+    public AssetType inferAssetType() {
         var index = fileName().indexOf('.');
         if (index == -1) {
-            return AssetType.BINARY;
+            return AssetType.RAW;
         }
         String ext = fileName().substring(index + 1);
 
@@ -35,14 +23,14 @@ public record EmperorAssetId(String path) implements AssetID {
                 if (ext.endsWith(".resource")) {
                     yield AssetType.DATA;
                 }
-                yield AssetType.BINARY;
+                yield AssetType.RAW;
             }
         };
     }
 
-    public EmperorAssetId withExt(String newExt) {
+    public EmperorAssetId withExtension(String newExtension) {
         var index = path.lastIndexOf('.');
         var withoutExt = path.substring(0, index);
-        return new EmperorAssetId(withoutExt + newExt);
+        return new EmperorAssetId(withoutExt + newExtension);
     }
 }

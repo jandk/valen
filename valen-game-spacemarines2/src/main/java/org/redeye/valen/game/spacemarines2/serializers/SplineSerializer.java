@@ -36,9 +36,9 @@ public class SplineSerializer implements FioSerializer<Spline> {
                 default -> {
                 }
             }
-            if (chunk.endOffset() != source.tell()) {
-                System.err.printf("Under/over read of %x spline chunk. Expected %d, got %d%n%n", chunk.id(), chunk.endOffset(), source.tell());
-                source.seek(chunk.endOffset());
+            if (chunk.endOffset() != source.position()) {
+                System.err.printf("Under/over read of %x spline chunk. Expected %d, got %d%n%n", chunk.id(), chunk.endOffset(), source.position());
+                source.position(chunk.endOffset());
             }
             chunk = Chunk.read(source);
         }

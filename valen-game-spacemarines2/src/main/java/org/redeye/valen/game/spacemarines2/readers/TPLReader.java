@@ -30,11 +30,11 @@ public class TPLReader implements Reader<Model> {
             return null;
         }
 
-        var resourceId = tplId.withExt(".tpl.resource");
+        var resourceId = tplId.withExtension(".tpl.resource");
 
         ByteBuffer streamData = null;
-        if (archive.exists(tplId.withExt(".tpl_data"))) {
-            streamData = ByteBuffer.wrap(archive.loadAsset(tplId.withExt(".tpl_data"), byte[].class));
+        if (archive.exists(tplId.withExtension(".tpl_data"))) {
+            streamData = ByteBuffer.wrap(archive.loadAsset(tplId.withExtension(".tpl_data"), byte[].class));
         }
 
         var geometryManager = animTemplate.geometryManager;

@@ -13,6 +13,6 @@ public class FioInt32Serializer extends FioPrimitiveSerializerImpl<Integer> {
 
     @Override
     public List<Integer> loadArray(DataSource source, int count) throws IOException {
-        return source.readStructs(count, DataSource::readInt);
+        return source.readObjects(count, DataSource::readInt);
     }
 }

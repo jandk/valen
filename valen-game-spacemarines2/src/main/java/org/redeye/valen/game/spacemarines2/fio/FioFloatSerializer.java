@@ -13,6 +13,6 @@ public class FioFloatSerializer extends FioPrimitiveSerializerImpl<Float> {
 
     @Override
     public List<Float> loadArray(DataSource source, int count) throws IOException {
-        return source.readStructs(count, DataSource::readFloat);
+        return source.readObjects(count, DataSource::readFloat);
     }
 }

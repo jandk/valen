@@ -21,9 +21,9 @@ public class CachedPsSerializer implements FioSerializer<JsonObject> {
                 Check.state(false, "Chunk 1 for CachedPsSerializer not implemented.");
             }
 
-            if (chunk.endOffset() != source.tell()) {
-                System.err.printf("CachedPsSerializer: Chunk(%d) under/over read. Expected %d, got %d.%n", chunk.id(), chunk.endOffset(), source.tell());
-                source.seek(chunk.endOffset());
+            if (chunk.endOffset() != source.position()) {
+                System.err.printf("CachedPsSerializer: Chunk(%d) under/over read. Expected %d, got %d.%n", chunk.id(), chunk.endOffset(), source.position());
+                source.position(chunk.endOffset());
             }
             chunk = Chunk.read(source);
         }

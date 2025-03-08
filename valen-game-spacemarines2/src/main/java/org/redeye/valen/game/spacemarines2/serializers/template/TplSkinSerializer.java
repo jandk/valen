@@ -39,9 +39,9 @@ public class TplSkinSerializer implements FioSerializer<TplSkin> {
                 }
                 default -> throw new IllegalArgumentException("Unrecognized chunk id: " + chunk.id());
             }
-            if (chunk.endOffset() != source.tell()) {
-                System.err.printf("TplSkinSerializer: Under/over read of chunk. Expected %d, got %d%n%n", chunk.endOffset(), source.tell());
-                source.seek(chunk.endOffset());
+            if (chunk.endOffset() != source.position()) {
+                System.err.printf("TplSkinSerializer: Under/over read of chunk. Expected %d, got %d%n%n", chunk.endOffset(), source.position());
+                source.position(chunk.endOffset());
             }
             chunk = Chunk.read(source);
         }

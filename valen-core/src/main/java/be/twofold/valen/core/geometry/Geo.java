@@ -37,7 +37,7 @@ public final class Geo {
         return new Mesh(indexBuffer, vertexBuffers);
     }
 
-    private <T extends Buffer> VertexBuffer<T> readBuffer(DataSource source, GeoAccessor<T> accessor) throws IOException {
+    static <T extends Buffer> VertexBuffer<T> readBuffer(DataSource source, GeoAccessor<T> accessor) throws IOException {
         var capacity = accessor.count() * accessor.info().elementType().size();
         var buffer = accessor.info().componentType().allocate(capacity);
 

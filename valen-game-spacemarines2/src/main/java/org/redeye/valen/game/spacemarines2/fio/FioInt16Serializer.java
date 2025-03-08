@@ -14,6 +14,6 @@ public class FioInt16Serializer extends FioPrimitiveSerializerImpl<Short> {
 
     @Override
     public List<Short> loadArray(DataSource source, int count) throws IOException {
-        return source.readStructs(count, DataSource::readShort);
+        return source.readObjects(count, DataSource::readShort);
     }
 }

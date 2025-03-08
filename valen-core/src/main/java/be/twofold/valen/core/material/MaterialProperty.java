@@ -8,6 +8,10 @@ public record MaterialProperty(
     TextureReference reference,
     Vector4 factor
 ) {
+    public MaterialProperty(MaterialPropertyType type, TextureReference reference) {
+        this(type, reference, null);
+    }
+
     public MaterialProperty {
         Check.notNull(type, "type");
         if (factor == null && reference == null) {

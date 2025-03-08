@@ -13,6 +13,6 @@ public class FioBoolSerializer extends FioPrimitiveSerializerImpl<Boolean> {
 
     @Override
     public List<Boolean> loadArray(DataSource source, int count) throws IOException {
-        return source.readStructs(count, DataSource::readBoolByte);
+        return source.readObjects(count, DataSource::readBoolByte);
     }
 }

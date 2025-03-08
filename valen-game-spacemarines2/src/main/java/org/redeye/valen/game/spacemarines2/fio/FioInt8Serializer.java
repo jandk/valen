@@ -13,6 +13,6 @@ public class FioInt8Serializer extends FioPrimitiveSerializerImpl<Byte> {
 
     @Override
     public List<Byte> loadArray(DataSource source, int count) throws IOException {
-        return source.readStructs(count, DataSource::readByte);
+        return source.readObjects(count, DataSource::readByte);
     }
 }

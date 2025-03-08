@@ -3,6 +3,7 @@ package org.redeye.valen.game.spacemarines2.converters;
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.geometry.*;
 import be.twofold.valen.core.material.*;
+import be.twofold.valen.core.math.*;
 import org.redeye.valen.game.spacemarines2.*;
 import org.redeye.valen.game.spacemarines2.types.template.*;
 
@@ -37,7 +38,7 @@ public class GeometryManagerToModel {
             }
         }
         String modelName = assetId.fileName().substring(0, assetId.fileName().indexOf('.'));
-        return new Model(modelName, meshes, skeleton);
+        return new Model(meshes, Optional.ofNullable(skeleton), Optional.of(modelName), Axis.Y);
     }
 
 

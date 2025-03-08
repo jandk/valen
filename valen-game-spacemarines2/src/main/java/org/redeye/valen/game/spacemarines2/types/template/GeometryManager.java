@@ -126,9 +126,9 @@ public final class GeometryManager {
                 case 5 -> readGeomRefs(source, chunk);
                 default -> System.out.println("Unhandled chunk: " + chunk.id());
             }
-            if (chunk.endOffset() != source.tell()) {
-                System.err.printf("GeometryManager::Callback: Under/over read of chunk %d. Expected %d, got %d%n", chunk.id(), chunk.endOffset(), source.tell());
-                source.seek(chunk.endOffset());
+            if (chunk.endOffset() != source.position()) {
+                System.err.printf("GeometryManager::Callback: Under/over read of chunk %d. Expected %d, got %d%n", chunk.id(), chunk.endOffset(), source.position());
+                source.position(chunk.endOffset());
             }
             chunk = Chunk.read(source);
         }
@@ -144,7 +144,7 @@ public final class GeometryManager {
         for (int i = 0; i < info.streamCount; i++) {
             streams.add(new ObjGeomStream());
         }
-        while (source.tell() < chunk.endOffset()) {
+        while (source.position() < chunk.endOffset()) {
             var subChunk = Chunk.read(source);
             switch (subChunk.id()) {
                 case 0 -> {
@@ -182,7 +182,7 @@ public final class GeometryManager {
                 default -> System.out.println("Unhandled subChunk: " + subChunk);
             }
 
-            source.seek(subChunk.endOffset());
+            source.position(subChunk.endOffset());
         }
 
         if (vBufferMapping != null) {
@@ -203,7 +203,7 @@ public final class GeometryManager {
             geoms.add(new ObjGeom());
         }
 
-        while (source.tell() < chunk.endOffset()) {
+        while (source.position() < chunk.endOffset()) {
             var subChunk = Chunk.read(source);
             if (subChunk.id() == 0) {
                 for (ObjGeom geom : geoms) {
@@ -214,7 +214,7 @@ public final class GeometryManager {
             } else {
                 System.out.println("Unhandled SubChunk: " + subChunk);
             }
-            source.seek(subChunk.endOffset());
+            source.position(subChunk.endOffset());
         }
         for (ObjGeom geom : geoms) {
             var streamCount = source.readByte();
@@ -249,9 +249,9 @@ public final class GeometryManager {
             }
         }
 
-        while (source.tell() < chunk.endOffset()) {
+        while (source.position() < chunk.endOffset()) {
             var subChunk = Chunk.read(source);
-            source.seek(subChunk.endOffset());
+            source.position(subChunk.endOffset());
         }
     }
 
@@ -261,7 +261,7 @@ public final class GeometryManager {
             splits.add(new ObjSplit());
         }
 
-        while (source.tell() < chunk.endOffset()) {
+        while (source.position() < chunk.endOffset()) {
             var subChunk = Chunk.read(source);
             switch (subChunk.id()) {
                 case 0 -> {
@@ -330,15 +330,15 @@ public final class GeometryManager {
                     System.out.println("SubChunk: " + subChunk);
                 }
             }
-            if (subChunk.endOffset() != source.tell()) {
-                System.err.printf("GeometryManager: Under/over read of chunk %d. Expected %d, got %d%n", subChunk.id(), subChunk.endOffset(), source.tell());
-                source.seek(subChunk.endOffset());
+            if (subChunk.endOffset() != source.position()) {
+                System.err.printf("GeometryManager: Under/over read of chunk %d. Expected %d, got %d%n", subChunk.id(), subChunk.endOffset(), source.position());
+                source.position(subChunk.endOffset());
             }
         }
     }
 
     private void readGeomRefs(DataSource source, Chunk chunk) throws IOException {
-        while (source.tell() < chunk.endOffset()) {
+        while (source.position() < chunk.endOffset()) {
             var subChunk = Chunk.read(source);
             switch (subChunk.id()) {
                 case 0 -> {
@@ -359,12 +359,10 @@ public final class GeometryManager {
                     }
                     geomSetsInfo.setStreamingAvailable(true);
                 }
-                default -> {
-                    System.out.println("SubChunk: " + subChunk);
-                }
+                default -> System.out.println("SubChunk: " + subChunk);
             }
 
-            source.seek(subChunk.endOffset());
+            source.position(subChunk.endOffset());
         }
     }
 

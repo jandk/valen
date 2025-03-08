@@ -14,6 +14,6 @@ public class FioQuatSerializer extends FioPrimitiveSerializerImpl<Quaternion> {
 
     @Override
     public List<Quaternion> loadArray(DataSource source, int size) throws IOException {
-        return source.readStructs(size, Quaternion::read);
+        return source.readObjects(size, Quaternion::read);
     }
 }

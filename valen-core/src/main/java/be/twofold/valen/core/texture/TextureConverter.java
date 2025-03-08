@@ -2,15 +2,16 @@ package be.twofold.valen.core.texture;
 
 import be.twofold.tinybcdec.*;
 import be.twofold.valen.core.math.*;
+import be.twofold.valen.core.util.*;
 import be.twofold.valen.core.util.ByteArrays;
 
 import java.util.function.*;
 
-final class TextureConverter {
+public final class TextureConverter {
     private TextureConverter() {
     }
 
-    static Texture convert(Texture source, TextureFormat targetFormat) {
+    public static Texture convert(Texture source, TextureFormat targetFormat) {
         if (source.format() == targetFormat) {
             return source;
         }
