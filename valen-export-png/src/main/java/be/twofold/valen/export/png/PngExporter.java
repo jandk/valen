@@ -88,7 +88,7 @@ public final class PngExporter implements TextureExporter {
                 newArray[o + 2] = data[i + 2];
             }
 
-            return Texture.fromSurface(surface.withData(newArray), TextureFormat.R8G8B8_UNORM, 1.0f, 0.0f);
+            return Texture.fromSurface(surface.withData(newArray), TextureFormat.R8G8B8_UNORM);
         }
         return texture;
     }
