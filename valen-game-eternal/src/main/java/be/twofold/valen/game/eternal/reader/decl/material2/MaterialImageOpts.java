@@ -7,8 +7,8 @@ public record MaterialImageOpts(
     ImageTextureFilter filter,
     ImageTextureRepeat repeat,
     ImageTextureFormat format,
-    short atlasPadding,
-    int minMip,
+    Short atlasPadding,
+    Integer minMip,
     boolean fullScaleBias,
     boolean noMips,
     boolean fftBloom

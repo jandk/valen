@@ -7,37 +7,51 @@ import java.nio.*;
 import java.util.*;
 
 public final class Geo {
-    private final boolean invertFaces;
+    private final boolean flipWindingOrder;
 
-    public Geo(boolean invertFaces) {
-        this.invertFaces = invertFaces;
+    public Geo(boolean flipWindingOrder) {
+        this.flipWindingOrder = flipWindingOrder;
     }
 
     public Mesh readMesh(
         DataSource source,
-        List<Accessor<?>> vertexAccessors,
-        Accessor<?> faceAccessor
+        GeoAccessor<?> indexAccessor,
+        List<GeoAccessor<?>> vertexAccessors
     ) throws IOException {
-        var startPos = source.tell();
+        var startPosition = source.position();
 
-        var vertexBuffers = new HashMap<Semantic, VertexBuffer>();
+        source.position(startPosition);
+        var indexBuffer = readBuffer(source, indexAccessor);
+        if (flipWindingOrder) {
+            invertIndices(indexBuffer.buffer());
+        }
+
+        var vertexBuffers = new ArrayList<VertexBuffer<?>>();
         for (var accessor : vertexAccessors) {
-            source.seek(startPos);
-            var vertexBuffer = accessor.read(source);
-            vertexBuffers.put(accessor.info().semantic(), vertexBuffer);
+            source.position(startPosition);
+            var vertexBuffer = readBuffer(source, accessor);
+            vertexBuffers.add(vertexBuffer);
         }
 
-        source.seek(startPos);
-        var faceBuffer = faceAccessor.read(source);
-        if (invertFaces) {
-            invertFaces(faceBuffer.buffer());
-        }
-
-        source.seek(startPos);
-        return new Mesh(null, faceBuffer, vertexBuffers, null);
+        source.position(startPosition);
+        return new Mesh(indexBuffer, vertexBuffers);
     }
 
-    private void invertFaces(Buffer buffer) {
+    private <T extends Buffer> VertexBuffer<T> readBuffer(DataSource source, GeoAccessor<T> accessor) throws IOException {
+        var capacity = accessor.count() * accessor.info().elementType().size();
+        var buffer = accessor.info().componentType().allocate(capacity);
+
+        var start = source.position() + accessor.offset();
+        for (var i = 0L; i < accessor.count(); i++) {
+            source.position(start + i * accessor.stride());
+            accessor.reader().read(source, buffer);
+        }
+
+        buffer.flip();
+        return new VertexBuffer<>(buffer, accessor.info());
+    }
+
+    private void invertIndices(Buffer buffer) {
         switch (buffer) {
             case ByteBuffer bb -> invert(bb);
             case ShortBuffer sb -> invert(sb);
@@ -70,30 +84,4 @@ public final class Geo {
         }
     }
 
-    @FunctionalInterface
-    public interface Reader<T extends Buffer> {
-        void read(DataSource source, T buffer) throws IOException;
-    }
-
-    public record Accessor<T extends Buffer>(
-        int offset,
-        int count,
-        int stride,
-        VertexBuffer.Info<T> info,
-        Reader<T> reader
-    ) {
-        public VertexBuffer read(DataSource source) throws IOException {
-            var numPrimitives = count * info.elementType().size();
-            var buffer = info.componentType().allocate(numPrimitives);
-
-            var start = source.tell() + offset;
-            for (var i = 0L; i < count; i++) {
-                source.seek(start + i * stride);
-                reader.read(source, buffer);
-            }
-
-            buffer.flip();
-            return new VertexBuffer(buffer, info);
-        }
-    }
 }

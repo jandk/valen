@@ -3,7 +3,6 @@ package be.twofold.valen.game.eternal.reader.decl;
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.io.*;
 import be.twofold.valen.game.eternal.*;
-import be.twofold.valen.game.eternal.reader.*;
 import be.twofold.valen.game.eternal.reader.decl.parser.*;
 import be.twofold.valen.game.eternal.resource.*;
 import com.google.gson.*;
@@ -14,7 +13,7 @@ import java.nio.charset.*;
 import java.util.*;
 import java.util.regex.*;
 
-public final class DeclReader implements ResourceReader<JsonObject> {
+public final class DeclReader implements AssetReader<JsonObject, EternalAsset> {
     private static final String RootPrefix = "generated/decls/";
     private static final Pattern ItemPattern = Pattern.compile("^\\w+\\[(\\d+)]$");
     private static final CharsetDecoder Utf8Decoder = StandardCharsets.UTF_8.newDecoder();
@@ -40,24 +39,26 @@ public final class DeclReader implements ResourceReader<JsonObject> {
     }
 
     @Override
-    public boolean canRead(ResourceKey key) {
-        if (key.type() != ResourceType.RsStreamFile) {
-            return false;
-        }
-        if (!key.name().name().startsWith(RootPrefix)) {
+    public boolean canRead(EternalAsset resource) {
+        if (resource.id().type() != ResourceType.RsStreamFile) {
             return false;
         }
 
-        var basePath = getBasePath(key.name().name());
+        var name = resource.id().name().name();
+        if (!name.startsWith(RootPrefix)) {
+            return false;
+        }
+
+        var basePath = getBasePath(name);
         return !Unsupported.contains(basePath);
     }
 
     @Override
-    public JsonObject read(DataSource source, Asset asset) throws IOException {
-        var bytes = source.readBytes(Math.toIntExact(source.size()));
-        var object = DeclParser.parse(decode(bytes));
+    public JsonObject read(DataSource source, EternalAsset resource) throws IOException {
+        var buffer = source.readBuffer(Math.toIntExact(source.size()));
+        var object = DeclParser.parse(decode(buffer));
 
-        var result = loadInherit(object, asset.id().fullName());
+        var result = loadInherit(object, resource.id().fullName());
         result = result.deepCopy();
         postProcessArrays(result);
 
@@ -82,13 +83,13 @@ public final class DeclReader implements ResourceReader<JsonObject> {
         }
 
         var fullName = RootPrefix + key + ".decl";
-        var resourceKey = ResourceKey.from(fullName, ResourceType.RsStreamFile);
+        var resourceKey = EternalAssetID.from(fullName, ResourceType.RsStreamFile);
         if (!archive.exists(resourceKey)) {
             return object;
         }
 
-        var bytes = archive.loadAsset(resourceKey, byte[].class);
-        parent = DeclParser.parse(decode(bytes));
+        var buffer = archive.loadAsset(resourceKey, ByteBuffer.class);
+        parent = DeclParser.parse(decode(buffer));
         parent = loadInherit(parent, fullName);
         declCache.put(key, parent);
         return merge(parent, object);
@@ -104,15 +105,14 @@ public final class DeclReader implements ResourceReader<JsonObject> {
     }
 
 
-    private String decode(byte[] bytes) {
+    private String decode(ByteBuffer buffer) {
         // Either UTF-8 or ISO-8859-1, so out is always smaller
-        var in = ByteBuffer.wrap(bytes);
         try {
-            return Utf8Decoder.decode(in).toString();
+            return Utf8Decoder.decode(buffer).toString();
         } catch (CharacterCodingException e) {
             try {
-                in.rewind();
-                return Iso88591Decoder.decode(in).toString();
+                buffer.rewind();
+                return Iso88591Decoder.decode(buffer).toString();
             } catch (CharacterCodingException ex) {
                 throw new RuntimeException("Failed to decode", ex);
             }
@@ -162,7 +162,7 @@ public final class DeclReader implements ResourceReader<JsonObject> {
             }
             var matcher = ItemPattern.matcher(entry.getKey());
             if (!matcher.matches()) {
-                throw new IllegalArgumentException("Invalid key: " + entry.getKey());
+                throw new IllegalArgumentException("Invalid id: " + entry.getKey());
             }
             var index = Integer.parseInt(matcher.group(1));
             if (index >= size) {

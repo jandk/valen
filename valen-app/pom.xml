@@ -34,10 +34,6 @@
         </dependency>
         <dependency>
             <groupId>be.twofold</groupId>
-            <artifactId>valen-game-doom</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>be.twofold</groupId>
             <artifactId>valen-game-eternal</artifactId>
         </dependency>
         <dependency>
@@ -50,6 +46,10 @@
         </dependency>
 
         <!-- External -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-simple</artifactId>
+        </dependency>
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>

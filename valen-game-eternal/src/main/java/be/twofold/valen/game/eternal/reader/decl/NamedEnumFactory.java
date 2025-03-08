@@ -23,6 +23,7 @@ public final class NamedEnumFactory implements TypeAdapterFactory {
         }
 
         return new TypeAdapter<T>() {
+            @Override
             public T read(JsonReader reader) throws IOException {
                 return (T) nameToConstant.get(reader.nextString());
             }

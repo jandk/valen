@@ -2,6 +2,7 @@ package be.twofold.valen.game.eternal.reader.md6anim;
 
 import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.math.*;
+import org.slf4j.*;
 
 import java.io.*;
 import java.util.*;
@@ -15,20 +16,22 @@ public record Md6Anim(
     List<Vector3> constS,
     List<Vector3> constT
 ) {
+    private static final Logger log = LoggerFactory.getLogger(Md6Anim.class);
+
     public static Md6Anim read(DataSource source) throws IOException {
         var header = Md6AnimHeader.read(source);
 
-        var start = Math.toIntExact(source.tell());
+        var start = Math.toIntExact(source.position());
         var data = Md6AnimData.read(source);
         var animMaps = readAnimMaps(source);
         if (animMaps.size() > 1) {
-            System.out.println("Multiple animMaps found, using the first one");
+            log.warn("Multiple animMaps found, using the first one");
         }
 
         var animMap = animMaps.getFirst();
-        var constR = readFrom(source, start + data.constROffset(), s -> s.readStructs(animMap.constR().length, Md6Anim::decodeQuat));
-        var constS = readFrom(source, start + data.constSOffset(), s -> s.readStructs(animMap.constS().length, Vector3::read));
-        var constT = readFrom(source, start + data.constTOffset(), s -> s.readStructs(animMap.constT().length, Vector3::read));
+        var constR = readFrom(source, start + data.constROffset(), s -> s.readObjects(animMap.constR().length, Md6Anim::decodeQuat));
+        var constS = readFrom(source, start + data.constSOffset(), s -> s.readObjects(animMap.constS().length, Vector3::read));
+        var constT = readFrom(source, start + data.constTOffset(), s -> s.readObjects(animMap.constT().length, Vector3::read));
 
         var frameSetTable = readFrom(source, start + data.frameSetTblOffset(), s -> s.readBytes(data.numFrames()));
         var frameSetOffsetTable = readFrom(source, start + data.frameSetOffsetTblOffset(), s -> s.readInts(data.numFrameSets() + 1));
@@ -44,7 +47,7 @@ public record Md6Anim(
     }
 
     private static List<Md6AnimMap> readAnimMaps(DataSource source) throws IOException {
-        var start = Math.toIntExact(source.tell());
+        var start = Math.toIntExact(source.position());
         var numAnimMaps = source.readShort();
         var tableCRCs = source.readShorts(numAnimMaps);
 
@@ -75,18 +78,18 @@ public record Md6Anim(
     private static FrameSet readFrameSet(DataSource source, int frameSetOffset, Md6AnimMap animMap) throws IOException {
         var animFrameSet = Md6AnimFrameSet.read(source);
 
-        var firstR = readFrom(source, frameSetOffset + animFrameSet.firstROffset(), s -> s.readStructs(animMap.animR().length, Md6Anim::decodeQuat));
-        var firstS = readFrom(source, frameSetOffset + animFrameSet.firstSOffset(), s -> s.readStructs(animMap.animS().length, Vector3::read));
-        var firstT = readFrom(source, frameSetOffset + animFrameSet.firstTOffset(), s -> s.readStructs(animMap.animT().length, Vector3::read));
+        var firstR = readFrom(source, frameSetOffset + animFrameSet.firstROffset(), s -> s.readObjects(animMap.animR().length, Md6Anim::decodeQuat));
+        var firstS = readFrom(source, frameSetOffset + animFrameSet.firstSOffset(), s -> s.readObjects(animMap.animS().length, Vector3::read));
+        var firstT = readFrom(source, frameSetOffset + animFrameSet.firstTOffset(), s -> s.readObjects(animMap.animT().length, Vector3::read));
 
         var bytesPerBone = (animFrameSet.frameRange() + 7) >> 3;
         var bitsR = readFrom(source, frameSetOffset + animFrameSet.RBitsOffset(), s -> new Bits(s.readBytes(bytesPerBone * animMap.animR().length)));
         var bitsS = readFrom(source, frameSetOffset + animFrameSet.SBitsOffset(), s -> new Bits(s.readBytes(bytesPerBone * animMap.animS().length)));
         var bitsT = readFrom(source, frameSetOffset + animFrameSet.TBitsOffset(), s -> new Bits(s.readBytes(bytesPerBone * animMap.animT().length)));
 
-        var rangeR = readFrom(source, frameSetOffset + animFrameSet.rangeROffset(), s -> s.readStructs(bitsR.cardinality(), Md6Anim::decodeQuat));
-        var rangeS = readFrom(source, frameSetOffset + animFrameSet.rangeSOffset(), s -> s.readStructs(bitsS.cardinality(), Vector3::read));
-        var rangeT = readFrom(source, frameSetOffset + animFrameSet.rangeTOffset(), s -> s.readStructs(bitsT.cardinality(), Vector3::read));
+        var rangeR = readFrom(source, frameSetOffset + animFrameSet.rangeROffset(), s -> s.readObjects(bitsR.cardinality(), Md6Anim::decodeQuat));
+        var rangeS = readFrom(source, frameSetOffset + animFrameSet.rangeSOffset(), s -> s.readObjects(bitsS.cardinality(), Vector3::read));
+        var rangeT = readFrom(source, frameSetOffset + animFrameSet.rangeTOffset(), s -> s.readObjects(bitsT.cardinality(), Vector3::read));
 
         return new FrameSet(
             animFrameSet.frameStart(),
@@ -120,13 +123,13 @@ public record Md6Anim(
         };
     }
 
-    private static <T> T readFrom(DataSource source, int position, StructMapper<T> mapper) throws IOException {
-        source.seek(position);
+    private static <T> T readFrom(DataSource source, int position, ObjectMapper<T> mapper) throws IOException {
+        source.position(position);
         return mapper.read(source);
     }
 
     static int[] decodeRLE(DataSource source, int numJoints) throws IOException {
-        var size = source.readByteAsInt();
+        var size = Byte.toUnsignedInt(source.readByte());
         var length = Math.min(size, numJoints);
 
         var result = new int[length];
@@ -139,7 +142,7 @@ public record Md6Anim(
                 continue;
             }
 
-            int value = source.readByteAsInt();
+            int value = Byte.toUnsignedInt(source.readByte());
             for (var i = 0; i < count; i++) {
                 result[o++] = value + i;
             }

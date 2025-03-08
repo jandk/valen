@@ -2,7 +2,8 @@ package be.twofold.valen.game.eternal.reader.decl.renderparm;
 
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.io.*;
-import be.twofold.valen.game.eternal.reader.*;
+import be.twofold.valen.core.math.*;
+import be.twofold.valen.game.eternal.*;
 import be.twofold.valen.game.eternal.reader.decl.parser.*;
 import be.twofold.valen.game.eternal.reader.decl.renderparm.enums.*;
 import be.twofold.valen.game.eternal.reader.image.*;
@@ -11,24 +12,30 @@ import be.twofold.valen.game.eternal.resource.*;
 import java.io.*;
 import java.util.*;
 
-public final class RenderParmReader implements ResourceReader<RenderParm> {
+public final class RenderParmReader implements AssetReader<RenderParm, EternalAsset> {
+    public static final Map<RenderParmType, Set<String>> ParmsByType = new EnumMap<>(RenderParmType.class);
+
     public RenderParmReader() {
     }
 
     @Override
-    public boolean canRead(ResourceKey key) {
-        return key.type() == ResourceType.RsStreamFile
-            && key.name().name().startsWith("generated/decls/renderparm/");
+    public boolean canRead(EternalAsset resource) {
+        return resource.id().type() == ResourceType.RsStreamFile
+            && resource.id().name().name().startsWith("generated/decls/renderparm/");
     }
 
     @Override
-    public RenderParm read(DataSource source, Asset asset) throws IOException {
+    public RenderParm read(DataSource source, EternalAsset resource) throws IOException {
         var bytes = source.readBytes(Math.toIntExact(source.size()));
         var parser = new DeclParser(new String(bytes), true);
 
         var result = new RenderParm();
         parser.expect(DeclTokenType.OpenBrace);
         result.parmType = parseParmType(parser.expectName());
+        ParmsByType
+            .computeIfAbsent(result.parmType, k -> new HashSet<>())
+            .add(resource.id().fileName().replace(".decl", ""));
+
         result.declaredValue = parseValue(parser, result);
         parseExtras(parser, result);
         parser.expect(DeclTokenType.CloseBrace);
@@ -137,11 +144,11 @@ public final class RenderParmReader implements ResourceReader<RenderParm> {
     private Object parseValue(DeclParser parser, RenderParm renderParm) {
         switch (renderParm.parmType) {
             case PT_F32_VEC4:
-                return readVector(parser, 4);
+                return readVector4(parser);
             case PT_F32_VEC3:
-                return readVector(parser, 3);
+                return readVector3(parser);
             case PT_F32_VEC2:
-                return readVector(parser, 2);
+                return readVector2(parser);
             case PT_F32:
                 return parser.expectNumber().floatValue();
             case PT_UI32:
@@ -202,6 +209,21 @@ public final class RenderParmReader implements ResourceReader<RenderParm> {
             default:
                 throw new UnsupportedOperationException("Unsupported type: " + renderParm);
         }
+    }
+
+    private Vector2 readVector2(DeclParser parser) {
+        var floats = readVector(parser, 2);
+        return new Vector2(floats[0], floats[1]);
+    }
+
+    private Vector3 readVector3(DeclParser parser) {
+        var floats = readVector(parser, 3);
+        return new Vector3(floats[0], floats[1], floats[2]);
+    }
+
+    private Vector4 readVector4(DeclParser parser) {
+        var floats = readVector(parser, 4);
+        return new Vector4(floats[0], floats[1], floats[2], floats[3]);
     }
 
     private static final Set<String> Skipped = Set.of(

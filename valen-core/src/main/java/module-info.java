@@ -1,6 +1,8 @@
 module valen.core {
     requires be.twofold.tinybcdec;
-    requires com.google.gson;
+    requires org.slf4j;
+    requires java.desktop;
+    requires java.sql;
 
     exports be.twofold.valen.core.animation;
     exports be.twofold.valen.core.compression;
@@ -12,9 +14,7 @@ module valen.core {
     exports be.twofold.valen.core.material;
     exports be.twofold.valen.core.math;
     exports be.twofold.valen.core.scene;
-    exports be.twofold.valen.core.texture.op;
     exports be.twofold.valen.core.texture;
-    exports be.twofold.valen.core.util.fi;
     exports be.twofold.valen.core.util;
 
     uses be.twofold.valen.core.export.Exporter;

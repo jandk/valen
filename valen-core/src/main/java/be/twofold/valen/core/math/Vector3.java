@@ -1,6 +1,7 @@
 package be.twofold.valen.core.math;
 
 import be.twofold.valen.core.io.*;
+import be.twofold.valen.core.util.*;
 
 import java.io.*;
 import java.nio.*;
@@ -96,6 +97,13 @@ public record Vector3(
         buffer.put(x);
         buffer.put(y);
         buffer.put(z);
+    }
+
+    public Vector3 map(FloatUnaryOperator operator) {
+        var x = operator.applyAsFloat(this.x);
+        var y = operator.applyAsFloat(this.y);
+        var z = operator.applyAsFloat(this.z);
+        return new Vector3(x, y, z);
     }
 
     // Object methods

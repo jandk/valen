@@ -4,16 +4,16 @@ import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.geometry.*;
 import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.material.*;
+import be.twofold.valen.core.math.*;
 import be.twofold.valen.core.util.*;
 import be.twofold.valen.game.eternal.*;
-import be.twofold.valen.game.eternal.reader.*;
 import be.twofold.valen.game.eternal.reader.geometry.*;
 import be.twofold.valen.game.eternal.resource.*;
 
 import java.io.*;
 import java.util.*;
 
-public final class StaticModelReader implements ResourceReader<Model> {
+public final class StaticModelReader implements AssetReader<Model, EternalAsset> {
     private final EternalArchive archive;
     private final boolean readMaterials;
 
@@ -27,15 +27,14 @@ public final class StaticModelReader implements ResourceReader<Model> {
     }
 
     @Override
-    public boolean canRead(ResourceKey key) {
-        return key.type() == ResourceType.Model;
+    public boolean canRead(EternalAsset resource) {
+        return resource.id().type() == ResourceType.Model;
     }
 
     @Override
-    public Model read(DataSource source, Asset asset) throws IOException {
-        long hash = (Long) asset.properties().get("hash");
+    public Model read(DataSource source, EternalAsset resource) throws IOException {
         var model = StaticModel.read(source);
-        var meshes = new ArrayList<>(readMeshes(model, source, hash));
+        var meshes = new ArrayList<>(readMeshes(model, source, resource.hash()));
 
         if (readMaterials) {
             var materials = new HashMap<String, Material>();
@@ -44,15 +43,15 @@ public final class StaticModelReader implements ResourceReader<Model> {
                 var materialName = meshInfo.mtlDecl();
                 var materialFile = "generated/decls/material2/" + materialName + ".decl";
                 if (!materials.containsKey(materialName)) {
-                    var assetId = ResourceKey.from(materialFile, ResourceType.RsStreamFile);
+                    var assetId = EternalAssetID.from(materialFile, ResourceType.RsStreamFile);
                     var material = archive.loadAsset(assetId, Material.class);
                     materials.put(materialName, material);
                 }
                 meshes.set(i, meshes.get(i)
-                    .withMaterial(materials.get(materialName)));
+                    .withMaterial(Optional.of(materials.get(materialName))));
             }
         }
-        return new Model(asset.id().fullName(), meshes, null);
+        return new Model(meshes, Optional.empty(), Optional.of(resource.id().fullName()), Axis.Z);
     }
 
     private List<Mesh> readMeshes(StaticModel model, DataSource source, long hash) throws IOException {
@@ -81,8 +80,8 @@ public final class StaticModelReader implements ResourceReader<Model> {
             .toList();
         var layouts = model.streamDiskLayouts().get(lod).memoryLayouts();
 
-        var bytes = archive.readStream(streamHash, uncompressedSize);
-        var source = DataSource.fromArray(bytes);
+        var buffer = archive.readStream(streamHash, uncompressedSize);
+        var source = DataSource.fromBuffer(buffer);
         return GeometryReader.readStreamedMesh(source, lods, layouts, false);
     }
 

@@ -21,29 +21,29 @@ public final class Geometry {
     private Geometry() {
     }
 
-    public static Geo.Reader<FloatBuffer> readPosition(float scale, Vector3 offset) {
+    public static GeoReader<FloatBuffer> readPosition(float scale, Vector3 offset) {
         return (source, dst) -> Vector3.read(source).fma(scale, offset).toBuffer(dst);
     }
 
-    public static Geo.Reader<FloatBuffer> readPackedPosition(float scale, Vector3 offset) {
+    public static GeoReader<FloatBuffer> readPackedPosition(float scale, Vector3 offset) {
         return (source, dst) -> readVector4UNorm16(source).toVector3().fma(scale, offset).toBuffer(dst);
     }
 
-    public static Geo.Reader<FloatBuffer> readPackedNormal() {
+    public static GeoReader<FloatBuffer> readPackedNormal() {
         return (source, dst) -> readVector3UNorm8Normal(source).normalize().toBuffer(dst);
     }
 
-    public static Geo.Reader<FloatBuffer> readPackedTangent() {
+    public static GeoReader<FloatBuffer> readPackedTangent() {
         return (source, dst) -> {
             source.skip(4); // skip normal
 
             Vector3 xyz = readVector3UNorm8Normal(source).normalize();
-            float w = Float.intBitsToFloat(((source.readByte() & 0x80) << 24) | 0x3F800000);
+            float w = (source.readByte() & 0x80) != 0 ? 1.0f : -1.0f;
             new Vector4(xyz, w).toBuffer(dst);
         };
     }
 
-    public static Geo.Reader<ByteBuffer> readWeight() {
+    public static GeoReader<ByteBuffer> readWeight() {
         return (source, dst) -> {
             source.skip(3); // skip normal
             byte wn = source.readByte();
@@ -62,15 +62,15 @@ public final class Geometry {
         };
     }
 
-    public static Geo.Reader<FloatBuffer> readUV(float scale, Vector2 offset) {
+    public static GeoReader<FloatBuffer> readUV(float scale, Vector2 offset) {
         return (source, dst) -> Vector2.read(source).fma(scale, offset).toBuffer(dst);
     }
 
-    public static Geo.Reader<FloatBuffer> readPackedUV(float scale, Vector2 offset) {
+    public static GeoReader<FloatBuffer> readPackedUV(float scale, Vector2 offset) {
         return (source, dst) -> readVector2UNorm16(source).fma(scale, offset).toBuffer(dst);
     }
 
-    public static Geo.Reader<ByteBuffer> readColor() {
+    public static GeoReader<ByteBuffer> readColor() {
         return (source, dst) -> {
             dst.put(source.readByte());
             dst.put(source.readByte());
@@ -79,7 +79,7 @@ public final class Geometry {
         };
     }
 
-    public static Geo.Reader<ShortBuffer> readFace() {
+    public static GeoReader<ShortBuffer> readFace() {
         return (source, dst) -> dst.put(source.readShort());
     }
 

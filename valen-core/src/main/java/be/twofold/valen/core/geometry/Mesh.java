@@ -6,25 +6,40 @@ import be.twofold.valen.core.util.*;
 import java.util.*;
 
 public record Mesh(
-    String name,
-    VertexBuffer faceBuffer,
-    Map<Semantic, VertexBuffer> vertexBuffers,
-    Material material
+    VertexBuffer<?> indexBuffer,
+    List<VertexBuffer<?>> vertexBuffers,
+    Optional<Material> material,
+    Optional<String> name
 ) {
     public Mesh {
-        Check.notNull(faceBuffer, "faceBuffer must not be null");
-        vertexBuffers = Map.copyOf(vertexBuffers);
+        Check.notNull(indexBuffer, "indexBuffer must not be null");
+
+        var count = vertexBuffers.stream()
+            .map(vb -> vb.info().semantic())
+            .distinct().count();
+        if (vertexBuffers.size() != count) {
+            throw new IllegalArgumentException("Multiple buffers with the same semantic");
+        }
+        vertexBuffers = List.copyOf(vertexBuffers);
     }
 
-    public Optional<VertexBuffer> getBuffer(Semantic semantic) {
-        return Optional.ofNullable(vertexBuffers.get(semantic));
+    public Mesh(VertexBuffer<?> indexBuffer, List<VertexBuffer<?>> vertexBuffers) {
+        this(indexBuffer, vertexBuffers, Optional.empty(), Optional.empty());
     }
 
-    public Mesh withName(String name) {
-        return new Mesh(name, faceBuffer, vertexBuffers, material);
+    public Optional<VertexBuffer<?>> getBuffer(Semantic semantic) {
+        return vertexBuffers.stream()
+            .filter(vb -> vb.info().semantic().equals(semantic))
+            .findFirst();
     }
 
-    public Mesh withMaterial(Material material) {
-        return new Mesh(name, faceBuffer, vertexBuffers, material);
+    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
+    public Mesh withMaterial(Optional<Material> material) {
+        return new Mesh(indexBuffer, vertexBuffers, material, name);
+    }
+
+    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
+    public Mesh withName(Optional<String> name) {
+        return new Mesh(indexBuffer, vertexBuffers, material, name);
     }
 }

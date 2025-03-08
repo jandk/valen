@@ -1,6 +1,7 @@
 package be.twofold.valen.core.math;
 
 import be.twofold.valen.core.io.*;
+import be.twofold.valen.core.util.*;
 
 import java.io.*;
 import java.nio.*;
@@ -28,6 +29,10 @@ public record Vector4(
         float z = source.readFloat();
         float w = source.readFloat();
         return new Vector4(x, y, z, w);
+    }
+
+    public Vector4(Vector2 v, float z, float w) {
+        this(v.x(), v.y(), z, w);
     }
 
     public Vector4(Vector3 v, float w) {
@@ -96,6 +101,15 @@ public record Vector4(
         dst.put(z);
         dst.put(w);
     }
+
+    public Vector4 map(FloatUnaryOperator operator) {
+        var x = operator.applyAsFloat(this.x);
+        var y = operator.applyAsFloat(this.y);
+        var z = operator.applyAsFloat(this.z);
+        var w = operator.applyAsFloat(this.w);
+        return new Vector4(x, y, z, w);
+    }
+
 
     public Vector3 toVector3() {
         return new Vector3(x, y, z);
