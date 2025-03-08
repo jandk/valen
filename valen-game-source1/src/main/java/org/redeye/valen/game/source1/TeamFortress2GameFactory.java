@@ -6,7 +6,7 @@ import java.io.*;
 import java.nio.file.*;
 import java.util.*;
 
-public class TeamFortres2GameFactory implements GameFactory<SourceGame> {
+public final class TeamFortress2GameFactory implements GameFactory<SourceGame> {
     @Override
     public Set<String> executableNames() {
         return Set.of("tf.exe");
@@ -19,6 +19,7 @@ public class TeamFortres2GameFactory implements GameFactory<SourceGame> {
 
     @Override
     public boolean canLoad(Path path) {
-        return GameFactory.super.canLoad(path) & Files.isDirectory(path.getParent().resolve("tf/bin"));
+        return GameFactory.super.canLoad(path)
+            && Files.isDirectory(path.getParent().resolve("tf/bin"));
     }
 }

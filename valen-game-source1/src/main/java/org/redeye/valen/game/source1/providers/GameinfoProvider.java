@@ -2,6 +2,7 @@ package org.redeye.valen.game.source1.providers;
 
 import be.twofold.valen.core.game.*;
 import org.redeye.valen.game.source1.utils.keyvalues.*;
+import org.redeye.valen.game.source1.vpk.*;
 
 import java.io.*;
 import java.nio.file.*;
@@ -9,18 +10,21 @@ import java.util.*;
 import java.util.stream.*;
 
 public class GameinfoProvider implements Provider {
-    private final Path path;
+    private final String name;
     private final List<Provider> providers = new ArrayList<>();
 
     public GameinfoProvider(Path path) throws IOException {
-        this.path = path;
+        this.name = path.getParent().getFileName().toString();
+
         String modRoot = path.getParent().toString();
         String gameRoot = path.getParent().getParent().toString();
-        var vdfReader = new VdfReader(new FileReader(path.toFile()));
+        var vdfReader = new VdfReader(Files.newBufferedReader(path));
         var gameinfoData = vdfReader.parse();
 
-        VdfPath lookupPath = VdfPath.of("gameinfo.filesystem.searchpaths.[0]");
-        var rawSearchPaths = lookupPath.lookup(gameinfoData).orElseThrow().asObject();
+        var rawSearchPaths = VdfPath
+            .of("gameinfo.filesystem.searchpaths.[0]")
+            .lookup(gameinfoData).orElseThrow().asObject();
+
         var searchPaths = Stream.of("game", "mod", "platform")
             .flatMap(s -> rawSearchPaths.get(s).asArray().stream())
             .filter(Objects::nonNull)
@@ -103,7 +107,7 @@ public class GameinfoProvider implements Provider {
 
     @Override
     public String getName() {
-        return path.getParent().getFileName().toString();
+        return name;
     }
 
     @Override

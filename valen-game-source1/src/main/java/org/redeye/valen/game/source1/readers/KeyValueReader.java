@@ -8,24 +8,17 @@ import org.redeye.valen.game.source1.utils.keyvalues.*;
 import java.io.*;
 import java.util.*;
 
-public class KeyValueReader implements Reader<VdfValue> {
-
-    static Set<String> SUPPORTED_KV_EXT = Set.of("vmt", "vdf", "res");
+public final class KeyValueReader implements AssetReader<VdfValue, SourceAsset> {
+    private static final Set<String> SUPPORTED = Set.of("res", "vdf", "vmt");
 
     @Override
-    public VdfValue read(Archive archive, Asset asset, DataSource source) throws IOException {
-        byte[] bytes = source.readBytes(Math.toIntExact(source.size()));
-        ByteArrayInputStream in = new ByteArrayInputStream(bytes);
-        InputStreamReader streamReader = new InputStreamReader(in);
-        VdfReader reader = new VdfReader(streamReader);
-        return reader.parse();
+    public boolean canRead(SourceAsset asset) {
+        return SUPPORTED.contains(asset.id().extension());
     }
 
     @Override
-    public boolean canRead(Asset asset) {
-        if (asset.id() instanceof SourceAssetID sid) {
-            return SUPPORTED_KV_EXT.contains(sid.extension());
-        }
-        return false;
+    public VdfValue read(DataSource source, SourceAsset asset) throws IOException {
+        var string = source.readString(Math.toIntExact(source.size()));
+        return new VdfReader(new StringReader(string)).parse();
     }
 }

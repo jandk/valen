@@ -5,7 +5,6 @@ import be.twofold.valen.core.util.*;
 import java.math.*;
 
 final class StringNumber extends Number {
-
     private final String value;
 
     StringNumber(String value) {
@@ -55,5 +54,4 @@ final class StringNumber extends Number {
     public String toString() {
         return value;
     }
-
 }

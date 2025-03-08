@@ -11,7 +11,7 @@ import java.util.stream.*;
 
 public class FolderProvider implements Provider {
     private final Path root;
-    private final HashMap<AssetID, Asset> assets = new HashMap<>();
+    private final Map<AssetID, SourceAsset> assets = new HashMap<>();
     private final Provider parent;
 
     public FolderProvider(Path root, Provider parent) {
@@ -24,7 +24,7 @@ public class FolderProvider implements Provider {
                     if (!Files.isDirectory(file)) {
                         String relativePath = root.relativize(file).toString().replace('\\', '/');
                         SourceAssetID id = new SourceAssetID(root.getFileName().toString(), relativePath);
-                        assets.put(id, new SourceAsset(id, id.identifyAssetType(), (int) Files.size(file), Map.of()));
+                        assets.put(id, new SourceAsset(id, id.identifyAssetType(), Math.toIntExact(Files.size(file)), Map.of()));
                     }
                 } catch (IOException e) {
                     throw new RuntimeException(e);
@@ -57,23 +57,11 @@ public class FolderProvider implements Provider {
 
     @Override
     public <T> T loadAsset(AssetID identifier, Class<T> clazz) throws IOException {
-        final Asset asset = assets.get(identifier);
-        if (identifier instanceof SourceAssetID sourceIdentifier) {
-            var bytes = Files.readAllBytes(root.resolve(identifier.fullName()));
+        var asset = assets.get(identifier);
+        var bytes = Files.readAllBytes(root.resolve(identifier.fullName()));
 
-            if (clazz == byte[].class) {
-                return (T) bytes;
-            }
-
-            var reader = getReaders().stream()
-                .filter(r -> r.canRead(asset))
-                .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("No reader found for resource: " + asset.toString()));
-
-            try (var source = DataSource.fromArray(bytes)) {
-                return clazz.cast(reader.read(getParent(), asset, source));
-            }
+        try (var source = DataSource.fromArray(bytes)) {
+            return readers.read(asset, source, clazz);
         }
-        return null;
     }
 }

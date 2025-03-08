@@ -1,9 +1,10 @@
-package org.redeye.valen.game.source1.providers;
+package org.redeye.valen.game.source1.vpk;
 
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.util.*;
 import org.redeye.valen.game.source1.*;
+import org.redeye.valen.game.source1.providers.*;
 
 import java.io.*;
 import java.nio.*;
@@ -15,7 +16,7 @@ import java.util.stream.*;
 public class VpkArchive implements Provider {
     private final Path path;
     private final Path root;
-    private final Map<AssetID, Asset> assets = new HashMap<>();
+    private final Map<AssetID, SourceAsset> assets = new HashMap<>();
     private final Provider parent;
 
     public VpkArchive(Path path, Provider parent) throws IOException {
@@ -24,7 +25,7 @@ public class VpkArchive implements Provider {
         this.root = path.getParent();
 
         try (var source = DataSource.fromPath(path)) {
-            source.expectInt(0x55aa1234);
+            source.expectInt(0x55AA1234);
             short versionMj = source.readShort();
             short versionMn = source.readShort();
             source.skip(4);
@@ -100,44 +101,35 @@ public class VpkArchive implements Provider {
 
     @Override
     public <T> T loadAsset(AssetID identifier, Class<T> clazz) throws IOException {
-        final Asset asset = assets.get(identifier);
-        if (identifier instanceof SourceAssetID sourceIdentifier) {
-            byte[] bytes = loadRawAsset(sourceIdentifier);
-            if (clazz == byte[].class) {
-                return (T) bytes;
-            }
+        var asset = assets.get(identifier);
+        var buffer = loadRawAsset(identifier);
 
-            var reader = getReaders().stream().filter(rdr -> rdr.canRead(asset)).findFirst();
-            if (reader.isEmpty()) {
-                return null;
-            }
-            try (var source = DataSource.fromArray(bytes)) {
-                return clazz.cast(reader.get().read(getParent(), asset, source));
-            }
+        try (var source = DataSource.fromBuffer(buffer)) {
+            return readers.read(asset, source, clazz);
         }
-        return null;
     }
 
-
-    public byte[] loadRawAsset(AssetID identifier) throws IOException {
+    private ByteBuffer loadRawAsset(AssetID identifier) throws IOException {
         Asset asset = assets.get(identifier);
         short archiveId = (short) asset.properties().get("archiveId");
         long offset = Integer.toUnsignedLong((int) asset.properties().get("offset"));
         byte[] preload = (byte[]) asset.properties().get("preload");
-        ByteBuffer data = ByteBuffer.allocate(asset.size());
+
+        var data = ByteBuffer.allocate(asset.size());
         if (preload != null) {
             data.put(preload);
         }
+
         if (archiveId == 0x7FFF) {
-            try (FileChannel channel = FileChannel.open(path, StandardOpenOption.READ)) {
+            try (var channel = FileChannel.open(path)) {
                 channel.read(data, offset);
             }
         } else {
-            var subPath = root.resolve("%s_%03d.vpk".formatted(getName(), archiveId));
-            try (FileChannel channel = FileChannel.open(subPath)) {
+            var subPath = root.resolve(String.format("%s_%03d.vpk", getName(), archiveId));
+            try (var channel = FileChannel.open(subPath)) {
                 channel.read(data, offset);
             }
         }
-        return data.array();
+        return data.flip();
     }
 }

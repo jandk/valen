@@ -6,7 +6,7 @@ import java.io.*;
 import java.nio.file.*;
 import java.util.*;
 
-public class HalfLife2GameFactory implements GameFactory<SourceGame> {
+public final class HalfLife2GameFactory implements GameFactory<SourceGame> {
     @Override
     public Set<String> executableNames() {
         return Set.of("hl2.exe");
@@ -19,6 +19,7 @@ public class HalfLife2GameFactory implements GameFactory<SourceGame> {
 
     @Override
     public boolean canLoad(Path path) {
-        return GameFactory.super.canLoad(path) & Files.isDirectory(path.getParent().resolve("hl2/bin"));
+        return GameFactory.super.canLoad(path)
+            && Files.isDirectory(path.getParent().resolve("hl2/bin"));
     }
 }

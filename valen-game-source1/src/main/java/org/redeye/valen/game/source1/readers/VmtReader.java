@@ -8,22 +8,16 @@ import org.redeye.valen.game.source1.vmt.*;
 
 import java.io.*;
 
-public class VmtReader implements Reader<ValveMaterial> {
-
+public final class VmtReader implements AssetReader<ValveMaterial, SourceAsset> {
     @Override
-    public ValveMaterial read(Archive archive, Asset asset, DataSource source) throws IOException {
-        byte[] bytes = source.readBytes(Math.toIntExact(source.size()));
-        ByteArrayInputStream in = new ByteArrayInputStream(bytes);
-        InputStreamReader streamReader = new InputStreamReader(in);
-        VdfReader reader = new VdfReader(streamReader);
-        return ValveMaterial.fromVdf(reader.parse().asObject());
+    public boolean canRead(SourceAsset asset) {
+        return asset.id().extension().equals("vmt");
     }
 
     @Override
-    public boolean canRead(Asset asset) {
-        if (asset.id() instanceof SourceAssetID sid) {
-            return sid.extension().equals("vmt");
-        }
-        return false;
+    public ValveMaterial read(DataSource source, SourceAsset asset) throws IOException {
+        var string = source.readString(Math.toIntExact(source.size()));
+        var vdfValue = new VdfReader(new StringReader(string)).parse();
+        return ValveMaterial.fromVdf(vdfValue.asObject());
     }
 }

@@ -44,7 +44,7 @@ public class VdfReader {
         } else if (token == TokenType.String) {
             var pair = parsePair();
             var object = new LinkedHashMap<String, VdfValue>();
-            object.put(pair.key(), pair.value());
+            object.put(pair.getKey(), pair.getValue());
             result = new VdfValue.VdfObject(object);
         } else {
             throw new IllegalStateException("Unexpected token: " + token);
@@ -56,21 +56,15 @@ public class VdfReader {
         return result;
     }
 
-    private VdfValue parseObject() throws IOException {
+    private VdfValue.VdfObject parseObject() throws IOException {
         expectAndConsume(TokenType.ObjectStart);
         var object = new LinkedHashMap<String, VdfValue>();
         while (token != TokenType.ObjectEnd) {
             var pair = parsePair();
-
-            if (pair.key().contains("+")) {
-                String[] splitKeys = pair.key().split("\\+");
-                for (String splitKey : splitKeys) {
-                    var items = object.computeIfAbsent(splitKey, s -> new VdfValue.VdfList(new ArrayList<>()));
-                    ((VdfValue.VdfList) items).values().add(pair.value());
-                }
-            } else {
-                var items = object.computeIfAbsent(pair.key(), s -> new VdfValue.VdfList(new ArrayList<>()));
-                ((VdfValue.VdfList) items).values().add(pair.value());
+            for (var key : pair.getKey().split("\\+")) {
+                object
+                    .computeIfAbsent(key, _ -> new VdfValue.VdfList())
+                    .asArray().add(pair.getValue());
             }
             nextToken();
         }
@@ -80,34 +74,26 @@ public class VdfReader {
 
     private VdfValue parseValue() throws IOException {
         nextToken();
-        switch (token) {
-            case ObjectStart -> {
-                return parseObject();
-            }
-            case String -> {
-                return new VdfValue.VdfString(value);
-            }
-            case Number -> {
-                return new VdfValue.VdfNumber(new StringNumber(value));
-            }
+        return switch (token) {
+            case ObjectStart -> parseObject();
+            case String -> new VdfValue.VdfString(value);
+            case Number -> new VdfValue.VdfNumber(new StringNumber(value));
             default -> throw new IllegalStateException("Unexpected token: " + token);
-        }
+        };
     }
 
-    private KeyValuePair parsePair() throws IOException {
+    private Map.Entry<String, VdfValue> parsePair() throws IOException {
         Objects.requireNonNull(value, "Key is null");
         var key = value.toLowerCase();
         var value = parseValue();
-        return new KeyValuePair(key, value);
+        return Map.entry(key, value);
     }
 
     private void nextToken() throws IOException {
-        while (true) {
+        do {
             skipWhitespace();
-            if (!skipComments()) {
-                break;
-            }
-        }
+        } while (skipComments());
+
         switch (peek()) {
             case '{':
                 read();

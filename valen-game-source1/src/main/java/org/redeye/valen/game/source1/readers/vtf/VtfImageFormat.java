@@ -1,8 +1,8 @@
-package org.redeye.valen.game.source1.vtf;
+package org.redeye.valen.game.source1.readers.vtf;
 
 import be.twofold.valen.core.texture.*;
 
-public enum ImageFormat {
+public enum VtfImageFormat {
     RGBA8888(0),
     ABGR8888(1),
     RGB888(2),
@@ -35,14 +35,14 @@ public enum ImageFormat {
     RGBA32323232F(29),
     ;
 
-    private static final ImageFormat[] VALUES = values();
+    private static final VtfImageFormat[] VALUES = values();
     private final int value;
 
-    ImageFormat(int value) {
+    VtfImageFormat(int value) {
         this.value = value;
     }
 
-    public static ImageFormat fromValue(int value) {
+    public static VtfImageFormat fromValue(int value) {
         for (var format : VALUES) {
             if (format.value == value) {
                 return format;

@@ -1,132 +1,8 @@
 package org.redeye.valen.game.source1.utils.keyvalues;
 
-import be.twofold.valen.core.util.*;
-
 import java.util.*;
-import java.util.function.*;
-import java.util.stream.*;
 
 public sealed interface VdfValue {
-
-    record VdfString(String value) implements VdfValue {
-        @Override
-        public String toString() {
-            return "\"%s\"".formatted(value);
-        }
-
-        @Override
-        public String asString() {
-            return value;
-        }
-
-        @Override
-        public Object valueRepr() {
-            return value;
-        }
-    }
-
-    record VdfNumber(Number value) implements VdfValue {
-        @Override
-        public String toString() {
-            return value.toString();
-        }
-
-        @Override
-        public Number asNumber() {
-            return value;
-        }
-
-        @Override
-        public Object valueRepr() {
-            return value;
-        }
-    }
-
-    record VdfObject(Map<String, VdfValue> values) implements VdfValue {
-        @Override
-        public String toString() {
-            return values.toString();
-        }
-
-        @Override
-        public VdfObject asObject() {
-            return this;
-        }
-
-        @Override
-        public Object valueRepr() {
-            var tmp = new LinkedHashMap<String, Object>();
-            values.forEach((k, v) -> tmp.put(k, v.valueRepr()));
-            return tmp;
-        }
-
-        public int size() {
-            return values.size();
-        }
-
-        public boolean isEmpty() {
-            return values.isEmpty();
-        }
-
-        public boolean has(String key) {
-            return values.containsKey(key);
-        }
-
-        public VdfValue get(String key) {
-            return values.get(key);
-        }
-
-        public Set<String> keySet() {
-            return values.keySet();
-        }
-    }
-
-    record VdfList(List<VdfValue> values) implements VdfValue, Iterable<VdfValue> {
-        @Override
-        public String toString() {
-            return values.toString();
-        }
-
-        @Override
-        public VdfList asArray() {
-            return this;
-        }
-
-        @Override
-        public Object valueRepr() {
-            var tmp = new ArrayList<>();
-            values.forEach(v -> tmp.add(v.valueRepr()));
-            return tmp;
-        }
-
-        public int size() {
-            return values.size();
-        }
-
-        public VdfValue get(int index) {
-            Check.index(index, size());
-            return values.get(index);
-        }
-
-        @Override
-        public Iterator<VdfValue> iterator() {
-            return values.iterator();
-        }
-
-        public void forEach(Consumer<? super VdfValue> action) {
-            values.forEach(action);
-        }
-
-        @Override
-        public Spliterator<VdfValue> spliterator() {
-            return values.spliterator();
-        }
-
-        public Stream<VdfValue> stream() {
-            return values.stream();
-        }
-    }
-
     default VdfObject asObject() {
         throw ex("Object");
     }
@@ -144,10 +20,100 @@ public sealed interface VdfValue {
     }
 
     private RuntimeException ex(String type) {
-        return new IllegalStateException("Value is not of type " + type);
+        return new ClassCastException("Value is not of type " + type);
     }
 
-    Object valueRepr();
+    record VdfString(String value) implements VdfValue {
+        @Override
+        public String asString() {
+            return value;
+        }
 
+        @Override
+        public String toString() {
+            return "\"" + value + "\"";
+        }
+    }
 
+    record VdfNumber(Number value) implements VdfValue {
+        @Override
+        public Number asNumber() {
+            return value;
+        }
+
+        @Override
+        public String toString() {
+            return value.toString();
+        }
+    }
+
+    final class VdfObject extends AbstractMap<String, VdfValue> implements VdfValue {
+        private final Map<String, VdfValue> values;
+
+        public VdfObject(Map<String, VdfValue> values) {
+            this.values = Map.copyOf(values);
+        }
+
+        @Override
+        public VdfObject asObject() {
+            return this;
+        }
+
+        @Override
+        public Set<Entry<String, VdfValue>> entrySet() {
+            return values.entrySet();
+        }
+
+        @Override
+        public boolean containsKey(Object key) {
+            return values.containsKey(key);
+        }
+
+        @Override
+        public VdfValue get(Object key) {
+            return values.get(key);
+        }
+    }
+
+    final class VdfList extends AbstractList<VdfValue> implements VdfValue, RandomAccess {
+        private final List<VdfValue> values;
+
+        public VdfList() {
+            this(new ArrayList<>());
+        }
+
+        public VdfList(List<VdfValue> values) {
+            this.values = values;
+        }
+
+        @Override
+        public VdfList asArray() {
+            return this;
+        }
+
+        @Override
+        public VdfValue get(int index) {
+            return values.get(index);
+        }
+
+        @Override
+        public int size() {
+            return values.size();
+        }
+
+        @Override
+        public VdfValue set(int index, VdfValue element) {
+            return values.set(index, element);
+        }
+
+        @Override
+        public boolean add(VdfValue vdfValue) {
+            return values.add(vdfValue);
+        }
+
+        @Override
+        public boolean remove(Object o) {
+            return values.remove(o);
+        }
+    }
 }

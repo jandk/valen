@@ -5,14 +5,14 @@ import org.redeye.valen.game.source1.utils.keyvalues.*;
 public record VertexLitGeneric(VdfValue.VdfObject data) implements ValveMaterial {
 
     String colorTexture() {
-        if (data.has("$basetexture")) {
+        if (data.containsKey("$basetexture")) {
             return data.get("$basetexture").asArray().get(0).asString();
         }
         return null;
     }
 
     String normalTexture() {
-        if (data.has("$bumpmap")) {
+        if (data.containsKey("$bumpmap")) {
             return data.get("$bumpmap").asArray().get(0).asString();
         }
         return null;

@@ -8,23 +8,10 @@ public record SourceAssetID(String source, String name) implements AssetID {
         return name;
     }
 
-    @Override
-    public String pathName() {
-        var index = name.lastIndexOf('/');
-        return index == -1 ? "" : name.substring(0, index);
-    }
-
-    @Override
-    public String fileName() {
-        var index = name.lastIndexOf('/');
-        return index == -1 ? name : name.substring(index + 1);
-    }
-
     public String extension() {
         var index = name.lastIndexOf('.');
         return index == -1 ? name : name.substring(index + 1);
     }
-
 
     public AssetType identifyAssetType() {
         return switch (extension()) {
@@ -33,5 +20,4 @@ public record SourceAssetID(String source, String name) implements AssetID {
             default -> AssetType.RAW;
         };
     }
-
 }
