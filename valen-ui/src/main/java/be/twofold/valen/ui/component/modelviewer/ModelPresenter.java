@@ -1,8 +1,8 @@
 package be.twofold.valen.ui.component.modelviewer;
 
 import be.twofold.valen.core.game.*;
-import be.twofold.valen.core.geometry.Mesh;
 import be.twofold.valen.core.geometry.*;
+import be.twofold.valen.core.geometry.Mesh;
 import be.twofold.valen.ui.common.*;
 import be.twofold.valen.ui.component.*;
 import jakarta.inject.*;
@@ -26,13 +26,13 @@ public final class ModelPresenter extends AbstractFXPresenter<ModelView> impleme
     @Override
     public void setData(Object data) {
         if (data == null) {
-            getView().setMeshes(List.of());
+            getView().setMeshes(List.of(), null);
             return;
         }
 
         var model = (Model) data;
         var meshes = mapModel(model);
-        getView().setMeshes(meshes);
+        getView().setMeshes(meshes, model.upAxis());
     }
 
     @Override

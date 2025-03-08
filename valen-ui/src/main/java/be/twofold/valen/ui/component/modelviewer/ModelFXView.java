@@ -1,9 +1,11 @@
 package be.twofold.valen.ui.component.modelviewer;
 
+import be.twofold.valen.core.math.*;
 import be.twofold.valen.ui.common.*;
 import jakarta.inject.*;
 import javafx.beans.property.*;
 import javafx.geometry.*;
+import javafx.geometry.Bounds;
 import javafx.scene.*;
 import javafx.scene.layout.*;
 import javafx.scene.paint.*;
@@ -33,7 +35,7 @@ public final class ModelFXView implements ModelView, FXView {
     }
 
     @Override
-    public void setMeshes(List<TriangleMesh> meshes) {
+    public void setMeshes(List<TriangleMesh> meshes, Axis upAxis) {
         root.getChildren().subList(1, root.getChildren().size()).clear();
         if (meshes.isEmpty()) {
             return;
@@ -43,7 +45,7 @@ public final class ModelFXView implements ModelView, FXView {
             .map(this::toMeshView)
             .toList();
 
-        center(meshViews);
+        center(meshViews, upAxis);
 
         root.getChildren().addAll(meshViews);
     }
@@ -54,7 +56,7 @@ public final class ModelFXView implements ModelView, FXView {
         return meshView;
     }
 
-    private void center(List<MeshView> meshViews) {
+    private void center(List<MeshView> meshViews, Axis upAxis) {
         var bounds = meshViews.stream()
             .map(MeshView::getBoundsInLocal)
             .reduce(this::combine)
@@ -68,10 +70,16 @@ public final class ModelFXView implements ModelView, FXView {
         // TODO: Figure out if we can make this a bit less arbitrary
         double scale = 100.0 / max / 2.0;
 
+        var rotation = switch (upAxis) {
+            case X -> throw new UnsupportedOperationException();
+            case Y -> new Rotate(180, Rotate.X_AXIS);
+            case Z -> new Rotate(+90, Rotate.X_AXIS);
+        };
+
         for (MeshView meshView : meshViews) {
             meshView.getTransforms().addAll(
                 new Scale(scale, scale, scale),
-                new Rotate(-90, Rotate.X_AXIS),
+                rotation,
                 new Translate(
                     -((bounds.getWidth() / 2) + bounds.getMinX()),
                     -((bounds.getHeight() / 2) + bounds.getMinY()),

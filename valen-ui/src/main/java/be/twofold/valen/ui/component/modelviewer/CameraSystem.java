@@ -6,7 +6,7 @@ import javafx.scene.transform.*;
 
 final class CameraSystem {
     private final PerspectiveCamera camera = new PerspectiveCamera(true);
-    private final Rotate rotateX = new Rotate(180, Rotate.X_AXIS);
+    private final Rotate rotateX = new Rotate(0, Rotate.X_AXIS);
     private final Rotate rotateY = new Rotate(0, Rotate.Y_AXIS);
     private final Translate translate = new Translate(0, 0, -200);
     private double mousePosX;
@@ -49,8 +49,8 @@ final class CameraSystem {
                 camera.setTranslateX(camera.getTranslateX() - mouseDeltaX * 0.1);
                 camera.setTranslateY(camera.getTranslateY() + mouseDeltaY * 0.1);
             } else if (event.isPrimaryButtonDown()) {
-                rotateX.setAngle(Math.clamp(rotateX.getAngle() - mouseDeltaY * 0.3 * 2.0, 95, 265));
-                rotateY.setAngle(rotateY.getAngle() - mouseDeltaX * 0.3 * 2.0);
+                rotateX.setAngle(Math.clamp(rotateX.getAngle() - mouseDeltaY * 0.3 * 2.0, -85, +85));
+                rotateY.setAngle(rotateY.getAngle() + mouseDeltaX * 0.3 * 2.0);
             } else if (event.isSecondaryButtonDown()) {
                 double z = translate.getZ();
                 z += (mouseDeltaX + mouseDeltaY) * 0.3;
