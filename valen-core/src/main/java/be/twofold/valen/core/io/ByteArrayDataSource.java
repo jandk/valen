@@ -3,6 +3,7 @@ package be.twofold.valen.core.io;
 import be.twofold.valen.core.util.*;
 
 import java.io.*;
+import java.nio.*;
 
 final class ByteArrayDataSource implements DataSource, Closeable {
     private final byte[] array;
@@ -19,13 +20,10 @@ final class ByteArrayDataSource implements DataSource, Closeable {
     }
 
     @Override
-    public void readBytes(byte[] dst, int off, int len) throws IOException {
-        Check.fromIndexSize(off, len, dst.length);
-        if (position + len > limit) {
-            throw new EOFException();
-        }
-        System.arraycopy(array, position, dst, off, len);
-        position += len;
+    public void read(ByteBuffer dst) {
+        int remaining = dst.remaining();
+        dst.put(array, position, remaining);
+        position += remaining;
     }
 
     @Override
@@ -43,11 +41,6 @@ final class ByteArrayDataSource implements DataSource, Closeable {
         int intPos = Math.toIntExact(pos);
         Check.index(intPos, limit - offset + 1);
         this.position = offset + intPos;
-    }
-
-    @Override
-    public void close() {
-        // Do nothing
     }
 
     @Override

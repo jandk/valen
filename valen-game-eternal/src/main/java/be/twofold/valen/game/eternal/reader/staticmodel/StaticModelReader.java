@@ -4,6 +4,7 @@ import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.geometry.*;
 import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.material.*;
+import be.twofold.valen.core.math.*;
 import be.twofold.valen.core.util.*;
 import be.twofold.valen.game.eternal.*;
 import be.twofold.valen.game.eternal.reader.geometry.*;
@@ -27,7 +28,7 @@ public final class StaticModelReader implements AssetReader<Model, EternalAsset>
 
     @Override
     public boolean canRead(EternalAsset resource) {
-        return resource.key().type() == ResourceType.Model;
+        return resource.id().type() == ResourceType.Model;
     }
 
     @Override
@@ -47,10 +48,10 @@ public final class StaticModelReader implements AssetReader<Model, EternalAsset>
                     materials.put(materialName, material);
                 }
                 meshes.set(i, meshes.get(i)
-                    .withMaterial(materials.get(materialName)));
+                    .withMaterial(Optional.of(materials.get(materialName))));
             }
         }
-        return new Model(meshes).withName(resource.id().fullName());
+        return new Model(meshes, Optional.empty(), Optional.of(resource.id().fullName()), Axis.Z);
     }
 
     private List<Mesh> readMeshes(StaticModel model, DataSource source, long hash) throws IOException {
@@ -79,8 +80,8 @@ public final class StaticModelReader implements AssetReader<Model, EternalAsset>
             .toList();
         var layouts = model.streamDiskLayouts().get(lod).memoryLayouts();
 
-        var bytes = archive.readStream(streamHash, uncompressedSize);
-        var source = DataSource.fromArray(bytes);
+        var buffer = archive.readStream(streamHash, uncompressedSize);
+        var source = DataSource.fromBuffer(buffer);
         return GeometryReader.readStreamedMesh(source, lods, layouts, false);
     }
 

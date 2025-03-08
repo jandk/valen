@@ -1,4 +1,4 @@
-package be.twofold.valen.core.math;
+package be.twofold.valen.core.util;
 
 @FunctionalInterface
 public interface FloatUnaryOperator {

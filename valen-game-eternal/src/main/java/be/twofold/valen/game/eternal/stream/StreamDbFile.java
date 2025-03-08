@@ -8,6 +8,7 @@ import be.twofold.valen.game.eternal.reader.streamdb.*;
 import org.slf4j.*;
 
 import java.io.*;
+import java.nio.*;
 import java.nio.file.*;
 import java.util.*;
 import java.util.function.*;
@@ -46,14 +47,14 @@ public final class StreamDbFile implements Container<Long, StreamDbEntry> {
     }
 
     @Override
-    public byte[] read(Long key, int uncompressedSize) throws IOException {
+    public ByteBuffer read(Long key, int uncompressedSize) throws IOException {
         var entry = index.get(key);
         Check.state(entry != null, () -> "Stream not found: " + key);
 
         log.debug("Reading stream: {}", String.format("%016X", entry.identity()));
         source.position(entry.offset());
-        var compressed = source.readBytes(entry.length());
-        if (compressed.length == uncompressedSize) {
+        var compressed = source.readBuffer(entry.length());
+        if (compressed.remaining() == uncompressedSize) {
             return compressed;
         }
 

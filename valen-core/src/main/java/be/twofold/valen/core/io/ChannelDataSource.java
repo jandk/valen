@@ -7,8 +7,8 @@ import java.nio.*;
 import java.nio.channels.*;
 
 final class ChannelDataSource implements DataSource, Closeable {
-    private final ByteBuffer buffer = ByteBuffer.allocate(8192)
-        .order(ByteOrder.LITTLE_ENDIAN)
+    private final ByteBuffer buffer = Buffers
+        .allocate(8192)
         .limit(0);
 
     private final SeekableByteChannel channel;
@@ -21,37 +21,33 @@ final class ChannelDataSource implements DataSource, Closeable {
     }
 
     @Override
-    public void readBytes(byte[] dst, int off, int len) throws IOException {
-        Check.fromIndexSize(off, len, dst.length);
-
+    public void read(ByteBuffer dst) throws IOException {
         int remaining = buffer.remaining();
-        if (len <= remaining) {
-            buffer.get(dst, off, len);
+        if (dst.remaining() <= remaining) {
+            Buffers.copy(buffer, dst);
             return;
         }
 
         if (remaining > 0) {
-            buffer.get(dst, off, remaining);
-            off += remaining;
-            len -= remaining;
+            Buffers.copy(buffer, dst, remaining);
         }
 
         // If we can fit the remaining bytes in the buffer, do a normal refill and read
-        if (len < buffer.capacity()) {
+        if (dst.remaining() < buffer.capacity()) {
             refill();
-            if (len > buffer.remaining()) {
+            if (dst.remaining() > buffer.remaining()) {
                 throw new EOFException();
             }
-            buffer.get(dst, off, len);
+            Buffers.copy(buffer, dst);
             return;
         }
 
         // If we can't fit the remaining bytes in the buffer, read directly into the destination
-        long end = position + buffer.position() + len;
+        long end = position + buffer.position() + dst.remaining();
         if (end > size) {
             throw new EOFException();
         }
-        readInternal(ByteBuffer.wrap(dst, off, len));
+        readInternal(dst);
         position = end;
         buffer.limit(0);
     }

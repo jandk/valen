@@ -1,6 +1,6 @@
 package be.twofold.valen.core.hashing;
 
-import be.twofold.valen.core.util.*;
+import java.nio.*;
 
 final class XXHash32 implements HashFunction {
     private static final int PRIME32_1 = 0x9E3779B1;
@@ -16,12 +16,12 @@ final class XXHash32 implements HashFunction {
     }
 
     @Override
-    public HashCode hash(byte[] array, int offset, int length) {
-        Check.fromIndexSize(offset, length, array.length);
-        int limit = offset + length;
+    public HashCode hash(ByteBuffer src) {
+        src.order(ByteOrder.LITTLE_ENDIAN);
+        var len = src.remaining();
 
         int acc;
-        if (offset <= limit - 16) {
+        if (src.remaining() >= 16) {
             // Step 1: Initialize internal accumulators
             int acc1 = seed + PRIME32_1 + PRIME32_2;
             int acc2 = seed + PRIME32_2;
@@ -30,12 +30,11 @@ final class XXHash32 implements HashFunction {
 
             // Step 2: Process stripes
             do {
-                acc1 = round(acc1, ByteArrays.getInt(array, offset));
-                acc2 = round(acc2, ByteArrays.getInt(array, offset + 4));
-                acc3 = round(acc3, ByteArrays.getInt(array, offset + 8));
-                acc4 = round(acc4, ByteArrays.getInt(array, offset + 12));
-                offset += 16;
-            } while (offset <= limit - 16);
+                acc1 = round(acc1, src.getInt());
+                acc2 = round(acc2, src.getInt());
+                acc3 = round(acc3, src.getInt());
+                acc4 = round(acc4, src.getInt());
+            } while (src.remaining() >= 16);
 
             // Step 3: Accumulator convergence
             acc = Integer.rotateLeft(acc1, 1)
@@ -48,21 +47,19 @@ final class XXHash32 implements HashFunction {
         }
 
         // Step 4: Add input length
-        acc = acc + length;
+        acc = acc + len;
 
         // Step 5: Consume remaining input
-        while (offset <= limit - 4) {
-            int lane = ByteArrays.getInt(array, offset);
+        while (src.remaining() >= 4) {
+            int lane = src.getInt();
             acc = acc + (lane * PRIME32_3);
             acc = Integer.rotateLeft(acc, 17) * PRIME32_4;
-            offset += 4;
         }
 
-        while (offset < limit) {
-            int lane = Byte.toUnsignedInt(array[offset]);
+        while (src.hasRemaining()) {
+            int lane = Byte.toUnsignedInt(src.get());
             acc = acc + (lane * PRIME32_5);
             acc = Integer.rotateLeft(acc, 11) * PRIME32_1;
-            offset++;
         }
 
         // Step 6: Final mix (avalanche)

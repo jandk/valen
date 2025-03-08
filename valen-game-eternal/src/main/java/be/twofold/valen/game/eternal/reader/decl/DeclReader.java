@@ -40,11 +40,11 @@ public final class DeclReader implements AssetReader<JsonObject, EternalAsset> {
 
     @Override
     public boolean canRead(EternalAsset resource) {
-        if (resource.key().type() != ResourceType.RsStreamFile) {
+        if (resource.id().type() != ResourceType.RsStreamFile) {
             return false;
         }
 
-        var name = resource.key().name().name();
+        var name = resource.id().name().name();
         if (!name.startsWith(RootPrefix)) {
             return false;
         }
@@ -55,8 +55,8 @@ public final class DeclReader implements AssetReader<JsonObject, EternalAsset> {
 
     @Override
     public JsonObject read(DataSource source, EternalAsset resource) throws IOException {
-        var bytes = source.readBytes(Math.toIntExact(source.size()));
-        var object = DeclParser.parse(decode(bytes));
+        var buffer = source.readBuffer(Math.toIntExact(source.size()));
+        var object = DeclParser.parse(decode(buffer));
 
         var result = loadInherit(object, resource.id().fullName());
         result = result.deepCopy();
@@ -88,8 +88,8 @@ public final class DeclReader implements AssetReader<JsonObject, EternalAsset> {
             return object;
         }
 
-        var bytes = archive.loadAsset(resourceKey, byte[].class);
-        parent = DeclParser.parse(decode(bytes));
+        var buffer = archive.loadAsset(resourceKey, ByteBuffer.class);
+        parent = DeclParser.parse(decode(buffer));
         parent = loadInherit(parent, fullName);
         declCache.put(key, parent);
         return merge(parent, object);
@@ -105,15 +105,14 @@ public final class DeclReader implements AssetReader<JsonObject, EternalAsset> {
     }
 
 
-    private String decode(byte[] bytes) {
+    private String decode(ByteBuffer buffer) {
         // Either UTF-8 or ISO-8859-1, so out is always smaller
-        var in = ByteBuffer.wrap(bytes);
         try {
-            return Utf8Decoder.decode(in).toString();
+            return Utf8Decoder.decode(buffer).toString();
         } catch (CharacterCodingException e) {
             try {
-                in.rewind();
-                return Iso88591Decoder.decode(in).toString();
+                buffer.rewind();
+                return Iso88591Decoder.decode(buffer).toString();
             } catch (CharacterCodingException ex) {
                 throw new RuntimeException("Failed to decode", ex);
             }
@@ -163,7 +162,7 @@ public final class DeclReader implements AssetReader<JsonObject, EternalAsset> {
             }
             var matcher = ItemPattern.matcher(entry.getKey());
             if (!matcher.matches()) {
-                throw new IllegalArgumentException("Invalid key: " + entry.getKey());
+                throw new IllegalArgumentException("Invalid id: " + entry.getKey());
             }
             var index = Integer.parseInt(matcher.group(1));
             if (index >= size) {

@@ -23,7 +23,7 @@ public final class ImageReader implements AssetReader<Texture, EternalAsset> {
 
     @Override
     public boolean canRead(EternalAsset resource) {
-        return resource.key().type() == ResourceType.Image;
+        return resource.id().type() == ResourceType.Image;
     }
 
     @Override
@@ -56,9 +56,9 @@ public final class ImageReader implements AssetReader<Texture, EternalAsset> {
         var lastMip = image.mipInfos().getLast();
         var uncompressedSize = lastMip.cumulativeSizeStreamDB() + lastMip.decompressedSize();
         var bytes = archive.readStream(hash, uncompressedSize);
-        try (var mipSource = DataSource.fromArray(bytes)) {
+        try (var mipSource = DataSource.fromBuffer(bytes)) {
             for (var i = 0; i < image.header().totalMipCount(); i++) {
-                image.mipData()[i] = mipSource.readBytes(image.mipInfos().get(i).decompressedSize());
+                image.mipData()[i] = mipSource.readBuffer(image.mipInfos().get(i).decompressedSize());
             }
         }
     }

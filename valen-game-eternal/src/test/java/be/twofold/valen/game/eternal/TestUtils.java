@@ -4,6 +4,7 @@ import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.io.*;
 
 import java.io.*;
+import java.nio.*;
 import java.nio.file.*;
 import java.util.function.*;
 
@@ -30,8 +31,8 @@ public abstract class TestUtils {
 
         entries.forEach(asset -> assertThatNoException()
             .isThrownBy(() -> {
-                var bytes = archive.loadAsset(asset.id(), byte[].class);
-                reader.read(DataSource.fromArray(bytes), (EternalAsset) asset);
+                var buffer = archive.loadAsset(asset.id(), ByteBuffer.class);
+                reader.read(DataSource.fromBuffer(buffer), (EternalAsset) asset);
             }));
     }
 

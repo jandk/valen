@@ -38,7 +38,7 @@ public final class SettingsController implements Controller {
     }
 
     public void initialize() {
-        var textureFormats = Exporter.forType(Texture.class).stream()
+        var textureFormats = Exporter.forType(Texture.class)
             .map(exporter -> Map.entry(exporter.getID(), exporter.getName()))
             .sorted(Map.Entry.comparingByKey())
             .collect(Collectors.toList());
@@ -47,24 +47,29 @@ public final class SettingsController implements Controller {
         textureFormat.setConverter(new FunctionalStringConverter<>(Map.Entry::getValue));
         // modelFormat.getItems().addAll("GLB", "GLTF, BIN and images");
 
-        var assetTypes = settings.assetTypes().get()
-            .orElseGet(() -> Arrays.stream(AssetType.values())
+        var assetTypes = settings.assetTypes().whenEmpty(() ->
+            Arrays.stream(AssetType.values())
                 .filter(type -> type != AssetType.RAW)
-                .collect(Collectors.toUnmodifiableSet()));
+                .collect(Collectors.toUnmodifiableSet())
+        );
+
         typeTexture.setSelected(assetTypes.contains(AssetType.TEXTURE));
         typeModel.setSelected(assetTypes.contains(AssetType.MODEL));
         typeMaterial.setSelected(assetTypes.contains(AssetType.MATERIAL));
         typeAnimation.setSelected(assetTypes.contains(AssetType.ANIMATION));
         typeRaw.setSelected(assetTypes.contains(AssetType.RAW));
 
-        var textureExporter = settings.textureExporter().get()
-            .orElse("texture.png");
+        var textureExporter = settings.textureExporter().whenEmpty(() -> "texture.png");
+        settings.textureExporter().set(textureExporter);
+
         textureFormat.getItems().stream()
             .filter(e -> e.getKey().equals(textureExporter))
             .findFirst()
             .ifPresent(e -> textureFormat.getSelectionModel().select(e));
 
-        var reconstructZ = settings.reconstructZ().get().orElse(false);
+        var reconstructZ = settings.reconstructZ().whenEmpty(() -> false);
+        settings.reconstructZ().set(reconstructZ);
+
         textureReconstructZ.setSelected(reconstructZ);
     }
 

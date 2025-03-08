@@ -54,3 +54,8 @@
 .scroll-bar > .decrement-button:pressed > .decrement-arrow {
     -fx-background-color: -fx-mark-highlight-color, rgb(255, 255, 255);
 }
+
+/* Custom properties */
+.dialog-pane > .button-bar > .container > .details-button {
+    -fx-text-fill: -fx-text-base-color;
+}

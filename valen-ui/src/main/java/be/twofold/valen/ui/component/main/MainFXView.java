@@ -112,7 +112,7 @@ public final class MainFXView implements MainView, FXView {
     // region UI
 
     private void buildUI() {
-        view.setPrefSize(1600, 900);
+        view.setPrefSize(1250, 666);
         view.setTop(buildToolBar());
         view.setCenter(buildMainContent());
         view.setBottom(buildStatusBar());

@@ -1,12 +1,17 @@
 package be.twofold.valen.game.eternal;
 
+import be.twofold.valen.core.compression.*;
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.util.*;
+import be.twofold.valen.game.eternal.reader.binaryfile.*;
 import be.twofold.valen.game.eternal.reader.decl.*;
 import be.twofold.valen.game.eternal.reader.decl.material2.*;
 import be.twofold.valen.game.eternal.reader.decl.renderparm.*;
+import be.twofold.valen.game.eternal.reader.file.FileReader;
+import be.twofold.valen.game.eternal.reader.filecompressed.*;
 import be.twofold.valen.game.eternal.reader.image.*;
+import be.twofold.valen.game.eternal.reader.json.*;
 import be.twofold.valen.game.eternal.reader.mapfilestaticinstances.*;
 import be.twofold.valen.game.eternal.reader.md6anim.*;
 import be.twofold.valen.game.eternal.reader.md6model.*;
@@ -15,6 +20,7 @@ import be.twofold.valen.game.eternal.reader.staticmodel.*;
 import be.twofold.valen.game.eternal.reader.streamdb.*;
 
 import java.io.*;
+import java.nio.*;
 import java.util.*;
 import java.util.stream.*;
 
@@ -27,16 +33,25 @@ public final class EternalArchive implements Archive {
     EternalArchive(
         Container<Long, StreamDbEntry> streams,
         Container<EternalAssetID, EternalAsset> common,
-        Container<EternalAssetID, EternalAsset> resources
+        Container<EternalAssetID, EternalAsset> resources,
+        Decompressor decompressor
     ) {
         this.streams = Check.notNull(streams, "streams");
         this.common = Check.notNull(common, "common");
         this.resources = Check.notNull(resources, "resources");
+        Check.notNull(decompressor, "decompressor");
 
         var declReader = new DeclReader(this);
 
         this.readers = new AssetReaders<>(List.of(
             declReader,
+            // Binary converters
+            new BinaryFileReader(),
+            new FileCompressedReader(decompressor),
+            new FileReader(),
+            new JsonReader(),
+
+            // Actual readers
             new ImageReader(this),
             new MapFileStaticInstancesReader(this),
             new MaterialReader(this, declReader),
@@ -63,19 +78,15 @@ public final class EternalArchive implements Archive {
 
     @Override
     public <T> T loadAsset(AssetID identifier, Class<T> clazz) throws IOException {
-        var resource = getAsset(identifier)
+        var asset = getAsset(identifier)
             .orElseThrow(FileNotFoundException::new);
 
-        var bytes = resources.get(resource.key()).isPresent()
-            ? resources.read(resource.key())
-            : common.read(resource.key());
+        var buffer = resources.get(asset.id()).isPresent()
+            ? resources.read(asset.id())
+            : common.read(asset.id());
 
-        if (clazz == byte[].class) {
-            return (T) bytes;
-        }
-
-        try (var source = DataSource.fromArray(bytes)) {
-            return readers.read(resource, source, clazz);
+        try (var source = DataSource.fromBuffer(buffer)) {
+            return readers.read(asset, source, clazz);
         }
     }
 
@@ -83,7 +94,7 @@ public final class EternalArchive implements Archive {
         return streams.get(identifier).isPresent();
     }
 
-    public byte[] readStream(long identifier, int uncompressedSize) throws IOException {
+    public ByteBuffer readStream(long identifier, int uncompressedSize) throws IOException {
         return streams.read(identifier, uncompressedSize);
     }
 }

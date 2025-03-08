@@ -3,6 +3,7 @@ package be.twofold.valen.game.eternal.reader.md6skel;
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.geometry.*;
 import be.twofold.valen.core.io.*;
+import be.twofold.valen.core.math.*;
 import be.twofold.valen.game.eternal.*;
 import be.twofold.valen.game.eternal.resource.*;
 
@@ -12,7 +13,7 @@ import java.util.stream.*;
 public final class Md6SkelReader implements AssetReader<Skeleton, EternalAsset> {
     @Override
     public boolean canRead(EternalAsset resource) {
-        return resource.key().type() == ResourceType.Skeleton;
+        return resource.id().type() == ResourceType.Skeleton;
     }
 
     @Override
@@ -26,7 +27,7 @@ public final class Md6SkelReader implements AssetReader<Skeleton, EternalAsset> 
             .mapToObj(i -> mapBone(skeleton, i))
             .toList();
 
-        return new Skeleton(bones);
+        return new Skeleton(bones, Axis.Z);
     }
 
     private Bone mapBone(Md6Skel skeleton, int index) {

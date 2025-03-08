@@ -14,6 +14,7 @@ import javafx.application.*;
 import org.jetbrains.annotations.*;
 
 import java.io.*;
+import java.nio.*;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.function.*;
@@ -82,7 +83,10 @@ public final class MainPresenter extends AbstractFXPresenter<MainView> {
     private void selectAsset(Asset asset) {
         if (getView().isSidePaneVisible() && archive != null) {
             try {
-                var type = asset.type() == AssetType.RAW ? byte[].class : Object.class;
+                var type = switch (asset.type()) {
+                    case MODEL, TEXTURE -> asset.type().getType();
+                    default -> ByteBuffer.class;
+                };
                 var assetData = archive.loadAsset(asset.id(), type);
                 Platform.runLater(() -> getView().setupPreview(asset, assetData));
             } catch (IOException e) {
@@ -108,17 +112,22 @@ public final class MainPresenter extends AbstractFXPresenter<MainView> {
         }
 
         // TODO: Clean this up
-        var extension = Exporter.forType(asset.type().getType()).stream().findFirst().orElseThrow().getExtension();
-        var filename = extension.isEmpty()
+        var exporterId = asset.type() == AssetType.TEXTURE
+            ? settings.textureExporter().get().orElse("texture.png")
+            : null;
+        var exporter = exporterId != null
+            ? Exporter.forTypeAndId(asset.type().getType(), exporterId)
+            : Exporter.forType(asset.type().getType()).findFirst().orElseThrow();
+        var filename = exporter.getExtension().isEmpty()
             ? asset.id().fileName()
-            : Filenames.removeExtension(asset.id().fileName()) + "." + extension;
+            : Filenames.removeExtension(asset.id().fileName()) + "." + exporter.getExtension();
 
         channel.send(new MainEvent.SaveFileRequested(filename, path -> {
             getView().setExporting(true);
 
-            var exportTask = new ExportTask(path, archive, asset);
+            var exportTask = new ExportTask<>(exporter, archive, asset, path);
             CompletableFuture
-                .runAsync(exportTask::export0)
+                .runAsync(exportTask::export)
                 .handle((_, _) -> {
                     getView().setExporting(false);
                     return null;
@@ -151,7 +160,7 @@ public final class MainPresenter extends AbstractFXPresenter<MainView> {
 
     public void setGame(Game game) {
         this.game = game;
-        getView().setArchives(game.archiveNames());
+        getView().setArchives(game.archiveNames().stream().sorted().toList());
     }
 
     public void focusOnSearch() {

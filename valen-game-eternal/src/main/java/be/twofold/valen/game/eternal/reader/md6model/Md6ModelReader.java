@@ -4,6 +4,7 @@ import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.geometry.*;
 import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.material.*;
+import be.twofold.valen.core.math.*;
 import be.twofold.valen.game.eternal.*;
 import be.twofold.valen.game.eternal.reader.geometry.*;
 import be.twofold.valen.game.eternal.resource.*;
@@ -27,7 +28,7 @@ public final class Md6ModelReader implements AssetReader<Model, EternalAsset> {
 
     @Override
     public boolean canRead(EternalAsset resource) {
-        return resource.key().type() == ResourceType.BaseModel;
+        return resource.id().type() == ResourceType.BaseModel;
     }
 
     @Override
@@ -49,11 +50,11 @@ public final class Md6ModelReader implements AssetReader<Model, EternalAsset> {
                     materials.put(materialName, material);
                 }
                 meshes.set(i, meshes.get(i)
-                    .withName(meshInfo.meshName())
-                    .withMaterial(materials.get(materialName)));
+                    .withName(Optional.of(meshInfo.meshName()))
+                    .withMaterial(Optional.of(materials.get(materialName))));
             }
         }
-        return new Model(meshes, skeleton, resource.id().fullName());
+        return new Model(meshes, Optional.of(skeleton), Optional.of(resource.id().fullName()), Axis.Z);
     }
 
     private List<Mesh> readMeshes(Md6Model md6, long hash) throws IOException {
@@ -74,8 +75,8 @@ public final class Md6ModelReader implements AssetReader<Model, EternalAsset> {
         var layouts = md6.layouts().get(lod).memoryLayouts();
 
         var identity = (hash << 4) | lod;
-        var bytes = archive.readStream(identity, uncompressedSize);
-        try (var source = DataSource.fromArray(bytes)) {
+        var buffer = archive.readStream(identity, uncompressedSize);
+        try (var source = DataSource.fromBuffer(buffer)) {
             return GeometryReader.readStreamedMesh(source, lodInfos, layouts, true);
         }
     }
@@ -92,7 +93,7 @@ public final class Md6ModelReader implements AssetReader<Model, EternalAsset> {
         for (var i = 0; i < meshes.size(); i++) {
             var meshInfo = md6.meshInfos().get(i);
             var joints = meshes.get(i)
-                .getBuffer(Semantic.Joints0)
+                .getBuffer(Semantic.JOINTS0)
                 .orElseThrow();
 
             // Just assume it's a byte buffer, because we read it as such

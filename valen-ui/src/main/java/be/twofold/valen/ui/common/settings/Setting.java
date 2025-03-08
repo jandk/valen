@@ -2,6 +2,7 @@ package be.twofold.valen.ui.common.settings;
 
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.function.*;
 
 public final class Setting<T> {
     private final Set<ChangeListener<T>> listeners = new CopyOnWriteArraySet<>();
@@ -20,10 +21,17 @@ public final class Setting<T> {
         return Optional.ofNullable(value);
     }
 
-    public void set(final T value) {
+    public void set(T value) {
         var oldValue = this.value;
         this.value = value;
         listeners.forEach(l -> l.changed(oldValue, value));
+    }
+
+    public T whenEmpty(Supplier<T> defaultSupplier) {
+        if (value == null) {
+            set(defaultSupplier.get());
+        }
+        return value;
     }
 
     public void addListener(ChangeListener<T> listener) {

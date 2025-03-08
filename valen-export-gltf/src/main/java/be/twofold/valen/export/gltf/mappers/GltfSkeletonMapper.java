@@ -41,7 +41,7 @@ public final class GltfSkeletonMapper {
                 .toList();
 
             var jointId = buildSkeletonJoint(bone, jointChildren,
-                /*bone.parent() == -1 ? Optional.of(this.rotation) :*/ Optional.empty());
+                bone.parent() == -1 ? Optional.of(skeleton.upAxis().rotateTo(Axis.Y)) : Optional.empty());
 
             jointIndices.add(jointId);
             if (bone.parent() == -1) {
