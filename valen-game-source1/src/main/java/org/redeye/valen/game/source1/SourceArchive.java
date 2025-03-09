@@ -1,6 +1,10 @@
-package org.redeye.valen.game.source1.providers;
+package org.redeye.valen.game.source1;
 
 import be.twofold.valen.core.game.*;
+import be.twofold.valen.core.io.*;
+import org.redeye.valen.game.source1.providers.*;
+import org.redeye.valen.game.source1.readers.*;
+import org.redeye.valen.game.source1.readers.vtf.*;
 import org.redeye.valen.game.source1.utils.keyvalues.*;
 import org.redeye.valen.game.source1.vpk.*;
 
@@ -9,11 +13,18 @@ import java.nio.file.*;
 import java.util.*;
 import java.util.stream.*;
 
-public class GameinfoProvider implements Provider {
-    private final String name;
-    private final List<Provider> providers = new ArrayList<>();
+public final class SourceArchive implements Archive {
+    private static final AssetReaders<SourceAsset> READERS = new AssetReaders<>(List.of(
+        new KeyValueReader(),
+        new VmtReader(),
+        new VtfReader()
+    ));
 
-    public GameinfoProvider(Path path) throws IOException {
+    private final String name;
+    private final Container<SourceAssetID, SourceAsset> container;
+
+    // TODO: Move this logic to gameinfo reader
+    public SourceArchive(Path path) throws IOException {
         this.name = path.getParent().getFileName().toString();
 
         String modRoot = path.getParent().toString();
@@ -31,6 +42,7 @@ public class GameinfoProvider implements Provider {
             .flatMap(v -> parseSearchPath(v.asString(), modRoot, gameRoot).stream())
             .collect(Collectors.toCollection(LinkedHashSet::new));
 
+        List<Container<SourceAssetID, SourceAsset>> containers = new ArrayList<>();
         for (Path searchPath : searchPaths) {
             if (searchPath.getFileName().toString().endsWith(".vpk")) {
                 if (Files.notExists(searchPath)) {
@@ -39,12 +51,13 @@ public class GameinfoProvider implements Provider {
                     searchPath = searchPath.getParent().resolve(name + "_dir.vpk");
                 }
                 if (Files.exists(searchPath)) {
-                    providers.add(new VpkArchive(searchPath, this));
+                    containers.add(new VpkCollection(searchPath));
                 }
             } else {
-                providers.add(new FolderProvider(searchPath, this));
+                containers.add(new FolderProvider(searchPath));
             }
         }
+        container = Container.compose(containers);
     }
 
     public static List<Path> parseSearchPath(String searchPath, String gameinfoPath, String gameRoot) {
@@ -105,36 +118,29 @@ public class GameinfoProvider implements Provider {
         return expandedPaths;
     }
 
-    @Override
     public String getName() {
         return name;
     }
 
     @Override
-    public Provider getParent() {
-        return this;
-    }
-
-    @Override
     public Stream<? extends Asset> assets() {
-        return providers.stream()
-            .flatMap(Archive::assets);
+        return container.getAll();
     }
 
     @Override
     public Optional<? extends Asset> getAsset(AssetID identifier) {
-        return providers.stream()
-            .flatMap(provider -> provider.getAsset(identifier).stream())
-            .findFirst();
+        return container.get((SourceAssetID) identifier);
     }
 
     @Override
     public <T> T loadAsset(AssetID identifier, Class<T> clazz) throws IOException {
-        for (Provider provider : providers) {
-            if (provider.exists(identifier)) {
-                return provider.loadAsset(identifier, clazz);
-            }
+        var asset = container.get((SourceAssetID) identifier)
+            .orElseThrow(FileNotFoundException::new);
+
+        var buffer = container.read(asset.id());
+
+        try (var source = DataSource.fromBuffer(buffer)) {
+            return READERS.read(asset, source, clazz);
         }
-        return null;
     }
 }

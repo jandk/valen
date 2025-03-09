@@ -1,67 +1,59 @@
 package org.redeye.valen.game.source1.providers;
 
 import be.twofold.valen.core.game.*;
-import be.twofold.valen.core.io.*;
 import org.redeye.valen.game.source1.*;
 
 import java.io.*;
+import java.nio.*;
 import java.nio.file.*;
 import java.util.*;
+import java.util.function.*;
 import java.util.stream.*;
 
-public class FolderProvider implements Provider {
+public class FolderProvider implements Container<SourceAssetID, SourceAsset> {
     private final Path root;
-    private final Map<AssetID, SourceAsset> assets = new HashMap<>();
-    private final Provider parent;
+    private final String name;
+    private final Map<SourceAssetID, SourceAsset> assets;
 
-    public FolderProvider(Path root, Provider parent) {
+    public FolderProvider(Path root) throws IOException {
         this.root = root;
-        this.parent = parent;
+        this.name = root.getFileName().toString();
+        try (var stream = Files.walk(root, 100)) {
+            this.assets = stream
+                .filter(Files::isRegularFile)
+                .map(path -> {
+                    return mapToAsset(root, path);
+                })
+                .collect(Collectors.toUnmodifiableMap(SourceAsset::id, Function.identity()));
+        }
+    }
 
-        try (var files = Files.walk(root, 100)) {
-            files.forEach(file -> {
-                try {
-                    if (!Files.isDirectory(file)) {
-                        String relativePath = root.relativize(file).toString().replace('\\', '/');
-                        SourceAssetID id = new SourceAssetID(root.getFileName().toString(), relativePath);
-                        assets.put(id, new SourceAsset(id, id.identifyAssetType(), Math.toIntExact(Files.size(file)), Map.of()));
-                    }
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-            });
+    private SourceAsset mapToAsset(Path root, Path path) {
+        try {
+            var relativePath = root.relativize(path).toString().replace('\\', '/');
+            var assetID = new SourceAssetID(relativePath, name);
+            return new SourceAsset.File(assetID, Math.toIntExact(Files.size(path)));
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new UncheckedIOException(e);
         }
     }
 
     @Override
-    public String getName() {
-        return root.getFileName().toString();
+    public Optional<SourceAsset> get(SourceAssetID key) {
+        return Optional.ofNullable(assets.get(key));
     }
 
     @Override
-    public Provider getParent() {
-        return parent == null ? this : parent.getParent();
-    }
-
-    @Override
-    public Stream<? extends Asset> assets() {
+    public Stream<SourceAsset> getAll() {
         return assets.values().stream();
     }
 
     @Override
-    public Optional<? extends Asset> getAsset(AssetID identifier) {
-        return Optional.ofNullable(assets.get(identifier));
+    public ByteBuffer read(SourceAssetID key, int uncompressedSize) throws IOException {
+        return ByteBuffer.wrap(Files.readAllBytes(root.resolve(key.fullName())));
     }
 
     @Override
-    public <T> T loadAsset(AssetID identifier, Class<T> clazz) throws IOException {
-        var asset = assets.get(identifier);
-        var bytes = Files.readAllBytes(root.resolve(identifier.fullName()));
-
-        try (var source = DataSource.fromArray(bytes)) {
-            return readers.read(asset, source, clazz);
-        }
+    public void close() {
     }
 }

@@ -18,45 +18,12 @@ record VpkDirectory(
         source.skip(20); // eeh, fuck it
 
         var entries = new ArrayList<VpkEntry>();
-        while (true) {
-            var extension = source.readCString();
-            if (extension.isEmpty()) {
-                break;
-            }
 
-            while (true) {
-                var directory = source.readCString();
-                if (directory.isEmpty()) {
-                    break;
-                }
-
-                while (true) {
-                    var filename = source.readCString();
-                    if (filename.isEmpty()) {
-                        break;
-                    }
-
-                    int crc = source.readInt();
-                    short preloadBytes = source.readShort();
-                    short archiveIndex = source.readShort();
-                    int entryOffset = source.readInt();
-                    int entryLength = source.readInt();
-                    source.expectShort((short) 0xFFFF);
-
-                    var fullName = (directory.isBlank() ? "" : directory + "/")
-                        + filename
-                        + (extension.isBlank() ? "" : "." + extension);
-
-                    var entry = new VpkEntry(
-                        fullName,
-                        crc,
-                        preloadBytes,
-                        archiveIndex,
-                        entryOffset,
-                        entryLength
-                    );
-
-                    entries.add(entry);
+        String extension, directory, filename;
+        while (!(extension = source.readCString()).isEmpty()) {
+            while (!(directory = source.readCString()).isEmpty()) {
+                while (!(filename = source.readCString()).isEmpty()) {
+                    entries.add(VpkEntry.read(source, extension, directory, filename));
                 }
             }
         }
