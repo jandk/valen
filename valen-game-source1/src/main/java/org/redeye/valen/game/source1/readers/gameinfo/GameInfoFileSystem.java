@@ -1,6 +1,6 @@
 package org.redeye.valen.game.source1.readers.gameinfo;
 
-import org.redeye.valen.game.source1.keyvalue.*;
+import org.redeye.valen.game.source1.readers.keyvalue.*;
 
 import java.io.*;
 import java.util.*;

@@ -1,23 +1,23 @@
-package org.redeye.valen.game.source1.keyvalue;
+package org.redeye.valen.game.source1.readers.keyvalue;
 
 import be.twofold.valen.core.util.*;
 
-public final class KeyValueLexer {
+final class KeyValueLexer {
     private final Source source;
     private KeyValueToken current;
 
-    public KeyValueLexer(Source source) {
+    KeyValueLexer(Source source) {
         this.source = Check.notNull(source, "source");
     }
 
-    public KeyValueToken peekToken() {
+    KeyValueToken peekToken() {
         if (current == null) {
             current = doNextToken();
         }
         return current;
     }
 
-    public KeyValueToken nextToken() {
+    KeyValueToken nextToken() {
         KeyValueToken result = peekToken();
         current = null;
         return result;

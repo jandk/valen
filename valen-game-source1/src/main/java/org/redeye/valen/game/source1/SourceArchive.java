@@ -2,11 +2,12 @@ package org.redeye.valen.game.source1;
 
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.io.*;
-import org.redeye.valen.game.source1.providers.*;
-import org.redeye.valen.game.source1.readers.*;
+import org.redeye.valen.game.source1.readers.folder.*;
 import org.redeye.valen.game.source1.readers.gameinfo.*;
+import org.redeye.valen.game.source1.readers.keyvalue.*;
+import org.redeye.valen.game.source1.readers.vmt.*;
+import org.redeye.valen.game.source1.readers.vpk.*;
 import org.redeye.valen.game.source1.readers.vtf.*;
-import org.redeye.valen.game.source1.vpk.*;
 
 import java.io.*;
 import java.nio.file.*;

@@ -1,17 +1,17 @@
-package org.redeye.valen.game.source1.keyvalue;
+package org.redeye.valen.game.source1.readers.keyvalue;
 
 import be.twofold.valen.core.util.*;
 
 import java.util.*;
 
-public final class KeyValueParser {
+final class KeyValueParser {
     private final KeyValueLexer lexer;
 
-    public KeyValueParser(KeyValueLexer lexer) {
+    KeyValueParser(KeyValueLexer lexer) {
         this.lexer = Check.notNull(lexer, "lexer");
     }
 
-    public KeyValue.Obj parse() {
+    KeyValue.Obj parse() {
         var key = expectString();
         if (key.equals("#include")) {
             var filename = expectString();

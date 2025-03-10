@@ -2,7 +2,7 @@ package org.redeye.valen.game.source1;
 
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.util.*;
-import org.redeye.valen.game.source1.vpk.*;
+import org.redeye.valen.game.source1.readers.vpk.*;
 
 import java.util.*;
 

@@ -1,4 +1,4 @@
-package org.redeye.valen.game.source1.vpk;
+package org.redeye.valen.game.source1.readers.vpk;
 
 import be.twofold.valen.core.io.*;
 

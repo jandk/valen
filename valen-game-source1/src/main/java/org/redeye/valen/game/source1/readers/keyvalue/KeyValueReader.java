@@ -1,14 +1,13 @@
-package org.redeye.valen.game.source1.readers;
+package org.redeye.valen.game.source1.readers.keyvalue;
 
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.io.*;
 import org.redeye.valen.game.source1.*;
-import org.redeye.valen.game.source1.utils.keyvalues.*;
 
 import java.io.*;
 import java.util.*;
 
-public final class KeyValueReader implements AssetReader<VdfValue, SourceAsset> {
+public final class KeyValueReader implements AssetReader<KeyValue, SourceAsset> {
     private static final Set<String> SUPPORTED = Set.of("res", "vdf", "vmt");
 
     @Override
@@ -17,8 +16,8 @@ public final class KeyValueReader implements AssetReader<VdfValue, SourceAsset> 
     }
 
     @Override
-    public VdfValue read(DataSource source, SourceAsset asset) throws IOException {
+    public KeyValue read(DataSource source, SourceAsset asset) throws IOException {
         var string = source.readString(Math.toIntExact(source.size()));
-        return new VdfReader(new StringReader(string)).parse();
+        return KeyValue.parse(string);
     }
 }

@@ -1,4 +1,4 @@
-package org.redeye.valen.game.source1.keyvalue;
+package org.redeye.valen.game.source1.readers.keyvalue;
 
 import java.util.*;
 
