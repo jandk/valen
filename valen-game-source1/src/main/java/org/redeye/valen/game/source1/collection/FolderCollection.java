@@ -1,4 +1,4 @@
-package org.redeye.valen.game.source1.readers.folder;
+package org.redeye.valen.game.source1.collection;
 
 import be.twofold.valen.core.game.*;
 import org.redeye.valen.game.source1.*;
@@ -10,20 +10,18 @@ import java.util.*;
 import java.util.function.*;
 import java.util.stream.*;
 
-public class FolderProvider implements Container<SourceAssetID, SourceAsset> {
+public final class FolderCollection implements Container<SourceAssetID, SourceAsset> {
     private final Path root;
     private final String name;
     private final Map<SourceAssetID, SourceAsset> assets;
 
-    public FolderProvider(Path root) throws IOException {
+    public FolderCollection(Path root) throws IOException {
         this.root = root;
         this.name = root.getFileName().toString();
         try (var stream = Files.walk(root, 100)) {
             this.assets = stream
                 .filter(Files::isRegularFile)
-                .map(path -> {
-                    return mapToAsset(root, path);
-                })
+                .map(path -> mapToAsset(root, path))
                 .collect(Collectors.toUnmodifiableMap(SourceAsset::id, Function.identity()));
         }
     }

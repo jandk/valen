@@ -1,9 +1,10 @@
-package org.redeye.valen.game.source1.readers.vpk;
+package org.redeye.valen.game.source1.collection;
 
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.util.*;
 import org.redeye.valen.game.source1.*;
+import org.redeye.valen.game.source1.readers.vpk.*;
 import org.slf4j.*;
 
 import java.io.*;

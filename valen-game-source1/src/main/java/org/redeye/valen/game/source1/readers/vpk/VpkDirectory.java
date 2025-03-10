@@ -5,14 +5,14 @@ import be.twofold.valen.core.io.*;
 import java.io.*;
 import java.util.*;
 
-record VpkDirectory(
+public record VpkDirectory(
     List<VpkEntry> entries
 ) {
-    VpkDirectory {
+    public VpkDirectory {
         entries = List.copyOf(entries);
     }
 
-    static VpkDirectory read(DataSource source) throws IOException {
+    public static VpkDirectory read(DataSource source) throws IOException {
         source.expectInt(0x55AA1234);
         source.expectInt(2); // Only version 2 for now
         source.skip(20); // eeh, fuck it

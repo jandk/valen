@@ -2,11 +2,10 @@ package org.redeye.valen.game.source1;
 
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.io.*;
-import org.redeye.valen.game.source1.readers.folder.*;
+import org.redeye.valen.game.source1.collection.*;
 import org.redeye.valen.game.source1.readers.gameinfo.*;
 import org.redeye.valen.game.source1.readers.keyvalue.*;
 import org.redeye.valen.game.source1.readers.vmt.*;
-import org.redeye.valen.game.source1.readers.vpk.*;
 import org.redeye.valen.game.source1.readers.vtf.*;
 
 import java.io.*;
@@ -48,7 +47,7 @@ public final class SourceArchive implements Archive {
                     containers.add(new VpkCollection(searchPath));
                 }
             } else {
-                containers.add(new FolderProvider(searchPath));
+                containers.add(new FolderCollection(searchPath));
             }
         }
         container = Container.compose(containers);
