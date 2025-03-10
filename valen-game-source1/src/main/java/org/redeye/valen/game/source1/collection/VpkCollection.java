@@ -28,7 +28,7 @@ public final class VpkCollection implements Container<SourceAssetID, SourceAsset
         VpkDirectory directory = VpkDirectory.read(source);
 
         this.index = directory.entries().stream()
-            .map(entry -> new SourceAsset.Vpk(new SourceAssetID(entry.name(), null), entry))
+            .map(entry -> new SourceAsset.Vpk(new SourceAssetID(entry.name()), entry))
             .collect(Collectors.toUnmodifiableMap(SourceAsset::id, Function.identity()));
 
         int maxArchiveIndex = directory.entries().stream()

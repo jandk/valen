@@ -4,4 +4,6 @@ module valen.game.source {
 
     provides be.twofold.valen.core.game.GameFactory with
         org.redeye.valen.game.source1.SourceGameFactory;
+
+    opens org.redeye.valen.game.source1.readers.vtf;
 }

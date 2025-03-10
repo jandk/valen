@@ -3,6 +3,7 @@ package org.redeye.valen.game.source1.readers.vtf;
 import be.twofold.valen.core.texture.*;
 
 public enum VtfImageFormat {
+    UNKNOWN(-1),
     RGBA8888(0),
     ABGR8888(1),
     RGB888(2),

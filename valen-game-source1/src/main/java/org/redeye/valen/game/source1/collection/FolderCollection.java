@@ -12,12 +12,10 @@ import java.util.stream.*;
 
 public final class FolderCollection implements Container<SourceAssetID, SourceAsset> {
     private final Path root;
-    private final String name;
     private final Map<SourceAssetID, SourceAsset> assets;
 
     public FolderCollection(Path root) throws IOException {
         this.root = root;
-        this.name = root.getFileName().toString();
         try (var stream = Files.walk(root, 100)) {
             this.assets = stream
                 .filter(Files::isRegularFile)
@@ -29,7 +27,7 @@ public final class FolderCollection implements Container<SourceAssetID, SourceAs
     private SourceAsset mapToAsset(Path root, Path path) {
         try {
             var relativePath = root.relativize(path).toString().replace('\\', '/');
-            var assetID = new SourceAssetID(relativePath, name);
+            var assetID = new SourceAssetID(relativePath);
             return new SourceAsset.File(assetID, Math.toIntExact(Files.size(path)));
         } catch (IOException e) {
             throw new UncheckedIOException(e);

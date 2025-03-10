@@ -3,8 +3,7 @@ package org.redeye.valen.game.source1;
 import be.twofold.valen.core.game.*;
 
 public record SourceAssetID(
-    String name,
-    String source
+    String name
 ) implements AssetID {
     @Override
     public String fullName() {
