@@ -7,19 +7,14 @@ import java.nio.file.*;
 import java.util.*;
 
 public final class SourceGameFactory implements GameFactory<SourceGame> {
-    private static final Map<String, List<String>> MODS = Map.of(
-        "hl2.exe", List.of("hl2", "portal"),
-        "tf2.exe", List.of("tf2")
-    );
-
     @Override
     public Set<String> executableNames() {
-        return MODS.keySet();
+        return Set.of("hl2.exe", "tf2.exe");
     }
 
     @Override
     public SourceGame load(Path path) throws IOException {
-        return new SourceGame(path.getParent(), findMod(path).orElseThrow());
+        return new SourceGame(path.getParent(), findMods(path.getParent()));
     }
 
     @Override
@@ -27,12 +22,17 @@ public final class SourceGameFactory implements GameFactory<SourceGame> {
         if (!GameFactory.super.canLoad(path)) {
             return false;
         }
-        return findMod(path).isPresent();
+        return !findMods(path.getParent()).isEmpty();
     }
 
-    private Optional<String> findMod(Path path) {
-        return MODS.get(path.getFileName().toString()).stream()
-            .filter(mod -> Files.isDirectory(path.getParent().resolve(mod).resolve("bin")))
-            .findFirst();
+    private List<String> findMods(Path basePath) {
+        try (var stream = Files.list(basePath)) {
+            return stream
+                .filter(path -> Files.isRegularFile(path.resolve("gameinfo.txt")))
+                .map(path -> path.getFileName().toString())
+                .toList();
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 }

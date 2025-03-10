@@ -1,26 +1,28 @@
 package org.redeye.valen.game.source1;
 
 import be.twofold.valen.core.game.*;
+import be.twofold.valen.core.util.*;
 
 import java.io.*;
 import java.nio.file.*;
 import java.util.*;
 
-public final class SourceGame implements Game {
-    private final SourceArchive provider;
-
-    public SourceGame(Path path, String mod) throws IOException {
-        var resolved = path.resolve(mod);
-        this.provider = new SourceArchive(resolved);
+public record SourceGame(
+    Path path,
+    List<String> mods
+) implements Game {
+    public SourceGame {
+        Check.notNull(path, "path");
+        mods = List.copyOf(mods);
     }
 
     @Override
     public List<String> archiveNames() {
-        return List.of(provider.getName());
+        return mods;
     }
 
     @Override
-    public Archive loadArchive(String name) {
-        return provider;
+    public Archive loadArchive(String name) throws IOException {
+        return new SourceArchive(path.resolve(name));
     }
 }
