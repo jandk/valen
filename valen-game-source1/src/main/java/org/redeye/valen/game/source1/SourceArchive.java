@@ -4,8 +4,8 @@ import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.io.*;
 import org.redeye.valen.game.source1.providers.*;
 import org.redeye.valen.game.source1.readers.*;
+import org.redeye.valen.game.source1.readers.gameinfo.*;
 import org.redeye.valen.game.source1.readers.vtf.*;
-import org.redeye.valen.game.source1.utils.keyvalues.*;
 import org.redeye.valen.game.source1.vpk.*;
 
 import java.io.*;
@@ -23,27 +23,20 @@ public final class SourceArchive implements Archive {
     private final String name;
     private final Container<SourceAssetID, SourceAsset> container;
 
-    // TODO: Move this logic to gameinfo reader
-    public SourceArchive(Path path) throws IOException {
-        this.name = path.getParent().getFileName().toString();
+    public SourceArchive(Path modRoot) throws IOException {
+        this.name = modRoot.getFileName().toString();
+        var gameRoot = modRoot.getParent();
 
-        String modRoot = path.getParent().toString();
-        String gameRoot = path.getParent().getParent().toString();
-        var vdfReader = new VdfReader(Files.newBufferedReader(path));
-        var gameinfoData = vdfReader.parse();
-
-        var rawSearchPaths = VdfPath
-            .of("gameinfo.filesystem.searchpaths.[0]")
-            .lookup(gameinfoData).orElseThrow().asObject();
-
-        var searchPaths = Stream.of("game", "mod", "platform")
-            .flatMap(s -> rawSearchPaths.get(s).asArray().stream())
-            .filter(Objects::nonNull)
-            .flatMap(v -> parseSearchPath(v.asString(), modRoot, gameRoot).stream())
-            .collect(Collectors.toCollection(LinkedHashSet::new));
+        var wanted = Set.of("game", "mod", "platform");
+        var gameInfo = GameInfo.read(modRoot.resolve("gameinfo.txt"));
+        var searchPaths = gameInfo.fileSystem().searchPaths().stream()
+            .filter(e -> wanted.contains(e.getKey()))
+            .flatMap(e -> parseSearchPath(e.getValue(), gameRoot, modRoot).stream())
+            .distinct()
+            .toList();
 
         List<Container<SourceAssetID, SourceAsset>> containers = new ArrayList<>();
-        for (Path searchPath : searchPaths) {
+        for (var searchPath : searchPaths) {
             if (searchPath.getFileName().toString().endsWith(".vpk")) {
                 if (Files.notExists(searchPath)) {
                     var name = searchPath.getFileName().toString();
@@ -60,62 +53,43 @@ public final class SourceArchive implements Archive {
         container = Container.compose(containers);
     }
 
-    public static List<Path> parseSearchPath(String searchPath, String gameinfoPath, String gameRoot) {
-        if (searchPath == null || searchPath.isEmpty()) {
-            return Collections.emptyList();
+    public static List<Path> parseSearchPath(String pathString, Path gameRoot, Path modRoot) {
+        // Check for a wildcard first
+        boolean wildcard = false;
+        if (pathString.endsWith("*")) {
+            pathString = pathString.substring(0, pathString.length() - 1);
+            wildcard = true;
         }
-        if (!(gameinfoPath.endsWith("/") || gameinfoPath.endsWith("\\"))) {
-            gameinfoPath += "/";
+
+        // Or a full stop
+        boolean fullStop = false;
+        if (pathString.endsWith(".")) {
+            pathString = pathString.substring(0, pathString.length() - 1);
+            fullStop = true;
         }
-        if (!(gameRoot.endsWith("/") || gameRoot.endsWith("\\"))) {
-            gameRoot += "/";
-        }
-        var path = searchPath.trim();
-        var paths = new ArrayList<Path>();
+
         // Replace placeholders with actual values
-        if (path.contains("|gameinfo_path|")) {
-            path = path.replace("|gameinfo_path|", gameinfoPath);
-        } else if (path.contains("|all_source_engine_paths|")) {
-            path = path.replace("|all_source_engine_paths|", gameRoot);
-        }
-        // If the path has no placeholders, assume it's relative to the game root
-        else if (!path.contains("|")) {
-            path = gameRoot + "/" + path;
-        }
-
-        // Handle directories that need expansion (where the path ends with a directory containing "*")
-        if (path.endsWith("*")) {
-            Path directory = Path.of(path.substring(0, path.length() - 1));
-            if (Files.isDirectory(directory)) {
-                paths.addAll(expandDirectory(directory));
-            }
+        Path path;
+        if (pathString.startsWith("|gameinfo_path|")) {
+            path = fullStop ? modRoot : modRoot.resolve(pathString.substring("|gameinfo_path|".length()));
+        } else if (pathString.contains("|all_source_engine_paths|")) {
+            path = fullStop ? gameRoot : gameRoot.resolve(pathString.substring("|all_source_engine_paths|".length()));
         } else {
-            if (path.endsWith(".")) {
-                path = path.substring(0, path.length() - 1);
-            }
-            paths.add(Paths.get(path).toAbsolutePath());
+            path = gameRoot.resolve(pathString);
         }
-        return paths;
-    }
 
-    /**
-     * Expands the contents of a directory into a list of paths.
-     *
-     * @param directory The directory to expand.
-     * @return A list of paths within the directory.
-     */
-    private static List<Path> expandDirectory(Path directory) {
-        List<Path> expandedPaths = new ArrayList<>();
-
-        try (DirectoryStream<Path> stream = Files.newDirectoryStream(directory)) {
-            for (Path entry : stream) {
-                expandedPaths.add(entry.toAbsolutePath());
-            }
+        // Scan in case of wildcard
+        if (!wildcard) {
+            return List.of(path);
+        }
+        if (!Files.isDirectory(path)) {
+            return List.of();
+        }
+        try (var stream = Files.list(path)) {
+            return stream.toList();
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new UncheckedIOException(e);
         }
-
-        return expandedPaths;
     }
 
     public String getName() {

@@ -10,7 +10,7 @@ public final class SourceGame implements Game {
     private final SourceArchive provider;
 
     public SourceGame(Path path, String mod) throws IOException {
-        var resolved = path.resolve(mod).resolve("gameinfo.txt");
+        var resolved = path.resolve(mod);
         this.provider = new SourceArchive(resolved);
     }
 
