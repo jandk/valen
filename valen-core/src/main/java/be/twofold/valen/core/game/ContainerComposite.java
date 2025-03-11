@@ -6,27 +6,27 @@ import java.util.*;
 import java.util.stream.*;
 
 final class ContainerComposite<K, V> implements Container<K, V> {
-    private final List<Container<K, V>> files;
+    private final List<Container<K, V>> containers;
 
     public ContainerComposite(List<Container<K, V>> containers) {
-        files = List.copyOf(containers);
+        this.containers = List.copyOf(containers);
     }
 
     @Override
     public Optional<V> get(K key) {
-        return files.stream()
+        return containers.stream()
             .flatMap(file -> file.get(key).stream())
             .findFirst();
     }
 
     @Override
     public Stream<V> getAll() {
-        return files.stream().flatMap(Container::getAll);
+        return containers.stream().flatMap(Container::getAll);
     }
 
     @Override
     public ByteBuffer read(K key, int uncompressedSize) throws IOException {
-        for (var file : files) {
+        for (var file : containers) {
             if (file.get(key).isPresent()) {
                 return file.read(key, uncompressedSize);
             }
@@ -36,7 +36,7 @@ final class ContainerComposite<K, V> implements Container<K, V> {
 
     @Override
     public void close() throws IOException {
-        for (var file : files) {
+        for (var file : containers) {
             file.close();
         }
     }
