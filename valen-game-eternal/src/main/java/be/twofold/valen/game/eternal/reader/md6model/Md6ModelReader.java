@@ -46,12 +46,14 @@ public final class Md6ModelReader implements AssetReader<Model, EternalAsset> {
                 var materialFile = "generated/decls/material2/" + materialName + ".decl";
                 if (!materials.containsKey(materialName)) {
                     var assetId = EternalAssetID.from(materialFile, ResourceType.RsStreamFile);
-                    var material = archive.loadAsset(assetId, Material.class);
-                    materials.put(materialName, material);
+                    if (archive.getAsset(assetId).isPresent()) {
+                        var material = archive.loadAsset(assetId, Material.class);
+                        materials.put(materialName, material);
+                    }
                 }
                 meshes.set(i, meshes.get(i)
                     .withName(Optional.of(meshInfo.meshName()))
-                    .withMaterial(Optional.of(materials.get(materialName))));
+                    .withMaterial(Optional.ofNullable(materials.get(materialName))));
             }
         }
         return new Model(meshes, Optional.of(skeleton), Optional.of(resource.id().fullName()), Axis.Z);

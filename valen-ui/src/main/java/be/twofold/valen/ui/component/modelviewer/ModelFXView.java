@@ -35,13 +35,13 @@ public final class ModelFXView implements ModelView, FXView {
     }
 
     @Override
-    public void setMeshes(List<TriangleMesh> meshes, Axis upAxis) {
+    public void setMeshes(List<MeshMaterial> meshesAndMaterials, Axis upAxis) {
         root.getChildren().subList(1, root.getChildren().size()).clear();
-        if (meshes.isEmpty()) {
+        if (meshesAndMaterials.isEmpty()) {
             return;
         }
 
-        var meshViews = meshes.stream()
+        var meshViews = meshesAndMaterials.stream()
             .map(this::toMeshView)
             .toList();
 
@@ -50,8 +50,9 @@ public final class ModelFXView implements ModelView, FXView {
         root.getChildren().addAll(meshViews);
     }
 
-    private MeshView toMeshView(TriangleMesh mesh) {
-        var meshView = new MeshView(mesh);
+    private MeshView toMeshView(MeshMaterial mesh) {
+        var meshView = new MeshView(mesh.mesh());
+        mesh.material().ifPresent(meshView::setMaterial);
         meshView.setCullFace(CullFace.NONE);
         return meshView;
     }

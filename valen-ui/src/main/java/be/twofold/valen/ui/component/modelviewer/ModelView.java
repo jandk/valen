@@ -1,10 +1,17 @@
 package be.twofold.valen.ui.component.modelviewer;
 
 import be.twofold.valen.core.math.*;
+import javafx.scene.paint.*;
 import javafx.scene.shape.*;
 
 import java.util.*;
 
 public interface ModelView {
-    void setMeshes(List<TriangleMesh> meshes, Axis upAxis);
+    void setMeshes(List<MeshMaterial> meshesAndMaterials, Axis upAxis);
+
+    record MeshMaterial(
+        TriangleMesh mesh,
+        Optional<Material> material
+    ) {
+    }
 }
