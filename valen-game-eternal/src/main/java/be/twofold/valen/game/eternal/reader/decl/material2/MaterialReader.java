@@ -208,7 +208,7 @@ public final class MaterialReader implements AssetReader<Material, EternalAsset>
         var name = builder.toString();
         var resourceName = new ResourceName(name);
         var resourceKey = EternalAssetID.from(resourceName, ResourceType.Image);
-        var resource = archive.getAsset(resourceKey);
+        var resource = archive.get(resourceKey);
         if (resource.isEmpty()) {
             log.warn("Missing image file: {}", name);
             return null;

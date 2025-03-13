@@ -3,7 +3,6 @@ package be.twofold.valen.game.eternal.reader.staticmodel;
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.geometry.*;
 import be.twofold.valen.core.io.*;
-import be.twofold.valen.core.material.*;
 import be.twofold.valen.core.math.*;
 import be.twofold.valen.core.util.*;
 import be.twofold.valen.game.eternal.*;
@@ -37,19 +36,7 @@ public final class StaticModelReader implements AssetReader<Model, EternalAsset>
         var meshes = new ArrayList<>(readMeshes(model, source, resource.hash()));
 
         if (readMaterials) {
-            var materials = new HashMap<String, Material>();
-            for (int i = 0; i < meshes.size(); i++) {
-                var meshInfo = model.meshInfos().get(i);
-                var materialName = meshInfo.mtlDecl();
-                var materialFile = "generated/decls/material2/" + materialName + ".decl";
-                if (!materials.containsKey(materialName)) {
-                    var assetId = EternalAssetID.from(materialFile, ResourceType.RsStreamFile);
-                    var material = archive.loadAsset(assetId, Material.class);
-                    materials.put(materialName, material);
-                }
-                meshes.set(i, meshes.get(i)
-                    .withMaterial(Optional.of(materials.get(materialName))));
-            }
+            Materials.apply(archive, meshes, model.meshInfos(), StaticModelMeshInfo::mtlDecl, _ -> null);
         }
         return new Model(meshes, Optional.empty(), Optional.of(resource.id().fullName()), Axis.Z);
     }

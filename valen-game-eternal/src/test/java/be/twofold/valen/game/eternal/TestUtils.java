@@ -23,7 +23,7 @@ public abstract class TestUtils {
     }
 
     private static void readAllInMap(EternalArchive archive, AssetReader<?, EternalAsset> reader) {
-        var entries = archive.assets()
+        var entries = archive.getAll()
             .filter(asset -> asset.size() != 0 && reader.canRead((EternalAsset) asset))
             .toList();
 

@@ -18,7 +18,7 @@ final class ExportTask<T> extends Task<Void> {
     private final Asset asset;
     private final Path path;
 
-    ExportTask(Exporter<T> exporter, Archive archive, Asset asset, Path path) {
+    ExportTask(Exporter<T> exporter, Archive<?, ?> archive, Asset asset, Path path) {
         this.exporter = Check.notNull(exporter, "exporter");
         this.archive = Check.notNull(archive, "archive");
         this.asset = Check.notNull(asset, "asset");
