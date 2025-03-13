@@ -3,7 +3,6 @@ package be.twofold.valen.game.eternal.reader.md6model;
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.geometry.*;
 import be.twofold.valen.core.io.*;
-import be.twofold.valen.core.material.*;
 import be.twofold.valen.core.math.*;
 import be.twofold.valen.game.eternal.*;
 import be.twofold.valen.game.eternal.reader.geometry.*;
@@ -39,22 +38,7 @@ public final class Md6ModelReader implements AssetReader<Model, EternalAsset> {
         var skeleton = archive.loadAsset(skeletonKey, Skeleton.class);
 
         if (readMaterials) {
-            var materials = new HashMap<String, Material>();
-            for (int i = 0; i < meshes.size(); i++) {
-                var meshInfo = model.meshInfos().get(i);
-                var materialName = meshInfo.materialName();
-                var materialFile = "generated/decls/material2/" + materialName + ".decl";
-                if (!materials.containsKey(materialName)) {
-                    var assetId = EternalAssetID.from(materialFile, ResourceType.RsStreamFile);
-                    if (archive.getAsset(assetId).isPresent()) {
-                        var material = archive.loadAsset(assetId, Material.class);
-                        materials.put(materialName, material);
-                    }
-                }
-                meshes.set(i, meshes.get(i)
-                    .withName(Optional.of(meshInfo.meshName()))
-                    .withMaterial(Optional.ofNullable(materials.get(materialName))));
-            }
+            Materials.apply(archive, meshes, model.meshInfos(), Md6ModelInfo::materialName, Md6ModelInfo::meshName);
         }
         return new Model(meshes, Optional.of(skeleton), Optional.of(resource.id().fullName()), Axis.Z);
     }
