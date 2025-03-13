@@ -31,7 +31,7 @@ public final class Materials {
             if (!materials.containsKey(materialName)) {
                 var materialFile = "generated/decls/material2/" + materialName + ".decl";
                 var assetId = EternalAssetID.from(materialFile, ResourceType.RsStreamFile);
-                if (archive.getAsset(assetId).isPresent()) {
+                if (archive.exists(assetId)) {
                     var material = archive.loadAsset(assetId, Material.class);
                     materials.put(materialName, material);
                 } else {

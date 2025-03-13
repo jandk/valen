@@ -25,10 +25,10 @@ final class ContainerComposite<K, V> implements Container<K, V> {
     }
 
     @Override
-    public ByteBuffer read(K key, int uncompressedSize) throws IOException {
+    public ByteBuffer read(K key, Integer size) throws IOException {
         for (var file : containers) {
-            if (file.get(key).isPresent()) {
-                return file.read(key, uncompressedSize);
+            if (file.exists(key)) {
+                return file.read(key, size);
             }
         }
         throw new IOException("Unknown key: " + key);

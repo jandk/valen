@@ -140,7 +140,7 @@ public final class MainPresenter extends AbstractFXPresenter<MainView> {
             return;
         }
         var predicate = buildPredicate(query, settings.assetTypes().get().orElse(Set.of()));
-        var assets = archive.assets().filter(predicate);
+        var assets = archive.getAll().filter(predicate);
         fileList.setAssets(assets);
     }
 
