@@ -57,7 +57,7 @@ public final class VpkCollection implements Container<SourceAssetID, SourceAsset
     }
 
     @Override
-    public ByteBuffer read(SourceAssetID key, int uncompressedSize) throws IOException {
+    public ByteBuffer read(SourceAssetID key, Integer size) throws IOException {
         var resource = index.get(key);
         Check.state(resource != null, () -> "Resource not found: " + key.name());
 

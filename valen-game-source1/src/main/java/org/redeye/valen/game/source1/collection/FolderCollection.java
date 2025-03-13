@@ -45,7 +45,7 @@ public final class FolderCollection implements Container<SourceAssetID, SourceAs
     }
 
     @Override
-    public ByteBuffer read(SourceAssetID key, int uncompressedSize) throws IOException {
+    public ByteBuffer read(SourceAssetID key, Integer size) throws IOException {
         return ByteBuffer.wrap(Files.readAllBytes(root.resolve(key.fullName())));
     }
 

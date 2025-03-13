@@ -13,7 +13,7 @@ import java.nio.file.*;
 import java.util.*;
 import java.util.stream.*;
 
-public final class SourceArchive implements Archive {
+public final class SourceArchive implements Archive<SourceAssetID, SourceAsset> {
     private static final AssetReaders<SourceAsset> READERS = new AssetReaders<>(List.of(
         new KeyValueReader(),
         new VmtReader(),
@@ -97,24 +97,29 @@ public final class SourceArchive implements Archive {
     }
 
     @Override
-    public Stream<? extends Asset> assets() {
+    public Optional<SourceAsset> get(SourceAssetID key) {
+        return container.get(key);
+    }
+
+    @Override
+    public Stream<SourceAsset> getAll() {
         return container.getAll();
     }
 
     @Override
-    public Optional<? extends Asset> getAsset(AssetID identifier) {
-        return container.get((SourceAssetID) identifier);
-    }
-
-    @Override
-    public <T> T loadAsset(AssetID identifier, Class<T> clazz) throws IOException {
-        var asset = container.get((SourceAssetID) identifier)
+    public <T> T loadAsset(SourceAssetID key, Class<T> clazz) throws IOException {
+        var asset = container.get(key)
             .orElseThrow(FileNotFoundException::new);
 
-        var buffer = container.read(asset.id());
+        var buffer = container.read(asset.id(), null);
 
         try (var source = DataSource.fromBuffer(buffer)) {
             return READERS.read(asset, source, clazz);
         }
+    }
+
+    @Override
+    public void close() throws IOException {
+        container.close();
     }
 }
