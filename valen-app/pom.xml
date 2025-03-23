@@ -38,7 +38,7 @@
         </dependency>
         <dependency>
             <groupId>be.twofold</groupId>
-            <artifactId>valen-game-source1</artifactId>
+            <artifactId>valen-game-source</artifactId>
         </dependency>
         <dependency>
             <groupId>be.twofold</groupId>

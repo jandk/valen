@@ -17,7 +17,7 @@
         <module>valen-format-gltf</module>
         <module>valen-format-png</module>
         <module>valen-game-eternal</module>
-        <module>valen-game-source1</module>
+        <module>valen-game-source</module>
         <module>valen-ui</module>
     </modules>
 
@@ -143,7 +143,7 @@
             </dependency>
             <dependency>
                 <groupId>be.twofold</groupId>
-                <artifactId>valen-game-source1</artifactId>
+                <artifactId>valen-game-source</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
