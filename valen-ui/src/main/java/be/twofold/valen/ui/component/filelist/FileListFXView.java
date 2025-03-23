@@ -3,10 +3,12 @@ package be.twofold.valen.ui.component.filelist;
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.ui.common.*;
 import be.twofold.valen.ui.common.event.*;
+import be.twofold.valen.ui.component.utils.*;
 import jakarta.inject.*;
 import javafx.application.*;
 import javafx.beans.property.*;
 import javafx.beans.value.*;
+import javafx.collections.*;
 import javafx.scene.*;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
@@ -77,13 +79,19 @@ public final class FileListFXView implements FileListView, FXView {
     }
 
     @Override
-    public Asset getSelectedAsset() {
-        return tableView.getSelectionModel().getSelectedItem();
+    public List<Asset> getSelectedAssets() {
+        return tableView.getSelectionModel().getSelectedItems();
     }
 
     private void selectPath(TreeItem<PathCombo> treeItem) {
         if (treeItem != null) {
             channel.send(new FileListViewEvent.PathSelected(treeItem.getValue().full()));
+        }
+    }
+
+    private void selectAssets(List<? extends Asset> c) {
+        if (c.size() == 1) {
+            selectAsset(c.getFirst());
         }
     }
 
@@ -123,6 +131,7 @@ public final class FileListFXView implements FileListView, FXView {
             buildTreeView(),
             buildTableView()
         );
+
         // How is it that the exact method I need exists?
         SplitPane.setResizableWithParent(splitPane.getItems().getFirst(), false);
         VBox.setVgrow(splitPane, Priority.ALWAYS);
@@ -130,23 +139,14 @@ public final class FileListFXView implements FileListView, FXView {
 
     private TreeView<PathCombo> buildTreeView() {
         treeView.getSelectionModel().selectedItemProperty().addListener((_, _, newValue) -> selectPath(newValue));
-        treeView.setCellFactory(_ -> new TreeCell<>() {
-            @Override
-            protected void updateItem(PathCombo item, boolean empty) {
-                super.updateItem(item, empty);
-
-                if (item == null || empty) {
-                    setText(null);
-                } else {
-                    setText(item.name());
-                }
-            }
-        });
+        treeView.setCellFactory(_ -> new FileListTreeCell());
         return treeView;
     }
 
     private TableView<Asset> buildTableView() {
-        tableView.getSelectionModel().selectedItemProperty().addListener((_, _, newValue) -> selectAsset(newValue));
+        tableView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+        tableView.getSelectionModel().getSelectedItems().addListener((ListChangeListener<Asset>) c -> selectAssets(c.getList()));
+
         var nameColumn = new TableColumn<Asset, String>();
         nameColumn.setText("Name");
         nameColumn.setPrefWidth(160);
@@ -178,6 +178,37 @@ public final class FileListFXView implements FileListView, FXView {
             .collect(Collectors.joining(", "));
 
         return new ReadOnlyStringWrapper(stringified);
+    }
+
+    private class FileListTreeCell extends TreeCell<PathCombo> {
+        private final ContextMenu contextMenu;
+
+        private FileListTreeCell() {
+            var exportAll = new MenuItem("Export");
+            exportAll.setOnAction(_ -> {
+                channel.send(new FileListViewEvent.PathExportRequested(getItem().full(), false));
+            });
+
+            var exportAllSub = new MenuItem("Export recursively");
+            exportAllSub.setOnAction(_ -> {
+                channel.send(new FileListViewEvent.PathExportRequested(getItem().full(), true));
+            });
+
+            contextMenu = new ContextMenu(exportAll, exportAllSub);
+        }
+
+        @Override
+        protected void updateItem(PathCombo item, boolean empty) {
+            super.updateItem(item, empty);
+
+            if (item == null || empty) {
+                setText(null);
+                setContextMenu(null);
+            } else {
+                setText(item.toString());
+                setContextMenu(contextMenu);
+            }
+        }
     }
 
     // endregion

@@ -8,4 +8,7 @@ sealed interface FileListViewEvent {
 
     record PathSelected(String path) implements FileListViewEvent {
     }
+
+    record PathExportRequested(String path, boolean recursive) implements FileListViewEvent {
+    }
 }

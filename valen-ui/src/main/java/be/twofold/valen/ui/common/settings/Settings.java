@@ -10,6 +10,7 @@ public final class Settings {
     private final Setting<Path> gameExecutable = new Setting<>();
     private final Setting<String> textureExporter = new Setting<>();
     private final Setting<Boolean> reconstructZ = new Setting<>();
+    private final Setting<Path> exportPath = new Setting<>();
 
     Settings() {
     }
@@ -28,5 +29,9 @@ public final class Settings {
 
     public Setting<Boolean> reconstructZ() {
         return reconstructZ;
+    }
+
+    public Setting<Path> exportPath() {
+        return exportPath;
     }
 }

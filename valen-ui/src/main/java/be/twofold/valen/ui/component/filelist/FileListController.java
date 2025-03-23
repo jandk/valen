@@ -3,7 +3,6 @@ package be.twofold.valen.ui.component.filelist;
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.ui.common.event.*;
 import be.twofold.valen.ui.component.*;
-import jakarta.inject.*;
 import javafx.application.*;
 import javafx.beans.property.*;
 import javafx.beans.value.*;
@@ -26,7 +25,6 @@ public final class FileListController implements Controller {
     private Map<String, List<Asset>> assetIndex = Map.of();
     private final SendChannel<FileListViewEvent> channel;
 
-    @Inject
     public FileListController(EventBus eventBus) {
         this.channel = eventBus.senderFor(FileListViewEvent.class);
     }

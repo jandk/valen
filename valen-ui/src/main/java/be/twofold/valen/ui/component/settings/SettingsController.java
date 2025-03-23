@@ -12,7 +12,9 @@ import jakarta.inject.*;
 import javafx.fxml.*;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
+import javafx.stage.*;
 
+import java.nio.file.*;
 import java.util.*;
 import java.util.stream.*;
 
@@ -27,6 +29,8 @@ public final class SettingsController implements Controller {
     private @FXML CheckBox textureReconstructZ;
     private @FXML ComboBox<String> modelFormat;
     private @FXML TextField modelImageDirectory;
+    private @FXML TextField exportPath;
+    private @FXML Button chooseExportPath;
 
     private final SendChannel<SettingsApplied> channel;
     private final Settings settings;
@@ -69,8 +73,21 @@ public final class SettingsController implements Controller {
 
         var reconstructZ = settings.reconstructZ().whenEmpty(() -> false);
         settings.reconstructZ().set(reconstructZ);
-
         textureReconstructZ.setSelected(reconstructZ);
+
+        var exportPath = settings.exportPath().whenEmpty(() -> Path.of("exported"));
+        settings.exportPath().set(exportPath);
+        this.exportPath.setText(exportPath.toString());
+
+        chooseExportPath.setOnAction(event -> {
+            var directoryChooser = new DirectoryChooser();
+            var path = settings.exportPath().get().orElseThrow();
+            if (path.isAbsolute()) {
+                directoryChooser.setInitialDirectory(path.toAbsolutePath().toFile());
+            }
+            var newPath = directoryChooser.showDialog(chooseExportPath.getScene().getWindow());
+            this.exportPath.setText(newPath.toString());
+        });
     }
 
     @FXML
@@ -94,6 +111,7 @@ public final class SettingsController implements Controller {
         settings.assetTypes().set(assetTypes);
         settings.textureExporter().set(textureFormat.getValue().getKey());
         settings.reconstructZ().set(textureReconstructZ.isSelected());
+        settings.exportPath().set(Path.of(exportPath.getText()));
 
         channel.send(new SettingsApplied(settings));
     }

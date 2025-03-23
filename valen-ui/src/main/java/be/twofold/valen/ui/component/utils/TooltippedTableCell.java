@@ -1,4 +1,4 @@
-package be.twofold.valen.ui.component.filelist;
+package be.twofold.valen.ui.component.utils;
 
 import be.twofold.valen.core.util.*;
 import javafx.scene.control.*;

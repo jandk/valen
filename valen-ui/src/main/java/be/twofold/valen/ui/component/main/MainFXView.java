@@ -27,6 +27,7 @@ public final class MainFXView implements MainView, FXView {
 
     private final ComboBox<String> archiveChooser = new ComboBox<>();
     private final TextField searchTextField = new TextField();
+    private final Label progressLabel = new Label();
     private final ProgressBar progressBar = new ProgressBar();
 
     private final PreviewTabPane tabPane;
@@ -75,8 +76,20 @@ public final class MainFXView implements MainView, FXView {
         Platform.runLater(() -> {
             log.info("Exporting: {}", exporting);
             view.setDisable(exporting);
+            progressLabel.setText("");
+            progressLabel.setVisible(exporting);
             progressBar.setVisible(exporting);
         });
+    }
+
+    @Override
+    public void setProgress(double percentage) {
+        progressBar.setProgress(percentage);
+    }
+
+    @Override
+    public void setProgressMessage(String progressMessage) {
+        progressLabel.setText(progressMessage);
     }
 
     private void selectArchive(String archiveName) {
@@ -131,20 +144,25 @@ public final class MainFXView implements MainView, FXView {
             pause.setOnFinished(_ -> channel.send(new MainViewEvent.SearchChanged(newValue)));
             pause.playFromStart();
         });
+        searchTextField.setMinWidth(160);
+        searchTextField.setPrefWidth(160);
 
         var searchClearButton = new Button("Clear");
         searchClearButton.setDisable(true);
         searchClearButton.setOnAction(_ -> searchTextField.setText(""));
         searchClearButton.disableProperty().bind(searchTextField.textProperty().isEmpty());
+        searchClearButton.setMinWidth(searchClearButton.getPrefWidth());
 
         var pane = new Pane();
         HBox.setHgrow(pane, Priority.ALWAYS);
 
         progressBar.setVisible(false);
-        progressBar.setPrefWidth(200);
+        progressBar.setMinWidth(160);
+        progressBar.setPrefWidth(160);
 
         var hBox = new HBox(
             searchTextField, searchClearButton,
+            progressLabel,
             pane,
             progressBar
         );
