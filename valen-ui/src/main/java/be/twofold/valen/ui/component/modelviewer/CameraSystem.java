@@ -13,6 +13,7 @@ final class CameraSystem {
     private double mousePosY;
 
     public CameraSystem(SubScene subScene) {
+        camera.setFieldOfView(90);
         camera.setNearClip(1.0);
         camera.setFarClip(10000.0);
         camera.getTransforms().addAll(
@@ -46,8 +47,8 @@ final class CameraSystem {
             double mouseDeltaY = (mousePosY - mouseOldY);
 
             if ((event.isMiddleButtonDown() || (event.isPrimaryButtonDown() && event.isSecondaryButtonDown()))) {
-                camera.setTranslateX(camera.getTranslateX() - mouseDeltaX * 0.1);
-                camera.setTranslateY(camera.getTranslateY() + mouseDeltaY * 0.1);
+                // camera.setTranslateX(camera.getTranslateX() - mouseDeltaX * 0.1);
+                // camera.setTranslateY(camera.getTranslateY() - mouseDeltaY * 0.1);
             } else if (event.isPrimaryButtonDown()) {
                 rotateX.setAngle(Math.clamp(rotateX.getAngle() - mouseDeltaY * 0.3 * 2.0, -85, +85));
                 rotateY.setAngle(rotateY.getAngle() + mouseDeltaX * 0.3 * 2.0);

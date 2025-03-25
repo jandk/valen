@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.*?>
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <VBox xmlns="http://javafx.com/javafx/23" xmlns:fx="http://javafx.com/fxml/1"
@@ -19,6 +19,15 @@
                 <CheckBox fx:id="typeAnimation" text="Show Animations"/>
                 <CheckBox fx:id="typeRaw" text="Show Raw Files"/>
             </VBox>
+        </VBox>
+    </TitledPane>
+    <TitledPane animated="false" collapsible="false" text="Export Settings">
+        <VBox spacing="10">
+            <Label text="Choose a path where exported files will be saved"/>
+            <HBox spacing="10">
+                <TextField fx:id="exportPath" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
+                <Button text="Choose Path" fx:id="chooseExportPath"/>
+            </HBox>
         </VBox>
     </TitledPane>
     <TitledPane animated="false" collapsible="false" text="Texture Export Settings">

@@ -25,6 +25,7 @@ public final class TexturePresenter extends AbstractFXPresenter<TextureView> imp
 
     private byte[] imagePixels;
     private Texture decoded;
+    private boolean premultiplied;
     private WritableImage image;
 
     private Channel channel = Channel.ALL;
@@ -64,14 +65,13 @@ public final class TexturePresenter extends AbstractFXPresenter<TextureView> imp
         }
 
         // Let's try our new ops
-        Texture texture = ((Texture) data).firstOnly();
-
-
         long t0 = System.nanoTime();
+        Texture texture = ((Texture) data).firstOnly();
         decoded = texture.convert(TextureFormat.B8G8R8A8_UNORM);
         if (GRAY.contains(texture.format())) {
             splatGray();
         }
+        premultiplied = !texture.format().hasAlpha() || detectPremultiplied();
 
         long t1 = System.nanoTime();
         image = new WritableImage(decoded.width(), decoded.height());
@@ -83,7 +83,7 @@ public final class TexturePresenter extends AbstractFXPresenter<TextureView> imp
         imagePixels = null;
 
         long t2 = System.nanoTime();
-        if (channel != Channel.ALL) {
+        if (channel != Channel.ALL || !premultiplied) {
             filterImage(channel);
         }
         getView().setImage(image);
@@ -104,6 +104,21 @@ public final class TexturePresenter extends AbstractFXPresenter<TextureView> imp
         }
     }
 
+    private boolean detectPremultiplied() {
+        var data = decoded.surfaces().getFirst().data();
+        for (int i = 0; i < data.length; i += 4) {
+            int b = Byte.toUnsignedInt(data[i]);
+            int g = Byte.toUnsignedInt(data[i + 1]);
+            int r = Byte.toUnsignedInt(data[i + 2]);
+            int a = Byte.toUnsignedInt(data[i + 3]);
+            int max = Math.max(Math.max(r, g), b);
+            if (max > a) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     private void filterImage(Channel channel) {
         this.channel = channel;
 
@@ -113,12 +128,12 @@ public final class TexturePresenter extends AbstractFXPresenter<TextureView> imp
 
         // B8G8R8A8
         IntUnaryOperator operator = switch (channel) {
-            case RED -> rgba -> ((rgba >> 16) & 0xFF) * 0x010101 | 0xFF000000;
-            case GREEN -> rgba -> ((rgba >> 8) & 0xFF) * 0x010101 | 0xFF000000;
-            case BLUE -> rgba -> (rgba & 0xFF) * 0x010101 | 0xFF000000;
-            case ALPHA -> rgba -> ((rgba >> 24) & 0xFF) * 0x010101 | 0xFF000000;
-            case RGB -> rgba -> (rgba & 0x00FFFFFF) | 0xFF000000;
-            case ALL -> IntUnaryOperator.identity();
+            case RED -> bgra -> ((bgra >> 16) & 0xFF) * 0x010101 | 0xFF000000;
+            case GREEN -> bgra -> ((bgra >> 8) & 0xFF) * 0x010101 | 0xFF000000;
+            case BLUE -> bgra -> (bgra & 0xFF) * 0x010101 | 0xFF000000;
+            case ALPHA -> bgra -> ((bgra >> 24) & 0xFF) * 0x010101 | 0xFF000000;
+            case RGB -> bgra -> (bgra & 0x00FFFFFF) | 0xFF000000;
+            case ALL -> premultiplied ? IntUnaryOperator.identity() : this::premultiply;
         };
 
         var data = decoded.surfaces().getFirst().data();
@@ -135,5 +150,16 @@ public final class TexturePresenter extends AbstractFXPresenter<TextureView> imp
             PixelFormat.getByteBgraPreInstance(),
             imagePixels, 0, width * 4
         );
+    }
+
+    private int premultiply(int bgra) {
+        int b = (bgra) & 0xFF;
+        int g = (bgra >> 8) & 0xFF;
+        int r = (bgra >> 16) & 0xFF;
+        int a = (bgra >> 24) & 0xFF;
+        r = (r * a) >> 8;
+        g = (g * a) >> 8;
+        b = (b * a) >> 8;
+        return a << 24 | r << 16 | g << 8 | b;
     }
 }

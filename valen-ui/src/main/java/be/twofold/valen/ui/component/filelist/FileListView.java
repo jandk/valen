@@ -10,6 +10,6 @@ public interface FileListView {
 
     void setFilteredAssets(List<Asset> assets);
 
-    Asset getSelectedAsset();
+    List<Asset> getSelectedAssets();
 
 }

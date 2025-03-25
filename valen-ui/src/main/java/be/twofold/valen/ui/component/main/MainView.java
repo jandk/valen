@@ -16,4 +16,8 @@ public interface MainView {
 
     void setExporting(boolean exporting);
 
+    void setProgress(double percentage);
+
+    void setProgressMessage(String progressMessage);
+
 }
