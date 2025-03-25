@@ -9,18 +9,17 @@ public class Experiment {
     public static void main(String[] args) throws IOException {
         var path = Path.of("D:\\Projects\\Deathloop\\DEATHLOOP\\Deathloop.exe");
         var factory = new DeathloopGameFactory();
-        var game = factory.load(path);
-        var archive = game.loadArchive("");
+        try (var archive = factory.load(path).loadArchive("")) {
+            var images = archive.getAll()
+                .filter(e -> e.id().fileName().endsWith(".bimage"))
+                .toList();
 
-        var images = archive.assets().stream()
-            .filter(e -> e.id().fileName().endsWith(".bimage"))
-            .toList();
-
-        for (var image : images) {
-            try {
-                archive.loadAsset(image.id(), Texture.class);
-            } catch (Exception e) {
-                System.out.println("Failed for: " + image.id() + " - " + e.getMessage());
+            for (var image : images) {
+                try {
+                    archive.loadAsset(image.id(), Texture.class);
+                } catch (Exception e) {
+                    System.out.println("Failed for: " + image.id() + " - " + e.getMessage());
+                }
             }
         }
     }

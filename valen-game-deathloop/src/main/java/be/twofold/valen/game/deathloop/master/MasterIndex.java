@@ -18,7 +18,7 @@ public record MasterIndex(
             var version = source.readShortBE();
             var indexFile = source.readPString();
             var numDataFiles = source.readShortBE();
-            var dataFiles = source.readStructs(numDataFiles, DataSource::readPString);
+            var dataFiles = source.readObjects(numDataFiles, DataSource::readPString);
             return new MasterIndex(magic, version, indexFile, dataFiles);
         }
     }

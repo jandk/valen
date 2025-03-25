@@ -1,14 +1,14 @@
 package be.twofold.valen.game.deathloop.image;
 
+import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.texture.*;
 import be.twofold.valen.game.deathloop.*;
-import be.twofold.valen.game.deathloop.index.*;
 
 import java.io.*;
 import java.util.*;
 
-public final class ImageReader {
+public final class ImageReader implements AssetReader<Texture, DeathloopAsset> {
     private final DeathloopArchive archive;
     private final boolean readExternal = false;
 
@@ -16,7 +16,13 @@ public final class ImageReader {
         this.archive = Objects.requireNonNull(archive);
     }
 
-    public Texture read(DataSource source, IndexEntry entry) throws IOException {
+    @Override
+    public boolean canRead(DeathloopAsset asset) {
+        return asset.entry().typeName().equals("image");
+    }
+
+    @Override
+    public Texture read(DataSource source, DeathloopAsset asset) throws IOException {
         var header = ImageHeader.read(source);
         var format = mapFormat(header.textureFormat());
         int depth = header.textureType() == ImageTextureType.TT_3D ? header.depth() : header.numSlices();
@@ -28,7 +34,7 @@ public final class ImageReader {
         if (readExternal) {
             var externalLevels = header.levels() - header.embeddedLevels();
             for (int i = 0, w = header.width(), h = header.height(); i < externalLevels; i++, w /= 2, h /= 2) {
-                var mipData = archive.loadAsset(new DeathloopAssetID(entry.fileName() + "_mip" + i), byte[].class);
+                var mipData = archive.loadAsset(new DeathloopAssetID(asset.id().fullName() + "_mip" + i), byte[].class);
                 var surface = new Surface(w, h, mipData);
                 surfaces.add(surface);
             }

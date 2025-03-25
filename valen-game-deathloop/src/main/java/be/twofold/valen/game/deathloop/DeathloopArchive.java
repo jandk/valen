@@ -8,22 +8,23 @@ import be.twofold.valen.game.deathloop.image.*;
 import be.twofold.valen.game.deathloop.index.*;
 
 import java.io.*;
+import java.nio.*;
 import java.nio.file.*;
 import java.util.*;
 import java.util.function.*;
 import java.util.stream.*;
 
-public final class DeathloopArchive implements Archive {
+public final class DeathloopArchive implements Archive<DeathloopAssetID, DeathloopAsset> {
     private static final Set<String> FILTER = Set.of("cpuimage", "image");
 
-    private final Index index;
     private final Decompressor decompressor;
 
     private final List<DataSource> dataSources;
-    private final Map<AssetID, IndexEntry> indexEntries;
+    private final Map<DeathloopAssetID, DeathloopAsset> assetIndex;
+    private final AssetReaders<DeathloopAsset> assetReaders;
 
     public DeathloopArchive(Path indexFile, List<Path> dataFiles, Decompressor decompressor) throws IOException {
-        this.index = Index.read(indexFile);
+        var index = Index.read(indexFile);
         this.decompressor = Check.notNull(decompressor);
 
         var dataSources = new ArrayList<DataSource>(dataFiles.size());
@@ -35,81 +36,54 @@ public final class DeathloopArchive implements Archive {
         // Some filenames are duplicates, but analysis shows they point to the same data
         // So we can just filter out the non-unique filenames and be done with it
         var unique = new HashSet<String>();
-        this.indexEntries = index.entries().stream()
+        this.assetIndex = index.entries().stream()
             .filter(e -> unique.add(e.fileName()))
+            .map(entry -> new DeathloopAsset(new DeathloopAssetID(entry.fileName()), entry))
             .collect(Collectors.toUnmodifiableMap(
-                this::mapToAssetID,
+                DeathloopAsset::id,
                 Function.identity()
             ));
+
+        this.assetReaders = new AssetReaders<>(List.of(
+            new ImageReader(this)
+        ));
     }
 
     @Override
-    public List<Asset> assets() {
-        return index.entries().stream()
-            // .filter(e -> !FILTER.contains(e.typeName()) || e.fileName().endsWith(".bimage"))
-            .map(this::mapIndexEntry)
-            .toList();
-    }
-
-    private Asset mapIndexEntry(IndexEntry entry) {
-        return new Asset(
-            mapToAssetID(entry),
-            mapAssetType(entry),
-            entry.uncompressedLength(),
-            Map.of("Type", entry.typeName())
-        );
-    }
-
-    private DeathloopAssetID mapToAssetID(IndexEntry entry) {
-        return new DeathloopAssetID(entry.fileName());
-    }
-
-    private AssetType<?> mapAssetType(IndexEntry entry) {
-        switch (entry.typeName()) {
-            case "image":
-                return AssetType.TEXTURE;
-            default:
-                return AssetType.BINARY;
-        }
+    public Optional<DeathloopAsset> get(DeathloopAssetID identifier) {
+        return Optional.ofNullable(assetIndex.get(identifier));
     }
 
     @Override
-    public boolean exists(AssetID identifier) {
-        return indexEntries.containsKey(identifier);
+    public Stream<DeathloopAsset> getAll() {
+        return assetIndex.values().stream();
     }
 
     @Override
-    public Asset getAsset(AssetID identifier) {
-        var entry = indexEntries.get(identifier);
-        return mapIndexEntry(entry);
-    }
-
-    @Override
-    public <T> T loadAsset(AssetID identifier, Class<T> clazz) throws IOException {
-        var entry = indexEntries.get(identifier);
+    public <T> T loadAsset(DeathloopAssetID identifier, Class<T> clazz) throws IOException {
+        var asset = assetIndex.get(identifier);
+        var entry = asset.entry();
 
         var source = dataSources.get(entry.fileId());
-        source.seek(entry.offset());
+        source.position(entry.offset());
 
-        var bytes = source.readBytes(entry.compressedLength());
+        var compressed = source.readBuffer(entry.compressedLength()).position(12);
         if (entry.compressedLength() != entry.uncompressedLength()) {
-            var uncompressed = new byte[entry.uncompressedLength()];
+            var uncompressed = ByteBuffer.allocate(entry.uncompressedLength());
             decompressor.decompress(
-                bytes, 12, bytes.length - 12,
-                uncompressed, 0, uncompressed.length
+                compressed.position(12),
+                uncompressed
             );
-            bytes = uncompressed;
+            compressed = uncompressed.flip();
         }
 
-        if (clazz == byte[].class) {
-            return (T) bytes;
-        }
+        return assetReaders.read(asset, DataSource.fromBuffer(compressed), clazz);
+    }
 
-        switch (entry.typeName()) {
-            case "image":
-                return (T) new ImageReader(this).read(DataSource.fromArray(bytes), entry);
-            default:
-                throw new IllegalArgumentException("Unsupported asset type: " + entry.typeName());
+    @Override
+    public void close() throws IOException {
+        for (var dataSource : dataSources) {
+            dataSource.close();
         }
     }
 }

@@ -10,7 +10,7 @@ public record Index(IndexHeader header, List<IndexEntry> entries) {
     public static Index read(Path path) throws IOException {
         try (var source = DataSource.fromPath(path)) {
             var header = IndexHeader.read(source);
-            var entries = source.readStructs(header.count(), IndexEntry::read);
+            var entries = source.readObjects(header.count(), IndexEntry::read);
             return new Index(header, entries);
         }
     }
