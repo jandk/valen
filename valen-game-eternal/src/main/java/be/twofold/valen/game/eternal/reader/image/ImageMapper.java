@@ -1,6 +1,7 @@
 package be.twofold.valen.game.eternal.reader.image;
 
 import be.twofold.valen.core.texture.*;
+import be.twofold.valen.core.util.*;
 
 import java.util.*;
 
@@ -30,7 +31,7 @@ public final class ImageMapper {
                 surfaces.add(new Surface(
                     image.mipInfos().get(mipIndex).mipPixelWidth(),
                     image.mipInfos().get(mipIndex).mipPixelHeight(),
-                    image.mipData()[mipIndex]
+                    Buffers.toArray(image.mipData()[mipIndex])
                 ));
             }
         }

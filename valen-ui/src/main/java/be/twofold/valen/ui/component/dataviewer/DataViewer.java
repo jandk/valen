@@ -15,7 +15,7 @@ public final class DataViewer extends TreeView<PreviewItem> implements Viewer {
     }
 
     @Override
-    public boolean canPreview(AssetType<?> type) {
+    public boolean canPreview(AssetType type) {
         return type == AssetType.MODEL
             || type == AssetType.TEXTURE;
     }

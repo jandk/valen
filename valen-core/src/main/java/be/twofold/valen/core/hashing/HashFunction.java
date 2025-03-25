@@ -1,5 +1,7 @@
 package be.twofold.valen.core.hashing;
 
+import java.nio.*;
+
 @FunctionalInterface
 public interface HashFunction {
     static HashFunction farmHashFingerprint64() {
@@ -18,9 +20,9 @@ public interface HashFunction {
         return new XXHash64(seed);
     }
 
-    default HashCode hash(byte[] array) {
-        return hash(array, 0, array.length);
+    default HashCode hash(byte[] array, int offset, int length) {
+        throw new UnsupportedOperationException();
     }
 
-    HashCode hash(byte[] array, int offset, int length);
+    HashCode hash(ByteBuffer src);
 }

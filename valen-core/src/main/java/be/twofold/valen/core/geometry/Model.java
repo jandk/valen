@@ -1,33 +1,32 @@
 package be.twofold.valen.core.geometry;
 
+import be.twofold.valen.core.math.*;
+import be.twofold.valen.core.util.*;
+
 import java.util.*;
 
 public record Model(
     List<Mesh> meshes,
-    Skeleton skeleton,
-    String name
+    Optional<Skeleton> skeleton,
+    Optional<String> name,
+    Axis upAxis
 ) {
     public Model {
         meshes = List.copyOf(meshes);
+        Check.notNull(upAxis, "upAxis");
     }
 
-    public Model(List<Mesh> meshes) {
-        this(meshes, null, null);
+    public Model(List<Mesh> meshes, Axis upAxis) {
+        this(meshes, Optional.empty(), Optional.empty(), upAxis);
     }
 
-    public Optional<Skeleton> skeletonOpt() {
-        return Optional.ofNullable(skeleton);
+    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
+    public Model withSkeleton(Optional<Skeleton> skeleton) {
+        return new Model(meshes, skeleton, name, upAxis);
     }
 
-    public Optional<String> nameOpt() {
-        return Optional.ofNullable(name);
-    }
-
-    public Model withSkeleton(Skeleton skeleton) {
-        return new Model(meshes, skeleton, name);
-    }
-
-    public Model withName(String name) {
-        return new Model(meshes, skeleton, name);
+    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
+    public Model withName(Optional<String> name) {
+        return new Model(meshes, skeleton, name, upAxis);
     }
 }

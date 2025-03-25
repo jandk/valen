@@ -10,39 +10,39 @@ import java.util.*;
 import java.util.stream.*;
 
 public final class FileListPresenter extends AbstractFXPresenter<FileListView> {
-    private final SendChannel<AssetSelected> channel;
+    private final SendChannel<AssetSelected> assetSelectedSendChannel;
+    private final SendChannel<ExportRequested> exportRequestedSendChannel;
     private Map<String, List<Asset>> assetIndex = Map.of();
 
     @Inject
     FileListPresenter(FileListView view, EventBus eventBus) {
         super(view);
 
-        this.channel = eventBus.senderFor(AssetSelected.class);
+        this.assetSelectedSendChannel = eventBus.senderFor(AssetSelected.class);
+        this.exportRequestedSendChannel = eventBus.senderFor(ExportRequested.class);
 
         eventBus
             .receiverFor(FileListViewEvent.class)
             .consume(event -> {
                 switch (event) {
                     case FileListViewEvent.AssetSelected assetSelected ->
-                        channel.send(new AssetSelected(assetSelected.asset()));
+                        assetSelectedSendChannel.send(new AssetSelected(assetSelected.asset()));
                     case FileListViewEvent.PathSelected pathSelected -> selectPath(pathSelected.path());
+                    case FileListViewEvent.PathExportRequested pathExportRequested -> {
+                        exportRequestedSendChannel.send(new ExportRequested(pathExportRequested.path(), pathExportRequested.recursive()));
+                    }
                 }
             });
     }
 
-    public Asset getSelectedAsset() {
-        return getView().getSelectedAsset();
-    }
-
-    public void setAssets(List<Asset> assets) {
-        assetIndex = assets.stream()
-            .collect(Collectors.groupingBy(asset -> asset.id().pathName()));
+    public void setAssets(Stream<? extends Asset> assets) {
+        assetIndex = assets.collect(Collectors.groupingBy(asset -> asset.id().pathName()));
 
         getView().setFileTree(buildPathTree());
     }
 
     private void selectPath(String path) {
-        var assets = assetIndex.getOrDefault(path, List.of());
+        var assets = assetIndex.getOrDefault(path, List.of()).stream().sorted().toList();
         getView().setFilteredAssets(assets);
     }
 

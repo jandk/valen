@@ -22,7 +22,7 @@ public record Bounds(
         float maxX = Float.NEGATIVE_INFINITY;
         float maxY = Float.NEGATIVE_INFINITY;
         float maxZ = Float.NEGATIVE_INFINITY;
-        for (int i = 0; i < vertices.capacity(); i += 3) {
+        for (int i = 0; i < vertices.limit(); i += 3) {
             float x = vertices.get(i);
             float y = vertices.get(i + 1);
             float z = vertices.get(i + 2);

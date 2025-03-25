@@ -7,6 +7,16 @@ import java.io.*;
 
 public final class DdsExporter implements TextureExporter {
     @Override
+    public String getID() {
+        return "texture.dds";
+    }
+
+    @Override
+    public String getName() {
+        return "DDS (DirectDraw Surface)";
+    }
+
+    @Override
     public String getExtension() {
         return "dds";
     }
@@ -146,7 +156,7 @@ public final class DdsExporter implements TextureExporter {
 
     private int computePitch(int width, DxgiFormat format) {
         return switch (format) {
-            case A8_UNORM -> width;
+            case A8_UNORM, R8_UNORM -> width;
             case R16G16_FLOAT, R8G8B8A8_UNORM -> width * 4;
             case R16_FLOAT, R8G8_UNORM -> width * 2;
             default -> throw new UnsupportedOperationException("Unsupported format: " + format);

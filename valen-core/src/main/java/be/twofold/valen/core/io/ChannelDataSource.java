@@ -6,88 +6,73 @@ import java.io.*;
 import java.nio.*;
 import java.nio.channels.*;
 
-final class ChannelDataSource extends DataSource {
-    private final ByteBuffer buffer = ByteBuffer.allocate(8192)
-        .order(ByteOrder.LITTLE_ENDIAN)
+final class ChannelDataSource implements DataSource, Closeable {
+    private final ByteBuffer buffer = Buffers
+        .allocate(8192)
         .limit(0);
 
     private final SeekableByteChannel channel;
-    private final long offset;
-    private final long length;
-    private final long lim;
-    private long bufPos;
+    private final long size;
+    private long position = 0;
 
     ChannelDataSource(SeekableByteChannel channel) throws IOException {
-        this(channel, 0, channel.size());
-    }
-
-    ChannelDataSource(SeekableByteChannel channel, long offset, long length) throws IOException {
-        Check.fromIndexSize(offset, length, channel.size());
         this.channel = channel;
-        this.offset = offset;
-        this.length = length;
-        this.bufPos = offset;
-        this.lim = offset + length;
+        this.size = channel.size();
     }
 
     @Override
-    public void readBytes(byte[] dst, int off, int len, boolean buffered) throws IOException {
+    public void read(ByteBuffer dst) throws IOException {
         int remaining = buffer.remaining();
-        if (len <= remaining) {
-            buffer.get(dst, off, len);
+        if (dst.remaining() <= remaining) {
+            Buffers.copy(buffer, dst);
             return;
         }
 
         if (remaining > 0) {
-            buffer.get(dst, off, remaining);
-            off += remaining;
-            len -= remaining;
+            Buffers.copy(buffer, dst, remaining);
         }
 
         // If we can fit the remaining bytes in the buffer, do a normal refill and read
-        if (buffered && len < buffer.capacity()) {
+        if (dst.remaining() < buffer.capacity()) {
             refill();
-            if (len > buffer.remaining()) {
+            if (dst.remaining() > buffer.remaining()) {
                 throw new EOFException();
             }
-            buffer.get(dst, off, len);
+            Buffers.copy(buffer, dst);
             return;
         }
 
         // If we can't fit the remaining bytes in the buffer, read directly into the destination
-        long end = bufPos + buffer.position() + len;
-        if (end > lim) {
+        long end = position + buffer.position() + dst.remaining();
+        if (end > size) {
             throw new EOFException();
         }
-        readInternal(ByteBuffer.wrap(dst, off, len));
-        bufPos = end;
+        readInternal(dst);
+        position = end;
         buffer.limit(0);
-    }
-
-    @Override
-    public long tell() {
-        return bufPos + buffer.position();
-    }
-
-    @Override
-    public void seek(long pos) throws IOException {
-        if (pos > lim) {
-            throw new EOFException("Seek position " + pos + " is beyond EOF");
-        }
-
-        if (pos >= bufPos && pos < bufPos + buffer.limit()) {
-            buffer.position((int) (pos - bufPos));
-            return;
-        }
-
-        bufPos = pos;
-        buffer.limit(0);
-        channel.position(pos);
     }
 
     @Override
     public long size() {
-        return length;
+        return size;
+    }
+
+    @Override
+    public long position() {
+        return position + buffer.position();
+    }
+
+    @Override
+    public void position(long pos) throws IOException {
+        Check.index(pos, size + 1);
+
+        if (pos >= position && pos < position + buffer.limit()) {
+            buffer.position((int) (pos - position));
+        } else {
+            position = pos;
+            buffer.limit(0);
+            channel.position(pos);
+        }
     }
 
     @Override
@@ -135,14 +120,6 @@ final class ChannelDataSource extends DataSource {
     // Helper methods
     //
 
-    private void readInternal(ByteBuffer buffer) throws IOException {
-        while (buffer.hasRemaining()) {
-            if (channel.read(buffer) == -1) {
-                throw new EOFException();
-            }
-        }
-    }
-
     private void refillWhen(int n) throws IOException {
         if (buffer.remaining() < n) {
             refill();
@@ -153,13 +130,21 @@ final class ChannelDataSource extends DataSource {
     }
 
     private void refill() throws IOException {
-        long start = bufPos + buffer.position();
-        long end = Math.min(start + buffer.capacity(), lim);
-        buffer.compact();
+        long start = position + buffer.position();
+        long end = Math.min(start + buffer.capacity(), size);
 
-        bufPos = start;
-        buffer.limit((int) (end - start));
+        position = start;
+        buffer.compact();
+        buffer.limit(Math.toIntExact(end - start));
         readInternal(buffer);
         buffer.flip();
+    }
+
+    private void readInternal(ByteBuffer buffer) throws IOException {
+        while (buffer.hasRemaining()) {
+            if (channel.read(buffer) == -1) {
+                throw new EOFException();
+            }
+        }
     }
 }

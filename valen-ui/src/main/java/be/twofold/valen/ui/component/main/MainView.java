@@ -6,7 +6,7 @@ import java.util.*;
 
 public interface MainView {
 
-    boolean isPreviewVisible();
+    boolean isSidePaneVisible();
 
     void setArchives(List<String> archives);
 
@@ -15,5 +15,9 @@ public interface MainView {
     void focusOnSearch();
 
     void setExporting(boolean exporting);
+
+    void setProgress(double percentage);
+
+    void setProgressMessage(String progressMessage);
 
 }

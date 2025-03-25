@@ -6,13 +6,14 @@ import javafx.scene.transform.*;
 
 final class CameraSystem {
     private final PerspectiveCamera camera = new PerspectiveCamera(true);
-    private final Rotate rotateX = new Rotate(180, Rotate.X_AXIS);
+    private final Rotate rotateX = new Rotate(0, Rotate.X_AXIS);
     private final Rotate rotateY = new Rotate(0, Rotate.Y_AXIS);
     private final Translate translate = new Translate(0, 0, -200);
     private double mousePosX;
     private double mousePosY;
 
     public CameraSystem(SubScene subScene) {
+        camera.setFieldOfView(90);
         camera.setNearClip(1.0);
         camera.setFarClip(10000.0);
         camera.getTransforms().addAll(
@@ -46,15 +47,15 @@ final class CameraSystem {
             double mouseDeltaY = (mousePosY - mouseOldY);
 
             if ((event.isMiddleButtonDown() || (event.isPrimaryButtonDown() && event.isSecondaryButtonDown()))) {
-                camera.setTranslateX(camera.getTranslateX() - mouseDeltaX * 0.1);
-                camera.setTranslateY(camera.getTranslateY() + mouseDeltaY * 0.1);
+                // camera.setTranslateX(camera.getTranslateX() - mouseDeltaX * 0.1);
+                // camera.setTranslateY(camera.getTranslateY() - mouseDeltaY * 0.1);
             } else if (event.isPrimaryButtonDown()) {
-                rotateX.setAngle(Math.clamp(rotateX.getAngle() - mouseDeltaY * 0.3 * 2.0, 95, 265));
-                rotateY.setAngle(rotateY.getAngle() - mouseDeltaX * 0.3 * 2.0);
+                rotateX.setAngle(Math.clamp(rotateX.getAngle() - mouseDeltaY * 0.3 * 2.0, -85, +85));
+                rotateY.setAngle(rotateY.getAngle() + mouseDeltaX * 0.3 * 2.0);
             } else if (event.isSecondaryButtonDown()) {
                 double z = translate.getZ();
                 z += (mouseDeltaX + mouseDeltaY) * 0.3;
-                translate.setZ(Math.clamp(z, -1000, -200));
+                translate.setZ(Math.min(z, 0));
             }
         }
     }
@@ -64,15 +65,16 @@ final class CameraSystem {
             camera.setTranslateX(camera.getTranslateX() - (0.01 * event.getDeltaX()));
             camera.setTranslateY(camera.getTranslateY() + (0.01 * event.getDeltaY()));
         } else {
-            double z = translate.getZ() - (event.getDeltaY() * 0.2);
-            translate.setZ(Math.clamp(z, -1000, -200));
+            double z = translate.getZ();
+            z += (event.getDeltaY() * 1);
+            translate.setZ(Math.min(z, 0));
         }
     }
 
     private void handleZoomEvent(ZoomEvent event) {
         if (!Double.isNaN(event.getZoomFactor()) && event.getZoomFactor() > 0.8 && event.getZoomFactor() < 1.2) {
             double z = translate.getZ() / event.getZoomFactor();
-            translate.setZ(Math.clamp(z, -1000, -200));
+            translate.setZ(Math.min(z, 0));
         }
     }
 }

@@ -21,6 +21,10 @@ public record Texture(
         surfaces = List.copyOf(surfaces);
     }
 
+    public Texture(int width, int height, TextureFormat format, boolean isCubeMap, List<Surface> surfaces) {
+        this(width, height, format, isCubeMap, surfaces, 1.0f, 0.0f);
+    }
+
     public Texture withFormat(TextureFormat format) {
         return new Texture(width, height, format, isCubeMap, surfaces, scale, bias);
     }
@@ -35,6 +39,10 @@ public record Texture(
 
     public Texture convert(TextureFormat format) {
         return TextureConverter.convert(this, format);
+    }
+
+    public static Texture fromSurface(Surface surface, TextureFormat format) {
+        return fromSurface(surface, format, 1.0f, 0.0f);
     }
 
     public static Texture fromSurface(Surface surface, TextureFormat format, float scale, float bias) {

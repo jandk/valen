@@ -27,4 +27,9 @@ record PathCombo(
     public int hashCode() {
         return full.hashCode();
     }
+
+    @Override
+    public String toString() {
+        return name;
+    }
 }

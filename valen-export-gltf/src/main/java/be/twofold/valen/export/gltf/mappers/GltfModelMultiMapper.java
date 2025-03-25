@@ -1,6 +1,7 @@
 package be.twofold.valen.export.gltf.mappers;
 
 import be.twofold.valen.core.geometry.*;
+import be.twofold.valen.core.math.*;
 import be.twofold.valen.format.gltf.*;
 import be.twofold.valen.format.gltf.model.mesh.*;
 import be.twofold.valen.format.gltf.model.node.*;
@@ -10,14 +11,11 @@ import java.util.*;
 
 public final class GltfModelMultiMapper extends GltfModelMapper {
     private final Map<String, NodeID> models = new HashMap<>();
-
     private final GltfContext context;
-    private final GltfSkeletonMapper skeletonMapper;
 
     public GltfModelMultiMapper(GltfContext context) {
         super(context);
         this.context = context;
-        this.skeletonMapper = new GltfSkeletonMapper(context);
     }
 
     public NodeID map(ModelReference model) throws IOException {
@@ -36,26 +34,28 @@ public final class GltfModelMultiMapper extends GltfModelMapper {
             .map(context::addMesh)
             .toList();
 
-        var nodeIDs = model.skeleton() != null
-            ? mapAnimatedModel(meshIDs, model.skeleton())
-            : mapStaticModel(meshIDs);
+        var nodeIDs = model.skeleton().isPresent()
+            ? mapAnimatedModel(meshIDs, model.skeleton().get())
+            : mapStaticModel(meshIDs, model.upAxis());
 
         return context.addNode(
             ImmutableNode.builder()
-                .name(Optional.ofNullable(model.name()))
+                .name(model.name())
                 .children(nodeIDs)
                 .build());
     }
 
-    private List<NodeID> mapStaticModel(List<MeshID> meshIDs) {
+    private List<NodeID> mapStaticModel(List<MeshID> meshIDs, Axis axis) {
         return meshIDs.stream()
             .map(meshID -> context.addNode(ImmutableNode.builder()
+                .rotation(GltfUtils.mapQuaternion(axis.rotateTo(Axis.Y)))
                 .mesh(meshID)
                 .build()))
             .toList();
     }
 
     private List<NodeID> mapAnimatedModel(List<MeshID> meshIDs, Skeleton skeleton) throws IOException {
+        var skeletonMapper = new GltfSkeletonMapper(context);
         var skinID = skeletonMapper.map(skeleton);
 
         return meshIDs.stream()
@@ -78,7 +78,7 @@ public final class GltfModelMultiMapper extends GltfModelMapper {
         var primitiveSchema = mapMeshPrimitive(mesh);
 
         return ImmutableMesh.builder()
-            .name(Optional.ofNullable(mesh.name()))
+            .name(mesh.name())
             .addPrimitives(primitiveSchema)
             .build();
     }

@@ -3,6 +3,7 @@ package be.twofold.valen.core.compression;
 import org.junit.jupiter.params.*;
 import org.junit.jupiter.params.provider.*;
 
+import java.nio.*;
 import java.security.*;
 import java.util.*;
 
@@ -29,10 +30,13 @@ class LZ4DecompressorTest {
         var source = new byte[temp.length + 2 * offset];
         System.arraycopy(temp, 0, source, offset, temp.length);
         var target = new byte[LENGTH + 2 * offset];
-        decompressor.decompress(
-            source, offset, source.length - 2 * offset,
-            target, offset, target.length - 2 * offset
-        );
+
+        var src = ByteBuffer.wrap(source, offset, source.length - 2 * offset);
+        var dst = ByteBuffer.wrap(target, offset, target.length - 2 * offset);
+        decompressor.decompress(src, dst);
+
+        assertThat(src.hasRemaining()).isFalse();
+        assertThat(dst.hasRemaining()).isFalse();
 
         sha256.update(target, offset, LENGTH);
         assertThat(HexFormat.of().formatHex(sha256.digest()))

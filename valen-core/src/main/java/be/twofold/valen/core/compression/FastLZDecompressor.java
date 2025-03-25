@@ -1,46 +1,34 @@
 package be.twofold.valen.core.compression;
 
-import be.twofold.valen.core.util.*;
-
 import java.io.*;
+import java.nio.*;
 
 final class FastLZDecompressor extends LZDecompressor {
     FastLZDecompressor() {
     }
 
     @Override
-    public void decompress(
-        byte[] src, int srcOff, int srcLen,
-        byte[] dst, int dstOff, int dstLen
-    ) throws IOException {
-        Check.fromIndexSize(srcOff, srcLen, src.length);
-        Check.fromIndexSize(dstOff, dstLen, dst.length);
-        Level level = Level.from(src[srcOff]);
+    public void decompress(ByteBuffer src, ByteBuffer dst) throws IOException {
+        Level level = Level.from(src.get(src.position()));
 
-        int srcLim = srcOff + srcLen;
-        int dstLim = dstOff + dstLen;
-        int srcPos = srcOff;
-        int dstPos = dstOff;
-
-        int opcode = src[srcPos++] & 0x1F; // Could have had a pretty loop, but no
+        src.order(ByteOrder.BIG_ENDIAN);
+        int opcode = src.get() & 0x1F; // Could have had a pretty loop, but no
         while (true) {
             if ((opcode & 0xE0) == 0x00) {
                 // If the upper 3 bits are 0, we have a literal
                 int literalLength = (opcode & 0x1F) + 1;
-                copyLiteral(src, srcPos, srcLim, dst, dstPos, dstLim, literalLength);
-                srcPos += literalLength;
-                dstPos += literalLength;
+                copyLiteral(src, dst, literalLength);
             } else {
                 // Otherwise we have a match of at least 2
                 int matchLength = (opcode >> 5) + 2;
                 if ((opcode & 0xE0) == 0xE0) {
                     // If all upper bits are set, we have a long match
                     switch (level) {
-                        case One -> matchLength += getUnsignedByte(src, srcPos++);
+                        case One -> matchLength += getUnsignedByte(src);
                         case Two -> {
                             int temp;
                             do {
-                                temp = getUnsignedByte(src, srcPos++);
+                                temp = getUnsignedByte(src);
                                 matchLength += temp;
                             } while (temp == 0xFF);
                         }
@@ -50,26 +38,24 @@ final class FastLZDecompressor extends LZDecompressor {
                 // Then we handle the offset
                 int offset = ((opcode & 0x1F) << 8) + 1;
                 switch (level) {
-                    case One -> offset += getUnsignedByte(src, srcPos++);
+                    case One -> offset += getUnsignedByte(src);
                     case Two -> {
-                        int temp = getUnsignedByte(src, srcPos++);
+                        int temp = getUnsignedByte(src);
                         offset += temp;
 
                         if (temp == 0xFF && (opcode & 0x1F) == 0x1F) {
-                            offset += getUnsignedByte(src, srcPos++) << 8;
-                            offset += getUnsignedByte(src, srcPos++);
+                            offset += Short.toUnsignedInt(src.getShort());
                         }
                     }
                 }
 
-                copyReference(dst, dstPos, dstLim, dstOff, offset, matchLength);
-                dstPos += matchLength;
+                copyReference(dst, offset, matchLength);
             }
 
-            if (srcPos == srcLim) {
+            if (!src.hasRemaining()) {
                 break;
             }
-            opcode = getUnsignedByte(src, srcPos++);
+            opcode = getUnsignedByte(src);
         }
 
         // return dstPos - targetOffset;

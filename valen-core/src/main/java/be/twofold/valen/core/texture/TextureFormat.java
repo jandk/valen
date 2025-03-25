@@ -59,6 +59,18 @@ public enum TextureFormat {
         return Optional.ofNullable(order);
     }
 
+    public boolean hasAlpha() {
+        return switch (this) {
+            case R8G8B8A8_UNORM, B8G8R8A8_UNORM,
+                 R16G16B16A16_UNORM, R16G16B16A16_SFLOAT,
+                 BC1_UNORM, BC1_SRGB,
+                 BC2_UNORM, BC2_SRGB,
+                 BC3_UNORM, BC3_SRGB,
+                 BC7_UNORM, BC7_SRGB -> true;
+            default -> false;
+        };
+    }
+
     public boolean isCompressed() {
         return switch (this) {
             case BC1_SRGB, BC1_UNORM,

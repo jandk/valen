@@ -7,7 +7,6 @@ import be.twofold.valen.core.math.*;
 import be.twofold.valen.core.texture.*;
 import be.twofold.valen.core.util.*;
 import be.twofold.valen.game.eternal.*;
-import be.twofold.valen.game.eternal.reader.*;
 import be.twofold.valen.game.eternal.reader.decl.*;
 import be.twofold.valen.game.eternal.reader.decl.renderparm.*;
 import be.twofold.valen.game.eternal.reader.decl.renderparm.enums.*;
@@ -20,7 +19,7 @@ import java.io.*;
 import java.util.*;
 import java.util.stream.*;
 
-public final class MaterialReader implements ResourceReader<Material> {
+public final class MaterialReader implements AssetReader<Material, EternalAsset> {
     private static final Map<MaterialPropertyType, List<String>> ParmTextures = Map.of(
         MaterialPropertyType.Albedo, List.of(
             "albedo",
@@ -85,15 +84,15 @@ public final class MaterialReader implements ResourceReader<Material> {
     }
 
     @Override
-    public boolean canRead(ResourceKey key) {
-        return key.type() == ResourceType.RsStreamFile
-            && key.name().name().startsWith("generated/decls/material2/");
+    public boolean canRead(EternalAsset resource) {
+        return resource.id().type() == ResourceType.RsStreamFile
+            && resource.id().name().name().startsWith("generated/decls/material2/");
     }
 
     @Override
-    public Material read(DataSource source, Asset asset) throws IOException {
-        var object = declReader.read(source, asset);
-        return parseMaterial(object, asset.id().fullName());
+    public Material read(DataSource source, EternalAsset resource) throws IOException {
+        var object = declReader.read(source, resource);
+        return parseMaterial(object, resource.id().fullName());
     }
 
     public static final Set<String> RenderProgs = new HashSet<>();
@@ -208,15 +207,15 @@ public final class MaterialReader implements ResourceReader<Material> {
 
         var name = builder.toString();
         var resourceName = new ResourceName(name);
-        var resourceKey = ResourceKey.from(resourceName, ResourceType.Image);
-        if (!archive.exists(resourceKey)) {
+        var resourceKey = EternalAssetID.from(resourceName, ResourceType.Image);
+        var resource = archive.get(resourceKey);
+        if (resource.isEmpty()) {
             log.warn("Missing image file: {}", name);
             return null;
         }
 
         var supplier = ThrowingSupplier.lazy(() -> archive.loadAsset(resourceKey, Texture.class));
-        var rawHash = (Long) archive.getAsset(resourceKey).properties().get("hash");
-        var hash = String.format("%016x", rawHash);
+        var hash = HexFormat.of().toHexDigits(resource.get().hash());
         return new TextureReference(name, Filenames.fileNameWithoutExtension(filePath) + "_" + hash, supplier);
     }
 
@@ -372,7 +371,7 @@ public final class MaterialReader implements ResourceReader<Material> {
         }
 
         var fullName = "generated/decls/renderparm/" + name + ".decl";
-        var resourceKey = ResourceKey.from(fullName, ResourceType.RsStreamFile);
+        var resourceKey = EternalAssetID.from(fullName, ResourceType.RsStreamFile);
         if (!archive.exists(resourceKey)) {
             RenderParmCache.put(fullName, null);
             return Optional.empty();

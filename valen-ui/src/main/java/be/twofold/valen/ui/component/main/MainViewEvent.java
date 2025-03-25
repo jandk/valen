@@ -7,6 +7,9 @@ sealed interface MainViewEvent {
     record PreviewVisibilityChanged(boolean visible) implements MainViewEvent {
     }
 
+    record SettingVisibilityChanged(boolean visible) implements MainViewEvent {
+    }
+
     record LoadGameClicked() implements MainViewEvent {
     }
 
