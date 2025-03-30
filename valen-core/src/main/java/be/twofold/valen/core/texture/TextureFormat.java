@@ -13,6 +13,7 @@ public enum TextureFormat {
     R16G16B16A16_UNORM(Block.Bits64, Interp.UNorm, Order.RGBA),
     R16_SFLOAT(Block.Bits16, Interp.SFloat, Order.R),
     R16G16_SFLOAT(Block.Bits32, Interp.SFloat, Order.RG),
+    R16G16B16_SFLOAT(Block.Bits48, Interp.SFloat, Order.RGB),
     R16G16B16A16_SFLOAT(Block.Bits64, Interp.SFloat, Order.RGBA),
 
     BC1_UNORM(Block.BC1, Interp.UNorm),
@@ -86,6 +87,7 @@ public enum TextureFormat {
         Bits16(2, 1, 1),
         Bits24(3, 1, 1),
         Bits32(4, 1, 1),
+        Bits48(6, 1, 1),
         Bits64(8, 1, 1),
         BC1(8, 4, 4),
         BC2(16, 4, 4),

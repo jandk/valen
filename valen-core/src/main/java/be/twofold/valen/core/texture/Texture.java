@@ -1,5 +1,6 @@
 package be.twofold.valen.core.texture;
 
+import be.twofold.valen.core.texture.conversion.*;
 import be.twofold.valen.core.util.*;
 
 import java.util.*;
@@ -38,7 +39,7 @@ public record Texture(
     }
 
     public Texture convert(TextureFormat format) {
-        return TextureConverter.convert(this, format);
+        return Conversion.convert(this, format);
     }
 
     public static Texture fromSurface(Surface surface, TextureFormat format) {

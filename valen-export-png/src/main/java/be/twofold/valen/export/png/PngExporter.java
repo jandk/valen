@@ -51,6 +51,7 @@ public final class PngExporter implements TextureExporter {
             case R16G16B16A16_UNORM -> TextureFormat.R16G16B16A16_UNORM;
             case R16_SFLOAT,
                  R16G16_SFLOAT,
+                 R16G16B16_SFLOAT,
                  R16G16B16A16_SFLOAT,
                  BC6H_UFLOAT,
                  BC6H_SFLOAT -> null;
