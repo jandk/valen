@@ -26,7 +26,7 @@ public final class FileListPresenter extends AbstractFXPresenter<FileListView> {
             .consume(event -> {
                 switch (event) {
                     case FileListViewEvent.AssetSelected assetSelected ->
-                        assetSelectedSendChannel.send(new AssetSelected(assetSelected.asset()));
+                        assetSelectedSendChannel.send(new AssetSelected(assetSelected.asset(), assetSelected.forced()));
                     case FileListViewEvent.PathSelected pathSelected -> selectPath(pathSelected.path());
                     case FileListViewEvent.PathExportRequested pathExportRequested -> {
                         exportRequestedSendChannel.send(new ExportRequested(pathExportRequested.path(), pathExportRequested.recursive()));

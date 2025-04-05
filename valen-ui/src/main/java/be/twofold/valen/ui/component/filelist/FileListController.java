@@ -67,7 +67,7 @@ public final class FileListController implements Controller {
 
     private void selectAsset(Asset asset) {
         if (asset != null) {
-            channel.send(new FileListViewEvent.AssetSelected(asset));
+            channel.send(new FileListViewEvent.AssetSelected(asset, false));
         }
     }
 

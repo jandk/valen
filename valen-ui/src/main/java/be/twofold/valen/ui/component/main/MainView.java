@@ -20,4 +20,7 @@ public interface MainView {
 
     void setProgressMessage(String progressMessage);
 
+    void showPreview(boolean enabled);
+
+    void showSettings(boolean enabled);
 }

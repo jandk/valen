@@ -97,7 +97,7 @@ public final class FileListFXView implements FileListView, FXView {
 
     private void selectAsset(Asset asset) {
         if (asset != null) {
-            channel.send(new FileListViewEvent.AssetSelected(asset));
+            channel.send(new FileListViewEvent.AssetSelected(asset, false));
         }
     }
 
@@ -146,6 +146,15 @@ public final class FileListFXView implements FileListView, FXView {
     private TableView<Asset> buildTableView() {
         tableView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         tableView.getSelectionModel().getSelectedItems().addListener((ListChangeListener<Asset>) c -> selectAssets(c.getList()));
+        tableView.setRowFactory(_ -> {
+            var row = new TableRow<Asset>();
+            row.setOnMouseClicked(event -> {
+                if (event.getClickCount() == 2 && !row.isEmpty()) {
+                    channel.send(new FileListViewEvent.AssetSelected(row.getItem(), true));
+                }
+            });
+            return row;
+        });
 
         var nameColumn = new TableColumn<Asset, String>();
         nameColumn.setText("Name");

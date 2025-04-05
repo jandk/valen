@@ -25,6 +25,9 @@ public final class MainFXView implements MainView, FXView {
     private final BorderPane view = new BorderPane();
     private final SplitPane splitPane = new SplitPane();
 
+    private final ToggleButton previewButton = new ToggleButton("Preview");
+    private final ToggleButton settingsButton = new ToggleButton("Settings");
+
     private final ComboBox<String> archiveChooser = new ComboBox<>();
     private final TextField searchTextField = new TextField();
     private final Label progressLabel = new Label();
@@ -92,16 +95,20 @@ public final class MainFXView implements MainView, FXView {
         progressLabel.setText(progressMessage);
     }
 
+    @Override
+    public void showPreview(boolean enabled) {
+        setSidePanelEnabled(enabled, tabPane, MainViewEvent.PreviewVisibilityChanged::new);
+        previewButton.setSelected(enabled);
+    }
+
+    @Override
+    public void showSettings(boolean enabled) {
+        setSidePanelEnabled(enabled, settingsView, MainViewEvent.SettingVisibilityChanged::new);
+        settingsButton.setSelected(enabled);
+    }
+
     private void selectArchive(String archiveName) {
         channel.send(new MainViewEvent.ArchiveSelected(archiveName));
-    }
-
-    private void setPreviewEnabled(boolean enabled) {
-        setSidePanelEnabled(enabled, tabPane, MainViewEvent.PreviewVisibilityChanged::new);
-    }
-
-    private void setSettingsEnabled(boolean enabled) {
-        setSidePanelEnabled(enabled, settingsView, MainViewEvent.SettingVisibilityChanged::new);
     }
 
     private void setSidePanelEnabled(boolean enabled, Node node, Function<Boolean, MainViewEvent> eventFunction) {
@@ -188,13 +195,11 @@ public final class MainFXView implements MainView, FXView {
 
         var sidePane = new ToggleGroup();
 
-        var previewButton = new ToggleButton("Preview");
         previewButton.setToggleGroup(sidePane);
-        previewButton.selectedProperty().addListener((_, _, newValue) -> setPreviewEnabled(newValue));
+        previewButton.selectedProperty().addListener((_, _, newValue) -> showPreview(newValue));
 
-        var settingsButton = new ToggleButton("Settings");
         settingsButton.setToggleGroup(sidePane);
-        settingsButton.selectedProperty().addListener((_, _, newValue) -> setSettingsEnabled(newValue));
+        settingsButton.selectedProperty().addListener((_, _, newValue) -> showSettings(newValue));
 
         return new ToolBar(
             loadGame, archiveChooser,

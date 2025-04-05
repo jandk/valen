@@ -62,7 +62,7 @@ public final class MainPresenter extends AbstractFXPresenter<MainView> {
 
         eventBus
             .receiverFor(AssetSelected.class)
-            .consume(event -> selectAsset(event.asset()));
+            .consume(event -> selectAsset(event.asset(), event.forced()));
 
         eventBus
             .receiverFor(SettingsApplied.class)
@@ -97,7 +97,10 @@ public final class MainPresenter extends AbstractFXPresenter<MainView> {
         }
     }
 
-    private void selectAsset(Asset asset) {
+    private void selectAsset(Asset asset, boolean forced) {
+        if (forced) {
+            Platform.runLater(() -> getView().showPreview(true));
+        }
         if (getView().isSidePaneVisible() && archive != null) {
             try {
                 var type = switch (asset.type()) {
@@ -115,7 +118,7 @@ public final class MainPresenter extends AbstractFXPresenter<MainView> {
 
     private void showPreview(boolean visible) {
         if (visible && lastAsset != null) {
-            selectAsset(lastAsset);
+            selectAsset(lastAsset, false);
         }
     }
 
