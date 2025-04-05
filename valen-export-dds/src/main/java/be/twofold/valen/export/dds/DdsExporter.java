@@ -38,6 +38,8 @@ public final class DdsExporter implements TextureExporter {
 
     @Override
     public void export(Texture texture, OutputStream out) throws IOException {
+        var format = chooseFormat(texture.format());
+        texture = texture.convert(format);
         out.write(createHeader(texture).toBuffer().array());
         for (var surface : texture.surfaces()) {
             out.write(surface.data());
@@ -154,11 +156,6 @@ public final class DdsExporter implements TextureExporter {
     }
 
     private int computePitch(int width, DxgiFormat format) {
-        return switch (format) {
-            case A8_UNORM, R8_UNORM -> width;
-            case R16G16_FLOAT, R8G8B8A8_UNORM -> width * 4;
-            case R16_FLOAT, R8G8_UNORM -> width * 2;
-            default -> throw new UnsupportedOperationException("Unsupported format: " + format);
-        };
+        return (width * format.bitsPerPixel() + 7) / 8;
     }
 }
