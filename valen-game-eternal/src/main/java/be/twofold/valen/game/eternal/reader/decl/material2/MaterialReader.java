@@ -216,7 +216,7 @@ public final class MaterialReader implements AssetReader<Material, EternalAsset>
 
         var supplier = ThrowingSupplier.lazy(() -> archive.loadAsset(resourceKey, Texture.class));
         var hash = HexFormat.of().toHexDigits(resource.get().hash());
-        return new TextureReference(name, Filenames.fileNameWithoutExtension(filePath) + "_" + hash, supplier);
+        return new TextureReference(name, Filenames.getBaseName(filePath) + "_" + hash, supplier);
     }
 
     private void mapOptions(StringBuilder builder, Parm parm) {

@@ -17,12 +17,6 @@ public record ResourceName(
         return name.substring(slashIndex + 1, propIndex);
     }
 
-    public String extension() {
-        var file = filenameWithoutProperties();
-        var index = file.lastIndexOf('.');
-        return index < 0 ? "" : file.substring(index + 1);
-    }
-
     private int propIndex() {
         var index = name.indexOf('$');
         return index == -1 ? name.length() : index;

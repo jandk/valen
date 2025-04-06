@@ -95,7 +95,7 @@ final class ExportService extends Service<Void> {
             var basePath = settings.exportPath().get().orElse(Path.of("exported"));
             var filename = exporter.getExtension().isEmpty()
                 ? asset.id().fileName()
-                : Filenames.removeExtension(asset.id().fileName()) + "." + exporter.getExtension();
+                : asset.id().fileNameWithoutExtension() + "." + exporter.getExtension();
             return basePath
                 .resolve(asset.id().pathName())
                 .resolve(filename);

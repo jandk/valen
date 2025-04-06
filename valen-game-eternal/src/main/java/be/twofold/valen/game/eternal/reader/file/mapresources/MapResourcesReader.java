@@ -3,6 +3,7 @@ package be.twofold.valen.game.eternal.reader.file.mapresources;
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.io.*;
 import be.twofold.valen.game.eternal.*;
+import be.twofold.valen.game.eternal.reader.file.*;
 import be.twofold.valen.game.eternal.reader.file.FileReader;
 import be.twofold.valen.game.eternal.resource.*;
 
@@ -18,7 +19,7 @@ public final class MapResourcesReader implements AssetReader<MapResources, Etern
     @Override
     public boolean canRead(EternalAsset resource) {
         return resource.id().type() == ResourceType.File
-            && resource.id().name().extension().equals("mapresources");
+            && resource.id().extension().equals("mapresources");
     }
 
     @Override
