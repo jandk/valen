@@ -12,6 +12,10 @@ public interface Asset extends Comparable<Asset> {
 
     Map<String, Object> properties();
 
+    default String exportName() {
+        return id().fileNameWithoutExtension();
+    }
+
     @Override
     default int compareTo(Asset o) {
         return id().compareTo(o.id());
