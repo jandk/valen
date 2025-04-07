@@ -29,7 +29,7 @@ public final class PngOutputStream implements Closeable {
 
     // IDAT
     private final Deflater deflater = new Deflater(Deflater.BEST_SPEED);
-    private final byte[] idatBuffer = new byte[32 * 1024];
+    private final byte[] idatBuffer = new byte[64 * 1024 - 12];
     private int idatLength = 0;
 
     public PngOutputStream(OutputStream output, PngFormat format) {

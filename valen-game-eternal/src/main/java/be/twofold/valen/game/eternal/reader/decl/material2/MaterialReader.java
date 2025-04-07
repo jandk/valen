@@ -137,7 +137,12 @@ public final class MaterialReader implements AssetReader<Material, EternalAsset>
         var smoothness = mapSimpleTexture(allParms, MaterialPropertyType.Smoothness);
         var emissive = mapEmissive(allParms);
 
-        var properties = Stream.of(albedo, normal, specular, smoothness, emissive)
+        var other = allParms.values().stream()
+            .filter(parm -> parm.value instanceof Tex)
+            .map(parm -> mapTex2D(parm, allParms))
+            .map(reference -> new MaterialProperty(MaterialPropertyType.Unknown, reference, null));
+
+        var properties = Stream.concat(Stream.of(albedo, normal, specular, smoothness, emissive), other)
             .filter(Objects::nonNull)
             .toList();
 

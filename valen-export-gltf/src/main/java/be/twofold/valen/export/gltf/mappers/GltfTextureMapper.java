@@ -24,7 +24,7 @@ public final class GltfTextureMapper {
     }
 
     public TextureIDAndFactor map(TextureReference reference) throws IOException {
-        var existingSchema = textures.get(reference.name());
+        var existingSchema = textures.get(reference.filename());
         if (existingSchema != null) {
             return existingSchema;
         }
@@ -39,7 +39,7 @@ public final class GltfTextureMapper {
     }
 
     public TextureID mapSimple(TextureReference reference) throws IOException {
-        var existingSchema = textures.get(reference.name());
+        var existingSchema = textures.get(reference.filename());
         if (existingSchema != null) {
             return existingSchema.textureID();
         }
@@ -49,7 +49,7 @@ public final class GltfTextureMapper {
     }
 
     private TextureIDAndFactor map(TextureReference reference, Texture texture, Vector4 factor) throws IOException {
-        var existingSchema = textures.get(reference.name());
+        var existingSchema = textures.get(reference.filename());
         if (existingSchema != null) {
             return existingSchema;
         }
@@ -68,7 +68,7 @@ public final class GltfTextureMapper {
         var textureID = context.addTexture(textureSchema);
 
         var textureIDAndFactor = new TextureIDAndFactor(textureID, factor);
-        textures.put(reference.name(), textureIDAndFactor);
+        textures.put(reference.filename(), textureIDAndFactor);
         return textureIDAndFactor;
     }
 

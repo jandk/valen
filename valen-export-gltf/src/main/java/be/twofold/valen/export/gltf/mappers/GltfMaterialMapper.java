@@ -42,6 +42,7 @@ public final class GltfMaterialMapper {
                 case Normal ->
                     builder.normalTexture(normalTextureInfoSchema(textureMapper.mapSimple(property.reference())));
                 case Emissive -> mapEmissive(property, builder);
+                case Unknown -> textureMapper.mapSimple(property.reference());
             }
         }
 
@@ -59,7 +60,7 @@ public final class GltfMaterialMapper {
             var reference = property.reference();
             var smoothnessTexture = reference.supplier().get().firstOnly().convert(TextureFormat.R8_UNORM);
             var metalRoughnessTexture = mapSmoothness(smoothnessTexture);
-            var roughnessReference = new TextureReference(reference.name(), reference.filename(), () -> metalRoughnessTexture);
+            var roughnessReference = new TextureReference(reference.name(), reference.filename() + ".mr", () -> metalRoughnessTexture);
 
             // TODO: Proper support for metallic and roughness factors
             var roughnessTexture = textureMapper.mapSimple(roughnessReference);
