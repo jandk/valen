@@ -26,6 +26,10 @@
         </dependency>
         <dependency>
             <groupId>be.twofold</groupId>
+            <artifactId>valen-export-exr</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>be.twofold</groupId>
             <artifactId>valen-export-png</artifactId>
         </dependency>
         <dependency>
