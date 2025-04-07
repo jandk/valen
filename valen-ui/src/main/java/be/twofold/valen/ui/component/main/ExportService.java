@@ -68,10 +68,15 @@ final class ExportService extends Service<Void> {
             updateMessage("Exporting " + asset.id().fullName());
 
             try {
-                @SuppressWarnings("unchecked")
-                T rawAsset = (T) archive.loadAsset(asset.id(), asset.type().getType());
                 var exporter = findExporter(asset);
                 var targetPath = findTargetPath(exporter, asset);
+                if (Files.exists(targetPath)) {
+                    // log.warn("Target already exists at {}", targetPath);
+                    return;
+                }
+
+                @SuppressWarnings("unchecked")
+                T rawAsset = (T) archive.loadAsset(asset.id(), asset.type().getType());
                 Files.createDirectories(targetPath.getParent());
                 exporter.export(rawAsset, targetPath);
             } catch (Exception e) {
