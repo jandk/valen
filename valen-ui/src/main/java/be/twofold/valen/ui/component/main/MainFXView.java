@@ -77,7 +77,7 @@ public final class MainFXView implements MainView, FXView {
     @Override
     public void setExporting(boolean exporting) {
         Platform.runLater(() -> {
-            log.info("Exporting: {}", exporting);
+            log.info("Exporting: {} at {}", exporting, System.currentTimeMillis());
             view.setDisable(exporting);
             progressLabel.setText("");
             progressLabel.setVisible(exporting);

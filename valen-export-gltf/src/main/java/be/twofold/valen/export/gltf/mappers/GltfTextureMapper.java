@@ -12,10 +12,11 @@ import be.twofold.valen.format.gltf.model.texture.*;
 import java.io.*;
 import java.nio.*;
 import java.util.*;
+import java.util.concurrent.*;
 
 public final class GltfTextureMapper {
     private final PngExporter pngExporter = new PngExporter();
-    private final Map<String, TextureIDAndFactor> textures = new HashMap<>();
+    private final Map<String, TextureIDAndFactor> textures = new ConcurrentHashMap<>();
 
     private final GltfContext context;
 

@@ -15,7 +15,7 @@ public abstract class AbstractGltfExporter<T> implements Exporter<T> {
 
     @Override
     public String getExtension() {
-        return "glb";
+        return "gltf";
     }
 
     @Override
@@ -31,9 +31,12 @@ public abstract class AbstractGltfExporter<T> implements Exporter<T> {
 
         var binPath = outputDirectory.resolve(fileNameWithoutExtension + ".bin");
         var imagePath = outputDirectory.resolve("_images");
+        if (!Files.exists(imagePath)) {
+            Files.createDirectories(imagePath);
+        }
 
-        // try (var writer = GltfWriter.createSplitWriter(path, binPath, imagePath)) {
-        try (var writer = GltfWriter.createGlbWriter(path)) {
+        try (var writer = GltfWriter.createSplitWriter(path, binPath, imagePath)) {
+//        try (var writer = GltfWriter.createGlbWriter(path)) {
             doExport(value, writer);
         }
     }

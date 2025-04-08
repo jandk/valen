@@ -140,6 +140,7 @@ public final class MaterialReader implements AssetReader<Material, EternalAsset>
         var other = allParms.values().stream()
             .filter(parm -> parm.value instanceof Tex)
             .map(parm -> mapTex2D(parm, allParms))
+            .filter(Objects::nonNull)
             .map(reference -> new MaterialProperty(MaterialPropertyType.Unknown, reference, null));
 
         var properties = Stream.concat(Stream.of(albedo, normal, specular, smoothness, emissive), other)
@@ -233,7 +234,7 @@ public final class MaterialReader implements AssetReader<Material, EternalAsset>
                     builder.append(formatFormat(opts.format()));
                 }
             }
-            if (opts.atlasPadding() != 0) {
+            if (opts.atlasPadding() != null && opts.atlasPadding() != 0) {
                 builder.append(formatAtlasPadding(opts.atlasPadding()));
             }
             if (opts.minMip() != 0) {

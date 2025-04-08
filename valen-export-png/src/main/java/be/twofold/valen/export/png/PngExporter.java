@@ -75,8 +75,8 @@ public final class PngExporter implements TextureExporter {
             // Try to strip alpha
             var surface = texture.surfaces().getFirst();
             var data = surface.data();
-            for (var i = 3; i < data.length; i += 4) {
-                if (data[i] != (byte) 0xFF) {
+            for (var i = 0; i < data.length; i += 4) {
+                if (data[i + 3] != (byte) 0xFF) {
                     return texture;
                 }
             }
