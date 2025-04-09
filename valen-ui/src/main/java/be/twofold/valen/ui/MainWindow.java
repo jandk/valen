@@ -55,17 +55,14 @@ public final class MainWindow extends Application {
 
         settings.gameExecutable().get()
             .ifPresentOrElse(
-                this::loadGame,
+                this::tryLoadGame,
                 this::selectAndLoadGame
             );
     }
 
     private void selectAndLoadGame() {
         Platform.runLater(() -> chooseGame()
-            .ifPresent(path -> {
-                settings.gameExecutable().set(path);
-                loadGame(path);
-            }));
+            .ifPresent(this::tryLoadGame));
     }
 
     private void saveFile(String initialFilename, Consumer<Path> consumer) {
@@ -89,12 +86,12 @@ public final class MainWindow extends Application {
             new FileChooser.ExtensionFilter("Game executable", "*.exe")
         );
 
-        return Optional.ofNullable(fileChooser.showOpenDialog(primaryStage))
-            .map(File::toPath)
-            .filter(path -> GameFactory.resolve(path).isPresent());
+        return Optional
+            .ofNullable(fileChooser.showOpenDialog(primaryStage))
+            .map(File::toPath);
     }
 
-    private void loadGame(Path path) {
+    private void tryLoadGame(Path path) {
         try {
             if (!Files.exists(path)) {
                 selectAndLoadGame();
@@ -107,8 +104,9 @@ public final class MainWindow extends Application {
                 return;
             }
 
+            settings.gameExecutable().set(path);
             presenter.setGame(gameFactory.get().load(path));
-        } catch (IOException e) {
+        } catch (Exception e) {
             FxUtils.showExceptionDialog(e, "Could not load game");
         }
     }
