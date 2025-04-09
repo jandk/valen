@@ -100,8 +100,14 @@ public final class MainWindow extends Application {
                 selectAndLoadGame();
                 return;
             }
-            var game = GameFactory.resolve(path).orElseThrow().load(path);
-            presenter.setGame(game);
+
+            var gameFactory = GameFactory.resolve(path);
+            if (gameFactory.isEmpty()) {
+                selectAndLoadGame();
+                return;
+            }
+
+            presenter.setGame(gameFactory.get().load(path));
         } catch (IOException e) {
             FxUtils.showExceptionDialog(e, "Could not load game");
         }
