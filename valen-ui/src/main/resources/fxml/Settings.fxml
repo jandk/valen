@@ -1,12 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.*?>
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-
 <VBox xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="be.twofold.valen.ui.component.settings.SettingsController">
-    <ScrollPane hbarPolicy="NEVER" VBox.vgrow="ALWAYS">
+    <ScrollPane fitToWidth="true" hbarPolicy="NEVER" VBox.vgrow="ALWAYS">
         <VBox spacing="10.0" style="-fx-border-style: none;">
             <TitledPane animated="false" text="General Settings">
                 <VBox spacing="10">
@@ -34,11 +33,13 @@
                     <Label text="Select which texture format to export as"/>
                     <GridPane hgap="10" vgap="10">
                         <columnConstraints>
-                            <ColumnConstraints percentWidth="50"/>
-                            <ColumnConstraints percentWidth="50"/>
+                            <ColumnConstraints hgrow="ALWAYS" maxWidth="100.0" minWidth="30.0" prefWidth="75.0"/>
+                            <ColumnConstraints hgrow="ALWAYS" maxWidth="1.7976931348623157E308" minWidth="60.0"
+                                               prefWidth="150.0"/>
                         </columnConstraints>
                         <Label text="Format:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
-                        <ComboBox fx:id="textureFormat" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+                        <ComboBox fx:id="textureFormat" maxWidth="1.7976931348623157E308" GridPane.columnIndex="1"
+                                  GridPane.rowIndex="0"/>
                         <Label text="Reconstruct Z:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
                         <CheckBox fx:id="textureReconstructZ" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
                         <rowConstraints>
@@ -53,30 +54,29 @@
                     <Label text="Select which model format to export as"/>
                     <GridPane hgap="10" vgap="10">
                         <columnConstraints>
-                            <ColumnConstraints percentWidth="50"/>
-                            <ColumnConstraints percentWidth="50"/>
+                            <ColumnConstraints hgrow="ALWAYS" maxWidth="100.0" minWidth="30.0" prefWidth="75.0"/>
+                            <ColumnConstraints hgrow="ALWAYS" maxWidth="1.7976931348623157E308" minWidth="60.0"
+                                               prefWidth="150.0"/>
                         </columnConstraints>
                         <Label text="Format:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
-                        <ComboBox fx:id="modelFormat" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+                        <ComboBox fx:id="modelFormat" maxWidth="1.7976931348623157E308" GridPane.columnIndex="1"
+                                  GridPane.rowIndex="0"/>
                         <rowConstraints>
                             <RowConstraints/>
                         </rowConstraints>
-                        <!-- <Label text="Image Directory:" GridPane.columnIndex="0" GridPane.rowIndex="1"/> -->
-                        <!-- <TextField fx:id="modelImageDirectory" GridPane.columnIndex="1" GridPane.rowIndex="1"/> -->
                     </GridPane>
                 </VBox>
             </TitledPane>
-            <padding>
-                <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>
-            </padding>
         </VBox>
-        <VBox.margin>
-            <Insets/>
-        </VBox.margin>
+        <padding>
+            <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>
+        </padding>
     </ScrollPane>
-    <Button onAction="#handleSave" minWidth="80" text="Save">
+    <Separator/>
+    <HBox>
         <VBox.margin>
             <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>
         </VBox.margin>
-    </Button>
+        <Button minWidth="80" onAction="#handleSave" text="Save"/>
+    </HBox>
 </VBox>

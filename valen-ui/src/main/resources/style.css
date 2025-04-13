@@ -59,3 +59,8 @@
 .dialog-pane > .button-bar > .container > .details-button {
     -fx-text-fill: -fx-text-base-color;
 }
+
+/* Removes noisy borders on scroll panes */
+.scroll-pane {
+    -fx-background-color: transparent;
+}
