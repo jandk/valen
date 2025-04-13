@@ -105,7 +105,7 @@ public final class DeclReader implements AssetReader<JsonObject, EternalAsset> {
     }
 
 
-    private String decode(ByteBuffer buffer) {
+    private String decode(ByteBuffer buffer) throws IOException {
         // Either UTF-8 or ISO-8859-1, so out is always smaller
         try {
             return Utf8Decoder.decode(buffer).toString();
@@ -114,7 +114,7 @@ public final class DeclReader implements AssetReader<JsonObject, EternalAsset> {
                 buffer.rewind();
                 return Iso88591Decoder.decode(buffer).toString();
             } catch (CharacterCodingException ex) {
-                throw new RuntimeException("Failed to decode", ex);
+                throw new IOException("Failed to decode", ex);
             }
         }
     }

@@ -15,7 +15,7 @@ public enum OperatingSystem {
             case "linux" -> Linux;
             case "windows" -> Windows;
             case "mac" -> Mac;
-            default -> throw new RuntimeException("Unsupported OS: " + os);
+            default -> throw new ExceptionInInitializerError("Unsupported OS: " + os);
         };
     }
 
