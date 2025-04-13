@@ -68,10 +68,9 @@ final class ExportService extends Service<Void> {
             updateMessage("Exporting " + asset.id().fullName());
 
             try {
-                var exporter = findExporter(asset);
-                if ((Exporter<?>) exporter instanceof TextureExporter textureExporter) {
-                    textureExporter.setReconstructZ(settings.reconstructZ().get().orElse(false));
-                }
+                Exporter<T> exporter = findExporter(asset);
+                exporter.setProperty("reconstructZ", settings.reconstructZ().get().orElse(false));
+                exporter.setProperty("gltf.mode", settings.modelExporter().get().orElse("gltf"));
 
                 var targetPath = findTargetPath(exporter, asset);
                 if (Files.exists(targetPath)) {

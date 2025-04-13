@@ -22,6 +22,7 @@ public final class GltfTextureMapper {
 
     public GltfTextureMapper(GltfContext context) {
         this.context = context;
+        pngExporter.setProperty("reconstructZ", true);
     }
 
     public TextureIDAndFactor map(TextureReference reference) throws IOException {
@@ -75,7 +76,6 @@ public final class GltfTextureMapper {
 
     private ByteBuffer textureToPng(Texture texture) throws IOException {
         try (var out = new ByteArrayOutputStream()) {
-            pngExporter.setReconstructZ(true);
             pngExporter.export(texture, out);
             return ByteBuffer.wrap(out.toByteArray());
         }

@@ -7,8 +7,15 @@ import java.io.*;
 public abstract class TextureExporter implements Exporter<Texture> {
     private boolean reconstructZ = false;
 
+    @Override
+    public void setProperty(String key, Object value) {
+        if (key.equals("reconstructZ")) {
+            reconstructZ = (Boolean) value;
+        }
+    }
+
     public void setReconstructZ(boolean reconstructZ) {
-        this.reconstructZ = reconstructZ;
+        setProperty("reconstructZ", reconstructZ);
     }
 
     public abstract TextureFormat chooseFormat(TextureFormat format);
