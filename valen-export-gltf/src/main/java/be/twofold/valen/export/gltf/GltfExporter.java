@@ -7,7 +7,7 @@ import be.twofold.valen.format.gltf.*;
 import java.io.*;
 import java.nio.file.*;
 
-public abstract class AbstractGltfExporter<T> implements Exporter<T> {
+public abstract class GltfExporter<T> implements Exporter<T> {
     @Override
     public String getName() {
         return "glTF/GLB (GL Transmission Format)";

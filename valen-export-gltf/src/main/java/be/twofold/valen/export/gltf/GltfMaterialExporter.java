@@ -8,7 +8,7 @@ import be.twofold.valen.format.gltf.*;
 import java.io.*;
 import java.util.*;
 
-public final class GltfMaterialExporter extends AbstractGltfExporter<Material> {
+public final class GltfMaterialExporter extends GltfExporter<Material> {
     private final GltfModelExporter modelExporter = new GltfModelExporter();
 
     @Override

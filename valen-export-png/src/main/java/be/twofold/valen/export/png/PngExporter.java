@@ -6,7 +6,7 @@ import be.twofold.valen.format.png.*;
 
 import java.io.*;
 
-public final class PngExporter implements TextureExporter {
+public final class PngExporter extends TextureExporter {
     @Override
     public String getID() {
         return "texture.png";
@@ -59,10 +59,8 @@ public final class PngExporter implements TextureExporter {
     }
 
     @Override
-    public void export(Texture texture, OutputStream out) throws IOException {
-        var chosenFormat = chooseFormat(texture.format());
-        var decoded = texture.firstOnly().convert(chosenFormat);
-        var stripped = stripAlpha(decoded);
+    public void doExport(Texture texture, OutputStream out) throws IOException {
+        var stripped = stripAlpha(texture);
         var format = mapPngFormat(stripped);
 
         // TODO: How to handle closing the output stream?

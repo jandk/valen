@@ -7,7 +7,7 @@ import be.twofold.valen.format.gltf.*;
 import java.io.*;
 import java.util.*;
 
-public final class GltfModelExporter extends AbstractGltfExporter<Model> {
+public final class GltfModelExporter extends GltfExporter<Model> {
     @Override
     public String getID() {
         return "model.gltf";
