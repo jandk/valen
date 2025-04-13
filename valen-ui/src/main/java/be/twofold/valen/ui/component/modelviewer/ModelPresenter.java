@@ -89,7 +89,7 @@ public final class ModelPresenter extends AbstractFXPresenter<ModelView> impleme
                 .filter(s -> s.width() <= 1024 && s.height() <= 1024)
                 .findFirst().orElseThrow();
             var converted = Texture.fromSurface(surface, texture.format())
-                .convert(TextureFormat.B8G8R8A8_UNORM);
+                .convert(TextureFormat.B8G8R8A8_UNORM, true);
 
             var pixelBuffer = new PixelBuffer<>(
                 converted.width(),

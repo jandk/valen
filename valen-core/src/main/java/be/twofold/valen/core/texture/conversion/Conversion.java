@@ -8,7 +8,7 @@ public abstract class Conversion {
     Conversion() {
     }
 
-    public static Texture convert(Texture source, TextureFormat targetFormat) {
+    public static Texture convert(Texture source, TextureFormat targetFormat, boolean reconstructZ) {
         var sourceFormat = source.format();
         if (sourceFormat == targetFormat) {
             return source;
@@ -18,7 +18,7 @@ public abstract class Conversion {
             throw new UnsupportedOperationException("Compressing textures is not supported");
         }
 
-        source = new Decompress().apply(source, targetFormat);
+        source = new Decompress(reconstructZ).apply(source, targetFormat);
         source = new Tonemap().apply(source, targetFormat);
         source = new Unpack().apply(source, targetFormat);
         source = new Swizzle().apply(source, targetFormat);

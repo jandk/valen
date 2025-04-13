@@ -5,6 +5,7 @@ import be.twofold.valen.core.texture.*;
 import be.twofold.valen.core.util.*;
 import be.twofold.valen.ui.common.*;
 import be.twofold.valen.ui.common.event.*;
+import be.twofold.valen.ui.common.settings.*;
 import be.twofold.valen.ui.component.*;
 import jakarta.inject.*;
 import javafx.scene.image.*;
@@ -23,6 +24,8 @@ public final class TexturePresenter extends AbstractFXPresenter<TextureView> imp
         TextureFormat.BC4_SNORM
     );
 
+    private final Settings settings;
+
     private byte[] imagePixels;
     private Texture decoded;
     private boolean premultiplied;
@@ -31,9 +34,10 @@ public final class TexturePresenter extends AbstractFXPresenter<TextureView> imp
     private Channel channel = Channel.ALL;
 
     @Inject
-    public TexturePresenter(TextureView view, EventBus eventBus) {
+    public TexturePresenter(TextureView view, EventBus eventBus, Settings settings) {
         // TODO: Make package-private
         super(view);
+        this.settings = settings;
 
         eventBus
             .receiverFor(TextureViewEvent.class)
@@ -67,7 +71,7 @@ public final class TexturePresenter extends AbstractFXPresenter<TextureView> imp
         // Let's try our new ops
         long t0 = System.nanoTime();
         Texture texture = ((Texture) data).firstOnly();
-        decoded = texture.convert(TextureFormat.B8G8R8A8_UNORM);
+        decoded = texture.convert(TextureFormat.B8G8R8A8_UNORM, settings.reconstructZ().get().orElse(false));
         if (GRAY.contains(texture.format())) {
             splatGray();
         }

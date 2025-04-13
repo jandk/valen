@@ -75,6 +75,7 @@ public final class GltfTextureMapper {
 
     private ByteBuffer textureToPng(Texture texture) throws IOException {
         try (var out = new ByteArrayOutputStream()) {
+            pngExporter.setReconstructZ(true);
             pngExporter.export(texture, out);
             return ByteBuffer.wrap(out.toByteArray());
         }
@@ -87,7 +88,7 @@ public final class GltfTextureMapper {
         var bias = texture.bias();
 
         var format = chooseFormat(texture.format());
-        var decoded = texture.convert(format);
+        var decoded = texture.convert(format, true);
         var data = decoded.surfaces().getFirst().data();
 
         // Some games like to have textures for everything, even a single color...

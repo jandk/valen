@@ -6,6 +6,12 @@ import be.twofold.valen.core.texture.*;
 import java.util.function.*;
 
 final class Decompress extends Conversion {
+    private final boolean reconstructZ;
+
+    Decompress(boolean reconstructZ) {
+        this.reconstructZ = reconstructZ;
+    }
+
     @Override
     Texture apply(Texture texture, TextureFormat dstFormat) {
         if (!texture.format().isCompressed()) {
@@ -46,8 +52,8 @@ final class Decompress extends Conversion {
             case BC3_SRGB, BC3_UNORM -> BlockFormat.BC3;
             case BC4_SNORM -> BlockFormat.BC4S;
             case BC4_UNORM -> BlockFormat.BC4U;
-            case BC5_SNORM -> BlockFormat.BC5S_RECONSTRUCT_Z;
-            case BC5_UNORM -> BlockFormat.BC5U_RECONSTRUCT_Z;
+            case BC5_SNORM -> reconstructZ ? BlockFormat.BC5S_RECONSTRUCT_Z : BlockFormat.BC5S;
+            case BC5_UNORM -> reconstructZ ? BlockFormat.BC5U_RECONSTRUCT_Z : BlockFormat.BC5U;
             case BC6H_SFLOAT -> BlockFormat.BC6H_SF16;
             case BC6H_UFLOAT -> BlockFormat.BC6H_UF16;
             case BC7_SRGB, BC7_UNORM -> BlockFormat.BC7;

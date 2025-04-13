@@ -69,6 +69,10 @@ final class ExportService extends Service<Void> {
 
             try {
                 var exporter = findExporter(asset);
+                if ((Exporter<?>) exporter instanceof TextureExporter textureExporter) {
+                    textureExporter.setReconstructZ(settings.reconstructZ().get().orElse(false));
+                }
+
                 var targetPath = findTargetPath(exporter, asset);
                 if (Files.exists(targetPath)) {
                     // log.warn("Target already exists at {}", targetPath);

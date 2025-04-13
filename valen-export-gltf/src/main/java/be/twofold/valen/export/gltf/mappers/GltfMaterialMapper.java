@@ -58,7 +58,7 @@ public final class GltfMaterialMapper {
         if (groups.containsKey(MaterialPropertyType.Smoothness)) {
             var property = groups.get(MaterialPropertyType.Smoothness).getFirst();
             var reference = property.reference();
-            var smoothnessTexture = reference.supplier().get().firstOnly().convert(TextureFormat.R8_UNORM);
+            var smoothnessTexture = reference.supplier().get().firstOnly().convert(TextureFormat.R8_UNORM, true);
             var metalRoughnessTexture = mapSmoothness(smoothnessTexture);
             var roughnessReference = new TextureReference(reference.name(), reference.filename() + ".mr", () -> metalRoughnessTexture);
 

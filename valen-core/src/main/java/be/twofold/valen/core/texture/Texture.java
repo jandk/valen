@@ -38,8 +38,8 @@ public record Texture(
         return fromSurface(surfaces.getFirst(), format, scale, bias);
     }
 
-    public Texture convert(TextureFormat format) {
-        return Conversion.convert(this, format);
+    public Texture convert(TextureFormat format, boolean reconstructZ) {
+        return Conversion.convert(this, format, reconstructZ);
     }
 
     public static Texture fromSurface(Surface surface, TextureFormat format) {
