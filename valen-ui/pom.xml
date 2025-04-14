@@ -27,8 +27,12 @@
             <artifactId>gson</artifactId>
         </dependency>
         <dependency>
-            <groupId>io.github.jbock-java</groupId>
-            <artifactId>dapper</artifactId>
+            <groupId>io.github.mkpaz</groupId>
+            <artifactId>backbonefx</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>jakarta.inject</groupId>
+            <artifactId>jakarta.inject-api</artifactId>
         </dependency>
         <dependency>
             <groupId>org.jetbrains</groupId>

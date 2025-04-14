@@ -1,15 +1,13 @@
 package be.twofold.valen.ui.common.settings;
 
-import dagger.Module;
-import dagger.*;
+import backbonefx.di.*;
 import jakarta.inject.*;
 
-@Module
-public abstract class SettingsModule {
+public final class SettingsModule {
 
     @Provides
     @Singleton
-    static Settings getSettings() {
+    public Settings getSettings() {
         return SettingsManager.get();
     }
 

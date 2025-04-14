@@ -1,16 +1,13 @@
 package be.twofold.valen.ui.component;
 
+import backbonefx.di.*;
 import be.twofold.valen.ui.component.settings.*;
-import dagger.Module;
-import dagger.*;
-import dagger.multibindings.*;
 
-@Module
-public interface ControllerModule {
+public final class ControllerModule {
 
-    @Binds
-    @IntoMap
-    @ClassKey(SettingsController.class)
-    Controller settingsController(SettingsController controller);
+    @Provides
+    public Controller settingsController(SettingsController controller) {
+        return controller;
+    }
 
 }

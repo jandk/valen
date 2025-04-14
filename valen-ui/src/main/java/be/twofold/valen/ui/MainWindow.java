@@ -1,6 +1,8 @@
 package be.twofold.valen.ui;
 
+import backbonefx.di.*;
 import be.twofold.valen.core.game.*;
+import be.twofold.valen.ui.common.event.*;
 import be.twofold.valen.ui.common.settings.*;
 import be.twofold.valen.ui.component.*;
 import be.twofold.valen.ui.component.main.*;
@@ -26,9 +28,13 @@ public final class MainWindow extends Application {
     public void start(Stage primaryStage) {
         this.primaryStage = primaryStage;
 
-        var factory = DaggerMainFactory.create();
+        Feather feather = Feather.with(
+            new ControllerModule(),
+            new SettingsModule(),
+            new ViewModule()
+        );
 
-        factory.eventBus()
+        feather.instance(EventBus.class)
             .receiverFor(MainEvent.class)
             .consume(event -> {
                 switch (event) {
@@ -37,8 +43,8 @@ public final class MainWindow extends Application {
                 }
             });
 
-        presenter = factory.presenter();
-        settings = factory.settings();
+        presenter = feather.instance(MainPresenter.class);
+        settings = feather.instance(Settings.class);
 
         var icons = Stream.of(16, 24, 32, 48, 64, 96, 128)
             .map(i -> new Image(getClass().getResourceAsStream("/appicon/valen-" + i + ".png")))

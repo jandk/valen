@@ -1,18 +1,25 @@
 package be.twofold.valen.ui.component.preview;
 
+import backbonefx.di.*;
 import be.twofold.valen.core.game.*;
-import be.twofold.valen.ui.component.*;
+import be.twofold.valen.ui.component.modelviewer.*;
+import be.twofold.valen.ui.component.rawview.*;
+import be.twofold.valen.ui.component.textureviewer.*;
 import jakarta.inject.*;
 import javafx.scene.control.*;
 
 import java.util.*;
+import java.util.stream.*;
 
 public final class PreviewTabPane extends TabPane {
     final List<PreviewTab> viewers;
 
     @Inject
-    PreviewTabPane(Set<Viewer> viewers) {
-        this.viewers = viewers.stream()
+    PreviewTabPane(Feather feather) {
+        this.viewers = Stream.of(
+                feather.instance(ModelPresenter.class),
+                feather.instance(TexturePresenter.class),
+                feather.instance(RawPresenter.class))
             .map(PreviewTab::new)
             .toList();
     }
