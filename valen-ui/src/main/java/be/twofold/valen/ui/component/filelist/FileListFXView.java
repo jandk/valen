@@ -1,8 +1,8 @@
 package be.twofold.valen.ui.component.filelist;
 
+import backbonefx.event.*;
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.ui.common.*;
-import be.twofold.valen.ui.common.event.*;
 import be.twofold.valen.ui.component.utils.*;
 import jakarta.inject.*;
 import javafx.application.*;
@@ -25,11 +25,11 @@ public final class FileListFXView implements FileListView, FXView {
     private final TreeView<PathCombo> treeView = new TreeView<>();
     private final TableView<Asset> tableView = new TableView<>();
 
-    private final SendChannel<FileListViewEvent> channel;
+    private final EventBus eventBus;
 
     @Inject
     FileListFXView(EventBus eventBus) {
-        this.channel = eventBus.senderFor(FileListViewEvent.class);
+        this.eventBus = eventBus;
         buildUI();
     }
 
@@ -85,7 +85,7 @@ public final class FileListFXView implements FileListView, FXView {
 
     private void selectPath(TreeItem<PathCombo> treeItem) {
         if (treeItem != null) {
-            channel.send(new FileListViewEvent.PathSelected(treeItem.getValue().full()));
+            eventBus.publish(new FileListViewEvent.PathSelected(treeItem.getValue().full()));
         }
     }
 
@@ -97,7 +97,7 @@ public final class FileListFXView implements FileListView, FXView {
 
     private void selectAsset(Asset asset) {
         if (asset != null) {
-            channel.send(new FileListViewEvent.AssetSelected(asset, false));
+            eventBus.publish(new FileListViewEvent.AssetSelected(asset, false));
         }
     }
 
@@ -150,7 +150,7 @@ public final class FileListFXView implements FileListView, FXView {
             var row = new TableRow<Asset>();
             row.setOnMouseClicked(event -> {
                 if (event.getClickCount() == 2 && !row.isEmpty()) {
-                    channel.send(new FileListViewEvent.AssetSelected(row.getItem(), true));
+                    eventBus.publish(new FileListViewEvent.AssetSelected(row.getItem(), true));
                 }
             });
             return row;
@@ -195,12 +195,12 @@ public final class FileListFXView implements FileListView, FXView {
         private FileListTreeCell() {
             var exportAll = new MenuItem("Export");
             exportAll.setOnAction(_ -> {
-                channel.send(new FileListViewEvent.PathExportRequested(getItem().full(), false));
+                eventBus.publish(new FileListViewEvent.PathExportRequested(getItem().full(), false));
             });
 
             var exportAllSub = new MenuItem("Export recursively");
             exportAllSub.setOnAction(_ -> {
-                channel.send(new FileListViewEvent.PathExportRequested(getItem().full(), true));
+                eventBus.publish(new FileListViewEvent.PathExportRequested(getItem().full(), true));
             });
 
             contextMenu = new ContextMenu(exportAll, exportAllSub);

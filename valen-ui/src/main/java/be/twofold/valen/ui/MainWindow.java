@@ -1,8 +1,8 @@
 package be.twofold.valen.ui;
 
 import backbonefx.di.*;
+import backbonefx.event.*;
 import be.twofold.valen.core.game.*;
-import be.twofold.valen.ui.common.event.*;
 import be.twofold.valen.ui.common.settings.*;
 import be.twofold.valen.ui.component.*;
 import be.twofold.valen.ui.component.main.*;
@@ -30,13 +30,13 @@ public final class MainWindow extends Application {
 
         Feather feather = Feather.with(
             new ControllerModule(),
+            new EventBusModule(),
             new SettingsModule(),
             new ViewModule()
         );
 
         feather.instance(EventBus.class)
-            .receiverFor(MainEvent.class)
-            .consume(event -> {
+            .subscribe(MainEvent.class, event -> {
                 switch (event) {
                     case MainEvent.GameLoadRequested() -> selectAndLoadGame();
                     case MainEvent.SaveFileRequested(var filename, var consumer) -> saveFile(filename, consumer);

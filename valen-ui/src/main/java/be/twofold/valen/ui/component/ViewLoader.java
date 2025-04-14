@@ -1,21 +1,21 @@
 package be.twofold.valen.ui.component;
 
 import backbonefx.di.*;
+import jakarta.inject.*;
 import javafx.fxml.*;
 import javafx.scene.*;
 import org.slf4j.*;
 
 import java.io.*;
 
-public enum ViewLoader {
-    INSTANCE;
-
+public final class ViewLoader {
     private static final Logger LOG = LoggerFactory.getLogger(ViewLoader.class);
 
     private final FXMLLoader fxmlLoader = new FXMLLoader();
 
-    ViewLoader() {
-        fxmlLoader.setControllerFactory(Feather.with()::instance);
+    @Inject
+    public ViewLoader(Feather feather) {
+        fxmlLoader.setControllerFactory(feather::instance);
     }
 
     public Parent load(String fxml) {

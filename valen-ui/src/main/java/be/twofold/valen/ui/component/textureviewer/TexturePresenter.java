@@ -1,10 +1,10 @@
 package be.twofold.valen.ui.component.textureviewer;
 
+import backbonefx.event.*;
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.texture.*;
 import be.twofold.valen.core.util.*;
 import be.twofold.valen.ui.common.*;
-import be.twofold.valen.ui.common.event.*;
 import be.twofold.valen.ui.common.settings.*;
 import be.twofold.valen.ui.component.*;
 import jakarta.inject.*;
@@ -34,18 +34,16 @@ public final class TexturePresenter extends AbstractFXPresenter<TextureView> imp
     private Channel channel = Channel.ALL;
 
     @Inject
-    public TexturePresenter(TextureView view, EventBus eventBus, Settings settings) {
+    public TexturePresenter(TextureView view, EventBus backboneEventBus, Settings settings) {
         // TODO: Make package-private
         super(view);
         this.settings = settings;
 
-        eventBus
-            .receiverFor(TextureViewEvent.class)
-            .consume(event -> {
-                switch (event) {
-                    case TextureViewEvent.ChannelSelected(var selectedChannel) -> filterImage(selectedChannel);
-                }
-            });
+        backboneEventBus.subscribe(TextureViewEvent.class, event -> {
+            switch (event) {
+                case TextureViewEvent.ChannelSelected(var selectedChannel) -> filterImage(selectedChannel);
+            }
+        });
     }
 
     @Override

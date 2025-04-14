@@ -1,6 +1,8 @@
 package be.twofold.valen.ui.component.textureviewer;
 
-public sealed interface TextureViewEvent {
+import backbonefx.event.*;
+
+public sealed interface TextureViewEvent extends Event {
     record ChannelSelected(Channel channel) implements TextureViewEvent {
     }
 }

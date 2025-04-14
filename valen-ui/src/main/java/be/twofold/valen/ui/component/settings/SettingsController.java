@@ -1,10 +1,10 @@
 package be.twofold.valen.ui.component.settings;
 
+import backbonefx.event.*;
 import be.twofold.valen.core.export.*;
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.texture.*;
 import be.twofold.valen.ui.common.*;
-import be.twofold.valen.ui.common.event.*;
 import be.twofold.valen.ui.common.settings.*;
 import be.twofold.valen.ui.component.*;
 import be.twofold.valen.ui.events.*;
@@ -37,13 +37,13 @@ public final class SettingsController implements Controller {
     private @FXML TextField exportPath;
     private @FXML Button chooseExportPath;
 
-    private final SendChannel<SettingsApplied> channel;
+    private final EventBus eventBus;
     private final Settings settings;
 
     @Inject
-    public SettingsController(EventBus eventBus) {
-        this.settings = SettingsManager.get();
-        this.channel = eventBus.senderFor(SettingsApplied.class);
+    public SettingsController(EventBus eventBus, Settings settings) {
+        this.eventBus = eventBus;
+        this.settings = settings;
     }
 
     public void initialize() {
@@ -129,6 +129,6 @@ public final class SettingsController implements Controller {
         settings.exportPath().set(Path.of(exportPath.getText()));
         settings.modelExporter().set(modelFormat.getValue().getKey());
 
-        channel.send(new SettingsApplied(settings));
+        eventBus.publish(new SettingsApplied(settings));
     }
 }

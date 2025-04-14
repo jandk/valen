@@ -1,9 +1,9 @@
 package be.twofold.valen.ui.component.main;
 
+import backbonefx.event.*;
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.ui.*;
 import be.twofold.valen.ui.common.*;
-import be.twofold.valen.ui.common.event.*;
 import be.twofold.valen.ui.common.settings.*;
 import be.twofold.valen.ui.component.filelist.*;
 import be.twofold.valen.ui.events.*;
@@ -20,7 +20,6 @@ import java.util.stream.*;
 
 public final class MainPresenter extends AbstractFXPresenter<MainView> {
     private final ExportService exportService;
-    private final SendChannel<MainEvent> channel;
     private final FileListPresenter fileList;
     private final Settings settings;
 
@@ -39,38 +38,27 @@ public final class MainPresenter extends AbstractFXPresenter<MainView> {
     ) {
         super(view);
 
-        this.channel = eventBus.senderFor(MainEvent.class);
         this.fileList = fileList;
         this.settings = settings;
         this.exportService = exportService;
 
-        eventBus
-            .receiverFor(MainViewEvent.class)
-            .consume(event -> {
-                switch (event) {
-                    case MainViewEvent.ArchiveSelected(var name) -> selectArchive(name);
-                    case MainViewEvent.PreviewVisibilityChanged(var visible) -> showPreview(visible);
-                    case MainViewEvent.SettingVisibilityChanged(var visible) -> showSettings(visible);
-                    case MainViewEvent.LoadGameClicked _ -> channel.send(new MainEvent.GameLoadRequested());
-                    case MainViewEvent.ExportClicked() -> exportSelectedAssets();
-                    case MainViewEvent.SearchChanged(var query) -> {
-                        this.query = query;
-                        updateFileList();
-                    }
+        eventBus.subscribe(MainViewEvent.class, event -> {
+            switch (event) {
+                case MainViewEvent.ArchiveSelected(var name) -> selectArchive(name);
+                case MainViewEvent.PreviewVisibilityChanged(var visible) -> showPreview(visible);
+                case MainViewEvent.SettingVisibilityChanged(var visible) -> showSettings(visible);
+                case MainViewEvent.LoadGameClicked _ -> eventBus.publish(new MainEvent.GameLoadRequested());
+                case MainViewEvent.ExportClicked() -> exportSelectedAssets();
+                case MainViewEvent.SearchChanged(var query) -> {
+                    this.query = query;
+                    updateFileList();
                 }
-            });
+            }
+        });
 
-        eventBus
-            .receiverFor(AssetSelected.class)
-            .consume(event -> selectAsset(event.asset(), event.forced()));
-
-        eventBus
-            .receiverFor(SettingsApplied.class)
-            .consume(_ -> updateFileList());
-
-        eventBus
-            .receiverFor(ExportRequested.class)
-            .consume(event -> exportPath(event.path(), event.recursive()));
+        eventBus.subscribe(AssetSelected.class, event -> selectAsset(event.asset(), event.forced()));
+        eventBus.subscribe(SettingsApplied.class, _ -> updateFileList());
+        eventBus.subscribe(ExportRequested.class, event -> exportPath(event.path(), event.recursive()));
 
         exportService.progressProperty().addListener((_, _, newValue) -> {
             getView().setProgress(newValue.doubleValue());

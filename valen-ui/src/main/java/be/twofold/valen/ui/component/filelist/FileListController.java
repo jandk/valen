@@ -1,7 +1,7 @@
 package be.twofold.valen.ui.component.filelist;
 
+import backbonefx.event.*;
 import be.twofold.valen.core.game.*;
-import be.twofold.valen.ui.common.event.*;
 import be.twofold.valen.ui.component.*;
 import javafx.application.*;
 import javafx.beans.property.*;
@@ -23,10 +23,10 @@ public final class FileListController implements Controller {
     private @FXML TableColumn<Asset, String> columnProp;
 
     private Map<String, List<Asset>> assetIndex = Map.of();
-    private final SendChannel<FileListViewEvent> channel;
+    private final EventBus eventBus;
 
     public FileListController(EventBus eventBus) {
-        this.channel = eventBus.senderFor(FileListViewEvent.class);
+        this.eventBus = eventBus;
     }
 
     public void initialize() {
@@ -67,7 +67,7 @@ public final class FileListController implements Controller {
 
     private void selectAsset(Asset asset) {
         if (asset != null) {
-            channel.send(new FileListViewEvent.AssetSelected(asset, false));
+            eventBus.publish(new FileListViewEvent.AssetSelected(asset, false));
         }
     }
 

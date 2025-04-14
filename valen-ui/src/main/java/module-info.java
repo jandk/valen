@@ -13,7 +13,6 @@ module valen.ui {
 
     exports be.twofold.valen.ui;
 
-    opens be.twofold.valen.ui.common.event to backbonefx;
     opens be.twofold.valen.ui.common.settings to backbonefx, com.google.gson;
     opens be.twofold.valen.ui.component to backbonefx;
     opens be.twofold.valen.ui.component.filelist to backbonefx;
