@@ -4,10 +4,10 @@ import javafx.beans.property.*;
 import javafx.scene.*;
 import javafx.scene.layout.*;
 
-public final class SubSceneResizer extends Pane {
+public final class SubScenePane extends Pane {
     private SubScene subScene;
 
-    public SubSceneResizer(ObjectProperty<SubScene> subScene) {
+    public SubScenePane(ObjectProperty<SubScene> subScene) {
         updateSubScene(subScene.get());
         subScene.addListener((_, _, newValue) -> updateSubScene(newValue));
         setMinSize(50, 50);

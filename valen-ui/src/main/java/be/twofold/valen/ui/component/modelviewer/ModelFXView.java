@@ -17,7 +17,7 @@ import java.util.stream.*;
 
 public final class ModelFXView implements ModelView, FXView {
     private final ObjectProperty<SubScene> subSceneProperty = new SimpleObjectProperty<>();
-    private final Pane view = new SubSceneResizer(subSceneProperty);
+    private final Pane view = new SubScenePane(subSceneProperty);
     private final Group root = new Group();
     private final CameraSystem cameraSystem;
 
