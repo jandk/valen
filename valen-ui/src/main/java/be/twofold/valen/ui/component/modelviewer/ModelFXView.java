@@ -7,6 +7,7 @@ import javafx.beans.property.*;
 import javafx.geometry.*;
 import javafx.geometry.Bounds;
 import javafx.scene.*;
+import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.paint.*;
 import javafx.scene.shape.*;
@@ -17,8 +18,9 @@ import java.util.stream.*;
 
 public final class ModelFXView implements ModelView, FXView {
     private final ObjectProperty<SubScene> subSceneProperty = new SimpleObjectProperty<>();
-    private final Pane view = new SubScenePane(subSceneProperty);
+    private final VBox view = new VBox();
     private final Group root = new Group();
+    private final Label statusLabel = new Label();
     private final CameraSystem cameraSystem;
 
     @Inject
@@ -28,6 +30,18 @@ public final class ModelFXView implements ModelView, FXView {
         subSceneProperty.set(subScene);
         this.cameraSystem = new CameraSystem(subScene);
         root.getChildren().add(cameraSystem.camera());
+
+        var separatorPane = new Pane();
+        HBox.setHgrow(separatorPane, Priority.ALWAYS);
+
+        var toolBar = new ToolBar();
+        toolBar.getItems().add(separatorPane);
+        toolBar.getItems().add(statusLabel);
+
+        var subScenePane = new SubScenePane(subSceneProperty);
+        VBox.setVgrow(subScenePane, Priority.ALWAYS);
+        view.getChildren().add(toolBar);
+        view.getChildren().add(subScenePane);
     }
 
     @Override
@@ -48,6 +62,10 @@ public final class ModelFXView implements ModelView, FXView {
 
         center(meshViews, upAxis);
         cameraSystem.reset();
+
+        var numVertices = meshesAndMaterials.stream().mapToInt(mm -> mm.mesh().getPoints().size()).sum() / 3;
+        var numFaces = meshesAndMaterials.stream().mapToInt(mm -> mm.mesh().getFaces().size()).sum() / 9;
+        statusLabel.setText("Meshes: " + meshViews.size() + ", Vertices: " + numVertices + ", Faces: " + numFaces);
 
         root.getChildren().addAll(meshViews);
     }
