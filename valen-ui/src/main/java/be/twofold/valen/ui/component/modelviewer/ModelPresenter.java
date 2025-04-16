@@ -83,8 +83,7 @@ public final class ModelPresenter extends AbstractFXPresenter<ModelView> impleme
         try {
             var texture = property.get()
                 .reference().supplier().get();
-            var surface = texture
-                .surfaces().stream()
+            var surface = texture.surfaces().stream() // .skip(2) was another idea
                 // I have to limit this, because the performance absolutely tanks
                 .filter(s -> s.width() <= 1024 && s.height() <= 1024)
                 .findFirst().orElseThrow();

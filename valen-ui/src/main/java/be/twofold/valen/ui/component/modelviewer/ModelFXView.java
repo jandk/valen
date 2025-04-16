@@ -19,13 +19,14 @@ public final class ModelFXView implements ModelView, FXView {
     private final ObjectProperty<SubScene> subSceneProperty = new SimpleObjectProperty<>();
     private final Pane view = new SubSceneResizer(subSceneProperty);
     private final Group root = new Group();
+    private final CameraSystem cameraSystem;
 
     @Inject
     public ModelFXView() {
         var subScene = new SubScene(root, 400, 400, true, SceneAntialiasing.BALANCED);
         subScene.setFill(new Color(0.2, 0.2, 0.2, 1.0));
         subSceneProperty.set(subScene);
-        var cameraSystem = new CameraSystem(subScene);
+        this.cameraSystem = new CameraSystem(subScene);
         root.getChildren().add(cameraSystem.camera());
     }
 
@@ -46,6 +47,7 @@ public final class ModelFXView implements ModelView, FXView {
             .toList();
 
         center(meshViews, upAxis);
+        cameraSystem.reset();
 
         root.getChildren().addAll(meshViews);
     }
@@ -69,7 +71,7 @@ public final class ModelFXView implements ModelView, FXView {
             .max().getAsDouble();
 
         // TODO: Figure out if we can make this a bit less arbitrary
-        double scale = 100.0 / max / 2.0;
+        double scale = 100.0 / max;
 
         var rotation = switch (upAxis) {
             case X -> throw new UnsupportedOperationException();

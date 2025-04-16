@@ -13,7 +13,7 @@ final class CameraSystem {
     private double mousePosY;
 
     public CameraSystem(SubScene subScene) {
-        camera.setFieldOfView(90);
+        camera.setFieldOfView(60);
         camera.setNearClip(1.0);
         camera.setFarClip(10000.0);
         camera.getTransforms().addAll(
@@ -32,30 +32,33 @@ final class CameraSystem {
         return camera;
     }
 
+    public void reset() {
+        rotateX.setAngle(0);
+        rotateY.setAngle(0);
+        translate.setX(0);
+        translate.setY(0);
+        translate.setZ(-200);
+    }
+
     private void handleMouseEvent(MouseEvent event) {
-        double mouseOldX;
-        double mouseOldY;
         if (event.getEventType() == MouseEvent.MOUSE_PRESSED) {
             mousePosX = event.getSceneX();
             mousePosY = event.getSceneY();
         } else if (event.getEventType() == MouseEvent.MOUSE_DRAGGED) {
-            mouseOldX = mousePosX;
-            mouseOldY = mousePosY;
+            double mouseOldX = mousePosX;
+            double mouseOldY = mousePosY;
             mousePosX = event.getSceneX();
             mousePosY = event.getSceneY();
             double mouseDeltaX = (mousePosX - mouseOldX);
             double mouseDeltaY = (mousePosY - mouseOldY);
 
-            if ((event.isMiddleButtonDown() || (event.isPrimaryButtonDown() && event.isSecondaryButtonDown()))) {
-                // camera.setTranslateX(camera.getTranslateX() - mouseDeltaX * 0.1);
-                // camera.setTranslateY(camera.getTranslateY() - mouseDeltaY * 0.1);
-            } else if (event.isPrimaryButtonDown()) {
+            if (event.isPrimaryButtonDown()) {
                 rotateX.setAngle(Math.clamp(rotateX.getAngle() - mouseDeltaY * 0.3 * 2.0, -85, +85));
                 rotateY.setAngle(rotateY.getAngle() + mouseDeltaX * 0.3 * 2.0);
-            } else if (event.isSecondaryButtonDown()) {
-                double z = translate.getZ();
-                z += (mouseDeltaX + mouseDeltaY) * 0.3;
-                translate.setZ(Math.min(z, 0));
+            }
+            if ((event.isSecondaryButtonDown())) {
+                translate.setX(translate.getX() - mouseDeltaX * 0.1);
+                translate.setY(translate.getY() - mouseDeltaY * 0.1);
             }
         }
     }
