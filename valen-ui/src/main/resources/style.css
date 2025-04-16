@@ -64,3 +64,8 @@
 .scroll-pane {
     -fx-background-color: transparent;
 }
+
+.tooltip {
+    -fx-font-size: 1em;
+    -fx-wrap-text: true;
+}

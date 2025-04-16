@@ -11,6 +11,10 @@ public final class TooltippedTableCell<S, T> extends TableCell<S, T> {
 
     private TooltippedTableCell(StringConverter<T> converter) {
         this.converter = Check.notNull(converter, "converter");
+
+        textTruncatedProperty().addListener((_, _, newValue) -> {
+            setTooltip(newValue ? tooltip : null);
+        });
     }
 
     public static <S> Callback<TableColumn<S, String>, TableCell<S, String>> forTableColumn() {
@@ -24,9 +28,6 @@ public final class TooltippedTableCell<S, T> extends TableCell<S, T> {
     @Override
     public void updateItem(T item, boolean empty) {
         super.updateItem(item, empty);
-        textTruncatedProperty().addListener((_, _, newValue) -> {
-            setTooltip(newValue ? tooltip : null);
-        });
 
         if (isEmpty()) {
             setText(null);
