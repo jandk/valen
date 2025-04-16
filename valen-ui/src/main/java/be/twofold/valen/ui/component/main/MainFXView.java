@@ -61,7 +61,7 @@ public final class MainFXView implements MainView, FXView {
     @Override
     public void setArchives(List<String> archives) {
         archiveChooser.getItems().setAll(archives);
-        archiveChooser.getSelectionModel().select(0);
+        // archiveChooser.getSelectionModel().select(0);
     }
 
     @Override

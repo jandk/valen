@@ -58,11 +58,15 @@ public final class EternalGame implements Game {
         return spec.maps().stream()
             .filter(map -> spec.mapFiles().get(map).stream()
                 .anyMatch(file -> file.endsWith(".resources")))
+            .map(s -> s.equals("common") ? "gameresources" : s)
             .toList();
     }
 
     @Override
     public EternalArchive loadArchive(String name) throws IOException {
+        if (name.equals("gameresources")) {
+            name = "common";
+        }
         var resourcesCollection = loadResources(base, spec, decompressor, name);
         return new EternalArchive(streamDbCollection, commonCollection, resourcesCollection, decompressor);
     }
