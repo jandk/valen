@@ -73,7 +73,7 @@ final class CameraSystem {
         } else {
             double z = translate.getZ();
             double factor = Math.max(Math.abs(translate.getZ()), 10);
-            z += (event.getDeltaY() * factor * 0.001);
+            z += (event.getDeltaY() * factor * 0.002);
             translate.setZ(Math.min(z, 0));
         }
     }
