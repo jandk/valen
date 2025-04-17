@@ -126,11 +126,16 @@ public final class DeclReader implements AssetReader<JsonObject, EternalAsset> {
             var key = entry.getKey();
             var value = entry.getValue();
 
-            var oldValue = result.get(key);
-            if (oldValue != null && oldValue.isJsonObject() && value.isJsonObject()) {
-                value = merge(oldValue.getAsJsonObject(), value.getAsJsonObject());
+            var oldEntry = result.entrySet().stream()
+                .filter(e -> e.getKey().equalsIgnoreCase(key))
+                .findFirst().orElse(null);
+            // var oldValue = result.get(key);
+            if (oldEntry != null && oldEntry.getValue().isJsonObject() && value.isJsonObject()) {
+                value = merge(oldEntry.getValue().getAsJsonObject(), value.getAsJsonObject());
+                result.add(entry.getKey(), value);
+            } else {
+                result.add(key, value);
             }
-            result.add(key, value);
         }
         return result;
     }

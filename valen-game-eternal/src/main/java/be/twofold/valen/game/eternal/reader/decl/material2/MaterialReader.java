@@ -195,11 +195,11 @@ public final class MaterialReader implements AssetReader<Material, EternalAsset>
 
     private TextureReference mapTex2D(Parm parm, Map<String, Parm> allParms) {
         var filePath = ((Tex) parm.value).filePath();
-        if (filePath == null) {
+        if (filePath == null || filePath.isEmpty() || filePath.equals("_default")) {
             return null;
         }
 
-        var builder = new StringBuilder(filePath);
+        var builder = new StringBuilder(filePath.toLowerCase());
         if (parm.renderParm().materialKind == ImageTextureMaterialKind.TMK_SMOOTHNESS) {
             var smoothnessNormal = allParms.entrySet().stream()
                 .filter(rlp -> rlp.getValue().renderParm().materialKind == parm.renderParm().smoothnessNormalParm)
@@ -216,7 +216,7 @@ public final class MaterialReader implements AssetReader<Material, EternalAsset>
         var resourceKey = EternalAssetID.from(resourceName, ResourceType.Image);
         var resource = archive.get(resourceKey);
         if (resource.isEmpty()) {
-            log.warn("Missing image file: {}", name);
+            log.warn("Missing image file: '{}'", name);
             return null;
         }
 
@@ -230,7 +230,7 @@ public final class MaterialReader implements AssetReader<Material, EternalAsset>
         var kind = parm.renderParm().materialKind;
         if (opts != null) {
             if (opts.format() != ImageTextureFormat.FMT_NONE) {
-                if (kind == null || (kind.getCode() > 7 && kind != ImageTextureMaterialKind.TMK_BLENDMASK)) {
+                if (kind == null || kind == ImageTextureMaterialKind.TMK_NONE || (kind.getCode() > 7 && kind != ImageTextureMaterialKind.TMK_BLENDMASK)) {
                     builder.append(formatFormat(opts.format()));
                 }
             }
@@ -371,6 +371,7 @@ public final class MaterialReader implements AssetReader<Material, EternalAsset>
     }
 
     private Optional<RenderParm> getRenderParm(String name) throws IOException {
+        name = name.toLowerCase();
         if (RenderParmCache.containsKey(name)) {
             return Optional.ofNullable(RenderParmCache.get(name));
         }
@@ -379,6 +380,7 @@ public final class MaterialReader implements AssetReader<Material, EternalAsset>
         var resourceKey = EternalAssetID.from(fullName, ResourceType.RsStreamFile);
         if (!archive.exists(resourceKey)) {
             RenderParmCache.put(fullName, null);
+            log.warn("Could not load renderparm: '{}'", name);
             return Optional.empty();
         }
 

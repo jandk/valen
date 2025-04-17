@@ -19,12 +19,13 @@ public abstract class TestUtils {
             var archive = game.loadArchive(archiveName);
             var reader = readerFunction.apply(archive);
             readAllInMap(archive, reader);
+            return;
         }
     }
 
     private static void readAllInMap(EternalArchive archive, AssetReader<?, EternalAsset> reader) {
         var entries = archive.getAll()
-            .filter(asset -> asset.size() != 0 && reader.canRead((EternalAsset) asset))
+            .filter(asset -> asset.size() != 0 && reader.canRead(asset))
             .toList();
 
         System.out.println("Trying to read " + entries.size() + " entries");
@@ -32,7 +33,7 @@ public abstract class TestUtils {
         entries.forEach(asset -> assertThatNoException()
             .isThrownBy(() -> {
                 var buffer = archive.loadAsset(asset.id(), ByteBuffer.class);
-                reader.read(DataSource.fromBuffer(buffer), (EternalAsset) asset);
+                reader.read(DataSource.fromBuffer(buffer), asset);
             }));
     }
 
