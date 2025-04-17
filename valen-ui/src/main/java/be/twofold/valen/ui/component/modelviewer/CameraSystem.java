@@ -53,12 +53,15 @@ final class CameraSystem {
             double mouseDeltaY = (mousePosY - mouseOldY);
 
             if (event.isPrimaryButtonDown()) {
-                rotateX.setAngle(Math.clamp(rotateX.getAngle() - mouseDeltaY * 0.3 * 2.0, -85, +85));
-                rotateY.setAngle(rotateY.getAngle() + mouseDeltaX * 0.3 * 2.0);
-            }
-            if ((event.isSecondaryButtonDown())) {
+                rotateX.setAngle(Math.clamp(rotateX.getAngle() - mouseDeltaY * 0.5, -85, +85));
+                rotateY.setAngle(rotateY.getAngle() + mouseDeltaX * 0.5);
+            } else if (event.isSecondaryButtonDown()) {
                 translate.setX(translate.getX() - mouseDeltaX * 0.1);
                 translate.setY(translate.getY() - mouseDeltaY * 0.1);
+            } else if (event.isMiddleButtonDown()) {
+                double z = translate.getZ();
+                z += (mouseDeltaX + mouseDeltaY) * 0.1;
+                translate.setZ(Math.min(z, 0));
             }
         }
     }
@@ -69,7 +72,8 @@ final class CameraSystem {
             camera.setTranslateY(camera.getTranslateY() + (0.01 * event.getDeltaY()));
         } else {
             double z = translate.getZ();
-            z += (event.getDeltaY() * 1);
+            double factor = Math.max(Math.abs(translate.getZ()), 10);
+            z += (event.getDeltaY() * factor * 0.001);
             translate.setZ(Math.min(z, 0));
         }
     }
