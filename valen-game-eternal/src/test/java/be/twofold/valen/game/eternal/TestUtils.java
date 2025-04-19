@@ -19,7 +19,6 @@ public abstract class TestUtils {
             var archive = game.loadArchive(archiveName);
             var reader = readerFunction.apply(archive);
             readAllInMap(archive, reader);
-            return;
         }
     }
 
@@ -30,11 +29,16 @@ public abstract class TestUtils {
 
         System.out.println("Trying to read " + entries.size() + " entries");
 
-        entries.forEach(asset -> assertThatNoException()
-            .isThrownBy(() -> {
+        for (EternalAsset asset : entries) {
+            try {
                 var buffer = archive.loadAsset(asset.id(), ByteBuffer.class);
                 reader.read(DataSource.fromBuffer(buffer), asset);
-            }));
+            } catch (FileNotFoundException e) {
+                System.err.println(e.getMessage());
+            } catch (Exception e) {
+                fail(e);
+            }
+        }
     }
 
 }

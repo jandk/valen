@@ -5,12 +5,14 @@ import be.twofold.valen.core.game.*;
 import be.twofold.valen.ui.*;
 import be.twofold.valen.ui.common.*;
 import be.twofold.valen.ui.common.settings.*;
+import be.twofold.valen.ui.component.*;
 import be.twofold.valen.ui.component.filelist.*;
 import be.twofold.valen.ui.events.*;
 import jakarta.inject.*;
 import javafx.application.*;
 import javafx.concurrent.*;
 import org.jetbrains.annotations.*;
+import org.slf4j.*;
 
 import java.io.*;
 import java.nio.*;
@@ -19,6 +21,8 @@ import java.util.function.*;
 import java.util.stream.*;
 
 public final class MainPresenter extends AbstractFXPresenter<MainView> {
+    private final Logger log = LoggerFactory.getLogger(MainPresenter.class);
+
     private final ExportService exportService;
     private final FileListPresenter fileList;
     private final Settings settings;
@@ -81,7 +85,8 @@ public final class MainPresenter extends AbstractFXPresenter<MainView> {
             archive = (Archive<AssetID, Asset>) game.loadArchive(archiveName);
             updateFileList();
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            log.error("Could not load archive {}", archiveName, e);
+            FxUtils.showExceptionDialog(e, "Could not load archive " + archiveName);
         }
     }
 
@@ -98,7 +103,8 @@ public final class MainPresenter extends AbstractFXPresenter<MainView> {
                 var assetData = archive.loadAsset(asset.id(), type);
                 Platform.runLater(() -> getView().setupPreview(asset, assetData));
             } catch (IOException e) {
-                throw new UncheckedIOException(e);
+                log.error("Could not load asset{}", asset.id().fileName(), e);
+                FxUtils.showExceptionDialog(e, "Could not load asset" + asset.id().fileName());
             }
         }
         lastAsset = asset;

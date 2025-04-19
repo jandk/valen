@@ -11,6 +11,7 @@ import org.slf4j.*;
 
 import java.nio.file.*;
 import java.util.*;
+import java.util.stream.*;
 
 final class ExportService extends Service<Void> {
     private final Settings settings;
@@ -40,6 +41,7 @@ final class ExportService extends Service<Void> {
 
     private static final class ExportTask extends Task<Void> {
         private static final Logger log = LoggerFactory.getLogger(ExportTask.class);
+        private final List<AssetID> failedAssets = new ArrayList<>();
 
         private final Settings settings;
         private final Archive<AssetID, Asset> archive;
@@ -61,6 +63,12 @@ final class ExportService extends Service<Void> {
                 }
             }
             updateProgress(assets.size(), assets.size());
+            if (!failedAssets.isEmpty()) {
+                String text = failedAssets.stream()
+                    .map(AssetID::fullName)
+                    .collect(Collectors.joining("\n"));
+                FxUtils.showExceptionDialog(new Exception("Failed exporting some assets"), text);
+            }
             return null;
         }
 
@@ -83,8 +91,7 @@ final class ExportService extends Service<Void> {
                 Files.createDirectories(targetPath.getParent());
                 exporter.export(rawAsset, targetPath);
             } catch (Exception e) {
-                log.error(e.getMessage(), e);
-                FxUtils.showExceptionDialog(e, "Could not export asset");
+                failedAssets.add(asset.id());
             }
         }
 

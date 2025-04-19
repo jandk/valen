@@ -31,7 +31,7 @@ final class ContainerComposite<K, V> implements Container<K, V> {
                 return file.read(key, size);
             }
         }
-        throw new IOException("Unknown key: " + key);
+        throw new FileNotFoundException("Unknown key: " + key);
     }
 
     @Override
