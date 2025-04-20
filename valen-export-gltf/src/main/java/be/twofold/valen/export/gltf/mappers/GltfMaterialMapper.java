@@ -42,7 +42,7 @@ public final class GltfMaterialMapper {
                 case Normal ->
                     builder.normalTexture(normalTextureInfoSchema(textureMapper.mapSimple(property.reference())));
                 case Emissive -> mapEmissive(property, builder);
-                case Unknown -> textureMapper.mapSimple(property.reference());
+                // case Unknown -> textureMapper.mapSimple(property.reference());
             }
         }
 
@@ -136,7 +136,8 @@ public final class GltfMaterialMapper {
 
         // The default in GLTF is 0, 0, 0 for emissive
         var reference = property.type() == MaterialPropertyType.Emissive ? Vector4.W : Vector4.One;
-        if (!reference.equals(factor)) {
+        /*if (!reference.equals(factor)) */
+        {
             factorConsumer.accept(factor);
         }
     }
