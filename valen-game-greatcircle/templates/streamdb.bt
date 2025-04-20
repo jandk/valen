@@ -9,6 +9,27 @@
 // File Mask: *.streamdb
 //  ID Bytes: 51 A5 C2 29 2E F3 C7 61
 //------------------------------------------------
+enum streamerCompression_t {
+    STREAMER_COMPRESSION_NONE_IMAGE = 0,
+    STREAMER_COMPRESSION_KRAKEN_IMAGE = 1,
+    STREAMER_COMPRESSION_SCARLETT_TILED_Z = 2,
+    STREAMER_COMPRESSION_NONE_MODEL = 3,
+    STREAMER_COMPRESSION_KRAKEN_MODEL = 4,
+    STREAMER_COMPRESSION_UNUSED_2 = 5,
+    STREAMER_COMPRESSION_UNUSED_3 = 6,
+    STREAMER_COMPRESSION_UNUSED_4 = 7,
+    STREAMER_COMPRESSION_NONE_TRIANGLEFAN = 8,
+    STREAMER_COMPRESSION_KRAKEN_TRIANGLEFAN = 9,
+    STREAMER_COMPRESSION_RESOURCE_IMAGE = 10,
+    STREAMER_COMPRESSION_NONE_DIRECT = 11,
+    STREAMER_COMPRESSION_KRAKEN_DIRECT = 12,
+    STREAMER_COMPRESSION_NONE_STAGE = 13,
+    STREAMER_COMPRESSION_KRAKEN_STAGE = 14,
+    STREAMER_COMPRESSION_KRAKEN_PROGRAM = 15,
+    STREAMER_COMPRESSION_COUNT = 16,
+    STREAMER_COMPRESSION_UNSET = 255,
+};
+
 struct streamDatabaseMainHeader_t {
     uquad magic;
     uint headerLengthOrPad;
@@ -34,7 +55,7 @@ struct streamDatabaseFullHeader_t {
 uquad identities[header.main.numEntries] <style=sSection1>;
 
 struct streamDatabaseEntry4_t {
-    uint offset16;
-    uint length;
-    uint what;
+    uint                  offset16;
+    uint                  length;
+    streamerCompression_t compressionMode;
 } entries[header.main.numEntries] <style=sSection2>;

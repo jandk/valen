@@ -105,7 +105,7 @@ public final class MaterialReader implements AssetReader<Material, GreatCircleAs
     private void mapOptions(StringBuilder builder, ImageTextureMaterialKind kind, RenderParm renderParm, MaterialImageOpts opts) {
         if (opts != null) {
             if (opts.format() != ImageTextureFormat.FMT_NONE) {
-                if (kind.getCode() > 7 && kind != ImageTextureMaterialKind.TMK_BLENDMASK) {
+                if (kind.value() > 7 && kind != ImageTextureMaterialKind.TMK_BLENDMASK) {
                     builder.append(formatFormat(opts.format()));
                 }
             }

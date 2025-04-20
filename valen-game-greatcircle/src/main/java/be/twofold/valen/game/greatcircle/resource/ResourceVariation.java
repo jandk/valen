@@ -2,8 +2,6 @@ package be.twofold.valen.game.greatcircle.resource;
 
 import be.twofold.valen.core.util.*;
 
-import java.util.*;
-
 public enum ResourceVariation implements ValueEnum<Integer> {
     RES_VAR_NONE(0),
     RES_VAR_DEBUG(24),
@@ -93,21 +91,18 @@ public enum ResourceVariation implements ValueEnum<Integer> {
     RES_VAR_LANGUAGE_ZH_TW(435),
     RES_VAR_LANGUAGE_RESERVED_DO_NOT_USE(499);
 
-    private static final Map<Integer, ResourceVariation> MAP = ValueEnum.valueMap(ResourceVariation.class);
-
     private final int value;
 
     ResourceVariation(int value) {
         this.value = value;
     }
 
+    public static ResourceVariation fromValue(int value) {
+        return ValueEnum.fromValue(ResourceVariation.class, value);
+    }
+
     @Override
     public Integer value() {
         return value;
-    }
-
-    public static ResourceVariation fromValue(int value) {
-        return ValueEnum.fromValue(MAP, value)
-            .orElseThrow(() -> new IllegalArgumentException("Unknown variation: " + value));
     }
 }

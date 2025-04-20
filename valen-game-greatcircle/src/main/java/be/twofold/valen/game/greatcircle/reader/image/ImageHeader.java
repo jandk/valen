@@ -32,8 +32,8 @@ public record ImageHeader(
         }
         var version = magic >>> 24;
 
-        var type = ImageTextureType.fromCode(source.readInt());
-        var kind = ImageTextureMaterialKind.fromCode(source.readInt());
+        var type = ImageTextureType.fromValue(source.readInt());
+        var kind = ImageTextureMaterialKind.fromValue(source.readInt());
         var width = source.readInt();
         var height = source.readInt();
         var depth = source.readInt();
@@ -43,7 +43,7 @@ public record ImageHeader(
         var bias = source.readFloat();
         var scale = source.readFloat();
         source.expectByte((byte) 0);
-        var textureFormat = ImageTextureFormat.fromCode(source.readInt());
+        var textureFormat = ImageTextureFormat.fromValue(source.readInt());
         source.expectShort((short) 0);
         var streamed = source.readBoolByte();
         var singleStream = source.readBoolByte();

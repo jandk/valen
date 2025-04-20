@@ -7,12 +7,12 @@ import java.io.*;
 public record StreamDbEntry(
     int offset16,
     int length,
-    int compressionMode
+    StreamerCompression compressionMode
 ) {
     public static StreamDbEntry read(DataSource source) throws IOException {
         int offset16 = source.readInt();
         int length = source.readInt();
-        int compressionMode = source.readInt();
+        StreamerCompression compressionMode = StreamerCompression.fromValue(source.readInt());
 
         return new StreamDbEntry(
             offset16,

@@ -1,23 +1,24 @@
 package be.twofold.valen.game.greatcircle.reader.image;
 
-import java.util.*;
+import be.twofold.valen.core.util.*;
 
-public enum ImageTextureType {
-    TT_2D(0x00),
-    TT_3D(0x01),
-    TT_CUBIC(0x02);
+public enum ImageTextureType implements ValueEnum<Integer> {
+    TT_2D(0),
+    TT_3D(1),
+    TT_CUBIC(2);
 
-    private static final ImageTextureType[] VALUES = values();
-    private final int code;
+    private final int value;
 
-    ImageTextureType(int code) {
-        this.code = code;
+    ImageTextureType(int value) {
+        this.value = value;
     }
 
-    public static ImageTextureType fromCode(int code) {
-        return Arrays.stream(VALUES)
-            .filter(value -> value.code == code)
-            .findFirst()
-            .orElseThrow(() -> new IllegalArgumentException("Unknown texture type: " + code));
+    public static ImageTextureType fromValue(int code) {
+        return ValueEnum.fromValue(ImageTextureType.class, code);
+    }
+
+    @Override
+    public Integer value() {
+        return value;
     }
 }

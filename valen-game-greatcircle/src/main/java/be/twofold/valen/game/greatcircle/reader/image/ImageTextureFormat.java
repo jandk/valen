@@ -1,8 +1,8 @@
 package be.twofold.valen.game.greatcircle.reader.image;
 
-import java.util.*;
+import be.twofold.valen.core.util.*;
 
-public enum ImageTextureFormat {
+public enum ImageTextureFormat implements ValueEnum<Integer> {
     FMT_NONE(0),
     FMT_RGBA32F(1),
     FMT_RGBA16F(2),
@@ -66,17 +66,18 @@ public enum ImageTextureFormat {
     FMT_DEPTH32F(53),
     FMT_NEXTAVAILABLE(61);
 
-    private static final ImageTextureFormat[] VALUES = values();
-    private final int code;
+    private final int value;
 
-    ImageTextureFormat(int code) {
-        this.code = code;
+    ImageTextureFormat(int value) {
+        this.value = value;
     }
 
-    public static ImageTextureFormat fromCode(int code) {
-        return Arrays.stream(VALUES)
-            .filter(value -> value.code == code)
-            .findFirst()
-            .orElseThrow(() -> new IllegalArgumentException("Unknown texture format: " + code));
+    public static ImageTextureFormat fromValue(int value) {
+        return ValueEnum.fromValue(ImageTextureFormat.class, value);
+    }
+
+    @Override
+    public Integer value() {
+        return value;
     }
 }

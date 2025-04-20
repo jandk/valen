@@ -1,8 +1,8 @@
 package be.twofold.valen.game.greatcircle.reader.image;
 
-import java.util.*;
+import be.twofold.valen.core.util.*;
 
-public enum ImageTextureMaterialKind {
+public enum ImageTextureMaterialKind implements ValueEnum<Integer> {
     TMK_NONE(0),
     TMK_ALBEDO(1),
     TMK_SPECULAR(2),
@@ -34,21 +34,18 @@ public enum ImageTextureMaterialKind {
     TMK_ALBEDO_DETAILS(28),
     TMK_COUNT(29);
 
-    private static final ImageTextureMaterialKind[] VALUES = values();
-    private final int code;
+    private final int value;
 
-    ImageTextureMaterialKind(int code) {
-        this.code = code;
+    ImageTextureMaterialKind(int value) {
+        this.value = value;
     }
 
-    public int getCode() {
-        return code;
+    public static ImageTextureMaterialKind fromValue(int value) {
+        return ValueEnum.fromValue(ImageTextureMaterialKind.class, value);
     }
 
-    public static ImageTextureMaterialKind fromCode(int code) {
-        return Arrays.stream(VALUES)
-            .filter(value -> value.code == code)
-            .findFirst()
-            .orElseThrow(() -> new IllegalArgumentException("Unknown texture material kind: " + code));
+    @Override
+    public Integer value() {
+        return value;
     }
 }

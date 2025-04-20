@@ -50,12 +50,14 @@ public final class StreamDbFile implements Container<Long, StreamDbEntry> {
         var entry = index.get(key);
         Check.state(entry != null, () -> "Stream not found: " + key);
 
+        var decompressor = switch (entry.compressionMode()) {
+            case STREAMER_COMPRESSION_NONE_IMAGE, STREAMER_COMPRESSION_NONE_MODEL -> Decompressor.none();
+            case STREAMER_COMPRESSION_KRAKEN_IMAGE, STREAMER_COMPRESSION_KRAKEN_MODEL -> this.decompressor;
+            default -> throw new IllegalStateException("Unexpected compression mode: " + entry.compressionMode());
+        };
+
         source.position(entry.offset());
         var compressed = source.readBuffer(entry.length());
-        if (compressed.remaining() == size) {
-            return compressed;
-        }
-
         return decompressor.decompress(compressed, size);
     }
 
