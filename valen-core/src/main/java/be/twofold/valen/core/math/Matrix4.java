@@ -13,14 +13,14 @@ public record Matrix4(
 
     // region Constants and Factories
 
-    public static Matrix4 Zero = new Matrix4(
+    public static final Matrix4 Zero = new Matrix4(
         0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f
     );
 
-    public static Matrix4 Identity = new Matrix4(
+    public static final Matrix4 Identity = new Matrix4(
         1.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 1.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 1.0f, 0.0f,

@@ -1,8 +1,6 @@
 module valen.core {
     requires be.twofold.tinybcdec;
     requires org.slf4j;
-    requires java.desktop;
-    requires java.sql;
 
     exports be.twofold.valen.core.animation;
     exports be.twofold.valen.core.compression;

@@ -3,7 +3,6 @@ package be.twofold.valen.ui.component.modelviewer;
 import be.twofold.valen.core.math.*;
 import be.twofold.valen.ui.common.*;
 import jakarta.inject.*;
-import javafx.beans.property.*;
 import javafx.geometry.*;
 import javafx.geometry.Bounds;
 import javafx.scene.*;
@@ -17,7 +16,6 @@ import java.util.*;
 import java.util.stream.*;
 
 public final class ModelFXView implements ModelView, FXView {
-    private final ObjectProperty<SubScene> subSceneProperty = new SimpleObjectProperty<>();
     private final VBox view = new VBox();
     private final Group root = new Group();
     private final Label statusLabel = new Label();
@@ -27,7 +25,6 @@ public final class ModelFXView implements ModelView, FXView {
     public ModelFXView() {
         var subScene = new SubScene(root, 400, 400, true, SceneAntialiasing.BALANCED);
         subScene.setFill(new Color(0.2, 0.2, 0.2, 1.0));
-        subSceneProperty.set(subScene);
         this.cameraSystem = new CameraSystem(subScene);
         root.getChildren().add(cameraSystem.camera());
 
@@ -38,7 +35,7 @@ public final class ModelFXView implements ModelView, FXView {
         toolBar.getItems().add(separatorPane);
         toolBar.getItems().add(statusLabel);
 
-        var subScenePane = new SubScenePane(subSceneProperty);
+        var subScenePane = new SubScenePane(subScene);
         VBox.setVgrow(subScenePane, Priority.ALWAYS);
         view.getChildren().add(toolBar);
         view.getChildren().add(subScenePane);

@@ -12,13 +12,13 @@ public record Matrix3(
 
     // region Constants and Factories
 
-    public static Matrix3 Zero = new Matrix3(
+    public static final Matrix3 Zero = new Matrix3(
         0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f
     );
 
-    public static Matrix3 Identity = new Matrix3(
+    public static final Matrix3 Identity = new Matrix3(
         1.0f, 0.0f, 0.0f,
         0.0f, 1.0f, 0.0f,
         0.0f, 0.0f, 1.0f
