@@ -64,12 +64,6 @@ public final class MainPresenter extends AbstractFXPresenter<MainView> {
         eventBus.subscribe(SettingsApplied.class, _ -> updateFileList());
         eventBus.subscribe(ExportRequested.class, event -> exportPath(event.path(), event.recursive()));
 
-        exportService.progressProperty().addListener((_, _, newValue) -> {
-            getView().setProgress(newValue.doubleValue());
-        });
-        exportService.messageProperty().addListener((_, _, newValue) -> {
-            getView().setProgressMessage(newValue);
-        });
         exportService.stateProperty().addListener((_, _, newValue) -> {
             getView().setExporting(newValue == Worker.State.RUNNING);
         });

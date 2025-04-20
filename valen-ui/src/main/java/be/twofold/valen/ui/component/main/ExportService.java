@@ -5,9 +5,12 @@ import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.util.*;
 import be.twofold.valen.ui.common.settings.*;
 import be.twofold.valen.ui.component.*;
+import be.twofold.valen.ui.component.progress.*;
 import jakarta.inject.*;
+import javafx.application.*;
 import javafx.concurrent.*;
-import org.slf4j.*;
+import javafx.scene.*;
+import javafx.stage.*;
 
 import java.nio.file.*;
 import java.util.*;
@@ -15,12 +18,36 @@ import java.util.stream.*;
 
 final class ExportService extends Service<Void> {
     private final Settings settings;
+    private final Stage stage;
     private Archive<AssetID, Asset> archive;
     private List<Asset> assets;
 
     @Inject
-    ExportService(Settings settings) {
+    ExportService(Settings settings, ViewLoader viewLoader, ProgressController progressController) {
         this.settings = settings;
+        this.stage = createStage(viewLoader.load("/fxml/Progress.fxml"));
+
+        var viewModel = progressController.getViewModel();
+        viewModel.progressProperty().bind(progressProperty());
+        viewModel.messageProperty().bind(messageProperty());
+        viewModel.workDoneProperty().bind(workDoneProperty());
+        viewModel.workTotalProperty().bind(totalWorkProperty());
+        viewModel.cancelledProperty().addListener((_, _, newValue) -> {
+            if (newValue) {
+                cancel();
+            }
+            viewModel.cancelledProperty().setValue(false);
+        });
+    }
+
+    private Stage createStage(Parent parent) {
+        var scene = new Scene(parent);
+        scene.getStylesheets().add(getClass().getResource("/style.css").toExternalForm());
+
+        var stage = new Stage();
+        stage.initModality(Modality.APPLICATION_MODAL);
+        stage.setScene(scene);
+        return stage;
     }
 
     public void setArchive(Archive<AssetID, Asset> archive) {
@@ -33,28 +60,33 @@ final class ExportService extends Service<Void> {
 
     @Override
     protected Task<Void> createTask() {
-        final Archive<AssetID, Asset> archive = Check.notNull(this.archive, "archive");
-        final List<Asset> assets = Check.notNull(this.assets, "assets");
+        Check.notNull(this.archive, "archive");
+        Check.notNull(this.assets, "assets");
 
-        return new ExportTask(settings, archive, assets);
+        ExportTask exportTask = new ExportTask();
+        exportTask.setOnFailed(event -> Platform.runLater(() -> {
+            FxUtils.showExceptionDialog(event.getSource().getException(), "Exception while exporting assets");
+        }));
+        return exportTask;
     }
 
-    private static final class ExportTask extends Task<Void> {
-        private static final Logger log = LoggerFactory.getLogger(ExportTask.class);
+    private final class ExportTask extends Task<Void> {
         private final List<AssetID> failedAssets = new ArrayList<>();
-
-        private final Settings settings;
-        private final Archive<AssetID, Asset> archive;
-        private final List<Asset> assets;
-
-        public ExportTask(Settings settings, Archive<AssetID, Asset> archive, List<Asset> assets) {
-            this.settings = Check.notNull(settings, "settings");
-            this.archive = Check.notNull(archive, "archive");
-            this.assets = List.copyOf(assets);
-        }
 
         @Override
         protected Void call() {
+            Platform.runLater(() -> {
+                if (!(stage.getWidth() > 0) || !(stage.getHeight() > 0)) {
+                    // Don't have a size the first time yet, so force a show
+                    stage.show();
+                }
+
+                Window window = Window.getWindows().getFirst();
+                stage.setX(window.getX() + (window.getWidth() - stage.getWidth()) / 2);
+                stage.setY(window.getY() + (window.getHeight() - stage.getHeight()) / 2);
+                stage.show();
+            });
+
             for (int i = 0; i < assets.size(); i++) {
                 updateProgress(i, assets.size());
                 exportAsset(assets.get(i));
@@ -63,6 +95,9 @@ final class ExportService extends Service<Void> {
                 }
             }
             updateProgress(assets.size(), assets.size());
+
+            Platform.runLater(stage::hide);
+
             if (!failedAssets.isEmpty()) {
                 String text = failedAssets.stream()
                     .map(AssetID::fullName)

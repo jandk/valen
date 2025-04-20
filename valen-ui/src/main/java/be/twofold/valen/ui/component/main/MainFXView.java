@@ -30,8 +30,6 @@ public final class MainFXView implements MainView, FXView {
 
     private final ComboBox<String> archiveChooser = new ComboBox<>();
     private final TextField searchTextField = new TextField();
-    private final Label progressLabel = new Label();
-    private final ProgressBar progressBar = new ProgressBar();
 
     private final PreviewTabPane tabPane;
     private final Parent settingsView;
@@ -79,20 +77,7 @@ public final class MainFXView implements MainView, FXView {
         Platform.runLater(() -> {
             log.info("Exporting: {} at {}", exporting, System.currentTimeMillis());
             view.setDisable(exporting);
-            progressLabel.setText("");
-            progressLabel.setVisible(exporting);
-            progressBar.setVisible(exporting);
         });
-    }
-
-    @Override
-    public void setProgress(double percentage) {
-        progressBar.setProgress(percentage);
-    }
-
-    @Override
-    public void setProgressMessage(String progressMessage) {
-        progressLabel.setText(progressMessage);
     }
 
     @Override
@@ -163,15 +148,9 @@ public final class MainFXView implements MainView, FXView {
         var pane = new Pane();
         HBox.setHgrow(pane, Priority.ALWAYS);
 
-        progressBar.setVisible(false);
-        progressBar.setMinWidth(160);
-        progressBar.setPrefWidth(160);
-
         var hBox = new HBox(
             searchTextField, searchClearButton,
-            progressLabel,
-            pane,
-            progressBar
+            pane
         );
         hBox.setAlignment(Pos.CENTER_LEFT);
         hBox.setSpacing(5.0);

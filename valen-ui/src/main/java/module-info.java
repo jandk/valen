@@ -19,6 +19,7 @@ module valen.ui {
     opens be.twofold.valen.ui.component.main to backbonefx;
     opens be.twofold.valen.ui.component.modelviewer to backbonefx;
     opens be.twofold.valen.ui.component.preview to backbonefx;
+    opens be.twofold.valen.ui.component.progress to backbonefx, javafx.fxml;
     opens be.twofold.valen.ui.component.rawview to backbonefx;
     opens be.twofold.valen.ui.component.settings to backbonefx, javafx.fxml;
     opens be.twofold.valen.ui.component.textureviewer to backbonefx;
