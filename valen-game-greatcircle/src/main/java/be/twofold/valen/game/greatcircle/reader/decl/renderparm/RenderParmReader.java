@@ -2,7 +2,7 @@ package be.twofold.valen.game.greatcircle.reader.decl.renderparm;
 
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.io.*;
-import be.twofold.valen.game.greatcircle.reader.*;
+import be.twofold.valen.game.greatcircle.*;
 import be.twofold.valen.game.greatcircle.reader.decl.*;
 import be.twofold.valen.game.greatcircle.reader.image.*;
 import be.twofold.valen.game.greatcircle.resource.*;
@@ -10,17 +10,14 @@ import be.twofold.valen.game.greatcircle.resource.*;
 import java.io.*;
 import java.util.*;
 
-public final class RenderParmReader implements ResourceReader<RenderParm> {
-    public RenderParmReader() {
+public final class RenderParmReader implements AssetReader<RenderParm, GreatCircleAsset> {
+    @Override
+    public boolean canRead(GreatCircleAsset asset) {
+        return asset.id().type() == ResourceType.renderparm;
     }
 
     @Override
-    public boolean canRead(ResourceKey key) {
-        return key.type() == ResourceType.renderparm;
-    }
-
-    @Override
-    public RenderParm read(DataSource source, Asset asset) throws IOException {
+    public RenderParm read(DataSource source, GreatCircleAsset asset) throws IOException {
         var bytes = source.readBytes(Math.toIntExact(source.size()));
         var parser = new DeclParser(new String(bytes), true);
 

@@ -7,7 +7,6 @@ import be.twofold.valen.core.math.*;
 import be.twofold.valen.core.texture.*;
 import be.twofold.valen.core.util.*;
 import be.twofold.valen.game.greatcircle.*;
-import be.twofold.valen.game.greatcircle.reader.*;
 import be.twofold.valen.game.greatcircle.reader.decl.*;
 import be.twofold.valen.game.greatcircle.reader.decl.renderparm.*;
 import be.twofold.valen.game.greatcircle.reader.image.*;
@@ -18,7 +17,7 @@ import org.slf4j.*;
 import java.io.*;
 import java.util.*;
 
-public final class MaterialReader implements ResourceReader<Material> {
+public final class MaterialReader implements AssetReader<Material, GreatCircleAsset> {
     private static final Logger log = LoggerFactory.getLogger(MaterialReader.class);
     private static final Map<String, RenderParm> RenderParmCache = new HashMap<>();
 
@@ -34,19 +33,19 @@ public final class MaterialReader implements ResourceReader<Material> {
     }
 
     @Override
-    public boolean canRead(ResourceKey key) {
-        return key.type() == ResourceType.material2;
+    public boolean canRead(GreatCircleAsset asset) {
+        return asset.id().type() == ResourceType.material2;
     }
 
     @Override
-    public Material read(DataSource source, Asset asset) throws IOException {
+    public Material read(DataSource source, GreatCircleAsset asset) throws IOException {
         var object = declReader.read(source, asset);
-        return parseMaterial(object, asset.id().fullName());
+        return parseMaterial(object, asset);
     }
 
-    private Material parseMaterial(JsonObject object, String name) throws IOException {
+    private Material parseMaterial(JsonObject object, GreatCircleAsset asset) throws IOException {
         if (!object.has("RenderLayers")) {
-            return new Material(name, List.of());
+            return new Material(asset.id().fullName().replace(".decl", ""), List.of());
         }
 
         var parms = object
@@ -74,18 +73,18 @@ public final class MaterialReader implements ResourceReader<Material> {
             mapOptions(builder, kind, parm, opts);
 
             var filename = builder.toString();
-            var resourceKey = ResourceKey.from(filename, ResourceType.image);
+            var resourceKey = GreatCircleAssetID.from(filename, ResourceType.image);
             if (!archive.exists(resourceKey)) {
                 log.warn("Missing image file: {}", filename);
                 return;
             }
             var textureType = mapTextureType(kind);
             var supplier = ThrowingSupplier.lazy(() -> archive.loadAsset(resourceKey, Texture.class));
-            var reference = new TextureReference(filename, filename, supplier);
+            var reference = new TextureReference(filename, asset.exportName(), supplier);
             properties.add(new MaterialProperty(textureType, reference, Vector4.One));
         });
 
-        return new Material(name, properties);
+        return new Material(asset.id().fullName(), properties);
     }
 
     private MaterialPropertyType mapTextureType(ImageTextureMaterialKind kind) {
@@ -162,7 +161,7 @@ public final class MaterialReader implements ResourceReader<Material> {
     }
 
     private RenderParm loadRenderParm(String name) throws IOException {
-        return archive.loadAsset(ResourceKey.from(name, ResourceType.renderparm), RenderParm.class);
+        return archive.loadAsset(GreatCircleAssetID.from(name, ResourceType.renderparm), RenderParm.class);
     }
 
     private MaterialImageOpts parseOptions(JsonObject options) {

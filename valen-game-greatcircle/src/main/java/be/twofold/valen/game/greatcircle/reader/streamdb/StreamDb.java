@@ -13,7 +13,7 @@ public record StreamDb(
     public static StreamDb read(DataSource source) throws IOException {
         var header = StreamDbHeader.read(source);
         var identities = source.readLongs(header.numEntries());
-        var entries = source.readStructs(header.numEntries(), StreamDbEntry::read);
+        var entries = source.readObjects(header.numEntries(), StreamDbEntry::read);
 
         return new StreamDb(
             header,

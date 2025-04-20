@@ -11,7 +11,7 @@ public record StaticModelGeoDecals(
     int tintStartOffset
 ) {
     public static StaticModelGeoDecals read(DataSource source) throws IOException {
-        var projections = source.readStructs(source.readInt(), StaticModelGeoDecalProjection::read);
+        var projections = source.readObjects(source.readInt(), StaticModelGeoDecalProjection::read);
         var materialName = source.readPString();
         var tintStartOffset = source.readInt();
 

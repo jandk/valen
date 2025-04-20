@@ -4,12 +4,11 @@ import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.texture.*;
 import be.twofold.valen.game.greatcircle.*;
-import be.twofold.valen.game.greatcircle.reader.*;
 import be.twofold.valen.game.greatcircle.resource.*;
 
 import java.io.*;
 
-public final class ImageReader implements ResourceReader<Texture> {
+public final class ImageReader implements AssetReader<Texture, GreatCircleAsset> {
     private final GreatCircleArchive archive;
     private final boolean readStreams;
 
@@ -23,12 +22,12 @@ public final class ImageReader implements ResourceReader<Texture> {
     }
 
     @Override
-    public boolean canRead(ResourceKey key) {
-        return key.type() == ResourceType.image;
+    public boolean canRead(GreatCircleAsset asset) {
+        return asset.id().type() == ResourceType.image;
     }
 
     @Override
-    public Texture read(DataSource source, Asset asset) throws IOException {
+    public Texture read(DataSource source, GreatCircleAsset asset) throws IOException {
         var image = Image.read(source);
         source.expectEnd();
 

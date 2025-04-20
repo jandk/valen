@@ -4,16 +4,16 @@ import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.geometry.*;
 import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.material.*;
+import be.twofold.valen.core.math.*;
 import be.twofold.valen.core.util.*;
 import be.twofold.valen.game.greatcircle.*;
-import be.twofold.valen.game.greatcircle.reader.*;
 import be.twofold.valen.game.greatcircle.reader.geometry.*;
 import be.twofold.valen.game.greatcircle.resource.*;
 
 import java.io.*;
 import java.util.*;
 
-public final class StaticModelReader implements ResourceReader<Model> {
+public final class StaticModelReader implements AssetReader<Model, GreatCircleAsset> {
     private final GreatCircleArchive archive;
     private final boolean readMaterials;
 
@@ -27,15 +27,14 @@ public final class StaticModelReader implements ResourceReader<Model> {
     }
 
     @Override
-    public boolean canRead(ResourceKey key) {
-        return key.type() == ResourceType.model;
+    public boolean canRead(GreatCircleAsset asset) {
+        return asset.id().type() == ResourceType.model;
     }
 
     @Override
-    public Model read(DataSource source, Asset asset) throws IOException {
-        long hash = (Long) asset.properties().get("hash");
+    public Model read(DataSource source, GreatCircleAsset asset) throws IOException {
         var model = StaticModel.read(source, (Integer) asset.properties().get("version"));
-        var meshes = new ArrayList<>(readMeshes(model, source, hash));
+        var meshes = new ArrayList<>(readMeshes(model, source));
 
         if (readMaterials) {
             var materials = new HashMap<String, Material>();
@@ -43,22 +42,22 @@ public final class StaticModelReader implements ResourceReader<Model> {
                 var meshInfo = model.meshInfos().get(i);
                 var materialName = meshInfo.mtlDecl();
                 if (!materials.containsKey(materialName)) {
-                    var assetId = ResourceKey.from(materialName, ResourceType.material2);
+                    var assetId = GreatCircleAssetID.from(materialName, ResourceType.material2);
                     var material = archive.loadAsset(assetId, Material.class);
                     materials.put(materialName, material);
                 }
                 meshes.set(i, meshes.get(i)
-                    .withMaterial(materials.get(materialName)));
+                    .withMaterial(Optional.ofNullable(materials.get(materialName))));
             }
         }
-        return new Model(meshes, null, asset.id().fullName());
+        return new Model(meshes, Optional.empty(), Optional.of(asset.id().fullName()), Axis.Z);
     }
 
-    private List<Mesh> readMeshes(StaticModel model, DataSource source, long hash) throws IOException {
+    private List<Mesh> readMeshes(StaticModel model, DataSource source) throws IOException {
         if (!model.header().streamable()) {
             return readEmbeddedGeometry(model, source);
         }
-        return readStreamedGeometry(model, 0, hash);
+        return readStreamedGeometry(model, 0);
     }
 
     private List<Mesh> readEmbeddedGeometry(StaticModel model, DataSource source) throws IOException {
@@ -70,16 +69,15 @@ public final class StaticModelReader implements ResourceReader<Model> {
         return meshes;
     }
 
-    private List<Mesh> readStreamedGeometry(StaticModel model, int lod, long hash) throws IOException {
+    private List<Mesh> readStreamedGeometry(StaticModel model, int lod) throws IOException {
         var lods = model.meshInfos().stream()
             .<LodInfo>map(mi -> mi.lodInfos().get(lod))
             .toList();
 
         var diskLayout = model.streamDiskLayouts().get(lod);
         var uncompressedSize = diskLayout.uncompressedSize();
-        var bytes = archive.readStream(diskLayout.hash(), uncompressedSize);
-        var source = DataSource.fromArray(bytes);
+        var buffer = archive.readStream(diskLayout.hash(), uncompressedSize);
+        var source = DataSource.fromBuffer(buffer);
         return GeometryReader.readStreamedMesh(source, lods, diskLayout.memoryLayouts(), false);
     }
-
 }

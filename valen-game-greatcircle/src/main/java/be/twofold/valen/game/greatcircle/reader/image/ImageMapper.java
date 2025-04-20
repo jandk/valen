@@ -1,6 +1,7 @@
 package be.twofold.valen.game.greatcircle.reader.image;
 
 import be.twofold.valen.core.texture.*;
+import be.twofold.valen.core.util.*;
 
 import java.util.*;
 
@@ -28,7 +29,7 @@ public final class ImageMapper {
                 surfaces.add(new Surface(
                     image.sliceInfos().get(mipIndex).width(),
                     image.sliceInfos().get(mipIndex).height(),
-                    image.slices()[mipIndex]
+                    Buffers.toArray(image.slices()[mipIndex])
                 ));
             }
         }

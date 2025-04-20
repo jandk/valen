@@ -1,50 +1,63 @@
 package be.twofold.valen.game.greatcircle.reader.streamdb;
 
+import be.twofold.valen.core.compression.*;
+import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.io.*;
+import be.twofold.valen.core.util.*;
+import org.slf4j.*;
 
 import java.io.*;
+import java.nio.*;
 import java.nio.file.*;
 import java.util.*;
+import java.util.stream.*;
 
-public final class StreamDbFile implements Closeable {
+public final class StreamDbFile implements Container<Long, StreamDbEntry> {
+    private static final Logger log = LoggerFactory.getLogger(StreamDbFile.class);
+
     private final Map<Long, StreamDbEntry> index;
+    private final Decompressor decompressor;
     private DataSource source;
 
-    public StreamDbFile(Path path) throws IOException {
-        System.out.println("Loading streamdb: " + path);
+    public StreamDbFile(Path path, Decompressor decompressor) throws IOException {
+        log.info("Loading streamdb: {}", path);
         this.source = DataSource.fromPath(path);
+        this.decompressor = decompressor;
 
         var streamDb = StreamDb.read(source);
 
-        var combineds = new ArrayList<Combined>();
-        Map<Long, StreamDbEntry> entries = new HashMap<>();
+        var entries = new HashMap<Long, StreamDbEntry>();
         for (var i = 0; i < streamDb.identities().length; i++) {
             var identity = streamDb.identities()[i];
             var entry = streamDb.entries().get(i);
-            var combined = new Combined(identity, entry.offset(), entry.length());
-            combineds.add(combined);
             entries.put(identity, entry);
         }
-
-        List<Combined> sorted = combineds.stream()
-            .sorted(Comparator.comparing(Combined::offset))
-            .toList();
-
-
-
         this.index = Map.copyOf(entries);
     }
 
-
-    public Optional<StreamDbEntry> get(long identity) {
-        return Optional.ofNullable(index.get(identity));
+    @Override
+    public Optional<StreamDbEntry> get(Long key) {
+        return Optional.ofNullable(index.get(key));
     }
 
-    public byte[] read(StreamDbEntry entry) throws IOException {
-        source.seek(entry.offset());
-        return source.readBytes(entry.length());
+    @Override
+    public Stream<StreamDbEntry> getAll() {
+        return index.values().stream();
     }
 
+    @Override
+    public ByteBuffer read(Long key, Integer size) throws IOException {
+        var entry = index.get(key);
+        Check.state(entry != null, () -> "Stream not found: " + key);
+
+        source.position(entry.offset());
+        var compressed = source.readBuffer(entry.length());
+        if (compressed.remaining() == size) {
+            return compressed;
+        }
+
+        return decompressor.decompress(compressed, size);
+    }
 
     @Override
     public void close() throws IOException {
@@ -52,16 +65,5 @@ public final class StreamDbFile implements Closeable {
             source.close();
             source = null;
         }
-    }
-
-    public Map<Long, StreamDbEntry> index() {
-        return index;
-    }
-
-    record Combined(
-        long identity,
-        long offset,
-        int size
-    ) {
     }
 }

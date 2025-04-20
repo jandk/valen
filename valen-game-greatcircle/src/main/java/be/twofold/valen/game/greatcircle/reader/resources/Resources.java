@@ -23,7 +23,7 @@ public record Resources(
 
         // File Entries
         // assert channel.position() == header.addrFileEntries();
-        var entries = source.readStructs(header.numFileEntries(), ResourcesEntry::read);
+        var entries = source.readObjects(header.numFileEntries(), ResourcesEntry::read);
 
         // Path Strings
         // assert channel.position() == header.addrPathStringOffsets();
@@ -41,7 +41,7 @@ public record Resources(
         // My guess is that the actual filenames don't matter, and the dependency structure is used to determine
         // which files to load. The filenames are only used for debugging purposes.
         // assert channel.position() == header.addrDependencyEntries();
-        var dependencies = source.readStructs(header.numDependencyEntries(), ResourcesDependency::read);
+        var dependencies = source.readObjects(header.numDependencyEntries(), ResourcesDependency::read);
         var dependencyIndex = source.readInts(header.numDependencyIndexes());
         var pathStringIndex = source.readLongsAsInts(header.numPathStringIndexes());
 

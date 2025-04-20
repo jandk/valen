@@ -3,7 +3,6 @@ package be.twofold.valen.game.greatcircle.reader.decl;
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.io.*;
 import be.twofold.valen.game.greatcircle.*;
-import be.twofold.valen.game.greatcircle.reader.*;
 import be.twofold.valen.game.greatcircle.resource.*;
 import com.google.gson.*;
 
@@ -13,7 +12,7 @@ import java.nio.charset.*;
 import java.util.*;
 import java.util.regex.*;
 
-public final class DeclReader implements ResourceReader<JsonObject> {
+public final class DeclReader implements AssetReader<JsonObject, GreatCircleAsset> {
     private static final String RootPrefix = "";
     private static final Pattern ItemPattern = Pattern.compile("^\\w+\\[(\\d+)]$");
     private static final CharsetDecoder Utf8Decoder = StandardCharsets.UTF_8.newDecoder();
@@ -27,14 +26,14 @@ public final class DeclReader implements ResourceReader<JsonObject> {
     }
 
     @Override
-    public boolean canRead(ResourceKey key) {
+    public boolean canRead(GreatCircleAsset key) {
         return true;
     }
 
     @Override
-    public JsonObject read(DataSource source, Asset asset) throws IOException {
-        var bytes = source.readBytes(Math.toIntExact(source.size()));
-        var object = DeclParser.parse(decode(bytes));
+    public JsonObject read(DataSource source, GreatCircleAsset asset) throws IOException {
+        var buffer = source.readBuffer(Math.toIntExact(source.size()));
+        var object = DeclParser.parse(decode(buffer));
 
         var result = loadInherit(object);
         result = result.deepCopy();
@@ -58,13 +57,13 @@ public final class DeclReader implements ResourceReader<JsonObject> {
             return merge(parent, object);
         }
 
-        var resourceKey = new ResourceKey(new ResourceName(inherit), ResourceType.material2, ResourceVariation.RES_VAR_NONE);
+        var resourceKey = new GreatCircleAssetID(new ResourceName(inherit), ResourceType.material2, ResourceVariation.RES_VAR_NONE);
         if (!archive.exists(resourceKey)) {
             return object;
         }
 
-        var bytes = archive.loadAsset(resourceKey, byte[].class);
-        parent = DeclParser.parse(decode(bytes));
+        var buffer = archive.loadAsset(resourceKey, ByteBuffer.class);
+        parent = DeclParser.parse(decode(buffer));
         parent = loadInherit(parent);
         declCache.put(inherit, parent);
         return merge(parent, object);
@@ -76,15 +75,14 @@ public final class DeclReader implements ResourceReader<JsonObject> {
     }
 
 
-    private String decode(byte[] bytes) {
+    private String decode(ByteBuffer buffer) {
         // Either UTF-8 or ISO-8859-1, so out is always smaller
-        var in = ByteBuffer.wrap(bytes);
         try {
-            return Utf8Decoder.decode(in).toString();
+            return Utf8Decoder.decode(buffer).toString();
         } catch (CharacterCodingException e) {
             try {
-                in.rewind();
-                return Iso88591Decoder.decode(in).toString();
+                buffer.rewind();
+                return Iso88591Decoder.decode(buffer).toString();
             } catch (CharacterCodingException ex) {
                 throw new RuntimeException("Failed to decode", ex);
             }

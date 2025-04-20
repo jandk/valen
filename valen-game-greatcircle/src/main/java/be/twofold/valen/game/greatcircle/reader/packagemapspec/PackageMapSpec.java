@@ -17,12 +17,9 @@ public record PackageMapSpec(
     @SerializedName("vo_chunk") int voChunk,
     @SerializedName("vo_languages") List<String> voLanguages
 ) {
-    public static PackageMapSpec read(Path path) {
+    public static PackageMapSpec read(Path path) throws IOException {
         try (Reader reader = Files.newBufferedReader(path)) {
             return new Gson().fromJson(reader, PackageMapSpec.class);
-        } catch (IOException e) {
-            System.err.println("Failed to read package map spec: " + path);
-            throw new UncheckedIOException(e);
         }
     }
 

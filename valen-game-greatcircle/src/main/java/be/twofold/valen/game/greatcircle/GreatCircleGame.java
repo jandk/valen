@@ -2,9 +2,12 @@ package be.twofold.valen.game.greatcircle;
 
 import be.twofold.valen.core.compression.*;
 import be.twofold.valen.core.game.*;
+import be.twofold.valen.core.game.Container;
+import be.twofold.valen.game.greatcircle.reader.packagemapspec.*;
 import be.twofold.valen.game.greatcircle.reader.packagemapspec.File;
 import be.twofold.valen.game.greatcircle.reader.packagemapspec.Map;
-import be.twofold.valen.game.greatcircle.reader.packagemapspec.*;
+import be.twofold.valen.game.greatcircle.reader.streamdb.*;
+import be.twofold.valen.game.greatcircle.resource.*;
 
 import java.io.*;
 import java.nio.file.*;
@@ -15,7 +18,7 @@ public final class GreatCircleGame implements Game {
     private final PackageMapSpec spec;
     private final Decompressor decompressor;
 
-    public GreatCircleGame(Path path) {
+    public GreatCircleGame(Path path) throws IOException {
         this.base = path.resolve("base");
         this.spec = PackageMapSpec.read(base.resolve("packagemapspec_pc.json"));
         this.decompressor = Decompressor.oodle(path.resolve("oo2core_9_win64.dll"));
@@ -29,7 +32,7 @@ public final class GreatCircleGame implements Game {
     }
 
     @Override
-    public Archive loadArchive(String name) throws IOException {
+    public GreatCircleArchive loadArchive(String name) throws IOException {
         var common = spec.maps().stream()
             .filter(m -> m.name().equals("common"))
             .findFirst().orElseThrow();
@@ -43,18 +46,34 @@ public final class GreatCircleGame implements Game {
             .map(File::name)
             .toList();
 
-        var streamDbs = files.stream()
+        var streamDbCollection = loadStreamDBs(files);
+        var resourcesCollection = loadResources(files);
+        return new GreatCircleArchive(streamDbCollection, resourcesCollection);
+    }
+
+    private Container<Long, StreamDbEntry> loadStreamDBs(List<String> filenames) throws IOException {
+        var paths = filenames.stream()
             .filter(s -> s.endsWith(".streamdb"))
             .map(base::resolve)
             .toList();
-        var streamDbCollection = StreamDbCollection.load(streamDbs, decompressor);
 
-        var resources = files.stream()
+        var containers = new ArrayList<Container<Long, StreamDbEntry>>();
+        for (Path path : paths) {
+            containers.add(new StreamDbFile(path, decompressor));
+        }
+        return Container.compose(containers);
+    }
+
+    private Container<GreatCircleAssetID, GreatCircleAsset> loadResources(List<String> filenames) throws IOException {
+        var paths = filenames.stream()
             .filter(s -> s.endsWith(".resources"))
             .map(base::resolve)
             .toList();
-        var resourcesCollection = ResourcesCollection.load(resources, decompressor);
 
-        return new GreatCircleArchive(streamDbCollection, resourcesCollection);
+        var containers = new ArrayList<Container<GreatCircleAssetID, GreatCircleAsset>>();
+        for (Path path : paths) {
+            containers.add(new ResourcesFile(path, decompressor));
+        }
+        return Container.compose(containers);
     }
 }

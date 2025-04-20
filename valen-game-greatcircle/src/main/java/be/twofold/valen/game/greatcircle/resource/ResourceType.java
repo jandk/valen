@@ -108,6 +108,7 @@ public enum ResourceType implements ValueEnum<String> {
     hairmaterial("hairmaterial"),
     hairmodel("hairmodel"),
     hairsimulationconfig("hairsimulationconfig"),
+    haptictriggerfeedback("haptictriggerfeedback"),
     havokcompendium("havokcompendium"),
     havokshape("havokshape"),
     havokshapeterrainpaint("havokshapeterrainpaint"),
