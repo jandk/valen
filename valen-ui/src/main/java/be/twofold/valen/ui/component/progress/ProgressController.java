@@ -27,7 +27,7 @@ public class ProgressController implements View<VBox, ProgressViewModel> {
         progressBar.progressProperty().bind(viewModel.progressProperty());
         messageText.textProperty().bind(viewModel.messageProperty());
         percentageText.textProperty()
-            .bind(viewModel.progressProperty().map(n -> String.format("%.0f%%", n.doubleValue())));
+            .bind(viewModel.progressProperty().map(n -> String.format("%.0f%%", n.doubleValue() * 100)));
         countText.textProperty()
             .bind(Bindings.concat(viewModel.workDoneProperty(), SEPARATOR, viewModel.workTotalProperty()));
     }

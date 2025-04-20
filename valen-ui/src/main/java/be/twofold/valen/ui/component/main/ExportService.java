@@ -47,6 +47,7 @@ final class ExportService extends Service<Void> {
         var stage = new Stage();
         stage.initModality(Modality.APPLICATION_MODAL);
         stage.setScene(scene);
+        stage.setTitle("Exporting...");
         return stage;
     }
 
