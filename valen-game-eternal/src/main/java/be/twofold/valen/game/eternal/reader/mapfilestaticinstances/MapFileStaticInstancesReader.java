@@ -6,13 +6,12 @@ import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.scene.*;
 import be.twofold.valen.core.util.*;
 import be.twofold.valen.game.eternal.*;
-import be.twofold.valen.game.eternal.reader.*;
 import be.twofold.valen.game.eternal.resource.*;
 
 import java.io.*;
 import java.util.*;
 
-public final class MapFileStaticInstancesReader implements ResourceReader<Scene> {
+public final class MapFileStaticInstancesReader implements AssetReader<Scene, EternalAsset> {
     private final EternalArchive archive;
 
     public MapFileStaticInstancesReader(EternalArchive archive) {
@@ -20,12 +19,12 @@ public final class MapFileStaticInstancesReader implements ResourceReader<Scene>
     }
 
     @Override
-    public boolean canRead(ResourceKey key) {
-        return key.type() == ResourceType.StaticInstances;
+    public boolean canRead(EternalAsset resource) {
+        return resource.id().type() == ResourceType.StaticInstances;
     }
 
     @Override
-    public Scene read(DataSource source, Asset asset) throws IOException {
+    public Scene read(DataSource source, EternalAsset resource) throws IOException {
         var staticInstances = MapFileStaticInstances.read(source);
 
         var instances = new ArrayList<Instance>();
@@ -40,7 +39,7 @@ public final class MapFileStaticInstancesReader implements ResourceReader<Scene>
     }
 
     private Optional<Instance> mapToInstance(String modelName, String instanceName, MapFileStaticInstancesModelGeometry geometry) {
-        var resourceKey = ResourceKey.from(modelName, ResourceType.Model);
+        var resourceKey = EternalAssetID.from(modelName, ResourceType.Model);
         if (!archive.exists(resourceKey)) {
             return Optional.empty();
         }

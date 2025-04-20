@@ -14,17 +14,17 @@ public record MapResources(
 ) {
     public static MapResources read(DataSource source) throws IOException {
         var numLayerNames = source.readIntBE();
-        var layerNames = source.readStructs(numLayerNames, DataSource::readPString);
+        var layerNames = source.readObjects(numLayerNames, DataSource::readPString);
         var unknown = source.readInt();
 
         var numAssetTypes = source.readIntBE();
-        var assetTypes = source.readStructs(numAssetTypes, DataSource::readPString);
+        var assetTypes = source.readObjects(numAssetTypes, DataSource::readPString);
 
         var numAssets = source.readIntBE();
-        var assets = source.readStructs(numAssets, MapResourcesAsset::read);
+        var assets = source.readObjects(numAssets, MapResourcesAsset::read);
 
         var numMapNames = source.readIntBE();
-        var mapNames = source.readStructs(numMapNames, DataSource::readPString);
+        var mapNames = source.readObjects(numMapNames, DataSource::readPString);
 
         return new MapResources(
             layerNames,

@@ -1,6 +1,7 @@
 package be.twofold.valen.ui.common.settings;
 
 import be.twofold.valen.core.util.*;
+import be.twofold.valen.ui.common.settings.gson.*;
 import com.google.gson.*;
 
 import java.io.*;
@@ -10,6 +11,7 @@ import java.util.*;
 public final class SettingsManager {
     private static final Gson GSON = new GsonBuilder()
         .registerTypeHierarchyAdapter(Path.class, new PathTypeAdapter().nullSafe())
+        .registerTypeAdapterFactory(new SettingTypeAdapterFactory())
         .setPrettyPrinting()
         .create();
 
@@ -32,7 +34,7 @@ public final class SettingsManager {
 
         try {
             return Optional.of(GSON.fromJson(Files.readString(path), Settings.class));
-        } catch (IOException e) {
+        } catch (IOException | JsonParseException e) {
             return Optional.empty();
         }
     }
@@ -52,7 +54,7 @@ public final class SettingsManager {
 
         return switch (OperatingSystem.current()) {
             case Linux -> Path.of(userHome, ".config", "valen", "settings.json");
-            case Windows -> Path.of(userHome, "AppData", "Local", "Valen", "settings.json");
+            case Windows -> Path.of(System.getenv("LOCALAPPDATA"), "Valen", "settings.json");
             case Mac -> Path.of(userHome, "Library", "Application Support", "Valen", "settings.json");
         };
     }

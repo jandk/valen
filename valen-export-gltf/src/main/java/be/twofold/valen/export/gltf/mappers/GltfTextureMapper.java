@@ -12,19 +12,21 @@ import be.twofold.valen.format.gltf.model.texture.*;
 import java.io.*;
 import java.nio.*;
 import java.util.*;
+import java.util.concurrent.*;
 
 public final class GltfTextureMapper {
     private final PngExporter pngExporter = new PngExporter();
-    private final Map<String, TextureIDAndFactor> textures = new HashMap<>();
+    private final Map<String, TextureIDAndFactor> textures = new ConcurrentHashMap<>();
 
     private final GltfContext context;
 
     public GltfTextureMapper(GltfContext context) {
         this.context = context;
+        pngExporter.setProperty("reconstructZ", true);
     }
 
     public TextureIDAndFactor map(TextureReference reference) throws IOException {
-        var existingSchema = textures.get(reference.name());
+        var existingSchema = textures.get(reference.filename());
         if (existingSchema != null) {
             return existingSchema;
         }
@@ -39,7 +41,7 @@ public final class GltfTextureMapper {
     }
 
     public TextureID mapSimple(TextureReference reference) throws IOException {
-        var existingSchema = textures.get(reference.name());
+        var existingSchema = textures.get(reference.filename());
         if (existingSchema != null) {
             return existingSchema.textureID();
         }
@@ -49,7 +51,7 @@ public final class GltfTextureMapper {
     }
 
     private TextureIDAndFactor map(TextureReference reference, Texture texture, Vector4 factor) throws IOException {
-        var existingSchema = textures.get(reference.name());
+        var existingSchema = textures.get(reference.filename());
         if (existingSchema != null) {
             return existingSchema;
         }
@@ -68,7 +70,7 @@ public final class GltfTextureMapper {
         var textureID = context.addTexture(textureSchema);
 
         var textureIDAndFactor = new TextureIDAndFactor(textureID, factor);
-        textures.put(reference.name(), textureIDAndFactor);
+        textures.put(reference.filename(), textureIDAndFactor);
         return textureIDAndFactor;
     }
 
@@ -86,7 +88,7 @@ public final class GltfTextureMapper {
         var bias = texture.bias();
 
         var format = chooseFormat(texture.format());
-        var decoded = texture.convert(format);
+        var decoded = texture.convert(format, true);
         var data = decoded.surfaces().getFirst().data();
 
         // Some games like to have textures for everything, even a single color...

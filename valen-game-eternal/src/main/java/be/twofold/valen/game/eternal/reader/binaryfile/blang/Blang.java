@@ -15,7 +15,7 @@ public record Blang(
         var versionMaybe = source.readInt();
         var unknownHash = source.readInt();
         var numEntries = source.readIntBE(); // Big endian all of a sudden?
-        var entries = source.readStructs(numEntries, BlangEntry::read);
+        var entries = source.readObjects(numEntries, BlangEntry::read);
         return new Blang(versionMaybe, unknownHash, numEntries, entries);
     }
 }

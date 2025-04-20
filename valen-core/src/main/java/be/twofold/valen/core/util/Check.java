@@ -71,7 +71,21 @@ public final class Check {
         return index;
     }
 
+    public static long index(long index, long size) {
+        if (index < 0 || index >= size) {
+            throw new IndexOutOfBoundsException(String.format("Index %s out of bounds for length %s", index, size));
+        }
+        return index;
+    }
+
     public static int fromToIndex(int fromIndex, int toIndex, int size) {
+        if (fromIndex < 0 || fromIndex > toIndex || toIndex > size) {
+            throw new IndexOutOfBoundsException(String.format("Range [%s, %s) out of bounds for length %s", fromIndex, toIndex, size));
+        }
+        return fromIndex;
+    }
+
+    public static long fromToIndex(long fromIndex, long toIndex, long size) {
         if (fromIndex < 0 || fromIndex > toIndex || toIndex > size) {
             throw new IndexOutOfBoundsException(String.format("Range [%s, %s) out of bounds for length %s", fromIndex, toIndex, size));
         }

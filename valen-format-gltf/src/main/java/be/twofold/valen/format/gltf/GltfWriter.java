@@ -63,8 +63,8 @@ public final class GltfWriter implements Closeable, GltfContext {
         this.imagePath = imagePath;
     }
 
-    public static GltfWriter createGlbWriter(Path gltfPath) throws IOException {
-        return new GltfWriter(gltfPath, null, null);
+    public static GltfWriter createGlbWriter(Path glbPath) throws IOException {
+        return new GltfWriter(glbPath, null, null);
     }
 
     public static GltfWriter createSplitWriter(Path gltfPath, Path binPath, Path imagePath) throws IOException {

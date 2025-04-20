@@ -6,7 +6,17 @@ import be.twofold.valen.format.png.*;
 
 import java.io.*;
 
-public final class PngExporter implements TextureExporter {
+public final class PngExporter extends TextureExporter {
+    @Override
+    public String getID() {
+        return "texture.png";
+    }
+
+    @Override
+    public String getName() {
+        return "PNG (Portable Network Graphics)";
+    }
+
     @Override
     public String getExtension() {
         return "png";
@@ -41,6 +51,7 @@ public final class PngExporter implements TextureExporter {
             case R16G16B16A16_UNORM -> TextureFormat.R16G16B16A16_UNORM;
             case R16_SFLOAT,
                  R16G16_SFLOAT,
+                 R16G16B16_SFLOAT,
                  R16G16B16A16_SFLOAT,
                  BC6H_UFLOAT,
                  BC6H_SFLOAT -> null;
@@ -48,10 +59,8 @@ public final class PngExporter implements TextureExporter {
     }
 
     @Override
-    public void export(Texture texture, OutputStream out) throws IOException {
-        var chosenFormat = chooseFormat(texture.format());
-        var decoded = texture.firstOnly().convert(chosenFormat);
-        var stripped = stripAlpha(decoded);
+    public void doExport(Texture texture, OutputStream out) throws IOException {
+        var stripped = stripAlpha(texture);
         var format = mapPngFormat(stripped);
 
         // TODO: How to handle closing the output stream?
@@ -64,8 +73,8 @@ public final class PngExporter implements TextureExporter {
             // Try to strip alpha
             var surface = texture.surfaces().getFirst();
             var data = surface.data();
-            for (var i = 3; i < data.length; i += 4) {
-                if (data[i] != (byte) 0xFF) {
+            for (var i = 0; i < data.length; i += 4) {
+                if (data[i + 3] != (byte) 0xFF) {
                     return texture;
                 }
             }
@@ -78,7 +87,7 @@ public final class PngExporter implements TextureExporter {
                 newArray[o + 2] = data[i + 2];
             }
 
-            return Texture.fromSurface(surface.withData(newArray), TextureFormat.R8G8B8_UNORM, 1.0f, 0.0f);
+            return Texture.fromSurface(surface.withData(newArray), TextureFormat.R8G8B8_UNORM);
         }
         return texture;
     }

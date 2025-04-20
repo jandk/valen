@@ -1,7 +1,10 @@
 package be.twofold.valen.ui;
 
+import backbonefx.di.*;
+import backbonefx.event.*;
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.ui.common.settings.*;
+import be.twofold.valen.ui.component.*;
 import be.twofold.valen.ui.component.main.*;
 import javafx.application.*;
 import javafx.scene.*;
@@ -16,35 +19,32 @@ import java.util.function.*;
 import java.util.stream.*;
 
 public final class MainWindow extends Application {
-    private final Settings settings;
     private Stage primaryStage;
     private MainPresenter presenter;
-
-    public MainWindow() {
-        this(SettingsManager.get());
-    }
-
-    MainWindow(Settings settings) {
-        this.settings = settings;
-    }
+    private Settings settings;
 
     @Override
     @SuppressWarnings("DataFlowIssue")
     public void start(Stage primaryStage) {
         this.primaryStage = primaryStage;
 
-        var factory = DaggerMainFactory.create();
+        Feather feather = Feather.with(
+            new ControllerModule(),
+            new EventBusModule(),
+            new SettingsModule(),
+            new ViewModule()
+        );
 
-        factory.eventBus()
-            .receiverFor(MainEvent.class)
-            .consume(event -> {
+        feather.instance(EventBus.class)
+            .subscribe(MainEvent.class, event -> {
                 switch (event) {
                     case MainEvent.GameLoadRequested() -> selectAndLoadGame();
                     case MainEvent.SaveFileRequested(var filename, var consumer) -> saveFile(filename, consumer);
                 }
             });
 
-        presenter = factory.presenter();
+        presenter = feather.instance(MainPresenter.class);
+        settings = feather.instance(Settings.class);
 
         var icons = Stream.of(16, 24, 32, 48, 64, 96, 128)
             .map(i -> new Image(getClass().getResourceAsStream("/appicon/valen-" + i + ".png")))
@@ -59,19 +59,16 @@ public final class MainWindow extends Application {
         primaryStage.setScene(scene);
         primaryStage.show();
 
-        if (settings.getGameExecutable().isPresent()) {
-            loadGame(settings.getGameExecutable().get());
-        } else {
-            selectAndLoadGame();
-        }
+        settings.gameExecutable().get()
+            .ifPresentOrElse(
+                this::tryLoadGame,
+                this::selectAndLoadGame
+            );
     }
 
     private void selectAndLoadGame() {
         Platform.runLater(() -> chooseGame()
-            .ifPresent(path -> {
-                settings.setGameExecutable(path);
-                loadGame(path);
-            }));
+            .ifPresent(this::tryLoadGame));
     }
 
     private void saveFile(String initialFilename, Consumer<Path> consumer) {
@@ -95,18 +92,28 @@ public final class MainWindow extends Application {
             new FileChooser.ExtensionFilter("Game executable", "*.exe")
         );
 
-        return Optional.ofNullable(fileChooser.showOpenDialog(primaryStage))
-            .map(File::toPath)
-            .filter(path -> GameFactory.resolve(path).isPresent());
+        return Optional
+            .ofNullable(fileChooser.showOpenDialog(primaryStage))
+            .map(File::toPath);
     }
 
-    private void loadGame(Path path) {
+    private void tryLoadGame(Path path) {
         try {
-            var game = GameFactory.resolve(path).orElseThrow().load(path);
-            presenter.setGame(game);
-        } catch (IOException e) {
-            System.err.println("Could not load game " + path);
-            e.printStackTrace(System.err);
+            if (!Files.exists(path)) {
+                selectAndLoadGame();
+                return;
+            }
+
+            var gameFactory = GameFactory.resolve(path);
+            if (gameFactory.isEmpty()) {
+                selectAndLoadGame();
+                return;
+            }
+
+            settings.gameExecutable().set(path);
+            presenter.setGame(gameFactory.get().load(path));
+        } catch (Exception e) {
+            FxUtils.showExceptionDialog(e, "Could not load game");
         }
     }
 }

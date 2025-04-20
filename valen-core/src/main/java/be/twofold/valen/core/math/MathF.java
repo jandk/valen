@@ -120,4 +120,12 @@ public final class MathF {
             return pow(Math.fma(f, 1.0f / 1.055f, 0.055f / 1.055f), 2.4f);
         }
     }
+
+    public static float toDegrees(float angle) {
+        return (float) Math.toDegrees(angle);
+    }
+
+    public static float toRadians(float angle) {
+        return (float) Math.toRadians(angle);
+    }
 }

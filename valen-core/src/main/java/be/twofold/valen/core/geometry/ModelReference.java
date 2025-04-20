@@ -15,8 +15,6 @@ public record ModelReference(
 
     @Override
     public String toString() {
-        return "ModelReference(" +
-            "name=" + name +
-            ")";
+        return "ModelReference(" + name + ")";
     }
 }

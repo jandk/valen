@@ -42,6 +42,7 @@ public final class GltfMaterialMapper {
                 case Normal ->
                     builder.normalTexture(normalTextureInfoSchema(textureMapper.mapSimple(property.reference())));
                 case Emissive -> mapEmissive(property, builder);
+                case Unknown -> textureMapper.map(property.reference());
             }
         }
 
@@ -57,9 +58,9 @@ public final class GltfMaterialMapper {
         if (groups.containsKey(MaterialPropertyType.Smoothness)) {
             var property = groups.get(MaterialPropertyType.Smoothness).getFirst();
             var reference = property.reference();
-            var smoothnessTexture = reference.supplier().get().firstOnly().convert(TextureFormat.R8_UNORM);
+            var smoothnessTexture = reference.supplier().get().firstOnly().convert(TextureFormat.R8_UNORM, true);
             var metalRoughnessTexture = mapSmoothness(smoothnessTexture);
-            var roughnessReference = new TextureReference(reference.name(), reference.filename(), () -> metalRoughnessTexture);
+            var roughnessReference = new TextureReference(reference.name(), reference.filename() + ".mr", () -> metalRoughnessTexture);
 
             // TODO: Proper support for metallic and roughness factors
             var roughnessTexture = textureMapper.mapSimple(roughnessReference);
@@ -135,7 +136,8 @@ public final class GltfMaterialMapper {
 
         // The default in GLTF is 0, 0, 0 for emissive
         var reference = property.type() == MaterialPropertyType.Emissive ? Vector4.W : Vector4.One;
-        if (!reference.equals(factor)) {
+        /*if (!reference.equals(factor)) */
+        {
             factorConsumer.accept(factor);
         }
     }

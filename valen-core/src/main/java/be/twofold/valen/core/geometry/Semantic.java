@@ -1,17 +1,17 @@
 package be.twofold.valen.core.geometry;
 
 public sealed interface Semantic {
-    Semantic Position = new Position();
-    Semantic Normal = new Normal();
-    Semantic Tangent = new Tangent();
-    Semantic TexCoord0 = new TexCoord(0);
-    Semantic TexCoord1 = new TexCoord(1);
-    Semantic Color0 = new Color(0);
-    Semantic Color1 = new Color(1);
-    Semantic Joints0 = new Joints(0);
-    Semantic Joints1 = new Joints(1);
-    Semantic Weights0 = new Weights(0);
-    Semantic Weights1 = new Weights(1);
+    Semantic POSITION = new Position();
+    Semantic NORMAL = new Normal();
+    Semantic TANGENT = new Tangent();
+    Semantic TEX_COORD0 = new TexCoord(0);
+    Semantic TEX_COORD1 = new TexCoord(1);
+    Semantic COLOR0 = new Color(0);
+    Semantic COLOR1 = new Color(1);
+    Semantic JOINTS0 = new Joints(0);
+    Semantic JOINTS1 = new Joints(1);
+    Semantic WEIGHTS0 = new Weights(0);
+    Semantic WEIGHTS1 = new Weights(1);
 
     record Position() implements Semantic {
     }

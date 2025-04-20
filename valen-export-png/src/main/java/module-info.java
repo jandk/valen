@@ -1,5 +1,4 @@
 module valen.export.png {
-    requires org.slf4j;
     requires valen.core;
     requires valen.format.png;
 

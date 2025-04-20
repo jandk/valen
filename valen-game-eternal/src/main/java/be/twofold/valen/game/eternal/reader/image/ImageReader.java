@@ -4,12 +4,11 @@ import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.texture.*;
 import be.twofold.valen.game.eternal.*;
-import be.twofold.valen.game.eternal.reader.*;
 import be.twofold.valen.game.eternal.resource.*;
 
 import java.io.*;
 
-public final class ImageReader implements ResourceReader<Texture> {
+public final class ImageReader implements AssetReader<Texture, EternalAsset> {
     private final EternalArchive archive;
     private final boolean readStreams;
 
@@ -23,13 +22,13 @@ public final class ImageReader implements ResourceReader<Texture> {
     }
 
     @Override
-    public boolean canRead(ResourceKey key) {
-        return key.type() == ResourceType.Image;
+    public boolean canRead(EternalAsset resource) {
+        return resource.id().type() == ResourceType.Image;
     }
 
     @Override
-    public Texture read(DataSource source, Asset asset) throws IOException {
-        var image = read(source, (Long) asset.properties().get("hash"));
+    public Texture read(DataSource source, EternalAsset resource) throws IOException {
+        var image = read(source, resource.hash());
         return new ImageMapper().map(image);
     }
 
@@ -57,9 +56,9 @@ public final class ImageReader implements ResourceReader<Texture> {
         var lastMip = image.mipInfos().getLast();
         var uncompressedSize = lastMip.cumulativeSizeStreamDB() + lastMip.decompressedSize();
         var bytes = archive.readStream(hash, uncompressedSize);
-        try (var mipSource = DataSource.fromArray(bytes)) {
+        try (var mipSource = DataSource.fromBuffer(bytes)) {
             for (var i = 0; i < image.header().totalMipCount(); i++) {
-                image.mipData()[i] = mipSource.readBytes(image.mipInfos().get(i).decompressedSize());
+                image.mipData()[i] = mipSource.readBuffer(image.mipInfos().get(i).decompressedSize());
             }
         }
     }

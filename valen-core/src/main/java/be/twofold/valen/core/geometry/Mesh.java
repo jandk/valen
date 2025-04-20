@@ -6,40 +6,40 @@ import be.twofold.valen.core.util.*;
 import java.util.*;
 
 public record Mesh(
-    VertexBuffer faceBuffer,
-    Map<Semantic, VertexBuffer> vertexBuffers,
-    Material material,
-    String name
+    VertexBuffer<?> indexBuffer,
+    List<VertexBuffer<?>> vertexBuffers,
+    Optional<Material> material,
+    Optional<String> name
 ) {
     public Mesh {
-        Check.notNull(faceBuffer, "faceBuffer must not be null");
-        vertexBuffers = Map.copyOf(vertexBuffers);
+        Check.notNull(indexBuffer, "indexBuffer must not be null");
+
+        var count = vertexBuffers.stream()
+            .map(vb -> vb.info().semantic())
+            .distinct().count();
+        if (vertexBuffers.size() != count) {
+            throw new IllegalArgumentException("Multiple buffers with the same semantic");
+        }
+        vertexBuffers = List.copyOf(vertexBuffers);
     }
 
-    public Mesh(
-        VertexBuffer faceBuffer,
-        Map<Semantic, VertexBuffer> vertexBuffers
-    ) {
-        this(faceBuffer, vertexBuffers, null, null);
+    public Mesh(VertexBuffer<?> indexBuffer, List<VertexBuffer<?>> vertexBuffers) {
+        this(indexBuffer, vertexBuffers, Optional.empty(), Optional.empty());
     }
 
-    public Optional<VertexBuffer> getBuffer(Semantic semantic) {
-        return Optional.ofNullable(vertexBuffers.get(semantic));
+    public Optional<VertexBuffer<?>> getBuffer(Semantic semantic) {
+        return vertexBuffers.stream()
+            .filter(vb -> vb.info().semantic().equals(semantic))
+            .findFirst();
     }
 
-    public Optional<Material> materialOpt() {
-        return Optional.ofNullable(material);
+    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
+    public Mesh withMaterial(Optional<Material> material) {
+        return new Mesh(indexBuffer, vertexBuffers, material, name);
     }
 
-    public Optional<String> nameOpt() {
-        return Optional.ofNullable(name);
-    }
-
-    public Mesh withMaterial(Material material) {
-        return new Mesh(faceBuffer, vertexBuffers, material, name);
-    }
-
-    public Mesh withName(String name) {
-        return new Mesh(faceBuffer, vertexBuffers, material, name);
+    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
+    public Mesh withName(Optional<String> name) {
+        return new Mesh(indexBuffer, vertexBuffers, material, name);
     }
 }

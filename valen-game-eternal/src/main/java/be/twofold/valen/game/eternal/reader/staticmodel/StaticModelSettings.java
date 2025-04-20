@@ -15,7 +15,7 @@ public record StaticModelSettings(
         var lightmapSurfaceAreaSqrt = source.readFloat();
         var lighmapWidth = source.readInt();
         var lighmapHeight = source.readInt();
-        var textureAxes = source.readStructs(source.readInt(), StaticModelTextureAxis::read);
+        var textureAxes = source.readObjects(source.readInt(), StaticModelTextureAxis::read);
 
         return new StaticModelSettings(
             lightmapSurfaceAreaSqrt,

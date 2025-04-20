@@ -1,22 +1,20 @@
 package be.twofold.valen.core.compression;
 
-import be.twofold.valen.core.util.*;
-
 import java.io.*;
+import java.nio.*;
 
 final class NoneDecompressor implements Decompressor {
-    @Override
-    public void decompress(
-        byte[] src, int srcOff, int srcLen,
-        byte[] dst, int dstOff, int dstLen
-    ) throws IOException {
-        Check.fromIndexSize(srcOff, srcLen, src.length);
-        Check.fromIndexSize(dstOff, dstLen, dst.length);
 
-        if (srcLen != dstLen) {
-            throw new IOException("srcLen (" + srcLen + ") and dstLen (" + dstLen + ") do not match");
+    @Override
+    public void decompress(ByteBuffer src, ByteBuffer dst) throws IOException {
+        if (src == dst) {
+            return;
         }
 
-        System.arraycopy(src, srcOff, dst, dstOff, srcLen);
+        if (src.remaining() != dst.remaining()) {
+            throw new IOException("src.remaining() (" + src.remaining() + ") and dst.remaining() (" + dst.remaining() + ") do not match");
+        }
+
+        dst.put(src);
     }
 }
