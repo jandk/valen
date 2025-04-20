@@ -127,6 +127,7 @@ final class ExportService extends Service<Void> {
                 Files.createDirectories(targetPath.getParent());
                 exporter.export(rawAsset, targetPath);
             } catch (Exception e) {
+                e.printStackTrace();
                 failedAssets.add(asset.id());
             }
         }

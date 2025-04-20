@@ -42,7 +42,7 @@ public final class GltfMaterialMapper {
                 case Normal ->
                     builder.normalTexture(normalTextureInfoSchema(textureMapper.mapSimple(property.reference())));
                 case Emissive -> mapEmissive(property, builder);
-                // case Unknown -> textureMapper.mapSimple(property.reference());
+                case Unknown -> textureMapper.map(property.reference());
             }
         }
 
