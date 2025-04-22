@@ -49,7 +49,7 @@ public final class ResourcesFile implements Container<GreatCircleAssetID, GreatC
         var name = resources.pathStrings().get(resources.pathStringIndex()[entry.strings() + entry.nameString()]);
 
         var resourceName = new ResourceName(name);
-        var resourceType = ResourceType.fromName(type);
+        var resourceType = ResourceType.fromValue(type);
         var resourceVariation = ResourceVariation.fromValue(entry.variation());
         var resourceKey = new GreatCircleAssetID(resourceName, resourceType, resourceVariation);
 

@@ -146,6 +146,7 @@ public enum ResourceType implements ValueEnum<String> {
     lowlevelgraphicssetup("lowlevelgraphicssetup"),
     maestroeditordata("maestroeditordata"),
     maestrogroup("maestrogroup"),
+    mapentitydiff("mapentitydiff"),
     mapinfo("mapinfo"),
     mapprefetch("mapprefetch"),
     maptensionsettings("maptensionsettings"),
@@ -296,8 +297,8 @@ public enum ResourceType implements ValueEnum<String> {
         this.value = value;
     }
 
-    public static ResourceType fromName(String name) {
-        return ValueEnum.fromValue(ResourceType.class, name);
+    public static ResourceType fromValue(String value) {
+        return ValueEnum.fromValue(ResourceType.class, value);
     }
 
     @Override
