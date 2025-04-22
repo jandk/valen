@@ -63,8 +63,17 @@ public final class PngExporter extends TextureExporter {
         var stripped = stripAlpha(texture);
         var format = mapPngFormat(stripped);
 
+        byte[] data = stripped.surfaces().getFirst().data();
+        if (format.bitDepth() == 16) {
+            for (int i = 0; i < data.length; i += 2) {
+                var tmp = data[i];
+                data[i] = data[i + 1];
+                data[i + 1] = tmp;
+            }
+        }
+
         // TODO: How to handle closing the output stream?
-        new PngOutputStream(out, format).writeImage(stripped.surfaces().getFirst().data());
+        new PngOutputStream(out, format).writeImage(data);
     }
 
     @SuppressWarnings("PointlessArithmeticExpression")
