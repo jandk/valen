@@ -82,7 +82,7 @@ public final class ResourcesFile implements Container<GreatCircleAssetID, GreatC
 
         var decompressor = switch (resource.compression()) {
             case RES_COMP_MODE_NONE -> Decompressor.none();
-            case RES_COMP_MODE_KRAKEN, RES_COMP_MODE_KRAKEN_CHUNKED -> this.decompressor;
+            case RES_COMP_MODE_KRAKEN, RES_COMP_MODE_KRAKEN_CHUNKED, RES_COMP_MODE_LEVIATHAN -> this.decompressor;
             default -> throw new UnsupportedOperationException("Unsupported compression: " + resource.compression());
         };
 

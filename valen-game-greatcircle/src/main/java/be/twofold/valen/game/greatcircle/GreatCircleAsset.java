@@ -24,8 +24,8 @@ public record GreatCircleAsset(
     @Override
     public AssetType type() {
         return switch (id.type()) {
-            case ResourceType.image -> AssetType.TEXTURE;
-            case ResourceType.model -> AssetType.MODEL;
+            case image -> AssetType.TEXTURE;
+            case basemodel, model -> AssetType.MODEL;
             default -> AssetType.RAW;
         };
     }

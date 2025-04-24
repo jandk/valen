@@ -42,13 +42,51 @@ public abstract class GltfModelMapper {
             var accessorID = buildAccessor(vertexBuffer, semantic);
             attributes.put(semanticString, accessorID);
         }
-
         var indices = buildAccessor(mesh.indexBuffer(), null);
+        var morphTargets = buildMorphTargets(mesh.blendShapes(), mesh.getBuffer(Semantic.POSITION).orElseThrow().count());
+
         return ImmutableMeshPrimitive.builder()
             .attributes(attributes)
             .indices(indices)
             .material(Optional.ofNullable(materialID))
+            .targets(morphTargets)
             .build();
+    }
+
+    private List<Map<String, AccessorID>> buildMorphTargets(List<BlendShape> blendShapes, int count) throws IOException {
+        var morphTargets = new ArrayList<Map<String, AccessorID>>();
+        for (var blendShape : blendShapes) {
+            var indexBufferView = context.createBufferView(blendShape.indices(), null);
+            var indices = ImmutableAccessorSparseIndices.builder()
+                .bufferView(indexBufferView)
+                .componentType(AccessorComponentType.UNSIGNED_SHORT)
+                .build();
+
+            var valuesBufferView = context.createBufferView(blendShape.values(), null);
+            var values = ImmutableAccessorSparseValues.builder()
+                .bufferView(valuesBufferView)
+                .build();
+
+            var accessorSparse = ImmutableAccessorSparse.builder()
+                .count(blendShape.indices().capacity())
+                .indices(indices)
+                .values(values)
+                .build();
+
+            var bounds = Bounds.calculate(blendShape.values());
+            var accessor = ImmutableAccessor.builder()
+                .componentType(AccessorComponentType.FLOAT)
+                .count(count)
+                .type(AccessorType.VEC3)
+                .sparse(accessorSparse)
+                .min(GltfUtils.mapVector3(bounds.min()))
+                .max(GltfUtils.mapVector3(bounds.max()))
+                .build();
+            var accessorID = context.addAccessor(accessor);
+
+            morphTargets.add(Map.of("POSITION", accessorID));
+        }
+        return morphTargets;
     }
 
     private AccessorID buildAccessor(VertexBuffer<?> buffer, Semantic semantic) throws IOException {

@@ -7,6 +7,7 @@ import be.twofold.valen.game.greatcircle.reader.decl.*;
 import be.twofold.valen.game.greatcircle.reader.decl.material2.*;
 import be.twofold.valen.game.greatcircle.reader.decl.renderparm.*;
 import be.twofold.valen.game.greatcircle.reader.image.*;
+import be.twofold.valen.game.greatcircle.reader.md6mesh.*;
 import be.twofold.valen.game.greatcircle.reader.staticmodel.*;
 import be.twofold.valen.game.greatcircle.reader.streamdb.*;
 
@@ -27,9 +28,10 @@ public final class GreatCircleArchive implements Archive<GreatCircleAssetID, Gre
         var declReader = new DeclReader(this);
         this.readers = new AssetReaders<>(List.of(
             new ImageReader(this),
-            new StaticModelReader(this),
             new MaterialReader(this, declReader),
-            new RenderParmReader()
+            new Md6MeshReader(this),
+            new RenderParmReader(),
+            new StaticModelReader(this)
         ));
     }
 

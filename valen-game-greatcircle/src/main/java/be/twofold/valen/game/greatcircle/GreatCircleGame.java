@@ -42,7 +42,7 @@ public final class GreatCircleGame implements Game {
             .findFirst().orElseThrow();
 
         var files = spec.files().stream()
-            .filter(f -> map.fileRefs().contains(f.id()) || common.fileRefs().contains(f.id()))
+            .filter(f -> map.fileRefs().contains(f.id())/* || common.fileRefs().contains(f.id())*/)
             .map(File::name)
             .toList();
 

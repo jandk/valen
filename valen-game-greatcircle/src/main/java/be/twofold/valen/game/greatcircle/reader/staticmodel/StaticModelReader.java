@@ -3,7 +3,6 @@ package be.twofold.valen.game.greatcircle.reader.staticmodel;
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.geometry.*;
 import be.twofold.valen.core.io.*;
-import be.twofold.valen.core.material.*;
 import be.twofold.valen.core.math.*;
 import be.twofold.valen.core.util.*;
 import be.twofold.valen.game.greatcircle.*;
@@ -37,18 +36,7 @@ public final class StaticModelReader implements AssetReader<Model, GreatCircleAs
         var meshes = new ArrayList<>(readMeshes(model, source));
 
         if (readMaterials) {
-            var materials = new HashMap<String, Material>();
-            for (int i = 0; i < meshes.size(); i++) {
-                var meshInfo = model.meshInfos().get(i);
-                var materialName = meshInfo.mtlDecl();
-                if (!materials.containsKey(materialName)) {
-                    var assetId = GreatCircleAssetID.from(materialName, ResourceType.material2);
-                    var material = archive.loadAsset(assetId, Material.class);
-                    materials.put(materialName, material);
-                }
-                meshes.set(i, meshes.get(i)
-                    .withMaterial(Optional.ofNullable(materials.get(materialName))));
-            }
+            Materials.apply(archive, meshes, model.meshInfos(), StaticModelMeshInfo::mtlDecl, _ -> null);
         }
         return new Model(meshes, Optional.empty(), Optional.of(asset.id().fullName()), Axis.Z);
     }

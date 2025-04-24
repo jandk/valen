@@ -68,7 +68,7 @@ public final class GltfModelMultiMapper extends GltfModelMapper {
 
     private List<MeshSchema> mapModel(Model model) throws IOException {
         var meshSchemas = new ArrayList<MeshSchema>();
-        for (Mesh mesh : model.meshes()) {
+        for (var mesh : model.meshes()) {
             meshSchemas.add(mapMesh(mesh));
         }
         return meshSchemas;
@@ -76,10 +76,17 @@ public final class GltfModelMultiMapper extends GltfModelMapper {
 
     private MeshSchema mapMesh(Mesh mesh) throws IOException {
         var primitiveSchema = mapMeshPrimitive(mesh);
+        var morphTargetNames = mesh.blendShapes().stream()
+            .map(BlendShape::name)
+            .toList();
 
-        return ImmutableMesh.builder()
+        var builder = ImmutableMesh.builder()
             .name(mesh.name())
-            .addPrimitives(primitiveSchema)
-            .build();
+            .addPrimitives(primitiveSchema);
+
+        if (!morphTargetNames.isEmpty()) {
+            builder.extras(Map.of("targetNames", morphTargetNames));
+        }
+        return builder.build();
     }
 }

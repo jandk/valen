@@ -1,7 +1,6 @@
 package be.twofold.valen.game.greatcircle.reader.staticmodel;
 
 import be.twofold.valen.core.io.*;
-import be.twofold.valen.game.greatcircle.reader.geometry.*;
 
 import java.io.*;
 import java.util.*;

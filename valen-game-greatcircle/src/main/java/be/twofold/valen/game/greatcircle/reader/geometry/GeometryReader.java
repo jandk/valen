@@ -35,11 +35,11 @@ public final class GeometryReader {
     public static List<Mesh> readStreamedMesh(
         DataSource source,
         List<LodInfo> lods,
-        List<GeometryMemoryLayout> layouts,
+        List<? extends GeoMemoryLayout> layouts,
         boolean animated
     ) throws IOException {
         var offsetsByLayout = layouts.stream().collect(Collectors.toUnmodifiableMap(
-            GeometryMemoryLayout::combinedVertexMask,
+            GeoMemoryLayout::combinedVertexMask,
             layout -> new Offsets(
                 layout.indexOffset(),
                 Arrays.copyOf(layout.vertexOffsets(), layout.numVertexStreams())

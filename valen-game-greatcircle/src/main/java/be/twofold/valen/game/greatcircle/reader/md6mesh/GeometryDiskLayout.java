@@ -1,31 +1,29 @@
-package be.twofold.valen.game.greatcircle.reader.geometry;
+package be.twofold.valen.game.greatcircle.reader.md6mesh;
 
 import be.twofold.valen.core.io.*;
+import be.twofold.valen.game.greatcircle.reader.geometry.*;
 
 import java.io.*;
 import java.util.*;
 
-public record GeometryDiskLayout(
+record GeometryDiskLayout(
     int compression,
     int uncompressedSize,
     int compressedSize,
     int offset,
-    long hash,
     List<GeometryMemoryLayout> memoryLayouts
-) {
-    public static GeometryDiskLayout read(DataSource source, List<GeometryMemoryLayout> memoryLayouts, int version) throws IOException {
+) implements GeoDiskLayout {
+    static GeometryDiskLayout read(DataSource source, List<GeometryMemoryLayout> memoryLayouts) throws IOException {
         var compression = source.readInt();
         var uncompressedSize = source.readInt();
         var compressedSize = source.readInt();
         var offset = source.readInt();
-        var hash = version > 78 ? source.readLong() : 0;
 
         return new GeometryDiskLayout(
             compression,
             uncompressedSize,
             compressedSize,
             offset,
-            hash,
             memoryLayouts
         );
     }
