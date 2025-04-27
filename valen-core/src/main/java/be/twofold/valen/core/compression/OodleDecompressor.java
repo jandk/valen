@@ -41,7 +41,7 @@ final class OodleDecompressor implements Decompressor {
             );
 
             if (result != dst.remaining()) {
-                throw new IOException("Decompression failed");
+                throw new IOException("Decompression failed, expected " + dst.remaining() + ", got " + result);
             }
             MemorySegment.ofBuffer(dst)
                 .copyFrom(dstSegment);

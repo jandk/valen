@@ -8,6 +8,7 @@ import java.util.*;
 record Md6MeshInfo(
     String meshName,
     String materialName,
+    int unknown0,
     int unknown1,
     int unknown2,
     int unknown3,
@@ -18,7 +19,7 @@ record Md6MeshInfo(
         var meshName = source.readPString();
         var materialName = source.readPString();
         source.expectByte((byte) 1);
-        source.expectInt(1);
+        int unknown0 = source.readInt();
         var unknown1 = source.readInt();
         var unknown2 = source.readInt();
         var unknown3 = source.readInt();
@@ -36,6 +37,7 @@ record Md6MeshInfo(
         return new Md6MeshInfo(
             meshName,
             materialName,
+            unknown0,
             unknown1,
             unknown2,
             unknown3,

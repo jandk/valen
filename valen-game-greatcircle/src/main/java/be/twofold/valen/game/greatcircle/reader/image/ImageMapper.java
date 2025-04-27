@@ -26,6 +26,10 @@ public final class ImageMapper {
         for (int face = 0; face < faces; face++) {
             for (int mip = minMip; mip < mipCount; mip++) {
                 int mipIndex = mip * faces + face;
+                if (image.slices()[mipIndex] == null) {
+                    // Well, if this happens in a cube map...
+                    break;
+                }
                 surfaces.add(new Surface(
                     image.sliceInfos().get(mipIndex).width(),
                     image.sliceInfos().get(mipIndex).height(),

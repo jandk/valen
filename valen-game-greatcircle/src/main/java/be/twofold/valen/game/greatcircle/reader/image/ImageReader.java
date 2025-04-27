@@ -23,7 +23,8 @@ public final class ImageReader implements AssetReader<Texture, GreatCircleAsset>
 
     @Override
     public boolean canRead(GreatCircleAsset asset) {
-        return asset.id().type() == ResourceType.image;
+        return asset.id().type() == ResourceType.image
+            && !asset.id().name().filename().endsWith(".bimage");
     }
 
     @Override
