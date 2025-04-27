@@ -1,4 +1,4 @@
-package be.twofold.valen.game.eternal.reader.decl.parser;
+package be.twofold.valen.game.idtech.decl.parser;
 
 import be.twofold.valen.core.util.*;
 

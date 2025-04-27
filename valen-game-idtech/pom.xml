@@ -8,23 +8,19 @@
         <version>0.1.1-SNAPSHOT</version>
     </parent>
 
-    <artifactId>valen-game-eternal</artifactId>
+    <artifactId>valen-game-idtech</artifactId>
 
     <dependencies>
         <!-- Internal -->
         <dependency>
             <groupId>be.twofold</groupId>
-            <artifactId>valen-game-idtech</artifactId>
+            <artifactId>valen-core</artifactId>
+        </dependency>
+
+        <!-- External -->
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
         </dependency>
     </dependencies>
-
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-failsafe-plugin</artifactId>
-            </plugin>
-        </plugins>
-    </build>
-
 </project>

@@ -12,16 +12,21 @@ import be.twofold.valen.game.greatcircle.resource.*;
 import java.io.*;
 import java.nio.file.*;
 import java.util.*;
+import java.util.stream.*;
 
 public final class GreatCircleGame implements Game {
     private final Path base;
     private final PackageMapSpec spec;
     private final Decompressor decompressor;
+    private final Container<Long, StreamDbEntry> streamDbCollection;
+    private final Container<GreatCircleAssetID, GreatCircleAsset> commonCollection;
 
     public GreatCircleGame(Path path) throws IOException {
         this.base = path.resolve("base");
         this.spec = PackageMapSpec.read(base.resolve("packagemapspec_pc.json"));
         this.decompressor = Decompressor.oodle(path.resolve("oo2core_9_win64.dll"));
+        this.streamDbCollection = loadStreams(base, spec, decompressor);
+        this.commonCollection = loadResources(base, spec, decompressor, "common");
     }
 
     @Override
@@ -33,47 +38,42 @@ public final class GreatCircleGame implements Game {
 
     @Override
     public GreatCircleArchive loadArchive(String name) throws IOException {
-        var common = spec.maps().stream()
-            .filter(m -> m.name().equals("common"))
-            .findFirst().orElseThrow();
+        var resourcesCollection = loadResources(base, spec, decompressor, name);
+        return new GreatCircleArchive(streamDbCollection, commonCollection, resourcesCollection);
+    }
 
-        var map = spec.maps().stream()
-            .filter(m -> m.name().equals(name))
-            .findFirst().orElseThrow();
+    static Container<GreatCircleAssetID, GreatCircleAsset> loadResources(Path base, PackageMapSpec spec, Decompressor decompressor, String... names) throws IOException {
+        var uniqueNames = Set.of(names);
+        var fileRefs = spec.maps().stream()
+            .filter(m -> uniqueNames.contains(m.name()))
+            .flatMap(map -> map.fileRefs().stream())
+            .collect(Collectors.toUnmodifiableSet());
 
-        var files = spec.files().stream()
-            .filter(f -> map.fileRefs().contains(f.id())/* || common.fileRefs().contains(f.id())*/)
+        var paths = spec.files().stream()
+            .filter(f -> fileRefs.contains(f.id()))
             .map(File::name)
-            .toList();
-
-        var streamDbCollection = loadStreamDBs(files);
-        var resourcesCollection = loadResources(files);
-        return new GreatCircleArchive(streamDbCollection, resourcesCollection);
-    }
-
-    private Container<Long, StreamDbEntry> loadStreamDBs(List<String> filenames) throws IOException {
-        var paths = filenames.stream()
-            .filter(s -> s.endsWith(".streamdb"))
-            .map(base::resolve)
-            .toList();
-
-        var containers = new ArrayList<Container<Long, StreamDbEntry>>();
-        for (Path path : paths) {
-            containers.add(new StreamDbFile(path, decompressor));
-        }
-        return Container.compose(containers);
-    }
-
-    private Container<GreatCircleAssetID, GreatCircleAsset> loadResources(List<String> filenames) throws IOException {
-        var paths = filenames.stream()
             .filter(s -> s.endsWith(".resources"))
             .map(base::resolve)
             .toList();
 
-        var containers = new ArrayList<Container<GreatCircleAssetID, GreatCircleAsset>>();
-        for (Path path : paths) {
-            containers.add(new ResourcesFile(path, decompressor));
+        var files = new ArrayList<Container<GreatCircleAssetID, GreatCircleAsset>>();
+        for (var path : paths) {
+            files.add(new ResourcesFile(path, decompressor));
         }
-        return Container.compose(containers);
+        return Container.compose(files);
+    }
+
+    static Container<Long, StreamDbEntry> loadStreams(Path base, PackageMapSpec spec, Decompressor decompressor) throws IOException {
+        var paths = spec.files().stream()
+            .map(File::name)
+            .filter(s -> s.endsWith(".streamdb"))
+            .map(base::resolve)
+            .toList();
+
+        var files = new ArrayList<Container<Long, StreamDbEntry>>();
+        for (var path : paths) {
+            files.add(new StreamDbFile(path, decompressor));
+        }
+        return Container.compose(files);
     }
 }

@@ -4,10 +4,10 @@ import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.math.*;
 import be.twofold.valen.game.eternal.*;
-import be.twofold.valen.game.eternal.reader.decl.parser.*;
 import be.twofold.valen.game.eternal.reader.decl.renderparm.enums.*;
 import be.twofold.valen.game.eternal.reader.image.*;
 import be.twofold.valen.game.eternal.resource.*;
+import be.twofold.valen.game.idtech.decl.parser.*;
 
 import java.io.*;
 import java.util.*;

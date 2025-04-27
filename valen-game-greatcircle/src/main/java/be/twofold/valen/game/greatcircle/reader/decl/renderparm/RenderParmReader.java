@@ -3,9 +3,9 @@ package be.twofold.valen.game.greatcircle.reader.decl.renderparm;
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.io.*;
 import be.twofold.valen.game.greatcircle.*;
-import be.twofold.valen.game.greatcircle.reader.decl.*;
 import be.twofold.valen.game.greatcircle.reader.image.*;
 import be.twofold.valen.game.greatcircle.resource.*;
+import be.twofold.valen.game.idtech.decl.parser.*;
 
 import java.io.*;
 import java.util.*;

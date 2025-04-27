@@ -14,13 +14,7 @@
         <!-- Internal -->
         <dependency>
             <groupId>be.twofold</groupId>
-            <artifactId>valen-core</artifactId>
-        </dependency>
-
-        <!-- External -->
-        <dependency>
-            <groupId>com.google.code.gson</groupId>
-            <artifactId>gson</artifactId>
+            <artifactId>valen-game-idtech</artifactId>
         </dependency>
     </dependencies>
 
