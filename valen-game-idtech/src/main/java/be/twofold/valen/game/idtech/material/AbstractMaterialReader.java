@@ -14,6 +14,7 @@ import org.slf4j.*;
 
 import java.io.*;
 import java.util.*;
+import java.util.function.*;
 import java.util.stream.*;
 
 public abstract class AbstractMaterialReader<K extends AssetID, V extends Asset, A extends Archive<K, V>> implements AssetReader<Material, V> {
@@ -98,7 +99,7 @@ public abstract class AbstractMaterialReader<K extends AssetID, V extends Asset,
 
         var allParms = Stream.of(renderLayerParms, standardParms)
             .flatMap(Collection::stream)
-            .collect(Collectors.toUnmodifiableMap(Parm::name, r -> r));
+            .collect(Collectors.toUnmodifiableMap(Parm::name, Function.identity(), (first, second) -> second));
 
         var albedo = mapSimpleTexture(allParms, MaterialPropertyType.Albedo);
         var normal = mapSimpleTexture(allParms, MaterialPropertyType.Normal);
@@ -200,6 +201,9 @@ public abstract class AbstractMaterialReader<K extends AssetID, V extends Asset,
             .get(0).getAsJsonObject()
             .getAsJsonObject("parms");
 
+        if (parms == null) {
+            return List.of();
+        }
         var renderLayerParms = new ArrayList<Parm>();
         for (var entry : parms.entrySet()) {
             var renderParm = getRenderParm(entry.getKey());
@@ -215,6 +219,10 @@ public abstract class AbstractMaterialReader<K extends AssetID, V extends Asset,
     }
 
     private List<Parm> parseParms(JsonObject object) throws IOException {
+        if (object == null) {
+            return List.of();
+        }
+
         var result = new ArrayList<Parm>();
         for (var entry : object.entrySet()) {
             var parm = parseParm(object, entry.getKey());
@@ -259,9 +267,9 @@ public abstract class AbstractMaterialReader<K extends AssetID, V extends Asset,
             case PT_F32_VEC2 -> parseVector2(element, renderParm.get());
             case PT_F32_VEC3 -> parseVector3(element, renderParm.get());
             case PT_F32_VEC4 -> parseVector4(element, renderParm.get());
-            case PT_STRING -> element.getAsString();
-            case PT_TEXTURE_2D, PT_TEXTURE_CUBE -> parseTex(element);
-            case PT_UI32 -> element.getAsInt();
+            case PT_COLOR_LUT, PT_STRING -> element.getAsString();
+            case PT_TEXTURE_2D, PT_TEXTURE_2D_HALF, PT_TEXTURE_CUBE -> parseTex(element);
+            case PT_SI32, PT_UI32 -> element.getAsInt();
             default -> throw new UnsupportedOperationException(renderParm.get().parmType.toString());
         };
 
@@ -336,7 +344,7 @@ public abstract class AbstractMaterialReader<K extends AssetID, V extends Asset,
         var kind = parm.renderParm().materialKind;
         if (opts != null) {
             if (opts.format() != TextureFormat.FMT_NONE) {
-                if (kind.ordinal() > 7
+                if (kind == null || kind == TextureMaterialKind.TMK_NONE || kind.ordinal() > 7
                     && kind != TextureMaterialKind.TMK_BLENDMASK
                     && kind != TextureMaterialKind.TMK_ALBEDO_UNSCALED
                     && kind != TextureMaterialKind.TMK_ALBEDO_DETAILS
