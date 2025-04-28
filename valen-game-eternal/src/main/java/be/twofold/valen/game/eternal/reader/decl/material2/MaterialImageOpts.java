@@ -1,12 +1,13 @@
 package be.twofold.valen.game.eternal.reader.decl.material2;
 
-import be.twofold.valen.game.eternal.reader.image.*;
+import be.twofold.valen.game.eternal.defines.*;
+import be.twofold.valen.game.idtech.defines.*;
 
 public record MaterialImageOpts(
-    ImageTextureType type,
-    ImageTextureFilter filter,
-    ImageTextureRepeat repeat,
-    ImageTextureFormat format,
+    TextureType type,
+    TextureFilter filter,
+    TextureRepeat repeat,
+    TextureFormat format,
     Short atlasPadding,
     Integer minMip,
     boolean fullScaleBias,

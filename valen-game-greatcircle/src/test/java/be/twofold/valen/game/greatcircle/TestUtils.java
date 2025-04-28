@@ -25,6 +25,7 @@ public abstract class TestUtils {
     private static void readAllInMap(GreatCircleArchive archive, AssetReader<?, GreatCircleAsset> reader) {
         var entries = archive.getAll()
             .filter(asset -> asset.size() != 0 && reader.canRead(asset))
+            .sorted()
             .toList();
 
         System.out.println("Trying to read " + entries.size() + " entries");

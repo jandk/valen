@@ -1,12 +1,13 @@
 package be.twofold.valen.game.greatcircle.reader.decl.material2;
 
-import be.twofold.valen.game.greatcircle.reader.image.*;
+import be.twofold.valen.game.greatcircle.defines.*;
+import be.twofold.valen.game.idtech.defines.*;
 
 public record MaterialImageOpts(
-    ImageTextureType type,
-    ImageTextureFilter filter,
-    ImageTextureRepeat repeat,
-    ImageTextureFormat format,
+    TextureType type,
+    TextureFilter filter,
+    TextureRepeat repeat,
+    TextureFormat format,
     short atlasPadding,
     int minMip,
     boolean fullScaleBias,

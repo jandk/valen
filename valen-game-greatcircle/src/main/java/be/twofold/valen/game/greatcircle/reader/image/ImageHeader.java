@@ -1,13 +1,15 @@
 package be.twofold.valen.game.greatcircle.reader.image;
 
 import be.twofold.valen.core.io.*;
+import be.twofold.valen.game.greatcircle.defines.*;
+import be.twofold.valen.game.idtech.defines.*;
 
 import java.io.*;
 
 public record ImageHeader(
     int magic,
-    ImageTextureType type,
-    ImageTextureMaterialKind kind,
+    TextureType type,
+    TextureMaterialKind kind,
     int width,
     int height,
     int depth,
@@ -16,7 +18,7 @@ public record ImageHeader(
     int unknown1,
     float bias,
     float scale,
-    ImageTextureFormat textureFormat,
+    TextureFormat textureFormat,
     boolean streamed,
     boolean singleStream,
     boolean noMips,
@@ -32,8 +34,8 @@ public record ImageHeader(
         }
         var version = magic >>> 24;
 
-        var type = ImageTextureType.fromValue(source.readInt());
-        var kind = ImageTextureMaterialKind.fromValue(source.readInt());
+        var type = TextureType.fromValue(source.readInt());
+        var kind = TextureMaterialKind.fromValue(source.readInt());
         var width = source.readInt();
         var height = source.readInt();
         var depth = source.readInt();
@@ -43,7 +45,7 @@ public record ImageHeader(
         var bias = source.readFloat();
         var scale = source.readFloat();
         source.expectByte((byte) 0);
-        var textureFormat = ImageTextureFormat.fromValue(source.readInt());
+        var textureFormat = TextureFormat.fromValue(source.readInt());
         source.expectShort((short) 0);
         var streamed = source.readBoolByte();
         var singleStream = source.readBoolByte();

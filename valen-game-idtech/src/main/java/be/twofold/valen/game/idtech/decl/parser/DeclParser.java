@@ -39,8 +39,17 @@ public final class DeclParser {
         }
     }
 
+    public String expectNameOrString() {
+        var token = lexer.nextToken();
+        return switch (token.type()) {
+            case Name, String -> token.value();
+            default ->
+                throw new DeclParseException("Expected " + DeclTokenType.Name + " or " + DeclTokenType.String + ", got " + token);
+        };
+    }
+
     public boolean expectBoolean() {
-        var name = expectName();
+        var name = expectName().toLowerCase();
         return switch (name) {
             case "true" -> true;
             case "false" -> false;

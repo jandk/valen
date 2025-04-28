@@ -7,11 +7,13 @@ import be.twofold.valen.core.math.*;
 import be.twofold.valen.core.texture.*;
 import be.twofold.valen.core.util.*;
 import be.twofold.valen.game.eternal.*;
+import be.twofold.valen.game.eternal.defines.*;
+import be.twofold.valen.game.eternal.defines.TextureFormat;
 import be.twofold.valen.game.eternal.reader.decl.*;
 import be.twofold.valen.game.eternal.reader.decl.renderparm.*;
 import be.twofold.valen.game.eternal.reader.decl.renderparm.enums.*;
-import be.twofold.valen.game.eternal.reader.image.*;
 import be.twofold.valen.game.eternal.resource.*;
+import be.twofold.valen.game.idtech.defines.*;
 import com.google.gson.*;
 import org.slf4j.*;
 
@@ -200,7 +202,7 @@ public final class MaterialReader implements AssetReader<Material, EternalAsset>
         }
 
         var builder = new StringBuilder(filePath.toLowerCase());
-        if (parm.renderParm().materialKind == ImageTextureMaterialKind.TMK_SMOOTHNESS) {
+        if (parm.renderParm().materialKind == TextureMaterialKind.TMK_SMOOTHNESS) {
             var smoothnessNormal = allParms.entrySet().stream()
                 .filter(rlp -> rlp.getValue().renderParm().materialKind == parm.renderParm().smoothnessNormalParm)
                 .findFirst().orElseThrow();
@@ -229,8 +231,8 @@ public final class MaterialReader implements AssetReader<Material, EternalAsset>
         var opts = tex2d.options();
         var kind = parm.renderParm().materialKind;
         if (opts != null) {
-            if (opts.format() != ImageTextureFormat.FMT_NONE) {
-                if (kind == null || kind == ImageTextureMaterialKind.TMK_NONE || (kind.getCode() > 7 && kind != ImageTextureMaterialKind.TMK_BLENDMASK)) {
+            if (opts.format() != TextureFormat.FMT_NONE) {
+                if (kind == null || kind == TextureMaterialKind.TMK_NONE || (kind.value() > 7 && kind != TextureMaterialKind.TMK_BLENDMASK)) {
                     builder.append(formatFormat(opts.format()));
                 }
             }
@@ -402,10 +404,10 @@ public final class MaterialReader implements AssetReader<Material, EternalAsset>
             return null;
         }
 
-        var type = options.has("type") ? ImageTextureType.valueOf(options.get("type").getAsString()) : null;
-        var filter = options.has("filter") ? ImageTextureFilter.valueOf(options.get("filter").getAsString()) : null;
-        var repeat = options.has("repeat") ? ImageTextureRepeat.valueOf(options.get("repeat").getAsString()) : null;
-        var format = options.has("format") ? ImageTextureFormat.valueOf(options.get("format").getAsString()) : null;
+        var type = options.has("type") ? TextureType.valueOf(options.get("type").getAsString()) : null;
+        var filter = options.has("filter") ? TextureFilter.valueOf(options.get("filter").getAsString()) : null;
+        var repeat = options.has("repeat") ? TextureRepeat.valueOf(options.get("repeat").getAsString()) : null;
+        var format = options.has("format") ? TextureFormat.valueOf(options.get("format").getAsString()) : null;
         var atlasPadding = options.has("atlasPadding") ? options.get("atlasPadding").getAsShort() : null;
         var minMip = options.has("minMip") ? options.get("minMip").getAsInt() : 0;
         var fullScaleBias = options.has("fullScaleBias") && options.get("fullScaleBias").getAsBoolean();
@@ -425,7 +427,7 @@ public final class MaterialReader implements AssetReader<Material, EternalAsset>
         );
     }
 
-    private String formatFormat(ImageTextureFormat format) {
+    private String formatFormat(TextureFormat format) {
         return switch (format) {
             case FMT_RGBA16F -> "$float";
             case FMT_RGBA8 -> "$rgba8";
@@ -460,7 +462,7 @@ public final class MaterialReader implements AssetReader<Material, EternalAsset>
         };
     }
 
-    private String formatMaterialKind(ImageTextureMaterialKind materialKind) {
+    private String formatMaterialKind(TextureMaterialKind materialKind) {
         return switch (materialKind) {
             case TMK_ALBEDO -> "$mtlkind=albedo";
             case TMK_SPECULAR -> "$mtlkind=specular";

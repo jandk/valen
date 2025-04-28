@@ -1,6 +1,7 @@
 package be.twofold.valen.game.greatcircle.reader.image;
 
 import be.twofold.valen.core.io.*;
+import be.twofold.valen.game.idtech.defines.*;
 
 import java.io.*;
 import java.nio.*;
@@ -16,7 +17,7 @@ public record Image(
         var header = ImageHeader.read(source);
 
         var numSlices = header.mipCount() * Math.max(header.count(), 1);
-        if (header.type() == ImageTextureType.TT_CUBIC) {
+        if (header.type() == TextureType.TT_CUBIC) {
             numSlices *= 6;
         }
 

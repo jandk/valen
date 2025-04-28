@@ -1,6 +1,6 @@
 package be.twofold.valen.game.greatcircle.reader.decl.renderparm;
 
-import be.twofold.valen.game.greatcircle.reader.image.*;
+import be.twofold.valen.game.greatcircle.defines.*;
 
 public final class RenderParm {
 
@@ -12,9 +12,10 @@ public final class RenderParm {
     public boolean streamed;
     public boolean globallyIndexed;
     public boolean editable;
+    public boolean sfsFeedback;
     public boolean envNoInterpolation;
     public boolean fftBloom;
-    public ImageTextureMaterialKind materialKind;
-    public ImageTextureMaterialKind smoothnessNormalParm;
+    public TextureMaterialKind materialKind;
+    public TextureMaterialKind smoothnessNormalParm;
 
 }

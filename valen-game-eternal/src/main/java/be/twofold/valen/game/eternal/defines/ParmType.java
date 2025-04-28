@@ -1,6 +1,8 @@
-package be.twofold.valen.game.eternal.reader.decl.renderparm;
+package be.twofold.valen.game.eternal.defines;
 
-public enum RenderParmType {
+import be.twofold.valen.core.util.*;
+
+public enum ParmType implements ValueEnum<Integer> {
     PT_F32_VEC4(0),
     PT_F32_VEC3(1),
     PT_F32_VEC2(2),
@@ -36,15 +38,18 @@ public enum RenderParmType {
     PT_IMAGE2D_BUFFER(32),
     PT_IMAGE2D_ARRAY_BUFFER(33),
     PT_IMAGE3D_BUFFER(34),
-    PT_ACCELERATION_STRUCTURE(35);
+    PT_ACCELERATION_STRUCTURE(35),
+    PT_MAX(36),
+    ;
 
-    private final int code;
+    private final int value;
 
-    RenderParmType(int code) {
-        this.code = code;
+    ParmType(int value) {
+        this.value = value;
     }
 
-    public int getCode() {
-        return code;
+    @Override
+    public Integer value() {
+        return value;
     }
 }

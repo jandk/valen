@@ -1,14 +1,13 @@
-package be.twofold.valen.game.greatcircle.reader.image;
+package be.twofold.valen.game.eternal.defines;
 
 import be.twofold.valen.core.util.*;
 
-public enum ImageTextureFormat implements ValueEnum<Integer> {
+public enum TextureFormat implements ValueEnum<Integer> {
     FMT_NONE(0),
     FMT_RGBA32F(1),
     FMT_RGBA16F(2),
     FMT_RGBA8(3),
     FMT_RGBA8_SRGB(32),
-    FMT_RGBA8_SNORM(60),
     FMT_ARGB8(4),
     FMT_ALPHA(5),
     FMT_L8A8_DEPRECATED(6),
@@ -29,7 +28,6 @@ public enum ImageTextureFormat implements ValueEnum<Integer> {
     FMT_DEPTH(12),
     FMT_DEPTH_STENCIL(13),
     FMT_DEPTH16(31),
-    FMT_STENCIL(59),
     FMT_X32F(14),
     FMT_Y16F_X16F(15),
     FMT_X16(16),
@@ -37,7 +35,6 @@ public enum ImageTextureFormat implements ValueEnum<Integer> {
     FMT_RGB565(18),
     FMT_R8(19),
     FMT_R11FG11FB10F(20),
-    FMT_R9G9B9E5(56),
     FMT_X16F(21),
     FMT_RG16F(26),
     FMT_R10G10B10A2(27),
@@ -45,8 +42,6 @@ public enum ImageTextureFormat implements ValueEnum<Integer> {
     FMT_R32_UINT(29),
     FMT_R16_UINT(30),
     FMT_R8_UINT(55),
-    FMT_RGBA32_UINT(57),
-    FMT_RG32_UINT(58),
     FMT_ASTC_4X4(37),
     FMT_ASTC_4X4_SRGB(38),
     FMT_ASTC_5X4(39),
@@ -64,16 +59,17 @@ public enum ImageTextureFormat implements ValueEnum<Integer> {
     FMT_ASTC_8X8(51),
     FMT_ASTC_8X8_SRGB(52),
     FMT_DEPTH32F(53),
-    FMT_NEXTAVAILABLE(61);
+    FMT_NEXTAVAILABLE(56),
+    ;
 
     private final int value;
 
-    ImageTextureFormat(int value) {
+    TextureFormat(int value) {
         this.value = value;
     }
 
-    public static ImageTextureFormat fromValue(int value) {
-        return ValueEnum.fromValue(ImageTextureFormat.class, value);
+    public static TextureFormat fromValue(int value) {
+        return ValueEnum.fromValue(TextureFormat.class, value);
     }
 
     @Override

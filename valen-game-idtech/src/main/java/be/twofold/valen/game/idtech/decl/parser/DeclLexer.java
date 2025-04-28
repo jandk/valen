@@ -70,7 +70,7 @@ public final class DeclLexer {
             case '"':
                 return new DeclToken(DeclTokenType.String, parseString());
             default:
-                if (isAlpha(ch) || ch == '_') {
+                if (isAlpha(ch) || ch == '_' || ch == '#') {
                     return new DeclToken(DeclTokenType.Name, parseName());
                 }
                 if (isDigit(ch) || ch == '-' || ch == '.') {
@@ -138,6 +138,10 @@ public final class DeclLexer {
                 skip();
             }
             digits();
+        }
+        if (peek() == 'f') {
+            // Floats can have a trailing f
+            skip();
         }
         return source.substring(start, index);
     }
@@ -208,7 +212,7 @@ public final class DeclLexer {
     }
 
     private boolean isIdentifier(char ch) {
-        return isAlpha(ch) || isDigit(ch) || ch == '_' ||
+        return isAlpha(ch) || isDigit(ch) || ch == '_' || ch == '#' ||
             lenient && (ch == '.' || ch == '/' || ch == ':' || ch == '\\');
     }
 

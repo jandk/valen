@@ -7,10 +7,12 @@ import be.twofold.valen.core.math.*;
 import be.twofold.valen.core.texture.*;
 import be.twofold.valen.core.util.*;
 import be.twofold.valen.game.greatcircle.*;
+import be.twofold.valen.game.greatcircle.defines.*;
+import be.twofold.valen.game.greatcircle.defines.TextureFormat;
 import be.twofold.valen.game.greatcircle.reader.decl.*;
 import be.twofold.valen.game.greatcircle.reader.decl.renderparm.*;
-import be.twofold.valen.game.greatcircle.reader.image.*;
 import be.twofold.valen.game.greatcircle.resource.*;
+import be.twofold.valen.game.idtech.defines.*;
 import com.google.gson.*;
 import org.slf4j.*;
 
@@ -53,9 +55,9 @@ public final class MaterialReader implements AssetReader<Material, GreatCircleAs
             .get(0).getAsJsonObject()
             .getAsJsonObject("parms");
 
-        var renderParms = new EnumMap<ImageTextureMaterialKind, RenderParm>(ImageTextureMaterialKind.class);
-        var filenames = new EnumMap<ImageTextureMaterialKind, String>(ImageTextureMaterialKind.class);
-        var options = new EnumMap<ImageTextureMaterialKind, MaterialImageOpts>(ImageTextureMaterialKind.class);
+        var renderParms = new EnumMap<TextureMaterialKind, RenderParm>(TextureMaterialKind.class);
+        var filenames = new EnumMap<TextureMaterialKind, String>(TextureMaterialKind.class);
+        var options = new EnumMap<TextureMaterialKind, MaterialImageOpts>(TextureMaterialKind.class);
 
         parseRenderParms(parms, renderParms, filenames, options);
 
@@ -65,7 +67,7 @@ public final class MaterialReader implements AssetReader<Material, GreatCircleAs
             var opts = options.get(kind);
 
             var builder = new StringBuilder(filenames.get(kind));
-            if (kind == ImageTextureMaterialKind.TMK_SMOOTHNESS) {
+            if (kind == TextureMaterialKind.TMK_SMOOTHNESS) {
                 builder
                     .append("$smoothnessnormal=")
                     .append(filenames.get(parm.smoothnessNormalParm));
@@ -87,7 +89,7 @@ public final class MaterialReader implements AssetReader<Material, GreatCircleAs
         return new Material(asset.id().fullName(), properties);
     }
 
-    private MaterialPropertyType mapTextureType(ImageTextureMaterialKind kind) {
+    private MaterialPropertyType mapTextureType(TextureMaterialKind kind) {
         return switch (kind) {
             case TMK_ALBEDO -> MaterialPropertyType.Albedo;
             case TMK_SPECULAR -> MaterialPropertyType.Specular;
@@ -102,10 +104,14 @@ public final class MaterialReader implements AssetReader<Material, GreatCircleAs
         };
     }
 
-    private void mapOptions(StringBuilder builder, ImageTextureMaterialKind kind, RenderParm renderParm, MaterialImageOpts opts) {
+    private void mapOptions(StringBuilder builder, TextureMaterialKind kind, RenderParm renderParm, MaterialImageOpts opts) {
         if (opts != null) {
-            if (opts.format() != ImageTextureFormat.FMT_NONE) {
-                if (kind.value() > 7 && kind != ImageTextureMaterialKind.TMK_BLENDMASK) {
+            if (opts.format() != TextureFormat.FMT_NONE) {
+                if (kind.value() > 7
+                    && kind != TextureMaterialKind.TMK_BLENDMASK
+                    && kind != TextureMaterialKind.TMK_ALBEDO_UNSCALED
+                    && kind != TextureMaterialKind.TMK_ALBEDO_DETAILS
+                ) {
                     builder.append(formatFormat(opts.format()));
                 }
             }
@@ -133,9 +139,9 @@ public final class MaterialReader implements AssetReader<Material, GreatCircleAs
 
     private void parseRenderParms(
         JsonObject parms,
-        Map<ImageTextureMaterialKind, RenderParm> renderParms,
-        Map<ImageTextureMaterialKind, String> filenames,
-        Map<ImageTextureMaterialKind, MaterialImageOpts> options
+        Map<TextureMaterialKind, RenderParm> renderParms,
+        Map<TextureMaterialKind, String> filenames,
+        Map<TextureMaterialKind, MaterialImageOpts> options
     ) throws IOException {
         for (var entry : parms.entrySet()) {
             var renderParm = RenderParmCache.get(entry.getKey());
@@ -168,10 +174,10 @@ public final class MaterialReader implements AssetReader<Material, GreatCircleAs
         if (options == null) {
             return null;
         }
-        var type = ImageTextureType.valueOf(options.get("type").getAsString());
-        var filter = ImageTextureFilter.valueOf(options.get("filter").getAsString());
-        var repeat = ImageTextureRepeat.valueOf(options.get("repeat").getAsString());
-        var format = ImageTextureFormat.valueOf(options.get("format").getAsString());
+        var type = TextureType.valueOf(options.get("type").getAsString());
+        var filter = TextureFilter.valueOf(options.get("filter").getAsString());
+        var repeat = TextureRepeat.valueOf(options.get("repeat").getAsString());
+        var format = TextureFormat.valueOf(options.get("format").getAsString());
         var atlasPadding = options.get("atlasPadding").getAsShort();
         var minMip = options.has("minMip") ? options.get("minMip").getAsInt() : 0;
         var fullScaleBias = options.has("fullScaleBias") && options.get("fullScaleBias").getAsBoolean();
@@ -191,7 +197,7 @@ public final class MaterialReader implements AssetReader<Material, GreatCircleAs
         );
     }
 
-    private String formatFormat(ImageTextureFormat format) {
+    private String formatFormat(TextureFormat format) {
         return switch (format) {
             case FMT_RGBA16F -> "$float";
             case FMT_RGBA8 -> "$rgba8";
@@ -226,7 +232,7 @@ public final class MaterialReader implements AssetReader<Material, GreatCircleAs
         };
     }
 
-    private String formatMaterialKind(ImageTextureMaterialKind materialKind) {
+    private String formatMaterialKind(TextureMaterialKind materialKind) {
         return switch (materialKind) {
             case TMK_ALBEDO -> "$mtlkind=albedo";
             case TMK_SPECULAR -> "$mtlkind=specular";
@@ -246,6 +252,12 @@ public final class MaterialReader implements AssetReader<Material, GreatCircleAs
             case TMK_FONT -> "$mtlkind=font";
             case TMK_LEGACY_FLASH_UI -> "$mtlkind=legacyflashui";
             case TMK_BLENDMASK -> "$mtlkind=blendmask";
+            case TMK_TINTMASK -> "$mtlkind=tintmask";
+            case TMK_TERRAIN_SPLATMAP -> "$mtlkind=terrainsplatmap";
+            case TMK_ECOTOPE_LAYER -> "$mtlkind=ecotopelayer";
+            case TMK_DECALHEIGHTMAP -> "$mtlkind=decalheightmap";
+            case TMK_ALBEDO_UNSCALED -> "$mtlkind=albedounscaled";
+            case TMK_ALBEDO_DETAILS -> "$mtlkind=albedodetails";
             default -> "";
         };
     }

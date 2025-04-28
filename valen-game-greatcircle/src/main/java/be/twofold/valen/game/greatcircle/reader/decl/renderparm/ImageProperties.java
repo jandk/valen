@@ -1,9 +1,9 @@
 package be.twofold.valen.game.greatcircle.reader.decl.renderparm;
 
-import be.twofold.valen.game.greatcircle.reader.image.*;
+import be.twofold.valen.game.greatcircle.defines.*;
 
 final class ImageProperties {
-    ImageTextureFormat format = ImageTextureFormat.FMT_NONE;
+    TextureFormat format = TextureFormat.FMT_NONE;
     int padding;
     boolean fullScaleBias;
     boolean fftBloom;

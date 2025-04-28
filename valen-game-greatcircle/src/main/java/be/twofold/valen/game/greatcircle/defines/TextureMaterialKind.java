@@ -1,8 +1,8 @@
-package be.twofold.valen.game.greatcircle.reader.image;
+package be.twofold.valen.game.greatcircle.defines;
 
 import be.twofold.valen.core.util.*;
 
-public enum ImageTextureMaterialKind implements ValueEnum<Integer> {
+public enum TextureMaterialKind implements ValueEnum<Integer> {
     TMK_NONE(0),
     TMK_ALBEDO(1),
     TMK_SPECULAR(2),
@@ -32,16 +32,17 @@ public enum ImageTextureMaterialKind implements ValueEnum<Integer> {
     TMK_DECALHEIGHTMAP(26),
     TMK_ALBEDO_UNSCALED(27),
     TMK_ALBEDO_DETAILS(28),
-    TMK_COUNT(29);
+    TMK_COUNT(29),
+    ;
 
     private final int value;
 
-    ImageTextureMaterialKind(int value) {
+    TextureMaterialKind(int value) {
         this.value = value;
     }
 
-    public static ImageTextureMaterialKind fromValue(int value) {
-        return ValueEnum.fromValue(ImageTextureMaterialKind.class, value);
+    public static TextureMaterialKind fromValue(int value) {
+        return ValueEnum.fromValue(TextureMaterialKind.class, value);
     }
 
     @Override

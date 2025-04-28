@@ -1,19 +1,23 @@
 package be.twofold.valen.game.eternal.reader.decl.renderparm;
 
-import be.twofold.valen.core.game.*;
-import be.twofold.valen.core.io.*;
-import be.twofold.valen.core.math.*;
-import be.twofold.valen.game.eternal.*;
-import be.twofold.valen.game.eternal.reader.decl.renderparm.enums.*;
-import be.twofold.valen.game.eternal.reader.image.*;
-import be.twofold.valen.game.eternal.resource.*;
-import be.twofold.valen.game.idtech.decl.parser.*;
+import be.twofold.valen.core.game.AssetReader;
+import be.twofold.valen.core.io.DataSource;
+import be.twofold.valen.core.math.Vector2;
+import be.twofold.valen.core.math.Vector3;
+import be.twofold.valen.core.math.Vector4;
+import be.twofold.valen.game.eternal.EternalAsset;
+import be.twofold.valen.game.eternal.defines.*;
+import be.twofold.valen.game.eternal.reader.decl.renderparm.enums.ParmEdit;
+import be.twofold.valen.game.eternal.resource.ResourceType;
+import be.twofold.valen.game.idtech.decl.parser.DeclParser;
+import be.twofold.valen.game.idtech.decl.parser.DeclToken;
+import be.twofold.valen.game.idtech.decl.parser.DeclTokenType;
 
-import java.io.*;
+import java.io.IOException;
 import java.util.*;
 
 public final class RenderParmReader implements AssetReader<RenderParm, EternalAsset> {
-    public static final Map<RenderParmType, Set<String>> ParmsByType = new EnumMap<>(RenderParmType.class);
+    public static final Map<ParmType, Set<String>> ParmsByType = new EnumMap<>(ParmType.class);
 
     public RenderParmReader() {
     }
@@ -201,7 +205,7 @@ public final class RenderParmReader implements AssetReader<RenderParm, EternalAs
             case PT_IMAGE3D_BUFFER:
             case PT_UNIFORM_TEXEL_BUFFER:
             case PT_STORAGE_TEXEL_BUFFER:
-                return parseImageBufferFormat(parser.expectName());
+                return ImageBufferFormat.parse(parser.expectName());
             case PT_COLOR_LUT:
                 return parser.next().value();
             case PT_ACCELERATION_STRUCTURE:
@@ -246,9 +250,9 @@ public final class RenderParmReader implements AssetReader<RenderParm, EternalAs
             }
 
 
-            ImageTextureFormat imageTextureFormat = parseImageTextureFormat(name);
-            if (imageTextureFormat != null) {
-                result.format = imageTextureFormat;
+            TextureFormat textureFormat = parseImageTextureFormat(name);
+            if (textureFormat != null) {
+                result.format = textureFormat;
                 parser.expectName();
                 continue;
             }
@@ -360,131 +364,83 @@ public final class RenderParmReader implements AssetReader<RenderParm, EternalAs
 
     // region Helpers
 
-    private ImageBufferFormat parseImageBufferFormat(String name) {
+    private static TextureFormat parseImageTextureFormat(String name) {
         return switch (name.toLowerCase()) {
-            case "float" -> ImageBufferFormat.IBF_FLOAT;
-            case "int" -> ImageBufferFormat.IBF_INT;
-            case "uint" -> ImageBufferFormat.IBF_UINT;
-            case "rgba32f" -> ImageBufferFormat.IBF_RGBA32F;
-            case "rgba16f" -> ImageBufferFormat.IBF_RGBA16F;
-            case "rg32f" -> ImageBufferFormat.IBF_RG32F;
-            case "rg16f" -> ImageBufferFormat.IBF_RG16F;
-            case "r11f_g11f_b10f" -> ImageBufferFormat.IBF_R11F_G11F_B10F;
-            case "r32f" -> ImageBufferFormat.IBF_R32F;
-            case "r16f" -> ImageBufferFormat.IBF_R16F;
-            case "rgba16" -> ImageBufferFormat.IBF_RGBA16;
-            case "rgb10_a2" -> ImageBufferFormat.IBF_RGB10_A2;
-            case "rgba8" -> ImageBufferFormat.IBF_RGBA8;
-            case "rg16" -> ImageBufferFormat.IBF_RG16;
-            case "rg8" -> ImageBufferFormat.IBF_RG8;
-            case "r16" -> ImageBufferFormat.IBF_R16;
-            case "r8" -> ImageBufferFormat.IBF_R8;
-            case "rgba16_snorm" -> ImageBufferFormat.IBF_RGBA16_SNORM;
-            case "rgba8_snorm" -> ImageBufferFormat.IBF_RGBA8_SNORM;
-            case "rg16_snorm" -> ImageBufferFormat.IBF_RG16_SNORM;
-            case "rg8_snorm" -> ImageBufferFormat.IBF_RG8_SNORM;
-            case "r16_snorm" -> ImageBufferFormat.IBF_R16_SNORM;
-            case "r8_snorm" -> ImageBufferFormat.IBF_R8_SNORM;
-            case "rgba32i" -> ImageBufferFormat.IBF_RGBA32I;
-            case "rgba16i" -> ImageBufferFormat.IBF_RGBA16I;
-            case "rgba8i" -> ImageBufferFormat.IBF_RGBA8I;
-            case "rg32i" -> ImageBufferFormat.IBF_RG32I;
-            case "rg16i" -> ImageBufferFormat.IBF_RG16I;
-            case "rg8i" -> ImageBufferFormat.IBF_RG8I;
-            case "r32i" -> ImageBufferFormat.IBF_R32I;
-            case "r16i" -> ImageBufferFormat.IBF_R16I;
-            case "r8i" -> ImageBufferFormat.IBF_R8I;
-            case "rgba32ui" -> ImageBufferFormat.IBF_RGBA32UI;
-            case "rgba16ui" -> ImageBufferFormat.IBF_RGBA16UI;
-            case "rgb10_a2ui" -> ImageBufferFormat.IBF_RGB10_A2UI;
-            case "rgba8ui" -> ImageBufferFormat.IBF_RGBA8UI;
-            case "rg32ui" -> ImageBufferFormat.IBF_RG32UI;
-            case "rg16ui" -> ImageBufferFormat.IBF_RG16UI;
-            case "rg8ui" -> ImageBufferFormat.IBF_RG8UI;
-            case "r32ui" -> ImageBufferFormat.IBF_R32UI;
-            case "r16ui" -> ImageBufferFormat.IBF_R16UI;
-            case "r8ui" -> ImageBufferFormat.IBF_R8UI;
-            default -> throw new IllegalArgumentException("Unknown image buffer format: " + name);
-        };
-    }
-
-    private ImageTextureFormat parseImageTextureFormat(String name) {
-        return switch (name.toLowerCase()) {
-            case "alpha" -> ImageTextureFormat.FMT_ALPHA;
-            case "bc4" -> ImageTextureFormat.FMT_BC4;
-            case "bc5" -> ImageTextureFormat.FMT_BC5;
-            case "bc6h", "bc6huf16" -> ImageTextureFormat.FMT_BC6H_UF16;
-            case "bc6hsf16" -> ImageTextureFormat.FMT_BC6H_SF16;
-            case "bc7" -> ImageTextureFormat.FMT_BC7;
-            case "float" -> ImageTextureFormat.FMT_RGBA16F;
-            case "hqcompress", "hqcompressnormal" -> ImageTextureFormat.FMT_BC3;
-            case "r8" -> ImageTextureFormat.FMT_R8;
-            case "rg16f" -> ImageTextureFormat.FMT_RG16F;
-            case "rg32f" -> ImageTextureFormat.FMT_RG32F;
-            case "rg8" -> ImageTextureFormat.FMT_RG8;
-            case "uncompressed" -> ImageTextureFormat.FMT_RGBA8;
+            case "alpha" -> TextureFormat.FMT_ALPHA;
+            case "bc4" -> TextureFormat.FMT_BC4;
+            case "bc5" -> TextureFormat.FMT_BC5;
+            case "bc6h", "bc6huf16" -> TextureFormat.FMT_BC6H_UF16;
+            case "bc6hsf16" -> TextureFormat.FMT_BC6H_SF16;
+            case "bc7" -> TextureFormat.FMT_BC7;
+            case "float" -> TextureFormat.FMT_RGBA16F;
+            case "hqcompress", "hqcompressnormal" -> TextureFormat.FMT_BC3;
+            case "r8" -> TextureFormat.FMT_R8;
+            case "rg16f" -> TextureFormat.FMT_RG16F;
+            case "rg32f" -> TextureFormat.FMT_RG32F;
+            case "rg8" -> TextureFormat.FMT_RG8;
+            case "uncompressed" -> TextureFormat.FMT_RGBA8;
             default -> null;
         };
     }
 
-    private ImageTextureMaterialKind parseImageTextureMaterialKind(String name) {
+    private TextureMaterialKind parseImageTextureMaterialKind(String name) {
         return switch (name.toLowerCase()) {
-            case "albedo" -> ImageTextureMaterialKind.TMK_ALBEDO;
-            case "specular" -> ImageTextureMaterialKind.TMK_SPECULAR;
-            case "normal" -> ImageTextureMaterialKind.TMK_NORMAL;
-            case "smoothness" -> ImageTextureMaterialKind.TMK_SMOOTHNESS;
-            case "cover" -> ImageTextureMaterialKind.TMK_COVER;
-            case "colormask" -> ImageTextureMaterialKind.TMK_COLORMASK;
-            case "bloommask" -> ImageTextureMaterialKind.TMK_BLOOMMASK;
-            case "sssmask" -> ImageTextureMaterialKind.TMK_SSSMASK;
-            case "heightmap" -> ImageTextureMaterialKind.TMK_HEIGHTMAP;
-            case "decalalbedo" -> ImageTextureMaterialKind.TMK_DECALALBEDO;
-            case "decalnormal" -> ImageTextureMaterialKind.TMK_DECALNORMAL;
-            case "decalspecular" -> ImageTextureMaterialKind.TMK_DECALSPECULAR;
-            case "lightproject" -> ImageTextureMaterialKind.TMK_LIGHTPROJECT;
-            case "particle" -> ImageTextureMaterialKind.TMK_PARTICLE;
-            case "lightmap" -> ImageTextureMaterialKind.TMK_LIGHTMAP;
-            case "lightmapdir" -> ImageTextureMaterialKind.TMK_LIGHTMAP_DIRECTIONAL;
-            case "blendmask" -> ImageTextureMaterialKind.TMK_BLENDMASK;
-            default -> ImageTextureMaterialKind.TMK_NONE;
+            case "albedo" -> TextureMaterialKind.TMK_ALBEDO;
+            case "specular" -> TextureMaterialKind.TMK_SPECULAR;
+            case "normal" -> TextureMaterialKind.TMK_NORMAL;
+            case "smoothness" -> TextureMaterialKind.TMK_SMOOTHNESS;
+            case "cover" -> TextureMaterialKind.TMK_COVER;
+            case "colormask" -> TextureMaterialKind.TMK_COLORMASK;
+            case "bloommask" -> TextureMaterialKind.TMK_BLOOMMASK;
+            case "sssmask" -> TextureMaterialKind.TMK_SSSMASK;
+            case "heightmap" -> TextureMaterialKind.TMK_HEIGHTMAP;
+            case "decalalbedo" -> TextureMaterialKind.TMK_DECALALBEDO;
+            case "decalnormal" -> TextureMaterialKind.TMK_DECALNORMAL;
+            case "decalspecular" -> TextureMaterialKind.TMK_DECALSPECULAR;
+            case "lightproject" -> TextureMaterialKind.TMK_LIGHTPROJECT;
+            case "particle" -> TextureMaterialKind.TMK_PARTICLE;
+            case "lightmap" -> TextureMaterialKind.TMK_LIGHTMAP;
+            case "lightmapdir" -> TextureMaterialKind.TMK_LIGHTMAP_DIRECTIONAL;
+            case "blendmask" -> TextureMaterialKind.TMK_BLENDMASK;
+            default -> TextureMaterialKind.TMK_NONE;
         };
     }
 
-    private RenderParmType parseParmType(String name) {
+    private ParmType parseParmType(String name) {
         return switch (name.toLowerCase()) {
-            case "tex", "tex2d" -> RenderParmType.PT_TEXTURE_2D;
-            case "tex3d" -> RenderParmType.PT_TEXTURE_3D;
-            case "texcube", "environment" -> RenderParmType.PT_TEXTURE_CUBE;
-            case "texarray2d" -> RenderParmType.PT_TEXTURE_ARRAY_2D;
-            case "texarraycube" -> RenderParmType.PT_TEXTURE_ARRAY_CUBE;
-            case "texmultisample2d" -> RenderParmType.PT_TEXTURE_MULTISAMPLE_2D;
-            case "texstencil" -> RenderParmType.PT_TEXTURE_STENCIL;
-            case "sampler" -> RenderParmType.PT_SAMPLER;
-            case "samplershadow2d" -> RenderParmType.PT_SAMPLER_SHADOW_2D;
-            case "samplershadow3d" -> RenderParmType.PT_SAMPLER_SHADOW_3D;
-            case "samplershadowcube" -> RenderParmType.PT_SAMPLER_SHADOW_CUBE;
-            case "program" -> RenderParmType.PT_PROGRAM;
-            case "f32vec4", "vec" -> RenderParmType.PT_F32_VEC4;
-            case "f32vec3" -> RenderParmType.PT_F32_VEC3;
-            case "f32vec2" -> RenderParmType.PT_F32_VEC2;
-            case "f32", "scalar" -> RenderParmType.PT_F32;
-            case "ui32" -> RenderParmType.PT_UI32;
-            case "si32" -> RenderParmType.PT_SI32;
-            case "bool" -> RenderParmType.PT_BOOL;
-            case "string" -> RenderParmType.PT_STRING;
-            case "structuredbuffer" -> RenderParmType.PT_STORAGE_BUFFER;
-            case "uniformbuffer" -> RenderParmType.PT_UNIFORM_BUFFER;
-            case "imagebuffer2d" -> RenderParmType.PT_IMAGE2D_BUFFER;
-            case "imagebuffer2darray" -> RenderParmType.PT_IMAGE2D_ARRAY_BUFFER;
-            case "imagebuffer3d" -> RenderParmType.PT_IMAGE3D_BUFFER;
-            case "imagestorebuffer2d" -> RenderParmType.PT_IMAGE2D_STORE_BUFFER;
-            case "imagestorebuffer2darray" -> RenderParmType.PT_IMAGE2D_STORE_ARRAY_BUFFER;
-            case "imagestorebuffer3d" -> RenderParmType.PT_IMAGE3D_STORE_BUFFER;
-            case "uniformtexelbuffer" -> RenderParmType.PT_UNIFORM_TEXEL_BUFFER;
-            case "storagetexelbuffer" -> RenderParmType.PT_STORAGE_TEXEL_BUFFER;
-            case "accelerationstructure" -> RenderParmType.PT_ACCELERATION_STRUCTURE;
-            case "struct" -> RenderParmType.PT_TYPE;
-            case "colorlut" -> RenderParmType.PT_COLOR_LUT;
+            case "tex", "tex2d" -> ParmType.PT_TEXTURE_2D;
+            case "tex3d" -> ParmType.PT_TEXTURE_3D;
+            case "texcube", "environment" -> ParmType.PT_TEXTURE_CUBE;
+            case "texarray2d" -> ParmType.PT_TEXTURE_ARRAY_2D;
+            case "texarraycube" -> ParmType.PT_TEXTURE_ARRAY_CUBE;
+            case "texmultisample2d" -> ParmType.PT_TEXTURE_MULTISAMPLE_2D;
+            case "texstencil" -> ParmType.PT_TEXTURE_STENCIL;
+            case "sampler" -> ParmType.PT_SAMPLER;
+            case "samplershadow2d" -> ParmType.PT_SAMPLER_SHADOW_2D;
+            case "samplershadow3d" -> ParmType.PT_SAMPLER_SHADOW_3D;
+            case "samplershadowcube" -> ParmType.PT_SAMPLER_SHADOW_CUBE;
+            case "program" -> ParmType.PT_PROGRAM;
+            case "f32vec4", "vec" -> ParmType.PT_F32_VEC4;
+            case "f32vec3" -> ParmType.PT_F32_VEC3;
+            case "f32vec2" -> ParmType.PT_F32_VEC2;
+            case "f32", "scalar" -> ParmType.PT_F32;
+            case "ui32" -> ParmType.PT_UI32;
+            case "si32" -> ParmType.PT_SI32;
+            case "bool" -> ParmType.PT_BOOL;
+            case "string" -> ParmType.PT_STRING;
+            case "structuredbuffer" -> ParmType.PT_STORAGE_BUFFER;
+            case "uniformbuffer" -> ParmType.PT_UNIFORM_BUFFER;
+            case "imagebuffer2d" -> ParmType.PT_IMAGE2D_BUFFER;
+            case "imagebuffer2darray" -> ParmType.PT_IMAGE2D_ARRAY_BUFFER;
+            case "imagebuffer3d" -> ParmType.PT_IMAGE3D_BUFFER;
+            case "imagestorebuffer2d" -> ParmType.PT_IMAGE2D_STORE_BUFFER;
+            case "imagestorebuffer2darray" -> ParmType.PT_IMAGE2D_STORE_ARRAY_BUFFER;
+            case "imagestorebuffer3d" -> ParmType.PT_IMAGE3D_STORE_BUFFER;
+            case "uniformtexelbuffer" -> ParmType.PT_UNIFORM_TEXEL_BUFFER;
+            case "storagetexelbuffer" -> ParmType.PT_STORAGE_TEXEL_BUFFER;
+            case "accelerationstructure" -> ParmType.PT_ACCELERATION_STRUCTURE;
+            case "struct" -> ParmType.PT_TYPE;
+            case "colorlut" -> ParmType.PT_COLOR_LUT;
             default -> throw new IllegalArgumentException("Unknown render parm type: " + name);
         };
     }

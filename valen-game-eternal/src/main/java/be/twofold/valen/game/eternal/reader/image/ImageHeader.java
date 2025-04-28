@@ -1,13 +1,15 @@
 package be.twofold.valen.game.eternal.reader.image;
 
 import be.twofold.valen.core.io.*;
+import be.twofold.valen.game.eternal.defines.*;
+import be.twofold.valen.game.idtech.defines.*;
 
 import java.io.*;
 
 public record ImageHeader(
     byte version,
-    ImageTextureType textureType,
-    ImageTextureMaterialKind textureMaterialKind,
+    TextureType textureType,
+    TextureMaterialKind textureMaterialKind,
     int pixelWidth,
     int pixelHeight,
     int depth,
@@ -15,7 +17,7 @@ public record ImageHeader(
     int unkFlags,
     float albedoSpecularBias,
     float albedoSpecularScale,
-    ImageTextureFormat textureFormat,
+    TextureFormat textureFormat,
     boolean streamed,
     boolean singleStream,
     boolean noMips,
@@ -28,8 +30,8 @@ public record ImageHeader(
         source.expectByte((byte) 'M');
         var version = source.readByte();
 
-        var textureType = ImageTextureType.fromCode(source.readInt());
-        var textureMaterialKind = ImageTextureMaterialKind.fromCode(source.readInt());
+        var textureType = TextureType.fromValue(source.readInt());
+        var textureMaterialKind = TextureMaterialKind.fromValue(source.readInt());
         var pixelWidth = source.readInt();
         var pixelHeight = source.readInt();
         var depth = source.readInt();
@@ -38,7 +40,7 @@ public record ImageHeader(
         var albedoSpecularBias = source.readFloat();
         var albedoSpecularScale = source.readFloat();
         source.expectByte((byte) 0);
-        var textureFormat = ImageTextureFormat.fromCode(source.readInt());
+        var textureFormat = TextureFormat.fromValue(source.readInt());
         source.expectInt(7); // always 7
         source.expectInt(0); // padding
         source.expectShort((short) 0); // padding
