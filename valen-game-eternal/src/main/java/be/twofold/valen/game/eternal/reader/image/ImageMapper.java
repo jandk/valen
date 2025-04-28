@@ -2,9 +2,8 @@ package be.twofold.valen.game.eternal.reader.image;
 
 import be.twofold.valen.core.texture.*;
 import be.twofold.valen.core.util.*;
-import be.twofold.valen.game.eternal.defines.*;
-import be.twofold.valen.game.eternal.defines.TextureFormat;
 import be.twofold.valen.game.idtech.defines.*;
+import be.twofold.valen.game.idtech.defines.TextureFormat;
 
 import java.util.*;
 

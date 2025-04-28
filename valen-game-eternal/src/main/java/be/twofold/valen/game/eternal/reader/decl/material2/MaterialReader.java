@@ -7,13 +7,11 @@ import be.twofold.valen.core.math.*;
 import be.twofold.valen.core.texture.*;
 import be.twofold.valen.core.util.*;
 import be.twofold.valen.game.eternal.*;
-import be.twofold.valen.game.eternal.defines.*;
-import be.twofold.valen.game.eternal.defines.TextureFormat;
 import be.twofold.valen.game.eternal.reader.decl.*;
-import be.twofold.valen.game.eternal.reader.decl.renderparm.*;
-import be.twofold.valen.game.eternal.reader.decl.renderparm.enums.*;
 import be.twofold.valen.game.eternal.resource.*;
 import be.twofold.valen.game.idtech.defines.*;
+import be.twofold.valen.game.idtech.defines.TextureFormat;
+import be.twofold.valen.game.idtech.renderparm.*;
 import com.google.gson.*;
 import org.slf4j.*;
 
@@ -232,7 +230,7 @@ public final class MaterialReader implements AssetReader<Material, EternalAsset>
         var kind = parm.renderParm().materialKind;
         if (opts != null) {
             if (opts.format() != TextureFormat.FMT_NONE) {
-                if (kind == null || kind == TextureMaterialKind.TMK_NONE || (kind.value() > 7 && kind != TextureMaterialKind.TMK_BLENDMASK)) {
+                if (kind == null || kind == TextureMaterialKind.TMK_NONE || (kind.ordinal() > 7 && kind != TextureMaterialKind.TMK_BLENDMASK)) {
                     builder.append(formatFormat(opts.format()));
                 }
             }

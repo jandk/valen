@@ -1,11 +1,11 @@
-package be.twofold.valen.game.greatcircle.reader.decl.renderparm;
+package be.twofold.valen.game.idtech.renderparm;
 
-import be.twofold.valen.game.greatcircle.defines.*;
+import be.twofold.valen.game.idtech.defines.*;
 
 public final class RenderParm {
 
     public Object declaredValue;
-    public RenderParmType parmType;
+    public ParmType parmType;
     public ParmEdit parmEdit;
     public ParmScope parmScope;
     public boolean cubeFilterTexture;

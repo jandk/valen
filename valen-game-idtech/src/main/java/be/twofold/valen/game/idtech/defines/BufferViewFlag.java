@@ -1,4 +1,4 @@
-package be.twofold.valen.game.greatcircle.reader.decl.renderparm;
+package be.twofold.valen.game.idtech.defines;
 
 public enum BufferViewFlag {
     BVF_WRITABLE,

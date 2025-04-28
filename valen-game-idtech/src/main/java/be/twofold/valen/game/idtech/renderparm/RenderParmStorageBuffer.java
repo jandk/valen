@@ -1,4 +1,6 @@
-package be.twofold.valen.game.greatcircle.reader.decl.renderparm;
+package be.twofold.valen.game.idtech.renderparm;
+
+import be.twofold.valen.game.idtech.defines.*;
 
 import java.util.*;
 

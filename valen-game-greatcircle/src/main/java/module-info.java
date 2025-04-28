@@ -15,5 +15,4 @@ module valen.game.greatcircle {
     opens be.twofold.valen.game.greatcircle.reader.packagemapspec to com.google.gson;
 
     exports be.twofold.valen.game.greatcircle.reader.image to valen.core;
-    exports be.twofold.valen.game.greatcircle.defines to valen.core;
 }

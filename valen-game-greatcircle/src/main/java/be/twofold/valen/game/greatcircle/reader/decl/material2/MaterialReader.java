@@ -7,12 +7,11 @@ import be.twofold.valen.core.math.*;
 import be.twofold.valen.core.texture.*;
 import be.twofold.valen.core.util.*;
 import be.twofold.valen.game.greatcircle.*;
-import be.twofold.valen.game.greatcircle.defines.*;
-import be.twofold.valen.game.greatcircle.defines.TextureFormat;
 import be.twofold.valen.game.greatcircle.reader.decl.*;
-import be.twofold.valen.game.greatcircle.reader.decl.renderparm.*;
 import be.twofold.valen.game.greatcircle.resource.*;
 import be.twofold.valen.game.idtech.defines.*;
+import be.twofold.valen.game.idtech.defines.TextureFormat;
+import be.twofold.valen.game.idtech.renderparm.*;
 import com.google.gson.*;
 import org.slf4j.*;
 
@@ -107,7 +106,7 @@ public final class MaterialReader implements AssetReader<Material, GreatCircleAs
     private void mapOptions(StringBuilder builder, TextureMaterialKind kind, RenderParm renderParm, MaterialImageOpts opts) {
         if (opts != null) {
             if (opts.format() != TextureFormat.FMT_NONE) {
-                if (kind.value() > 7
+                if (kind.ordinal() > 7
                     && kind != TextureMaterialKind.TMK_BLENDMASK
                     && kind != TextureMaterialKind.TMK_ALBEDO_UNSCALED
                     && kind != TextureMaterialKind.TMK_ALBEDO_DETAILS
