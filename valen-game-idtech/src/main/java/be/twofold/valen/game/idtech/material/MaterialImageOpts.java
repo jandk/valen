@@ -1,6 +1,5 @@
-package be.twofold.valen.game.eternal.reader.decl.material2;
+package be.twofold.valen.game.idtech.material;
 
-import be.twofold.valen.game.eternal.defines.*;
 import be.twofold.valen.game.idtech.defines.*;
 
 public record MaterialImageOpts(
