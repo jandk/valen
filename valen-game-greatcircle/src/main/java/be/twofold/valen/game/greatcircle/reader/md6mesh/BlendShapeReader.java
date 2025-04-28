@@ -2,7 +2,7 @@ package be.twofold.valen.game.greatcircle.reader.md6mesh;
 
 import be.twofold.valen.core.geometry.*;
 import be.twofold.valen.core.io.*;
-import be.twofold.valen.game.greatcircle.reader.geometry.*;
+import be.twofold.valen.game.idtech.geometry.*;
 
 import java.io.*;
 import java.nio.*;

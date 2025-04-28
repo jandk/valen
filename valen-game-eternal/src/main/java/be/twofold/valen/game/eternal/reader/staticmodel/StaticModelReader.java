@@ -8,6 +8,7 @@ import be.twofold.valen.core.util.*;
 import be.twofold.valen.game.eternal.*;
 import be.twofold.valen.game.eternal.reader.geometry.*;
 import be.twofold.valen.game.eternal.resource.*;
+import be.twofold.valen.game.idtech.geometry.*;
 
 import java.io.*;
 import java.util.*;

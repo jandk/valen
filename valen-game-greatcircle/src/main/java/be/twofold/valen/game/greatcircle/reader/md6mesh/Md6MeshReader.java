@@ -7,6 +7,7 @@ import be.twofold.valen.core.math.*;
 import be.twofold.valen.game.greatcircle.*;
 import be.twofold.valen.game.greatcircle.reader.geometry.*;
 import be.twofold.valen.game.greatcircle.resource.*;
+import be.twofold.valen.game.idtech.geometry.*;
 import org.slf4j.*;
 
 import java.io.*;

@@ -1,4 +1,4 @@
-package be.twofold.valen.game.greatcircle.reader.geometry;
+package be.twofold.valen.game.idtech.geometry;
 
 import java.util.*;
 
