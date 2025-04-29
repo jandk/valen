@@ -108,6 +108,8 @@
                     </modulePaths>
                     <jLinkOptions>
                         <jLinkOption>--compress=1</jLinkOption>
+                        <jLinkOption>--no-header-files</jLinkOption>
+                        <jLinkOption>--no-man-pages</jLinkOption>
                     </jLinkOptions>
 
                     <!-- Options for creating the application launcher -->
