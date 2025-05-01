@@ -17,7 +17,7 @@ public final class AssetReaders<A extends Asset> {
     public <R> R read(A asset, DataSource source, Class<R> clazz) throws IOException {
         var reader = readers.stream()
             .filter(ar -> ar.canRead(asset) && clazz.isAssignableFrom(ar.getReturnType()))
-            .findFirst().orElseThrow();
+            .findFirst().orElseThrow(() -> new IOException("No reader found for " + asset));
 
         return clazz.cast(reader.read(source, asset));
     }

@@ -37,13 +37,13 @@ public final class Md6MeshReader implements AssetReader<Model, GreatCircleAsset>
     public Model read(DataSource source, GreatCircleAsset asset) throws IOException {
         var model = Md6Mesh.read(source);
         var meshes = new ArrayList<>(readMeshes(model, asset.hash()));
-//        var skeletonKey = GreatCircleAssetID.from(model.header().md6SkelName(), ResourceType.skeleton);
-//        var skeleton = archive.loadAsset(skeletonKey, Skeleton.class);
-//
+        var skeletonKey = GreatCircleAssetID.from(model.header().skeletonName(), ResourceType.skeleton);
+        var skeleton = archive.loadAsset(skeletonKey, Skeleton.class);
+
         if (readMaterials) {
             Materials.apply(archive, meshes, model.meshInfos(), Md6MeshInfo::materialName, Md6MeshInfo::meshName);
         }
-        return new Model(meshes, Optional.empty(), Optional.of(asset.id().fullName()), Axis.Z);
+        return new Model(meshes, Optional.ofNullable(skeleton), Optional.of(asset.id().fullName()), Axis.Z);
     }
 
     private List<Mesh> readMeshes(Md6Mesh md6, long hash) throws IOException {

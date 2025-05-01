@@ -37,6 +37,15 @@ typedef struct {
 } Bounds;
 
 typedef struct {
+    float mat[12];
+} Mat3x4;
+
+typedef struct {
     u32  length;
     char data[length];
 } PString32 <read=(length > 0 ? data : "")>;
+
+typedef struct {
+    u32       length;
+    PString32 data[length] <optimize=false>;
+} PString32List;
