@@ -2,7 +2,7 @@ package be.twofold.valen.game.eternal.reader.filecompressed.entities;
 
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.io.*;
-import be.twofold.valen.game.eternal.reader.*;
+import be.twofold.valen.game.eternal.*;
 import be.twofold.valen.game.eternal.reader.decl.parser.*;
 import be.twofold.valen.game.eternal.reader.filecompressed.*;
 import be.twofold.valen.game.eternal.resource.*;
@@ -11,7 +11,7 @@ import java.io.*;
 import java.nio.charset.*;
 import java.util.*;
 
-public final class EntityReader implements ResourceReader<EntityFile> {
+public final class EntityReader implements AssetReader<EntityFile, EternalAsset> {
     private final FileCompressedReader fileCompressedReader;
 
     public EntityReader(FileCompressedReader fileCompressedReader) {
@@ -19,15 +19,15 @@ public final class EntityReader implements ResourceReader<EntityFile> {
     }
 
     @Override
-    public boolean canRead(ResourceKey key) {
-        return key.type() == ResourceType.CompFile
-            && key.name().extension().equals("entities");
+    public boolean canRead(EternalAsset resource) {
+        return resource.id().type() == ResourceType.CompFile
+            && resource.id().extension().equals("entities");
     }
 
     @Override
-    public EntityFile read(DataSource source, Asset asset) throws IOException {
-        byte[] bytes = fileCompressedReader.read(source, asset);
-        String input = new String(bytes, StandardCharsets.UTF_8);
+    public EntityFile read(DataSource source, EternalAsset resource) throws IOException {
+        var bytes = fileCompressedReader.read(source, resource);
+        var input = StandardCharsets.UTF_8.decode(bytes).toString();
 
         var parser = new DeclParser(input);
         parser.expectName("Version");

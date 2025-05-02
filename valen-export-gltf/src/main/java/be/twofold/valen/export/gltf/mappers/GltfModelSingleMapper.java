@@ -1,8 +1,8 @@
 package be.twofold.valen.export.gltf.mappers;
 
 import be.twofold.valen.core.geometry.*;
-import be.twofold.valen.gltf.*;
-import be.twofold.valen.gltf.model.mesh.*;
+import be.twofold.valen.format.gltf.*;
+import be.twofold.valen.format.gltf.model.mesh.*;
 import org.slf4j.*;
 
 import java.io.*;
@@ -15,7 +15,7 @@ public final class GltfModelSingleMapper extends GltfModelMapper {
     private final Map<String, MeshID> models = new HashMap<>();
 
     public GltfModelSingleMapper(GltfContext context, Path exportPath) {
-        super(context, exportPath);
+        super(context);
     }
 
     public Optional<MeshID> map(ModelReference modelReference) throws IOException {
@@ -30,9 +30,9 @@ public final class GltfModelSingleMapper extends GltfModelMapper {
             return Optional.empty();
         }
 
-        if (model.skeletonOpt().isPresent()) {
-            log.warn("Skipping skeleton for scene on {}", model.nameOpt().orElse(""));
-            model = model.withSkeleton(null);
+        if (model.skeleton().isPresent()) {
+            log.warn("Skipping skeleton for scene on {}", model.name().orElse(""));
+            model = model.withSkeleton(Optional.empty());
         }
 
         var meshID = mapModel(model);
@@ -46,9 +46,9 @@ public final class GltfModelSingleMapper extends GltfModelMapper {
             primitiveSchemas.add(mapMeshPrimitive(mesh));
         }
 
-        var meshSchema = MeshSchema.builder()
-            .name(model.nameOpt())
-            .addAllPrimitives(primitiveSchemas)
+        var meshSchema = ImmutableMesh.builder()
+            .name(model.name())
+            .primitives(primitiveSchemas)
             .build();
         return context.addMesh(meshSchema);
     }

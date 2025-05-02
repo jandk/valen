@@ -18,10 +18,10 @@ public record StaticModel(
 
     public static StaticModel read(DataSource source) throws IOException {
         var header = StaticModelHeader.read(source);
-        var meshInfos = source.readStructs(header.numSurfaces(), StaticModelMeshInfo::read);
+        var meshInfos = source.readObjects(header.numSurfaces(), StaticModelMeshInfo::read);
         var settings = StaticModelSettings.read(source);
         var geoDecals = StaticModelGeoDecals.read(source);
-        var streamedLods = source.readStructs(header.numSurfaces() * LodCount, DataSource::readBoolByte);
+        var streamedLods = source.readObjects(header.numSurfaces() * LodCount, DataSource::readBoolByte);
         var layouts = header.streamable() ? readLayouts(source) : List.<GeometryDiskLayout>of();
 
         return new StaticModel(
@@ -37,7 +37,7 @@ public record StaticModel(
     private static List<GeometryDiskLayout> readLayouts(DataSource source) throws IOException {
         var layouts = new ArrayList<GeometryDiskLayout>();
         for (var lod = 0; lod < LodCount; lod++) {
-            var memoryLayouts = source.readStructs(source.readInt(), GeometryMemoryLayout::read);
+            var memoryLayouts = source.readObjects(source.readInt(), GeometryMemoryLayout::read);
             layouts.add(GeometryDiskLayout.read(source, memoryLayouts));
         }
         return layouts;

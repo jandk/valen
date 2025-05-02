@@ -5,29 +5,28 @@ import be.twofold.valen.core.math.*;
 import be.twofold.valen.core.texture.*;
 import be.twofold.valen.core.util.*;
 import be.twofold.valen.export.png.*;
-import be.twofold.valen.gltf.*;
-import be.twofold.valen.gltf.model.image.*;
-import be.twofold.valen.gltf.model.texture.*;
+import be.twofold.valen.format.gltf.*;
+import be.twofold.valen.format.gltf.model.image.*;
+import be.twofold.valen.format.gltf.model.texture.*;
 
 import java.io.*;
 import java.nio.*;
-import java.nio.file.*;
 import java.util.*;
+import java.util.concurrent.*;
 
 public final class GltfTextureMapper {
     private final PngExporter pngExporter = new PngExporter();
-    private final Map<String, TextureIDAndFactor> textures = new HashMap<>();
+    private final Map<String, TextureIDAndFactor> textures = new ConcurrentHashMap<>();
 
     private final GltfContext context;
-    private final Path exportPath;
 
-    public GltfTextureMapper(GltfContext context, Path exportPath) {
+    public GltfTextureMapper(GltfContext context) {
         this.context = context;
-        this.exportPath = exportPath;
+        pngExporter.setProperty("reconstructZ", true);
     }
 
     public TextureIDAndFactor map(TextureReference reference) throws IOException {
-        var existingSchema = textures.get(reference.name());
+        var existingSchema = textures.get(reference.filename());
         if (existingSchema != null) {
             return existingSchema;
         }
@@ -42,7 +41,7 @@ public final class GltfTextureMapper {
     }
 
     public TextureID mapSimple(TextureReference reference) throws IOException {
-        var existingSchema = textures.get(reference.name());
+        var existingSchema = textures.get(reference.filename());
         if (existingSchema != null) {
             return existingSchema.textureID();
         }
@@ -52,34 +51,26 @@ public final class GltfTextureMapper {
     }
 
     private TextureIDAndFactor map(TextureReference reference, Texture texture, Vector4 factor) throws IOException {
-        ImageSchema imageSchema;
-        var buffer = textureToPng(texture);
-        if (exportPath == null) {
-            var bufferViewID = context.createBufferView(buffer);
-
-            imageSchema = ImageSchema.builder()
-                .name(reference.name())
-                .mimeType(ImageMimeType.IMAGE_PNG)
-                .bufferView(bufferViewID)
-                .build();
-        } else {
-            var filename = Filenames.removeExtension(reference.filename()) + ".png";
-            var exportFile = exportPath.resolve(filename);
-
-            imageSchema = ImageSchema.builder()
-                .uri(exportPath.toUri())
-                .build();
+        var existingSchema = textures.get(reference.filename());
+        if (existingSchema != null) {
+            return existingSchema;
         }
-        var imageID = context.addImage(imageSchema);
 
-        var textureSchema = TextureSchema.builder()
+        var imageID = context.createImage(
+            textureToPng(texture),
+            reference.name(),
+            reference.filename(),
+            ImageMimeType.IMAGE_PNG
+        );
+
+        var textureSchema = ImmutableTexture.builder()
             .name(reference.name())
             .source(imageID)
             .build();
         var textureID = context.addTexture(textureSchema);
 
         var textureIDAndFactor = new TextureIDAndFactor(textureID, factor);
-        textures.put(reference.name(), textureIDAndFactor);
+        textures.put(reference.filename(), textureIDAndFactor);
         return textureIDAndFactor;
     }
 
@@ -97,7 +88,7 @@ public final class GltfTextureMapper {
         var bias = texture.bias();
 
         var format = chooseFormat(texture.format());
-        var decoded = texture.convert(format);
+        var decoded = texture.convert(format, true);
         var data = decoded.surfaces().getFirst().data();
 
         // Some games like to have textures for everything, even a single color...

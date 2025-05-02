@@ -2,155 +2,110 @@ package be.twofold.valen.export.gltf.mappers;
 
 import be.twofold.valen.core.animation.*;
 import be.twofold.valen.core.math.*;
-import be.twofold.valen.gltf.*;
-import be.twofold.valen.gltf.model.accessor.*;
-import be.twofold.valen.gltf.model.animation.*;
-import be.twofold.valen.gltf.model.buffer.*;
-import be.twofold.valen.gltf.model.node.*;
+import be.twofold.valen.format.gltf.*;
+import be.twofold.valen.format.gltf.model.accessor.*;
+import be.twofold.valen.format.gltf.model.animation.*;
+import be.twofold.valen.format.gltf.model.bufferview.*;
+import be.twofold.valen.format.gltf.model.node.*;
+import be.twofold.valen.format.gltf.types.*;
 
+import java.io.*;
 import java.nio.*;
 import java.util.*;
+import java.util.function.*;
 
 public final class GltfAnimationMapper {
+    private final List<AnimationSamplerSchema> samplers = new ArrayList<>();
+    private final List<AnimationChannelSchema> channels = new ArrayList<>();
+    private final Map<List<Integer>, AccessorID> tracks = new HashMap<>();
     private final GltfContext context;
 
     public GltfAnimationMapper(GltfContext context) {
         this.context = context;
     }
 
-    public AnimationSchema map(Animation animation, int numBones) {
-        List<AnimationSamplerSchema> samplers = new ArrayList<>();
-        List<AnimationChannelSchema> channels = new ArrayList<>();
-
+    public AnimationSchema map(Animation animation, int numBones) throws IOException {
         for (var track : animation.tracks()) {
             if (track.boneId() >= numBones) {
                 continue;
             }
+            var frameRate = animation.frameRate();
             switch (track) {
-                case Track.Rotation rotation -> {
-                    var keyFrameBuffer = buildKeyFrameBuffer(rotation.keyFrames(), animation.frameRate());
-                    var rotationBuffer = buildRotationBuffer(rotation.keyFrames());
-
-                    var keyFrameBufferView = context.createBufferView(keyFrameBuffer);
-                    var rotationBufferView = context.createBufferView(rotationBuffer);
-
-                    var input = buildAccessor(keyFrameBufferView, rotation.keyFrames().size(), min(keyFrameBuffer), max(keyFrameBuffer));
-                    var output = buildAccessor(rotationBufferView, rotation.keyFrames().size(), AccessorType.VEC4);
-                    samplers.add(AnimationSamplerSchema.builder().input(input).output(output).build());
-
-                    var channelTargetSchema = animationChannelTarget(rotation, AnimationChannelTargetPath.ROTATION);
-                    channels.add(AnimationChannelSchema.builder().sampler(AnimationSamplerID.of(samplers.size() - 1)).target(channelTargetSchema).build());
-                }
-                case Track.Scale scale -> {
-                    var keyFrameBuffer = buildKeyFrameBuffer(scale.keyFrames(), animation.frameRate());
-                    var scaleBuffer = buildScaleTranslationBuffer(scale.keyFrames());
-
-                    var keyFrameBufferView = context.createBufferView(keyFrameBuffer);
-                    var scaleBufferView = context.createBufferView(scaleBuffer);
-
-                    var input = buildAccessor(keyFrameBufferView, scale.keyFrames().size(), min(keyFrameBuffer), max(keyFrameBuffer));
-                    var output = buildAccessor(scaleBufferView, scale.keyFrames().size(), AccessorType.VEC3);
-                    samplers.add(AnimationSamplerSchema.builder().input(input).output(output).build());
-
-                    var channelTargetSchema = animationChannelTarget(scale, AnimationChannelTargetPath.SCALE);
-                    channels.add(AnimationChannelSchema.builder().sampler(AnimationSamplerID.of(samplers.size() - 1)).target(channelTargetSchema).build());
-                }
-                case Track.Translation translation -> {
-                    var keyFrameBuffer = buildKeyFrameBuffer(translation.keyFrames(), animation.frameRate());
-                    var translationBuffer = buildScaleTranslationBuffer(translation.keyFrames());
-
-                    var keyFrameBufferView = context.createBufferView(keyFrameBuffer);
-                    var translationBufferView = context.createBufferView(translationBuffer);
-
-                    var input = buildAccessor(keyFrameBufferView, translation.keyFrames().size(), min(keyFrameBuffer), max(keyFrameBuffer));
-                    var output = buildAccessor(translationBufferView, translation.keyFrames().size(), AccessorType.VEC3);
-                    samplers.add(AnimationSamplerSchema.builder().input(input).output(output).build());
-
-                    var channelTargetSchema = animationChannelTarget(translation, AnimationChannelTargetPath.TRANSLATION);
-                    channels.add(AnimationChannelSchema.builder().sampler(AnimationSamplerID.of(samplers.size() - 1)).target(channelTargetSchema).build());
-                }
+                case Track.Rotation r ->
+                    buildSampler(frameRate, r, AccessorType.VEC4, AnimationChannelTargetPath.ROTATION, Quaternion::toBuffer);
+                case Track.Scale s ->
+                    buildSampler(frameRate, s, AccessorType.VEC3, AnimationChannelTargetPath.SCALE, Vector3::toBuffer);
+                case Track.Translation t ->
+                    buildSampler(frameRate, t, AccessorType.VEC3, AnimationChannelTargetPath.TRANSLATION, Vector3::toBuffer);
             }
         }
 
-        return AnimationSchema.builder()
+        return ImmutableAnimation.builder()
             .channels(channels)
             .samplers(samplers)
             .build();
     }
 
-    private static AnimationChannelTargetSchema animationChannelTarget(
-        Track<?> track,
-        AnimationChannelTargetPath path
-    ) {
-        return AnimationChannelTargetSchema.builder()
-            .node(NodeID.of(track.boneId()))
-            .path(path)
-            .build();
+    private <T> void buildSampler(
+        int frameRate,
+        Track<T> track,
+        AccessorType type,
+        AnimationChannelTargetPath path,
+        BiConsumer<T, FloatBuffer> toBuffer
+    ) throws IOException {
+        var keyFrames = track.keyFrames().stream().map(KeyFrame::frame).toList();
+        var input = tracks.get(keyFrames);
+        if (input == null) {
+            var inputBuffer = buildInputBuffer(track.keyFrames(), frameRate);
+            var inputBufferView = context.createBufferView(inputBuffer, null);
+            input = buildAccessor(inputBufferView, track.keyFrames().size(), AccessorType.SCALAR,
+                (float) track.keyFrames().getFirst().frame() / (float) frameRate,
+                (float) track.keyFrames().getLast().frame() / (float) frameRate);
+            tracks.put(keyFrames, input);
+        }
+
+        var outputBuffer = buildOutputBuffer(track.keyFrames(), toBuffer);
+        var outputBufferView = context.createBufferView(outputBuffer, null);
+        var output = buildAccessor(outputBufferView, track.keyFrames().size(), type, null, null);
+
+        samplers.add(ImmutableAnimationSampler.builder()
+            .input(input)
+            .output(output)
+            .build());
+
+        channels.add(ImmutableAnimationChannel.builder()
+            .sampler(AnimationSamplerID.of(samplers.size() - 1))
+            .target(ImmutableAnimationChannelTarget.builder()
+                .node(NodeID.of(track.boneId()))
+                .path(path)
+                .build())
+            .build());
     }
 
-    private <T extends KeyFrame<?>> FloatBuffer buildKeyFrameBuffer(List<T> keyFrames, int frameRate) {
+    private FloatBuffer buildInputBuffer(List<? extends KeyFrame<?>> keyFrames, int frameRate) {
         var buffer = FloatBuffer.allocate(keyFrames.size());
-        for (KeyFrame<?> keyFrame : keyFrames) {
+        for (var keyFrame : keyFrames) {
             buffer.put((float) keyFrame.frame() / (float) frameRate);
         }
         return buffer.flip();
     }
 
-    private FloatBuffer buildRotationBuffer(List<KeyFrame<Quaternion>> keyFrames) {
+    private <T> FloatBuffer buildOutputBuffer(List<KeyFrame<T>> keyFrames, BiConsumer<T, FloatBuffer> toBuffer) {
         var buffer = FloatBuffer.allocate(keyFrames.size() * 4);
         for (var keyFrame : keyFrames) {
-            buffer.put(keyFrame.value().x());
-            buffer.put(keyFrame.value().y());
-            buffer.put(keyFrame.value().z());
-            buffer.put(keyFrame.value().w());
+            toBuffer.accept(keyFrame.value(), buffer);
         }
         return buffer.flip();
     }
 
-    private FloatBuffer buildScaleTranslationBuffer(List<KeyFrame<Vector3>> keyFrames) {
-        var buffer = FloatBuffer.allocate(keyFrames.size() * 3);
-        for (var keyFrame : keyFrames) {
-            buffer.put(keyFrame.value().x());
-            buffer.put(keyFrame.value().y());
-            buffer.put(keyFrame.value().z());
-        }
-        return buffer.flip();
-    }
-
-    private float[] min(FloatBuffer buffer) {
-        var min = Float.POSITIVE_INFINITY;
-        for (var i = 0; i < buffer.capacity(); i++) {
-            min = Math.min(min, buffer.get(i));
-        }
-        return new float[]{min};
-    }
-
-    private float[] max(FloatBuffer buffer) {
-        var max = Float.NEGATIVE_INFINITY;
-        for (var i = 0; i < buffer.capacity(); i++) {
-            max = Math.max(max, buffer.get(i));
-        }
-        return new float[]{max};
-    }
-
-    private AccessorID buildAccessor(BufferViewID bufferView, int count, AccessorType type) {
-        var accessor = AccessorSchema.builder()
+    private AccessorID buildAccessor(BufferViewID bufferView, int count, AccessorType type, Float min, Float max) {
+        var accessor = ImmutableAccessor.builder()
             .bufferView(bufferView)
             .componentType(AccessorComponentType.FLOAT)
             .count(count)
             .type(type)
-            .build();
-        return context.addAccessor(accessor);
-    }
-
-    private AccessorID buildAccessor(BufferViewID bufferView, int count, float[] min, float[] max) {
-        var accessor = AccessorSchema.builder()
-            .bufferView(bufferView)
-            .componentType(AccessorComponentType.FLOAT)
-            .count(count)
-            .type(AccessorType.SCALAR)
-            .min(min)
-            .max(max)
+            .min(Optional.ofNullable(min).map(Scalar::new))
+            .max(Optional.ofNullable(max).map(Scalar::new))
             .build();
         return context.addAccessor(accessor);
     }

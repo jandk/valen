@@ -7,7 +7,6 @@ import be.twofold.valen.core.math.*;
 import be.twofold.valen.core.texture.*;
 import be.twofold.valen.core.util.*;
 import be.twofold.valen.game.eternal.*;
-import be.twofold.valen.game.eternal.reader.*;
 import be.twofold.valen.game.eternal.reader.decl.*;
 import be.twofold.valen.game.eternal.reader.decl.renderparm.*;
 import be.twofold.valen.game.eternal.reader.decl.renderparm.enums.*;
@@ -20,7 +19,7 @@ import java.io.*;
 import java.util.*;
 import java.util.stream.*;
 
-public final class MaterialReader implements ResourceReader<Material> {
+public final class MaterialReader implements AssetReader<Material, EternalAsset> {
     private static final Map<MaterialPropertyType, List<String>> ParmTextures = Map.of(
         MaterialPropertyType.Albedo, List.of(
             "albedo",
@@ -85,15 +84,15 @@ public final class MaterialReader implements ResourceReader<Material> {
     }
 
     @Override
-    public boolean canRead(ResourceKey key) {
-        return key.type() == ResourceType.RsStreamFile
-            && key.name().name().startsWith("generated/decls/material2/");
+    public boolean canRead(EternalAsset resource) {
+        return resource.id().type() == ResourceType.RsStreamFile
+            && resource.id().name().name().startsWith("generated/decls/material2/");
     }
 
     @Override
-    public Material read(DataSource source, Asset asset) throws IOException {
-        var object = declReader.read(source, asset);
-        return parseMaterial(object, asset.id().fullName());
+    public Material read(DataSource source, EternalAsset resource) throws IOException {
+        var object = declReader.read(source, resource);
+        return parseMaterial(object, resource.id().fullName());
     }
 
     public static final Set<String> RenderProgs = new HashSet<>();
@@ -138,7 +137,13 @@ public final class MaterialReader implements ResourceReader<Material> {
         var smoothness = mapSimpleTexture(allParms, MaterialPropertyType.Smoothness);
         var emissive = mapEmissive(allParms);
 
-        var properties = Stream.of(albedo, normal, specular, smoothness, emissive)
+        var other = allParms.values().stream()
+            .filter(parm -> parm.value instanceof Tex)
+            .map(parm -> mapTex2D(parm, allParms))
+            .filter(Objects::nonNull)
+            .map(reference -> new MaterialProperty(MaterialPropertyType.Unknown, reference, null));
+
+        var properties = Stream.concat(Stream.of(albedo, normal, specular, smoothness, emissive), other)
             .filter(Objects::nonNull)
             .toList();
 
@@ -190,11 +195,11 @@ public final class MaterialReader implements ResourceReader<Material> {
 
     private TextureReference mapTex2D(Parm parm, Map<String, Parm> allParms) {
         var filePath = ((Tex) parm.value).filePath();
-        if (filePath == null) {
+        if (filePath == null || filePath.isEmpty() || filePath.equals("_default")) {
             return null;
         }
 
-        var builder = new StringBuilder(filePath);
+        var builder = new StringBuilder(filePath.toLowerCase());
         if (parm.renderParm().materialKind == ImageTextureMaterialKind.TMK_SMOOTHNESS) {
             var smoothnessNormal = allParms.entrySet().stream()
                 .filter(rlp -> rlp.getValue().renderParm().materialKind == parm.renderParm().smoothnessNormalParm)
@@ -206,16 +211,17 @@ public final class MaterialReader implements ResourceReader<Material> {
         }
         mapOptions(builder, parm);
 
-        var filename = builder.toString();
-        var resourceName = new ResourceName(filename);
-        var resourceKey = ResourceKey.from(resourceName, ResourceType.Image);
-        if (!archive.exists(resourceKey)) {
-            log.warn("Missing image file: {}", filename);
+        var name = builder.toString();
+        var resourceName = new ResourceName(name);
+        var resourceKey = EternalAssetID.from(resourceName, ResourceType.Image);
+        var resource = archive.get(resourceKey);
+        if (resource.isEmpty()) {
+            log.warn("Missing image file: '{}'", name);
             return null;
         }
 
         var supplier = ThrowingSupplier.lazy(() -> archive.loadAsset(resourceKey, Texture.class));
-        return new TextureReference(filename, Filenames.fileName(filePath), supplier);
+        return new TextureReference(name, resource.get().exportName(), supplier);
     }
 
     private void mapOptions(StringBuilder builder, Parm parm) {
@@ -224,11 +230,11 @@ public final class MaterialReader implements ResourceReader<Material> {
         var kind = parm.renderParm().materialKind;
         if (opts != null) {
             if (opts.format() != ImageTextureFormat.FMT_NONE) {
-                if (kind == null || (kind.getCode() > 7 && kind != ImageTextureMaterialKind.TMK_BLENDMASK)) {
+                if (kind == null || kind == ImageTextureMaterialKind.TMK_NONE || (kind.getCode() > 7 && kind != ImageTextureMaterialKind.TMK_BLENDMASK)) {
                     builder.append(formatFormat(opts.format()));
                 }
             }
-            if (opts.atlasPadding() != 0) {
+            if (opts.atlasPadding() != null && opts.atlasPadding() != 0) {
                 builder.append(formatAtlasPadding(opts.atlasPadding()));
             }
             if (opts.minMip() != 0) {
@@ -365,14 +371,16 @@ public final class MaterialReader implements ResourceReader<Material> {
     }
 
     private Optional<RenderParm> getRenderParm(String name) throws IOException {
+        name = name.toLowerCase();
         if (RenderParmCache.containsKey(name)) {
             return Optional.ofNullable(RenderParmCache.get(name));
         }
 
         var fullName = "generated/decls/renderparm/" + name + ".decl";
-        var resourceKey = ResourceKey.from(fullName, ResourceType.RsStreamFile);
+        var resourceKey = EternalAssetID.from(fullName, ResourceType.RsStreamFile);
         if (!archive.exists(resourceKey)) {
             RenderParmCache.put(fullName, null);
+            log.warn("Could not load renderparm: '{}'", name);
             return Optional.empty();
         }
 

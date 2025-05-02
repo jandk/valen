@@ -3,13 +3,12 @@ package be.twofold.valen.export.gltf.mappers;
 import be.twofold.valen.core.material.*;
 import be.twofold.valen.core.math.*;
 import be.twofold.valen.core.texture.*;
-import be.twofold.valen.gltf.*;
-import be.twofold.valen.gltf.model.extension.*;
-import be.twofold.valen.gltf.model.material.*;
-import be.twofold.valen.gltf.model.texture.*;
+import be.twofold.valen.format.gltf.*;
+import be.twofold.valen.format.gltf.model.extension.*;
+import be.twofold.valen.format.gltf.model.material.*;
+import be.twofold.valen.format.gltf.model.texture.*;
 
 import java.io.*;
-import java.nio.file.*;
 import java.util.*;
 import java.util.function.*;
 import java.util.stream.*;
@@ -20,9 +19,9 @@ public final class GltfMaterialMapper {
     private final GltfContext context;
     private final GltfTextureMapper textureMapper;
 
-    public GltfMaterialMapper(GltfContext context, Path exportPath) {
+    public GltfMaterialMapper(GltfContext context) {
         this.context = context;
-        this.textureMapper = new GltfTextureMapper(context, exportPath);
+        this.textureMapper = new GltfTextureMapper(context);
     }
 
     public MaterialID map(Material material) throws IOException {
@@ -34,8 +33,8 @@ public final class GltfMaterialMapper {
             return existingMaterialID;
         }
 
-        var builder = MaterialSchema.builder().name(material.name());
-        var pbrBuilder = PbrMetallicRoughnessSchema.builder();
+        var builder = ImmutableMaterial.builder().name(material.name());
+        var pbrBuilder = ImmutableMaterialPbrMetallicRoughness.builder();
         for (var property : material.properties()) {
             switch (property.type()) {
                 case Albedo -> mapProperty(property, pbrBuilder::baseColorTexture,
@@ -43,6 +42,7 @@ public final class GltfMaterialMapper {
                 case Normal ->
                     builder.normalTexture(normalTextureInfoSchema(textureMapper.mapSimple(property.reference())));
                 case Emissive -> mapEmissive(property, builder);
+                case Unknown -> textureMapper.map(property.reference());
             }
         }
 
@@ -58,9 +58,9 @@ public final class GltfMaterialMapper {
         if (groups.containsKey(MaterialPropertyType.Smoothness)) {
             var property = groups.get(MaterialPropertyType.Smoothness).getFirst();
             var reference = property.reference();
-            var smoothnessTexture = reference.supplier().get().firstOnly().convert(TextureFormat.R8_UNORM);
+            var smoothnessTexture = reference.supplier().get().firstOnly().convert(TextureFormat.R8_UNORM, true);
             var metalRoughnessTexture = mapSmoothness(smoothnessTexture);
-            var roughnessReference = new TextureReference(reference.name(), reference.filename(), () -> metalRoughnessTexture);
+            var roughnessReference = new TextureReference(reference.name(), reference.filename() + ".mr", () -> metalRoughnessTexture);
 
             // TODO: Proper support for metallic and roughness factors
             var roughnessTexture = textureMapper.mapSimple(roughnessReference);
@@ -78,7 +78,7 @@ public final class GltfMaterialMapper {
 
     private void mapEmissive(
         MaterialProperty property,
-        MaterialSchema.Builder builder
+        ImmutableMaterial.Builder builder
     ) throws IOException {
         var emissiveFactor = new Vector4(property.factor().toVector3(), 1.0f);
         mapProperty(property.withFactor(emissiveFactor), builder::emissiveTexture,
@@ -86,20 +86,20 @@ public final class GltfMaterialMapper {
 
         var emissiveScale = property.factor().w();
         if (emissiveScale != 1.0f) {
-            var emissiveStrengthSchema = KHRMaterialsEmissiveStrengthSchema.builder()
+            var emissiveStrengthSchema = ImmutableKHRMaterialsEmissiveStrength.builder()
                 .emissiveStrength(emissiveScale)
                 .build();
 
-            builder.putExtensions(emissiveStrengthSchema.getName(), emissiveStrengthSchema);
+            builder.putExtension(emissiveStrengthSchema.getName(), emissiveStrengthSchema);
         }
     }
 
     private void mapSpecular(
         MaterialProperty property,
-        MaterialSchema.Builder builder,
-        PbrMetallicRoughnessSchema.Builder pbrBuilder
+        ImmutableMaterial.Builder builder,
+        ImmutableMaterialPbrMetallicRoughness.Builder pbrBuilder
     ) throws IOException {
-        var specularBuilder = KHRMaterialsSpecularSchema.builder();
+        var specularBuilder = ImmutableKHRMaterialsSpecular.builder();
 
         mapProperty(property, specularBuilder::specularColorTexture,
             v -> specularBuilder.specularColorFactor(GltfUtils.mapVector3(v.toVector3())));
@@ -110,11 +110,11 @@ public final class GltfMaterialMapper {
         //  - Set specular
         pbrBuilder.metallicFactor(0);
 
-        var iorSchema = KHRMaterialsIORSchema.builder().ior(1000).build();
-        builder.putExtensions(iorSchema.getName(), iorSchema);
+        var iorSchema = ImmutableKHRMaterialsIor.builder().ior(1000).build();
+        builder.putExtension(iorSchema.getName(), iorSchema);
 
         var specularSchema = specularBuilder.build();
-        builder.putExtensions(specularSchema.getName(), specularSchema);
+        builder.putExtension(specularSchema.getName(), specularSchema);
     }
 
     private void mapProperty(
@@ -136,7 +136,8 @@ public final class GltfMaterialMapper {
 
         // The default in GLTF is 0, 0, 0 for emissive
         var reference = property.type() == MaterialPropertyType.Emissive ? Vector4.W : Vector4.One;
-        if (!reference.equals(factor)) {
+        /*if (!reference.equals(factor)) */
+        {
             factorConsumer.accept(factor);
         }
     }
@@ -156,13 +157,13 @@ public final class GltfMaterialMapper {
     }
 
     private static TextureInfoSchema textureSchema(TextureID textureID) {
-        return TextureInfoSchema.builder()
+        return ImmutableTextureInfo.builder()
             .index(textureID)
             .build();
     }
 
-    private static NormalTextureInfoSchema normalTextureInfoSchema(TextureID textureID) {
-        return NormalTextureInfoSchema.builder()
+    private static MaterialNormalTextureInfoSchema normalTextureInfoSchema(TextureID textureID) {
+        return ImmutableMaterialNormalTextureInfo.builder()
             .index(textureID)
             .build();
     }

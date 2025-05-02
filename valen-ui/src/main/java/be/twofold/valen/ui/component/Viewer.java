@@ -7,7 +7,7 @@ public interface Viewer extends FXView {
 
     String getName();
 
-    boolean canPreview(AssetType<?> type);
+    boolean canPreview(AssetType type);
 
     void setData(Object data);
 

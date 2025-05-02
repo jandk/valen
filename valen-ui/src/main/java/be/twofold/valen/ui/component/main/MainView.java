@@ -6,7 +6,7 @@ import java.util.*;
 
 public interface MainView {
 
-    boolean isPreviewVisible();
+    boolean isSidePaneVisible();
 
     void setArchives(List<String> archives);
 
@@ -16,4 +16,7 @@ public interface MainView {
 
     void setExporting(boolean exporting);
 
+    void showPreview(boolean enabled);
+
+    void showSettings(boolean enabled);
 }

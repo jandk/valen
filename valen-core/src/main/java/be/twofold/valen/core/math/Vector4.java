@@ -1,6 +1,7 @@
 package be.twofold.valen.core.math;
 
 import be.twofold.valen.core.io.*;
+import be.twofold.valen.core.util.*;
 
 import java.io.*;
 import java.nio.*;
@@ -11,12 +12,12 @@ public record Vector4(
     float z,
     float w
 ) {
-    public static Vector4 Zero = new Vector4(0.0f, 0.0f, 0.0f, 0.0f);
-    public static Vector4 One = new Vector4(1.0f, 1.0f, 1.0f, 1.0f);
-    public static Vector4 X = new Vector4(1.0f, 0.0f, 0.0f, 0.0f);
-    public static Vector4 Y = new Vector4(0.0f, 1.0f, 0.0f, 0.0f);
-    public static Vector4 Z = new Vector4(0.0f, 0.0f, 1.0f, 0.0f);
-    public static Vector4 W = new Vector4(0.0f, 0.0f, 0.0f, 1.0f);
+    public static final Vector4 Zero = new Vector4(0.0f, 0.0f, 0.0f, 0.0f);
+    public static final Vector4 One = new Vector4(1.0f, 1.0f, 1.0f, 1.0f);
+    public static final Vector4 X = new Vector4(1.0f, 0.0f, 0.0f, 0.0f);
+    public static final Vector4 Y = new Vector4(0.0f, 1.0f, 0.0f, 0.0f);
+    public static final Vector4 Z = new Vector4(0.0f, 0.0f, 1.0f, 0.0f);
+    public static final Vector4 W = new Vector4(0.0f, 0.0f, 0.0f, 1.0f);
 
     public static Vector4 splat(float value) {
         return new Vector4(value, value, value, value);

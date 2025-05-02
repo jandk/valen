@@ -1,32 +1,97 @@
 package be.twofold.valen.core.hashing;
 
-public sealed interface HashCode {
+import java.util.*;
 
-    int asInt();
+public abstract class HashCode {
+    private HashCode() {
+    }
 
-    long asLong();
+    public static HashCode ofInt(int hashCode) {
+        return new IntHashCode(hashCode);
+    }
 
-    record IntHashCode(int hash) implements HashCode {
+    public static HashCode ofLong(long hashCode) {
+        return new LongHashCode(hashCode);
+    }
+
+    public abstract int asInt();
+
+    public abstract long asLong();
+
+    @Override
+    public abstract boolean equals(Object obj);
+
+    @Override
+    public abstract int hashCode();
+
+    @Override
+    public abstract String toString();
+
+    private static final class IntHashCode extends HashCode {
+        private final int hashCode;
+
+        private IntHashCode(int hashCode) {
+            this.hashCode = hashCode;
+        }
+
         @Override
         public int asInt() {
-            return hash;
+            return hashCode;
         }
 
         @Override
         public long asLong() {
-            return Integer.toUnsignedLong(hash);
+            return Integer.toUnsignedLong(hashCode);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            return obj instanceof IntHashCode other
+                && hashCode == other.hashCode;
+        }
+
+        @Override
+        public int hashCode() {
+            return Integer.hashCode(hashCode);
+        }
+
+        @Override
+        public String toString() {
+            return HexFormat.of().toHexDigits(hashCode);
         }
     }
 
-    record LongHashCode(long hash) implements HashCode {
+    private static final class LongHashCode extends HashCode {
+        private final long hashCode;
+
+        private LongHashCode(long hashCode) {
+            this.hashCode = hashCode;
+        }
+
         @Override
         public int asInt() {
-            return (int) hash;
+            return (int) hashCode;
         }
 
         @Override
         public long asLong() {
-            return hash;
+            return hashCode;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            return obj instanceof LongHashCode other
+                && hashCode == other.hashCode;
+        }
+
+        @Override
+        public int hashCode() {
+            return Long.hashCode(hashCode);
+        }
+
+        @Override
+        public String toString() {
+            return HexFormat.of().toHexDigits(hashCode);
         }
     }
 }

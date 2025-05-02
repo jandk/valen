@@ -5,7 +5,17 @@ import be.twofold.valen.core.texture.*;
 
 import java.io.*;
 
-public final class DdsExporter implements TextureExporter {
+public final class DdsExporter extends TextureExporter {
+    @Override
+    public String getID() {
+        return "texture.dds";
+    }
+
+    @Override
+    public String getName() {
+        return "DDS (DirectDraw Surface)";
+    }
+
     @Override
     public String getExtension() {
         return "dds";
@@ -21,12 +31,13 @@ public final class DdsExporter implements TextureExporter {
         return switch (format) {
             case R8G8B8_UNORM -> TextureFormat.R8G8B8A8_UNORM;
             case B8G8R8_UNORM -> TextureFormat.B8G8R8A8_UNORM;
+            case R16G16B16_SFLOAT -> TextureFormat.R16G16B16A16_SFLOAT;
             default -> format;
         };
     }
 
     @Override
-    public void export(Texture texture, OutputStream out) throws IOException {
+    public void doExport(Texture texture, OutputStream out) throws IOException {
         out.write(createHeader(texture).toBuffer().array());
         for (var surface : texture.surfaces()) {
             out.write(surface.data());
@@ -75,15 +86,16 @@ public final class DdsExporter implements TextureExporter {
         return switch (format) {
             case R8_UNORM -> DxgiFormat.R8_UNORM;
             case R8G8_UNORM -> DxgiFormat.R8G8_UNORM;
-            case R8G8B8_UNORM -> DxgiFormat.R8G8B8A8_UNORM;
-            case R8G8B8A8_UNORM -> DxgiFormat.R8G8B8A8_UNORM;
-            case B8G8R8_UNORM -> DxgiFormat.B8G8R8A8_UNORM;
-            case B8G8R8A8_UNORM -> DxgiFormat.B8G8R8A8_UNORM;
+            case R8G8B8_UNORM,
+                 R8G8B8A8_UNORM -> DxgiFormat.R8G8B8A8_UNORM;
+            case B8G8R8_UNORM,
+                 B8G8R8A8_UNORM -> DxgiFormat.B8G8R8A8_UNORM;
             case R16_UNORM -> DxgiFormat.R16_UNORM;
             case R16G16B16A16_UNORM -> DxgiFormat.R16G16B16A16_UNORM;
             case R16_SFLOAT -> DxgiFormat.R16_FLOAT;
             case R16G16_SFLOAT -> DxgiFormat.R16G16_FLOAT;
-            case R16G16B16A16_SFLOAT -> DxgiFormat.R16G16B16A16_FLOAT;
+            case R16G16B16_SFLOAT,
+                 R16G16B16A16_SFLOAT -> DxgiFormat.R16G16B16A16_FLOAT;
             case BC1_UNORM -> DxgiFormat.BC1_UNORM;
             case BC1_SRGB -> DxgiFormat.BC1_UNORM_SRGB;
             case BC2_UNORM -> DxgiFormat.BC2_UNORM;
@@ -142,11 +154,6 @@ public final class DdsExporter implements TextureExporter {
     }
 
     private int computePitch(int width, DxgiFormat format) {
-        return switch (format) {
-            case A8_UNORM -> width;
-            case R16G16_FLOAT, R8G8B8A8_UNORM -> width * 4;
-            case R16_FLOAT, R8G8_UNORM -> width * 2;
-            default -> throw new UnsupportedOperationException("Unsupported format: " + format);
-        };
+        return (width * format.bitsPerPixel() + 7) / 8;
     }
 }

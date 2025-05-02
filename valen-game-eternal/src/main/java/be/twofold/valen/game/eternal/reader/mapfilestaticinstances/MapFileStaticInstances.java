@@ -26,27 +26,27 @@ public record MapFileStaticInstances(
     public static MapFileStaticInstances read(DataSource source) throws IOException {
         source.expectInt(1);
 
-        var materials = source.readStructs(source.readInt() - 1, DataSource::readPString);
-        var declRenderParams = source.readStructs(source.readInt() - 1, DataSource::readPString);
-        var renderParams = source.readStructs(source.readInt(), DataSource::readPString);
-        var models = source.readStructs(source.readInt(), DataSource::readPString);
-        var materialGroups = source.readStructs(source.readInt(), MapFileStaticInstancesMaterialGroup::read);
-        var group2 = source.readStructs(source.readInt(), MapFileStaticInstancesGroup2::read);
-        var group3 = source.readStructs(source.readInt(), MapFileStaticInstancesGroup3::read);
-        var declLayers = source.readStructs(source.readInt(), DataSource::readPString);
+        var materials = source.readObjects(source.readInt() - 1, DataSource::readPString);
+        var declRenderParams = source.readObjects(source.readInt() - 1, DataSource::readPString);
+        var renderParams = source.readObjects(source.readInt(), DataSource::readPString);
+        var models = source.readObjects(source.readInt(), DataSource::readPString);
+        var materialGroups = source.readObjects(source.readInt(), MapFileStaticInstancesMaterialGroup::read);
+        var group2 = source.readObjects(source.readInt(), MapFileStaticInstancesGroup2::read);
+        var group3 = source.readObjects(source.readInt(), MapFileStaticInstancesGroup3::read);
+        var declLayers = source.readObjects(source.readInt(), DataSource::readPString);
 
         var modelInstanceCount = source.readInt();
-        var modelInstanceNames = source.readStructs(modelInstanceCount, DataSource::readPString);
-        var modelInstanceGeometries = source.readStructs(modelInstanceCount, MapFileStaticInstancesModelGeometry::read);
-        var modelInstanceExtras = source.readStructs(source.readInt(), MapFileStaticInstancesModelExtra::read);
+        var modelInstanceNames = source.readObjects(modelInstanceCount, DataSource::readPString);
+        var modelInstanceGeometries = source.readObjects(modelInstanceCount, MapFileStaticInstancesModelGeometry::read);
+        var modelInstanceExtras = source.readObjects(source.readInt(), MapFileStaticInstancesModelExtra::read);
 
         var decalInstanceCount = source.readInt();
-        var decalInstanceNames = source.readStructs(decalInstanceCount, DataSource::readPString);
-        var decalInstanceGeometries = source.readStructs(decalInstanceCount, MapFileStaticInstancesDeclGeometry::read);
-        var decalInstanceExtras = source.readStructs(source.readInt(), MapFileStaticInstancesDeclExtra::read);
+        var decalInstanceNames = source.readObjects(decalInstanceCount, DataSource::readPString);
+        var decalInstanceGeometries = source.readObjects(decalInstanceCount, MapFileStaticInstancesDeclGeometry::read);
+        var decalInstanceExtras = source.readObjects(source.readInt(), MapFileStaticInstancesDeclExtra::read);
 
-        var playerStarts = source.readStructs(source.readInt(), MapFileStaticInstancesPlayerStart::read);
-        var layerStateChanges = source.readStructs(source.readInt(), MapFileStaticInstancesLayerStateChange::read);
+        var playerStarts = source.readObjects(source.readInt(), MapFileStaticInstancesPlayerStart::read);
+        var layerStateChanges = source.readObjects(source.readInt(), MapFileStaticInstancesLayerStateChange::read);
 
         return new MapFileStaticInstances(
             materials,

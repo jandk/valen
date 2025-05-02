@@ -12,7 +12,7 @@ import java.sql.*;
 import java.util.*;
 import java.util.stream.*;
 
-public final class DbImporter {
+final class DbImporter {
     private static final String TABLE_SQL = """
         create table if not exists file
         (
@@ -127,7 +127,7 @@ public final class DbImporter {
 
     private void insertResources(int fileId, String path) throws SQLException {
         var sql = "insert into resource(file_id, name, type, variation, start, size, uncompressedSize, dataCheckSum, defaultHash, timestamp, version, flags, compMode) " +
-                  "values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
+            "values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
 
         try (var source = DataSource.fromPath(BASE.resolve(path));
              var statement = connection.prepareStatement(sql)

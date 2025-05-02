@@ -1,6 +1,7 @@
 package be.twofold.valen.core.compression;
 
 import java.io.*;
+import java.nio.*;
 import java.nio.file.*;
 
 @FunctionalInterface
@@ -25,17 +26,12 @@ public interface Decompressor {
         return new OodleDecompressor(path);
     }
 
-    default byte[] decompress(byte[] compressed, int uncompressedSize) throws IOException {
-        byte[] decompressed = new byte[uncompressedSize];
-        decompress(
-            compressed, 0, compressed.length,
-            decompressed, 0, decompressed.length
-        );
-        return decompressed;
+    default ByteBuffer decompress(ByteBuffer src, int size) throws IOException {
+        var dst = ByteBuffer.allocate(size);
+        decompress(src, dst);
+        dst.flip();
+        return dst;
     }
 
-    void decompress(
-        byte[] src, int srcOff, int srcLen,
-        byte[] dst, int dstOff, int dstLen
-    ) throws IOException;
+    void decompress(ByteBuffer src, ByteBuffer dst) throws IOException;
 }
