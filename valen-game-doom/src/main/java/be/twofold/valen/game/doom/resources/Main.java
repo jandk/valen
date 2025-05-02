@@ -2,7 +2,9 @@ package be.twofold.valen.game.doom.resources;
 
 import be.twofold.valen.core.compression.*;
 import be.twofold.valen.core.io.*;
+import be.twofold.valen.core.util.*;
 
+import java.nio.*;
 import java.nio.file.*;
 
 public class Main {
@@ -18,9 +20,9 @@ public class Main {
                     continue;
                 }
 
-                source.seek(entry.offset());
-                byte[] compressed = source.readBytes(entry.sizeCompressed());
-                byte[] decompressed = compressed;
+                source.position(entry.offset());
+                ByteBuffer compressed = source.readBuffer(entry.sizeCompressed());
+                ByteBuffer decompressed = compressed;
 
                 if (entry.size() != entry.sizeCompressed()) {
                     decompressed = Decompressor.inflate(true).decompress(compressed, entry.size());
@@ -30,7 +32,7 @@ public class Main {
                 System.out.println(dest);
 
                 Files.createDirectories(dest.getParent());
-                Files.write(dest, decompressed);
+                Files.write(dest, Buffers.toArray(decompressed));
             }
         }
     }

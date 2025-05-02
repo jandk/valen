@@ -15,13 +15,13 @@ public record Mega2(
     public static Mega2 read(Path path) throws IOException {
         try (var source = DataSource.fromPath(path)) {
             var header = Mega2Header.read(source);
-            var levels = source.readStructs(header.quadtreeLevelCount(), Mega2Level::read);
+            var levels = source.readObjects(header.quadtreeLevelCount(), Mega2Level::read);
 
-            source.seek(header.quadtreeOffset());
+            source.position(header.quadtreeOffset());
             var offsets = source.readInts(header.quadtreeCount());
 
-            source.seek(header.pointerOffset());
-            var pointers = source.readStructs(header.pointerCount(), Mega2Entry::read);
+            source.position(header.pointerOffset());
+            var pointers = source.readObjects(header.pointerCount(), Mega2Entry::read);
 
             return new Mega2(
                 header,

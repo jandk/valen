@@ -31,12 +31,12 @@ public class Main {
         var values = new ArrayList<Mega2ImageHeader>();
         var out = Path.of("D:\\2016\\mega2");
         for (var pointer : mega2.pointers()) {
-            source.seek(pointer.offset());
+            source.position(pointer.offset());
             var imageHeader = Mega2ImageHeader.read(source, pointer.length());
             names.add("%016x.bin".formatted(pointer.offset()));
             values.add(imageHeader);
 
-            source.seek(pointer.offset());
+            source.position(pointer.offset());
             var data = source.readBytes(pointer.length());
             var filename = "%08x.bin".formatted(pointer.offset());
             System.out.println(filename);

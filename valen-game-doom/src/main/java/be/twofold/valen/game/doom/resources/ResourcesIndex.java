@@ -16,7 +16,7 @@ public record ResourcesIndex(
             if (header.version() != 5) {
                 throw new IOException("Unsupported version: " + header.version());
             }
-            var entries = source.readStructs(header.count(), ResourcesIndexEntry::read);
+            var entries = source.readObjects(header.count(), ResourcesIndexEntry::read);
 
             return new ResourcesIndex(header, entries);
         }

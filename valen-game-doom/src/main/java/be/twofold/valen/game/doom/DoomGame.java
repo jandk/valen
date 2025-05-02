@@ -22,7 +22,7 @@ public class DoomGame implements Game {
     }
 
     @Override
-    public Archive loadArchive(String name) throws IOException {
+    public DoomArchive loadArchive(String name) throws IOException {
         return new DoomArchive(base, name);
     }
 }
