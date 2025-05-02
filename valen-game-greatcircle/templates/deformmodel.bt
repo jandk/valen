@@ -41,13 +41,20 @@ struct idTriangles {
     float f[2];
 };
 
+struct TriangleGroupEntry {
+    PString32 name;
+    u32 unknown1;
+    u32 unknown2;
+};
+
 struct TriangleGroup{
     u8 b;
     if (b != 0) {
         u8 c;
         idTriangles triangles <optimize=false, style=sSection1>;
         PString32 materialName;
-        u32 unk;
+        u32 count;
+        TriangleGroupEntry entries[count] <optimize=false>;
     };
 };
 
@@ -73,6 +80,17 @@ struct GeometryMemoryLayout {
     u32 vertexOffsets[numVertexStreams];
     u32 indexOffset;
     u32 pad;
+    if (pad) {
+        u32 u1;
+        u32 u2;
+        struct LayoutEntry {
+            u32 u1;
+            u32 u2;
+            u32 u3;
+            u32 u4;
+            u32 u5;
+        } entries[u2];
+    }
 };
 
 struct Layout {
