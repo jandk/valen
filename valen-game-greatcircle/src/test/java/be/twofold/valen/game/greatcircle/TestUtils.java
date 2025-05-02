@@ -38,10 +38,10 @@ public abstract class TestUtils {
                 System.err.println(e.getMessage());
             } catch (IOException e) {
                 if (!e.getMessage().startsWith("Decompression failed")) {
-                    fail(e);
+                    fail("Failure when reading " + asset.id().fullName(), e);
                 }
             } catch (Exception e) {
-                fail(e);
+                fail("Failure when reading " + asset.id().fullName(), e);
             }
         }
     }

@@ -25,7 +25,7 @@ public record StaticModelLodInfo(
         var numVertices = source.readInt();
         var numIndices = source.readInt();
         var numSomething = mode == -3 ? source.readInt() : 0;
-        var flags = source.readInt();
+        var vertexMask = source.readInt();
         var negBounds = Vector3.read(source);
         var posBounds = Vector3.read(source);
         var vertexOffset = Vector3.read(source);
@@ -41,7 +41,7 @@ public record StaticModelLodInfo(
             numVertices,
             numIndices,
             numSomething,
-            flags,
+            vertexMask,
             negBounds,
             posBounds,
             vertexOffset,

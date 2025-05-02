@@ -1,0 +1,178 @@
+//------------------------------------------------
+//--- 010 Editor v15.0.2 Binary Template
+//
+//      File: 
+//   Authors: 
+//   Version: 
+//   Purpose: 
+//  Category: 
+// File Mask: 
+//  ID Bytes: 
+//   History: 
+//------------------------------------------------
+#include "common.bt"
+
+PString32 modelAsset;
+PString32 psdRig;
+PString32 hcRig;
+PString32List strings1;
+float f;
+PString32List strings2;
+u32 unknown[5];
+u32 count;
+
+struct idTriangles {
+    int version;
+    if (version < 0) {
+        u32 numVerts;
+    } else {
+        numVerts = version;
+    }
+    int numIndices;
+    float unk;
+    u32 flags;
+    
+    Bounds bounds;
+    Vec3 vertexOffset;
+    float vertexScale;
+    Vec2 uvOffset;
+    float uvScale;
+    u32 unk;
+    float f[2];
+};
+
+struct TriangleGroup{
+    u8 b;
+    if (b != 0) {
+        u8 c;
+        idTriangles triangles <optimize=false, style=sSection1>;
+        PString32 materialName;
+        u32 unk;
+    };
+};
+
+struct TriangleGroups {
+    u32 unk;
+    TriangleGroup groups[5] <optimize=false, style=sSection2>;
+    u32 size;
+    u32 nums[size];
+} triangleGroups[count] <optimize=false>;
+
+struct GeometryDiskLayout {
+    u32 compression;
+    u32 uncompressedSize;
+    u32 compressedSize;
+    u32 offset;
+};
+
+struct GeometryMemoryLayout {
+    u32 combinedVertexMask;
+    u32 size;
+    u32 numVertexStreams;
+    u32 vertexMasks[numVertexStreams];
+    u32 vertexOffsets[numVertexStreams];
+    u32 indexOffset;
+    u32 pad;
+};
+
+struct Layout {
+    u32 numStreams;
+    GeometryMemoryLayout memoryLayout[numStreams] <optimize=false>;
+    u32 pad;
+    GeometryDiskLayout diskLayout[numStreams];
+} layout <style=sSection2>;
+
+struct MD6SklHeader {
+    u32 size;
+    u32 inverseBasePoseOffset;
+    u32 basePoseOffset;
+    u32 skeletonCrc;
+    u32 userChannelCrc;
+    u32 combinedCrc;
+    u16 numJoints;
+    u16 numUserChannels;
+    u16 numRigControls;
+    u16 animationMaskOffset;
+    u16 parentTblOffset;
+    u16 lastChildTblOffset;
+    u16 jointHandleTblOffset;
+    u16 userChannelHandleTblOffset;
+    u16 rigControlHandleTblOffset;
+    u16 jointWeightOffsets[8];
+    u16 userWeightOffsets[8];
+    u8 pad[6];
+};
+
+struct MD6Skl {
+    local int base = FTell();
+    MD6SklHeader header <style=sHeading1>;
+     
+    local int numJoints8 = (header.numJoints + 7) & ~7;
+    Printf("Number of joints rounded up to multiple of 8: %d\n", numJoints8);
+    
+    local int numUserChannels8 = (header.numUserChannels + 7) & ~7;
+    Printf("Number of user channels rounded up to multiple of 8: %d\n", numUserChannels8);
+    
+    local int numRigControls8 = (header.numRigControls + 7) & ~7;
+    Printf("Number of rig controls rounded up to multiple of 8: %d\n", numRigControls8);
+    
+    FSeek(base + header.animationMaskOffset);
+    u8 animationMask[numJoints8] <style=sSection1>;
+    
+    FSeek(base + header.parentTblOffset);
+    i16 parentTbl[numJoints8] <style=sSection2>;
+    
+    FSeek(base + header.lastChildTblOffset);
+    i16 lastChildTbl[numJoints8] <style=sSection3>;
+    
+    FSeek(base + header.jointHandleTblOffset);
+    i16 jointHandleTbl[numJoints8] <style=sSection4>;
+    
+    FSeek(base + header.userChannelHandleTblOffset);
+    i16 userChannelHandleTbl[numUserChannels8] <style=sSection1>;
+    
+    FSeek(base + header.rigControlHandleTblOffset);
+    i16 rigControlHandleTbl[numRigControls8] <style=sSection2>;
+    
+    FSeek(base + header.basePoseOffset);
+    Vec4 rotations[numJoints8] <style=sSection1>;
+    Vec3 scales[numJoints8] <style=sSection2>;
+    Vec3 translations[numJoints8] <style=sSection3>;
+    
+    FSeek(base + header.inverseBasePoseOffset);
+    Mat3x4 inverseBasePoses[numJoints8] <style=sSection4>;
+    
+    FSeek(base + header.size);
+    u32 unknown[numUserChannels8] <style=sSection1, optimize=false>;
+    PString32 jointNames[numJoints8] <style=sSection2, optimize=false>;
+    PString32 userChannelNames[numUserChannels8] <style=sSection3, optimize=false>;
+    PString32 rigControlNames[numRigControls8] <style=sSection3, optimize=false>;
+};
+
+u32 hasSkel;
+if (hasSkel) {
+    int size1;
+    if (size1) {
+        MD6Skl skeleton1;
+    }
+    int size2;
+    if (size2) {
+        MD6Skl skeleton2;
+    }
+    u32 numShorts;
+    u16 shorts[numShorts] <style=sSection3>;
+}
+
+struct Entry {
+    PString32 name;
+    Vec3 vec1;
+    Vec4 vec2;
+    float f;
+};
+
+u32 count1;
+Entry entries1[count1] <optimize=false, style=sSection4>;
+u32 count2;
+Entry entries2[count2] <optimize=false, style=sSection4>;
+
+Bounds bounds;
