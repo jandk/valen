@@ -7,12 +7,15 @@ import be.twofold.valen.format.gltf.model.accessor.*;
 import be.twofold.valen.format.gltf.model.bufferview.*;
 import be.twofold.valen.format.gltf.model.material.*;
 import be.twofold.valen.format.gltf.model.mesh.*;
+import org.slf4j.*;
 
 import java.io.*;
 import java.nio.*;
 import java.util.*;
 
 public abstract class GltfModelMapper {
+    private static final Logger log = LoggerFactory.getLogger(GltfModelMapper.class);
+
     final GltfContext context;
     final GltfMaterialMapper materialMapper;
 
@@ -21,7 +24,12 @@ public abstract class GltfModelMapper {
         this.materialMapper = new GltfMaterialMapper(context);
     }
 
-    MeshPrimitiveSchema mapMeshPrimitive(Mesh mesh) throws IOException {
+    Optional<MeshPrimitiveSchema> mapMeshPrimitive(Mesh mesh) throws IOException {
+        if (mesh.indexBuffer().count() == 0) {
+            log.warn("No indices found for {}, skipping", mesh.name().orElse("<unnamed>"));
+            return Optional.empty();
+        }
+
         // Add the material
         var materialID = (MaterialID) null;
         if (mesh.material().isPresent()) {
@@ -45,12 +53,13 @@ public abstract class GltfModelMapper {
         var indices = buildAccessor(mesh.indexBuffer(), null);
         var morphTargets = buildMorphTargets(mesh.blendShapes(), mesh.getBuffer(Semantic.POSITION).orElseThrow().count());
 
-        return ImmutableMeshPrimitive.builder()
+        var meshPrimitive = ImmutableMeshPrimitive.builder()
             .attributes(attributes)
             .indices(indices)
             .material(Optional.ofNullable(materialID))
             .targets(morphTargets)
             .build();
+        return Optional.of(meshPrimitive);
     }
 
     private List<Map<String, AccessorID>> buildMorphTargets(List<BlendShape> blendShapes, int count) throws IOException {

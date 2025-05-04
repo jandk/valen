@@ -26,6 +26,7 @@ public record GreatCircleAsset(
         return switch (id.type()) {
             case image -> AssetType.TEXTURE;
             case basemodel, deformmodel, model -> AssetType.MODEL;
+            case material2 -> AssetType.MATERIAL;
             default -> AssetType.RAW;
         };
     }
@@ -37,10 +38,14 @@ public record GreatCircleAsset(
 
     @Override
     public Map<String, Object> properties() {
-        return Map.of(
-            "hash", hash,
-            "version", version
-        );
+        var properties = new HashMap<String, Object>();
+        properties.put("hash", hash);
+        properties.put("version", version);
+        properties.put("Type", id.type().toString());
+        if (id.variation() != ResourceVariation.RES_VAR_NONE) {
+            properties.put("Variation", id.variation());
+        }
+        return properties;
     }
 
     @Override
