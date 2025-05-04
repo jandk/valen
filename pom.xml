@@ -11,9 +11,11 @@
     <modules>
         <module>valen-app</module>
         <module>valen-core</module>
+        <module>valen-export-cast</module>
         <module>valen-export-dds</module>
         <module>valen-export-gltf</module>
         <module>valen-export-png</module>
+        <module>valen-format-cast</module>
         <module>valen-format-gltf</module>
         <module>valen-format-png</module>
         <module>valen-game-eternal</module>
@@ -111,6 +113,11 @@
             </dependency>
             <dependency>
                 <groupId>be.twofold</groupId>
+                <artifactId>valen-export-cast</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>be.twofold</groupId>
                 <artifactId>valen-export-dds</artifactId>
                 <version>${project.version}</version>
             </dependency>
@@ -122,6 +129,11 @@
             <dependency>
                 <groupId>be.twofold</groupId>
                 <artifactId>valen-export-png</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>be.twofold</groupId>
+                <artifactId>valen-format-cast</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
