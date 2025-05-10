@@ -1,4 +1,4 @@
-package be.twofold.valen.format.cast;
+package be.twofold.valen.format.cast.io;
 
 import java.io.*;
 import java.lang.invoke.*;
@@ -7,7 +7,7 @@ import java.nio.charset.*;
 import java.util.*;
 import java.util.function.*;
 
-final class BinaryReader implements Closeable {
+public final class BinaryReader implements Closeable {
     private static final VarHandle VH_SHORT = MethodHandles
         .byteArrayViewVarHandle(short[].class, ByteOrder.LITTLE_ENDIAN)
         .withInvokeExactBehavior();

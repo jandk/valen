@@ -1,7 +1,7 @@
 module valen.format.cast {
-    requires static org.immutables.value;
-    requires jdk.compiler;
+    requires org.slf4j;
 
     exports be.twofold.valen.format.cast;
-    exports be.twofold.valen.format.cast.model;
+    exports be.twofold.valen.format.cast.node;
+    exports be.twofold.valen.format.cast.property;
 }

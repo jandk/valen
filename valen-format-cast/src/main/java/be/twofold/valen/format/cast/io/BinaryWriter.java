@@ -1,4 +1,4 @@
-package be.twofold.valen.format.cast;
+package be.twofold.valen.format.cast.io;
 
 import java.io.*;
 import java.lang.invoke.*;
