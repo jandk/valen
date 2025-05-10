@@ -1,8 +1,11 @@
 package be.twofold.valen.export.cast;
 
 import be.twofold.valen.core.geometry.*;
+import be.twofold.valen.export.cast.mappers.*;
+import be.twofold.valen.format.cast.*;
 
 import java.io.*;
+import java.nio.file.*;
 
 public final class CastModelExporter extends CastExporter<Model> {
     @Override
@@ -17,22 +20,28 @@ public final class CastModelExporter extends CastExporter<Model> {
 
     @Override
     public void export(Model value, OutputStream out) throws IOException {
-//        var model = ImmutableModel.builder()
-//            .name(value.name())
-//            .addAllMeshes(value.meshes().stream()
-//                .map(this::mapMesh)
-//                .toList())
-//            .build();
-//
-//        var writer = new CastWriter(out);
-//        writer.write(model);
+        // TODO: Eehm, Liskov fail for now
+        throw new UnsupportedOperationException("GLTF can't export to a stream");
     }
 
-//    private MeshNode mapMesh(Mesh mesh) {
-//        return ImmutableMesh.builder()
-//            .name(mesh.name())
-//            .faceBuffer(mesh.indexBuffer().buffer())
-//            .vertexPositionBuffer((FloatBuffer) mesh.getBuffer(Semantic.POSITION).orElseThrow().buffer())
-//            .build();
-//    }
+    @Override
+    public void export(Model value, Path path) throws IOException {
+        Path imagePath = path.getParent().resolve("_images");
+        if (!Files.exists(imagePath)) {
+            Files.createDirectory(imagePath);
+        }
+
+        Cast cast = new Cast();
+        CastNode.Root root = cast.createRoot();
+        root.createMetadata()
+            .setAuthor("JanDK")
+            .setSoftware("Valen")
+            .setUpAxis(CastNode.UpAxis.Z);
+
+        new CastModelMapper(path, imagePath).map(value, root);
+
+        try (var out = Files.newOutputStream(path)) {
+            cast.write(out);
+        }
+    }
 }

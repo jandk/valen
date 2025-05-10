@@ -16,12 +16,24 @@ public record CastProperty(
     }
 
     public int length() {
-        return 0x08 + name.getBytes(StandardCharsets.UTF_8).length + arrayLength() * identifier.size();
+        int length = 0x08;
+        length += name.getBytes(StandardCharsets.UTF_8).length;
+        if (identifier == CastPropertyID.STRING) {
+            length += ((String) value).getBytes(StandardCharsets.UTF_8).length + 1;
+        } else {
+            length += arrayLength() * identifier.size();
+        }
+        return length;
     }
 
     public int arrayLength() {
-        return value instanceof Buffer
-            ? ((Buffer) value).capacity() / identifier.count()
-            : 1;
+        if (!(value instanceof Buffer)) {
+            return 1;
+        }
+        int limit = ((Buffer) value).limit();
+        if (limit % identifier.count() != 0) {
+            throw new IllegalArgumentException("Limit of buffer is not a multiple of count");
+        }
+        return limit / identifier.count();
     }
 }

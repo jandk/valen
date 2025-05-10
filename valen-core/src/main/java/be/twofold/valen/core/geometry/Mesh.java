@@ -33,6 +33,13 @@ public record Mesh(
             .findFirst();
     }
 
+    public List<VertexBuffer<?>> getBuffers(Class<? extends Semantic> type) {
+        return vertexBuffers.stream()
+            .filter(vb -> type.isInstance(vb.info().semantic()))
+            .sorted(Comparator.comparingInt(vb -> vb.info().semantic().n()))
+            .toList();
+    }
+
     @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
     public Mesh withMaterial(Optional<Material> material) {
         return new Mesh(indexBuffer, vertexBuffers, material, name);

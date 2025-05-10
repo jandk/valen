@@ -24,7 +24,7 @@ final class Buffers {
 
             duplicate.rewind();
             if (max <= 0xFF) {
-                ByteBuffer result = ByteBuffer.allocate(duplicate.capacity());
+                ByteBuffer result = ByteBuffer.allocate(duplicate.limit());
                 while (duplicate.hasRemaining()) {
                     result.put((byte) duplicate.get());
                 }
@@ -45,14 +45,14 @@ final class Buffers {
 
             duplicate.rewind();
             if (max <= 0xFF) {
-                ByteBuffer result = ByteBuffer.allocate(duplicate.capacity());
+                ByteBuffer result = ByteBuffer.allocate(duplicate.limit());
                 while (duplicate.hasRemaining()) {
                     result.put((byte) duplicate.get());
                 }
                 return result.flip();
             }
             if (max <= 0xFFFF) {
-                ShortBuffer result = ShortBuffer.allocate(duplicate.capacity());
+                ShortBuffer result = ShortBuffer.allocate(duplicate.limit());
                 while (duplicate.hasRemaining()) {
                     result.put((short) duplicate.get());
                 }
