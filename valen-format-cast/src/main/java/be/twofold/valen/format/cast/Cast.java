@@ -21,16 +21,13 @@ public final class Cast extends AbstractList<CastNode> {
     }
 
     public void write(OutputStream out) throws IOException {
-        try (BinaryWriter writer = new BinaryWriter(new BufferedOutputStream(out))) {
-            write(writer);
-        }
-    }
-
-    private void write(BinaryWriter writer) throws IOException {
+        CastWriter.write(this, out);
     }
 
     public CastNode.Root createRoot() {
-        return new CastNode.Root(hasher);
+        CastNode.Root root = new CastNode.Root(hasher);
+        rootNodes.add(root);
+        return root;
     }
 
     @Override
