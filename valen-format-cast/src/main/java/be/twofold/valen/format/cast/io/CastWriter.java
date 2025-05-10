@@ -1,43 +1,42 @@
-package be.twofold.valen.format.cast;
+package be.twofold.valen.format.cast.io;
 
-import be.twofold.valen.format.cast.model.*;
+import be.twofold.valen.format.cast.node.*;
+import be.twofold.valen.format.cast.property.*;
 
 import java.io.*;
 import java.nio.*;
 import java.nio.charset.*;
-import java.util.concurrent.atomic.*;
 import java.util.function.*;
 
 public final class CastWriter implements Closeable {
-    private final AtomicLong hash = new AtomicLong(0x5A4C524E454C4156L);
     private final BinaryWriter writer;
 
     public CastWriter(OutputStream out) {
         this.writer = new BinaryWriter(out);
     }
 
-    public void write(Node node) throws IOException {
-        var rootNode = new CastNode(CastNodeID.Root, hash.getAndIncrement())
-            .addChild(switch (node) {
-                case ModelNode model -> mapModel(model);
-                default -> throw new IllegalArgumentException("Unexpected value: " + node);
-            });
+    public void write(CastNode node) throws IOException {
+//        var rootNode = new CastNode(CastNodeID.ROOT, hash.getAndIncrement())
+//            .addChild(switch (node) {
+//                case ModelNode model -> mapModel(model);
+//                default -> throw new IllegalArgumentException("Unexpected value: " + node);
+//            });
 
         writer.writeInt(0x74736163); // magic
         writer.writeInt(1); // version
         writer.writeInt(1); // rootNodeCount
         writer.writeInt(0); // flags
-        writeNode(rootNode);
+        // writeNode(rootNode);
     }
 
     private void writeNode(CastNode node) throws IOException {
-        writer.writeInt(node.identifier().value());
+        writer.writeInt(node.identifier().id());
         writer.writeInt(node.length());
-        writer.writeLong(node.nodeHash());
+        writer.writeLong(node.hash());
         writer.writeInt(node.properties().size());
         writer.writeInt(node.children().size());
 
-        for (CastProperty property : node.properties()) {
+        for (CastProperty property : node.properties().values()) {
             writeProperty(property);
         }
 
@@ -48,7 +47,7 @@ public final class CastWriter implements Closeable {
 
     private void writeProperty(CastProperty property) throws IOException {
         var name = property.name().getBytes(StandardCharsets.UTF_8);
-        writer.writeShort(property.identifier().value());
+        writer.writeShort(property.identifier().id());
         writer.writeShort((short) name.length);
         writer.writeInt(property.arrayLength());
         writer.writeBytes(name);
@@ -59,19 +58,6 @@ public final class CastWriter implements Closeable {
         } else {
             writer.writeBytes(toByteArray(property.asBuffer()));
         }
-    }
-
-    private CastNode mapModel(ModelNode model) {
-        return new CastNode(CastNodeID.Model, hash.getAndIncrement())
-            .addProperty(model.getName().map(name -> CastProperty.string("n", name)))
-            .addChildren(model.getMeshes().stream().map(this::mapMesh));
-    }
-
-    private CastNode mapMesh(MeshNode mesh) {
-        return new CastNode(CastNodeID.Mesh, hash.getAndIncrement())
-            .addProperty(mesh.getName().map(name -> CastProperty.string("n", name)))
-            .addProperty(CastProperty.array(CastPropertyID.VECTOR3, "vp", mesh.getVertexPositionBuffer()))
-            .addProperty(CastProperty.integral("f", mesh.getFaceBuffer()));
     }
 
     // TODO: Fix this shit

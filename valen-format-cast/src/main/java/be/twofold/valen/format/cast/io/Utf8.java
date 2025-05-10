@@ -1,4 +1,4 @@
-package be.twofold.valen.format.cast;
+package be.twofold.valen.format.cast.io;
 
 public final class Utf8 {
     private Utf8() {
