@@ -1,4 +1,4 @@
-package be.twofold.valen.format.cast.io;
+package be.twofold.valen.format.cast;
 
 import java.io.*;
 import java.lang.invoke.*;
@@ -25,7 +25,7 @@ final class BinaryWriter implements Closeable {
     private final byte[] buffer = new byte[8];
     private final OutputStream out;
 
-    BinaryWriter(OutputStream out) {
+    public BinaryWriter(OutputStream out) {
         this.out = Objects.requireNonNull(out);
     }
 

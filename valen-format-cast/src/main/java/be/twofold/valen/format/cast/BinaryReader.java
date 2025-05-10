@@ -1,13 +1,12 @@
-package be.twofold.valen.format.cast.io;
+package be.twofold.valen.format.cast;
 
 import java.io.*;
 import java.lang.invoke.*;
 import java.nio.*;
 import java.nio.charset.*;
 import java.util.*;
-import java.util.function.*;
 
-public final class BinaryReader implements Closeable {
+final class BinaryReader implements Closeable {
     private static final VarHandle VH_SHORT = MethodHandles
         .byteArrayViewVarHandle(short[].class, ByteOrder.LITTLE_ENDIAN)
         .withInvokeExactBehavior();
@@ -93,14 +92,6 @@ public final class BinaryReader implements Closeable {
         byte[] bytes = readBytes(length);
         return ByteBuffer.wrap(bytes)
             .order(ByteOrder.LITTLE_ENDIAN);
-    }
-
-    public <T> List<T> readObjects(int count, Function<BinaryReader, T> reader) throws IOException {
-        ArrayList<T> result = new ArrayList<T>(count);
-        for (int i = 0; i < count; i++) {
-            result.add(reader.apply(this));
-        }
-        return List.copyOf(result);
     }
 
     private void buffer(int length) throws IOException {

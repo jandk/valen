@@ -1,29 +1,26 @@
 package be.twofold.valen.format.cast;
 
-import be.twofold.valen.format.cast.node.*;
-import be.twofold.valen.format.cast.property.*;
-
 import java.util.*;
 import java.util.stream.*;
 
 final class TypeClassWriter {
     public static void generate(List<TypeDef> types) {
-        var enumLookup = generateEnums(types);
-        for (var type : types) {
+        Map<List<String>, String> enumLookup = generateEnums(types);
+        for (TypeDef type : types) {
             System.out.println(generateClass(type, enumLookup));
         }
     }
 
     private static String generateClass(TypeDef type, Map<List<String>, String> enumLookup) {
-        var builder = new StringBuilder();
-        var className = className(type.type());
-        var indexedProperties = type.properties().stream()
+        StringBuilder builder = new StringBuilder();
+        String className = className(type.type());
+        List<PropertyDef> indexedProperties = type.properties().stream()
             .filter(prop -> prop.key().contains("%d"))
             .toList();
 
         builder.append("public static final class ").append(className).append(" extends CastNode {\n");
 
-        for (var property : indexedProperties) {
+        for (PropertyDef property : indexedProperties) {
             builder.append("    private int ").append(indexName(property)).append(";\n");
         }
         if (!indexedProperties.isEmpty()) {
@@ -39,10 +36,10 @@ final class TypeClassWriter {
         builder.append("        // TODO: Validation\n");
         builder.append("    }\n\n");
 
-        for (var child : type.children()) {
-            var childName = className(child);
-            var returnType = child == CastNodeID.SKELETON ? "Optional<SkeletonNode>" : "List<" + childName + '>';
-            var methodName = child == CastNodeID.SKELETON ? "getChildOfType" : "getChildrenOfType";
+        for (CastNodeID child : type.children()) {
+            String childName = className(child);
+            String returnType = child == CastNodeID.SKELETON ? "Optional<Skeleton>" : "List<" + childName + '>';
+            String methodName = child == CastNodeID.SKELETON ? "getChildOfType" : "getChildrenOfType";
             builder.append("    public ").append(returnType).append(" get").append(multiple(childName)).append("() {\n");
             builder.append("        return ").append(methodName).append('(').append(childName).append(".class);\n");
             builder.append("    }\n\n");
@@ -52,24 +49,24 @@ final class TypeClassWriter {
             builder.append("    }\n\n");
         }
 
-        for (var property : type.properties()) {
-            var name = wordsToCamelCase(property.name(), true);
-            var typeString = propertyType(property, enumLookup);
-            var returnType = makeOptional(property, typeString);
-            var getMapper = getGetMapper(property, typeString);
-            var required = property.required() ? ".orElseThrow()" : "";
-            var setterName = Character.toLowerCase(name.charAt(0)) + name.substring(1);
-            var key = '"' + (property.isIndexed() ? property.key().replace("%d", "") : property.key()) + '"';
-            var getKey = property.isIndexed() ? key + " + index" : key;
+        for (PropertyDef property : type.properties()) {
+            String name = wordsToCamelCase(property.name(), true);
+            String typeString = propertyType(property, enumLookup);
+            String returnType = makeOptional(property, typeString);
+            String getMapper = getGetMapper(property, typeString);
+            String required = property.required() ? ".orElseThrow()" : "";
+            String setterName = Character.toLowerCase(name.charAt(0)) + name.substring(1);
+            String key = '"' + (property.isIndexed() ? property.key().replace("%d", "") : property.key()) + '"';
+            String getKey = property.isIndexed() ? key + " + index" : key;
 
             builder.append("    public ").append(returnType).append(" get").append(name).append("(").append(property.isIndexed() ? "int index" : "").append(") {\n");
             builder.append("        return getProperty(").append(getKey).append(", ").append(getMapper).append(")").append(required).append(";\n");
             builder.append("    }\n\n");
 
-            var setKey = property.isIndexed() ? key + " + " + indexName(property) + "++" : key;
+            String setKey = property.isIndexed() ? key + " + " + indexName(property) + "++" : key;
             builder.append("    public ").append(className).append(property.isIndexed() ? " add" : " set").append(name).append("(").append(typeString).append(" ").append(setterName).append(") {\n");
             if (property.isSingular()) {
-                var setMapper = getSetMapper(property, setterName);
+                String setMapper = getSetMapper(property, setterName);
                 builder.append("        createProperty(CastPropertyID.").append(property.types().iterator().next()).append(", ").append(setKey).append(", ").append(setMapper).append(");\n");
             } else if (property.types().equals(EnumSet.of(CastPropertyID.BYTE, CastPropertyID.SHORT, CastPropertyID.INT))) {
                 if (property.isArray()) {
@@ -79,8 +76,8 @@ final class TypeClassWriter {
                 }
             } else {
                 builder.append("        ");
-                for (var propertyID : property.types()) {
-                    var instanceType = property.isArray() ? arrayType(propertyID) : singularType(propertyID);
+                for (CastPropertyID propertyID : property.types()) {
+                    String instanceType = property.isArray() ? arrayType(propertyID) : singularType(propertyID);
                     builder.append("if (").append(setterName).append(" instanceof ").append(instanceType).append(") {\n");
                     builder.append("            createProperty(CastPropertyID.").append(propertyID).append(", ").append(setKey).append(", ").append(setterName).append(");\n");
                     builder.append("        } else ");
@@ -119,7 +116,7 @@ final class TypeClassWriter {
 
     private static String propertyType(PropertyDef property, Map<List<String>, String> enumLookup) {
         if (property.isSingular()) {
-            var propertyID = property.types().iterator().next();
+            CastPropertyID propertyID = property.types().iterator().next();
             if (property.isArray()) {
                 return arrayType(propertyID);
             } else if (property.isBoolean()) {
@@ -137,7 +134,7 @@ final class TypeClassWriter {
         }
 
         // Stupid special cases
-        var types = EnumSet.copyOf(property.types());
+        EnumSet<CastPropertyID> types = EnumSet.copyOf(property.types());
         if (types.equals(EnumSet.of(CastPropertyID.VECTOR3, CastPropertyID.VECTOR4))) {
             return "Object";
         } else if (types.equals(EnumSet.of(CastPropertyID.BYTE, CastPropertyID.SHORT, CastPropertyID.INT))) {
@@ -194,8 +191,8 @@ final class TypeClassWriter {
     // region Enums
 
     private static Map<List<String>, String> generateEnums(List<TypeDef> types) {
-        var enumLookup = buildEnumLookup(types);
-        for (var entry : enumLookup.entrySet()) {
+        Map<List<String>, String> enumLookup = buildEnumLookup(types);
+        for (Map.Entry<List<String>, String> entry : enumLookup.entrySet()) {
             generateEnum(entry.getValue(), entry.getKey());
         }
         return enumLookup;
@@ -204,10 +201,10 @@ final class TypeClassWriter {
     private static void generateEnum(String name, List<String> values) {
         name = wordsToCamelCase(name, true);
 
-        var builder = new StringBuilder();
+        StringBuilder builder = new StringBuilder();
         builder.append("public enum ").append(name).append(" {\n");
 
-        for (var value : values) {
+        for (String value : values) {
             builder.append("    ").append(value.toUpperCase()).append(",\n");
         }
 
@@ -221,14 +218,14 @@ final class TypeClassWriter {
     }
 
     private static Map<List<String>, String> buildEnumLookup(List<TypeDef> types) {
-        var result = new HashMap<List<String>, String>();
-        for (var type : types) {
-            for (var property : type.properties()) {
-                var values = property.values();
+        HashMap<List<String>, String> result = new HashMap<List<String>, String>();
+        for (TypeDef type : types) {
+            for (PropertyDef property : type.properties()) {
+                List<String> values = property.values();
                 if (values.isEmpty() || values.equals(List.of("True", "False"))) {
                     continue;
                 }
-                var name = property.name();
+                String name = property.name();
                 if (result.containsKey(values) && !result.get(values).equals(name)) {
                     throw new IllegalArgumentException("not unique");
                 }
@@ -248,11 +245,11 @@ final class TypeClassWriter {
     }
 
     private static String className(CastNodeID child) {
-        var result = Arrays.stream(child.name().split("_"))
+        String result = Arrays.stream(child.name().split("_"))
             .map(s -> changeFirst(s.toLowerCase(), true))
             .collect(Collectors.joining());
 
-        return changeFirst(result, true) + "Node";
+        return changeFirst(result, true);
     }
 
     private static String indexName(PropertyDef property) {
