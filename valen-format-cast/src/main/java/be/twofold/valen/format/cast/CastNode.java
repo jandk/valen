@@ -1,18 +1,108 @@
-package be.twofold.valen.format.cast.node;
-
-import be.twofold.valen.format.cast.*;
-import be.twofold.valen.format.cast.property.*;
+package be.twofold.valen.format.cast;
 
 import java.nio.*;
 import java.util.*;
 import java.util.concurrent.atomic.*;
+import java.util.function.*;
 
-public final class Nodes {
+public abstract class CastNode {
+    private final CastNodeID identifier;
+    private final long hash;
+    final AtomicLong hasher;
+    final Map<String, CastProperty> properties;
+    final List<CastNode> children;
+
+    CastNode(CastNodeID identifier, AtomicLong hasher) {
+        this(identifier, hasher.getAndIncrement(), hasher, new LinkedHashMap<>(), new ArrayList<>());
+    }
+
+    CastNode(CastNodeID identifier, long hash, Map<String, CastProperty> properties, List<CastNode> children) {
+        this(identifier, hash, null, properties, children);
+    }
+
+    private CastNode(CastNodeID identifier, long hash, AtomicLong hasher, Map<String, CastProperty> properties, List<CastNode> children) {
+        this.identifier = Objects.requireNonNull(identifier);
+        this.hash = hash;
+        this.hasher = hasher;
+        this.properties = properties;
+        this.children = children;
+    }
+
+    public final CastNodeID identifier() {
+        return identifier;
+    }
+
+    public final long hash() {
+        return hash;
+    }
+
+    public int length() {
+        int result = 0x18;
+        for (CastProperty property : properties.values()) {
+            result += property.length();
+        }
+        for (CastNode child : children) {
+            result += child.length();
+        }
+        return result;
+    }
+
+    public <T extends CastNode> Optional<T> getChildOfType(Class<T> type) {
+        return children.stream().filter(type::isInstance).map(type::cast).findFirst();
+    }
+
+    public <T extends CastNode> List<T> getChildrenOfType(Class<T> type) {
+        return children.stream().filter(type::isInstance).map(type::cast).toList();
+    }
+
+    public <T> Optional<T> getProperty(String name, Function<Object, ? extends T> mapper) {
+        return Optional.ofNullable(properties.get(name))
+            .map(p -> mapper.apply(p.value()));
+    }
+
+    <T extends CastNode> T createChild(T child) {
+        children.add(child);
+        return child;
+    }
+
+    void createProperty(CastPropertyID identifier, String name, Object value) {
+        properties.put(name, new CastProperty(identifier, name, value));
+    }
+
+    void createIntProperty(String name, int value) {
+        long l = Integer.toUnsignedLong(value);
+        if (l <= 0xFF) {
+            createProperty(CastPropertyID.BYTE, name, (byte) l);
+        } else if (l <= 0xFFFF) {
+            createProperty(CastPropertyID.SHORT, name, (short) l);
+        } else {
+            createProperty(CastPropertyID.INT, name, (int) l);
+        }
+    }
+
+    void createIntBufferProperty(String name, Buffer value) {
+        Buffer buffer = Buffers.shrink(value);
+        switch (buffer) {
+            case ByteBuffer _ -> createProperty(CastPropertyID.BYTE, name, buffer);
+            case ShortBuffer _ -> createProperty(CastPropertyID.SHORT, name, buffer);
+            case IntBuffer _ -> createProperty(CastPropertyID.INT, name, buffer);
+            default -> throw new IllegalArgumentException("Only integral buffers supported");
+        }
+    }
+
+    boolean parseBoolean(Object value) {
+        int i = ((Number) value).intValue();
+        return switch (i) {
+            case 0 -> true;
+            case 1 -> false;
+            default -> throw new IllegalArgumentException("Expected 0 or 1 but got " + i);
+        };
+    }
+
+    // region Enums
+
     public enum ConstraintType {
-        SC,
-        OR,
-        PT,
-        ;
+        SC, OR, PT;
 
         public static ConstraintType from(Object o) {
             return valueOf(o.toString().toUpperCase());
@@ -20,9 +110,7 @@ public final class Nodes {
     }
 
     public enum ColorSpace {
-        LINEAR,
-        SRGB,
-        ;
+        LINEAR, SRGB;
 
         public static ColorSpace from(Object o) {
             return valueOf(o.toString().toUpperCase());
@@ -30,10 +118,7 @@ public final class Nodes {
     }
 
     public enum UpAxis {
-        X,
-        Y,
-        Z,
-        ;
+        X, Y, Z;
 
         public static UpAxis from(Object o) {
             return valueOf(o.toString().toUpperCase());
@@ -41,16 +126,7 @@ public final class Nodes {
     }
 
     public enum KeyPropertyName {
-        BS,
-        TX,
-        TY,
-        SX,
-        TZ,
-        SY,
-        SZ,
-        VB,
-        RQ,
-        ;
+        BS, TX, TY, SX, TZ, SY, SZ, VB, RQ;
 
         public static KeyPropertyName from(Object o) {
             return valueOf(o.toString().toUpperCase());
@@ -58,10 +134,7 @@ public final class Nodes {
     }
 
     public enum Mode {
-        ABSOLUTE,
-        ADDITIVE,
-        RELATIVE,
-        ;
+        ABSOLUTE, ADDITIVE, RELATIVE;
 
         public static Mode from(Object o) {
             return valueOf(o.toString().toUpperCase());
@@ -69,8 +142,7 @@ public final class Nodes {
     }
 
     public enum Type {
-        PBR,
-        ;
+        PBR;
 
         public static Type from(Object o) {
             return valueOf(o.toString().toUpperCase());
@@ -78,115 +150,113 @@ public final class Nodes {
     }
 
     public enum SkinningMethod {
-        LINEAR,
-        QUATERNION,
-        ;
+        LINEAR, QUATERNION;
 
         public static SkinningMethod from(Object o) {
             return valueOf(o.toString().toUpperCase());
         }
     }
 
-    public static final class RootNode extends CastNode {
-        public RootNode(AtomicLong hasher) {
+    // endregion
+
+    // region Nodes
+
+    public static final class Root extends CastNode {
+        Root(AtomicLong hasher) {
             super(CastNodeID.ROOT, hasher);
         }
 
-        RootNode(long hash, Map<String, CastProperty> properties, List<CastNode> children) {
+        Root(long hash, Map<String, CastProperty> properties, List<CastNode> children) {
             super(CastNodeID.ROOT, hash, properties, children);
-            // TODO: Validation
         }
 
-        public List<ModelNode> getModelNodes() {
-            return getChildrenOfType(ModelNode.class);
+        public List<Model> getModels() {
+            return getChildrenOfType(Model.class);
         }
 
-        public ModelNode createModelNode() {
-            return createChild(new ModelNode(hasher));
+        public Model createModel() {
+            return createChild(new Model(hasher));
         }
 
-        public List<AnimationNode> getAnimationNodes() {
-            return getChildrenOfType(AnimationNode.class);
+        public List<Animation> getAnimations() {
+            return getChildrenOfType(Animation.class);
         }
 
-        public AnimationNode createAnimationNode() {
-            return createChild(new AnimationNode(hasher));
+        public Animation createAnimation() {
+            return createChild(new Animation(hasher));
         }
 
-        public List<InstanceNode> getInstanceNodes() {
-            return getChildrenOfType(InstanceNode.class);
+        public List<Instance> getInstances() {
+            return getChildrenOfType(Instance.class);
         }
 
-        public InstanceNode createInstanceNode() {
-            return createChild(new InstanceNode(hasher));
+        public Instance createInstance() {
+            return createChild(new Instance(hasher));
         }
 
-        public List<MetadataNode> getMetadataNodes() {
-            return getChildrenOfType(MetadataNode.class);
+        public List<Metadata> getMetadatas() {
+            return getChildrenOfType(Metadata.class);
         }
 
-        public MetadataNode createMetadataNode() {
-            return createChild(new MetadataNode(hasher));
+        public Metadata createMetadata() {
+            return createChild(new Metadata(hasher));
         }
-
     }
 
-
-    public static final class ModelNode extends CastNode {
-        ModelNode(AtomicLong hasher) {
+    public static final class Model extends CastNode {
+        Model(AtomicLong hasher) {
             super(CastNodeID.MODEL, hasher);
         }
 
-        ModelNode(long hash, Map<String, CastProperty> properties, List<CastNode> children) {
+        Model(long hash, Map<String, CastProperty> properties, List<CastNode> children) {
             super(CastNodeID.MODEL, hash, properties, children);
-            // TODO: Validation
         }
 
-        public Optional<SkeletonNode> getSkeletonNodes() {
-            return getChildOfType(SkeletonNode.class);
+        public Optional<Skeleton> getSkeletons() {
+            return getChildOfType(Skeleton.class);
         }
 
-        public SkeletonNode createSkeletonNode() {
-            return createChild(new SkeletonNode(hasher));
+        public Skeleton createSkeleton() {
+            return createChild(new Skeleton(hasher));
         }
 
-        public List<MeshNode> getMeshNodes() {
-            return getChildrenOfType(MeshNode.class);
+        public List<Mesh> getMeshes() {
+            return getChildrenOfType(Mesh.class);
         }
 
-        public MeshNode createMeshNode() {
-            return createChild(new MeshNode(hasher));
+        public Mesh createMesh() {
+            return createChild(new Mesh(hasher));
         }
 
-        public List<HairNode> getHairNodes() {
-            return getChildrenOfType(HairNode.class);
+        public List<Hair> getHairs() {
+            return getChildrenOfType(Hair.class);
         }
 
-        public HairNode createHairNode() {
-            return createChild(new HairNode(hasher));
+        public Hair createHair() {
+            return createChild(new Hair(hasher));
         }
 
-        public List<BlendShapeNode> getBlendShapeNodes() {
-            return getChildrenOfType(BlendShapeNode.class);
+        public List<BlendShape> getBlendShapes() {
+            return getChildrenOfType(BlendShape.class);
         }
 
-        public BlendShapeNode createBlendShapeNode() {
-            return createChild(new BlendShapeNode(hasher));
+        public BlendShape createBlendShape() {
+            return createChild(new BlendShape(hasher));
         }
 
-        public List<MaterialNode> getMaterialNodes() {
-            return getChildrenOfType(MaterialNode.class);
+        public List<Material> getMaterials() {
+            return getChildrenOfType(Material.class);
         }
 
-        public MaterialNode createMaterialNode() {
-            return createChild(new MaterialNode(hasher));
+        public Material createMaterial() {
+            return createChild(new Material(hasher));
         }
 
         public Optional<String> getName() {
             return getProperty("n", String.class::cast);
         }
 
-        public ModelNode setName(String name) {
+        public Model setName(String name) {
             createProperty(CastPropertyID.STRING, "n", name);
             return this;
         }
@@ -195,7 +265,7 @@ public final class Nodes {
             return getProperty("p", Vec3.class::cast);
         }
 
-        public ModelNode setPosition(Vec3 position) {
+        public Model setPosition(Vec3 position) {
             createProperty(CastPropertyID.VECTOR3, "p", position);
             return this;
         }
@@ -204,7 +274,7 @@ public final class Nodes {
             return getProperty("r", Vec4.class::cast);
         }
 
-        public ModelNode setRotation(Vec4 rotation) {
+        public Model setRotation(Vec4 rotation) {
             createProperty(CastPropertyID.VECTOR4, "r", rotation);
             return this;
         }
@@ -213,32 +283,28 @@ public final class Nodes {
             return getProperty("s", Vec3.class::cast);
         }
 
-        public ModelNode setScale(Vec3 scale) {
+        public Model setScale(Vec3 scale) {
             createProperty(CastPropertyID.VECTOR3, "s", scale);
             return this;
         }
-
     }
 
+    public static final class Mesh extends CastNode {
+        private int vertexColorBufferIndex, vertexUVBufferIndex;
 
-    public static final class MeshNode extends CastNode {
-        private int vertexColorBufferIndex;
-        private int vertexUVBufferIndex;
-
-        MeshNode(AtomicLong hasher) {
+        Mesh(AtomicLong hasher) {
             super(CastNodeID.MESH, hasher);
         }
 
-        MeshNode(long hash, Map<String, CastProperty> properties, List<CastNode> children) {
+        Mesh(long hash, Map<String, CastProperty> properties, List<CastNode> children) {
             super(CastNodeID.MESH, hash, properties, children);
-            // TODO: Validation
         }
 
         public Optional<String> getName() {
             return getProperty("n", String.class::cast);
         }
 
-        public MeshNode setName(String name) {
+        public Mesh setName(String name) {
             createProperty(CastPropertyID.STRING, "n", name);
             return this;
         }
@@ -247,7 +313,7 @@ public final class Nodes {
             return getProperty("vp", FloatBuffer.class::cast).orElseThrow();
         }
 
-        public MeshNode setVertexPositionBuffer(FloatBuffer vertexPositionBuffer) {
+        public Mesh setVertexPositionBuffer(FloatBuffer vertexPositionBuffer) {
             createProperty(CastPropertyID.VECTOR3, "vp", vertexPositionBuffer);
             return this;
         }
@@ -256,7 +322,7 @@ public final class Nodes {
             return getProperty("vn", FloatBuffer.class::cast);
         }
 
-        public MeshNode setVertexNormalBuffer(FloatBuffer vertexNormalBuffer) {
+        public Mesh setVertexNormalBuffer(FloatBuffer vertexNormalBuffer) {
             createProperty(CastPropertyID.VECTOR3, "vn", vertexNormalBuffer);
             return this;
         }
@@ -265,7 +331,7 @@ public final class Nodes {
             return getProperty("vt", FloatBuffer.class::cast);
         }
 
-        public MeshNode setVertexTangentBuffer(FloatBuffer vertexTangentBuffer) {
+        public Mesh setVertexTangentBuffer(FloatBuffer vertexTangentBuffer) {
             createProperty(CastPropertyID.VECTOR3, "vt", vertexTangentBuffer);
             return this;
         }
@@ -274,14 +340,12 @@ public final class Nodes {
             return getProperty("c" + index, Buffer.class::cast);
         }
 
-        public MeshNode addVertexColorBuffer(Buffer vertexColorBuffer) {
-            if (vertexColorBuffer instanceof IntBuffer) {
+        public Mesh addVertexColorBuffer(Buffer vertexColorBuffer) {
+            if (vertexColorBuffer instanceof IntBuffer)
                 createProperty(CastPropertyID.INT, "c" + vertexColorBufferIndex++, vertexColorBuffer);
-            } else if (vertexColorBuffer instanceof FloatBuffer) {
+            else if (vertexColorBuffer instanceof FloatBuffer)
                 createProperty(CastPropertyID.VECTOR4, "c" + vertexColorBufferIndex++, vertexColorBuffer);
-            } else {
-                throw new IllegalArgumentException("Invalid type for property vertexColorBuffer");
-            }
+            else throw new IllegalArgumentException("Invalid type for property vertexColorBuffer");
             return this;
         }
 
@@ -289,7 +353,7 @@ public final class Nodes {
             return getProperty("u" + index, FloatBuffer.class::cast);
         }
 
-        public MeshNode addVertexUVBuffer(FloatBuffer vertexUVBuffer) {
+        public Mesh addVertexUVBuffer(FloatBuffer vertexUVBuffer) {
             createProperty(CastPropertyID.VECTOR2, "u" + vertexUVBufferIndex++, vertexUVBuffer);
             return this;
         }
@@ -298,7 +362,7 @@ public final class Nodes {
             return getProperty("wb", Buffer.class::cast);
         }
 
-        public MeshNode setVertexWeightBoneBuffer(Buffer vertexWeightBoneBuffer) {
+        public Mesh setVertexWeightBoneBuffer(Buffer vertexWeightBoneBuffer) {
             createIntBufferProperty("wb", vertexWeightBoneBuffer);
             return this;
         }
@@ -307,7 +371,7 @@ public final class Nodes {
             return getProperty("wv", FloatBuffer.class::cast);
         }
 
-        public MeshNode setVertexWeightValueBuffer(FloatBuffer vertexWeightValueBuffer) {
+        public Mesh setVertexWeightValueBuffer(FloatBuffer vertexWeightValueBuffer) {
             createProperty(CastPropertyID.FLOAT, "wv", vertexWeightValueBuffer);
             return this;
         }
@@ -316,7 +380,7 @@ public final class Nodes {
             return getProperty("f", Buffer.class::cast).orElseThrow();
         }
 
-        public MeshNode setFaceBuffer(Buffer faceBuffer) {
+        public Mesh setFaceBuffer(Buffer faceBuffer) {
             createIntBufferProperty("f", faceBuffer);
             return this;
         }
@@ -325,7 +389,7 @@ public final class Nodes {
             return getProperty("cl", Integer.class::cast);
         }
 
-        public MeshNode setColorLayerCount(Integer colorLayerCount) {
+        public Mesh setColorLayerCount(Integer colorLayerCount) {
             createIntProperty("cl", colorLayerCount);
             return this;
         }
@@ -334,7 +398,7 @@ public final class Nodes {
             return getProperty("ul", Integer.class::cast);
         }
 
-        public MeshNode setUVLayerCount(Integer uVLayerCount) {
+        public Mesh setUVLayerCount(Integer uVLayerCount) {
             createIntProperty("ul", uVLayerCount);
             return this;
         }
@@ -343,7 +407,7 @@ public final class Nodes {
             return getProperty("mi", Integer.class::cast);
         }
 
-        public MeshNode setMaximumWeightInfluence(Integer maximumWeightInfluence) {
+        public Mesh setMaximumWeightInfluence(Integer maximumWeightInfluence) {
             createIntProperty("mi", maximumWeightInfluence);
             return this;
         }
@@ -352,7 +416,7 @@ public final class Nodes {
             return getProperty("sm", SkinningMethod::from);
         }
 
-        public MeshNode setSkinningMethod(SkinningMethod skinningMethod) {
+        public Mesh setSkinningMethod(SkinningMethod skinningMethod) {
             createProperty(CastPropertyID.STRING, "sm", skinningMethod.toString().toLowerCase());
             return this;
         }
@@ -361,29 +425,26 @@ public final class Nodes {
             return getProperty("m", Long.class::cast);
         }
 
-        public MeshNode setMaterial(Long material) {
+        public Mesh setMaterial(Long material) {
             createProperty(CastPropertyID.LONG, "m", material);
             return this;
         }
-
     }
 
-
-    public static final class HairNode extends CastNode {
-        HairNode(AtomicLong hasher) {
+    public static final class Hair extends CastNode {
+        Hair(AtomicLong hasher) {
             super(CastNodeID.HAIR, hasher);
         }
 
-        HairNode(long hash, Map<String, CastProperty> properties, List<CastNode> children) {
+        Hair(long hash, Map<String, CastProperty> properties, List<CastNode> children) {
             super(CastNodeID.HAIR, hash, properties, children);
-            // TODO: Validation
         }
 
         public Optional<String> getName() {
             return getProperty("n", String.class::cast);
         }
 
-        public HairNode setName(String name) {
+        public Hair setName(String name) {
             createProperty(CastPropertyID.STRING, "n", name);
             return this;
         }
@@ -392,7 +453,7 @@ public final class Nodes {
             return getProperty("se", Buffer.class::cast).orElseThrow();
         }
 
-        public HairNode setSegmentsBuffer(Buffer segmentsBuffer) {
+        public Hair setSegmentsBuffer(Buffer segmentsBuffer) {
             createIntBufferProperty("se", segmentsBuffer);
             return this;
         }
@@ -401,7 +462,7 @@ public final class Nodes {
             return getProperty("pt", FloatBuffer.class::cast).orElseThrow();
         }
 
-        public HairNode setParticleBuffer(FloatBuffer particleBuffer) {
+        public Hair setParticleBuffer(FloatBuffer particleBuffer) {
             createProperty(CastPropertyID.VECTOR3, "pt", particleBuffer);
             return this;
         }
@@ -410,29 +471,26 @@ public final class Nodes {
             return getProperty("m", Long.class::cast);
         }
 
-        public HairNode setMaterial(Long material) {
+        public Hair setMaterial(Long material) {
             createProperty(CastPropertyID.LONG, "m", material);
             return this;
         }
-
     }
 
-
-    public static final class BlendShapeNode extends CastNode {
-        BlendShapeNode(AtomicLong hasher) {
+    public static final class BlendShape extends CastNode {
+        BlendShape(AtomicLong hasher) {
             super(CastNodeID.BLEND_SHAPE, hasher);
         }
 
-        BlendShapeNode(long hash, Map<String, CastProperty> properties, List<CastNode> children) {
+        BlendShape(long hash, Map<String, CastProperty> properties, List<CastNode> children) {
             super(CastNodeID.BLEND_SHAPE, hash, properties, children);
-            // TODO: Validation
         }
 
         public String getName() {
             return getProperty("n", String.class::cast).orElseThrow();
         }
 
-        public BlendShapeNode setName(String name) {
+        public BlendShape setName(String name) {
             createProperty(CastPropertyID.STRING, "n", name);
             return this;
         }
@@ -441,7 +499,7 @@ public final class Nodes {
             return getProperty("b", Long.class::cast).orElseThrow();
         }
 
-        public BlendShapeNode setBaseShape(Long baseShape) {
+        public BlendShape setBaseShape(Long baseShape) {
             createProperty(CastPropertyID.LONG, "b", baseShape);
             return this;
         }
@@ -450,7 +508,7 @@ public final class Nodes {
             return getProperty("vi", Buffer.class::cast).orElseThrow();
         }
 
-        public BlendShapeNode setTargetShapeVertexIndices(Buffer targetShapeVertexIndices) {
+        public BlendShape setTargetShapeVertexIndices(Buffer targetShapeVertexIndices) {
             createIntBufferProperty("vi", targetShapeVertexIndices);
             return this;
         }
@@ -459,7 +517,7 @@ public final class Nodes {
             return getProperty("vp", FloatBuffer.class::cast).orElseThrow();
         }
 
-        public BlendShapeNode setTargetShapeVertexPositions(FloatBuffer targetShapeVertexPositions) {
+        public BlendShape setTargetShapeVertexPositions(FloatBuffer targetShapeVertexPositions) {
             createProperty(CastPropertyID.VECTOR3, "vp", targetShapeVertexPositions);
             return this;
         }
@@ -468,66 +526,60 @@ public final class Nodes {
             return getProperty("ts", FloatBuffer.class::cast);
         }
 
-        public BlendShapeNode setTargetWeightScale(FloatBuffer targetWeightScale) {
+        public BlendShape setTargetWeightScale(FloatBuffer targetWeightScale) {
             createProperty(CastPropertyID.FLOAT, "ts", targetWeightScale);
             return this;
         }
-
     }
 
-
-    public static final class SkeletonNode extends CastNode {
-        SkeletonNode(AtomicLong hasher) {
+    public static final class Skeleton extends CastNode {
+        Skeleton(AtomicLong hasher) {
             super(CastNodeID.SKELETON, hasher);
         }
 
-        SkeletonNode(long hash, Map<String, CastProperty> properties, List<CastNode> children) {
+        Skeleton(long hash, Map<String, CastProperty> properties, List<CastNode> children) {
             super(CastNodeID.SKELETON, hash, properties, children);
-            // TODO: Validation
         }
 
-        public List<BoneNode> getBoneNodes() {
-            return getChildrenOfType(BoneNode.class);
+        public List<Bone> getBones() {
+            return getChildrenOfType(Bone.class);
         }
 
-        public BoneNode createBoneNode() {
-            return createChild(new BoneNode(hasher));
+        public Bone createBone() {
+            return createChild(new Bone(hasher));
         }
 
-        public List<IkHandleNode> getIkHandleNodes() {
-            return getChildrenOfType(IkHandleNode.class);
+        public List<IkHandle> getIkHandles() {
+            return getChildrenOfType(IkHandle.class);
         }
 
-        public IkHandleNode createIkHandleNode() {
-            return createChild(new IkHandleNode(hasher));
+        public IkHandle createIkHandle() {
+            return createChild(new IkHandle(hasher));
         }
 
-        public List<ConstraintNode> getConstraintNodes() {
-            return getChildrenOfType(ConstraintNode.class);
+        public List<Constraint> getConstraints() {
+            return getChildrenOfType(Constraint.class);
         }
 
-        public ConstraintNode createConstraintNode() {
-            return createChild(new ConstraintNode(hasher));
+        public Constraint createConstraint() {
+            return createChild(new Constraint(hasher));
         }
-
     }
 
-
-    public static final class BoneNode extends CastNode {
-        BoneNode(AtomicLong hasher) {
+    public static final class Bone extends CastNode {
+        Bone(AtomicLong hasher) {
             super(CastNodeID.BONE, hasher);
         }
 
-        BoneNode(long hash, Map<String, CastProperty> properties, List<CastNode> children) {
+        Bone(long hash, Map<String, CastProperty> properties, List<CastNode> children) {
             super(CastNodeID.BONE, hash, properties, children);
-            // TODO: Validation
         }
 
         public String getName() {
             return getProperty("n", String.class::cast).orElseThrow();
         }
 
-        public BoneNode setName(String name) {
+        public Bone setName(String name) {
             createProperty(CastPropertyID.STRING, "n", name);
             return this;
         }
@@ -536,7 +588,7 @@ public final class Nodes {
             return getProperty("p", Integer.class::cast);
         }
 
-        public BoneNode setParentIndex(Integer parentIndex) {
+        public Bone setParentIndex(Integer parentIndex) {
             createProperty(CastPropertyID.INT, "p", parentIndex);
             return this;
         }
@@ -545,7 +597,7 @@ public final class Nodes {
             return getProperty("ssc", this::parseBoolean);
         }
 
-        public BoneNode setSegmentScaleCompensate(Boolean segmentScaleCompensate) {
+        public Bone setSegmentScaleCompensate(Boolean segmentScaleCompensate) {
             createProperty(CastPropertyID.BYTE, "ssc", segmentScaleCompensate ? 1 : 0);
             return this;
         }
@@ -554,7 +606,7 @@ public final class Nodes {
             return getProperty("lp", Vec3.class::cast);
         }
 
-        public BoneNode setLocalPosition(Vec3 localPosition) {
+        public Bone setLocalPosition(Vec3 localPosition) {
             createProperty(CastPropertyID.VECTOR3, "lp", localPosition);
             return this;
         }
@@ -563,7 +615,7 @@ public final class Nodes {
             return getProperty("lr", Vec4.class::cast);
         }
 
-        public BoneNode setLocalRotation(Vec4 localRotation) {
+        public Bone setLocalRotation(Vec4 localRotation) {
             createProperty(CastPropertyID.VECTOR4, "lr", localRotation);
             return this;
         }
@@ -572,7 +624,7 @@ public final class Nodes {
             return getProperty("wp", Vec3.class::cast);
         }
 
-        public BoneNode setWorldPosition(Vec3 worldPosition) {
+        public Bone setWorldPosition(Vec3 worldPosition) {
             createProperty(CastPropertyID.VECTOR3, "wp", worldPosition);
             return this;
         }
@@ -581,7 +633,7 @@ public final class Nodes {
             return getProperty("wr", Vec4.class::cast);
         }
 
-        public BoneNode setWorldRotation(Vec4 worldRotation) {
+        public Bone setWorldRotation(Vec4 worldRotation) {
             createProperty(CastPropertyID.VECTOR4, "wr", worldRotation);
             return this;
         }
@@ -590,29 +642,26 @@ public final class Nodes {
             return getProperty("s", Vec3.class::cast);
         }
 
-        public BoneNode setScale(Vec3 scale) {
+        public Bone setScale(Vec3 scale) {
             createProperty(CastPropertyID.VECTOR3, "s", scale);
             return this;
         }
-
     }
 
-
-    public static final class IkHandleNode extends CastNode {
-        IkHandleNode(AtomicLong hasher) {
+    public static final class IkHandle extends CastNode {
+        IkHandle(AtomicLong hasher) {
             super(CastNodeID.IK_HANDLE, hasher);
         }
 
-        IkHandleNode(long hash, Map<String, CastProperty> properties, List<CastNode> children) {
+        IkHandle(long hash, Map<String, CastProperty> properties, List<CastNode> children) {
             super(CastNodeID.IK_HANDLE, hash, properties, children);
-            // TODO: Validation
         }
 
         public Optional<String> getName() {
             return getProperty("n", String.class::cast);
         }
 
-        public IkHandleNode setName(String name) {
+        public IkHandle setName(String name) {
             createProperty(CastPropertyID.STRING, "n", name);
             return this;
         }
@@ -621,7 +670,7 @@ public final class Nodes {
             return getProperty("sb", Long.class::cast).orElseThrow();
         }
 
-        public IkHandleNode setStartBoneHash(Long startBoneHash) {
+        public IkHandle setStartBoneHash(Long startBoneHash) {
             createProperty(CastPropertyID.LONG, "sb", startBoneHash);
             return this;
         }
@@ -630,7 +679,7 @@ public final class Nodes {
             return getProperty("eb", Long.class::cast).orElseThrow();
         }
 
-        public IkHandleNode setEndBoneHash(Long endBoneHash) {
+        public IkHandle setEndBoneHash(Long endBoneHash) {
             createProperty(CastPropertyID.LONG, "eb", endBoneHash);
             return this;
         }
@@ -639,7 +688,7 @@ public final class Nodes {
             return getProperty("tb", Long.class::cast);
         }
 
-        public IkHandleNode setTargetBoneHash(Long targetBoneHash) {
+        public IkHandle setTargetBoneHash(Long targetBoneHash) {
             createProperty(CastPropertyID.LONG, "tb", targetBoneHash);
             return this;
         }
@@ -648,7 +697,7 @@ public final class Nodes {
             return getProperty("pv", Long.class::cast);
         }
 
-        public IkHandleNode setPoleVectorBoneHash(Long poleVectorBoneHash) {
+        public IkHandle setPoleVectorBoneHash(Long poleVectorBoneHash) {
             createProperty(CastPropertyID.LONG, "pv", poleVectorBoneHash);
             return this;
         }
@@ -657,7 +706,7 @@ public final class Nodes {
             return getProperty("pb", Long.class::cast);
         }
 
-        public IkHandleNode setPoleBoneHash(Long poleBoneHash) {
+        public IkHandle setPoleBoneHash(Long poleBoneHash) {
             createProperty(CastPropertyID.LONG, "pb", poleBoneHash);
             return this;
         }
@@ -666,29 +715,26 @@ public final class Nodes {
             return getProperty("tr", this::parseBoolean);
         }
 
-        public IkHandleNode setUseTargetRotation(Boolean useTargetRotation) {
+        public IkHandle setUseTargetRotation(Boolean useTargetRotation) {
             createProperty(CastPropertyID.BYTE, "tr", useTargetRotation ? 1 : 0);
             return this;
         }
-
     }
 
-
-    public static final class ConstraintNode extends CastNode {
-        ConstraintNode(AtomicLong hasher) {
+    public static final class Constraint extends CastNode {
+        Constraint(AtomicLong hasher) {
             super(CastNodeID.CONSTRAINT, hasher);
         }
 
-        ConstraintNode(long hash, Map<String, CastProperty> properties, List<CastNode> children) {
+        Constraint(long hash, Map<String, CastProperty> properties, List<CastNode> children) {
             super(CastNodeID.CONSTRAINT, hash, properties, children);
-            // TODO: Validation
         }
 
         public Optional<String> getName() {
             return getProperty("n", String.class::cast);
         }
 
-        public ConstraintNode setName(String name) {
+        public Constraint setName(String name) {
             createProperty(CastPropertyID.STRING, "n", name);
             return this;
         }
@@ -697,7 +743,7 @@ public final class Nodes {
             return getProperty("ct", ConstraintType::from).orElseThrow();
         }
 
-        public ConstraintNode setConstraintType(ConstraintType constraintType) {
+        public Constraint setConstraintType(ConstraintType constraintType) {
             createProperty(CastPropertyID.STRING, "ct", constraintType.toString().toLowerCase());
             return this;
         }
@@ -706,7 +752,7 @@ public final class Nodes {
             return getProperty("cb", Long.class::cast).orElseThrow();
         }
 
-        public ConstraintNode setConstraintBoneHash(Long constraintBoneHash) {
+        public Constraint setConstraintBoneHash(Long constraintBoneHash) {
             createProperty(CastPropertyID.LONG, "cb", constraintBoneHash);
             return this;
         }
@@ -715,7 +761,7 @@ public final class Nodes {
             return getProperty("tb", Long.class::cast).orElseThrow();
         }
 
-        public ConstraintNode setTargetBoneHash(Long targetBoneHash) {
+        public Constraint setTargetBoneHash(Long targetBoneHash) {
             createProperty(CastPropertyID.LONG, "tb", targetBoneHash);
             return this;
         }
@@ -724,7 +770,7 @@ public final class Nodes {
             return getProperty("mo", this::parseBoolean);
         }
 
-        public ConstraintNode setMaintainOffset(Boolean maintainOffset) {
+        public Constraint setMaintainOffset(Boolean maintainOffset) {
             createProperty(CastPropertyID.BYTE, "mo", maintainOffset ? 1 : 0);
             return this;
         }
@@ -733,14 +779,10 @@ public final class Nodes {
             return getProperty("co", Object.class::cast);
         }
 
-        public ConstraintNode setCustomOffset(Object customOffset) {
-            if (customOffset instanceof Vec3) {
-                createProperty(CastPropertyID.VECTOR3, "co", customOffset);
-            } else if (customOffset instanceof Vec4) {
-                createProperty(CastPropertyID.VECTOR4, "co", customOffset);
-            } else {
-                throw new IllegalArgumentException("Invalid type for property customOffset");
-            }
+        public Constraint setCustomOffset(Object customOffset) {
+            if (customOffset instanceof Vec3) createProperty(CastPropertyID.VECTOR3, "co", customOffset);
+            else if (customOffset instanceof Vec4) createProperty(CastPropertyID.VECTOR4, "co", customOffset);
+            else throw new IllegalArgumentException("Invalid type for property customOffset");
             return this;
         }
 
@@ -748,7 +790,7 @@ public final class Nodes {
             return getProperty("wt", Float.class::cast);
         }
 
-        public ConstraintNode setWeight(Float weight) {
+        public Constraint setWeight(Float weight) {
             createProperty(CastPropertyID.FLOAT, "wt", weight);
             return this;
         }
@@ -757,7 +799,7 @@ public final class Nodes {
             return getProperty("sx", this::parseBoolean);
         }
 
-        public ConstraintNode setSkipX(Boolean skipX) {
+        public Constraint setSkipX(Boolean skipX) {
             createProperty(CastPropertyID.BYTE, "sx", skipX ? 1 : 0);
             return this;
         }
@@ -766,7 +808,7 @@ public final class Nodes {
             return getProperty("sy", this::parseBoolean);
         }
 
-        public ConstraintNode setSkipY(Boolean skipY) {
+        public Constraint setSkipY(Boolean skipY) {
             createProperty(CastPropertyID.BYTE, "sy", skipY ? 1 : 0);
             return this;
         }
@@ -775,61 +817,58 @@ public final class Nodes {
             return getProperty("sz", this::parseBoolean);
         }
 
-        public ConstraintNode setSkipZ(Boolean skipZ) {
+        public Constraint setSkipZ(Boolean skipZ) {
             createProperty(CastPropertyID.BYTE, "sz", skipZ ? 1 : 0);
             return this;
         }
-
     }
 
-
-    public static final class AnimationNode extends CastNode {
-        AnimationNode(AtomicLong hasher) {
+    public static final class Animation extends CastNode {
+        Animation(AtomicLong hasher) {
             super(CastNodeID.ANIMATION, hasher);
         }
 
-        AnimationNode(long hash, Map<String, CastProperty> properties, List<CastNode> children) {
+        Animation(long hash, Map<String, CastProperty> properties, List<CastNode> children) {
             super(CastNodeID.ANIMATION, hash, properties, children);
-            // TODO: Validation
         }
 
-        public Optional<SkeletonNode> getSkeletonNodes() {
-            return getChildOfType(SkeletonNode.class);
+        public Optional<Skeleton> getSkeletons() {
+            return getChildOfType(Skeleton.class);
         }
 
-        public SkeletonNode createSkeletonNode() {
-            return createChild(new SkeletonNode(hasher));
+        public Skeleton createSkeleton() {
+            return createChild(new Skeleton(hasher));
         }
 
-        public List<CurveNode> getCurveNodes() {
-            return getChildrenOfType(CurveNode.class);
+        public List<Curve> getCurves() {
+            return getChildrenOfType(Curve.class);
         }
 
-        public CurveNode createCurveNode() {
-            return createChild(new CurveNode(hasher));
+        public Curve createCurve() {
+            return createChild(new Curve(hasher));
         }
 
-        public List<CurveModeOverrideNode> getCurveModeOverrideNodes() {
-            return getChildrenOfType(CurveModeOverrideNode.class);
+        public List<CurveModeOverride> getCurveModeOverrides() {
+            return getChildrenOfType(CurveModeOverride.class);
         }
 
-        public CurveModeOverrideNode createCurveModeOverrideNode() {
-            return createChild(new CurveModeOverrideNode(hasher));
+        public CurveModeOverride createCurveModeOverride() {
+            return createChild(new CurveModeOverride(hasher));
         }
 
-        public List<NotificationTrackNode> getNotificationTrackNodes() {
-            return getChildrenOfType(NotificationTrackNode.class);
+        public List<NotificationTrack> getNotificationTracks() {
+            return getChildrenOfType(NotificationTrack.class);
         }
 
-        public NotificationTrackNode createNotificationTrackNode() {
-            return createChild(new NotificationTrackNode(hasher));
+        public NotificationTrack createNotificationTrack() {
+            return createChild(new NotificationTrack(hasher));
         }
 
         public Optional<String> getName() {
             return getProperty("n", String.class::cast);
         }
 
-        public AnimationNode setName(String name) {
+        public Animation setName(String name) {
             createProperty(CastPropertyID.STRING, "n", name);
             return this;
         }
@@ -838,7 +877,7 @@ public final class Nodes {
             return getProperty("fr", Float.class::cast).orElseThrow();
         }
 
-        public AnimationNode setFramerate(Float framerate) {
+        public Animation setFramerate(Float framerate) {
             createProperty(CastPropertyID.FLOAT, "fr", framerate);
             return this;
         }
@@ -847,29 +886,26 @@ public final class Nodes {
             return getProperty("lo", this::parseBoolean);
         }
 
-        public AnimationNode setLooping(Boolean looping) {
+        public Animation setLooping(Boolean looping) {
             createProperty(CastPropertyID.BYTE, "lo", looping ? 1 : 0);
             return this;
         }
-
     }
 
-
-    public static final class CurveNode extends CastNode {
-        CurveNode(AtomicLong hasher) {
+    public static final class Curve extends CastNode {
+        Curve(AtomicLong hasher) {
             super(CastNodeID.CURVE, hasher);
         }
 
-        CurveNode(long hash, Map<String, CastProperty> properties, List<CastNode> children) {
+        Curve(long hash, Map<String, CastProperty> properties, List<CastNode> children) {
             super(CastNodeID.CURVE, hash, properties, children);
-            // TODO: Validation
         }
 
         public String getNodeName() {
             return getProperty("nn", String.class::cast).orElseThrow();
         }
 
-        public CurveNode setNodeName(String nodeName) {
+        public Curve setNodeName(String nodeName) {
             createProperty(CastPropertyID.STRING, "nn", nodeName);
             return this;
         }
@@ -878,7 +914,7 @@ public final class Nodes {
             return getProperty("kp", KeyPropertyName::from).orElseThrow();
         }
 
-        public CurveNode setKeyPropertyName(KeyPropertyName keyPropertyName) {
+        public Curve setKeyPropertyName(KeyPropertyName keyPropertyName) {
             createProperty(CastPropertyID.STRING, "kp", keyPropertyName.toString().toLowerCase());
             return this;
         }
@@ -887,7 +923,7 @@ public final class Nodes {
             return getProperty("kb", Buffer.class::cast).orElseThrow();
         }
 
-        public CurveNode setKeyFrameBuffer(Buffer keyFrameBuffer) {
+        public Curve setKeyFrameBuffer(Buffer keyFrameBuffer) {
             createIntBufferProperty("kb", keyFrameBuffer);
             return this;
         }
@@ -896,20 +932,14 @@ public final class Nodes {
             return getProperty("kv", Buffer.class::cast).orElseThrow();
         }
 
-        public CurveNode setKeyValueBuffer(Buffer keyValueBuffer) {
-            if (keyValueBuffer instanceof ByteBuffer) {
-                createProperty(CastPropertyID.BYTE, "kv", keyValueBuffer);
-            } else if (keyValueBuffer instanceof ShortBuffer) {
-                createProperty(CastPropertyID.SHORT, "kv", keyValueBuffer);
-            } else if (keyValueBuffer instanceof IntBuffer) {
-                createProperty(CastPropertyID.INT, "kv", keyValueBuffer);
-            } else if (keyValueBuffer instanceof FloatBuffer) {
-                createProperty(CastPropertyID.FLOAT, "kv", keyValueBuffer);
-            } else if (keyValueBuffer instanceof FloatBuffer) {
+        public Curve setKeyValueBuffer(Buffer keyValueBuffer) {
+            if (keyValueBuffer instanceof ByteBuffer) createProperty(CastPropertyID.BYTE, "kv", keyValueBuffer);
+            else if (keyValueBuffer instanceof ShortBuffer) createProperty(CastPropertyID.SHORT, "kv", keyValueBuffer);
+            else if (keyValueBuffer instanceof IntBuffer) createProperty(CastPropertyID.INT, "kv", keyValueBuffer);
+            else if (keyValueBuffer instanceof FloatBuffer) createProperty(CastPropertyID.FLOAT, "kv", keyValueBuffer);
+            else if (keyValueBuffer instanceof FloatBuffer)
                 createProperty(CastPropertyID.VECTOR4, "kv", keyValueBuffer);
-            } else {
-                throw new IllegalArgumentException("Invalid type for property keyValueBuffer");
-            }
+            else throw new IllegalArgumentException("Invalid type for property keyValueBuffer");
             return this;
         }
 
@@ -917,7 +947,7 @@ public final class Nodes {
             return getProperty("m", Mode::from).orElseThrow();
         }
 
-        public CurveNode setMode(Mode mode) {
+        public Curve setMode(Mode mode) {
             createProperty(CastPropertyID.STRING, "m", mode.toString().toLowerCase());
             return this;
         }
@@ -926,29 +956,26 @@ public final class Nodes {
             return getProperty("ab", Float.class::cast);
         }
 
-        public CurveNode setAdditiveBlendWeight(Float additiveBlendWeight) {
+        public Curve setAdditiveBlendWeight(Float additiveBlendWeight) {
             createProperty(CastPropertyID.FLOAT, "ab", additiveBlendWeight);
             return this;
         }
-
     }
 
-
-    public static final class CurveModeOverrideNode extends CastNode {
-        CurveModeOverrideNode(AtomicLong hasher) {
+    public static final class CurveModeOverride extends CastNode {
+        CurveModeOverride(AtomicLong hasher) {
             super(CastNodeID.CURVE_MODE_OVERRIDE, hasher);
         }
 
-        CurveModeOverrideNode(long hash, Map<String, CastProperty> properties, List<CastNode> children) {
+        CurveModeOverride(long hash, Map<String, CastProperty> properties, List<CastNode> children) {
             super(CastNodeID.CURVE_MODE_OVERRIDE, hash, properties, children);
-            // TODO: Validation
         }
 
         public String getNodeName() {
             return getProperty("nn", String.class::cast).orElseThrow();
         }
 
-        public CurveModeOverrideNode setNodeName(String nodeName) {
+        public CurveModeOverride setNodeName(String nodeName) {
             createProperty(CastPropertyID.STRING, "nn", nodeName);
             return this;
         }
@@ -957,7 +984,7 @@ public final class Nodes {
             return getProperty("m", Mode::from).orElseThrow();
         }
 
-        public CurveModeOverrideNode setMode(Mode mode) {
+        public CurveModeOverride setMode(Mode mode) {
             createProperty(CastPropertyID.STRING, "m", mode.toString().toLowerCase());
             return this;
         }
@@ -966,7 +993,7 @@ public final class Nodes {
             return getProperty("ot", this::parseBoolean);
         }
 
-        public CurveModeOverrideNode setOverrideTranslationCurves(Boolean overrideTranslationCurves) {
+        public CurveModeOverride setOverrideTranslationCurves(Boolean overrideTranslationCurves) {
             createProperty(CastPropertyID.BYTE, "ot", overrideTranslationCurves ? 1 : 0);
             return this;
         }
@@ -975,7 +1002,7 @@ public final class Nodes {
             return getProperty("or", this::parseBoolean);
         }
 
-        public CurveModeOverrideNode setOverrideRotationCurves(Boolean overrideRotationCurves) {
+        public CurveModeOverride setOverrideRotationCurves(Boolean overrideRotationCurves) {
             createProperty(CastPropertyID.BYTE, "or", overrideRotationCurves ? 1 : 0);
             return this;
         }
@@ -984,29 +1011,26 @@ public final class Nodes {
             return getProperty("os", this::parseBoolean);
         }
 
-        public CurveModeOverrideNode setOverrideScaleCurves(Boolean overrideScaleCurves) {
+        public CurveModeOverride setOverrideScaleCurves(Boolean overrideScaleCurves) {
             createProperty(CastPropertyID.BYTE, "os", overrideScaleCurves ? 1 : 0);
             return this;
         }
-
     }
 
-
-    public static final class NotificationTrackNode extends CastNode {
-        NotificationTrackNode(AtomicLong hasher) {
+    public static final class NotificationTrack extends CastNode {
+        NotificationTrack(AtomicLong hasher) {
             super(CastNodeID.NOTIFICATION_TRACK, hasher);
         }
 
-        NotificationTrackNode(long hash, Map<String, CastProperty> properties, List<CastNode> children) {
+        NotificationTrack(long hash, Map<String, CastProperty> properties, List<CastNode> children) {
             super(CastNodeID.NOTIFICATION_TRACK, hash, properties, children);
-            // TODO: Validation
         }
 
         public String getName() {
             return getProperty("n", String.class::cast).orElseThrow();
         }
 
-        public NotificationTrackNode setName(String name) {
+        public NotificationTrack setName(String name) {
             createProperty(CastPropertyID.STRING, "n", name);
             return this;
         }
@@ -1015,47 +1039,44 @@ public final class Nodes {
             return getProperty("kb", Buffer.class::cast).orElseThrow();
         }
 
-        public NotificationTrackNode setKeyFrameBuffer(Buffer keyFrameBuffer) {
+        public NotificationTrack setKeyFrameBuffer(Buffer keyFrameBuffer) {
             createIntBufferProperty("kb", keyFrameBuffer);
             return this;
         }
-
     }
 
-
-    public static final class MaterialNode extends CastNode {
+    public static final class Material extends CastNode {
         private int extraIndex;
 
-        MaterialNode(AtomicLong hasher) {
+        Material(AtomicLong hasher) {
             super(CastNodeID.MATERIAL, hasher);
         }
 
-        MaterialNode(long hash, Map<String, CastProperty> properties, List<CastNode> children) {
+        Material(long hash, Map<String, CastProperty> properties, List<CastNode> children) {
             super(CastNodeID.MATERIAL, hash, properties, children);
-            // TODO: Validation
         }
 
-        public List<FileNode> getFileNodes() {
-            return getChildrenOfType(FileNode.class);
+        public List<File> getFiles() {
+            return getChildrenOfType(File.class);
         }
 
-        public FileNode createFileNode() {
-            return createChild(new FileNode(hasher));
+        public File createFile() {
+            return createChild(new File(hasher));
         }
 
-        public List<ColorNode> getColorNodes() {
-            return getChildrenOfType(ColorNode.class);
+        public List<Color> getColors() {
+            return getChildrenOfType(Color.class);
         }
 
-        public ColorNode createColorNode() {
-            return createChild(new ColorNode(hasher));
+        public Color createColor() {
+            return createChild(new Color(hasher));
         }
 
         public String getName() {
             return getProperty("n", String.class::cast).orElseThrow();
         }
 
-        public MaterialNode setName(String name) {
+        public Material setName(String name) {
             createProperty(CastPropertyID.STRING, "n", name);
             return this;
         }
@@ -1064,7 +1085,7 @@ public final class Nodes {
             return getProperty("t", Type::from).orElseThrow();
         }
 
-        public MaterialNode setType(Type type) {
+        public Material setType(Type type) {
             createProperty(CastPropertyID.STRING, "t", type.toString().toLowerCase());
             return this;
         }
@@ -1073,7 +1094,7 @@ public final class Nodes {
             return getProperty("albedo", Long.class::cast);
         }
 
-        public MaterialNode setAlbedoHash(Long albedoHash) {
+        public Material setAlbedoHash(Long albedoHash) {
             createProperty(CastPropertyID.LONG, "albedo", albedoHash);
             return this;
         }
@@ -1082,7 +1103,7 @@ public final class Nodes {
             return getProperty("diffuse", Long.class::cast);
         }
 
-        public MaterialNode setDiffuseHash(Long diffuseHash) {
+        public Material setDiffuseHash(Long diffuseHash) {
             createProperty(CastPropertyID.LONG, "diffuse", diffuseHash);
             return this;
         }
@@ -1091,7 +1112,7 @@ public final class Nodes {
             return getProperty("normal", Long.class::cast);
         }
 
-        public MaterialNode setNormalHash(Long normalHash) {
+        public Material setNormalHash(Long normalHash) {
             createProperty(CastPropertyID.LONG, "normal", normalHash);
             return this;
         }
@@ -1100,7 +1121,7 @@ public final class Nodes {
             return getProperty("specular", Long.class::cast);
         }
 
-        public MaterialNode setSpecularHash(Long specularHash) {
+        public Material setSpecularHash(Long specularHash) {
             createProperty(CastPropertyID.LONG, "specular", specularHash);
             return this;
         }
@@ -1109,7 +1130,7 @@ public final class Nodes {
             return getProperty("gloss", Long.class::cast);
         }
 
-        public MaterialNode setGlossHash(Long glossHash) {
+        public Material setGlossHash(Long glossHash) {
             createProperty(CastPropertyID.LONG, "gloss", glossHash);
             return this;
         }
@@ -1118,7 +1139,7 @@ public final class Nodes {
             return getProperty("roughness", Long.class::cast);
         }
 
-        public MaterialNode setRoughnessHash(Long roughnessHash) {
+        public Material setRoughnessHash(Long roughnessHash) {
             createProperty(CastPropertyID.LONG, "roughness", roughnessHash);
             return this;
         }
@@ -1127,7 +1148,7 @@ public final class Nodes {
             return getProperty("emissive", Long.class::cast);
         }
 
-        public MaterialNode setEmissiveHash(Long emissiveHash) {
+        public Material setEmissiveHash(Long emissiveHash) {
             createProperty(CastPropertyID.LONG, "emissive", emissiveHash);
             return this;
         }
@@ -1136,7 +1157,7 @@ public final class Nodes {
             return getProperty("emask", Long.class::cast);
         }
 
-        public MaterialNode setEmissiveMaskHash(Long emissiveMaskHash) {
+        public Material setEmissiveMaskHash(Long emissiveMaskHash) {
             createProperty(CastPropertyID.LONG, "emask", emissiveMaskHash);
             return this;
         }
@@ -1145,7 +1166,7 @@ public final class Nodes {
             return getProperty("ao", Long.class::cast);
         }
 
-        public MaterialNode setAmbientOcclusionHash(Long ambientOcclusionHash) {
+        public Material setAmbientOcclusionHash(Long ambientOcclusionHash) {
             createProperty(CastPropertyID.LONG, "ao", ambientOcclusionHash);
             return this;
         }
@@ -1154,7 +1175,7 @@ public final class Nodes {
             return getProperty("cavity", Long.class::cast);
         }
 
-        public MaterialNode setCavityHash(Long cavityHash) {
+        public Material setCavityHash(Long cavityHash) {
             createProperty(CastPropertyID.LONG, "cavity", cavityHash);
             return this;
         }
@@ -1163,7 +1184,7 @@ public final class Nodes {
             return getProperty("aniso", Long.class::cast);
         }
 
-        public MaterialNode setAnisotropyHash(Long anisotropyHash) {
+        public Material setAnisotropyHash(Long anisotropyHash) {
             createProperty(CastPropertyID.LONG, "aniso", anisotropyHash);
             return this;
         }
@@ -1172,51 +1193,45 @@ public final class Nodes {
             return getProperty("extra" + index, Long.class::cast);
         }
 
-        public MaterialNode addExtra(Long extra) {
+        public Material addExtra(Long extra) {
             createProperty(CastPropertyID.LONG, "extra" + extraIndex++, extra);
             return this;
         }
-
     }
 
-
-    public static final class FileNode extends CastNode {
-        FileNode(AtomicLong hasher) {
+    public static final class File extends CastNode {
+        File(AtomicLong hasher) {
             super(CastNodeID.FILE, hasher);
         }
 
-        FileNode(long hash, Map<String, CastProperty> properties, List<CastNode> children) {
+        File(long hash, Map<String, CastProperty> properties, List<CastNode> children) {
             super(CastNodeID.FILE, hash, properties, children);
-            // TODO: Validation
         }
 
         public String getPath() {
             return getProperty("p", String.class::cast).orElseThrow();
         }
 
-        public FileNode setPath(String path) {
+        public File setPath(String path) {
             createProperty(CastPropertyID.STRING, "p", path);
             return this;
         }
-
     }
 
-
-    public static final class ColorNode extends CastNode {
-        ColorNode(AtomicLong hasher) {
+    public static final class Color extends CastNode {
+        Color(AtomicLong hasher) {
             super(CastNodeID.COLOR, hasher);
         }
 
-        ColorNode(long hash, Map<String, CastProperty> properties, List<CastNode> children) {
+        Color(long hash, Map<String, CastProperty> properties, List<CastNode> children) {
             super(CastNodeID.COLOR, hash, properties, children);
-            // TODO: Validation
         }
 
         public Optional<String> getName() {
             return getProperty("n", String.class::cast);
         }
 
-        public ColorNode setName(String name) {
+        public Color setName(String name) {
             createProperty(CastPropertyID.STRING, "n", name);
             return this;
         }
@@ -1225,7 +1240,7 @@ public final class Nodes {
             return getProperty("cs", ColorSpace::from);
         }
 
-        public ColorNode setColorSpace(ColorSpace colorSpace) {
+        public Color setColorSpace(ColorSpace colorSpace) {
             createProperty(CastPropertyID.STRING, "cs", colorSpace.toString().toLowerCase());
             return this;
         }
@@ -1234,37 +1249,34 @@ public final class Nodes {
             return getProperty("rgba", Vec4.class::cast).orElseThrow();
         }
 
-        public ColorNode setRgbaColor(Vec4 rgbaColor) {
+        public Color setRgbaColor(Vec4 rgbaColor) {
             createProperty(CastPropertyID.VECTOR4, "rgba", rgbaColor);
             return this;
         }
-
     }
 
-
-    public static final class InstanceNode extends CastNode {
-        InstanceNode(AtomicLong hasher) {
+    public static final class Instance extends CastNode {
+        Instance(AtomicLong hasher) {
             super(CastNodeID.INSTANCE, hasher);
         }
 
-        InstanceNode(long hash, Map<String, CastProperty> properties, List<CastNode> children) {
+        Instance(long hash, Map<String, CastProperty> properties, List<CastNode> children) {
             super(CastNodeID.INSTANCE, hash, properties, children);
-            // TODO: Validation
         }
 
-        public List<FileNode> getFileNodes() {
-            return getChildrenOfType(FileNode.class);
+        public List<File> getFiles() {
+            return getChildrenOfType(File.class);
         }
 
-        public FileNode createFileNode() {
-            return createChild(new FileNode(hasher));
+        public File createFile() {
+            return createChild(new File(hasher));
         }
 
         public Optional<String> getName() {
             return getProperty("n", String.class::cast);
         }
 
-        public InstanceNode setName(String name) {
+        public Instance setName(String name) {
             createProperty(CastPropertyID.STRING, "n", name);
             return this;
         }
@@ -1273,7 +1285,7 @@ public final class Nodes {
             return getProperty("rf", Long.class::cast).orElseThrow();
         }
 
-        public InstanceNode setReferenceFile(Long referenceFile) {
+        public Instance setReferenceFile(Long referenceFile) {
             createProperty(CastPropertyID.LONG, "rf", referenceFile);
             return this;
         }
@@ -1282,7 +1294,7 @@ public final class Nodes {
             return getProperty("p", Vec3.class::cast).orElseThrow();
         }
 
-        public InstanceNode setPosition(Vec3 position) {
+        public Instance setPosition(Vec3 position) {
             createProperty(CastPropertyID.VECTOR3, "p", position);
             return this;
         }
@@ -1291,7 +1303,7 @@ public final class Nodes {
             return getProperty("r", Vec4.class::cast).orElseThrow();
         }
 
-        public InstanceNode setRotation(Vec4 rotation) {
+        public Instance setRotation(Vec4 rotation) {
             createProperty(CastPropertyID.VECTOR4, "r", rotation);
             return this;
         }
@@ -1300,29 +1312,26 @@ public final class Nodes {
             return getProperty("s", Vec3.class::cast).orElseThrow();
         }
 
-        public InstanceNode setScale(Vec3 scale) {
+        public Instance setScale(Vec3 scale) {
             createProperty(CastPropertyID.VECTOR3, "s", scale);
             return this;
         }
-
     }
 
-
-    public static final class MetadataNode extends CastNode {
-        MetadataNode(AtomicLong hasher) {
+    public static final class Metadata extends CastNode {
+        Metadata(AtomicLong hasher) {
             super(CastNodeID.METADATA, hasher);
         }
 
-        MetadataNode(long hash, Map<String, CastProperty> properties, List<CastNode> children) {
+        Metadata(long hash, Map<String, CastProperty> properties, List<CastNode> children) {
             super(CastNodeID.METADATA, hash, properties, children);
-            // TODO: Validation
         }
 
         public Optional<String> getAuthor() {
             return getProperty("a", String.class::cast);
         }
 
-        public MetadataNode setAuthor(String author) {
+        public Metadata setAuthor(String author) {
             createProperty(CastPropertyID.STRING, "a", author);
             return this;
         }
@@ -1331,7 +1340,7 @@ public final class Nodes {
             return getProperty("s", String.class::cast);
         }
 
-        public MetadataNode setSoftware(String software) {
+        public Metadata setSoftware(String software) {
             createProperty(CastPropertyID.STRING, "s", software);
             return this;
         }
@@ -1340,10 +1349,12 @@ public final class Nodes {
             return getProperty("up", UpAxis::from);
         }
 
-        public MetadataNode setUpAxis(UpAxis upAxis) {
+        public Metadata setUpAxis(UpAxis upAxis) {
             createProperty(CastPropertyID.STRING, "up", upAxis.toString().toLowerCase());
             return this;
         }
-
     }
+
+    // endregion
+
 }

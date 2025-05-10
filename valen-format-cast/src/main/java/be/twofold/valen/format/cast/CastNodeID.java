@@ -1,4 +1,4 @@
-package be.twofold.valen.format.cast.node;
+package be.twofold.valen.format.cast;
 
 public enum CastNodeID {
     ROOT(0x746F6F72),

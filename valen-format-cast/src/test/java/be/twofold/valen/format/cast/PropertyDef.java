@@ -1,7 +1,5 @@
 package be.twofold.valen.format.cast;
 
-import be.twofold.valen.format.cast.property.*;
-
 import java.util.*;
 
 record PropertyDef(

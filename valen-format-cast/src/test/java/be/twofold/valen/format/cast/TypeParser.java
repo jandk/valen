@@ -1,8 +1,5 @@
 package be.twofold.valen.format.cast;
 
-import be.twofold.valen.format.cast.node.*;
-import be.twofold.valen.format.cast.property.*;
-
 import java.util.*;
 import java.util.regex.*;
 import java.util.stream.*;
@@ -12,13 +9,13 @@ final class TypeParser {
     private static final Pattern PART1_PATTERN = Pattern.compile("[^(]+\\((\\w+)\\)(?:\\s+\\[([^]]+)])?");
 
     static TypeDef parse(RawType rawType) {
-        var children = !rawType.children().isEmpty()
+        List<CastNodeID> children = !rawType.children().isEmpty()
             ? Arrays.stream(rawType.children().split(","))
             .map(s -> parseType(s.strip()))
             .toList()
             : List.<CastNodeID>of();
 
-        var properties = rawType.properties().lines()
+        List<PropertyDef> properties = rawType.properties().lines()
             .map(TypeParser::parseProperty)
             .toList();
 
@@ -30,22 +27,22 @@ final class TypeParser {
     }
 
     private static CastNodeID parseType(String s) {
-        var name = Arrays.stream(s.split("\\s+"))
+        String name = Arrays.stream(s.split("\\s+"))
             .map(String::toUpperCase)
             .collect(Collectors.joining("_"));
         return CastNodeID.valueOf(name);
     }
 
     private static PropertyDef parseProperty(String s) {
-        var parts = Arrays.stream(s.split("\t"))
+        List<String> parts = Arrays.stream(s.split("\t"))
             .map(String::strip)
             .toList();
 
 
-        var part0 = parsePropertyName(parts.get(0));
-        var part1 = parseTypesAndValues(parts.get(1));
-        var part2 = parsePropertyBoolean(parts.get(2));
-        var part3 = parsePropertyBoolean(parts.get(3));
+        NameAndKey part0 = parsePropertyName(parts.get(0));
+        TypesAndValues part1 = parseTypesAndValues(parts.get(1));
+        boolean part2 = parsePropertyBoolean(parts.get(2));
+        boolean part3 = parsePropertyBoolean(parts.get(3));
 
         return new PropertyDef(
             part0.name(),
@@ -58,7 +55,7 @@ final class TypeParser {
     }
 
     private static NameAndKey parsePropertyName(String s) {
-        var matcher = PART0_PATTERN.matcher(s);
+        Matcher matcher = PART0_PATTERN.matcher(s);
         if (!matcher.matches()) {
             throw new IllegalArgumentException();
         }
@@ -66,12 +63,12 @@ final class TypeParser {
     }
 
     private static TypesAndValues parseTypesAndValues(String s) {
-        var matcher = PART1_PATTERN.matcher(s);
+        Matcher matcher = PART1_PATTERN.matcher(s);
 
-        var allTypes = EnumSet.noneOf(CastPropertyID.class);
-        var allValues = new ArrayList<String>();
+        EnumSet<CastPropertyID> allTypes = EnumSet.noneOf(CastPropertyID.class);
+        ArrayList<String> allValues = new ArrayList<String>();
         while (matcher.find()) {
-            var values = matcher.group(2) != null
+            Collection<String> values = matcher.group(2) != null
                 ? Arrays.stream(matcher.group(2).split(",")).map(String::strip).collect(Collectors.toSet())
                 : List.<String>of();
             if (!values.isEmpty() && !allValues.isEmpty()) {

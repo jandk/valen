@@ -1,4 +1,4 @@
-package be.twofold.valen.format.cast.property;
+package be.twofold.valen.format.cast;
 
 public enum CastPropertyID {
     BYTE(0x0062, 1, 1),

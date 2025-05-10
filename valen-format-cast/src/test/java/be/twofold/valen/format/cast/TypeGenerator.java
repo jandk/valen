@@ -227,7 +227,7 @@ final class TypeGenerator {
     );
 
     public static void main(String[] args) {
-        var types = RawTypes.stream().map(TypeParser::parse).toList();
+        List<TypeDef> types = RawTypes.stream().map(TypeParser::parse).toList();
         TypeClassWriter.generate(types);
     }
 }
