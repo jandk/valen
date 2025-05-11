@@ -1,11 +1,9 @@
 package be.twofold.valen.format.cast;
 
-import java.io.BufferedOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.nio.Buffer;
-import java.nio.charset.StandardCharsets;
-import java.util.Objects;
+import java.io.*;
+import java.nio.*;
+import java.nio.charset.*;
+import java.util.*;
 
 final class CastWriter {
     private final BinaryWriter writer;
@@ -54,7 +52,7 @@ final class CastWriter {
         writer.writeInt(property.arrayLength());
         writer.writeBytes(rawName);
 
-        if (property.arrayLength() == 1) {
+        if (!(property.value() instanceof Buffer)) {
             writeSingle(property.identifier(), property.value());
         } else {
             // Buffers.toByteArray does all the heavy lifting here

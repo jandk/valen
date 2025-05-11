@@ -4,6 +4,7 @@ module valen.export.cast {
     requires valen.format.cast;
 
     provides be.twofold.valen.core.export.Exporter with
+        be.twofold.valen.export.cast.CastAnimationExporter,
         be.twofold.valen.export.cast.CastMaterialExporter,
         be.twofold.valen.export.cast.CastModelExporter;
 }
