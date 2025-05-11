@@ -1,7 +1,6 @@
 package be.twofold.valen.export.cast.mappers;
 
 import be.twofold.valen.core.geometry.*;
-import be.twofold.valen.export.cast.*;
 import be.twofold.valen.format.cast.*;
 
 public final class CastSkeletonMapper {

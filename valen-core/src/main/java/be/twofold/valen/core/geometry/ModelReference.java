@@ -6,10 +6,12 @@ import java.io.*;
 
 public record ModelReference(
     String name,
+    String filename,
     ThrowingSupplier<Model, IOException> supplier
 ) {
     public ModelReference {
         Check.notNull(name, "name");
+        Check.notNull(filename, "filename");
         Check.notNull(supplier, "supplier");
     }
 
