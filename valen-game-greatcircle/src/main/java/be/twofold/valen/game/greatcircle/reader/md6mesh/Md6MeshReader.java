@@ -43,7 +43,7 @@ public final class Md6MeshReader implements AssetReader<Model, GreatCircleAsset>
         if (readMaterials) {
             Materials.apply(archive, meshes, model.meshInfos(), Md6MeshInfo::materialName, Md6MeshInfo::meshName);
         }
-        return new Model(meshes, Optional.ofNullable(skeleton), Optional.of(asset.id().fullName()), Axis.Z);
+        return new Model(meshes, Optional.ofNullable(skeleton), Optional.of(asset.id().fullName()), Optional.empty(), Axis.Z);
     }
 
     private List<Mesh> readMeshes(Md6Mesh md6, long hash) throws IOException {

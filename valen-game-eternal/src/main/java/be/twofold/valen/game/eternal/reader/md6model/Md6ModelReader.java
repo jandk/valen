@@ -41,7 +41,7 @@ public final class Md6ModelReader implements AssetReader<Model, EternalAsset> {
         if (readMaterials) {
             Materials.apply(archive, meshes, model.meshInfos(), Md6ModelInfo::materialName, Md6ModelInfo::meshName);
         }
-        return new Model(meshes, Optional.of(skeleton), Optional.of(resource.id().fullName()), Axis.Z);
+        return new Model(meshes, Optional.of(skeleton), Optional.of(resource.id().fullName()), Optional.empty(), Axis.Z);
     }
 
     private List<Mesh> readMeshes(Md6Model md6, long hash) throws IOException {

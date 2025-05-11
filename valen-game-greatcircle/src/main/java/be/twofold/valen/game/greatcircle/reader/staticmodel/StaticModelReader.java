@@ -39,7 +39,7 @@ public final class StaticModelReader implements AssetReader<Model, GreatCircleAs
         if (readMaterials) {
             Materials.apply(archive, meshes, model.meshInfos(), StaticModelMeshInfo::mtlDecl, _ -> null);
         }
-        return new Model(meshes, Optional.empty(), Optional.of(asset.id().fullName()), Axis.Z);
+        return new Model(meshes, Optional.empty(), Optional.of(asset.id().fullName()), Optional.empty(), Axis.Z);
     }
 
     private List<Mesh> readMeshes(StaticModel model, DataSource source) throws IOException {

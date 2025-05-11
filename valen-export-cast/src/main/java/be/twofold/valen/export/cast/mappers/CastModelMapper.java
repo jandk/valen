@@ -15,13 +15,14 @@ public final class CastModelMapper {
         materialMapper = new CastMaterialMapper(castPath, imagePath);
     }
 
-    public void map(Model value, CastNode.Root root) throws IOException {
+    public CastNode.Model map(Model value, CastNode.Root root) throws IOException {
         var modelNode = root.createModel();
         value.name().ifPresent(modelNode::setName);
         value.skeleton().ifPresent(skeleton -> skeletonMapper.map(skeleton, modelNode));
         for (var mesh : value.meshes()) {
             mapMesh(modelNode, mesh);
         }
+        return modelNode;
     }
 
     private void mapMesh(CastNode.Model modelNode, Mesh mesh) throws IOException {

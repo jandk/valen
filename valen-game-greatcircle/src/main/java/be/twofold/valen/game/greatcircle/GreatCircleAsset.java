@@ -25,7 +25,7 @@ public record GreatCircleAsset(
     public AssetType type() {
         return switch (id.type()) {
             case image -> AssetType.TEXTURE;
-            case basemodel, deformmodel, model -> AssetType.MODEL;
+            case basemodel, deformmodel, hair, model -> AssetType.MODEL;
             case material2 -> AssetType.MATERIAL;
             default -> AssetType.RAW;
         };

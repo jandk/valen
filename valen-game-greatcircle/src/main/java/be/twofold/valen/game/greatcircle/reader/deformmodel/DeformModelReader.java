@@ -38,7 +38,7 @@ public final class DeformModelReader implements AssetReader<Model, GreatCircleAs
                 _ -> null
             );
         }
-        return new Model(meshes, Optional.empty(), Optional.of(asset.id().fullName()), Axis.Z);
+        return new Model(meshes, Optional.empty(), Optional.of(asset.id().fullName()), Optional.empty(), Axis.Z);
     }
 
     private List<Mesh> readMeshes(DeformModel deformModel, long hash) throws IOException {

@@ -13,10 +13,15 @@
 #include "common.bt"
 
 typedef struct {
-    i16 x;
-    i16 y;
-    i16 z;
-    i16 w;
+    u16 x;
+    u16 y;
+} Vec2u16 <read=Str("(%d, %d)", x, y)>;
+
+typedef struct {
+    u16 x;
+    u16 y;
+    u16 z;
+    u16 w;
 } Vec4u16 <read=Str("(%d, %d, %d, %d)", x, y, z, w)>;
 
 struct HairHeader {
@@ -45,18 +50,20 @@ u32     particleInfo[header.numParticles] <style=sSection3>;
 u32 segments[header.numSegments] <style=sSection4>;
 u16 unknown1[header.numParticles] <style=sSection1>;
 
-struct hairStrandInfoGPU_t {
-    u32 idxFirstPoint;
-    u32 numPointsAndStrandIdx;
-} strands[header.numStrands] <style=sSection2>;
-
-float particleStrandDistances[header.numStrands] <style=sSection3>;
-u32   strandRootUVs[header.numStrands] <style=sSection3>;
+if (header.allowSimulation != 0) {
+    struct hairStrandInfoGPU_t {
+        u32 idxFirstPoint;
+        u32 numPointsAndStrandIdx;
+    } strands[header.numStrands] <style=sSection2>;
+    
+    float   particleStrandDistances[header.numStrands] <style=sSection3>;
+    Vec2u16 strandRootUVs[header.numStrands] <style=sSection3>;
+}
 
 // Size: 16 (0x10)
 struct hairStrandBlendShape_t {
     i32 idxTriangle;
-    u32 barycentrics;
-    u32 triangleNormal;
-    u32 triangleSide;
+    i32 barycentrics;
+    i32 triangleNormal;
+    i32 triangleSide;
 } strandBlendShapeInfo[header.numStrands * header.numBlendShapeLODs] <style=sSection4>;
