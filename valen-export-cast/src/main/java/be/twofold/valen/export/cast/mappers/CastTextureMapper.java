@@ -20,7 +20,7 @@ public final class CastTextureMapper {
     public CastTextureMapper(Path castPath, Path imagePath) {
         this.castPath = Objects.requireNonNull(castPath);
         this.imagePath = Objects.requireNonNull(imagePath);
-        pngExporter.setProperty("reconstructZ", false);
+        pngExporter.setProperty("reconstructZ", true);
     }
 
     public Long map(TextureReference reference, CastNode.Material material) throws IOException {

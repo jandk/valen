@@ -1,16 +1,14 @@
 package be.twofold.valen.export.cast.mappers;
 
-import be.twofold.valen.core.material.Material;
-import be.twofold.valen.core.material.MaterialProperty;
-import be.twofold.valen.core.math.Vector4;
-import be.twofold.valen.format.cast.CastNode;
-import be.twofold.valen.format.cast.Vec4;
+import be.twofold.valen.core.material.*;
+import be.twofold.valen.core.math.*;
+import be.twofold.valen.export.cast.*;
+import be.twofold.valen.format.cast.*;
 
-import java.io.IOException;
-import java.nio.file.Path;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.function.Consumer;
+import java.io.*;
+import java.nio.file.*;
+import java.util.*;
+import java.util.function.*;
 
 public final class CastMaterialMapper {
     private final Map<String, Long> materials = new HashMap<>();
@@ -60,7 +58,7 @@ public final class CastMaterialMapper {
     private long mapFactor(CastNode.Material material, Vector4 color) {
         return material.createColor()
                 .setColorSpace(CastNode.ColorSpace.LINEAR)
-                .setRgbaColor(new Vec4(color.x(), color.y(), color.z(), color.w()))
+            .setRgbaColor(CastUtils.mapVector4(color))
                 .hash();
     }
 }
