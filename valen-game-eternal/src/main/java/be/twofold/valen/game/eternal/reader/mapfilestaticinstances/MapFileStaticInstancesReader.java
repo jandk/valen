@@ -45,7 +45,7 @@ public final class MapFileStaticInstancesReader implements AssetReader<Scene, Et
         }
 
         var supplier = ThrowingSupplier.lazy(() -> archive.loadAsset(resourceKey, Model.class));
-        var reference = new ModelReference(modelName, supplier);
+        var reference = new ModelReference(modelName, modelName, supplier);
 
         return Optional.of(new Instance(
             reference,
