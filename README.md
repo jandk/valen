@@ -54,13 +54,13 @@ If there are any, those are bugs.
 
 For now a bit terse, but you have to start somewhere
 
-| Game         | Textures | Materials | Models | Skeletons | Animations |
-|--------------|----------|-----------|--------|-----------|------------|
-| DOOM Eternal | Yes      | Yes       | Yes    | Yes       | Yes        |
+| Game                               | Textures | Materials | Models              | Skeletons | Animations | Hair |
+|------------------------------------|----------|-----------|---------------------|-----------|------------|------|
+| DOOM Eternal                       | Yes      | Yes       | Yes                 | Yes       | Yes        | ---  |
+| Indiana Jones and the Great Circle | Yes      | Yes       | Partial (3/4 types) | Yes       | No         | Yes  |
 
 ### Planned:
 
-* Indiana Jones and the Great Circle
 * Wolfenstein 2: New Colossus
 * Source 1 Games (Half-Life 2, Team Fortress 2, ...)
 * ... (check the branches under `games`)
