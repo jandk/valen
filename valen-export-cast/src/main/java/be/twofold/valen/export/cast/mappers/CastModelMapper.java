@@ -24,11 +24,12 @@ public final class CastModelMapper {
         }
     }
 
-    private void mapMesh(CastNode.Model model, Mesh mesh) throws IOException {
-        var meshNode = model.createMesh();
+    private void mapMesh(CastNode.Model modelNode, Mesh mesh) throws IOException {
+        var meshNode = modelNode.createMesh();
         mesh.name().ifPresent(meshNode::setName);
         meshNode.setFaceBuffer(mesh.indexBuffer().buffer());
-        meshNode.setVertexPositionBuffer((FloatBuffer) mesh.getBuffer(Semantic.POSITION).orElseThrow().buffer());
+        FloatBuffer positionBuffer = (FloatBuffer) mesh.getBuffer(Semantic.POSITION).orElseThrow().buffer();
+        meshNode.setVertexPositionBuffer(positionBuffer);
         mesh.getBuffer(Semantic.NORMAL).ifPresent(buffer -> meshNode.setVertexNormalBuffer((FloatBuffer) buffer.buffer()));
         mesh.getBuffer(Semantic.TANGENT).ifPresent(buffer -> meshNode.setVertexTangentBuffer(mapTangentBuffer((FloatBuffer) buffer.buffer())));
 
@@ -40,8 +41,15 @@ public final class CastModelMapper {
         uvBuffers.forEach(buffer -> meshNode.addVertexUVBuffer((FloatBuffer) buffer.buffer()));
         meshNode.setUVLayerCount(uvBuffers.size());
 
+        mesh.getBuffer(Semantic.JOINTS0).ifPresent(joints -> mesh
+            .getBuffer(Semantic.WEIGHTS0).ifPresent(weights -> {
+                int numVertices = mesh.getBuffer(Semantic.POSITION).orElseThrow().buffer().capacity() / 3;
+                mapJointsAndWeights(joints.buffer(), weights.buffer(), meshNode, numVertices);
+            }));
+
+
         if (mesh.material().isPresent()) {
-            meshNode.setMaterial(materialMapper.map(mesh.material().get(), model));
+            meshNode.setMaterial(materialMapper.map(mesh.material().get(), modelNode));
         }
     }
 
@@ -62,5 +70,26 @@ public final class CastModelMapper {
             throw new IllegalArgumentException("Unsupported color buffer type: " + buffer.getClass());
         }
         return bb.asIntBuffer();
+    }
+
+    private void mapJointsAndWeights(Buffer joints, Buffer weights, CastNode.Mesh meshNode, int numVertices) {
+        if (joints.capacity() != weights.capacity()) {
+            throw new IllegalStateException("Joints and weights buffers must have the same capacity");
+        }
+        meshNode.setMaximumWeightInfluence(joints.capacity() / numVertices);
+
+        if (!(weights instanceof ByteBuffer bb)) {
+            throw new IllegalStateException("Weights buffer must be a ByteBuffer");
+        }
+
+        var weightValues = FloatBuffer.allocate(bb.capacity());
+        for (int i = 0; i < bb.capacity(); i++) {
+            weightValues.put(Byte.toUnsignedInt(bb.get(i)) * (1.0f / 255.0f));
+        }
+        weightValues.rewind();
+
+        meshNode
+            .setVertexWeightBoneBuffer(joints)
+            .setVertexWeightValueBuffer(weightValues);
     }
 }

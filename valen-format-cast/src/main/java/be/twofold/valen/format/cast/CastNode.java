@@ -341,11 +341,13 @@ public abstract class CastNode {
         }
 
         public Mesh addVertexColorBuffer(Buffer vertexColorBuffer) {
-            if (vertexColorBuffer instanceof IntBuffer)
+            if (vertexColorBuffer instanceof IntBuffer) {
                 createProperty(CastPropertyID.INT, "c" + vertexColorBufferIndex++, vertexColorBuffer);
-            else if (vertexColorBuffer instanceof FloatBuffer)
+            } else if (vertexColorBuffer instanceof FloatBuffer) {
                 createProperty(CastPropertyID.VECTOR4, "c" + vertexColorBufferIndex++, vertexColorBuffer);
-            else throw new IllegalArgumentException("Invalid type for property vertexColorBuffer");
+            } else {
+                throw new IllegalArgumentException("Invalid type for property vertexColorBuffer");
+            }
             return this;
         }
 
@@ -780,9 +782,13 @@ public abstract class CastNode {
         }
 
         public Constraint setCustomOffset(Object customOffset) {
-            if (customOffset instanceof Vec3) createProperty(CastPropertyID.VECTOR3, "co", customOffset);
-            else if (customOffset instanceof Vec4) createProperty(CastPropertyID.VECTOR4, "co", customOffset);
-            else throw new IllegalArgumentException("Invalid type for property customOffset");
+            if (customOffset instanceof Vec3) {
+                createProperty(CastPropertyID.VECTOR3, "co", customOffset);
+            } else if (customOffset instanceof Vec4) {
+                createProperty(CastPropertyID.VECTOR4, "co", customOffset);
+            } else {
+                throw new IllegalArgumentException("Invalid type for property customOffset");
+            }
             return this;
         }
 
@@ -933,13 +939,22 @@ public abstract class CastNode {
         }
 
         public Curve setKeyValueBuffer(Buffer keyValueBuffer) {
-            if (keyValueBuffer instanceof ByteBuffer) createProperty(CastPropertyID.BYTE, "kv", keyValueBuffer);
-            else if (keyValueBuffer instanceof ShortBuffer) createProperty(CastPropertyID.SHORT, "kv", keyValueBuffer);
-            else if (keyValueBuffer instanceof IntBuffer) createProperty(CastPropertyID.INT, "kv", keyValueBuffer);
-            else if (keyValueBuffer instanceof FloatBuffer) createProperty(CastPropertyID.FLOAT, "kv", keyValueBuffer);
-            else if (keyValueBuffer instanceof FloatBuffer)
-                createProperty(CastPropertyID.VECTOR4, "kv", keyValueBuffer);
-            else throw new IllegalArgumentException("Invalid type for property keyValueBuffer");
+            if (keyValueBuffer instanceof ByteBuffer) {
+                createProperty(CastPropertyID.BYTE, "kv", keyValueBuffer);
+            } else if (keyValueBuffer instanceof ShortBuffer) {
+                createProperty(CastPropertyID.SHORT, "kv", keyValueBuffer);
+            } else if (keyValueBuffer instanceof IntBuffer) {
+                createProperty(CastPropertyID.INT, "kv", keyValueBuffer);
+            } else if (keyValueBuffer instanceof FloatBuffer) {
+                createProperty(CastPropertyID.FLOAT, "kv", keyValueBuffer);
+            } else {
+                throw new IllegalArgumentException("Invalid type for property keyValueBuffer");
+            }
+            return this;
+        }
+
+        public Curve setKeyValueBufferV4(FloatBuffer keyValueBuffer) {
+            createProperty(CastPropertyID.VECTOR4, "kv", keyValueBuffer);
             return this;
         }
 
