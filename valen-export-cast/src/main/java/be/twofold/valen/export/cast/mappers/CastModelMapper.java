@@ -6,6 +6,7 @@ import be.twofold.valen.format.cast.*;
 import java.io.*;
 import java.nio.*;
 import java.nio.file.*;
+import java.util.*;
 
 public final class CastModelMapper {
     private final CastSkeletonMapper skeletonMapper = new CastSkeletonMapper();
@@ -29,7 +30,7 @@ public final class CastModelMapper {
         var meshNode = modelNode.createMesh();
         mesh.name().ifPresent(meshNode::setName);
         meshNode.setFaceBuffer(mesh.indexBuffer().buffer());
-        FloatBuffer positionBuffer = (FloatBuffer) mesh.getBuffer(Semantic.POSITION).orElseThrow().buffer();
+        var positionBuffer = (FloatBuffer) mesh.getBuffer(Semantic.POSITION).orElseThrow().buffer();
         meshNode.setVertexPositionBuffer(positionBuffer);
         mesh.getBuffer(Semantic.NORMAL).ifPresent(buffer -> meshNode.setVertexNormalBuffer((FloatBuffer) buffer.buffer()));
         mesh.getBuffer(Semantic.TANGENT).ifPresent(buffer -> meshNode.setVertexTangentBuffer(mapTangentBuffer((FloatBuffer) buffer.buffer())));
@@ -44,7 +45,7 @@ public final class CastModelMapper {
 
         mesh.getBuffer(Semantic.JOINTS0).ifPresent(joints -> mesh
             .getBuffer(Semantic.WEIGHTS0).ifPresent(weights -> {
-                int numVertices = mesh.getBuffer(Semantic.POSITION).orElseThrow().buffer().capacity() / 3;
+                var numVertices = mesh.getBuffer(Semantic.POSITION).orElseThrow().buffer().capacity() / 3;
                 mapJointsAndWeights(joints.buffer(), weights.buffer(), meshNode, numVertices);
             }));
 
@@ -52,6 +53,8 @@ public final class CastModelMapper {
         if (mesh.material().isPresent()) {
             meshNode.setMaterial(materialMapper.map(mesh.material().get(), modelNode));
         }
+
+        buildMorphTargets(modelNode, meshNode, mesh.blendShapes());
     }
 
     private FloatBuffer mapTangentBuffer(FloatBuffer buffer) {
@@ -84,7 +87,7 @@ public final class CastModelMapper {
         }
 
         var weightValues = FloatBuffer.allocate(bb.capacity());
-        for (int i = 0; i < bb.capacity(); i++) {
+        for (var i = 0; i < bb.capacity(); i++) {
             weightValues.put(Byte.toUnsignedInt(bb.get(i)) * (1.0f / 255.0f));
         }
         weightValues.rewind();
@@ -92,5 +95,33 @@ public final class CastModelMapper {
         meshNode
             .setVertexWeightBoneBuffer(joints)
             .setVertexWeightValueBuffer(weightValues);
+    }
+
+    private void buildMorphTargets(CastNode.Model modelNode, CastNode.Mesh meshNode, List<BlendShape> blendShapes) throws IOException {
+        if (blendShapes.isEmpty()) {
+            return;
+        }
+
+        for (var blendShape : blendShapes) {
+            var absolute = makeAbsolute(meshNode, blendShape);
+            modelNode.createBlendShape()
+                .setName(blendShape.name())
+                .setBaseShape(meshNode.hash())
+                .setTargetShapeVertexIndices(blendShape.indices())
+                .setTargetShapeVertexPositions(absolute);
+        }
+    }
+
+    private FloatBuffer makeAbsolute(CastNode.Mesh meshNode, BlendShape blendShape) {
+        var positions = meshNode.getVertexPositionBuffer();
+        var relatives = blendShape.values();
+        var absolutes = FloatBuffer.allocate(relatives.capacity());
+        for (int i = 0, o = 0; o < absolutes.capacity(); i++, o += 3) {
+            var index = Short.toUnsignedInt(blendShape.indices().get(i));
+            absolutes.put(positions.get(index * 3/**/) + relatives.get(o/**/));
+            absolutes.put(positions.get(index * 3 + 1) + relatives.get(o + 1));
+            absolutes.put(positions.get(index * 3 + 2) + relatives.get(o + 2));
+        }
+        return absolutes;
     }
 }
