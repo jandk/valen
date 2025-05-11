@@ -1,13 +1,13 @@
-package be.twofold.valen.export.gltf;
+package be.twofold.valen.core.export;
 
 import be.twofold.valen.core.geometry.*;
 import be.twofold.valen.core.math.*;
 
-final class MeshGenerator {
+public final class MeshGenerator {
     private MeshGenerator() {
     }
 
-    static Mesh createXYPlane(int resX, int resY) {
+    public static Mesh createXYPlane(int resX, int resY) {
         var builder = new MeshBuilder();
 
         for (int row = 0; row <= resY; row++) {
@@ -32,7 +32,7 @@ final class MeshGenerator {
         return builder.build();
     }
 
-    static Mesh createCylinder(int resX, int resY) {
+    public static Mesh createCylinder(int resX, int resY) {
         var builder = new MeshBuilder();
 
         for (int row = 0; row <= resY; row++) {
@@ -61,7 +61,7 @@ final class MeshGenerator {
         return builder.build();
     }
 
-    static Mesh createSphere(int resX, int resY) {
+    public static Mesh createSphere(int resX, int resY) {
         var builder = new MeshBuilder();
 
         for (int row = 0; row <= resY; row++) {

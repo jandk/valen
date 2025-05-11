@@ -1,4 +1,4 @@
-package be.twofold.valen.export.gltf;
+package be.twofold.valen.core.export;
 
 import be.twofold.valen.core.geometry.*;
 import be.twofold.valen.core.math.*;

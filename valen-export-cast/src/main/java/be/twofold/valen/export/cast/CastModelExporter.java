@@ -1,6 +1,7 @@
 package be.twofold.valen.export.cast;
 
 import be.twofold.valen.core.geometry.*;
+import be.twofold.valen.core.math.*;
 import be.twofold.valen.export.cast.mappers.*;
 import be.twofold.valen.format.cast.*;
 
@@ -19,29 +20,18 @@ public final class CastModelExporter extends CastExporter<Model> {
     }
 
     @Override
-    public void export(Model value, OutputStream out) throws IOException {
-        // TODO: Eehm, Liskov fail for now
-        throw new UnsupportedOperationException("GLTF can't export to a stream");
+    public void doExport(Model value, CastNode.Root root, Path castPath, Path imagePath) throws IOException {
+        root.getMetadatas().getFirst()
+            .setUpAxis(mapUpAxis(value.upAxis()));
+
+        new CastModelMapper(castPath, imagePath).map(value, root);
     }
 
-    @Override
-    public void export(Model value, Path path) throws IOException {
-        Path imagePath = path.getParent().resolve("_images");
-        if (!Files.exists(imagePath)) {
-            Files.createDirectory(imagePath);
-        }
-
-        Cast cast = new Cast();
-        CastNode.Root root = cast.createRoot();
-        root.createMetadata()
-            .setAuthor("JanDK")
-            .setSoftware("Valen")
-            .setUpAxis(CastNode.UpAxis.Z);
-
-        new CastModelMapper(path, imagePath).map(value, root);
-
-        try (var out = Files.newOutputStream(path)) {
-            cast.write(out);
-        }
+    private CastNode.UpAxis mapUpAxis(Axis axis) {
+        return switch (axis) {
+            case X -> CastNode.UpAxis.X;
+            case Y -> CastNode.UpAxis.Y;
+            case Z -> CastNode.UpAxis.Z;
+        };
     }
 }
