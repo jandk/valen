@@ -8,6 +8,7 @@ import java.nio.*;
 import java.nio.file.*;
 
 public final class CastModelMapper {
+    private final CastSkeletonMapper skeletonMapper = new CastSkeletonMapper();
     private final CastMaterialMapper materialMapper;
 
     public CastModelMapper(Path castPath, Path imagePath) {
@@ -15,10 +16,11 @@ public final class CastModelMapper {
     }
 
     public void map(Model value, CastNode.Root root) throws IOException {
-        var model = root.createModel();
-        value.name().ifPresent(model::setName);
+        var modelNode = root.createModel();
+        value.name().ifPresent(modelNode::setName);
+        value.skeleton().ifPresent(skeleton -> skeletonMapper.map(skeleton, modelNode));
         for (var mesh : value.meshes()) {
-            mapMesh(model, mesh);
+            mapMesh(modelNode, mesh);
         }
     }
 
