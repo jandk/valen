@@ -34,6 +34,10 @@ public record Texture(
         return new Texture(width, height, format, isCubeMap, surfaces, scale, bias);
     }
 
+    public Texture withScaleAndBias(float scale, float bias) {
+        return new Texture(width, height, format, isCubeMap, surfaces, scale, bias);
+    }
+
     public Texture firstOnly() {
         return fromSurface(surfaces.getFirst(), format, scale, bias);
     }

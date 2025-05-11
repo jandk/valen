@@ -1,8 +1,12 @@
 package be.twofold.valen.core.util;
 
+import org.slf4j.*;
+
 import java.nio.*;
 
 public final class Buffers {
+    private static final Logger log = LoggerFactory.getLogger(Buffers.class);
+
     private Buffers() {
     }
 
@@ -29,7 +33,7 @@ public final class Buffers {
             return buffer.array();
         }
 
-        System.out.println("Actually copying buffer of size " + buffer.remaining());
+        log.warn("Actually copying buffer of size {}", buffer.remaining());
         var bytes = new byte[buffer.remaining()];
         buffer.get(bytes);
         return bytes;

@@ -22,6 +22,7 @@ public abstract class Conversion {
         source = new Tonemap().apply(source, targetFormat);
         source = new Unpack().apply(source, targetFormat);
         source = new Swizzle().apply(source, targetFormat);
+        source = new ScaleAndBias().apply(source, targetFormat);
         if (source.format() != targetFormat) {
             throw new UnsupportedOperationException("Could not convert texture from " + source.format() + " to " + targetFormat);
         }

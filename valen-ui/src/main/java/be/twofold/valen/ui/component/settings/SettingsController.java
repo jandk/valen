@@ -21,7 +21,8 @@ import java.util.stream.*;
 public final class SettingsController implements Controller {
     private static final List<Map.Entry<String, String>> MODEL_FORMATS = List.of(
         Map.entry("gltf", "GLTF, BIN and images"),
-        Map.entry("glb", "GLB (single file)")
+        Map.entry("glb", "GLB (single file)"),
+        Map.entry("cast", "Cast (by Porter)")
     );
 
     private @FXML CheckBox typeTexture;

@@ -39,8 +39,7 @@ public final class GltfMaterialMapper {
             switch (property.type()) {
                 case Albedo -> mapProperty(property, pbrBuilder::baseColorTexture,
                     v -> pbrBuilder.baseColorFactor(GltfUtils.mapVector4(v)));
-                case Normal ->
-                    builder.normalTexture(normalTextureInfoSchema(textureMapper.mapSimple(property.reference())));
+                case Normal -> builder.normalTexture(normalTextureInfoSchema(textureMapper.map(property.reference())));
                 case Emissive -> mapEmissive(property, builder);
                 case Unknown -> textureMapper.map(property.reference());
             }
@@ -63,7 +62,7 @@ public final class GltfMaterialMapper {
             var roughnessReference = new TextureReference(reference.name(), reference.filename() + ".mr", () -> metalRoughnessTexture);
 
             // TODO: Proper support for metallic and roughness factors
-            var roughnessTexture = textureMapper.mapSimple(roughnessReference);
+            var roughnessTexture = textureMapper.map(roughnessReference);
             pbrBuilder.metallicRoughnessTexture(textureSchema(roughnessTexture));
         }
 
@@ -125,9 +124,7 @@ public final class GltfMaterialMapper {
         var factor = property.factor() != null ? property.factor() : Vector4.One;
         var textureID = (TextureID) null;
         if (property.reference() != null) {
-            var textureIDAndFactor = textureMapper.map(property.reference());
-            factor = factor.multiply(textureIDAndFactor.factor());
-            textureID = textureIDAndFactor.textureID();
+            textureID = textureMapper.map(property.reference());
         }
 
         if (textureID != null) {
