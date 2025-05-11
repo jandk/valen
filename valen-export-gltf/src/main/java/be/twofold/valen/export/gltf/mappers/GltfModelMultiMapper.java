@@ -68,18 +68,29 @@ public final class GltfModelMultiMapper extends GltfModelMapper {
 
     private List<MeshSchema> mapModel(Model model) throws IOException {
         var meshSchemas = new ArrayList<MeshSchema>();
-        for (Mesh mesh : model.meshes()) {
-            meshSchemas.add(mapMesh(mesh));
+        for (var mesh : model.meshes()) {
+            mapMesh(mesh).ifPresent(meshSchemas::add);
         }
         return meshSchemas;
     }
 
-    private MeshSchema mapMesh(Mesh mesh) throws IOException {
+    private Optional<MeshSchema> mapMesh(Mesh mesh) throws IOException {
         var primitiveSchema = mapMeshPrimitive(mesh);
+        if (primitiveSchema.isEmpty()) {
+            return Optional.empty();
+        }
 
-        return ImmutableMesh.builder()
+        var morphTargetNames = mesh.blendShapes().stream()
+            .map(BlendShape::name)
+            .toList();
+
+        var builder = ImmutableMesh.builder()
             .name(mesh.name())
-            .addPrimitives(primitiveSchema)
-            .build();
+            .addPrimitives(primitiveSchema.get());
+
+        if (!morphTargetNames.isEmpty()) {
+            builder.extras(Map.of("targetNames", morphTargetNames));
+        }
+        return Optional.of(builder.build());
     }
 }

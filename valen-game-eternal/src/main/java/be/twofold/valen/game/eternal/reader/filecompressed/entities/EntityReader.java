@@ -3,9 +3,9 @@ package be.twofold.valen.game.eternal.reader.filecompressed.entities;
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.io.*;
 import be.twofold.valen.game.eternal.*;
-import be.twofold.valen.game.eternal.reader.decl.parser.*;
 import be.twofold.valen.game.eternal.reader.filecompressed.*;
 import be.twofold.valen.game.eternal.resource.*;
+import be.twofold.valen.game.idtech.decl.parser.*;
 
 import java.io.*;
 import java.nio.charset.*;

@@ -7,6 +7,7 @@ import be.twofold.valen.core.math.*;
 import be.twofold.valen.game.eternal.*;
 import be.twofold.valen.game.eternal.reader.geometry.*;
 import be.twofold.valen.game.eternal.resource.*;
+import be.twofold.valen.game.idtech.geometry.*;
 
 import java.io.*;
 import java.nio.*;
@@ -40,7 +41,7 @@ public final class Md6ModelReader implements AssetReader<Model, EternalAsset> {
         if (readMaterials) {
             Materials.apply(archive, meshes, model.meshInfos(), Md6ModelInfo::materialName, Md6ModelInfo::meshName);
         }
-        return new Model(meshes, Optional.of(skeleton), Optional.of(resource.id().fullName()), Axis.Z);
+        return new Model(meshes, Optional.of(skeleton), Optional.of(resource.id().fullName()), Optional.empty(), Axis.Z);
     }
 
     private List<Mesh> readMeshes(Md6Model md6, long hash) throws IOException {

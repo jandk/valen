@@ -9,6 +9,8 @@ import java.io.*;
 import java.nio.file.*;
 
 public final class CastModelExporter extends CastExporter<Model> {
+    private final CastHairMapper hairMapper = new CastHairMapper();
+
     @Override
     public String getID() {
         return "model.cast";
@@ -20,11 +22,12 @@ public final class CastModelExporter extends CastExporter<Model> {
     }
 
     @Override
-    public void doExport(Model value, CastNode.Root root, Path castPath, Path imagePath) throws IOException {
+    public void doExport(Model model, CastNode.Root root, Path castPath, Path imagePath) throws IOException {
         root.getMetadatas().getFirst()
-            .setUpAxis(mapUpAxis(value.upAxis()));
+            .setUpAxis(mapUpAxis(model.upAxis()));
 
-        new CastModelMapper(castPath, imagePath).map(value, root);
+        CastNode.Model modelNode = new CastModelMapper(castPath, imagePath).map(model, root);
+        model.hair().ifPresent(hair -> hairMapper.map(modelNode, hair));
     }
 
     private CastNode.UpAxis mapUpAxis(Axis axis) {

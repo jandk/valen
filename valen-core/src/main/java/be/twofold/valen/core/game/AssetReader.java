@@ -1,11 +1,10 @@
 package be.twofold.valen.core.game;
 
 import be.twofold.valen.core.io.*;
+import be.twofold.valen.core.util.*;
 
 import java.io.*;
-import java.lang.reflect.*;
 import java.nio.*;
-import java.util.*;
 
 public interface AssetReader<R, A extends Asset> {
 
@@ -14,12 +13,9 @@ public interface AssetReader<R, A extends Asset> {
     R read(DataSource source, A asset) throws IOException;
 
     default Class<?> getReturnType() {
-        return Arrays.stream(getClass().getGenericInterfaces())
-            .filter(ParameterizedType.class::isInstance)
-            .map(ParameterizedType.class::cast)
-            .filter(type -> type.getRawType() == AssetReader.class)
+        return Reflections.getParameterizedType(getClass(), AssetReader.class)
             .map(type -> (Class<?>) type.getActualTypeArguments()[0])
-            .findFirst().orElseThrow();
+            .orElseThrow();
     }
 
     static <A extends Asset> AssetReader<ByteBuffer, A> raw() {

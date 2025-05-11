@@ -34,7 +34,7 @@ public abstract class TestUtils {
                 var buffer = archive.loadAsset(asset.id(), ByteBuffer.class);
                 reader.read(DataSource.fromBuffer(buffer), asset);
             } catch (FileNotFoundException e) {
-                System.err.println(e.getMessage());
+                System.err.println("File not found");
             } catch (Exception e) {
                 fail(e);
             }

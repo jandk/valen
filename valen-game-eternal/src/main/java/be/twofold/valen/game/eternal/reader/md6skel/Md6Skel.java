@@ -27,7 +27,7 @@ public record Md6Skel(
         var parents = source.readShorts(header.numJoints8());
 
         source.position(header.inverseBasePoseOffset() + 4);
-        var inverseBasePoses = readInverseBasePoses(source, header);
+        var inverseBasePoses = source.readObjects(header.numJoints8(), Md6Skel::readInverseBasePose);
 
         source.expectPosition(header.size() + 4); // names are tacked on the end
         var names = source.readObjects(header.numJoints8(), DataSource::readPString);
@@ -35,14 +35,9 @@ public record Md6Skel(
         return new Md6Skel(header, rotations, scales, translations, parents, inverseBasePoses, names);
     }
 
-    private static List<Matrix4> readInverseBasePoses(DataSource source, Md6SkelHeader header) throws IOException {
-        List<Matrix4> inverseBasePoses = new ArrayList<>();
-        for (var i = 0; i < header.numJoints8(); i++) {
-            var floats = Arrays.copyOf(source.readFloats(12), 16);
-            floats[15] = 1;
-            Matrix4 matrix4 = Matrix4.fromArray(floats).transpose();
-            inverseBasePoses.add(matrix4);
-        }
-        return List.copyOf(inverseBasePoses);
+    private static Matrix4 readInverseBasePose(DataSource source) throws IOException {
+        var floats = Arrays.copyOf(source.readFloats(12), 16);
+        floats[15] = 1.0f;
+        return Matrix4.fromArray(floats).transpose();
     }
 }

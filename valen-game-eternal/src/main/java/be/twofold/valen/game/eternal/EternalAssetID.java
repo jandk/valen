@@ -30,10 +30,7 @@ public record EternalAssetID(
     ));
 
     public static EternalAssetID from(String name, ResourceType type) {
-        return from(new ResourceName(name), type);
-    }
-
-    public static EternalAssetID from(ResourceName name, ResourceType type) {
+        var resourceName = new ResourceName(name);
         var variations = Variations
             .getOrDefault(type, Set.of(ResourceVariation.None));
 
@@ -42,7 +39,7 @@ public record EternalAssetID(
         }
 
         return new EternalAssetID(
-            name,
+            resourceName,
             type,
             variations.iterator().next()
         );

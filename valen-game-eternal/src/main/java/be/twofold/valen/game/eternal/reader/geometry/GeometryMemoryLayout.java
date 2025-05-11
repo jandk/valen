@@ -1,6 +1,7 @@
 package be.twofold.valen.game.eternal.reader.geometry;
 
 import be.twofold.valen.core.io.*;
+import be.twofold.valen.game.idtech.geometry.*;
 
 import java.io.*;
 
@@ -11,7 +12,7 @@ public record GeometryMemoryLayout(
     int[] vertexMasks,
     int[] vertexOffsets,
     int indexOffset
-) {
+) implements GeoMemoryLayout {
     public static GeometryMemoryLayout read(DataSource source) throws IOException {
         var combinedVertexMask = source.readInt();
         var size = source.readInt();

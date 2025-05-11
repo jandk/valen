@@ -8,6 +8,7 @@ import be.twofold.valen.core.util.*;
 import be.twofold.valen.game.eternal.*;
 import be.twofold.valen.game.eternal.reader.geometry.*;
 import be.twofold.valen.game.eternal.resource.*;
+import be.twofold.valen.game.idtech.geometry.*;
 
 import java.io.*;
 import java.util.*;
@@ -38,7 +39,7 @@ public final class StaticModelReader implements AssetReader<Model, EternalAsset>
         if (readMaterials) {
             Materials.apply(archive, meshes, model.meshInfos(), StaticModelMeshInfo::mtlDecl, _ -> null);
         }
-        return new Model(meshes, Optional.empty(), Optional.of(resource.id().fullName()), Axis.Z);
+        return new Model(meshes, Optional.empty(), Optional.of(resource.id().fullName()), Optional.empty(), Axis.Z);
     }
 
     private List<Mesh> readMeshes(StaticModel model, DataSource source, long hash) throws IOException {

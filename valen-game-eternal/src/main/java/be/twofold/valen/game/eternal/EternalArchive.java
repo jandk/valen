@@ -79,8 +79,7 @@ public final class EternalArchive implements Archive<EternalAssetID, EternalAsse
 
     @Override
     public <T> T loadAsset(EternalAssetID identifier, Class<T> clazz) throws IOException {
-        var asset = get(identifier)
-            .orElseThrow(FileNotFoundException::new);
+        var asset = get(identifier).orElseThrow(FileNotFoundException::new);
 
         var buffer = resources.exists(asset.id())
             ? resources.read(asset.id(), null)

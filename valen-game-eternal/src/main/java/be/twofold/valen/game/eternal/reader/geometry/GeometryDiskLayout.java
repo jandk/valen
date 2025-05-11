@@ -1,6 +1,7 @@
 package be.twofold.valen.game.eternal.reader.geometry;
 
 import be.twofold.valen.core.io.*;
+import be.twofold.valen.game.idtech.geometry.*;
 
 import java.io.*;
 import java.util.*;
@@ -11,7 +12,7 @@ public record GeometryDiskLayout(
     int compressedSize,
     int offset,
     List<GeometryMemoryLayout> memoryLayouts
-) {
+) implements GeoDiskLayout {
     public static GeometryDiskLayout read(DataSource source, List<GeometryMemoryLayout> memoryLayouts) throws IOException {
         var compression = source.readInt();
         var uncompressedSize = source.readInt();
