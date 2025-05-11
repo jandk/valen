@@ -54,10 +54,10 @@ If there are any, those are bugs.
 
 For now a bit terse, but you have to start somewhere
 
-| Game                               | Textures | Materials | Models              | Skeletons | Animations | Hair |
-|------------------------------------|----------|-----------|---------------------|-----------|------------|------|
-| DOOM Eternal                       | Yes      | Yes       | Yes                 | Yes       | Yes        | ---  |
-| Indiana Jones and the Great Circle | Yes      | Yes       | Partial (3/4 types) | Yes       | No         | Yes  |
+| Game                               | Textures | Materials | Models        | Skeletons | Animations | Hair |
+|------------------------------------|----------|-----------|---------------|-----------|------------|------|
+| DOOM Eternal                       | Yes      | Yes       | Yes           | Yes       | Yes        | ---  |
+| Indiana Jones and the Great Circle | Yes      | Yes       | Partial (3/4) | Yes       | No         | Yes  |
 
 ### Planned:
 
@@ -75,6 +75,8 @@ absence of any existing libraries, so there's a few custom implementations in he
     * That, and it's written in Java itself, so there's no loss here, and I have more control
 * GLTF exporter -- Unlike dotnet, there's only a very confusing library available for GLTF the last time I checked,
   needs to be spun off into its own project as well
+* CAST exporter -- There wasn't any available for Java yet, so I made one. Planning on releasing it seperately if I get
+  around to fixing the codegen. Still needs validation etc.
 * There's some others planned...
 
 ## Todo
