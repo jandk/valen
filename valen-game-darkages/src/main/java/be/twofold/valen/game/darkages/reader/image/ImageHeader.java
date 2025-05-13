@@ -41,14 +41,14 @@ public record ImageHeader(
         var albedoSpecularScale = source.readFloat();
         source.expectByte((byte) 0);
         var textureFormat = toTextureFormat(source.readInt());
-        source.expectInt(8); // always 7
+        source.expectInt(8); // always 8
         source.expectInt(0); // padding
         source.expectShort((short) 0); // padding
         var streamed = source.readBoolByte();
         var singleStream = source.readBoolByte();
         var noMips = source.readBoolByte();
         var fftBloom = source.readBoolByte();
-        var unknown = source.readByte();
+        byte unknown = version >= 24 ? source.readByte() : 0;
         var streamDBMipCount = source.readInt();
 
         return new ImageHeader(
@@ -74,18 +74,16 @@ public record ImageHeader(
 
     public int startMip() {
         var mask = switch (textureType) {
-            case TT_2D -> 0x0f;
+            case TT_2D, TT_3D -> 0x0f;
             case TT_CUBIC -> 0xff;
-            default -> throw new IllegalArgumentException("Unsupported texture type: " + textureType);
         };
         return streamDBMipCount & mask;
     }
 
     public int totalMipCount() {
         var faces = switch (textureType) {
-            case TT_2D -> 1;
+            case TT_2D, TT_3D -> 1;
             case TT_CUBIC -> 6;
-            default -> throw new IllegalArgumentException("Unsupported texture type: " + textureType);
         };
         return mipCount * faces;
     }

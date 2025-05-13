@@ -43,7 +43,7 @@ public final class ImageMapper {
     private be.twofold.valen.core.texture.TextureFormat toImageFormat(TextureFormat format) {
         // I might not be sure about all these mappings, but it's a start
         return switch (format) {
-            case FMT_ALPHA -> be.twofold.valen.core.texture.TextureFormat.R8_UNORM;
+            case FMT_ALPHA, FMT_R8 -> be.twofold.valen.core.texture.TextureFormat.R8_UNORM;
             case FMT_BC1, FMT_BC1_ZERO_ALPHA -> be.twofold.valen.core.texture.TextureFormat.BC1_UNORM;
             case FMT_BC1_SRGB -> be.twofold.valen.core.texture.TextureFormat.BC1_SRGB;
             case FMT_BC3 -> be.twofold.valen.core.texture.TextureFormat.BC3_UNORM;
@@ -56,6 +56,7 @@ public final class ImageMapper {
             case FMT_RG16F -> be.twofold.valen.core.texture.TextureFormat.R16G16_SFLOAT;
             case FMT_RG8 -> be.twofold.valen.core.texture.TextureFormat.R8G8_UNORM;
             case FMT_RGBA8 -> be.twofold.valen.core.texture.TextureFormat.R8G8B8A8_UNORM;
+            case FMT_X16 -> be.twofold.valen.core.texture.TextureFormat.R16_UNORM;
             case FMT_X16F -> be.twofold.valen.core.texture.TextureFormat.R16_SFLOAT;
             default -> throw new UnsupportedOperationException("Unsupported format: " + format);
         };

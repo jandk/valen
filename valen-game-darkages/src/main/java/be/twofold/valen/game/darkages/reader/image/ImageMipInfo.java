@@ -9,7 +9,7 @@ public record ImageMipInfo(
     int mipSlice,
     int mipPixelWidth,
     int mipPixelHeight,
-    boolean unknown,
+    int mipPixelDepth,
     int decompressedSize,
     boolean flagIsCompressed,
     int compressedSize,
@@ -20,7 +20,7 @@ public record ImageMipInfo(
         var mipSlice = source.readInt();
         var mipPixelWidth = source.readInt();
         var mipPixelHeight = source.readInt();
-        var unknown = source.readBoolInt();
+        var mipPixelDepth = source.readInt();
         var decompressedSize = source.readInt();
         var flagIsCompressed = source.readBoolInt();
         var compressedSize = source.readInt();
@@ -31,7 +31,7 @@ public record ImageMipInfo(
             mipSlice,
             mipPixelWidth,
             mipPixelHeight,
-            unknown,
+            mipPixelDepth,
             decompressedSize,
             flagIsCompressed,
             compressedSize,
