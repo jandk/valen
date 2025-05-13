@@ -6,13 +6,14 @@ import be.twofold.valen.game.darkages.reader.resources.*;
 import java.util.*;
 
 public record DarkAgesAsset(
-        DarkAgesAssetID id,
-        int offset,
-        int compressedSize,
-        int size,
-        ResourcesCompressionMode compression,
-        long hash,
-        long checksum
+    DarkAgesAssetID id,
+    int offset,
+    int compressedSize,
+    int size,
+    ResourcesCompressionMode compression,
+    long hash,
+    long checksum,
+    int version
 ) implements Asset {
     @Override
     public AssetType type() {
@@ -32,9 +33,9 @@ public record DarkAgesAsset(
         var properties = new HashMap<String, Object>();
         properties.put("hash", hash);
         properties.put("Type", id.type().toString());
-//        if (id.variation() != ResourcesVariation.None) {
-//            properties.put("Variation", id.variation());
-//        }
+        if (id.variation() != ResourcesVariation.RES_VAR_NONE) {
+            properties.put("Variation", id.variation());
+        }
         return properties;
     }
 
@@ -50,7 +51,7 @@ public record DarkAgesAsset(
     @Override
     public boolean equals(Object obj) {
         return obj instanceof DarkAgesAsset other
-                && id.equals(other.id);
+            && id.equals(other.id);
     }
 
     @Override

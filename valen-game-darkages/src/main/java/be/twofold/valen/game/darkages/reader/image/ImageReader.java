@@ -29,7 +29,8 @@ public final class ImageReader implements AssetReader<Texture, DarkAgesAsset> {
     @Override
     public Texture read(DataSource source, DarkAgesAsset resource) throws IOException {
         var image = read(source, resource.hash());
-        return new ImageMapper().map(image);
+        return null;
+        // return new ImageMapper().map(image);
     }
 
     public Image read(DataSource source, long hash) throws IOException {

@@ -62,7 +62,12 @@ public enum TextureFormat {
     FMT_ASTC_8X8,
     FMT_ASTC_8X8_SRGB,
     FMT_DEPTH32F,
-    FMT_NEXTAVAILABLE,
+    // Dark ages
+    FMT_RGBA16_UINT,
+    FMT_RGBA16,
+    FMT_SMALLF,
+    FMT_MAINVIEW_SMALLF,
+    FMT_RG16_UINT,
     ;
 
     public static TextureFormat parse(String textureFormat) {

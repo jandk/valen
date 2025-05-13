@@ -9,7 +9,9 @@ public enum ResourcesCompressionMode implements ValueEnum<Integer> {
     RES_COMP_MODE_LZNA(3),
     RES_COMP_MODE_KRAKEN_CHUNKED(4),
     RES_COMP_MODE_LEVIATHAN(5),
-    RES_COMP_MODE_ENUM_MAX(6);
+    RES_COMP_MODE_BCPACK(6),
+    RES_COMP_MODE_ENUM_MAX(7),
+    ;
 
     private final int value;
 
@@ -25,4 +27,4 @@ public enum ResourcesCompressionMode implements ValueEnum<Integer> {
     public Integer value() {
         return value;
     }
-}
+    }

@@ -8,7 +8,7 @@ import java.util.*;
 public record DarkAgesAssetID(
     ResourceName name,
     ResourcesType type,
-    int variation
+    ResourcesVariation variation
 ) implements Comparable<AssetID>, AssetID {
     private static final Comparator<DarkAgesAssetID> COMPARATOR = Comparator
         .comparing(DarkAgesAssetID::name)
@@ -41,7 +41,7 @@ public record DarkAgesAssetID(
         return new DarkAgesAssetID(
             resourceName,
             type,
-            0
+            ResourcesVariation.RES_VAR_NONE
         );
     }
 

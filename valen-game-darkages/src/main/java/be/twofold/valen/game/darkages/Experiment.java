@@ -12,7 +12,6 @@ import java.io.*;
 import java.nio.*;
 import java.nio.file.*;
 import java.util.*;
-import java.util.stream.*;
 
 public class Experiment {
     private static final Decompressor DECOMPRESSOR = Decompressor.oodle(Path.of("oo2core_9_win64.dll"));
@@ -22,7 +21,7 @@ public class Experiment {
         var base = path.getParent().resolve("base");
 
         var spec = PackageMapSpecReader.read(base.resolve("packagemapspec.json"));
-        dumpStreams(spec, base);
+        dumpResources(spec, base);
     }
 
     private static void dumpStreams(PackageMapSpec spec, Path base) throws Exception {
@@ -62,6 +61,7 @@ public class Experiment {
         var entries = new ArrayList<ImageHeader>();
         for (Path path : resourcePaths) {
             try (ResourcesFile resourcesFile = new ResourcesFile(path, DECOMPRESSOR)) {
+//                resourcesFile.getAll().map(DarkAgesResource::from).forEach(entries::add);
                 resourcesFile.getAll().forEach(entry -> {
                     if (entry.size() == 0 || entry.id().type() != ResourcesType.Image) {
                         return;

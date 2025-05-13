@@ -17,7 +17,6 @@ public enum TextureMaterialKind {
     TMK_LIGHTPROJECT,
     TMK_PARTICLE,
     TMK_UNUSED_1,
-    TMK_UNUSED_2,
     TMK_LIGHTMAP,
     TMK_UI,
     TMK_FONT,
@@ -31,6 +30,8 @@ public enum TextureMaterialKind {
     TMK_ALBEDO_UNSCALED,
     TMK_ALBEDO_DETAILS,
     TMK_COUNT,
+    TMK_AO,
+    TMK_PAINTEDDATAGRID
     ;
 
     public static TextureMaterialKind parse(String textureMaterialKind) {

@@ -50,7 +50,7 @@ public final class ResourcesFile implements Container<DarkAgesAssetID, DarkAgesA
 
         var resourceName = new ResourceName(name);
         var resourceType = ResourcesType.fromName(type);
-        var resourceVariation = entry.variation();
+        var resourceVariation = ResourcesVariation.fromValue(entry.variation());
         var resourceKey = new DarkAgesAssetID(resourceName, resourceType, resourceVariation);
         return new DarkAgesAsset(
             resourceKey,
@@ -59,7 +59,8 @@ public final class ResourcesFile implements Container<DarkAgesAssetID, DarkAgesA
             entry.uncompressedSize(),
             entry.compMode(),
             entry.defaultHash(),
-            entry.dataCheckSum()
+            entry.dataCheckSum(),
+            entry.version()
         );
     }
 

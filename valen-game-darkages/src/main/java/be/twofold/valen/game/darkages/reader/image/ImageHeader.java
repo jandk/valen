@@ -91,34 +91,32 @@ public record ImageHeader(
     }
 
     private static TextureMaterialKind toMaterialKind(int value) {
-        return TextureMaterialKind.TMK_NONE;
-//        return switch (value) {
-//            case +0 -> TextureMaterialKind.TMK_NONE;
-//            case +1 -> TextureMaterialKind.TMK_ALBEDO;
-//            case +2 -> TextureMaterialKind.TMK_SPECULAR;
-//            case +3 -> TextureMaterialKind.TMK_NORMAL;
-//            case +4 -> TextureMaterialKind.TMK_SMOOTHNESS;
-//            case +5 -> TextureMaterialKind.TMK_COVER;
-//            case +6 -> TextureMaterialKind.TMK_SSSMASK;
-//            case +7 -> TextureMaterialKind.TMK_COLORMASK;
-//            case +8 -> TextureMaterialKind.TMK_BLOOMMASK;
-//            case +9 -> TextureMaterialKind.TMK_HEIGHTMAP;
-//            case 10 -> TextureMaterialKind.TMK_DECALALBEDO;
-//            case 11 -> TextureMaterialKind.TMK_DECALNORMAL;
-//            case 12 -> TextureMaterialKind.TMK_DECALSPECULAR;
-//            case 13 -> TextureMaterialKind.TMK_LIGHTPROJECT;
-//            case 14 -> TextureMaterialKind.TMK_PARTICLE;
-//            case 15 -> TextureMaterialKind.TMK_UNUSED_1;
-//            case 16 -> TextureMaterialKind.TMK_UNUSED_2;
-//            case 17 -> TextureMaterialKind.TMK_LIGHTMAP;
-//            case 18 -> TextureMaterialKind.TMK_UI;
-//            case 19 -> TextureMaterialKind.TMK_FONT;
-//            case 20 -> TextureMaterialKind.TMK_LEGACY_FLASH_UI;
-//            case 21 -> TextureMaterialKind.TMK_LIGHTMAP_DIRECTIONAL;
-//            case 22 -> TextureMaterialKind.TMK_BLENDMASK;
-//            case 23 -> TextureMaterialKind.TMK_COUNT;
-//            default -> throw new IllegalArgumentException("Invalid texture material kind value " + value);
-//        };
+        return switch (value) {
+            case +0 -> TextureMaterialKind.TMK_NONE;
+            case +1 -> TextureMaterialKind.TMK_ALBEDO;
+            case +2 -> TextureMaterialKind.TMK_SPECULAR;
+            case +3 -> TextureMaterialKind.TMK_NORMAL;
+            case +4 -> TextureMaterialKind.TMK_SMOOTHNESS;
+            case +5 -> TextureMaterialKind.TMK_COVER;
+            case +6 -> TextureMaterialKind.TMK_SSSMASK;
+            case +7 -> TextureMaterialKind.TMK_COLORMASK;
+            case +8 -> TextureMaterialKind.TMK_BLOOMMASK;
+            case +9 -> TextureMaterialKind.TMK_HEIGHTMAP;
+            case 10 -> TextureMaterialKind.TMK_DECALALBEDO;
+            case 11 -> TextureMaterialKind.TMK_DECALNORMAL;
+            case 12 -> TextureMaterialKind.TMK_DECALSPECULAR;
+            case 13 -> TextureMaterialKind.TMK_LIGHTPROJECT;
+            case 14 -> TextureMaterialKind.TMK_PARTICLE;
+            case 15 -> TextureMaterialKind.TMK_DECALHEIGHTMAP;
+            case 16 -> TextureMaterialKind.TMK_AO;
+            case 18 -> TextureMaterialKind.TMK_UI;
+            case 19 -> TextureMaterialKind.TMK_FONT;
+            case 20 -> TextureMaterialKind.TMK_LEGACY_FLASH_UI;
+            case 22 -> TextureMaterialKind.TMK_BLENDMASK;
+            case 23 -> TextureMaterialKind.TMK_PAINTEDDATAGRID;
+            case 24 -> TextureMaterialKind.TMK_COUNT;
+            default -> throw new IllegalArgumentException("Invalid texture material kind value " + value);
+        };
     }
 
     private static TextureFormat toTextureFormat(int value) {
@@ -179,7 +177,13 @@ public record ImageHeader(
             case 53 -> TextureFormat.FMT_DEPTH32F;
             case 54 -> TextureFormat.FMT_BC1_ZERO_ALPHA;
             case 55 -> TextureFormat.FMT_R8_UINT;
-            case 56 -> TextureFormat.FMT_NEXTAVAILABLE;
+            case 56 -> TextureFormat.FMT_RGBA16_UINT;
+            case 57 -> TextureFormat.FMT_R9G9B9E5;
+            case 58 -> TextureFormat.FMT_RG32_UINT;
+            case 59 -> TextureFormat.FMT_RGBA16;
+            case 60 -> TextureFormat.FMT_SMALLF;
+            case 61 -> TextureFormat.FMT_MAINVIEW_SMALLF;
+            case 62 -> TextureFormat.FMT_RG16_UINT;
             default -> throw new IllegalArgumentException("Invalid texture format value " + value);
         };
     }

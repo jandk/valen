@@ -1,7 +1,8 @@
 #include "common.bt"
 
 struct ImageHeader {
-    u32 magic;
+    char magic[3];
+    u8  version;
     u32 textureType;
     u32 textureMaterialKind;
     u32 pixelWidth;

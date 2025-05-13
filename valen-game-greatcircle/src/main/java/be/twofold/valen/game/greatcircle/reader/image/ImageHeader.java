@@ -96,7 +96,6 @@ public record ImageHeader(
             case 13 -> TextureMaterialKind.TMK_LIGHTPROJECT;
             case 14 -> TextureMaterialKind.TMK_PARTICLE;
             case 15 -> TextureMaterialKind.TMK_UNUSED_1;
-            case 16 -> TextureMaterialKind.TMK_UNUSED_2;
             case 17 -> TextureMaterialKind.TMK_LIGHTMAP;
             case 18 -> TextureMaterialKind.TMK_UI;
             case 19 -> TextureMaterialKind.TMK_FONT;
@@ -177,7 +176,6 @@ public record ImageHeader(
             case 58 -> TextureFormat.FMT_RG32_UINT;
             case 59 -> TextureFormat.FMT_STENCIL;
             case 60 -> TextureFormat.FMT_RGBA8_SNORM;
-            case 61 -> TextureFormat.FMT_NEXTAVAILABLE;
             default -> throw new IllegalArgumentException("Invalid texture format value " + value);
         };
     }

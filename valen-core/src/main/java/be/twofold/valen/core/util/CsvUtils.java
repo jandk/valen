@@ -65,6 +65,7 @@ public final class CsvUtils {
             case long[] longs -> Arrays.toString(longs);
             case float[] floats -> Arrays.toString(floats);
             case double[] doubles -> Arrays.toString(doubles);
+            case Long l -> HexFormat.of().toHexDigits(l);
             default -> Objects.toString(value);
         };
         return s.contains(",") ? "\"" + s + "\"" : s;
