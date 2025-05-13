@@ -7,6 +7,7 @@ import be.twofold.valen.game.darkages.*;
 import be.twofold.valen.game.darkages.reader.resources.*;
 
 import java.io.*;
+import java.nio.*;
 
 public final class ImageReader implements AssetReader<Texture, DarkAgesAsset> {
     private final DarkAgesArchive archive;
@@ -29,8 +30,7 @@ public final class ImageReader implements AssetReader<Texture, DarkAgesAsset> {
     @Override
     public Texture read(DataSource source, DarkAgesAsset resource) throws IOException {
         var image = read(source, resource.hash());
-        return null;
-        // return new ImageMapper().map(image);
+        return new ImageMapper().map(image);
     }
 
     public Image read(DataSource source, long hash) throws IOException {
@@ -65,9 +65,12 @@ public final class ImageReader implements AssetReader<Texture, DarkAgesAsset> {
     }
 
     private void readMultiStream(Image image, long hash) throws IOException {
+        ByteBuffer key = ByteBuffer.allocate(16).order(ByteOrder.LITTLE_ENDIAN);
+        key.putLong(0, hash);
         for (var i = 0; i < image.header().startMip(); i++) {
             var mip = image.mipInfos().get(i);
-            var mipHash = hash << 4 | (image.header().mipCount() - mip.mipLevel());
+            key.putInt(8, image.header().streamDBMipCount() - mip.mipLevel() - 1);
+            var mipHash = Hash.hash(key);
             if (archive.containsStream(mipHash)) {
                 image.mipData()[i] = archive.readStream(mipHash, mip.decompressedSize());
             }
