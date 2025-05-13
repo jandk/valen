@@ -22,6 +22,7 @@
         <module>valen-game-greatcircle</module>
         <module>valen-game-idtech</module>
         <module>valen-ui</module>
+        <module>valen-game-darkages</module>
     </modules>
 
     <properties>
@@ -146,6 +147,11 @@
             <dependency>
                 <groupId>be.twofold</groupId>
                 <artifactId>valen-format-png</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>be.twofold</groupId>
+                <artifactId>valen-game-darkages</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
