@@ -5,6 +5,7 @@ import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.util.*;
 import be.twofold.valen.game.darkages.reader.decl.*;
+import be.twofold.valen.game.darkages.reader.image.ImageReader;
 import be.twofold.valen.game.darkages.reader.streamdb.*;
 
 import java.io.*;
@@ -31,7 +32,9 @@ public final class DarkAgesArchive implements Archive<DarkAgesAssetID, DarkAgesA
 
         var declReader = new DeclReader(this);
         this.readers = new AssetReaders<>(List.of(
-            declReader
+            declReader,
+
+            new ImageReader(this)
         ));
     }
 

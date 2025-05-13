@@ -6,22 +6,22 @@ import be.twofold.valen.game.darkages.reader.resources.*;
 import java.util.*;
 
 public record DarkAgesAsset(
-    DarkAgesAssetID id,
-    int offset,
-    int compressedSize,
-    int size,
-    ResourcesCompressionMode compression,
-    long hash,
-    long checksum
+        DarkAgesAssetID id,
+        int offset,
+        int compressedSize,
+        int size,
+        ResourcesCompressionMode compression,
+        long hash,
+        long checksum
 ) implements Asset {
     @Override
     public AssetType type() {
-        if (id.name().name().startsWith("generated/decls/material2/")) {
-            return AssetType.MATERIAL;
-        }
+//        if (id.name().name().startsWith("generated/decls/material2/")) {
+//            return AssetType.MATERIAL;
+//        }
         return switch (id.type()) {
-            case Anim -> AssetType.ANIMATION;
-            case BaseModel, Model -> AssetType.MODEL;
+//            case Anim -> AssetType.ANIMATION;
+//            case BaseModel, Model -> AssetType.MODEL;
             case Image -> AssetType.TEXTURE;
             default -> AssetType.RAW;
         };
@@ -50,7 +50,7 @@ public record DarkAgesAsset(
     @Override
     public boolean equals(Object obj) {
         return obj instanceof DarkAgesAsset other
-            && id.equals(other.id);
+                && id.equals(other.id);
     }
 
     @Override
