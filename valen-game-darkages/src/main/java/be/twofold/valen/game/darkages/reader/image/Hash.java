@@ -3,7 +3,7 @@ package be.twofold.valen.game.darkages.reader.image;
 import java.nio.*;
 
 public final class Hash {
-    static long hash(ByteBuffer key) {
+    public static long hash(ByteBuffer key) {
         long c1 = 0xFF51AFD7ED558CCDL;
         long c2 = 0xC4CEB9FE1A85EC53L;
         long c3 = 0x000000009E3779B9L;

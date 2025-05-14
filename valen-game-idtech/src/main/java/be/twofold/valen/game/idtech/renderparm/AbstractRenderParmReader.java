@@ -22,13 +22,13 @@ public abstract class AbstractRenderParmReader<V extends Asset> implements Asset
 
     protected Object parseValue(DeclParser parser, RenderParm renderParm) {
         switch (renderParm.parmType) {
-            case PT_F32_VEC4:
+            case PT_F32_VEC4, PT_F16_VEC4:
                 return readVector4(parser);
-            case PT_F32_VEC3:
+            case PT_F32_VEC3, PT_F16_VEC3:
                 return readVector3(parser);
-            case PT_F32_VEC2:
+            case PT_F32_VEC2, PT_F16_VEC2:
                 return readVector2(parser);
-            case PT_F32:
+            case PT_F32, PT_F16:
                 return parser.expectNumber().floatValue();
             case PT_UI32:
             case PT_SI32:
@@ -222,6 +222,11 @@ public abstract class AbstractRenderParmReader<V extends Asset> implements Asset
                 }
                 case "nomips" -> {
                     result.noMips = true;
+                    parser.expectName();
+                    continue;
+                }
+                case "streamed" -> {
+                    result.streamed = true;
                     parser.expectName();
                     continue;
                 }

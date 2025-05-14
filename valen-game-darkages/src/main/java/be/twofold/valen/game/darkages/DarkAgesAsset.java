@@ -22,7 +22,7 @@ public record DarkAgesAsset(
 //        }
         return switch (id.type()) {
 //            case Anim -> AssetType.ANIMATION;
-//            case BaseModel, Model -> AssetType.MODEL;
+            case Model -> AssetType.MODEL;
             case Image -> AssetType.TEXTURE;
             default -> AssetType.RAW;
         };

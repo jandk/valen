@@ -70,6 +70,32 @@ public final class GeometryReader {
         return meshes;
     }
 
+    public static List<Mesh> readStreamedMesh(
+        DataSource source,
+        List<LodInfo> lods,
+        boolean animated
+    ) throws IOException {
+        var offset = 0;
+        var meshes = new ArrayList<Mesh>();
+        for (var lodInfo : lods) {
+            var masks = GeometryVertexMask.fromMultiple(lodInfo.vertexMask());
+
+            var vertexAccessors = new ArrayList<GeoAccessor<?>>();
+            for (var mask : masks) {
+                vertexAccessors.addAll(buildAccessors(offset, lodInfo.numVertices(), mask.size(), mask, lodInfo, animated));
+                offset += lodInfo.numVertices() * mask.size();
+            }
+
+            var faceInfo = VertexBufferInfo.indices(ComponentType.UNSIGNED_SHORT);
+            var faceAccessor = new GeoAccessor<>(offset, lodInfo.numFaces() * 3, 2, faceInfo, Geometry.readFace());
+            offset += lodInfo.numFaces() * 3 * Short.BYTES;
+            offset = (offset + 7) & ~7;
+
+            meshes.add(new Geo(true).readMesh(source, faceAccessor, vertexAccessors));
+        }
+        return meshes;
+    }
+
     private static List<GeoAccessor<?>> buildAccessors(int offset, int count, int stride, GeometryVertexMask mask, LodInfo lodInfo, boolean animated) {
         return switch (mask) {
             case WGVS_POSITION_SHORT -> List.of(
@@ -84,17 +110,35 @@ public final class GeometryReader {
                 var weights0 = new GeoAccessor<>(offset, count, stride, VertexBufferInfo.weights(0, ComponentType.UNSIGNED_BYTE), Geometry.readWeight());
                 yield animated ? List.of(normal, tangent, weights0) : List.of(normal, tangent);
             }
-            case WGVS_LIGHTMAP_UV_SHORT -> List.of(
-                new GeoAccessor<>(offset, count, stride, VertexBufferInfo.texCoords(1), Geometry.readPackedUV(lodInfo.uvScale(), lodInfo.uvOffset()))
-            );
-            case WGVS_LIGHTMAP_UV -> List.of(
-                new GeoAccessor<>(offset, count, stride, VertexBufferInfo.texCoords(1), Geometry.readUV(lodInfo.uvScale(), lodInfo.uvOffset()))
-            );
+            case WGVS_LIGHTMAP_UV_SHORT -> {
+                throw new UnsupportedOperationException("WGVS_LIGHTMAP_UV_SHORT");
+//                yield List.of(
+//                    new GeoAccessor<>(offset, count, stride, VertexBufferInfo.texCoords(3), Geometry.readPackedUV(lodInfo.uvScale(), lodInfo.uvOffset()))
+//                );
+            }
+            case WGVS_LIGHTMAP_UV -> {
+                throw new UnsupportedOperationException("WGVS_LIGHTMAP_UV");
+//                yield List.of(
+//                    new GeoAccessor<>(offset, count, stride, VertexBufferInfo.texCoords(3), Geometry.readUV(lodInfo.uvScale(), lodInfo.uvOffset()))
+//                );
+            }
             case WGVS_MATERIAL_UV_SHORT -> List.of(
                 new GeoAccessor<>(offset, count, stride, VertexBufferInfo.texCoords(0), Geometry.readPackedUV(lodInfo.uvScale(), lodInfo.uvOffset()))
             );
             case WGVS_MATERIAL_UV -> List.of(
                 new GeoAccessor<>(offset, count, stride, VertexBufferInfo.texCoords(0), Geometry.readUV(lodInfo.uvScale(), lodInfo.uvOffset()))
+            );
+            case WGVS_MATERIAL_UV1 -> List.of(
+                new GeoAccessor<>(offset, count, stride, VertexBufferInfo.texCoords(1), Geometry.readUV(lodInfo.uvScale(), lodInfo.uvOffset()))
+            );
+            case WGVS_MATERIAL_UV2 -> List.of(
+                new GeoAccessor<>(offset, count, stride, VertexBufferInfo.texCoords(2), Geometry.readUV(lodInfo.uvScale(), lodInfo.uvOffset()))
+            );
+            case WGVS_MATERIAL_UV1_SHORT -> List.of(
+                new GeoAccessor<>(offset, count, stride, VertexBufferInfo.texCoords(1), Geometry.readPackedUV(lodInfo.uvScale(), lodInfo.uvOffset()))
+            );
+            case WGVS_MATERIAL_UV2_SHORT -> List.of(
+                new GeoAccessor<>(offset, count, stride, VertexBufferInfo.texCoords(2), Geometry.readPackedUV(lodInfo.uvScale(), lodInfo.uvOffset()))
             );
             case WGVS_COLOR -> {
                 var info = animated
@@ -105,7 +149,10 @@ public final class GeometryReader {
                     new GeoAccessor<>(offset, count, stride, info, Geometry.readColor())
                 );
             }
-            case WGVS_MATERIALS -> List.of();
+            case WGVS_SKINNING -> throw new UnsupportedOperationException("WGVS_SKINNING");
+            case WGVS_SKINNING_1 -> List.of();
+            case WGVS_SKINNING_4 -> throw new UnsupportedOperationException("WGVS_SKINNING_4");
+            case WGVS_SKINNING_6 -> throw new UnsupportedOperationException("WGVS_SKINNING_6");
         };
     }
 

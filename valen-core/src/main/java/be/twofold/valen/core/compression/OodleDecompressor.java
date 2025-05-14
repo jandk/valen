@@ -41,13 +41,13 @@ final class OodleDecompressor implements Decompressor {
                 OodleLZ_Decode_ThreadPhase.All.value()
             );
 
+            if (result != expected) {
+                throw new IOException("Decompression failed, expected " + expected + ", got " + result);
+            }
             MemorySegment.ofBuffer(dst)
                 .copyFrom(dstSegment);
             src.position(src.limit());
             dst.position(dst.position() + result);
-//            if (result != expected) {
-//                throw new IOException("Decompression failed, expected " + expected + ", got " + result);
-//            }
         }
     }
 

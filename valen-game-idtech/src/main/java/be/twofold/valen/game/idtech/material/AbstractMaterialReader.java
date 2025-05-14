@@ -149,10 +149,10 @@ public abstract class AbstractMaterialReader<K extends AssetID, V extends Asset,
 
         var reference = textureParm.map(parm -> mapTex2D(parm, parms)).orElse(null);
         var factor = factorParm.map(parm -> switch (parm.renderParm().parmType) {
-            case PT_F32_VEC4 -> (Vector4) parm.value();
-            case PT_F32_VEC3 -> new Vector4((Vector3) parm.value(), 0.0f);
-            case PT_F32_VEC2 -> new Vector4((Vector2) parm.value(), 0.0f, 0.0f);
-            case PT_F32 -> new Vector4(0.0f, 0.0f, 0.0f, (Float) parm.value());
+            case PT_F32_VEC4, PT_F16_VEC4 -> (Vector4) parm.value();
+            case PT_F32_VEC3, PT_F16_VEC3 -> new Vector4((Vector3) parm.value(), 0.0f);
+            case PT_F32_VEC2, PT_F16_VEC2 -> new Vector4((Vector2) parm.value(), 0.0f, 0.0f);
+            case PT_F32, PT_F16 -> new Vector4(0.0f, 0.0f, 0.0f, (Float) parm.value());
             default -> throw new UnsupportedOperationException();
         }).orElse(null);
 
@@ -254,7 +254,7 @@ public abstract class AbstractMaterialReader<K extends AssetID, V extends Asset,
                 }
                 yield element.getAsString();
             }
-            case PT_F32 -> {
+            case PT_F32, PT_F16 -> {
                 if (element.isJsonObject()) {
                     var object = element.getAsJsonObject();
                     if (!object.has("x")) {
@@ -264,9 +264,9 @@ public abstract class AbstractMaterialReader<K extends AssetID, V extends Asset,
                 }
                 yield element.getAsFloat();
             }
-            case PT_F32_VEC2 -> parseVector2(element, renderParm.get());
-            case PT_F32_VEC3 -> parseVector3(element, renderParm.get());
-            case PT_F32_VEC4 -> parseVector4(element, renderParm.get());
+            case PT_F32_VEC2, PT_F16_VEC2 -> parseVector2(element, renderParm.get());
+            case PT_F32_VEC3, PT_F16_VEC3 -> parseVector3(element, renderParm.get());
+            case PT_F32_VEC4, PT_F16_VEC4 -> parseVector4(element, renderParm.get());
             case PT_COLOR_LUT, PT_STRING -> element.getAsString();
             case PT_TEXTURE_2D, PT_TEXTURE_2D_HALF, PT_TEXTURE_CUBE -> parseTex(element);
             case PT_SI32, PT_UI32 -> element.getAsInt();
@@ -361,7 +361,7 @@ public abstract class AbstractMaterialReader<K extends AssetID, V extends Asset,
             if (opts.fullScaleBias()) {
                 builder.append("$fullscalebias");
             }
-            if (parm.renderParm().streamed) {
+            if (/*parm.renderParm().streamed*/true) {
                 builder.append("$streamed");
             }
             if (opts.noMips()) {

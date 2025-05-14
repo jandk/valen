@@ -37,6 +37,10 @@ typedef struct {
 } Bounds;
 
 typedef struct {
+    f32 mat[9];
+} Mat3;
+
+typedef struct {
     f32 mat[12];
 } Mat3x4;
 
@@ -49,3 +53,10 @@ typedef struct {
     u32       length;
     StrP32 data[length] <optimize=false>;
 } StrP32List;
+
+typedef struct {
+    uint compression;
+    uint uncompressedSize;
+    uint compressedSize;
+    uint offset;
+} GeoDiskLayout;
