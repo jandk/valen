@@ -9,6 +9,7 @@ import be.twofold.valen.game.darkages.reader.decl.material2.*;
 import be.twofold.valen.game.darkages.reader.decl.renderparm.*;
 import be.twofold.valen.game.darkages.reader.image.*;
 import be.twofold.valen.game.darkages.reader.model.*;
+import be.twofold.valen.game.darkages.reader.skeleton.*;
 import be.twofold.valen.game.darkages.reader.streamdb.*;
 
 import java.io.*;
@@ -39,6 +40,7 @@ public final class DarkAgesArchive implements Archive<DarkAgesAssetID, DarkAgesA
 
             new ImageReader(this),
             new MaterialReader(this, declReader),
+            new Md6SklReader(),
             new RenderParmReader(),
             new StaticModelReader(this)
         ));

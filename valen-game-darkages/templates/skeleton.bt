@@ -1,0 +1,73 @@
+#include "common.bt"
+
+typedef struct {
+    u32 size                       <comment="the allocated size of the skeleton">;
+    u32 loadedDataSize             <comment="the size of the skeleton BEFORE reallocating for dynamic data">;
+    u32 basePoseOffset             <comment="offset of the base pose data (stores as R/S/T streams)">;
+    u32 inverseBasePoseOffset      <comment="offset of the inverted base pose data (stored as 3x4 matrices)">;
+    u32 nameHash;
+    u32 parentTblHash              <comment="hash used to verify animations are loaded / played on the correct mesh">;
+    i16 numJoints                  <comment="the number of joints in the skeleton">;
+    i16 numJointHandles            <comment="the number of extended joints in the joint handle table">;
+    u16 parentTblOffset            <comment="offset of the table with the parent for each joint">;
+    u16 lastChildTblOffset         <comment="offset of the table with the last child index for each joint">;
+    u16 jointNameHandleTblOffset   <comment="offset of the table with the name handle for each joint">;
+    u16 jointIndexTblOffset        <comment="offset of the table with joint handle to index mapping">;
+    i16 numUserChannels            <comment="number of user channels">;
+    u16 userChannelHandleTblOffset <comment="offset of the table with a handle for each user channel">;
+    u16 jointSetTblOffset          <comment="offset of the table containing skeleton remap info">;
+    u16 boundsJointTblOffset       <comment="offset to the table of joints that contribute to animated bounds">;
+    f32 assetScale;
+} MD6SkelData;
+
+typedef struct {
+    local int base = FTell();
+    MD6SkelData header <style=sHeading1>;
+
+    local int numJoints8 = (header.numJoints + 7) & ~7;
+    Printf("Number of joints rounded up to multiple of 8: %d\n", numJoints8);
+    
+    local int numJointHandles8 = (header.numJointHandles + 7) & ~7;
+    Printf("Number of joint handles rounded up to multiple of 8: %d\n", numJointHandles8);
+    
+    local int numUserChannels8 = (header.numUserChannels + 7) & ~7;
+    Printf("Number of user channels rounded up to multiple of 8: %d\n", numUserChannels8);
+    
+    FSeek(base + header.parentTblOffset);
+    i16 parentTable[numJoints8] <style=sSection2>;
+
+    FSeek(base + header.lastChildTblOffset);
+    i16 lastChildTable[numJoints8] <style=sSection3>;
+
+    FSeek(base + header.jointNameHandleTblOffset);
+    i16 jointNameHandleTblOffset[numJointHandles8] <style=sSection4>;
+
+    FSeek(base + header.jointIndexTblOffset);
+    i16 jointIndexTblOffset[numJoints8] <style=sSection4>;
+
+    FSeek(base + header.userChannelHandleTblOffset);
+    i16 userChannelHandleTable[numUserChannels8] <style=sSection1>;
+    
+    FSeek(base + header.basePoseOffset);
+    Vec4 rotations[numJoints8] <style=sSection2>;
+    Vec3 scales[numJoints8] <style=sSection3>;
+    Vec3 translations[numJoints8] <style=sSection4>;
+    
+    FSeek(base + header.inverseBasePoseOffset);
+    Mat3x4 inverseBasePoses[numJoints8] <style=sSection1>;
+
+    FSeek(base + header.loadedDataSize + header.jointSetTblOffset);
+    i16 jointSetTable[header.numJoints] <style=sSection2>;
+    
+    FSeek(base + header.loadedDataSize + header.boundsJointTblOffset);
+    i16 boundsJointTable[header.numJoints] <style=sSection3>;
+
+    FSeek(base + header.size);
+    StrP32 jointNames[numJoints8] <style=sSection4, optimize=false>;
+    StrP32 userChannelNames[numUserChannels8] <style=sSection1, optimize=false>;
+} MD6Skl;
+
+int size;
+if (size) {
+    MD6Skl skeleton;
+}
