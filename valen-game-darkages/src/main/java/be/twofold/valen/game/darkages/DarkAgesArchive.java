@@ -40,7 +40,7 @@ public final class DarkAgesArchive implements Archive<DarkAgesAssetID, DarkAgesA
 
             new ImageReader(this),
             new MaterialReader(this, declReader),
-            new Md6SklReader(),
+            new Md6SkelReader(),
             new RenderParmReader(),
             new StaticModelReader(this)
         ));

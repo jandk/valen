@@ -6,8 +6,8 @@ import be.twofold.valen.core.math.*;
 import java.io.*;
 import java.util.*;
 
-public record Md6Skl(
-    Md6SklHeader header,
+public record Md6Skel(
+    Md6SkelHeader header,
     short[] parentTable,
     short[] lastChildTable,
     short[] jointNameHandleTblOffset,
@@ -22,8 +22,8 @@ public record Md6Skl(
     List<String> jointNames,
     List<String> userChannelNames
 ) {
-    public static Md6Skl read(DataSource source) throws IOException {
-        var header = Md6SklHeader.read(source);
+    public static Md6Skel read(DataSource source) throws IOException {
+        var header = Md6SkelHeader.read(source);
         var base = 4;
 
         source.position(base + header.parentTblOffset());
@@ -47,7 +47,7 @@ public record Md6Skl(
         var translations = source.readObjects(header.numJoints8(), Vector3::read);
 
         source.position(base + header.inverseBasePoseOffset());
-        var inverseBasePoses = source.readObjects(header.numJoints8(), Md6Skl::readInverseBasePose);
+        var inverseBasePoses = source.readObjects(header.numJoints8(), Md6Skel::readInverseBasePose);
 
         source.position(base + header.loadedDataSize() + header.jointSetTblOffset());
         var jointSetTable = source.readShorts(header.numJoints());
@@ -59,7 +59,7 @@ public record Md6Skl(
         var jointNames = source.readObjects(header.numJoints8(), DataSource::readPString);
         var userChannelNames = source.readObjects(header.numUserChannels8(), DataSource::readPString);
 
-        return new Md6Skl(
+        return new Md6Skel(
             header,
             parentTable,
             lastChildTable,

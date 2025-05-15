@@ -1,4 +1,4 @@
-package be.twofold.valen.game.darkages.reader.image;
+package be.twofold.valen.game.darkages.reader;
 
 import java.nio.*;
 

@@ -4,6 +4,7 @@ import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.texture.*;
 import be.twofold.valen.game.darkages.*;
+import be.twofold.valen.game.darkages.reader.Hash;
 import be.twofold.valen.game.darkages.reader.resources.*;
 
 import java.io.*;

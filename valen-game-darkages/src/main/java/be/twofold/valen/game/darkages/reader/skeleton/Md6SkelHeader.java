@@ -21,7 +21,7 @@ import java.io.*;
  * @param jointSetTblOffset          offset of the table containing skeleton remap info
  * @param boundsJointTblOffset       offset to the table of joints that contribute to animated bounds
  */
-public record Md6SklHeader(
+public record Md6SkelHeader(
     int size,
     int loadedDataSize,
     int basePoseOffset,
@@ -40,7 +40,7 @@ public record Md6SklHeader(
     short boundsJointTblOffset,
     float assetScale
 ) {
-    public static Md6SklHeader read(DataSource source) throws IOException {
+    public static Md6SkelHeader read(DataSource source) throws IOException {
         int size = source.readInt();
         int loadedDataSize = source.readInt();
         int basePoseOffset = source.readInt();
@@ -59,7 +59,7 @@ public record Md6SklHeader(
         short boundsJointTblOffset = source.readShort();
         float assetScale = source.readFloat();
 
-        return new Md6SklHeader(
+        return new Md6SkelHeader(
             size,
             loadedDataSize,
             basePoseOffset,

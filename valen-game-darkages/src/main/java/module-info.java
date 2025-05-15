@@ -12,4 +12,5 @@ module valen.game.darkages {
     exports be.twofold.valen.game.darkages;
     exports be.twofold.valen.game.darkages.reader.image;
     exports be.twofold.valen.game.darkages.reader.streamdb;
+    exports be.twofold.valen.game.darkages.reader;
 }

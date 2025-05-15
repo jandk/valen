@@ -6,8 +6,8 @@ import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.math.*;
 import be.twofold.valen.core.util.*;
 import be.twofold.valen.game.darkages.*;
+import be.twofold.valen.game.darkages.reader.Hash;
 import be.twofold.valen.game.darkages.reader.geometry.*;
-import be.twofold.valen.game.darkages.reader.image.*;
 import be.twofold.valen.game.darkages.reader.resources.*;
 import be.twofold.valen.game.idtech.geometry.*;
 

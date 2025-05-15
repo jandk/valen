@@ -10,7 +10,7 @@ import be.twofold.valen.game.darkages.reader.resources.*;
 import java.io.*;
 import java.util.stream.*;
 
-public final class Md6SklReader implements AssetReader<Skeleton, DarkAgesAsset> {
+public final class Md6SkelReader implements AssetReader<Skeleton, DarkAgesAsset> {
     @Override
     public boolean canRead(DarkAgesAsset resource) {
         return resource.id().type() == ResourcesType.Skeleton;
@@ -23,11 +23,11 @@ public final class Md6SklReader implements AssetReader<Skeleton, DarkAgesAsset> 
             throw new UnsupportedOperationException();
         }
 
-        Md6Skl skeleton = Md6Skl.read(source);
+        Md6Skel skeleton = Md6Skel.read(source);
         return map(skeleton);
     }
 
-    public Skeleton map(Md6Skl skeleton) {
+    public Skeleton map(Md6Skel skeleton) {
         var bones = IntStream.range(0, skeleton.header().numJoints())
             .mapToObj(i -> mapBone(skeleton, i))
             .toList();
@@ -35,7 +35,7 @@ public final class Md6SklReader implements AssetReader<Skeleton, DarkAgesAsset> 
         return new Skeleton(bones, Axis.Z);
     }
 
-    private Bone mapBone(Md6Skl skeleton, int index) {
+    private Bone mapBone(Md6Skel skeleton, int index) {
         return new Bone(
             skeleton.jointNames().get(index),
             skeleton.parentTable()[index],

@@ -5,11 +5,11 @@ import org.junit.jupiter.api.*;
 
 import java.io.*;
 
-class Md6SklReaderIT {
+class Md6SkelReaderIT {
 
     @Test
     void testCanReadAll() throws IOException {
-        TestUtils.testReader(_ -> new Md6SklReader());
+        TestUtils.testReader(_ -> new Md6SkelReader());
     }
 
 }
