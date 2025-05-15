@@ -12,12 +12,12 @@ import java.util.stream.*;
 
 public final class Md6SkelReader implements AssetReader<Skeleton, DarkAgesAsset> {
     @Override
-    public boolean canRead(DarkAgesAsset resource) {
-        return resource.id().type() == ResourcesType.Skeleton;
+    public boolean canRead(DarkAgesAsset asset) {
+        return asset.id().type() == ResourcesType.Skeleton;
     }
 
     @Override
-    public Skeleton read(DataSource source, DarkAgesAsset resource) throws IOException {
+    public Skeleton read(DataSource source, DarkAgesAsset asset) throws IOException {
         int size = source.readInt();
         if (size == 0) {
             throw new UnsupportedOperationException();

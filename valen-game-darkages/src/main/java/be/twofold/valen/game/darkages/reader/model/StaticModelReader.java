@@ -29,19 +29,19 @@ public final class StaticModelReader implements AssetReader<Model, DarkAgesAsset
     }
 
     @Override
-    public boolean canRead(DarkAgesAsset resource) {
-        return resource.id().type() == ResourcesType.Model;
+    public boolean canRead(DarkAgesAsset asset) {
+        return asset.id().type() == ResourcesType.Model;
     }
 
     @Override
-    public Model read(DataSource source, DarkAgesAsset resource) throws IOException {
+    public Model read(DataSource source, DarkAgesAsset asset) throws IOException {
         var model = StaticModel.read(source);
-        var meshes = new ArrayList<>(readMeshes(model, source, resource.hash()));
+        var meshes = new ArrayList<>(readMeshes(model, source, asset.hash()));
 
         if (readMaterials) {
             Materials.apply(archive, meshes, model.meshInfos(), StaticModelMeshInfo::mtlDecl, _ -> null);
         }
-        return new Model(meshes, Optional.empty(), Optional.of(resource.id().fullName()), Optional.empty(), Axis.Z);
+        return new Model(meshes, Optional.empty(), Optional.of(asset.id().fullName()), Optional.empty(), Axis.Z);
     }
 
     private List<Mesh> readMeshes(StaticModel model, DataSource source, long hash) throws IOException {

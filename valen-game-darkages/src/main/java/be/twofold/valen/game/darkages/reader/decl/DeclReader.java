@@ -26,12 +26,12 @@ public final class DeclReader extends AbstractDeclReader<DarkAgesAssetID, DarkAg
     }
 
     @Override
-    public boolean canRead(DarkAgesAsset resource) {
-        if (resource.id().type() != ResourcesType.RsStreamFile) {
+    public boolean canRead(DarkAgesAsset asset) {
+        if (asset.id().type() != ResourcesType.RsStreamFile) {
             return false;
         }
 
-        var name = resource.id().name().name();
+        var name = asset.id().name().name();
         if (!name.startsWith(RootPrefix)) {
             return false;
         }

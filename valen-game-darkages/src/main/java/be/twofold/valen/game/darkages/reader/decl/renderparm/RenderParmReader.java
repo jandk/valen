@@ -9,13 +9,13 @@ import java.io.*;
 
 public final class RenderParmReader extends AbstractRenderParmReader<DarkAgesAsset> {
     @Override
-    public boolean canRead(DarkAgesAsset resource) {
-        return resource.id().type() == ResourcesType.RsStreamFile
-            && resource.id().name().name().startsWith("generated/decls/renderparm/");
+    public boolean canRead(DarkAgesAsset asset) {
+        return asset.id().type() == ResourcesType.RsStreamFile
+            && asset.id().name().name().startsWith("generated/decls/renderparm/");
     }
 
     @Override
-    public RenderParm read(DataSource source, DarkAgesAsset resource) throws IOException {
+    public RenderParm read(DataSource source, DarkAgesAsset asset) throws IOException {
         return read(source);
     }
 }

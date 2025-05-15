@@ -24,13 +24,13 @@ public final class ImageReader implements AssetReader<Texture, DarkAgesAsset> {
     }
 
     @Override
-    public boolean canRead(DarkAgesAsset resource) {
-        return resource.id().type() == ResourcesType.Image;
+    public boolean canRead(DarkAgesAsset asset) {
+        return asset.id().type() == ResourcesType.Image;
     }
 
     @Override
-    public Texture read(DataSource source, DarkAgesAsset resource) throws IOException {
-        var image = read(source, resource.hash());
+    public Texture read(DataSource source, DarkAgesAsset asset) throws IOException {
+        var image = read(source, asset.hash());
         return new ImageMapper().map(image);
     }
 
