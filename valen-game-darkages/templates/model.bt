@@ -1,0 +1,78 @@
+#include "common.bt"
+
+struct ModelHeader {
+    Vec3 referencePosition;
+    u32 numLods;
+    u32 numSurfaces;
+    f32 maxLodDeviations[numLods];
+    u32 streamable;
+};
+
+struct ModelLodInfo {
+    i32 alwaysMinus5;
+    u32 numVerts;
+    u32 numIndices;
+    u32 vertexMask;
+    u32 unk[3];
+    Bounds bounds;
+    Vec3 vertexOffset;
+    f32 vertexScale;
+    Vec2 uvOffset;
+    f32 uvScale;
+    u32 always0;
+    f32 unkFloat1;
+    f32 unkFloat2;
+    char alwaysBLMr[4];
+};
+
+struct textureAxis_t {
+    Mat3 axis;
+    Vec3 origin;
+    Vec2 scale;
+};
+
+struct ModelSettings {
+    f32 lightmapSurfaceAreaSqrt;
+    i32 lightmapWidth;
+    i32 lightmapHeight;
+    u32 numTextureAxes;
+    textureAxis_t textureAxes[numTextureAxes];
+};
+
+struct ModelGeoDecalProjection {
+    Vec4 projS;
+    Vec4 projT;
+};
+
+struct ModelGeoDecals {
+    u32 numGeoDecals;
+    ModelGeoDecalProjection projections[numGeoDecals];
+    StrP32 declName;
+    u32 geoDecalTi32StartOffset;
+};
+
+struct ModelMeshInfo {
+    StrP32 declName;
+    u32 unkHash;
+    u32 unknown;
+    u32 always0;
+
+    local u32 i;
+    for(i = 0; i < 5; i++) {
+        u32 absent;
+        if(absent == 0) {
+            ModelLodInfo lodInfo <style=sHeading3>;
+        }
+    }
+};
+
+struct Model {
+    ModelHeader header <style=sHeading1>;
+    ModelMeshInfo meshInfo[header.numSurfaces] <style=sHeading2, optimize=false>;
+    ModelSettings settings <style=sHeading4>;
+    ModelGeoDecals geoDecals <style=sHeading1>;
+    ubyte streamedSurfaces[header.numLods * header.numSurfaces] <style=sHeading3>;
+    if (header.streamable) {
+        GeoDiskLayout layouts[5] <style=sHeading4, optimize=false>;
+    }
+} model;
