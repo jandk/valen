@@ -77,22 +77,30 @@ public final class GeometryReader {
     ) throws IOException {
         var offset = 0;
         var meshes = new ArrayList<Mesh>();
-        for (var lodInfo : lods) {
-            var masks = GeometryVertexMask.fromMultiple(lodInfo.vertexMask());
-
+        for (LodInfo lod : lods) {
+            int lodOffset = 0;
+            var masks = GeometryVertexMask.fromMultiple(lod.vertexMask());
             var vertexAccessors = new ArrayList<GeoAccessor<?>>();
             for (var mask : masks) {
-                vertexAccessors.addAll(buildAccessors(offset, lodInfo.numVertices(), mask.size(), mask, lodInfo, animated));
-                offset += lodInfo.numVertices() * mask.size();
+                int maskSize = mask.size();
+                if (maskSize == 0) {
+                    continue;
+                }
+
+                int aligner = (maskSize - lodOffset % maskSize) % maskSize;
+                int bufferOffset = aligner + lodOffset;
+                vertexAccessors.addAll(buildAccessors(offset + bufferOffset, lod.numVertices(), maskSize, mask, lod, animated));
+                lodOffset = lod.numVertices() * maskSize + bufferOffset;
             }
 
             var faceInfo = VertexBufferInfo.indices(ComponentType.UNSIGNED_SHORT);
-            var faceAccessor = new GeoAccessor<>(offset, lodInfo.numFaces() * 3, 2, faceInfo, Geometry.readFace());
-            offset += lodInfo.numFaces() * 3 * Short.BYTES;
-            offset = (offset + 7) & ~7;
+            var faceAccessor = new GeoAccessor<>(offset + lodOffset, lod.numFaces() * 3, 2, faceInfo, Geometry.readFace());
+            lodOffset += lod.numFaces() * 3 * Short.BYTES;
+            offset = (offset + lodOffset + 7) & ~7;
 
             meshes.add(new Geo(true).readMesh(source, faceAccessor, vertexAccessors));
         }
+
         return meshes;
     }
 
@@ -149,10 +157,10 @@ public final class GeometryReader {
                     new GeoAccessor<>(offset, count, stride, info, Geometry.readColor())
                 );
             }
-            case WGVS_SKINNING -> throw new UnsupportedOperationException("WGVS_SKINNING");
+            case WGVS_SKINNING -> List.of();
             case WGVS_SKINNING_1 -> List.of();
-            case WGVS_SKINNING_4 -> throw new UnsupportedOperationException("WGVS_SKINNING_4");
-            case WGVS_SKINNING_6 -> throw new UnsupportedOperationException("WGVS_SKINNING_6");
+            case WGVS_SKINNING_4 -> List.of();
+            case WGVS_SKINNING_6 -> List.of();
         };
     }
 

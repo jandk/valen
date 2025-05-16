@@ -355,9 +355,9 @@ public abstract class AbstractMaterialReader<K extends AssetID, V extends Asset,
             if (opts.atlasPadding() != null && opts.atlasPadding() != 0) {
                 builder.append(formatAtlasPadding(opts.atlasPadding()));
             }
-            if (opts.minMip() != 0) {
-                builder.append("$minmip=").append(opts.minMip());
-            }
+//            if (opts.minMip() != 0) {
+//                builder.append("$minmip=").append(opts.minMip());
+//            }
             if (opts.fullScaleBias()) {
                 builder.append("$fullscalebias");
             }

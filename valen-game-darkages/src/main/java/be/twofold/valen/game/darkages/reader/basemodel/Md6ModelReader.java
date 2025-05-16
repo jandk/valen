@@ -5,6 +5,8 @@ import be.twofold.valen.core.geometry.*;
 import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.math.*;
 import be.twofold.valen.game.darkages.*;
+import be.twofold.valen.game.darkages.reader.*;
+import be.twofold.valen.game.darkages.reader.geometry.*;
 import be.twofold.valen.game.darkages.reader.resources.*;
 import be.twofold.valen.game.idtech.geometry.*;
 
@@ -14,9 +16,11 @@ import java.util.*;
 
 public final class Md6ModelReader implements AssetReader<Model, DarkAgesAsset> {
     private final DarkAgesArchive archive;
+    private final boolean readMaterials;
 
-    public Md6ModelReader(DarkAgesArchive archive) {
+    public Md6ModelReader(DarkAgesArchive archive, boolean readMaterials) {
         this.archive = archive;
+        this.readMaterials = readMaterials;
     }
 
     @Override
@@ -32,17 +36,25 @@ public final class Md6ModelReader implements AssetReader<Model, DarkAgesAsset> {
         var md6Model = Md6Model.read(source, skeleton.bones().size() + 7 & ~7);
         source.expectEnd();
 
-        //var meshes = readMeshes(md6Model, asset.hash());
-        return new Model(List.of(), Optional.of(skeleton), Optional.of(asset.id().fullName()), Optional.empty(), Axis.Z);
+        var meshes = readMeshes(md6Model, asset.hash());
+        if (readMaterials) {
+            Materials.apply(archive, meshes, md6Model.meshInfos(), Md6ModelMeshInfo::materialName, Md6ModelMeshInfo::meshName);
+        }
+
+        return new Model(meshes, Optional.of(skeleton), Optional.of(asset.id().fullName()), Optional.empty(), Axis.Z);
     }
 
     private List<Mesh> readMeshes(Md6Model md6Model, long hash) throws IOException {
         var meshes = readStreamedGeometry(md6Model, 0, hash);
-        fixJointIndices(md6Model, meshes);
+        // fixJointIndices(md6Model, meshes);
         return meshes;
     }
 
     private List<Mesh> readStreamedGeometry(Md6Model md6Model, int lod, long hash) throws IOException {
+        if (md6Model.diskLayouts().isEmpty()) {
+            return List.of();
+        }
+
         var uncompressedSize = md6Model.diskLayouts().get(lod).uncompressedSize();
         if (uncompressedSize == 0) {
             return List.of();
@@ -51,12 +63,17 @@ public final class Md6ModelReader implements AssetReader<Model, DarkAgesAsset> {
         var lodInfos = md6Model.meshInfos().stream()
             .<LodInfo>map(mi -> mi.lodInfos().get(lod))
             .toList();
-        var layouts = md6Model.diskLayouts().get(lod).memoryLayouts();
 
-        var identity = (hash << 4) | lod;
+        // TODO: Clean up hash method
+        var key = ByteBuffer.allocate(16).order(ByteOrder.LITTLE_ENDIAN);
+        key.putLong(0, hash);
+        key.putInt(8, 4 - lod);
+        var identity = Hash.hash(key);
+
         var buffer = archive.readStream(identity, uncompressedSize);
+
         try (var source = DataSource.fromBuffer(buffer)) {
-            return GeometryReader.readStreamedMesh(source, lodInfos, layouts, true);
+            return GeometryReader.readStreamedMesh(source, lodInfos, true);
         }
     }
 
