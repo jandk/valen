@@ -62,6 +62,7 @@ public record VegetationLod(
 
     @Override
     public int numFaces() {
-        return numVertices / 3;
+        assert numIndices % 3 == 0;
+        return numIndices / 3;
     }
 }

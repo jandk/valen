@@ -58,7 +58,7 @@ public final class VegetationReader implements AssetReader<Model, DarkAgesAsset>
         var buffer = archive.readStream(identity, uncompressedSize);
 
         try (var source = DataSource.fromBuffer(buffer)) {
-            return GeometryReader.readStreamedMesh(source, lodInfos, true);
+            return GeometryReader.readStreamedMesh(source, lodInfos, false);
         }
     }
 }
