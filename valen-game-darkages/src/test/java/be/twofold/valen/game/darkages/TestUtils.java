@@ -36,7 +36,7 @@ public abstract class TestUtils {
             } catch (FileNotFoundException e) {
                 System.err.println("File not found");
             } catch (Exception e) {
-                fail(e);
+                fail(asset.id().fullName(), e);
             }
         }
     }
