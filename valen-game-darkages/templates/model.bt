@@ -12,8 +12,8 @@ struct ModelLodInfo {
     i32 alwaysMinus5;
     u32 numVerts;
     u32 numIndices;
-    u32 vertexMask;
     u32 unk[3];
+    u32 vertexMask;
     Bounds bounds;
     Vec3 vertexOffset;
     f32 vertexScale;
