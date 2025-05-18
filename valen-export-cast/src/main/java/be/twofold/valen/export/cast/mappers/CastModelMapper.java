@@ -35,19 +35,19 @@ public final class CastModelMapper {
         mesh.getBuffer(Semantic.NORMAL).ifPresent(buffer -> meshNode.setVertexNormalBuffer((FloatBuffer) buffer.buffer()));
         mesh.getBuffer(Semantic.TANGENT).ifPresent(buffer -> meshNode.setVertexTangentBuffer(mapTangentBuffer((FloatBuffer) buffer.buffer())));
 
-        var colorBuffers = mesh.getBuffers(Semantic.Color.class);
+        var colorBuffers = mesh.getBuffers(Semantic.COLOR);
         colorBuffers.forEach(buffer -> meshNode.addVertexColorBuffer(mapColorBuffer(buffer.buffer())));
         meshNode.setColorLayerCount(colorBuffers.size());
 
-        var uvBuffers = mesh.getBuffers(Semantic.TexCoord.class);
+        var uvBuffers = mesh.getBuffers(Semantic.TEX_COORD);
         uvBuffers.forEach(buffer -> meshNode.addVertexUVBuffer((FloatBuffer) buffer.buffer()));
         meshNode.setUVLayerCount(uvBuffers.size());
 
-        mesh.getBuffer(Semantic.JOINTS0).ifPresent(joints -> mesh
-            .getBuffer(Semantic.WEIGHTS0).ifPresent(weights -> {
-                var numVertices = mesh.getBuffer(Semantic.POSITION).orElseThrow().buffer().capacity() / 3;
-                mapJointsAndWeights(joints.buffer(), weights.buffer(), meshNode, numVertices);
-            }));
+        //mesh.getBuffer(Semantic.JOINTS0).ifPresent(joints -> mesh
+        //    .getBuffer(Semantic.WEIGHTS0).ifPresent(weights -> {
+        //        var numVertices = mesh.getBuffer(Semantic.POSITION).orElseThrow().buffer().capacity() / 3;
+        //        mapJointsAndWeights(joints.buffer(), weights.buffer(), meshNode, numVertices);
+        //    }));
 
 
         if (mesh.material().isPresent()) {

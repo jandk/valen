@@ -15,9 +15,14 @@ import java.util.*;
 
 public abstract class GltfModelMapper {
     private static final Logger log = LoggerFactory.getLogger(GltfModelMapper.class);
+    private static final Set<Semantic> NORMALIZED = EnumSet.of(Semantic.TEX_COORD, Semantic.COLOR, Semantic.WEIGHTS);
 
     final GltfContext context;
     final GltfMaterialMapper materialMapper;
+    private int numTexCoords = 0;
+    private int numColors = 0;
+    private int numJoints = 0;
+    private int numWeights = 0;
 
     public GltfModelMapper(GltfContext context) {
         this.context = context;
@@ -42,7 +47,7 @@ public abstract class GltfModelMapper {
         var attributes = new HashMap<String, AccessorID>();
         for (var vertexBuffer : mesh.vertexBuffers()) {
             var semantic = vertexBuffer.info().semantic();
-            if (semantic instanceof Semantic.Color) {
+            if (semantic == Semantic.COLOR) {
                 // TODO: Make Blender ignore vertex colors
                 continue;
             }
@@ -109,7 +114,7 @@ public abstract class GltfModelMapper {
             .bufferView(bufferView)
             .componentType(mapComponentType(buffer.info().componentType()))
             .count(buffer.count())
-            .type(GltfModelMapper.mapElementType(buffer.info().elementType()));
+            .type(GltfModelMapper.mapAccessorType(buffer.info().semantic()));
 
         if (semantic == Semantic.POSITION) {
             var bounds = Bounds.calculate((FloatBuffer) buffer.buffer());
@@ -118,17 +123,22 @@ public abstract class GltfModelMapper {
                 .max(GltfUtils.mapVector3(bounds.max()));
         }
 
-        if (buffer.info().normalized()) {
+        if (isNormalized(buffer)) {
             accessor.normalized(true);
         }
 
         return context.addAccessor(accessor.build());
     }
 
+    private boolean isNormalized(VertexBuffer<?> accessor) {
+        return NORMALIZED.contains(accessor.info().semantic())
+            && (accessor.buffer() instanceof ByteBuffer || accessor.buffer() instanceof ShortBuffer);
+    }
+
     void fixJointsAndWeights(Mesh mesh) {
         // TODO: Loop over joints and weights and fix them
-        mesh.getBuffer(Semantic.JOINTS0).ifPresent(joints -> mesh
-            .getBuffer(Semantic.WEIGHTS0).ifPresent(weights -> {
+        mesh.getBuffer(Semantic.JOINTS).ifPresent(joints -> mesh
+            .getBuffer(Semantic.WEIGHTS).ifPresent(weights -> {
                 var ja = ((ByteBuffer) joints.buffer()).array();
                 var wa = ((ByteBuffer) weights.buffer()).array();
                 for (var i = 0; i < ja.length; i++) {
@@ -171,13 +181,21 @@ public abstract class GltfModelMapper {
 
     String mapSemantic(Semantic semantic) {
         return switch (semantic) {
-            case Semantic.Position() -> "POSITION";
-            case Semantic.Normal() -> "NORMAL";
-            case Semantic.Tangent() -> "TANGENT";
-            case Semantic.TexCoord(var n) -> "TEXCOORD_" + n;
-            case Semantic.Color(var n) -> "COLOR_" + n;
-            case Semantic.Joints(var n) -> "JOINTS_" + n;
-            case Semantic.Weights(var n) -> "WEIGHTS_" + n;
+            case Semantic.POSITION -> "POSITION";
+            case Semantic.NORMAL -> "NORMAL";
+            case Semantic.TANGENT -> "TANGENT";
+            case Semantic.TEX_COORD -> "TEXCOORD_" + numTexCoords++;
+            case Semantic.COLOR -> "COLOR_" + numColors++;
+            case Semantic.JOINTS -> "JOINTS_" + numJoints++;
+            case Semantic.WEIGHTS -> "WEIGHTS_" + numWeights++;
+        };
+    }
+
+    static AccessorType mapAccessorType(Semantic semantic) {
+        return switch (semantic) {
+            case Semantic.TEX_COORD -> AccessorType.VEC2;
+            case Semantic.POSITION, Semantic.NORMAL -> AccessorType.VEC3;
+            case Semantic.TANGENT, Semantic.COLOR, Semantic.JOINTS, Semantic.WEIGHTS -> AccessorType.VEC4;
         };
     }
 }

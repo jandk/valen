@@ -73,7 +73,15 @@ public final class Md6ModelReader implements AssetReader<Model, DarkAgesAsset> {
         var buffer = archive.readStream(identity, uncompressedSize);
 
         try (var source = DataSource.fromBuffer(buffer)) {
-            return GeometryReader.readStreamedMesh(source, lodInfos, true);
+            List<Mesh> meshes = GeometryReader.readStreamedMesh(source, lodInfos, true);
+            mergeJointsAndWeights(meshes);
+            return meshes;
+        }
+    }
+
+    private void mergeJointsAndWeights(List<Mesh> meshes) {
+        for (Mesh mesh : meshes) {
+            var weightBuffers = mesh.getBuffers(Semantic.WEIGHTS);
         }
     }
 
@@ -89,7 +97,7 @@ public final class Md6ModelReader implements AssetReader<Model, DarkAgesAsset> {
         for (var i = 0; i < meshes.size(); i++) {
             var meshInfo = md6.meshInfos().get(i);
             var joints = meshes.get(i)
-                .getBuffer(Semantic.JOINTS0)
+                .getBuffer(Semantic.JOINTS)
                 .orElseThrow();
 
             // Assume it's a byte buffer, because we read it as such

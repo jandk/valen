@@ -8,16 +8,6 @@ import java.io.*;
 import java.nio.*;
 
 public final class Geometry {
-    private static final byte[] WeightTableZ = new byte[16];
-    private static final byte[] WeightTableW = new byte[16];
-
-    static {
-        for (int i = 0; i < 16; i++) {
-            WeightTableZ[i] = MathF.packUNorm8(i / 45.0f);
-            WeightTableW[i] = MathF.packUNorm8(i / 60.0f);
-        }
-    }
-
     private Geometry() {
     }
 
@@ -43,22 +33,43 @@ public final class Geometry {
         };
     }
 
-    public static GeoReader<ByteBuffer> readWeight() {
+    public static GeoReader<FloatBuffer> readWeight4() {
+        return readNormalTangentWeights(1.0f / 45.0f, 1.0f / 60.0f, true);
+    }
+
+    public static GeoReader<FloatBuffer> readWeight6() {
+        return readNormalTangentWeights(1.0f / 75.0f, 1.0f / 89.0f, false);
+    }
+
+    public static GeoReader<FloatBuffer> readWeight8() {
+        return readNormalTangentWeights(1.0f / 104.0f, 1.0f / 120.0f, false);
+    }
+
+    private static GeoReader<FloatBuffer> readNormalTangentWeights(float scale1, float scale2, boolean write0) {
         return (source, dst) -> {
             source.skip(3); // skip normal
             byte wn = source.readByte();
             source.skip(3); // skip tangent
             byte wt = source.readByte();
 
-            byte y = (byte) (wt & 0x7f);
-            byte z = WeightTableZ[(wn & 0xf0) >>> 4];
-            byte w = WeightTableW[(wn & 0x0f)];
-            byte x = (byte) (255 - y - z - w);
+            float y = MathF.unpackUNorm8((byte) (wt & 0x7f));
+            float z = ((wn & 0xf0) >>> 4) * scale1;
+            float w = ((wn & 0x0f)) * scale2;
 
-            dst.put(x);
+            if (write0) {
+                dst.put(1.0f - y - z - w);
+            }
+
             dst.put(y);
             dst.put(z);
             dst.put(w);
+        };
+    }
+
+    public static GeoReader<ByteBuffer> readBone1() {
+        return (source, dst) -> {
+            source.skip(3);
+            dst.put(source.readByte());
         };
     }
 
@@ -70,17 +81,24 @@ public final class Geometry {
         return (source, dst) -> readVector2UNorm16(source).fma(scale, offset).toBuffer(dst);
     }
 
-    public static GeoReader<ByteBuffer> readColor() {
+    public static GeoReader<ShortBuffer> readFace() {
+        return copyShorts(3);
+    }
+
+    public static GeoReader<ByteBuffer> copyBytes(int n) {
         return (source, dst) -> {
-            dst.put(source.readByte());
-            dst.put(source.readByte());
-            dst.put(source.readByte());
-            dst.put(source.readByte());
+            for (int i = 0; i < n; i++) {
+                dst.put(source.readByte());
+            }
         };
     }
 
-    public static GeoReader<ShortBuffer> readFace() {
-        return (source, dst) -> dst.put(source.readShort());
+    public static GeoReader<ShortBuffer> copyShorts(int n) {
+        return (source, dst) -> {
+            for (int i = 0; i < n; i++) {
+                dst.put(source.readShort());
+            }
+        };
     }
 
     private static Vector2 readVector2UNorm16(DataSource source) throws IOException {

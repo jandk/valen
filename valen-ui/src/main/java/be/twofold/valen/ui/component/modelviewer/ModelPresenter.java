@@ -61,7 +61,7 @@ public final class ModelPresenter extends AbstractFXPresenter<ModelView> impleme
     private TriangleMesh mapMesh(Mesh mesh) {
         var pointBuffer = mesh.getBuffer(Semantic.POSITION).orElseThrow();
         var normalBuffer = mesh.getBuffer(Semantic.NORMAL).orElseThrow();
-        var texCoordBuffer = mesh.getBuffer(Semantic.TEX_COORD0).orElseThrow();
+        var texCoordBuffer = mesh.getBuffer(Semantic.TEX_COORD).orElseThrow();
 
         var result = new TriangleMesh(VertexFormat.POINT_NORMAL_TEXCOORD);
         copyPoints(pointBuffer, result.getPoints());

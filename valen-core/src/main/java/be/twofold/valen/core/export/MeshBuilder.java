@@ -67,7 +67,7 @@ final class MeshBuilder {
     Mesh build() {
         var indexBuffer = new VertexBuffer<>(IntBuffer.wrap(indices, 0, indexSize), VertexBufferInfo.indices(ComponentType.UNSIGNED_INT));
         var positionBuffer = new VertexBuffer<>(FloatBuffer.wrap(positions, 0, vertexSize * 3), VertexBufferInfo.POSITION);
-        var texCoordBuffer = new VertexBuffer<>(FloatBuffer.wrap(texCoords, 0, vertexSize * 2), VertexBufferInfo.texCoords(0));
+        var texCoordBuffer = new VertexBuffer<>(FloatBuffer.wrap(texCoords, 0, vertexSize * 2), VertexBufferInfo.TEX_COORDS);
         var normalBuffer = new VertexBuffer<>(FloatBuffer.wrap(normals, 0, vertexSize * 3), VertexBufferInfo.NORMAL);
         return new Mesh(indexBuffer, List.of(positionBuffer, texCoordBuffer, normalBuffer));
     }
