@@ -12,15 +12,17 @@ final class Buffers {
             return buffer;
         }
 
+        if (buffer.limit() == 122064) {
+            System.out.println();
+        }
+
         if (buffer instanceof ShortBuffer shortBuffer) {
             ShortBuffer duplicate = shortBuffer.duplicate().rewind();
 
-            short max = Short.MIN_VALUE;
+            int max = 0;
             while (duplicate.hasRemaining()) {
-                short value = (short) (duplicate.get() ^ Short.MIN_VALUE);
-                max = (short) Math.max(max, value);
+                max = Math.max(max, Short.toUnsignedInt(duplicate.get()));
             }
-            max ^= Short.MIN_VALUE;
 
             duplicate.rewind();
             if (max <= 0xFF) {
@@ -36,12 +38,10 @@ final class Buffers {
         if (buffer instanceof IntBuffer intBuffer) {
             IntBuffer duplicate = intBuffer.duplicate().rewind();
 
-            int max = Integer.MIN_VALUE;
+            long max = 0;
             while (duplicate.hasRemaining()) {
-                int value = duplicate.get() ^ Integer.MIN_VALUE;
-                max = Math.max(max, value);
+                max = Math.max(max, Integer.toUnsignedLong(duplicate.get()));
             }
-            max ^= Integer.MIN_VALUE;
 
             duplicate.rewind();
             if (max <= 0xFF) {

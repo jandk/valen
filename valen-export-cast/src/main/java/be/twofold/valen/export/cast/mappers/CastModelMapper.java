@@ -43,12 +43,16 @@ public final class CastModelMapper {
         uvBuffers.forEach(buffer -> meshNode.addVertexUVBuffer((FloatBuffer) buffer.buffer()));
         meshNode.setUVLayerCount(uvBuffers.size());
 
-        //mesh.getBuffer(Semantic.JOINTS0).ifPresent(joints -> mesh
-        //    .getBuffer(Semantic.WEIGHTS0).ifPresent(weights -> {
-        //        var numVertices = mesh.getBuffer(Semantic.POSITION).orElseThrow().buffer().capacity() / 3;
-        //        mapJointsAndWeights(joints.buffer(), weights.buffer(), meshNode, numVertices);
-        //    }));
-
+//        mesh.getBuffer(Semantic.JOINTS0).ifPresent(joints -> mesh
+//            .getBuffer(Semantic.WEIGHTS0).ifPresent(weights -> {
+//                var numVertices = mesh.getBuffer(Semantic.POSITION).orElseThrow().buffer().capacity() / 3;
+//                mapJointsAndWeights(joints.buffer(), weights.buffer(), meshNode, numVertices);
+//            }));
+        mesh.getBuffer(Semantic.JOINTS).ifPresent(buffer -> {
+            meshNode.setMaximumWeightInfluence(buffer.info().size());
+            meshNode.setVertexWeightBoneBuffer(buffer.buffer());
+        });
+        mesh.getBuffer(Semantic.WEIGHTS).ifPresent(buffer -> meshNode.setVertexWeightValueBuffer((FloatBuffer) buffer.buffer()));
 
         if (mesh.material().isPresent()) {
             meshNode.setMaterial(materialMapper.map(mesh.material().get(), modelNode));

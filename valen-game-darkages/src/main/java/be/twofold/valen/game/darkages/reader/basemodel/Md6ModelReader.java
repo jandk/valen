@@ -6,13 +6,14 @@ import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.math.*;
 import be.twofold.valen.game.darkages.*;
 import be.twofold.valen.game.darkages.reader.*;
-import be.twofold.valen.game.darkages.reader.geometry.*;
 import be.twofold.valen.game.darkages.reader.resources.*;
 import be.twofold.valen.game.idtech.geometry.*;
 
 import java.io.*;
 import java.nio.*;
 import java.util.*;
+import java.util.function.*;
+import java.util.stream.*;
 
 public final class Md6ModelReader implements AssetReader<Model, DarkAgesAsset> {
     private final DarkAgesArchive archive;
@@ -38,7 +39,7 @@ public final class Md6ModelReader implements AssetReader<Model, DarkAgesAsset> {
 
         var meshes = readMeshes(md6Model, asset.hash());
         if (readMaterials) {
-            Materials.apply(archive, meshes, md6Model.meshInfos(), Md6ModelMeshInfo::materialName, Md6ModelMeshInfo::meshName);
+            // Materials.apply(archive, meshes, md6Model.meshInfos(), Md6ModelMeshInfo::materialName, Md6ModelMeshInfo::meshName);
         }
 
         return new Model(meshes, Optional.of(skeleton), Optional.of(asset.id().fullName()), Optional.empty(), Axis.Z);
@@ -74,36 +75,79 @@ public final class Md6ModelReader implements AssetReader<Model, DarkAgesAsset> {
 
         try (var source = DataSource.fromBuffer(buffer)) {
             List<Mesh> meshes = GeometryReader.readStreamedMesh(source, lodInfos, true);
-            mergeJointsAndWeights(meshes);
+            meshes = mergeJointsAndWeights(meshes);
+            fixJointIndices(md6Model, meshes);
             return meshes;
         }
     }
 
-    private void mergeJointsAndWeights(List<Mesh> meshes) {
+    private ArrayList<Mesh> mergeJointsAndWeights(List<Mesh> meshes) {
+        var newMeshes = new ArrayList<Mesh>();
         for (Mesh mesh : meshes) {
             var weightBuffers = mesh.getBuffers(Semantic.WEIGHTS);
+            if (weightBuffers.size() <= 1) {
+                newMeshes.add(mesh);
+                continue;
+            }
+            System.out.println(weightBuffers);
+
+            assert weightBuffers.size() == 2;
+
+            int influence = weightBuffers.getLast().info().size() + 4;
+            int count = weightBuffers.getFirst().count();
+
+            var buffer1 = (FloatBuffer) weightBuffers.getFirst().buffer();
+            var buffer2 = (FloatBuffer) weightBuffers.getLast().buffer();
+            var weights = FloatBuffer.allocate(influence * count);
+
+            var localInfluence = new float[influence];
+            for (int c = 0; c < count; c++) {
+                for (int i = 1; i < influence - 3; i++) {
+                    localInfluence[i] = buffer2.get();
+                }
+                for (int i = influence - 3; i < influence; i++) {
+                    localInfluence[i] = buffer1.get();
+                }
+                float weight = 1.0f;
+                for (int i = 1; i < influence; i++) {
+                    weight -= localInfluence[i];
+                }
+                localInfluence[0] = weight;
+
+                weights.put(localInfluence);
+            }
+
+            var vertexBuffers = mesh.vertexBuffers().stream()
+                .filter(vb -> vb.info().semantic() != Semantic.WEIGHTS)
+                .collect(Collectors.toList());
+            vertexBuffers.add(new VertexBuffer<>(weights.flip(), VertexBufferInfo.weights(ComponentType.FLOAT, influence)));
+            newMeshes.add(mesh.withVertexBuffers(vertexBuffers));
         }
+        return newMeshes;
     }
 
     private void fixJointIndices(Md6Model md6, List<Mesh> meshes) {
         var jointRemap = md6.header().skinnedJoints();
 
-        // This lookup table is in reverse... Nice
-        var lookup = new short[jointRemap.length];
-        for (var i = 0; i < jointRemap.length; i++) {
-            lookup[Short.toUnsignedInt(jointRemap[i])] = (short) i;
-        }
-
+        System.out.println(md6.meshInfos().stream().map(mi -> mi.unknown1()).collect(Collectors.groupingBy(Function.identity(), Collectors.counting())));
+        System.out.println(md6.meshInfos().stream().map(mi -> mi.unknown2()).collect(Collectors.groupingBy(Function.identity(), Collectors.counting())));
+        System.out.println(md6.meshInfos().stream().map(mi -> mi.unknown3()).collect(Collectors.groupingBy(Function.identity(), Collectors.counting())));
+        System.out.println(md6.meshInfos().stream().map(mi -> mi.lodInfos().getFirst().unknown1()).collect(Collectors.groupingBy(Function.identity(), Collectors.counting())));
         for (var i = 0; i < meshes.size(); i++) {
             var meshInfo = md6.meshInfos().get(i);
             var joints = meshes.get(i)
                 .getBuffer(Semantic.JOINTS)
                 .orElseThrow();
 
-            // Assume it's a byte buffer, because we read it as such
+            // Assume it's a short buffer, because we read it as such
             var array = ((ShortBuffer) joints.buffer()).array();
+            System.out.println("Max: " + IntStream.range(0, array.length).mapToLong(l -> array[l]).max() + meshInfo.unknown3());
             for (var j = 0; j < array.length; j++) {
-                array[j] = lookup[Short.toUnsignedInt(array[j]) + meshInfo.unknown2()];
+                short i1 = jointRemap[array[j]];
+                if (i1 == 0) {
+                    System.out.println();
+                }
+                array[j] = i1;
             }
         }
     }

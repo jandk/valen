@@ -66,10 +66,10 @@ public final class Geometry {
         };
     }
 
-    public static GeoReader<ByteBuffer> readBone1() {
+    public static GeoReader<ShortBuffer> readBone1() {
         return (source, dst) -> {
             source.skip(3);
-            dst.put(source.readByte());
+            dst.put((short) Byte.toUnsignedInt(source.readByte()));
         };
     }
 
@@ -83,6 +83,22 @@ public final class Geometry {
 
     public static GeoReader<ShortBuffer> readFace() {
         return copyShorts(3);
+    }
+
+    public static GeoReader<ShortBuffer> copyBytesAsShorts(int n) {
+        return (source, dst) -> {
+            for (int i = 0; i < n; i++) {
+                dst.put((short) Byte.toUnsignedInt(source.readByte()));
+            }
+        };
+    }
+
+    public static GeoReader<FloatBuffer> copyBytesAsFloats(int n) {
+        return (source, dst) -> {
+            for (int i = 0; i < n; i++) {
+                dst.put(MathF.unpackUNorm8(source.readByte()));
+            }
+        };
     }
 
     public static GeoReader<ByteBuffer> copyBytes(int n) {

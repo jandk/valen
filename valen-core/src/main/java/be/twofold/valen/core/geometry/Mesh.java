@@ -11,9 +11,10 @@ public record Mesh(
     Optional<Material> material,
     Optional<String> name,
     List<BlendShape> blendShapes
+
 ) {
     public Mesh {
-        Check.notNull(indexBuffer, "indexBuffer must not be null");
+        Check.notNull(indexBuffer, "indices must not be null");
         vertexBuffers = List.copyOf(vertexBuffers);
     }
 
@@ -29,6 +30,10 @@ public record Mesh(
         return vertexBuffers.stream()
             .filter(vb -> vb.info().semantic() == semantic)
             .toList();
+    }
+
+    public Mesh withVertexBuffers(List<VertexBuffer<?>> vertexBuffers) {
+        return new Mesh(indexBuffer, vertexBuffers, material, name, blendShapes);
     }
 
     @SuppressWarnings("OptionalUsedAsFieldOrParameterType")

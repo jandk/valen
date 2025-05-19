@@ -139,8 +139,8 @@ public abstract class GltfModelMapper {
         // TODO: Loop over joints and weights and fix them
         mesh.getBuffer(Semantic.JOINTS).ifPresent(joints -> mesh
             .getBuffer(Semantic.WEIGHTS).ifPresent(weights -> {
-                var ja = ((ByteBuffer) joints.buffer()).array();
-                var wa = ((ByteBuffer) weights.buffer()).array();
+                var ja = ((ShortBuffer) joints.buffer()).array();
+                var wa = ((FloatBuffer) weights.buffer()).array();
                 for (var i = 0; i < ja.length; i++) {
                     if (wa[i] == 0) {
                         ja[i] = 0;
@@ -196,6 +196,7 @@ public abstract class GltfModelMapper {
             case Semantic.TEX_COORD -> AccessorType.VEC2;
             case Semantic.POSITION, Semantic.NORMAL -> AccessorType.VEC3;
             case Semantic.TANGENT, Semantic.COLOR, Semantic.JOINTS, Semantic.WEIGHTS -> AccessorType.VEC4;
+            case null -> AccessorType.SCALAR;
         };
     }
 }

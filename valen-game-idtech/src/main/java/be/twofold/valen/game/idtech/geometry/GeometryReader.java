@@ -86,11 +86,10 @@ public final class GeometryReader {
             var vertexAccessors = new ArrayList<GeoAccessor<?>>();
             for (var mask : masks) {
                 int maskSize = mask.size();
-                if (maskSize == 0) {
-                    continue;
+                if (mask.size() == 0) {
+                    System.out.println();
                 }
-
-                int aligner = (maskSize - lodOffset % maskSize) % maskSize;
+                int aligner = maskSize == 0 ? 0 : (maskSize - lodOffset % maskSize) % maskSize;
                 int bufferOffset = aligner + lodOffset;
                 vertexAccessors.addAll(buildAccessors(offset + bufferOffset, lod.numVertices(), maskSize, mask, lod, skinningMode));
                 lodOffset = lod.numVertices() * maskSize + bufferOffset;
@@ -111,13 +110,16 @@ public final class GeometryReader {
         if (!animated) {
             return SkinningMode.None;
         }
-        if (masks.contains(GeometryVertexMask.WGVS_SKINNING_1)) {
+        if (masks.contains(GeometryVertexMask.SKINNING_1)) {
             return SkinningMode.Skinning1;
         }
-        if (masks.contains(GeometryVertexMask.WGVS_SKINNING_6)) {
+        if (masks.contains(GeometryVertexMask.SKINNING_4)) {
+            return SkinningMode.Skinning4;
+        }
+        if (masks.contains(GeometryVertexMask.SKINNING_6)) {
             return SkinningMode.Skinning6;
         }
-        if (masks.contains(GeometryVertexMask.WGVS_SKINNING_8)) {
+        if (masks.contains(GeometryVertexMask.SKINNING_8)) {
             return SkinningMode.Skinning8;
         }
         return SkinningMode.Fixed4;
@@ -125,21 +127,21 @@ public final class GeometryReader {
 
     private static List<GeoAccessor<?>> buildAccessors(int offset, int count, int stride, GeometryVertexMask mask, LodInfo lodInfo, SkinningMode skinningMode) {
         return switch (mask) {
-            case WGVS_POSITION_SHORT -> List.of(
+            case POSITION_SHORT -> List.of(
                 new GeoAccessor<>(offset, count, stride, VertexBufferInfo.POSITION, Geometry.readPackedPosition(lodInfo.vertexScale(), lodInfo.vertexOffset()))
             );
-            case WGVS_POSITION -> List.of(
+            case POSITION -> List.of(
                 new GeoAccessor<>(offset, count, stride, VertexBufferInfo.POSITION, Geometry.readPosition(lodInfo.vertexScale(), lodInfo.vertexOffset()))
             );
-            case WGVS_NORMAL_TANGENT -> {
+            case NORMAL_TANGENT -> {
                 var normal = new GeoAccessor<>(offset, count, stride, VertexBufferInfo.NORMAL, Geometry.readPackedNormal());
                 var tangent = new GeoAccessor<>(offset, count, stride, VertexBufferInfo.TANGENT, Geometry.readPackedTangent());
                 var interleaved = switch (skinningMode) {
                     case None -> null;
-                    case Fixed4 ->
+                    case Fixed4, Skinning4 ->
                         new GeoAccessor<>(offset, count, stride, VertexBufferInfo.weights(ComponentType.FLOAT, 4), Geometry.readWeight4());
                     case Skinning1 ->
-                        new GeoAccessor<>(offset, count, stride, VertexBufferInfo.joints(ComponentType.UNSIGNED_BYTE, 1), Geometry.readBone1());
+                        new GeoAccessor<>(offset, count, stride, VertexBufferInfo.joints(ComponentType.UNSIGNED_SHORT, 1), Geometry.readBone1());
                     case Skinning6 ->
                         new GeoAccessor<>(offset, count, stride, VertexBufferInfo.weights(ComponentType.FLOAT, 3), Geometry.readWeight6());
                     case Skinning8 ->
@@ -147,34 +149,33 @@ public final class GeometryReader {
                 };
                 yield interleaved != null ? List.of(normal, tangent, interleaved) : List.of(normal, tangent);
             }
-            case WGVS_MATERIAL_UV, WGVS_MATERIAL_UV1, WGVS_LIGHTMAP_UV, WGVS_MATERIAL_UV2 -> List.of(
+            case MATERIAL_UV, MATERIAL_UV1, LIGHTMAP_UV, MATERIAL_UV2 -> List.of(
                 new GeoAccessor<>(offset, count, stride, VertexBufferInfo.TEX_COORDS, Geometry.readUV(lodInfo.uvScale(), lodInfo.uvOffset()))
             );
-            case WGVS_MATERIAL_UV_SHORT, WGVS_MATERIAL_UV1_SHORT, WGVS_LIGHTMAP_UV_SHORT, WGVS_MATERIAL_UV2_SHORT ->
-                List.of(
-                    new GeoAccessor<>(offset, count, stride, VertexBufferInfo.TEX_COORDS, Geometry.readPackedUV(lodInfo.uvScale(), lodInfo.uvOffset()))
-                );
-            case WGVS_COLOR -> {
-                var info = switch (skinningMode) {
-                    case Fixed4 -> VertexBufferInfo.joints(ComponentType.UNSIGNED_BYTE, 4);
-                    default -> VertexBufferInfo.colors(ComponentType.UNSIGNED_BYTE);
-                };
-
-                yield List.of(
-                    new GeoAccessor<>(offset, count, stride, info, Geometry.copyBytes(4))
-                );
-            }
-            case WGVS_SKINNING_1 -> List.of();
-            case WGVS_SKINNING_4 -> List.of(
-                new GeoAccessor<>(offset, count, stride, VertexBufferInfo.joints(ComponentType.UNSIGNED_BYTE, 4), Geometry.copyBytes(4))
+            case MATERIAL_UV_SHORT, MATERIAL_UV1_SHORT, LIGHTMAP_UV_SHORT, MATERIAL_UV2_SHORT -> List.of(
+                new GeoAccessor<>(offset, count, stride, VertexBufferInfo.TEX_COORDS, Geometry.readPackedUV(lodInfo.uvScale(), lodInfo.uvOffset()))
             );
-            case WGVS_SKINNING_6 -> List.of(
-                new GeoAccessor<>(offset, count, stride, VertexBufferInfo.joints(ComponentType.UNSIGNED_BYTE, 6), Geometry.copyBytes(6)),
-                new GeoAccessor<>(offset, count, stride, VertexBufferInfo.weights(ComponentType.UNSIGNED_BYTE, 2), Geometry.copyBytes(2))
+            case COLOR -> List.of(
+                switch (skinningMode) {
+                    case Fixed4 ->
+                        new GeoAccessor<>(offset, count, stride, VertexBufferInfo.joints(ComponentType.UNSIGNED_SHORT, 4), Geometry.copyBytesAsShorts(4));
+                    default ->
+                        new GeoAccessor<>(offset, count, stride, VertexBufferInfo.colors(ComponentType.UNSIGNED_BYTE), Geometry.copyBytes(4));
+                }
             );
-            case WGVS_SKINNING_8 -> List.of(
-                new GeoAccessor<>(offset, count, stride, VertexBufferInfo.joints(ComponentType.UNSIGNED_BYTE, 8), Geometry.copyBytes(8)),
-                new GeoAccessor<>(offset, count, stride, VertexBufferInfo.weights(ComponentType.UNSIGNED_BYTE, 4), Geometry.copyBytes(4))
+            case SKINNING_1 -> List.of(
+                new GeoAccessor<>(offset, count, stride, VertexBufferInfo.weights(ComponentType.FLOAT, 1), (_, dst) -> dst.put(1.0f))
+            );
+            case SKINNING_4 -> List.of(
+                new GeoAccessor<>(offset, count, stride, VertexBufferInfo.joints(ComponentType.UNSIGNED_SHORT, 4), Geometry.copyBytesAsShorts(4))
+            );
+            case SKINNING_6 -> List.of(
+                new GeoAccessor<>(offset, count, stride, VertexBufferInfo.joints(ComponentType.UNSIGNED_SHORT, 6), Geometry.copyBytesAsShorts(6)),
+                new GeoAccessor<>(offset + 6, count, stride, VertexBufferInfo.weights(ComponentType.FLOAT, 2), Geometry.copyBytesAsFloats(2))
+            );
+            case SKINNING_8 -> List.of(
+                new GeoAccessor<>(offset, count, stride, VertexBufferInfo.joints(ComponentType.UNSIGNED_SHORT, 8), Geometry.copyBytesAsShorts(8)),
+                new GeoAccessor<>(offset + 8, count, stride, VertexBufferInfo.weights(ComponentType.FLOAT, 4), Geometry.copyBytesAsFloats(4))
             );
         };
     }
