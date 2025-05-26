@@ -87,11 +87,17 @@ public final class ModelPresenter extends AbstractFXPresenter<ModelView> impleme
             }
 
             var texture = reference.supplier().get();
-            var surface = texture.surfaces().stream() // .skip(2) was another idea
-                // I have to limit this, because the performance absolutely tanks
-                .filter(s -> s.width() <= 1024 && s.height() <= 1024)
-                .findFirst().orElseThrow();
-            var converted = Texture.fromSurface(surface, texture.format())
+
+            // I have to limit this, because the performance absolutely tanks, not sure why yet...
+            var surface = texture.surfaces().stream()
+                // .filter(s -> s.width() <= 1024 && s.height() <= 1024)
+                .skip(2)
+                .findFirst();
+            if (surface.isEmpty()) {
+                return null;
+            }
+
+            var converted = Texture.fromSurface(surface.get(), texture.format())
                 .convert(TextureFormat.B8G8R8A8_UNORM, true);
 
             var pixelBuffer = new PixelBuffer<>(
