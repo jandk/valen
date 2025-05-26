@@ -6,6 +6,7 @@ import be.twofold.valen.core.io.*;
 import java.io.*;
 import java.nio.*;
 import java.nio.file.*;
+import java.util.*;
 import java.util.function.*;
 
 import static org.assertj.core.api.Assertions.*;
@@ -25,6 +26,7 @@ public abstract class TestUtils {
     private static void readAllInMap(DarkAgesArchive archive, AssetReader<?, DarkAgesAsset> reader) {
         var entries = archive.getAll()
             .filter(asset -> asset.size() != 0 && reader.canRead(asset))
+            .sorted(Comparator.naturalOrder())
             .toList();
 
         System.out.println("Trying to read " + entries.size() + " entries");

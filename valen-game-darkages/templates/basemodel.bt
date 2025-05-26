@@ -23,7 +23,7 @@ struct Md6Header {
 typedef struct {
     u32    numVerts;
     u32    numFaces;
-    u8     unknown1;
+    u8     influence;
     Bounds bounds;
     Vec3   vertexOffset;
     f32    vertexScale;

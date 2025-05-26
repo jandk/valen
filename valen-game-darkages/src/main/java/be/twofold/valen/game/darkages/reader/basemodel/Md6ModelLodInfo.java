@@ -9,7 +9,7 @@ import java.io.*;
 public record Md6ModelLodInfo(
     int numVertices,
     int numFaces,
-    byte unknown1,
+    byte influence,
     Bounds bounds,
     Vector3 vertexOffset,
     float vertexScale,
@@ -23,7 +23,7 @@ public record Md6ModelLodInfo(
     public static Md6ModelLodInfo read(DataSource source) throws IOException {
         var numVertices = source.readInt();
         var numFaces = source.readInt();
-        var unknown1 = source.readByte();
+        var influence = source.readByte();
         var bounds = Bounds.read(source);
         var vertexOffset = Vector3.read(source);
         var vertexScale = source.readFloat();
@@ -37,7 +37,7 @@ public record Md6ModelLodInfo(
         return new Md6ModelLodInfo(
             numVertices,
             numFaces,
-            unknown1,
+            influence,
             bounds,
             vertexOffset,
             vertexScale,

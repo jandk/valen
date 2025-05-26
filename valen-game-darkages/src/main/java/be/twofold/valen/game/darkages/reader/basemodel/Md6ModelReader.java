@@ -13,7 +13,6 @@ import be.twofold.valen.game.idtech.geometry.*;
 import java.io.*;
 import java.nio.*;
 import java.util.*;
-import java.util.function.*;
 import java.util.stream.*;
 
 public final class Md6ModelReader implements AssetReader<Model, DarkAgesAsset> {
@@ -76,41 +75,49 @@ public final class Md6ModelReader implements AssetReader<Model, DarkAgesAsset> {
 
         try (var source = DataSource.fromBuffer(buffer)) {
             List<Mesh> meshes = GeometryReader.readStreamedMesh(source, lodInfos, true);
-            meshes = mergeJointsAndWeights(meshes);
+            meshes = mergeJointsAndWeights(md6Model, meshes);
             fixJointIndices(md6Model, meshes);
             return meshes;
         }
     }
 
-    private ArrayList<Mesh> mergeJointsAndWeights(List<Mesh> meshes) {
+    private ArrayList<Mesh> mergeJointsAndWeights(Md6Model md6, List<Mesh> meshes) {
         var newMeshes = new ArrayList<Mesh>();
-        for (Mesh mesh : meshes) {
+        for (int m = 0; m < meshes.size(); m++) {
+            Mesh mesh = meshes.get(m);
             var weightBuffers = mesh.getBuffers(Semantic.WEIGHTS);
-            if (weightBuffers.size() <= 1) {
+            if (weightBuffers.isEmpty()) {
                 newMeshes.add(mesh);
                 continue;
             }
-            System.out.println(weightBuffers);
+            var influence = weightBuffers.size() > 1 ? weightBuffers.getLast().info().size() + 4 : 4;
+            var realInfluence = md6.meshInfos().get(m).lodInfos().getFirst().influence();
 
-            assert weightBuffers.size() == 2;
-
-            int influence = weightBuffers.getLast().info().size() + 4;
             int count = weightBuffers.getFirst().count();
+            var joints = (ShortBuffer) mesh.getBuffer(Semantic.JOINTS).orElseThrow().buffer();
+            if (influence != realInfluence) {
+                for (int i = 0, o = 0, lim = joints.limit(); i < lim; i += influence, o += realInfluence) {
+                    for (int j = 0; j < realInfluence; j++) {
+                        joints.put(o + j, joints.get(i + j));
+                    }
+                }
+                joints.limit(count * realInfluence);
+            }
 
             var buffer1 = (FloatBuffer) weightBuffers.getFirst().buffer();
             var buffer2 = (FloatBuffer) weightBuffers.getLast().buffer();
-            var weights = FloatBuffer.allocate(influence * count);
+            var weights = FloatBuffer.allocate(realInfluence * count);
 
-            var localInfluence = new float[influence];
+            var localInfluence = new float[realInfluence];
             for (int c = 0; c < count; c++) {
                 for (int i = 1; i < influence - 3; i++) {
                     localInfluence[i] = buffer2.get();
                 }
-                for (int i = influence - 3; i < influence; i++) {
+                for (int i = influence - 3; i < realInfluence; i++) {
                     localInfluence[i] = buffer1.get();
                 }
                 float weight = 1.0f;
-                for (int i = 1; i < influence; i++) {
+                for (int i = 1; i < realInfluence; i++) {
                     weight -= localInfluence[i];
                 }
                 localInfluence[0] = weight;
@@ -119,9 +126,10 @@ public final class Md6ModelReader implements AssetReader<Model, DarkAgesAsset> {
             }
 
             var vertexBuffers = mesh.vertexBuffers().stream()
-                .filter(vb -> vb.info().semantic() != Semantic.WEIGHTS)
+                .filter(vb -> vb.info().semantic() != Semantic.JOINTS && vb.info().semantic() != Semantic.WEIGHTS)
                 .collect(Collectors.toList());
-            vertexBuffers.add(new VertexBuffer<>(weights.flip(), VertexBufferInfo.weights(ComponentType.FLOAT, influence)));
+            vertexBuffers.add(new VertexBuffer<>(joints, VertexBufferInfo.joints(ComponentType.SHORT, realInfluence)));
+            vertexBuffers.add(new VertexBuffer<>(weights.flip(), VertexBufferInfo.weights(ComponentType.FLOAT, realInfluence)));
             newMeshes.add(mesh.withVertexBuffers(vertexBuffers));
         }
         return newMeshes;
@@ -130,10 +138,6 @@ public final class Md6ModelReader implements AssetReader<Model, DarkAgesAsset> {
     private void fixJointIndices(Md6Model md6, List<Mesh> meshes) {
         var jointRemap = md6.header().skinnedJoints();
 
-        System.out.println(md6.meshInfos().stream().map(mi -> mi.unknown1()).collect(Collectors.groupingBy(Function.identity(), Collectors.counting())));
-        System.out.println(md6.meshInfos().stream().map(mi -> mi.unknown2()).collect(Collectors.groupingBy(Function.identity(), Collectors.counting())));
-        System.out.println(md6.meshInfos().stream().map(mi -> mi.unknown3()).collect(Collectors.groupingBy(Function.identity(), Collectors.counting())));
-        System.out.println(md6.meshInfos().stream().map(mi -> mi.lodInfos().getFirst().unknown1()).collect(Collectors.groupingBy(Function.identity(), Collectors.counting())));
         for (var i = 0; i < meshes.size(); i++) {
             var meshInfo = md6.meshInfos().get(i);
             var joints = meshes.get(i)
@@ -141,14 +145,9 @@ public final class Md6ModelReader implements AssetReader<Model, DarkAgesAsset> {
                 .orElseThrow();
 
             // Assume it's a short buffer, because we read it as such
-            var array = ((ShortBuffer) joints.buffer()).array();
-            System.out.println("Max: " + IntStream.range(0, array.length).mapToLong(l -> array[l]).max() + meshInfo.unknown3());
-            for (var j = 0; j < array.length; j++) {
-                short i1 = jointRemap[array[j]];
-                if (i1 == 0) {
-                    System.out.println();
-                }
-                array[j] = i1;
+            var buffer = (ShortBuffer) joints.buffer();
+            for (var j = 0; j < buffer.limit(); j++) {
+                buffer.put(j, jointRemap[buffer.get(j)]);
             }
         }
     }
