@@ -25,6 +25,6 @@ public record VertexBufferInfo<T extends Buffer>(
     }
 
     public static <T extends Buffer> VertexBufferInfo<T> indices(ComponentType<T> componentType) {
-        return new VertexBufferInfo<>(null, componentType, 3);
+        return new VertexBufferInfo<>(null, componentType, 1);
     }
 }

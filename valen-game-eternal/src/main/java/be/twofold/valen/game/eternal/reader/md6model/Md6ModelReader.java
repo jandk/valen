@@ -84,9 +84,9 @@ public final class Md6ModelReader implements AssetReader<Model, EternalAsset> {
                 .orElseThrow();
 
             // Just assume it's a byte buffer, because we read it as such
-            var array = ((ByteBuffer) joints.buffer()).array();
+            var array = ((ShortBuffer) joints.buffer()).array();
             for (var j = 0; j < array.length; j++) {
-                array[j] = lookup[Byte.toUnsignedInt(array[j]) + meshInfo.unknown2()];
+                array[j] = lookup[Short.toUnsignedInt(array[j]) + meshInfo.unknown2()];
             }
         }
     }

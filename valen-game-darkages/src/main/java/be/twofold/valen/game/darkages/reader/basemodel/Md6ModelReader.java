@@ -128,7 +128,7 @@ public final class Md6ModelReader implements AssetReader<Model, DarkAgesAsset> {
             var vertexBuffers = mesh.vertexBuffers().stream()
                 .filter(vb -> vb.info().semantic() != Semantic.JOINTS && vb.info().semantic() != Semantic.WEIGHTS)
                 .collect(Collectors.toList());
-            vertexBuffers.add(new VertexBuffer<>(joints, VertexBufferInfo.joints(ComponentType.SHORT, realInfluence)));
+            vertexBuffers.add(new VertexBuffer<>(joints, VertexBufferInfo.joints(ComponentType.UNSIGNED_SHORT, realInfluence)));
             vertexBuffers.add(new VertexBuffer<>(weights.flip(), VertexBufferInfo.weights(ComponentType.FLOAT, realInfluence)));
             newMeshes.add(mesh.withVertexBuffers(vertexBuffers));
         }

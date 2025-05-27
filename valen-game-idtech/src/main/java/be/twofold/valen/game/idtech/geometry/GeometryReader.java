@@ -27,7 +27,7 @@ public final class GeometryReader {
 
         offset += stride * (lodInfo.numVertices() - 1);
         var faceInfo = new VertexBufferInfo<>(null, ComponentType.UNSIGNED_SHORT, 3);
-        var faceAccessor = new GeoAccessor<>(offset, lodInfo.numFaces(), 6, faceInfo, Geometry.readFace());
+        var faceAccessor = new GeoAccessor<>(offset, lodInfo.numFaces(), 6, faceInfo, Geometry.readFaceIndex());
 
         return new Geo(true).readMesh(source, faceAccessor, vertexAccessors);
     }
@@ -62,7 +62,7 @@ public final class GeometryReader {
                 }
 
                 var faceInfo = VertexBufferInfo.indices(ComponentType.UNSIGNED_SHORT);
-                var faceAccessor = new GeoAccessor<>(offsets.indexOffset, lodInfo.numFaces(), 6, faceInfo, Geometry.readFace());
+                var faceAccessor = new GeoAccessor<>(offsets.indexOffset, lodInfo.numFaces(), 6, faceInfo, Geometry.readFaceIndex());
                 offsets.indexOffset += lodInfo.numFaces() * 3 * Short.BYTES;
 
                 meshes.add(new Geo(true).readMesh(source, faceAccessor, vertexAccessors));
@@ -82,13 +82,9 @@ public final class GeometryReader {
             int lodOffset = 0;
             var masks = GeometryVertexMask.fromMultiple(lod.vertexMask());
             var skinningMode = mapSkinningMode(masks, animated);
-            System.out.println(skinningMode + "\t" + masks);
             var vertexAccessors = new ArrayList<GeoAccessor<?>>();
             for (var mask : masks) {
                 int maskSize = mask.size();
-                if (mask.size() == 0) {
-                    System.out.println();
-                }
                 int aligner = maskSize == 0 ? 0 : (maskSize - lodOffset % maskSize) % maskSize;
                 int bufferOffset = aligner + lodOffset;
                 vertexAccessors.addAll(buildAccessors(offset + bufferOffset, lod.numVertices(), maskSize, mask, lod, skinningMode));
@@ -96,7 +92,7 @@ public final class GeometryReader {
             }
 
             var faceInfo = VertexBufferInfo.indices(ComponentType.UNSIGNED_SHORT);
-            var faceAccessor = new GeoAccessor<>(offset + lodOffset, lod.numFaces(), 6, faceInfo, Geometry.readFace());
+            var faceAccessor = new GeoAccessor<>(offset + lodOffset, lod.numFaces() * 3, Short.BYTES, faceInfo, Geometry.readFaceIndex());
             lodOffset += lod.numFaces() * 3 * Short.BYTES;
             offset = (offset + lodOffset + 7) & ~7;
 
@@ -138,8 +134,10 @@ public final class GeometryReader {
                 var tangent = new GeoAccessor<>(offset, count, stride, VertexBufferInfo.TANGENT, Geometry.readPackedTangent());
                 var interleaved = switch (skinningMode) {
                     case None -> null;
-                    case Fixed4, Skinning4 ->
-                        new GeoAccessor<>(offset, count, stride, VertexBufferInfo.weights(ComponentType.FLOAT, 4), Geometry.readWeight4());
+                    case Fixed4 ->
+                        new GeoAccessor<>(offset, count, stride, VertexBufferInfo.weights(ComponentType.FLOAT, 4), Geometry.readWeight4(true));
+                    case Skinning4 ->
+                        new GeoAccessor<>(offset, count, stride, VertexBufferInfo.weights(ComponentType.FLOAT, 3), Geometry.readWeight4(false));
                     case Skinning1 ->
                         new GeoAccessor<>(offset, count, stride, VertexBufferInfo.joints(ComponentType.UNSIGNED_SHORT, 1), Geometry.readBone1());
                     case Skinning6 ->

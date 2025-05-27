@@ -12,10 +12,6 @@ final class Buffers {
             return buffer;
         }
 
-        if (buffer.limit() == 122064) {
-            System.out.println();
-        }
-
         if (buffer instanceof ShortBuffer shortBuffer) {
             ShortBuffer duplicate = shortBuffer.duplicate().rewind();
 

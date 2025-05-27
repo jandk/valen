@@ -33,8 +33,8 @@ public final class Geometry {
         };
     }
 
-    public static GeoReader<FloatBuffer> readWeight4() {
-        return readNormalTangentWeights(1.0f / 45.0f, 1.0f / 60.0f, true);
+    public static GeoReader<FloatBuffer> readWeight4(boolean write0) {
+        return readNormalTangentWeights(1.0f / 45.0f, 1.0f / 60.0f, write0);
     }
 
     public static GeoReader<FloatBuffer> readWeight6() {
@@ -81,8 +81,8 @@ public final class Geometry {
         return (source, dst) -> readVector2UNorm16(source).fma(scale, offset).toBuffer(dst);
     }
 
-    public static GeoReader<ShortBuffer> readFace() {
-        return copyShorts(3);
+    public static GeoReader<ShortBuffer> readFaceIndex() {
+        return copyShorts(1);
     }
 
     public static GeoReader<ShortBuffer> copyBytesAsShorts(int n) {
