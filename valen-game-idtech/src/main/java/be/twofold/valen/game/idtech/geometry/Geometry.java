@@ -34,18 +34,20 @@ public final class Geometry {
     }
 
     public static GeoReader<FloatBuffer> readWeight4(boolean write0) {
-        return readNormalTangentWeights(1.0f / 45.0f, 1.0f / 60.0f, write0);
+        return readNormalTangentWeights(45.0f, 60.0f, write0);
     }
 
     public static GeoReader<FloatBuffer> readWeight6() {
-        return readNormalTangentWeights(1.0f / 75.0f, 1.0f / 89.0f, false);
+        return readNormalTangentWeights(75.0f, 89.0f, false);
     }
 
     public static GeoReader<FloatBuffer> readWeight8() {
-        return readNormalTangentWeights(1.0f / 104.0f, 1.0f / 120.0f, false);
+        return readNormalTangentWeights(104.0f, 120.0f, false);
     }
 
     private static GeoReader<FloatBuffer> readNormalTangentWeights(float scale1, float scale2, boolean write0) {
+        float factor1 = 1.0f / scale1;
+        float factor2 = 1.0f / scale2;
         return (source, dst) -> {
             source.skip(3); // skip normal
             byte wn = source.readByte();
@@ -53,8 +55,8 @@ public final class Geometry {
             byte wt = source.readByte();
 
             float y = MathF.unpackUNorm8((byte) (wt & 0x7f));
-            float z = ((wn & 0xf0) >>> 4) * scale1;
-            float w = ((wn & 0x0f)) * scale2;
+            float z = ((wn & 0xf0) >>> 4) * factor1;
+            float w = ((wn & 0x0f)) * factor2;
 
             if (write0) {
                 dst.put(1.0f - y - z - w);

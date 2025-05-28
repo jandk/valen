@@ -166,7 +166,7 @@ public abstract class GltfModelMapper {
 
         var accessor = ImmutableAccessor.builder()
             .bufferView(bufferView)
-            .componentType(mapComponentType(buffer.info().componentType()))
+            .componentType(mapComponentType(buffer.buffer()))
             .count(buffer.count())
             .type(mapAccessorType(buffer.info().semantic()));
 
@@ -203,22 +203,14 @@ public abstract class GltfModelMapper {
             }));
     }
 
-    AccessorComponentType mapComponentType(ComponentType<?> componentType) {
-        if (componentType == ComponentType.BYTE) {
-            return AccessorComponentType.BYTE;
-        } else if (componentType == ComponentType.UNSIGNED_BYTE) {
-            return AccessorComponentType.UNSIGNED_BYTE;
-        } else if (componentType == ComponentType.SHORT) {
-            return AccessorComponentType.SHORT;
-        } else if (componentType == ComponentType.UNSIGNED_SHORT) {
-            return AccessorComponentType.UNSIGNED_SHORT;
-        } else if (componentType == ComponentType.UNSIGNED_INT) {
-            return AccessorComponentType.UNSIGNED_INT;
-        } else if (componentType == ComponentType.FLOAT) {
-            return AccessorComponentType.FLOAT;
-        } else {
-            throw new UnsupportedOperationException("Unsupported component type: " + componentType);
-        }
+    AccessorComponentType mapComponentType(Buffer buffer) {
+        return switch (buffer) {
+            case ByteBuffer _ -> AccessorComponentType.UNSIGNED_BYTE;
+            case ShortBuffer _ -> AccessorComponentType.UNSIGNED_SHORT;
+            case IntBuffer _ -> AccessorComponentType.UNSIGNED_INT;
+            case FloatBuffer _ -> AccessorComponentType.FLOAT;
+            default -> throw new UnsupportedOperationException("Unsupported buffer type: " + buffer);
+        };
     }
 
     AccessorType mapElementType(ElementType type) {
