@@ -42,8 +42,8 @@ public abstract class AbstractMaterialReader<K extends AssetID, V extends Asset,
         ),
         MaterialPropertyType.Smoothness, List.of(
             "smoothness",
-            "eyeouterlayersmoothnessmap",
-            "eyeinnerlayersmoothnessmap",
+            // "eyeouterlayersmoothnessmap", // these are RGB in TDA WTF?
+            // "eyeinnerlayersmoothnessmap", // these are RGB in TDA WTF?
             "glasssmoothnessmap",
             "hairsmoothnessmap"
         ),
