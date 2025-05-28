@@ -170,15 +170,15 @@ public abstract class AbstractMaterialReader<K extends AssetID, V extends Asset,
         }
 
         var builder = new StringBuilder(filePath.toLowerCase());
-        if (parm.renderParm().materialKind == TextureMaterialKind.TMK_SMOOTHNESS) {
-            var smoothnessNormal = allParms.entrySet().stream()
-                .filter(rlp -> rlp.getValue().renderParm().materialKind == parm.renderParm().smoothnessNormalParm)
-                .findFirst().orElseThrow();
-
-            builder
-                .append("$smoothnessnormal=")
-                .append(((Tex) smoothnessNormal.getValue().value()).filePath());
-        }
+//        if (parm.renderParm().materialKind == TextureMaterialKind.TMK_SMOOTHNESS) {
+//            var smoothnessNormal = allParms.entrySet().stream()
+//                .filter(rlp -> rlp.getValue().renderParm().materialKind == parm.renderParm().smoothnessNormalParm)
+//                .findFirst().orElseThrow();
+//
+//            builder
+//                .append("$smoothnessnormal=")
+//                .append(((Tex) smoothnessNormal.getValue().value()).filePath());
+//        }
         mapOptions(builder, parm);
 
         var name = builder.toString();

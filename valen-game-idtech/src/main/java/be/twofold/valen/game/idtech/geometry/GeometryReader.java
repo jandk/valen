@@ -161,9 +161,9 @@ public final class GeometryReader {
                         new GeoAccessor<>(offset, count, stride, VertexBufferInfo.colors(ComponentType.UNSIGNED_BYTE), Geometry.copyBytes(4));
                 }
             );
-            case SKINNING_1 -> List.of(
+            case SKINNING_1 -> skinningMode != SkinningMode.None ? List.of(
                 new GeoAccessor<>(offset, count, stride, VertexBufferInfo.weights(ComponentType.FLOAT, 1), (_, dst) -> dst.put(1.0f))
-            );
+            ) : List.of();
             case SKINNING_4 -> List.of(
                 new GeoAccessor<>(offset, count, stride, VertexBufferInfo.joints(ComponentType.UNSIGNED_SHORT, 4), Geometry.copyBytesAsShorts(4))
             );
