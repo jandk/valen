@@ -50,6 +50,9 @@ public abstract class AbstractMaterialReader<K extends AssetID, V extends Asset,
         MaterialPropertyType.Emissive, List.of(
             "bloommaskmap",
             "eyeemissivemap"
+        ),
+        MaterialPropertyType.Occlusion, List.of(
+            "aomap"
         )
     );
     private static final Map<MaterialPropertyType, List<String>> ParmFactors = Map.of(
@@ -64,6 +67,9 @@ public abstract class AbstractMaterialReader<K extends AssetID, V extends Asset,
         ),
         MaterialPropertyType.Emissive, List.of(
             "surfaceemissivecolor"
+        ),
+        MaterialPropertyType.Occlusion, List.of(
+            "aointensitypower"
         )
     );
 
@@ -105,6 +111,7 @@ public abstract class AbstractMaterialReader<K extends AssetID, V extends Asset,
         var normal = mapSimpleTexture(allParms, MaterialPropertyType.Normal);
         var specular = mapSimpleTexture(allParms, MaterialPropertyType.Specular);
         var smoothness = mapSimpleTexture(allParms, MaterialPropertyType.Smoothness);
+        var occlusion = mapSimpleTexture(allParms, MaterialPropertyType.Occlusion);
         var emissive = mapEmissive(allParms);
 
         var other = allParms.values().stream()
@@ -113,7 +120,7 @@ public abstract class AbstractMaterialReader<K extends AssetID, V extends Asset,
             .filter(Objects::nonNull)
             .map(reference -> new MaterialProperty(MaterialPropertyType.Unknown, reference, null));
 
-        var properties = Stream.concat(Stream.of(albedo, normal, specular, smoothness, emissive), other)
+        var properties = Stream.concat(Stream.of(albedo, normal, specular, smoothness, occlusion, emissive), other)
             .filter(Objects::nonNull)
             .toList();
 
@@ -348,6 +355,7 @@ public abstract class AbstractMaterialReader<K extends AssetID, V extends Asset,
                     && kind != TextureMaterialKind.TMK_BLENDMASK
                     && kind != TextureMaterialKind.TMK_ALBEDO_UNSCALED
                     && kind != TextureMaterialKind.TMK_ALBEDO_DETAILS
+                    && kind != TextureMaterialKind.TMK_AO
                 ) {
                     builder.append(formatTextureFormat(opts.format()));
                 }
@@ -439,6 +447,7 @@ public abstract class AbstractMaterialReader<K extends AssetID, V extends Asset,
             case TMK_DECALHEIGHTMAP -> "$mtlkind=decalheightmap";
             case TMK_ALBEDO_UNSCALED -> "$mtlkind=albedounscaled";
             case TMK_ALBEDO_DETAILS -> "$mtlkind=albedodetails";
+            case TMK_AO -> "$mtlkind=ao";
             default -> "";
         };
     }

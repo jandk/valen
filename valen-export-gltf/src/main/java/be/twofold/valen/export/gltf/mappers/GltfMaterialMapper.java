@@ -40,6 +40,7 @@ public final class GltfMaterialMapper {
                 case Albedo -> mapProperty(property, pbrBuilder::baseColorTexture,
                     v -> pbrBuilder.baseColorFactor(GltfUtils.mapVector4(v)));
                 case Normal -> builder.normalTexture(normalTextureInfoSchema(textureMapper.map(property.reference())));
+                case Occlusion -> builder.occlusionTexture(occlusionTextureInfoSchema(property));
                 case Emissive -> mapEmissive(property, builder);
                 case Unknown -> textureMapper.map(property.reference());
             }
@@ -153,15 +154,26 @@ public final class GltfMaterialMapper {
         return Texture.fromSurface(surface, TextureFormat.R8G8B8A8_UNORM, texture.scale(), texture.bias());
     }
 
-    private static TextureInfoSchema textureSchema(TextureID textureID) {
+    private TextureInfoSchema textureSchema(TextureID textureID) {
         return ImmutableTextureInfo.builder()
             .index(textureID)
             .build();
     }
 
-    private static MaterialNormalTextureInfoSchema normalTextureInfoSchema(TextureID textureID) {
+    private MaterialNormalTextureInfoSchema normalTextureInfoSchema(TextureID textureID) {
         return ImmutableMaterialNormalTextureInfo.builder()
             .index(textureID)
             .build();
+    }
+
+    private MaterialOcclusionTextureInfoSchema occlusionTextureInfoSchema(MaterialProperty property) throws IOException {
+        var builder = ImmutableMaterialOcclusionTextureInfo.builder();
+        if (property.reference() != null) {
+            builder.index(textureMapper.map(property.reference()));
+        }
+        if (property.factor() != null) {
+            builder.strength(property.factor().w());
+        }
+        return builder.build();
     }
 }

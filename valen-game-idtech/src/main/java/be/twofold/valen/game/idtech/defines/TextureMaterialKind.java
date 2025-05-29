@@ -51,6 +51,7 @@ public enum TextureMaterialKind {
             case "lightproject" -> TextureMaterialKind.TMK_LIGHTPROJECT;
             case "particle" -> TextureMaterialKind.TMK_PARTICLE;
             case "blendmask" -> TextureMaterialKind.TMK_BLENDMASK;
+            case "ao" -> TextureMaterialKind.TMK_AO;
             default -> TextureMaterialKind.TMK_NONE;
         };
     }
