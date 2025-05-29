@@ -5,6 +5,7 @@ import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.util.*;
 import be.twofold.valen.game.darkages.reader.basemodel.*;
+import be.twofold.valen.game.darkages.reader.bink.*;
 import be.twofold.valen.game.darkages.reader.decl.*;
 import be.twofold.valen.game.darkages.reader.decl.material2.*;
 import be.twofold.valen.game.darkages.reader.decl.renderparm.*;
@@ -40,6 +41,7 @@ public final class DarkAgesArchive implements Archive<DarkAgesAssetID, DarkAgesA
         this.readers = new AssetReaders<>(List.of(
             declReader,
 
+            new BinkReader(this),
             new ImageReader(this),
             new MaterialReader(this, declReader),
             new Md6ModelReader(this, true),
@@ -81,7 +83,7 @@ public final class DarkAgesArchive implements Archive<DarkAgesAssetID, DarkAgesA
     }
 
     public ByteBuffer readStream(long identifier, int size) throws IOException {
-        return streams.read(identifier, size);
+        return streams.read(identifier, size < 0 ? null : size);
     }
 
     @Override
