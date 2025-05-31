@@ -6,13 +6,12 @@ import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.math.*;
 import be.twofold.valen.core.util.*;
 import be.twofold.valen.game.darkages.*;
-import be.twofold.valen.game.darkages.reader.Hash;
+import be.twofold.valen.game.darkages.reader.*;
 import be.twofold.valen.game.darkages.reader.geometry.*;
 import be.twofold.valen.game.darkages.reader.resources.*;
 import be.twofold.valen.game.idtech.geometry.*;
 
 import java.io.*;
-import java.nio.*;
 import java.util.*;
 
 public final class StaticModelReader implements AssetReader<Model, DarkAgesAsset> {
@@ -61,11 +60,7 @@ public final class StaticModelReader implements AssetReader<Model, DarkAgesAsset
     }
 
     private List<Mesh> readStreamedGeometry(StaticModel model, int lod, long hash) throws IOException {
-        ByteBuffer key = ByteBuffer.allocate(16).order(ByteOrder.LITTLE_ENDIAN);
-        key.putLong(hash);
-        key.putInt(4 - lod);
-
-        var streamHash = Hash.hash(key);
+        var streamHash = Hash.hash(hash, 4 - lod, 0);
         var diskLayout = model.streamDiskLayouts().get(lod);
         var uncompressedSize = diskLayout.uncompressedSize();
 

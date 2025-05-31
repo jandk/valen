@@ -24,10 +24,7 @@ public final class BinkReader implements AssetReader<ByteBuffer, DarkAgesAsset> 
 
     @Override
     public ByteBuffer read(DataSource source, DarkAgesAsset asset) throws IOException {
-        ByteBuffer key = ByteBuffer.allocate(16).order(ByteOrder.LITTLE_ENDIAN);
-        key.putLong(asset.hash());
-        long hash = Hash.hash(key);
-
+        long hash = Hash.hash(asset.hash(), 0, 0);
         return archive.readStream(hash, -1);
     }
 }

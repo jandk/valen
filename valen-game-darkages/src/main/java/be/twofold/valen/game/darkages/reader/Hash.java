@@ -3,19 +3,22 @@ package be.twofold.valen.game.darkages.reader;
 import java.nio.*;
 
 public final class Hash {
+    private static final long C1 = 0xFF51AFD7ED558CCDL;
+    private static final long C2 = 0xC4CEB9FE1A85EC53L;
+    private static final long C3 = 0x000000009E3779B9L;
+
     public static long hash(ByteBuffer key) {
-        long c1 = 0xFF51AFD7ED558CCDL;
-        long c2 = 0xC4CEB9FE1A85EC53L;
-        long c3 = 0x000000009E3779B9L;
+        return hash(key.getLong(0), key.getInt(8), key.getInt(12));
+    }
 
-        var key00 = key.getLong(0);
-        var key08 = c1 * Integer.toUnsignedLong(key.getInt(8));
-        var key12 = c1 * Integer.toUnsignedLong(key.getInt(12));
+    public static long hash(long hash, int param1, int param2) {
+        long k0 = hash;
+        long k1 = C1 * Integer.toUnsignedLong(param1);
+        long k2 = C1 * Integer.toUnsignedLong(param2);
 
-        long p1 = mix33(key12);
-        long p2 = ((c2 * mix33(key08)) >>> 33) ^ (c2 * mix33(key08));
-        long p3 = key00 ^ ((key00 >>> 2) + (key00 << 6) + (p2 ^ ((p2 >>> 2) + (p2 << 6) + (mix33(c2 * p1)) + c3)) + c3);
-        return p3;
+        long p1 = mix33(k2);
+        long p2 = ((Hash.C2 * mix33(k1)) >>> 33) ^ (Hash.C2 * mix33(k1));
+        return k0 ^ ((k0 >>> 2) + (k0 << 6) + (p2 ^ ((p2 >>> 2) + (p2 << 6) + (mix33(Hash.C2 * p1)) + Hash.C3)) + Hash.C3);
     }
 
     private static long mix33(long l) {

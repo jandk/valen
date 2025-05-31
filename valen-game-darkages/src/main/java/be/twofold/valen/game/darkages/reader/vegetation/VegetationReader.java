@@ -12,7 +12,6 @@ import be.twofold.valen.game.darkages.reader.resources.*;
 import be.twofold.valen.game.idtech.geometry.*;
 
 import java.io.*;
-import java.nio.*;
 import java.util.*;
 
 public final class VegetationReader implements AssetReader<Model, DarkAgesAsset> {
@@ -49,12 +48,7 @@ public final class VegetationReader implements AssetReader<Model, DarkAgesAsset>
             .<LodInfo>map(mi -> mi.lods().get(lod))
             .toList();
 
-        // TODO: Clean up hash method
-        var key = ByteBuffer.allocate(16).order(ByteOrder.LITTLE_ENDIAN);
-        key.putLong(0, hash);
-        key.putInt(8, 4 - lod);
-        var identity = Hash.hash(key);
-
+        var identity = Hash.hash(hash, 4 - lod, 0);
         var buffer = archive.readStream(identity, uncompressedSize);
 
         try (var source = DataSource.fromBuffer(buffer)) {
