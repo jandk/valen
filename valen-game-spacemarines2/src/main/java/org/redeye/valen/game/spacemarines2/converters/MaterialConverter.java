@@ -1,16 +1,16 @@
 package org.redeye.valen.game.spacemarines2.converters;
 
-import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.material.*;
 import be.twofold.valen.core.texture.*;
 import com.google.gson.*;
 import org.redeye.valen.game.spacemarines2.*;
+import org.redeye.valen.game.spacemarines2.archives.*;
 
 import java.io.*;
 import java.util.*;
 
 public class MaterialConverter {
-    public ArrayList<Material> convertMaterials(Archive archive, EmperorAssetId resourceId) throws IOException {
+    public ArrayList<Material> convertMaterials(EmperorArchive archive, EmperorAssetId resourceId) throws IOException {
         JsonObject resInfo = archive.loadAsset(resourceId, JsonObject.class);
         var materials = new ArrayList<Material>();
         for (JsonElement materialLink : (resInfo.getAsJsonArray("linksTd"))) {
@@ -61,7 +61,7 @@ public class MaterialConverter {
                     case "MNM" -> {
                         properties.add(new MaterialProperty(MaterialPropertyType.Normal, new TextureReference(outName, outName, () -> {
                             var texture = archive.loadAsset(new EmperorAssetId(textureLinkString.substring(6)), Texture.class);
-                            var converted = TextureConverter.convert(texture.firstOnly(), TextureFormat.R8G8B8A8_UNORM);
+                            var converted = texture.firstOnly().convert(TextureFormat.R8G8B8A8_UNORM, true);
                             var data = converted.surfaces().getFirst().data();
                             for (int i = 0; i < data.length; i += 4) {
                                 data[i + 1] = (byte) (255 - Byte.toUnsignedInt(data[i]));
@@ -72,7 +72,7 @@ public class MaterialConverter {
                     case "MDT" -> {
                         properties.add(new MaterialProperty(MaterialPropertyType.DetailNormal, new TextureReference(outName, outName, () -> {
                             var texture = archive.loadAsset(new EmperorAssetId(textureLinkString.substring(6)), Texture.class);
-                            var converted = TextureConverter.convert(texture.firstOnly(), TextureFormat.R8G8B8A8_UNORM);
+                            var converted = texture.firstOnly().convert(TextureFormat.R8G8B8A8_UNORM, true);
                             var data = converted.surfaces().getFirst().data();
                             for (int i = 0; i < data.length; i += 4) {
                                 data[i + 1] = (byte) (255 - Byte.toUnsignedInt(data[i]));
@@ -83,7 +83,7 @@ public class MaterialConverter {
                     case "MSCRGHAO" -> {
                         properties.add(new MaterialProperty(MaterialPropertyType.ORM, new TextureReference(outName, outName, () -> {
                             var texture = archive.loadAsset(new EmperorAssetId(textureLinkString.substring(6)), Texture.class);
-                            var converted = TextureConverter.convert(texture.firstOnly(), TextureFormat.R8G8B8A8_UNORM);
+                            var converted = texture.firstOnly().convert(TextureFormat.R8G8B8A8_UNORM, false);
                             var data = converted.surfaces().getFirst().data();
                             for (int i = 0; i < data.length; i += 4) {
                                 var tmp = data[i];
@@ -95,7 +95,7 @@ public class MaterialConverter {
                     }
                     case "MEM+MAO" -> {
                         var texture = archive.loadAsset(new EmperorAssetId(textureLinkString.substring(6)), Texture.class);
-                        var converted = TextureConverter.convert(texture.firstOnly(), TextureFormat.R8G8B8A8_UNORM);
+                        var converted = texture.firstOnly().convert(TextureFormat.R8G8B8A8_UNORM, false);
                         var data = converted.surfaces().getFirst().data();
                         var emissiveSurface = Surface.create(converted.width(), converted.height(), TextureFormat.R8G8B8A8_UNORM);
                         var emissiveData = emissiveSurface.data();
@@ -118,7 +118,7 @@ public class MaterialConverter {
                     }
                     case "MH+MDTM" -> {
                         var texture = archive.loadAsset(new EmperorAssetId(textureLinkString.substring(6)), Texture.class);
-                        var converted = TextureConverter.convert(texture.firstOnly(), TextureFormat.R8G8B8A8_UNORM);
+                        var converted = texture.firstOnly().convert(TextureFormat.R8G8B8A8_UNORM, false);
                         var data = converted.surfaces().getFirst().data();
                         var heightSurface = Surface.create(converted.width(), converted.height(), TextureFormat.R8G8B8A8_UNORM);
                         var heightData = heightSurface.data();
@@ -141,7 +141,7 @@ public class MaterialConverter {
                     }
                     case "MSCG+MRGH" -> {
                         var texture = archive.loadAsset(new EmperorAssetId(textureLinkString.substring(6)), Texture.class);
-                        var converted = TextureConverter.convert(texture.firstOnly(), TextureFormat.R8G8B8A8_UNORM);
+                        var converted = texture.firstOnly().convert(TextureFormat.R8G8B8A8_UNORM, false);
                         var data = converted.surfaces().getFirst().data();
                         var surface = Surface.create(converted.width(), converted.height(), TextureFormat.R8G8B8A8_UNORM);
                         var newData = surface.data();
@@ -161,7 +161,7 @@ public class MaterialConverter {
         return materials;
     }
 
-    private static void property(String outName, Archive archive, String textureLinkString, List<MaterialProperty> properties, MaterialPropertyType type) {
+    private static void property(String outName, EmperorArchive archive, String textureLinkString, List<MaterialProperty> properties, MaterialPropertyType type) {
         var reference = new TextureReference(outName, outName, () -> archive.loadAsset(new EmperorAssetId(textureLinkString.substring(6)), Texture.class));
         properties.add(new MaterialProperty(type, reference));
     }

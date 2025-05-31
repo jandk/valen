@@ -10,8 +10,8 @@ import java.util.*;
 import java.util.stream.*;
 import java.util.zip.*;
 
-public class ZipArchive implements Archive {
-    private final Map<AssetID, Asset> assets = new HashMap<>();
+public class ZipArchive implements EmperorArchive {
+    private final Map<AssetID, EmperorAsset> assets = new HashMap<>();
     private final ZipFile zipFile;
     private final PackArchive parent;
 
@@ -29,17 +29,7 @@ public class ZipArchive implements Archive {
     }
 
     @Override
-    public Stream<? extends Asset> assets() {
-        return assets.values().stream();
-    }
-
-    @Override
-    public Optional<? extends Asset> getAsset(AssetID identifier) {
-        return Optional.ofNullable(assets.get(identifier));
-    }
-
-    @Override
-    public <T> T loadAsset(AssetID identifier, Class<T> clazz) throws IOException {
+    public <T> T loadAsset(EmperorAssetId identifier, Class<T> clazz) throws IOException {
         var entry = zipFile.getEntry(identifier.fullName());
         if (entry == null) {
             throw new FileNotFoundException(identifier.fullName());
@@ -54,9 +44,24 @@ public class ZipArchive implements Archive {
         if (reader.isEmpty()) {
             return null;
         }
-        var asset = assets().filter(a -> a.id().equals(identifier)).findFirst().orElseThrow();
+        var asset = getAll().filter(a -> a.id().equals(identifier)).findFirst().orElseThrow();
         try (var source = DataSource.fromArray(bytes)) {
             return clazz.cast(reader.get().read(parent, asset, source));
         }
+    }
+
+    @Override
+    public Optional<EmperorAsset> get(EmperorAssetId key) {
+        return Optional.of(assets.get(key));
+    }
+
+    @Override
+    public Stream<EmperorAsset> getAll() {
+        return assets.values().stream();
+    }
+
+    @Override
+    public void close() throws IOException {
+        zipFile.close();
     }
 }

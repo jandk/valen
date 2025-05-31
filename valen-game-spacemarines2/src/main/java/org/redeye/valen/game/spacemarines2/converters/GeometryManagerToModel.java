@@ -1,10 +1,10 @@
 package org.redeye.valen.game.spacemarines2.converters;
 
-import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.geometry.*;
 import be.twofold.valen.core.material.*;
 import be.twofold.valen.core.math.*;
 import org.redeye.valen.game.spacemarines2.*;
+import org.redeye.valen.game.spacemarines2.archives.*;
 import org.redeye.valen.game.spacemarines2.types.template.*;
 
 import java.io.*;
@@ -13,7 +13,7 @@ import java.util.*;
 public class GeometryManagerToModel {
 
 
-    public Model convert(Archive archive, EmperorAssetId assetId, EmperorAssetId resourceId, GeometryManager geometryManager, List<LodDef> lodDef) throws IOException {
+    public Model convert(EmperorArchive archive, EmperorAssetId assetId, EmperorAssetId resourceId, GeometryManager geometryManager, List<LodDef> lodDef) throws IOException {
         var materialConverter = new MaterialConverter();
         ArrayList<Material> materials = materialConverter.convertMaterials(archive, resourceId);
         // ArrayList<Material> materials = new ArrayList<>();
@@ -38,7 +38,7 @@ public class GeometryManagerToModel {
             }
         }
         String modelName = assetId.fileName().substring(0, assetId.fileName().indexOf('.'));
-        return new Model(meshes, Optional.ofNullable(skeleton), Optional.of(modelName), Axis.Y);
+        return new Model(meshes, Optional.ofNullable(skeleton), Optional.of(modelName), Optional.empty(), Axis.Y);
     }
 
 

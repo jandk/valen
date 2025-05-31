@@ -5,6 +5,7 @@ import be.twofold.valen.core.geometry.*;
 import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.util.*;
 import org.redeye.valen.game.spacemarines2.*;
+import org.redeye.valen.game.spacemarines2.archives.*;
 import org.redeye.valen.game.spacemarines2.converters.*;
 import org.redeye.valen.game.spacemarines2.serializers.template.*;
 import org.redeye.valen.game.spacemarines2.types.*;
@@ -18,7 +19,7 @@ public class TPLReader implements Reader<Model> {
     private GeometryManagerToModel converter = new GeometryManagerToModel();
 
     @Override
-    public Model read(Archive archive, Asset asset, DataSource source) throws IOException {
+    public Model read(EmperorArchive archive, Asset asset, DataSource source) throws IOException {
         if (!(asset.id() instanceof EmperorAssetId tplId)) {
             return null;
         }

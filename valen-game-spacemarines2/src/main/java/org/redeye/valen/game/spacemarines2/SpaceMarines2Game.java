@@ -23,7 +23,7 @@ public class SpaceMarines2Game implements Game {
     }
 
     @Override
-    public Archive loadArchive(String name) throws IOException {
+    public EmperorArchive loadArchive(String name) throws IOException {
         return new PackArchive(base, name);
     }
 }

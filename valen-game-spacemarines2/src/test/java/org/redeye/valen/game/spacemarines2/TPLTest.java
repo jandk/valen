@@ -1,7 +1,6 @@
 package org.redeye.valen.game.spacemarines2;
 
 import be.twofold.valen.core.export.*;
-import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.geometry.*;
 import be.twofold.valen.core.scene.*;
 import be.twofold.valen.core.texture.*;
@@ -10,6 +9,7 @@ import be.twofold.valen.export.gltf.*;
 import be.twofold.valen.export.png.*;
 import com.google.gson.*;
 import org.junit.jupiter.api.*;
+import org.redeye.valen.game.spacemarines2.archives.*;
 import org.redeye.valen.game.spacemarines2.psSection.*;
 import org.redeye.valen.game.spacemarines2.types.*;
 import org.redeye.valen.game.spacemarines2.types.lwi.*;
@@ -30,19 +30,20 @@ public class TPLTest {
     @Test
     void test_TDLexer() throws IOException {
         SpaceMarines2Game game = new SpaceMarines2GameFactory().load(Path.of("D:\\SteamLibrary\\steamapps\\common\\Space Marine 2\\Warhammer 40000 Space Marine 2.exe"));
-        var archive = game.loadArchive("client_pc");
-        archive.assets()
-            .filter(asset -> asset.id().fileName().endsWith(".td"))
-            .forEach(asset -> {
-                try {
-                    System.out.println(asset.id());
-                    var rawData = archive.loadAsset(asset.id(), byte[].class);
-                    var res = PsSectionAscii.parseFromString(new String(rawData, StandardCharsets.UTF_8));
-                    System.out.println(res);
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
-            });
+        try (var archive = game.loadArchive("client_pc")) {
+            archive.getAll()
+                .filter(asset -> asset.id().fileName().endsWith(".td"))
+                .forEach(asset -> {
+                    try {
+                        System.out.println(asset.id());
+                        var rawData = archive.loadAsset(asset.id(), byte[].class);
+                        var res = PsSectionAscii.parseFromString(new String(rawData, StandardCharsets.UTF_8));
+                        System.out.println(res);
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
+                });
+        }
     }
 
     @Test
@@ -241,66 +242,67 @@ public class TPLTest {
     @Test
     void testRead_lwi_container() throws IOException {
         SpaceMarines2Game game = new SpaceMarines2GameFactory().load(Path.of("D:\\SteamLibrary\\steamapps\\common\\Space Marine 2\\Warhammer 40000 Space Marine 2.exe"));
-        var archive = game.loadArchive("client_pc");
-
-        EmperorAssetId resourceId = new EmperorAssetId("scenes/story_blackstone_2.scn/story_blackstone_2.lwi_container");
-        var data = archive.loadAsset(resourceId, LwiContainerStatic.class);
-        var modelInfos = data.modelList();
-
         var instances = new ArrayList<Instance>();
-        var alreadyLoaded = new HashMap<EmperorAssetId, Model>();
+        EmperorAssetId resourceId = new EmperorAssetId("scenes/story_blackstone_2.scn/story_blackstone_2.lwi_container");
 
-        for (LwiElementData instanceGroup : data.instanceGroups()) {
-            var modelInfo = modelInfos.get(instanceGroup.elemId());
-            EmperorAssetId identifier = new EmperorAssetId("tpl/%s.tpl/%s.tpl".formatted(modelInfo.tplName(), modelInfo.tplName()));
-            Check.state(archive.exists(identifier));
+        try (var archive = game.loadArchive("client_pc")) {
+            var data = archive.loadAsset(resourceId, LwiContainerStatic.class);
+            var modelInfos = data.modelList();
+
+            var alreadyLoaded = new HashMap<EmperorAssetId, Model>();
+
+            for (LwiElementData instanceGroup : data.instanceGroups()) {
+                var modelInfo = modelInfos.get(instanceGroup.elemId());
+                EmperorAssetId identifier = new EmperorAssetId("tpl/%s.tpl/%s.tpl".formatted(modelInfo.tplName(), modelInfo.tplName()));
+                Check.state(archive.exists(identifier));
 
 
-            for (LwiElementDataChild modelInstance : instanceGroup.instances()) {
-                // if (child.subItems().isEmpty()) {
-                var matrix = modelInstance.mat();
-                Instance instance = new Instance(
-                    new ModelReference(modelInfo.tplName(), () -> {
-                        var model = alreadyLoaded.computeIfAbsent(identifier, assetId -> {
-                            System.out.println(assetId);
-                            try {
-                                return archive.loadAsset(identifier, Model.class);
-                            } catch (IOException e) {
-                                throw new RuntimeException(e);
-                            }
-                        });
-                        // if (model.meshes().isEmpty()) {
-                        //     System.out.println("Skipped " + modelInfo);
-                        //     return null;
-                        // }
-                        return model;
-                    }),
-                    matrix.toTranslation(),
-                    matrix.toRotation().normalize(),
-                    matrix.toScale(),
-                    modelInfo.name()
-                );
+                for (LwiElementDataChild modelInstance : instanceGroup.instances()) {
+                    // if (child.subItems().isEmpty()) {
+                    var matrix = modelInstance.mat();
+                    Instance instance = new Instance(
+                        new ModelReference(modelInfo.tplName(), modelInfo.tplName(), () -> {
+                            var model = alreadyLoaded.computeIfAbsent(identifier, assetId -> {
+                                System.out.println(assetId);
+                                try {
+                                    return archive.loadAsset(identifier, Model.class);
+                                } catch (IOException e) {
+                                    throw new RuntimeException(e);
+                                }
+                            });
+                            // if (model.meshes().isEmpty()) {
+                            //     System.out.println("Skipped " + modelInfo);
+                            //     return null;
+                            // }
+                            return model;
+                        }),
+                        matrix.toTranslation(),
+                        matrix.toRotation().normalize(),
+                        matrix.toScale(),
+                        modelInfo.name()
+                    );
 
-                instances.add(instance);
-                // } else {
-                //     for (LwiElementDataChildSubItem subItem : child.subItems()) {
-                //         var matrix = subItem.mat().multiply(child.mat());
-                //         var model = alreadyLoaded.computeIfAbsent(identifier, assetId -> {
-                //             System.out.println(assetId);
-                //             try {
-                //                 return (Model) archive.loadAsset(identifier);
-                //             } catch (IOException e) {
-                //                 throw new RuntimeException(e);
-                //             }
-                //         });
-                //         Instance instance = new Instance(
-                //             meshInfo.name(),
-                //             new ModelReference(meshInfo.tplName(), () -> model), matrix.toTranslation(), matrix.toRotation().normalize(), matrix.toScale()
-                //         );
-                //         instances.add(instance);
-                //
-                //     }
-                // }
+                    instances.add(instance);
+                    // } else {
+                    //     for (LwiElementDataChildSubItem subItem : child.subItems()) {
+                    //         var matrix = subItem.mat().multiply(child.mat());
+                    //         var model = alreadyLoaded.computeIfAbsent(identifier, assetId -> {
+                    //             System.out.println(assetId);
+                    //             try {
+                    //                 return (Model) archive.loadAsset(identifier);
+                    //             } catch (IOException e) {
+                    //                 throw new RuntimeException(e);
+                    //             }
+                    //         });
+                    //         Instance instance = new Instance(
+                    //             meshInfo.name(),
+                    //             new ModelReference(meshInfo.tplName(), () -> model), matrix.toTranslation(), matrix.toRotation().normalize(), matrix.toScale()
+                    //         );
+                    //         instances.add(instance);
+                    //
+                    //     }
+                    // }
+                }
             }
         }
         System.out.println("Exported scene with " + instances.size() + " instances");
@@ -335,7 +337,7 @@ public class TPLTest {
     }
 
 
-    private void exportModel(Archive archive, Path outputPath, EmperorAssetId tplPath) throws IOException {
+    private void exportModel(EmperorArchive archive, Path outputPath, EmperorAssetId tplPath) throws IOException {
         EmperorAssetId tplId = tplPath.withExtension("");
         String mdlName = tplId.fileName().substring(0, tplId.fileName().indexOf('.'));
         outputPath = outputPath.resolve(mdlName);

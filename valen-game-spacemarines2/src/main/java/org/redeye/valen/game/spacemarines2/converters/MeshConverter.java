@@ -190,10 +190,11 @@ public class MeshConverter {
         attributes.forEach(vertexBuffer -> vertexBuffer.buffer().rewind());
 
         return Optional.of(new Mesh(
-            new VertexBuffer(newIndicesBuffer.rewind(), VertexBufferInfo.indices(ComponentType.UNSIGNED_SHORT)),
+            new VertexBuffer<>(newIndicesBuffer.rewind(), VertexBufferInfo.indices(ComponentType.UNSIGNED_SHORT)),
             attributes,
             Optional.of(matObj),
-            Optional.empty()
+            Optional.empty(),
+            List.of()
         ));
     }
 

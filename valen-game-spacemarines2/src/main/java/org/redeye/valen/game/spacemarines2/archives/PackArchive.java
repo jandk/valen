@@ -1,13 +1,13 @@
 package org.redeye.valen.game.spacemarines2.archives;
 
-import be.twofold.valen.core.game.*;
+import org.redeye.valen.game.spacemarines2.*;
 
 import java.io.*;
 import java.nio.file.*;
 import java.util.*;
 import java.util.stream.*;
 
-public class PackArchive implements Archive {
+public class PackArchive implements EmperorArchive {
 
     private final List<ZipArchive> mounted = new ArrayList<>();
 
@@ -46,24 +46,31 @@ public class PackArchive implements Archive {
     }
 
     @Override
-    public Stream<? extends Asset> assets() {
-        return mounted.stream().flatMap(ZipArchive::assets);
+    public void close() throws IOException {
+        for (ZipArchive zipArchive : mounted) {
+            zipArchive.close();
+        }
     }
 
     @Override
-    public Optional<? extends Asset> getAsset(AssetID identifier) {
-        return mounted.stream()
-            .flatMap(archive -> archive.getAsset(identifier).stream())
-            .findFirst();
-    }
-
-    @Override
-    public <T> T loadAsset(AssetID identifier, Class<T> clazz) throws IOException {
+    public <T> T loadAsset(EmperorAssetId identifier, Class<T> clazz) throws IOException {
         for (ZipArchive zipArchive : mounted) {
             if (zipArchive.exists(identifier)) {
                 return zipArchive.loadAsset(identifier, clazz);
             }
         }
         throw new FileNotFoundException("File '" + identifier + "' not found");
+    }
+
+    @Override
+    public Optional<EmperorAsset> get(EmperorAssetId key) {
+        return mounted.stream()
+            .flatMap(archive -> archive.get(key).stream())
+            .findFirst();
+    }
+
+    @Override
+    public Stream<EmperorAsset> getAll() {
+        return mounted.stream().flatMap(ZipArchive::getAll);
     }
 }

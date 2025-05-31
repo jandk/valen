@@ -4,6 +4,7 @@ import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.texture.*;
 import org.redeye.valen.game.spacemarines2.*;
+import org.redeye.valen.game.spacemarines2.archives.*;
 import org.redeye.valen.game.spacemarines2.types.*;
 import org.yaml.snakeyaml.*;
 
@@ -12,7 +13,7 @@ import java.util.*;
 
 public class PCTReader implements Reader<Texture> {
     @Override
-    public Texture read(Archive archive, Asset asset, DataSource source) throws IOException {
+    public Texture read(EmperorArchive archive, Asset asset, DataSource source) throws IOException {
         Yaml yaml = new Yaml();
         Map<String, Object> data = yaml.load(source.readString((int) source.size()));
 
