@@ -131,10 +131,17 @@ public final class Md6ModelReader implements AssetReader<Model, DarkAgesAsset> {
     }
 
     private void fixJointIndices(Md6Model md6, List<Mesh> meshes) {
-        var jointRemap = md6.header().skinnedJoints();
+        int len1 = (md6.header().skinnedJoints().length + 7) & ~7;
+        int len2 = (md6.header().extraJoints().length + 7) & ~7;
+
+        var jointRemap = new short[len1 + len2];
+        Arrays.fill(jointRemap, (short) -1);
+        System.arraycopy(md6.header().skinnedJoints(), 0, jointRemap, 0, md6.header().skinnedJoints().length);
+        System.arraycopy(md6.header().extraJoints(), 0, jointRemap, len1, md6.header().extraJoints().length);
 
         for (var i = 0; i < meshes.size(); i++) {
             var meshInfo = md6.meshInfos().get(i);
+            var offset = meshInfo.lodInfos().getFirst().unknown4();
             var joints = meshes.get(i)
                 .getBuffer(Semantic.JOINTS)
                 .orElseThrow();
@@ -142,7 +149,11 @@ public final class Md6ModelReader implements AssetReader<Model, DarkAgesAsset> {
             // Assume it's a short buffer, because we read it as such
             var buffer = (ShortBuffer) joints.buffer();
             for (var j = 0; j < buffer.limit(); j++) {
-                buffer.put(j, jointRemap[buffer.get(j)]);
+                int index = Short.toUnsignedInt(buffer.get(j)) + offset;
+                if (jointRemap[index] == -1) {
+                    throw new UnsupportedOperationException();
+                }
+                buffer.put(j, jointRemap[index]);
             }
         }
     }

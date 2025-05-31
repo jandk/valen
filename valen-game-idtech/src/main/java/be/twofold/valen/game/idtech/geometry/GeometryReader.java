@@ -62,7 +62,7 @@ public final class GeometryReader {
                 }
 
                 var faceInfo = VertexBufferInfo.indices(ComponentType.UNSIGNED_SHORT);
-                var faceAccessor = new GeoAccessor<>(offsets.indexOffset, lodInfo.numFaces(), 6, faceInfo, Geometry.readFaceIndex());
+                var faceAccessor = new GeoAccessor<>(offsets.indexOffset, lodInfo.numFaces() * 3, 6, faceInfo, Geometry.readFaceIndex());
                 offsets.indexOffset += lodInfo.numFaces() * 3 * Short.BYTES;
 
                 meshes.add(new Geo(true).readMesh(source, faceAccessor, vertexAccessors));

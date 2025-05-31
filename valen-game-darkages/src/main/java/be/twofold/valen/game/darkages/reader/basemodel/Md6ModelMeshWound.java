@@ -6,17 +6,17 @@ import java.io.*;
 
 public record Md6ModelMeshWound(
     String name,
-    int offset0,
+    int meshIndex,
     int[] offsets
 ) {
     public static Md6ModelMeshWound read(DataSource source) throws IOException {
         var name = source.readPString();
-        var offset0 = source.readInt();
+        var meshIndex = source.readInt();
         var offsets = source.readInts(5);
 
         return new Md6ModelMeshWound(
             name,
-            offset0,
+            meshIndex,
             offsets
         );
     }
