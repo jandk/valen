@@ -1,5 +1,6 @@
 package be.twofold.valen.core.texture;
 
+import be.twofold.valen.core.texture.conversion.*;
 import be.twofold.valen.core.util.*;
 
 import java.util.*;
@@ -33,12 +34,20 @@ public record Texture(
         return new Texture(width, height, format, isCubeMap, surfaces, scale, bias);
     }
 
+    public Texture withScaleAndBias(float scale, float bias) {
+        return new Texture(width, height, format, isCubeMap, surfaces, scale, bias);
+    }
+
     public Texture firstOnly() {
         return fromSurface(surfaces.getFirst(), format, scale, bias);
     }
 
-    public Texture convert(TextureFormat format) {
-        return TextureConverter.convert(this, format);
+    public Texture convert(TextureFormat format, boolean reconstructZ) {
+        return Conversion.convert(this, format, reconstructZ);
+    }
+
+    public static Texture fromSurface(Surface surface, TextureFormat format) {
+        return fromSurface(surface, format, 1.0f, 0.0f);
     }
 
     public static Texture fromSurface(Surface surface, TextureFormat format, float scale, float bias) {

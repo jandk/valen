@@ -1,19 +1,15 @@
 package be.twofold.valen.core.game;
 
 import java.io.*;
-import java.util.*;
-import java.util.stream.*;
+import java.nio.*;
 
-public interface Archive {
+public interface Archive<K extends AssetID, V extends Asset> extends Container<K, V> {
 
-    Stream<? extends Asset> assets();
-
-    Optional<? extends Asset> getAsset(AssetID identifier);
-
-    <T> T loadAsset(AssetID identifier, Class<T> clazz) throws IOException;
-
-    default boolean exists(AssetID identifier) {
-        return getAsset(identifier).isPresent();
+    @Override
+    default ByteBuffer read(K key, Integer size) throws IOException {
+        return loadAsset(key, ByteBuffer.class);
     }
+
+    <T> T loadAsset(K identifier, Class<T> clazz) throws IOException;
 
 }

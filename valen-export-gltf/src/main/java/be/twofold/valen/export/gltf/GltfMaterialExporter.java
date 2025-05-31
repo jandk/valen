@@ -1,5 +1,6 @@
 package be.twofold.valen.export.gltf;
 
+import be.twofold.valen.core.export.*;
 import be.twofold.valen.core.geometry.*;
 import be.twofold.valen.core.material.*;
 import be.twofold.valen.core.math.*;
@@ -8,7 +9,7 @@ import be.twofold.valen.format.gltf.*;
 import java.io.*;
 import java.util.*;
 
-public final class GltfMaterialExporter extends AbstractGltfExporter<Material> {
+public final class GltfMaterialExporter extends GltfExporter<Material> {
     private final GltfModelExporter modelExporter = new GltfModelExporter();
 
     @Override

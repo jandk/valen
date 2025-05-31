@@ -40,7 +40,7 @@ public final class BinaryFileReader implements AssetReader<ByteBuffer, EternalAs
             var actualHmac = mac.doFinal();
 
             if (!Arrays.equals(hmac, actualHmac)) {
-                throw new RuntimeException("HMAC mismatch");
+                throw new IOException("HMAC mismatch");
             }
 
             var cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
@@ -49,7 +49,7 @@ public final class BinaryFileReader implements AssetReader<ByteBuffer, EternalAs
             cipher.init(Cipher.DECRYPT_MODE, keySpec, parameterSpec);
             return ByteBuffer.wrap(cipher.doFinal(text));
         } catch (GeneralSecurityException e) {
-            throw new RuntimeException(e);
+            throw new IOException(e);
         }
     }
 }

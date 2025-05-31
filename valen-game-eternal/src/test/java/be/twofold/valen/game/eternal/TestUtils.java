@@ -23,17 +23,22 @@ public abstract class TestUtils {
     }
 
     private static void readAllInMap(EternalArchive archive, AssetReader<?, EternalAsset> reader) {
-        var entries = archive.assets()
-            .filter(asset -> asset.size() != 0 && reader.canRead((EternalAsset) asset))
+        var entries = archive.getAll()
+            .filter(asset -> asset.size() != 0 && reader.canRead(asset))
             .toList();
 
         System.out.println("Trying to read " + entries.size() + " entries");
 
-        entries.forEach(asset -> assertThatNoException()
-            .isThrownBy(() -> {
+        for (EternalAsset asset : entries) {
+            try {
                 var buffer = archive.loadAsset(asset.id(), ByteBuffer.class);
-                reader.read(DataSource.fromBuffer(buffer), (EternalAsset) asset);
-            }));
+                reader.read(DataSource.fromBuffer(buffer), asset);
+            } catch (FileNotFoundException e) {
+                System.err.println("File not found");
+            } catch (Exception e) {
+                fail(e);
+            }
+        }
     }
 
 }

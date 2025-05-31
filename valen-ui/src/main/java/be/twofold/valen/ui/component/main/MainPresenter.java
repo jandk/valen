@@ -1,31 +1,34 @@
 package be.twofold.valen.ui.component.main;
 
-import be.twofold.valen.core.export.*;
+import backbonefx.event.*;
 import be.twofold.valen.core.game.*;
-import be.twofold.valen.core.util.*;
 import be.twofold.valen.ui.*;
 import be.twofold.valen.ui.common.*;
-import be.twofold.valen.ui.common.event.*;
 import be.twofold.valen.ui.common.settings.*;
+import be.twofold.valen.ui.component.*;
 import be.twofold.valen.ui.component.filelist.*;
 import be.twofold.valen.ui.events.*;
 import jakarta.inject.*;
 import javafx.application.*;
+import javafx.concurrent.*;
 import org.jetbrains.annotations.*;
+import org.slf4j.*;
 
 import java.io.*;
 import java.nio.*;
 import java.util.*;
-import java.util.concurrent.*;
 import java.util.function.*;
+import java.util.stream.*;
 
 public final class MainPresenter extends AbstractFXPresenter<MainView> {
-    private final SendChannel<MainEvent> channel;
+    private final Logger log = LoggerFactory.getLogger(MainPresenter.class);
+
+    private final ExportService exportService;
     private final FileListPresenter fileList;
     private final Settings settings;
 
     private @Nullable Game game;
-    private @Nullable Archive archive;
+    private @Nullable Archive<AssetID, Asset> archive;
     private @Nullable Asset lastAsset;
     private String query = "";
 
@@ -34,53 +37,57 @@ public final class MainPresenter extends AbstractFXPresenter<MainView> {
         MainView view,
         EventBus eventBus,
         FileListPresenter fileList,
-        // SettingsPresenter settingsPresenter,
-        Settings settings
+        Settings settings,
+        ExportService exportService
     ) {
         super(view);
 
-        this.channel = eventBus.senderFor(MainEvent.class);
         this.fileList = fileList;
         this.settings = settings;
+        this.exportService = exportService;
 
-        eventBus
-            .receiverFor(MainViewEvent.class)
-            .consume(event -> {
-                switch (event) {
-                    case MainViewEvent.ArchiveSelected(var name) -> selectArchive(name);
-                    case MainViewEvent.PreviewVisibilityChanged(var visible) -> showPreview(visible);
-                    case MainViewEvent.SettingVisibilityChanged(var visible) -> showSettings(visible);
-                    case MainViewEvent.LoadGameClicked _ -> channel.send(new MainEvent.GameLoadRequested());
-                    case MainViewEvent.ExportClicked() -> exportSelectedAsset();
-                    case MainViewEvent.SearchChanged(var query) -> {
-                        this.query = query;
-                        updateFileList();
-                    }
+        eventBus.subscribe(MainViewEvent.class, event -> {
+            switch (event) {
+                case MainViewEvent.ArchiveSelected(var name) -> selectArchive(name);
+                case MainViewEvent.PreviewVisibilityChanged(var visible) -> showPreview(visible);
+                case MainViewEvent.SettingVisibilityChanged(var visible) -> showSettings(visible);
+                case MainViewEvent.LoadGameClicked _ -> eventBus.publish(new MainEvent.GameLoadRequested());
+                case MainViewEvent.ExportClicked() -> exportSelectedAssets();
+                case MainViewEvent.SearchChanged(var query) -> {
+                    this.query = query;
+                    updateFileList();
                 }
-            });
+            }
+        });
 
-        eventBus
-            .receiverFor(AssetSelected.class)
-            .consume(event -> selectAsset(event.asset()));
+        eventBus.subscribe(AssetSelected.class, event -> selectAsset(event.asset(), event.forced()));
+        eventBus.subscribe(SettingsApplied.class, _ -> updateFileList());
+        eventBus.subscribe(ExportRequested.class, event -> exportPath(event.path(), event.recursive()));
 
-        eventBus
-            .receiverFor(SettingsApplied.class)
-            .consume(_ -> updateFileList());
+        exportService.stateProperty().addListener((_, _, newValue) -> {
+            getView().setExporting(newValue == Worker.State.RUNNING);
+        });
     }
 
+    @SuppressWarnings("unchecked")
     private void selectArchive(String archiveName) {
         if (game == null) {
             return;
         }
         try {
-            archive = game.loadArchive(archiveName);
+            // This cast is safe here, we don't care about the actual types
+            archive = (Archive<AssetID, Asset>) game.loadArchive(archiveName);
             updateFileList();
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            log.error("Could not load archive {}", archiveName, e);
+            FxUtils.showExceptionDialog(e, "Could not load archive " + archiveName);
         }
     }
 
-    private void selectAsset(Asset asset) {
+    private void selectAsset(Asset asset, boolean forced) {
+        if (forced) {
+            Platform.runLater(() -> getView().showPreview(true));
+        }
         if (getView().isSidePaneVisible() && archive != null) {
             try {
                 var type = switch (asset.type()) {
@@ -90,7 +97,8 @@ public final class MainPresenter extends AbstractFXPresenter<MainView> {
                 var assetData = archive.loadAsset(asset.id(), type);
                 Platform.runLater(() -> getView().setupPreview(asset, assetData));
             } catch (IOException e) {
-                throw new UncheckedIOException(e);
+                log.error("Could not load asset{}", asset.id().fileName(), e);
+                FxUtils.showExceptionDialog(e, "Could not load asset" + asset.id().fileName());
             }
         }
         lastAsset = asset;
@@ -98,54 +106,53 @@ public final class MainPresenter extends AbstractFXPresenter<MainView> {
 
     private void showPreview(boolean visible) {
         if (visible && lastAsset != null) {
-            selectAsset(lastAsset);
+            selectAsset(lastAsset, false);
         }
     }
 
     private void showSettings(boolean visible) {
     }
 
-    private void exportSelectedAsset() {
-        var asset = fileList.getSelectedAsset();
-        if (asset == null) {
+    private void exportSelectedAssets() {
+        var assets = fileList.getView().getSelectedAssets();
+        exportAssets(assets);
+    }
+
+    private void exportPath(String path, boolean recursive) {
+        Predicate<String> predicate = recursive ? s -> s.startsWith(path) : s -> s.equals(path);
+        var assets = filteredAssets()
+            .filter(asset -> predicate.test(asset.id().pathName()))
+            .toList();
+
+        exportAssets(assets);
+    }
+
+    private void exportAssets(List<Asset> assets) {
+        if (assets.isEmpty()) {
             return;
         }
 
-        // TODO: Clean this up
-        var exporterId = asset.type() == AssetType.TEXTURE
-            ? settings.textureExporter().get().orElse("texture.png")
-            : null;
-        var exporter = exporterId != null
-            ? Exporter.forTypeAndId(asset.type().getType(), exporterId)
-            : Exporter.forType(asset.type().getType()).findFirst().orElseThrow();
-        var filename = exporter.getExtension().isEmpty()
-            ? asset.id().fileName()
-            : Filenames.removeExtension(asset.id().fileName()) + "." + exporter.getExtension();
-
-        channel.send(new MainEvent.SaveFileRequested(filename, path -> {
-            getView().setExporting(true);
-
-            var exportTask = new ExportTask<>(exporter, archive, asset, path);
-            CompletableFuture
-                .runAsync(exportTask::export)
-                .handle((_, _) -> {
-                    getView().setExporting(false);
-                    return null;
-                });
-        }));
+        Platform.runLater(() -> {
+            exportService.setArchive(archive);
+            exportService.setAssets(assets);
+            exportService.restart();
+        });
     }
 
     private void updateFileList() {
+        fileList.setAssets(filteredAssets());
+    }
+
+    private Stream<Asset> filteredAssets() {
         if (archive == null) {
-            return;
+            return Stream.empty();
         }
         var predicate = buildPredicate(query, settings.assetTypes().get().orElse(Set.of()));
-        var assets = archive.assets().filter(predicate);
-        fileList.setAssets(assets);
+        return archive.getAll().filter(predicate);
     }
 
     private Predicate<Asset> buildPredicate(String assetName, Collection<AssetType> assetTypes) {
-        List<Predicate<Asset>> predicates = new ArrayList<>();
+        var predicates = new ArrayList<Predicate<Asset>>();
         if (assetName != null) {
             predicates.add(asset -> asset.id().fullName().contains(assetName));
         }

@@ -75,7 +75,7 @@ public final class ResourcesFile implements Container<EternalAssetID, EternalAss
     }
 
     @Override
-    public ByteBuffer read(EternalAssetID key, int uncompressedSize) throws IOException {
+    public ByteBuffer read(EternalAssetID key, Integer size) throws IOException {
         var resource = index.get(key);
         Check.state(resource != null, () -> "Resource not found: " + key.name());
 

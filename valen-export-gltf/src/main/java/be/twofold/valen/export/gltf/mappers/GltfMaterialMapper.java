@@ -39,9 +39,9 @@ public final class GltfMaterialMapper {
             switch (property.type()) {
                 case Albedo -> mapProperty(property, pbrBuilder::baseColorTexture,
                     v -> pbrBuilder.baseColorFactor(GltfUtils.mapVector4(v)));
-                case Normal ->
-                    builder.normalTexture(normalTextureInfoSchema(textureMapper.mapSimple(property.reference())));
+                case Normal -> builder.normalTexture(normalTextureInfoSchema(textureMapper.map(property.reference())));
                 case Emissive -> mapEmissive(property, builder);
+                case Unknown -> textureMapper.map(property.reference());
             }
         }
 
@@ -57,12 +57,12 @@ public final class GltfMaterialMapper {
         if (groups.containsKey(MaterialPropertyType.Smoothness)) {
             var property = groups.get(MaterialPropertyType.Smoothness).getFirst();
             var reference = property.reference();
-            var smoothnessTexture = reference.supplier().get().firstOnly().convert(TextureFormat.R8_UNORM);
+            var smoothnessTexture = reference.supplier().get().firstOnly().convert(TextureFormat.R8_UNORM, true);
             var metalRoughnessTexture = mapSmoothness(smoothnessTexture);
-            var roughnessReference = new TextureReference(reference.name(), reference.filename(), () -> metalRoughnessTexture);
+            var roughnessReference = new TextureReference(reference.name(), reference.filename() + ".mr", () -> metalRoughnessTexture);
 
             // TODO: Proper support for metallic and roughness factors
-            var roughnessTexture = textureMapper.mapSimple(roughnessReference);
+            var roughnessTexture = textureMapper.map(roughnessReference);
             pbrBuilder.metallicRoughnessTexture(textureSchema(roughnessTexture));
         }
 
@@ -124,9 +124,7 @@ public final class GltfMaterialMapper {
         var factor = property.factor() != null ? property.factor() : Vector4.One;
         var textureID = (TextureID) null;
         if (property.reference() != null) {
-            var textureIDAndFactor = textureMapper.map(property.reference());
-            factor = factor.multiply(textureIDAndFactor.factor());
-            textureID = textureIDAndFactor.textureID();
+            textureID = textureMapper.map(property.reference());
         }
 
         if (textureID != null) {
@@ -135,7 +133,8 @@ public final class GltfMaterialMapper {
 
         // The default in GLTF is 0, 0, 0 for emissive
         var reference = property.type() == MaterialPropertyType.Emissive ? Vector4.W : Vector4.One;
-        if (!reference.equals(factor)) {
+        /*if (!reference.equals(factor)) */
+        {
             factorConsumer.accept(factor);
         }
     }

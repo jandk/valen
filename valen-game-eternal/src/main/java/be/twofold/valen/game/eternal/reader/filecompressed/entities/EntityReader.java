@@ -3,9 +3,9 @@ package be.twofold.valen.game.eternal.reader.filecompressed.entities;
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.io.*;
 import be.twofold.valen.game.eternal.*;
-import be.twofold.valen.game.eternal.reader.decl.parser.*;
 import be.twofold.valen.game.eternal.reader.filecompressed.*;
 import be.twofold.valen.game.eternal.resource.*;
+import be.twofold.valen.game.idtech.decl.parser.*;
 
 import java.io.*;
 import java.nio.charset.*;
@@ -21,7 +21,7 @@ public final class EntityReader implements AssetReader<EntityFile, EternalAsset>
     @Override
     public boolean canRead(EternalAsset resource) {
         return resource.id().type() == ResourceType.CompFile
-            && resource.id().name().extension().equals("entities");
+            && resource.id().extension().equals("entities");
     }
 
     @Override

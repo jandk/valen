@@ -41,7 +41,7 @@ public final class CsvUtils {
                 continue;
             }
             if (names.size() == values.size()) {
-                builder.append(names.get(i)).append(',');
+                builder.append(toString(names.get(i))).append(',');
             }
 
             for (int j = 0; j < components.length; j++) {

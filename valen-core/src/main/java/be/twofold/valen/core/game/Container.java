@@ -9,13 +9,13 @@ public interface Container<K, V> extends Closeable {
 
     Optional<V> get(K key);
 
+    default boolean exists(K identifier) {
+        return get(identifier).isPresent();
+    }
+
     Stream<V> getAll();
 
-    ByteBuffer read(K key, int uncompressedSize) throws IOException;
-
-    default ByteBuffer read(K key) throws IOException {
-        return read(key, 0);
-    }
+    ByteBuffer read(K key, Integer size) throws IOException;
 
     static <K, V> Container<K, V> compose(List<Container<K, V>> containers) {
         return new ContainerComposite<>(containers);

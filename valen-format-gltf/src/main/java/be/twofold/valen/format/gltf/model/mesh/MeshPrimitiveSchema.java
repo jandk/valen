@@ -38,7 +38,6 @@ public interface MeshPrimitiveSchema extends GltfProperty {
     /**
      * An array of morph targets.
      */
-    // TODO: Figure this one out
-    Optional<List<MeshPrimitiveTarget>> getTargets();
+    Optional<List<Map<String, AccessorID>>> getTargets();
 
 }

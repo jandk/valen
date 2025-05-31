@@ -28,8 +28,8 @@ public final class EternalGame implements Game {
 
     static Container<EternalAssetID, EternalAsset> loadResources(Path base, PackageMapSpec spec, Decompressor decompressor, String... names) throws IOException {
         var paths = Arrays.stream(names)
-            .flatMap(name -> spec.mapFiles().get(name).stream())
-            .filter(s -> s.endsWith(".resources"))
+            .flatMap(map -> spec.mapFiles().get(map).stream())
+            .filter(file -> file.endsWith(".resources"))
             .map(base::resolve)
             .toList();
 
@@ -55,11 +55,18 @@ public final class EternalGame implements Game {
 
     @Override
     public List<String> archiveNames() {
-        return spec.maps();
+        return spec.maps().stream()
+            .filter(map -> spec.mapFiles().get(map).stream()
+                .anyMatch(file -> file.endsWith(".resources")))
+            .map(s -> s.equals("common") ? "gameresources" : s)
+            .toList();
     }
 
     @Override
     public EternalArchive loadArchive(String name) throws IOException {
+        if (name.equals("gameresources")) {
+            name = "common";
+        }
         var resourcesCollection = loadResources(base, spec, decompressor, name);
         return new EternalArchive(streamDbCollection, commonCollection, resourcesCollection, decompressor);
     }

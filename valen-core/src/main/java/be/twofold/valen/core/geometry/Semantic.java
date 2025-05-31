@@ -13,6 +13,10 @@ public sealed interface Semantic {
     Semantic WEIGHTS0 = new Weights(0);
     Semantic WEIGHTS1 = new Weights(1);
 
+    default int n() {
+        return 0;
+    }
+
     record Position() implements Semantic {
     }
 

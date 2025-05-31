@@ -16,4 +16,7 @@ public interface MainView {
 
     void setExporting(boolean exporting);
 
+    void showPreview(boolean enabled);
+
+    void showSettings(boolean enabled);
 }

@@ -54,7 +54,7 @@ public final class SettingsManager {
 
         return switch (OperatingSystem.current()) {
             case Linux -> Path.of(userHome, ".config", "valen", "settings.json");
-            case Windows -> Path.of(userHome, "AppData", "Local", "Valen", "settings.json");
+            case Windows -> Path.of(System.getenv("LOCALAPPDATA"), "Valen", "settings.json");
             case Mac -> Path.of(userHome, "Library", "Application Support", "Valen", "settings.json");
         };
     }

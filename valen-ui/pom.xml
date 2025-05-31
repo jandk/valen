@@ -5,7 +5,7 @@
     <parent>
         <groupId>be.twofold</groupId>
         <artifactId>valen</artifactId>
-        <version>1.0-SNAPSHOT</version>
+        <version>0.2.1-SNAPSHOT</version>
     </parent>
 
     <artifactId>valen-ui</artifactId>
@@ -27,8 +27,12 @@
             <artifactId>gson</artifactId>
         </dependency>
         <dependency>
-            <groupId>io.github.jbock-java</groupId>
-            <artifactId>dapper</artifactId>
+            <groupId>io.github.mkpaz</groupId>
+            <artifactId>backbonefx</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>jakarta.inject</groupId>
+            <artifactId>jakarta.inject-api</artifactId>
         </dependency>
         <dependency>
             <groupId>org.jetbrains</groupId>

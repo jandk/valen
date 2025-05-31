@@ -18,7 +18,7 @@ public final class BlangReader implements AssetReader<Blang, EternalAsset> {
     @Override
     public boolean canRead(EternalAsset resource) {
         return resource.id().type() == ResourceType.BinaryFile
-            && resource.id().name().extension().equals("blang");
+            && resource.id().extension().equals("blang");
     }
 
     @Override

@@ -1,7 +1,4 @@
 module valen.export.gltf {
-    requires java.desktop;
-
-    requires com.google.gson;
     requires org.slf4j;
     requires valen.core;
     requires valen.export.png;

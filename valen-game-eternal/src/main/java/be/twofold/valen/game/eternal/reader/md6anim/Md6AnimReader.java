@@ -6,6 +6,7 @@ import be.twofold.valen.core.geometry.*;
 import be.twofold.valen.core.io.*;
 import be.twofold.valen.game.eternal.*;
 import be.twofold.valen.game.eternal.resource.*;
+import org.slf4j.*;
 
 import java.io.*;
 import java.util.*;
@@ -13,6 +14,8 @@ import java.util.function.*;
 import java.util.stream.*;
 
 public final class Md6AnimReader implements AssetReader<Animation, EternalAsset> {
+    private static final Logger log = LoggerFactory.getLogger(Md6AnimReader.class);
+
     private final EternalArchive archive;
 
     public Md6AnimReader(EternalArchive archive) {
@@ -29,6 +32,10 @@ public final class Md6AnimReader implements AssetReader<Animation, EternalAsset>
         var anim = Md6Anim.read(source);
 
         var skeletonKey = EternalAssetID.from(anim.header().skelName(), ResourceType.Skeleton);
+        if (archive.get(skeletonKey).isEmpty()) {
+            log.warn("Could not find skeleton asset '{}' while loading anim '{}'", anim.header().skelName(), resource.id().fullName());
+            throw new FileNotFoundException(anim.header().skelName());
+        }
         var skeleton = archive.loadAsset(skeletonKey, Skeleton.class);
 
         var animMap = anim.animMaps().getFirst();

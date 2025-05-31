@@ -9,7 +9,7 @@ import be.twofold.valen.format.gltf.model.node.*;
 import java.io.*;
 import java.util.*;
 
-public final class GltfSceneExporter extends AbstractGltfExporter<Scene> {
+public final class GltfSceneExporter extends GltfExporter<Scene> {
     @Override
     public String getID() {
         return "scene.gltf";

@@ -22,22 +22,17 @@ public final class PngOutputStream implements Closeable {
     private final PngFormat format;
 
     // Filtering
-    private final byte[][] filtered;
-    // private final int[] filterCounts = new int[5];
-    private byte[] previous;
-    private byte[] current;
+    private final PngFilter filter;
 
     // IDAT
     private final Deflater deflater = new Deflater(Deflater.BEST_SPEED);
-    private final byte[] idatBuffer = new byte[32 * 1024];
+    private final byte[] idatBuffer = new byte[64 * 1024 - 12];
     private int idatLength = 0;
 
     public PngOutputStream(OutputStream output, PngFormat format) {
         this.output = Objects.requireNonNull(output, "output is null");
         this.format = Objects.requireNonNull(format, "format is null");
-        this.filtered = new byte[5][format.bytesPerPixel() + format.bytesPerRow()];
-        this.previous = new byte[format.bytesPerPixel() + format.bytesPerRow()];
-        this.current = new byte[format.bytesPerPixel() + format.bytesPerRow()];
+        this.filter = new PngFilter(format);
 
         try {
             output.write(Magic);
@@ -51,13 +46,10 @@ public final class PngOutputStream implements Closeable {
         if (image.length != format.bytesPerImage()) {
             throw new IllegalArgumentException("image has wrong size, expected " + format.bytesPerImage() + " but was " + image.length);
         }
+
         for (int y = 0; y < format.height(); y++) {
             writeRow(image, y * format.bytesPerRow());
         }
-
-        // log.debug("Filter counts - None: {}, Sub: {}, Up: {}, Average: {}, Paeth: {}",
-        //     filterCounts[0], filterCounts[1], filterCounts[2], filterCounts[3], filterCounts[4]);
-
         flush();
     }
 
@@ -65,77 +57,10 @@ public final class PngOutputStream implements Closeable {
         if (offset + format.bytesPerRow() > image.length) {
             throw new IllegalArgumentException("image has wrong size, expected at least " + (offset + format.bytesPerRow()) + " but was " + image.length);
         }
-        int filterMethod = filter(image, offset);
-        // filterCounts[filterMethod]++;
+        int filterMethod = filter.filter(image, offset);
         deflate(new byte[]{(byte) filterMethod}, 0, 1);
-        deflate(filtered[filterMethod], format.bytesPerPixel(), format.bytesPerRow());
+        deflate(filter.filtered(filterMethod), format.bytesPerPixel(), format.bytesPerRow());
     }
-
-    // region Filtering
-
-    private int filter(byte[] row, int offset) {
-        int bpp = format.bytesPerPixel();
-        int bpr = format.bytesPerRow();
-
-        byte[] nRow = filtered[0];
-        byte[] sRow = filtered[1];
-        byte[] uRow = filtered[2];
-        byte[] aRow = filtered[3];
-        byte[] pRow = filtered[4];
-
-        System.arraycopy(row, offset, current, bpp, bpr);
-        System.arraycopy(row, offset, nRow, bpp, bpr);
-        for (int i = bpp; i < bpp + bpr; i++) {
-            int x = Byte.toUnsignedInt(current[i]);
-            int a = Byte.toUnsignedInt(current[i - bpp]);
-            int b = Byte.toUnsignedInt(previous[i]);
-            int c = Byte.toUnsignedInt(previous[i - bpp]);
-
-            sRow[i] = (byte) (x - a);
-            uRow[i] = (byte) (x - b);
-            aRow[i] = (byte) (x - (a + b >> 1));
-            pRow[i] = (byte) (x - paeth(a, b, c));
-        }
-
-        int best = findBest();
-        byte[] temp = previous;
-        previous = current;
-        current = temp;
-        return best;
-    }
-
-    private int findBest() {
-        int bestRow = 0;
-        int bestSad = Integer.MAX_VALUE;
-        for (int i = 0; i < 5; i++) {
-            int sad = 0;
-            for (byte pixel : filtered[i]) {
-                sad += Math.abs(pixel);
-            }
-            if (sad < bestSad) {
-                bestRow = i;
-                bestSad = sad;
-            }
-        }
-        return bestRow;
-    }
-
-    private static int paeth(int a, int b, int c) {
-        int p = a + b - c;
-        int pa = Math.abs(p - a);
-        int pb = Math.abs(p - b);
-        int pc = Math.abs(p - c);
-
-        if (pa <= pb && pa <= pc) {
-            return a;
-        }
-        if (pb <= pc) {
-            return b;
-        }
-        return c;
-    }
-
-    // endregion
 
     // region Chunk writing
 

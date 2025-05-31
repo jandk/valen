@@ -5,7 +5,7 @@
     <parent>
         <groupId>be.twofold</groupId>
         <artifactId>valen</artifactId>
-        <version>1.0-SNAPSHOT</version>
+        <version>0.2.1-SNAPSHOT</version>
     </parent>
 
     <artifactId>valen-app</artifactId>
@@ -19,6 +19,10 @@
         <dependency>
             <groupId>be.twofold</groupId>
             <artifactId>valen-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>be.twofold</groupId>
+            <artifactId>valen-export-cast</artifactId>
         </dependency>
         <dependency>
             <groupId>be.twofold</groupId>
@@ -42,6 +46,10 @@
         </dependency>
         <dependency>
             <groupId>be.twofold</groupId>
+            <artifactId>valen-game-greatcircle</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>be.twofold</groupId>
             <artifactId>valen-ui</artifactId>
         </dependency>
 
@@ -49,6 +57,7 @@
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-simple</artifactId>
+            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.postgresql</groupId>
@@ -107,6 +116,8 @@
                     </modulePaths>
                     <jLinkOptions>
                         <jLinkOption>--compress=1</jLinkOption>
+                        <jLinkOption>--no-header-files</jLinkOption>
+                        <jLinkOption>--no-man-pages</jLinkOption>
                     </jLinkOptions>
 
                     <!-- Options for creating the application launcher -->

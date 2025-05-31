@@ -1,0 +1,138 @@
+local int version = 82;
+
+typedef struct {
+    uint size;
+    char value[size];
+} SString<read=Str("%s", size > 0 ? this.value : "")>;
+
+struct Vector2 {
+    float x;
+    float y;
+};
+
+struct Vector3 {
+    float x;
+    float y;
+    float z;
+};
+
+struct Vector4 {
+    float x;
+    float y;
+    float z;
+    float w;
+};
+
+struct Mat3 {
+    Vector3 mat[3];
+};
+
+struct ModelHeader {
+    Vector3 referencePosition;
+    uint numLods;
+    uint numSurfaces;
+    float maxLodDeviations[numLods];
+    uint streamable;
+};
+
+struct ModelLodInfo {
+    int mode;
+    uint numVerts;
+    uint numIndices;
+    uint padding;
+    uint flags;
+    Vector3 minBounds;
+    Vector3 maxBounds;
+    Vector3 vertexOffset;
+    float vertexScale;
+    Vector2 uvOffset;
+    float uvScale;
+    uint always0;
+    float unkFloat1;
+    float unkFloat2;
+    char alwaysBLMr[4];
+};
+
+struct ModelMeshInfo {
+    SString materialName;
+    if (version < 80) {
+        uint unkHash;
+    };
+    uint always0[2];
+    
+    local uint i;
+    for(i = 0; i < 5; i++) {
+        uint absent;
+        if(absent == 0) {
+            ModelLodInfo lodInfo <style=sHeading3>;
+        }
+    }
+};
+
+struct textureAxis_t {
+    if (version < 82) {
+        Mat3 axis;
+    } else {
+        Vector4 axis;
+    }
+    Vector3 origin;
+    Vector2 scale;
+};
+
+struct ModelSettings {
+    int lightmapWidth;
+    int lightmapHeight;
+    uint numTextureAxes;
+    textureAxis_t textureAxes[numTextureAxes];
+};
+
+struct ModelGeoDecalProjection {
+    Vector4 projS;
+    Vector4 projT;
+};
+
+struct ModelGeoDecals {
+    uint numGeoDecals;
+    ModelGeoDecalProjection projections[numGeoDecals];
+    SString declName;
+    uint geoDecalTintStartOffset;
+};
+
+struct GeometryDiskLayout {
+    uint compression;
+    uint uncompressedSize;
+    uint compressedSize;
+    uint offset;
+    if (version > 78) {
+        uquad hash;
+    }
+};
+
+struct GeometryMemoryLayout {
+    uint combinedVertexMask;
+    uint size;
+    uint numVertexStreams;
+    uint vertexMasks[numVertexStreams];
+    uint vertexOffsets[numVertexStreams];
+    uint indexOffset;
+};
+
+struct Layout {
+    uint numStreams;
+    GeometryMemoryLayout memoryLayout[numStreams] <optimize=false>;
+    GeometryDiskLayout diskLayout;
+};
+
+ModelHeader header <style=sHeading1>;
+ModelMeshInfo meshInfo[header.numSurfaces] <style=sHeading2, optimize=false>;
+if (version < 81) {
+    uint unknown[3];
+};
+uint numTextureAxis;
+textureAxis_t textureAxis[numTextureAxis] <optimize=false>;
+
+ModelGeoDecals geoDecals <style=sHeading1>;
+ubyte streamedSurfaces[header.numLods * header.numSurfaces] <style=sHeading3>;
+if (header.streamable) {
+    Layout layouts[5] <style=sHeading4, optimize=false>;
+}

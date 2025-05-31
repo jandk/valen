@@ -10,10 +10,10 @@ public record Vector2(
     float x,
     float y
 ) {
-    public static Vector2 Zero = new Vector2(0.0f, 0.0f);
-    public static Vector2 One = new Vector2(1.0f, 1.0f);
-    public static Vector2 X = new Vector2(1.0f, 0.0f);
-    public static Vector2 Y = new Vector2(0.0f, 1.0f);
+    public static final Vector2 Zero = new Vector2(0.0f, 0.0f);
+    public static final Vector2 One = new Vector2(1.0f, 1.0f);
+    public static final Vector2 X = new Vector2(1.0f, 0.0f);
+    public static final Vector2 Y = new Vector2(0.0f, 1.0f);
 
     public static Vector2 splat(float value) {
         return new Vector2(value, value);

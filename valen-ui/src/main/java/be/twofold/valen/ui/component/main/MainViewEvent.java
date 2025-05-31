@@ -1,6 +1,8 @@
 package be.twofold.valen.ui.component.main;
 
-sealed interface MainViewEvent {
+import backbonefx.event.*;
+
+sealed interface MainViewEvent extends Event {
     record ArchiveSelected(String name) implements MainViewEvent {
     }
 

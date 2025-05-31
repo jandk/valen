@@ -1,33 +1,43 @@
 package be.twofold.valen.ui.component;
 
+import backbonefx.di.*;
 import be.twofold.valen.ui.component.filelist.*;
 import be.twofold.valen.ui.component.main.*;
 import be.twofold.valen.ui.component.modelviewer.*;
 import be.twofold.valen.ui.component.rawview.*;
 import be.twofold.valen.ui.component.settings.*;
 import be.twofold.valen.ui.component.textureviewer.*;
-import dagger.Module;
-import dagger.*;
 
-@Module
-public abstract class ViewModule {
+public final class ViewModule {
 
-    @Binds
-    abstract MainView bindMainView(MainFXView mainView);
+    @Provides
+    public MainView bindMainView(MainFXView mainView) {
+        return mainView;
+    }
 
-    @Binds
-    abstract FileListView bindFileListView(FileListFXView fileListView);
+    @Provides
+    public FileListView bindFileListView(FileListFXView fileListView) {
+        return fileListView;
+    }
 
-    @Binds
-    abstract ModelView bindModelView(ModelFXView modelView);
+    @Provides
+    public ModelView bindModelView(ModelFXView modelView) {
+        return modelView;
+    }
 
-    @Binds
-    abstract RawView bindRawView(RawFXView rawView);
+    @Provides
+    public RawView bindRawView(RawFXView rawView) {
+        return rawView;
+    }
 
-    @Binds
-    abstract SettingsView bindOptionsView(SettingsFXView settingsView);
+    @Provides
+    public SettingsView bindOptionsView(SettingsFXView settingsView) {
+        return settingsView;
+    }
 
-    @Binds
-    abstract TextureView bindTextureView(TextureFXView textureView);
+    @Provides
+    public TextureView bindTextureView(TextureFXView textureView) {
+        return textureView;
+    }
 
 }

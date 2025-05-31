@@ -1,8 +1,8 @@
 package be.twofold.valen.ui.component.filelist;
 
+import backbonefx.event.*;
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.ui.common.*;
-import be.twofold.valen.ui.common.event.*;
 import be.twofold.valen.ui.events.*;
 import jakarta.inject.*;
 
@@ -10,28 +10,23 @@ import java.util.*;
 import java.util.stream.*;
 
 public final class FileListPresenter extends AbstractFXPresenter<FileListView> {
-    private final SendChannel<AssetSelected> channel;
+
     private Map<String, List<Asset>> assetIndex = Map.of();
 
     @Inject
     FileListPresenter(FileListView view, EventBus eventBus) {
         super(view);
 
-        this.channel = eventBus.senderFor(AssetSelected.class);
-
-        eventBus
-            .receiverFor(FileListViewEvent.class)
-            .consume(event -> {
-                switch (event) {
-                    case FileListViewEvent.AssetSelected assetSelected ->
-                        channel.send(new AssetSelected(assetSelected.asset()));
-                    case FileListViewEvent.PathSelected pathSelected -> selectPath(pathSelected.path());
+        eventBus.subscribe(FileListViewEvent.class, event -> {
+            switch (event) {
+                case FileListViewEvent.AssetSelected assetSelected ->
+                    eventBus.publish(new AssetSelected(assetSelected.asset(), assetSelected.forced()));
+                case FileListViewEvent.PathSelected pathSelected -> selectPath(pathSelected.path());
+                case FileListViewEvent.PathExportRequested pathExportRequested -> {
+                    eventBus.publish(new ExportRequested(pathExportRequested.path(), pathExportRequested.recursive()));
                 }
-            });
-    }
-
-    public Asset getSelectedAsset() {
-        return getView().getSelectedAsset();
+            }
+        });
     }
 
     public void setAssets(Stream<? extends Asset> assets) {

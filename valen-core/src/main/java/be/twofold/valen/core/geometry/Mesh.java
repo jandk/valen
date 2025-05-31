@@ -9,7 +9,8 @@ public record Mesh(
     VertexBuffer<?> indexBuffer,
     List<VertexBuffer<?>> vertexBuffers,
     Optional<Material> material,
-    Optional<String> name
+    Optional<String> name,
+    List<BlendShape> blendShapes
 ) {
     public Mesh {
         Check.notNull(indexBuffer, "indexBuffer must not be null");
@@ -24,7 +25,7 @@ public record Mesh(
     }
 
     public Mesh(VertexBuffer<?> indexBuffer, List<VertexBuffer<?>> vertexBuffers) {
-        this(indexBuffer, vertexBuffers, Optional.empty(), Optional.empty());
+        this(indexBuffer, vertexBuffers, Optional.empty(), Optional.empty(), List.of());
     }
 
     public Optional<VertexBuffer<?>> getBuffer(Semantic semantic) {
@@ -33,13 +34,24 @@ public record Mesh(
             .findFirst();
     }
 
+    public List<VertexBuffer<?>> getBuffers(Class<? extends Semantic> type) {
+        return vertexBuffers.stream()
+            .filter(vb -> type.isInstance(vb.info().semantic()))
+            .sorted(Comparator.comparingInt(vb -> vb.info().semantic().n()))
+            .toList();
+    }
+
     @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
     public Mesh withMaterial(Optional<Material> material) {
-        return new Mesh(indexBuffer, vertexBuffers, material, name);
+        return new Mesh(indexBuffer, vertexBuffers, material, name, blendShapes);
     }
 
     @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
     public Mesh withName(Optional<String> name) {
-        return new Mesh(indexBuffer, vertexBuffers, material, name);
+        return new Mesh(indexBuffer, vertexBuffers, material, name, blendShapes);
+    }
+
+    public Mesh withBlendShapes(List<BlendShape> blendShapes) {
+        return new Mesh(indexBuffer, vertexBuffers, material, name, blendShapes);
     }
 }
