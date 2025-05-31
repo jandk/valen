@@ -32,6 +32,7 @@ public final class ResourcesFile implements Container<DarkAgesAssetID, DarkAgesA
 
         var resources = mapResources(Resources.read(source));
         this.index = resources.stream()
+            .filter(asset -> asset.size() > 0)
             .collect(Collectors.toUnmodifiableMap(
                 DarkAgesAsset::id,
                 Function.identity()
