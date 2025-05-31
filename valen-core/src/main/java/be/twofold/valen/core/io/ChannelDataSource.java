@@ -63,7 +63,7 @@ final class ChannelDataSource implements DataSource, Closeable {
     }
 
     @Override
-    public void position(long pos) throws IOException {
+    public DataSource position(long pos) throws IOException {
         Check.index(pos, size + 1);
 
         if (pos >= position && pos < position + buffer.limit()) {
@@ -73,6 +73,7 @@ final class ChannelDataSource implements DataSource, Closeable {
             buffer.limit(0);
             channel.position(pos);
         }
+        return this;
     }
 
     @Override
