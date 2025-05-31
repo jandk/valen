@@ -166,14 +166,17 @@ public final class GltfMaterialMapper {
             .build();
     }
 
-    private MaterialOcclusionTextureInfoSchema occlusionTextureInfoSchema(MaterialProperty property) throws IOException {
-        var builder = ImmutableMaterialOcclusionTextureInfo.builder();
-        if (property.reference() != null) {
-            builder.index(textureMapper.map(property.reference()));
+    private Optional<MaterialOcclusionTextureInfoSchema> occlusionTextureInfoSchema(MaterialProperty property) throws IOException {
+        if (property.reference() == null) {
+            return Optional.empty();
         }
+
+        var builder = ImmutableMaterialOcclusionTextureInfo.builder()
+            .index(textureMapper.map(property.reference()));
         if (property.factor() != null) {
             builder.strength(property.factor().w());
         }
-        return builder.build();
+
+        return Optional.of(builder.build());
     }
 }
