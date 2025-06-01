@@ -95,7 +95,7 @@ public final class Md6ModelReader implements AssetReader<Model, DarkAgesAsset> {
                 var sourceMesh = md6Model.meshInfos().get(meshWound.meshIndex());
                 int sourceMeshVertexCount = sourceMesh.lodInfos().getFirst().numVertices();
                 var mesh = newMeshes.get(meshWound.meshIndex());
-                int woundLodVertexCount = meshWound.offsets()[0];
+                int woundLodVertexCount = meshWound.vertexCount()[0];
 
                 source.position(vertexIdOffset);
                 var woundVertexIds = source.readShorts(woundLodVertexCount);
