@@ -43,13 +43,15 @@ public abstract class GltfModelMapper {
 
         // Have to fix up the joints and weights first
         fixJointsAndWeights(mesh);
-
         var attributes = new HashMap<String, AccessorID>();
         for (var vertexBuffer : mesh.vertexBuffers()) {
             var semantic = vertexBuffer.info().semantic();
             if (semantic == Semantic.COLOR) {
                 // TODO: Make Blender ignore vertex colors
-                continue;
+                // continue;
+                var semanticString = "_" + (vertexBuffer.info().customName() != null ? vertexBuffer.info().customName() : mapSemantic(semantic) + numColors++);
+                var accessorID = buildAccessor(vertexBuffer, semantic);
+                attributes.put(semanticString, accessorID);
             } else if (semantic == Semantic.JOINTS) {
                 splitJoints((VertexBuffer<ShortBuffer>) vertexBuffer, attributes);
             } else if (semantic == Semantic.WEIGHTS) {
@@ -163,7 +165,6 @@ public abstract class GltfModelMapper {
             : BufferViewTarget.ARRAY_BUFFER;
 
         var bufferView = context.createBufferView(buffer.buffer(), target);
-
         var accessor = ImmutableAccessor.builder()
             .bufferView(bufferView)
             .componentType(mapComponentType(buffer.buffer()))
@@ -180,9 +181,9 @@ public abstract class GltfModelMapper {
         if (isNormalized(buffer)) {
             accessor.normalized(true);
         }
-
         return context.addAccessor(accessor.build());
     }
+
 
     private boolean isNormalized(VertexBuffer<?> accessor) {
         return NORMALIZED.contains(accessor.info().semantic())

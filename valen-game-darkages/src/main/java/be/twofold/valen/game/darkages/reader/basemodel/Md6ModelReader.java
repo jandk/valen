@@ -72,8 +72,66 @@ public final class Md6ModelReader implements AssetReader<Model, DarkAgesAsset> {
             List<Mesh> meshes = GeometryReader.readStreamedMesh(source, lodInfos, true);
             meshes = mergeJointsAndWeights(md6Model, meshes);
             fixJointIndices(md6Model, meshes);
+            meshes = exportWounds(md6Model, lod, source, meshes);
             return meshes;
         }
+    }
+
+    private static List<Mesh> exportWounds(Md6Model md6Model, int lod, DataSource source, List<Mesh> meshes) throws IOException {
+        if (md6Model.modelWounds().isEmpty()) {
+            return meshes;
+        }
+        var offsets = md6Model.woundOffsets().get(lod);
+        if (offsets.numVertices() == 0) {
+            return meshes;
+        }
+        var newMeshes = new ArrayList<Mesh>(meshes.size());
+        int vertexIdOffset = offsets.vertexIDsOffsets();
+        int vertexWeightsOffset = offsets.vertexWeightsOffset();
+
+        newMeshes.addAll(meshes);
+        for (Md6ModelWound modelWound : md6Model.modelWounds()) {
+            for (Md6ModelMeshWound meshWound : modelWound.meshWounds()) {
+                var sourceMesh = md6Model.meshInfos().get(meshWound.meshIndex());
+                int sourceMeshVertexCount = sourceMesh.lodInfos().getFirst().numVertices();
+                var mesh = newMeshes.get(meshWound.meshIndex());
+                int woundLodVertexCount = meshWound.offsets()[0];
+
+                source.position(vertexIdOffset);
+                var woundVertexIds = source.readShorts(woundLodVertexCount);
+                vertexIdOffset += woundLodVertexCount * 2;
+                vertexIdOffset = (vertexIdOffset + 7) & ~7;
+
+                source.position(vertexWeightsOffset);
+                var woundVertexWeights = source.readBytes(woundLodVertexCount);
+                vertexWeightsOffset += woundLodVertexCount;
+                vertexWeightsOffset = (vertexWeightsOffset + 3) & ~3;
+
+                var newVertexBuffers = new ArrayList<VertexBuffer<?>>(mesh.vertexBuffers().size() + 1);
+                newVertexBuffers.addAll(mesh.vertexBuffers());
+
+                var woundWeights = new byte[sourceMeshVertexCount * 4];
+                for (int i = 0; i < woundVertexIds.length; i++) {
+                    int vertexId = Short.toUnsignedInt(woundVertexIds[i]);
+                    byte weight = woundVertexWeights[i];
+
+                    woundWeights[vertexId * 4/**/] = weight;
+                    woundWeights[vertexId * 4 + 1] = weight;
+                    woundWeights[vertexId * 4 + 2] = weight;
+                    woundWeights[vertexId * 4 + 3] = weight;
+                }
+
+                newVertexBuffers.add(new VertexBuffer<>(
+                    ByteBuffer.wrap(woundWeights),
+                    new VertexBufferInfo<>(Semantic.COLOR, ComponentType.UNSIGNED_BYTE, 4, modelWound.name())
+                ));
+
+                var newMesh = new Mesh(mesh.indexBuffer(), newVertexBuffers, mesh.material(), mesh.name(), mesh.blendShapes());
+                newMeshes.set(meshWound.meshIndex(), newMesh);
+
+            }
+        }
+        return newMeshes;
     }
 
     private ArrayList<Mesh> mergeJointsAndWeights(Md6Model md6, List<Mesh> meshes) {
