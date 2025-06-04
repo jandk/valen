@@ -57,10 +57,12 @@ typedef struct {
     Mat3x4 inverseBasePoses[numJoints8] <style=sSection1>;
 
     FSeek(base + header.loadedDataSize + header.jointSetTblOffset);
-    i16 jointSetTable[header.numJoints] <style=sSection2>;
+    u16 jointSetTableLength;
+    i16 jointSetTable[jointSetTableLength] <style=sSection2>;
     
     FSeek(base + header.loadedDataSize + header.boundsJointTblOffset);
-    i16 boundsJointTable[header.numJoints] <style=sSection3>;
+    u16 boundsJointTableLength;
+    i16 boundsJointTable[boundsJointTableLength] <style=sSection3>;
 
     FSeek(base + header.size);
     StrP32 jointNames[numJoints8] <style=sSection4, optimize=false>;

@@ -50,10 +50,10 @@ public record Md6Skel(
         var inverseBasePoses = source.readObjects(header.numJoints8(), Md6Skel::readInverseBasePose);
 
         source.position(base + header.loadedDataSize() + header.jointSetTblOffset());
-        var jointSetTable = source.readShorts(header.numJoints());
+        var jointSetTable = source.readShorts(Short.toUnsignedInt(source.readShort()));
 
         source.position(base + header.loadedDataSize() + header.boundsJointTblOffset());
-        var boundsJointTable = source.readShorts(header.numJoints());
+        var boundsJointTable = source.readShorts(Short.toUnsignedInt(source.readShort()));
 
         source.position(base + header.size());
         var jointNames = source.readObjects(header.numJoints8(), DataSource::readPString);
