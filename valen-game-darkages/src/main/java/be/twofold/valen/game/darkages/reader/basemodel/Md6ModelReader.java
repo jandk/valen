@@ -37,7 +37,7 @@ public final class Md6ModelReader implements AssetReader<Model, DarkAgesAsset> {
         var md6Model = Md6Model.read(source, skeleton.bones().size() + 7 & ~7);
         source.expectEnd();
 
-        var meshes = readMeshes(md6Model, asset.hash());
+        var meshes = readMeshes(md6Model, 0, asset.hash());
         if (readMaterials) {
             Materials.apply(archive, meshes, md6Model.meshInfos(), Md6ModelMeshInfo::materialName, Md6ModelMeshInfo::meshName);
         }
@@ -45,13 +45,7 @@ public final class Md6ModelReader implements AssetReader<Model, DarkAgesAsset> {
         return new Model(meshes, Optional.of(skeleton), Optional.of(asset.id().fullName()), Optional.empty(), Axis.Z);
     }
 
-    private List<Mesh> readMeshes(Md6Model md6Model, long hash) throws IOException {
-        var meshes = readStreamedGeometry(md6Model, 0, hash);
-        // fixJointIndices(md6Model, meshes);
-        return meshes;
-    }
-
-    private List<Mesh> readStreamedGeometry(Md6Model md6Model, int lod, long hash) throws IOException {
+    private List<Mesh> readMeshes(Md6Model md6Model, int lod, long hash) throws IOException {
         if (md6Model.diskLayouts().isEmpty()) {
             return List.of();
         }
@@ -79,81 +73,90 @@ public final class Md6ModelReader implements AssetReader<Model, DarkAgesAsset> {
     private ArrayList<Mesh> mergeJointsAndWeights(Md6Model md6, List<Mesh> meshes) {
         var newMeshes = new ArrayList<Mesh>();
         for (int m = 0; m < meshes.size(); m++) {
-            Mesh mesh = meshes.get(m);
-            var weightBuffers = mesh.getBuffers(Semantic.WEIGHTS);
-            if (weightBuffers.isEmpty()) {
-                newMeshes.add(mesh);
-                continue;
-            }
-            var influence = weightBuffers.size() > 1 ? weightBuffers.getLast().info().size() + 4 : 4;
-            var realInfluence = md6.meshInfos().get(m).lodInfos().getFirst().influence();
-
-            int count = weightBuffers.getFirst().count();
-            var joints = (ShortBuffer) mesh.getBuffer(Semantic.JOINTS).orElseThrow().buffer();
-            if (influence != realInfluence) {
-                for (int i = 0, o = 0, lim = joints.limit(); i < lim; i += influence, o += realInfluence) {
-                    for (int j = 0; j < realInfluence; j++) {
-                        joints.put(o + j, joints.get(i + j));
-                    }
-                }
-                joints.limit(count * realInfluence);
-            }
-
-            var buffer1 = (FloatBuffer) weightBuffers.getFirst().buffer();
-            var buffer2 = (FloatBuffer) weightBuffers.getLast().buffer();
-            var weights = FloatBuffer.allocate(realInfluence * count);
-
-            var localInfluence = new float[realInfluence];
-            for (int c = 0; c < count; c++) {
-                for (int i = 1; i < influence - 3; i++) {
-                    localInfluence[i] = buffer2.get();
-                }
-                for (int i = influence - 3; i < realInfluence; i++) {
-                    localInfluence[i] = buffer1.get();
-                }
-                float weight = 1.0f;
-                for (int i = 1; i < realInfluence; i++) {
-                    weight -= localInfluence[i];
-                }
-                localInfluence[0] = weight;
-
-                weights.put(localInfluence);
-            }
-
-            var vertexBuffers = mesh.vertexBuffers().stream()
-                .filter(vb -> vb.info().semantic() != Semantic.JOINTS && vb.info().semantic() != Semantic.WEIGHTS)
-                .collect(Collectors.toList());
-            vertexBuffers.add(new VertexBuffer<>(joints, VertexBufferInfo.joints(ComponentType.UNSIGNED_SHORT, realInfluence)));
-            vertexBuffers.add(new VertexBuffer<>(weights.flip(), VertexBufferInfo.weights(ComponentType.FLOAT, realInfluence)));
-            newMeshes.add(mesh.withVertexBuffers(vertexBuffers));
+            int influence = md6.meshInfos().get(m).lodInfos().getFirst().influence();
+            newMeshes.add(mergeJointsAndWeights(meshes.get(m), influence));
         }
         return newMeshes;
     }
 
-    private void fixJointIndices(Md6Model md6, List<Mesh> meshes) {
-        int len1 = (md6.header().skinnedJoints().length + 7) & ~7;
-        int len2 = (md6.header().extraJoints().length + 7) & ~7;
+    private static Mesh mergeJointsAndWeights(Mesh mesh, int realInfluence) {
+        var weightBuffers = mesh.getBuffers(Semantic.WEIGHTS);
+        if (weightBuffers.isEmpty() || realInfluence == 1) {
+            return mesh;
+        }
 
-        var jointRemap = new short[len1 + len2];
-        Arrays.fill(jointRemap, (short) -1);
-        System.arraycopy(md6.header().skinnedJoints(), 0, jointRemap, 0, md6.header().skinnedJoints().length);
-        System.arraycopy(md6.header().extraJoints(), 0, jointRemap, len1, md6.header().extraJoints().length);
+        var influence = weightBuffers.stream()
+            .mapToInt(vb -> vb.info().size())
+            .sum() + 1;
+
+        int count = weightBuffers.getFirst().count();
+        var joints = (ShortBuffer) mesh.getBuffer(Semantic.JOINTS).orElseThrow().buffer();
+        if (influence != realInfluence) {
+            for (int i = 0, o = 0, lim = joints.limit(); i < lim; i += influence, o += realInfluence) {
+                for (int j = 0; j < realInfluence; j++) {
+                    joints.put(o + j, joints.get(i + j));
+                }
+            }
+            joints.limit(count * realInfluence);
+        }
+
+        var buffer1 = (FloatBuffer) weightBuffers.getFirst().buffer();
+        var buffer2 = (FloatBuffer) weightBuffers.getLast().buffer();
+        var weights = FloatBuffer.allocate(realInfluence * count);
+
+        var localInfluence = new float[realInfluence];
+        for (int c = 0; c < count; c++) {
+            for (int i = 1; i < influence - 3; i++) {
+                localInfluence[i] = buffer2.get();
+            }
+            for (int i = influence - 3; i < realInfluence; i++) {
+                localInfluence[i] = buffer1.get();
+            }
+            float weight = 1.0f;
+            for (int i = 1; i < realInfluence; i++) {
+                weight -= localInfluence[i];
+            }
+            localInfluence[0] = weight;
+
+            weights.put(localInfluence);
+        }
+
+        var vertexBuffers = mesh.vertexBuffers().stream()
+            .filter(vb -> vb.info().semantic() != Semantic.JOINTS && vb.info().semantic() != Semantic.WEIGHTS)
+            .collect(Collectors.toList());
+        vertexBuffers.add(new VertexBuffer<>(joints, VertexBufferInfo.joints(ComponentType.UNSIGNED_SHORT, realInfluence)));
+        vertexBuffers.add(new VertexBuffer<>(weights.flip(), VertexBufferInfo.weights(ComponentType.FLOAT, realInfluence)));
+        return mesh.withVertexBuffers(vertexBuffers);
+    }
+
+    private void fixJointIndices(Md6Model md6, List<Mesh> meshes) {
+        var skinnedJoints = md6.header().skinnedJoints();
+        var extraJoints = md6.header().extraJoints();
+        var skinnedJointsLen8 = (skinnedJoints.length + 7) & ~7;
 
         for (var i = 0; i < meshes.size(); i++) {
             var meshInfo = md6.meshInfos().get(i);
             var offset = meshInfo.lodInfos().getFirst().unknown4();
-            var joints = meshes.get(i)
+            var buffer = meshes.get(i)
                 .getBuffer(Semantic.JOINTS)
+                .map(vb -> (ShortBuffer) vb.buffer())
                 .orElseThrow();
 
-            // Assume it's a short buffer, because we read it as such
-            var buffer = (ShortBuffer) joints.buffer();
             for (var j = 0; j < buffer.limit(); j++) {
-                int index = Short.toUnsignedInt(buffer.get(j)) + offset;
-                if (jointRemap[index] == -1) {
-                    throw new UnsupportedOperationException();
+                var index0 = Short.toUnsignedInt(buffer.get(j));
+                var index1 = index0 + offset;
+                short index2;
+                if (index1 < skinnedJointsLen8) {
+                    index2 = skinnedJoints[index1];
+                } else {
+                    var index11 = extraJoints[index1 - skinnedJointsLen8];
+                    if (index11 < skinnedJointsLen8) {
+                        index2 = skinnedJoints[index11];
+                    } else {
+                        index2 = skinnedJoints[extraJoints[index11 - skinnedJointsLen8]];
+                    }
                 }
-                buffer.put(j, jointRemap[index]);
+                buffer.put(j, index2);
             }
         }
     }
