@@ -9,8 +9,10 @@ module valen.game.darkages {
     provides be.twofold.valen.core.game.GameFactory
         with be.twofold.valen.game.darkages.DarkAgesGameFactory;
 
-    exports be.twofold.valen.game.darkages;
+    exports be.twofold.valen.game.darkages.reader.basemodel;
+    exports be.twofold.valen.game.darkages.reader.geometry;
     exports be.twofold.valen.game.darkages.reader.image;
     exports be.twofold.valen.game.darkages.reader.streamdb;
     exports be.twofold.valen.game.darkages.reader;
+    exports be.twofold.valen.game.darkages;
 }

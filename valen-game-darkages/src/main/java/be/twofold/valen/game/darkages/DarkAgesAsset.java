@@ -21,7 +21,7 @@ public record DarkAgesAsset(
             return AssetType.MATERIAL;
         }
         return switch (id.type()) {
-//            case Anim -> AssetType.ANIMATION;
+            case Anim -> AssetType.ANIMATION;
             case BaseModel, Model, Vegetation -> AssetType.MODEL;
             case Image -> AssetType.TEXTURE;
             default -> AssetType.RAW;

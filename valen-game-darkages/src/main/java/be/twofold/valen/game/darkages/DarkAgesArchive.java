@@ -4,6 +4,7 @@ import be.twofold.valen.core.compression.*;
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.util.*;
+import be.twofold.valen.game.darkages.reader.anim.*;
 import be.twofold.valen.game.darkages.reader.basemodel.*;
 import be.twofold.valen.game.darkages.reader.binaryfile.*;
 import be.twofold.valen.game.darkages.reader.bink.*;
@@ -46,6 +47,7 @@ public final class DarkAgesArchive implements Archive<DarkAgesAssetID, DarkAgesA
             new BinkReader(this),
             new ImageReader(this),
             new MaterialReader(this, declReader),
+            new Md6AnimReader(this),
             new Md6ModelReader(this, true),
             new Md6SkelReader(),
             new RenderParmReader(),
