@@ -14,6 +14,7 @@ import be.twofold.valen.game.darkages.reader.decl.renderparm.*;
 import be.twofold.valen.game.darkages.reader.image.*;
 import be.twofold.valen.game.darkages.reader.model.*;
 import be.twofold.valen.game.darkages.reader.skeleton.*;
+import be.twofold.valen.game.darkages.reader.strandshair.*;
 import be.twofold.valen.game.darkages.reader.streamdb.*;
 import be.twofold.valen.game.darkages.reader.vegetation.*;
 
@@ -52,6 +53,7 @@ public final class DarkAgesArchive implements Archive<DarkAgesAssetID, DarkAgesA
             new Md6SkelReader(),
             new RenderParmReader(),
             new StaticModelReader(this),
+            new StrandsHairReader(),
             new VegetationReader(this, true)
         ));
     }
