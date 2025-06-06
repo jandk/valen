@@ -26,7 +26,7 @@ public final class GeometryReader {
         }
 
         offset += stride * (lodInfo.numVertices() - 1);
-        var faceInfo = new VertexBufferInfo<>(null, ComponentType.UNSIGNED_SHORT, 3);
+        var faceInfo = new VertexBufferInfo<>(null, ComponentType.UNSIGNED_SHORT, 3, null);
         var faceAccessor = new GeoAccessor<>(offset, lodInfo.numFaces(), 6, faceInfo, Geometry.readFaceIndex());
 
         return new Geo(true).readMesh(source, faceAccessor, vertexAccessors);
