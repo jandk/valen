@@ -10,6 +10,7 @@ import be.twofold.valen.game.darkages.reader.*;
 import be.twofold.valen.game.darkages.reader.resources.*;
 
 import java.io.*;
+import java.nio.*;
 import java.util.*;
 import java.util.function.*;
 import java.util.stream.*;
@@ -32,9 +33,10 @@ public final class Md6AnimReader implements AssetReader<Animation, DarkAgesAsset
         var skeleton = archive.loadAsset(DarkAgesAssetID.from(anim.header().skelName(), ResourcesType.Skeleton), Skeleton.class);
 
         var frameSets = switch (anim.data().streamMethod()) {
-            case UNSTREAMED, LODS -> readUnstreamed(source, anim.frameSetOffsetTable(), anim.map());
+            case UNSTREAMED -> readUnstreamed(source, anim.frameSetOffsetTable(), anim.map());
             case UNSTREAMED_FIRST_FRAMESET -> throw new UnsupportedOperationException("UNSTREAMED_FIRST_FRAMESET");
             case STREAMED -> readStreamed(anim.streamInfo(), anim.map(), asset.hash());
+            case LODS -> readStreamed(anim.streamInfo(), anim.map(), asset.hash());
         };
 
         var animMap = anim.map();
@@ -92,23 +94,24 @@ public final class Md6AnimReader implements AssetReader<Animation, DarkAgesAsset
     private <T> List<Track<T>> mapAnimated(
         int[] animBoneIds,
         List<FrameSet> frameSets,
-        Function<FrameSet, Bits> bitsMapper,
+        Function<FrameSet, ByteBuffer> bitsMapper,
         Function<FrameSet, List<T>> firstMapper,
         Function<FrameSet, List<T>> rangeMapper,
         BiFunction<Integer, List<KeyFrame<T>>, Track<T>> constructor
     ) {
-        var curves = new HashMap<Integer, List<KeyFrame<T>>>();
+        var curves = new LinkedHashMap<Integer, List<KeyFrame<T>>>();
 
         for (var frameSet : frameSets) {
             var bits = bitsMapper.apply(frameSet);
             var first = firstMapper.apply(frameSet);
             var range = rangeMapper.apply(frameSet);
+            int bytesPerBone = frameSet.bytesPerBone();
 
             for (int i = 0, vi = 0; i < animBoneIds.length; i++) {
                 var curve = curves.computeIfAbsent(animBoneIds[i], _ -> new ArrayList<>());
                 curve.add(new KeyFrame<>(frameSet.frameStart(), first.get(i)));
                 for (var frame = 0; frame < frameSet.frameRange(); frame++) {
-                    if (bits.get(i * frameSet.bytesPerBone() * 8 + frame)) {
+                    if (checkFrameLE(bits, i, bytesPerBone, frame)) {
                         curve.add(new KeyFrame<>(frameSet.frameStart() + frame, range.get(vi++)));
                     }
                 }
@@ -118,5 +121,21 @@ public final class Md6AnimReader implements AssetReader<Animation, DarkAgesAsset
         return curves.entrySet().stream()
             .map(e -> constructor.apply(e.getKey(), e.getValue()))
             .toList();
+    }
+
+    // Standard anims use this
+    private boolean checkFrameBE(ByteBuffer buffer, int boneId, int bytesPerBone, int frame) {
+        int frameByte = frame >> 3;
+        int byteIndex = boneId * bytesPerBone + frameByte;
+        int bitIndex = 0x80 >> (frame & 7);
+        return (buffer.get(byteIndex) & bitIndex) != 0;
+    }
+
+    // LODS use this
+    private boolean checkFrameLE(ByteBuffer buffer, int boneId, int bytesPerBone, int frame) {
+        int frameByte = bytesPerBone - (frame >> 3) - 1;
+        int byteIndex = boneId * bytesPerBone + frameByte;
+        int bitIndex = 0x80 >> (frame & 7);
+        return (buffer.get(byteIndex) & bitIndex) != 0;
     }
 }

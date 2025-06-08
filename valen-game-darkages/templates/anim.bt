@@ -126,11 +126,13 @@ FSeek(start + data.constTOffset); Vec3   constT[map.constTRLELength & 0x7FFF] <s
 FSeek(start + data.constUOffset); Vec3   constU[map.constURLELength & 0x7FFF] <style=sSection4>;
 
 FSeek(start + data.frameSetTblOffset[0]);
-u8  frameSetTbl0[data.numFrames] <style=sSection2>;
-FSeek(start + data.frameSetTblOffset[1]);
-u8  frameSetTbl1[data.numFrames] <style=sSection2>;
+u8  frameSetTbl0[data.numFrames] <style=sSection1>;
+if(data.frameSetTblOffset[1] != 0) {
+    FSeek(start + data.frameSetTblOffset[1]);
+    u8  frameSetTbl1[data.numFrames] <style=sSection2>;
+}
 FSeek(start + data.frameSetOffsetTblOffset);
-u32 frameSetOffsetTbl[data.numFrameSets - data.numStreamedFrameSets + 1] <style=sSection2>;
+u32 frameSetOffsetTbl[data.numFrameSets + 1] <style=sSection3>;
 
 local i32 i;
 local i32 fsStart;

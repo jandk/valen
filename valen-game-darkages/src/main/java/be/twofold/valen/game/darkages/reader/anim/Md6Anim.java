@@ -29,9 +29,8 @@ public record Md6Anim(
 
         // TODO: Figure out what index 1 does
         var frameSetTable0 = source.position(start + animData.frameSetTblOffset()[0]).readBytes(animData.numFrames());
-        var frameSetTable1 = source.position(start + animData.frameSetTblOffset()[1]).readBytes(animData.numFrames());
-        var frameSetOffsetTable = source.position(start + animData.frameSetOffsetTblOffset())
-            .readInts(animData.numFrameSets() - animData.numStreamedFrameSets() + 1);
+        // var frameSetTable1 = source.position(start + animData.frameSetTblOffset()[1]).readBytes(animData.numFrames());
+        var frameSetOffsetTable = source.position(start + animData.frameSetOffsetTblOffset()).readInts(animData.numFrameSets() + 1);
 
         var streamInfo = source.position(start + header.size()).readObject(Md6AnimStreamInfo::read);
         source.expectEnd(); // doesn't mean much here, but still
@@ -59,9 +58,9 @@ public record Md6Anim(
         var yBit = (y >>> 15) & 1;
         var index = (yBit << 1 | xBit);
 
-        var a = Math.fma(x & 0x7FFF, MathF.SQRT_2 / 0x7FFF, -MathF.SQRT1_2);
-        var b = Math.fma(y & 0x7FFF, MathF.SQRT_2 / 0x7FFF, -MathF.SQRT1_2);
-        var c = Math.fma(z & 0x7FFF, MathF.SQRT_2 / 0x7FFF, -MathF.SQRT1_2);
+        var a = Math.fma(x & 0x7FFF, MathF.SQRT_2 / 0x8000, -MathF.SQRT1_2);
+        var b = Math.fma(y & 0x7FFF, MathF.SQRT_2 / 0x8000, -MathF.SQRT1_2);
+        var c = Math.fma(z & 0x7FFF, MathF.SQRT_2 / 0x8000, -MathF.SQRT1_2);
         var d = MathF.sqrt(1 - a * a - b * b - c * c);
 
         return switch (index) {
