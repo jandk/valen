@@ -18,11 +18,11 @@
         <module>valen-format-cast</module>
         <module>valen-format-gltf</module>
         <module>valen-format-png</module>
+        <module>valen-game-darkages</module>
         <module>valen-game-eternal</module>
         <module>valen-game-greatcircle</module>
         <module>valen-game-idtech</module>
         <module>valen-ui</module>
-        <module>valen-game-darkages</module>
     </modules>
 
     <properties>
