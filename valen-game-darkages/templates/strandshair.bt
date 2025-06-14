@@ -1,0 +1,50 @@
+#include "common.bt"
+
+typedef struct {
+    u16 x;
+    u16 y;
+    u16 z;
+    u16 w;
+} Vec4u16 <read=Str("(%d, %d, %d, %d)", x, y, z, w)>;
+
+struct HairHeader {
+    u32    version;
+    u32    numStrands;
+    u32    numParticles;
+    u32    numSegments;
+    u32    numBlendShapeLODs;
+    Vec3   compressionPosBias;
+    f32    compressionPosScale;
+    f32    strandThickness;
+    u32    unknown;
+    Bounds bounds;
+    Bounds tightBounds;
+};
+
+struct HairStrandInfo {
+    u32 idxFirstPoint;
+    u32 numPointsAndStrandIdx;
+};
+
+struct HairStrandLocationInfo {
+    u16 unk11;
+    u16 unk12;
+    u32 unk2;
+    u32 unk3;
+};
+
+HairHeader     header <style=sHeading1>;
+u32            strands[header.numStrands]            <style=sSection1>;
+Vec4u16        particles[header.numParticles]        <style=sSection2>;
+f32            distances[header.numStrands]          <style=sSection3>;
+u32            infos[header.numParticles]            <style=sSection4>;
+u32            segments[header.numSegments]          <style=sSection1>;
+Vec4u16        visibilitySH[header.numParticles / 4] <style=sSection2>;
+HairStrandInfo strandsInfo[header.numStrands]        <style=sSection3>;
+if (header.numBlendShapeLODs > 0) {
+    local int locationInfoCount = header.numBlendShapeLODs * header.numStrands;
+    HairStrandLocationInfo locationInfo[locationInfoCount];
+}
+u8     hasCollisionGrid;
+StrP32 collisionGridName;
+StrP32 attachedMeshName;
