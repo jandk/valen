@@ -104,14 +104,12 @@ public record ImageHeader(
             case 12 -> TextureMaterialKind.TMK_DECALSPECULAR;
             case 13 -> TextureMaterialKind.TMK_LIGHTPROJECT;
             case 14 -> TextureMaterialKind.TMK_PARTICLE;
-            case 15 -> TextureMaterialKind.TMK_UNUSED_1;
             case 17 -> TextureMaterialKind.TMK_LIGHTMAP;
             case 18 -> TextureMaterialKind.TMK_UI;
             case 19 -> TextureMaterialKind.TMK_FONT;
             case 20 -> TextureMaterialKind.TMK_LEGACY_FLASH_UI;
             case 21 -> TextureMaterialKind.TMK_LIGHTMAP_DIRECTIONAL;
             case 22 -> TextureMaterialKind.TMK_BLENDMASK;
-            case 23 -> TextureMaterialKind.TMK_COUNT;
             default -> throw new IllegalArgumentException("Invalid texture material kind value " + value);
         };
     }

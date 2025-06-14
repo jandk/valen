@@ -112,7 +112,6 @@ public record ImageHeader(
             case 20 -> TextureMaterialKind.TMK_LEGACY_FLASH_UI;
             case 22 -> TextureMaterialKind.TMK_BLENDMASK;
             case 23 -> TextureMaterialKind.TMK_PAINTEDDATAGRID;
-            case 24 -> TextureMaterialKind.TMK_COUNT;
             default -> throw new IllegalArgumentException("Invalid texture material kind value " + value);
         };
     }

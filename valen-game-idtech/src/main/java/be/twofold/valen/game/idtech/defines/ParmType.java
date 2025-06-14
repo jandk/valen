@@ -5,16 +5,10 @@ public enum ParmType {
     PT_F32_VEC3,
     PT_F32_VEC2,
     PT_F32,
-    PT_F16_VEC4,
-    PT_F16_VEC3,
-    PT_F16_VEC2,
-    PT_F16,
     PT_UI32,
     PT_SI32,
     PT_BOOL,
     PT_TEXTURE_2D,
-    PT_TEXTURE_2D_HALF,
-    PT_TEXTURE_2D_UI,
     PT_TEXTURE_3D,
     PT_TEXTURE_CUBE,
     PT_TEXTURE_ARRAY_2D,
@@ -43,8 +37,19 @@ public enum ParmType {
     PT_IMAGE2D_ARRAY_BUFFER,
     PT_IMAGE3D_BUFFER,
     PT_ACCELERATION_STRUCTURE,
+
+    // Great Circle
+    PT_F16_VEC4,
+    PT_F16_VEC3,
+    PT_F16_VEC2,
+    PT_F16,
+    PT_TEXTURE_2D_HALF,
+    PT_TEXTURE_2D_UI,
     PT_BUFFER_REFERENCE,
-    PT_MAX,
+
+    // Dark Ages
+    PT_IMAGECUBE_STORE_BUFFER,
+    PT_IMAGECUBE_BUFFER,
     ;
 
     public static ParmType parse(String parmType) {
@@ -83,6 +88,7 @@ public enum ParmType {
             case "imagestorebuffer2d" -> ParmType.PT_IMAGE2D_STORE_BUFFER;
             case "imagestorebuffer2darray" -> ParmType.PT_IMAGE2D_STORE_ARRAY_BUFFER;
             case "imagestorebuffer3d" -> ParmType.PT_IMAGE3D_STORE_BUFFER;
+            case "imagestorebuffercube" -> ParmType.PT_IMAGECUBE_STORE_BUFFER;
             case "uniformtexelbuffer" -> ParmType.PT_UNIFORM_TEXEL_BUFFER;
             case "storagetexelbuffer" -> ParmType.PT_STORAGE_TEXEL_BUFFER;
             case "accelerationstructure" -> ParmType.PT_ACCELERATION_STRUCTURE;

@@ -1,6 +1,7 @@
 package be.twofold.valen.game.idtech.material;
 
 import be.twofold.valen.core.game.*;
+import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.material.*;
 import be.twofold.valen.core.math.*;
 import be.twofold.valen.core.texture.*;
@@ -74,12 +75,14 @@ public abstract class AbstractMaterialReader<K extends AssetID, V extends Asset,
     );
 
     private static final Map<String, RenderParm> RenderParmCache = new HashMap<>();
+    private final Logger log;
 
-    protected final Logger log;
-    protected final A archive;
+    private final A archive;
+    private final boolean bakedSmoothnessNormals;
     protected final AbstractDeclReader<K, V, A> declReader;
 
-    protected AbstractMaterialReader(A archive, AbstractDeclReader<K, V, A> declReader) {
+    protected AbstractMaterialReader(A archive, boolean bakedSmoothnessNormals, AbstractDeclReader<K, V, A> declReader) {
+        this.bakedSmoothnessNormals = bakedSmoothnessNormals;
         this.log = LoggerFactory.getLogger(getClass());
         this.archive = Check.notNull(archive);
         this.declReader = Check.notNull(declReader);
@@ -87,6 +90,12 @@ public abstract class AbstractMaterialReader<K extends AssetID, V extends Asset,
 
     @Override
     public abstract boolean canRead(V asset);
+
+    @Override
+    public final Material read(DataSource source, V asset) throws IOException {
+        var object = declReader.read(source, asset);
+        return parseMaterial(object, asset);
+    }
 
     public abstract String materialName(V asset);
 
@@ -176,16 +185,22 @@ public abstract class AbstractMaterialReader<K extends AssetID, V extends Asset,
             return null;
         }
 
+        // Dark ages doesn't seem to add an extension in their decls
+        String extension = Filenames.getExtension(filePath);
+        if (extension.isEmpty()) {
+            filePath = filePath + ".tga";
+        }
+
         var builder = new StringBuilder(filePath.toLowerCase());
-//        if (parm.renderParm().materialKind == TextureMaterialKind.TMK_SMOOTHNESS) {
-//            var smoothnessNormal = allParms.entrySet().stream()
-//                .filter(rlp -> rlp.getValue().renderParm().materialKind == parm.renderParm().smoothnessNormalParm)
-//                .findFirst().orElseThrow();
-//
-//            builder
-//                .append("$smoothnessnormal=")
-//                .append(((Tex) smoothnessNormal.getValue().value()).filePath());
-//        }
+        if (parm.renderParm().materialKind == TextureMaterialKind.TMK_SMOOTHNESS && bakedSmoothnessNormals) {
+            var smoothnessNormal = allParms.entrySet().stream()
+                .filter(rlp -> rlp.getValue().renderParm().materialKind == parm.renderParm().smoothnessNormalParm)
+                .findFirst().orElseThrow();
+
+            builder
+                .append("$smoothnessnormal=")
+                .append(((Tex) smoothnessNormal.getValue().value()).filePath());
+        }
         mapOptions(builder, parm);
 
         var name = builder.toString();
@@ -275,7 +290,7 @@ public abstract class AbstractMaterialReader<K extends AssetID, V extends Asset,
             case PT_F32_VEC3, PT_F16_VEC3 -> parseVector3(element, renderParm.get());
             case PT_F32_VEC4, PT_F16_VEC4 -> parseVector4(element, renderParm.get());
             case PT_COLOR_LUT, PT_STRING -> element.getAsString();
-            case PT_TEXTURE_2D, PT_TEXTURE_2D_HALF, PT_TEXTURE_CUBE -> parseTex(element);
+            case PT_TEXTURE_2D, PT_TEXTURE_2D_HALF, PT_TEXTURE_3D, PT_TEXTURE_CUBE -> parseTex(element);
             case PT_SI32, PT_UI32 -> element.getAsInt();
             default -> throw new UnsupportedOperationException(renderParm.get().parmType.toString());
         };
@@ -349,17 +364,9 @@ public abstract class AbstractMaterialReader<K extends AssetID, V extends Asset,
         var tex2d = (Tex) parm.value();
         var opts = tex2d.options();
         var kind = parm.renderParm().materialKind;
+
         if (opts != null) {
-            if (opts.format() != TextureFormat.FMT_NONE) {
-                if (kind == null || kind == TextureMaterialKind.TMK_NONE || kind.ordinal() > 7
-                    && kind != TextureMaterialKind.TMK_BLENDMASK
-                    && kind != TextureMaterialKind.TMK_ALBEDO_UNSCALED
-                    && kind != TextureMaterialKind.TMK_ALBEDO_DETAILS
-                    && kind != TextureMaterialKind.TMK_AO
-                ) {
-                    builder.append(formatTextureFormat(opts.format()));
-                }
-            }
+            addTextureFormat(builder, kind, opts.format());
             if (opts.atlasPadding() != null && opts.atlasPadding() != 0) {
                 builder.append(formatAtlasPadding(opts.atlasPadding()));
             }
@@ -369,7 +376,7 @@ public abstract class AbstractMaterialReader<K extends AssetID, V extends Asset,
             if (opts.fullScaleBias()) {
                 builder.append("$fullscalebias");
             }
-            if (/*parm.renderParm().streamed*/true) {
+            if (parm.renderParm().streamed) {
                 builder.append("$streamed");
             }
             if (opts.noMips()) {
@@ -381,6 +388,29 @@ public abstract class AbstractMaterialReader<K extends AssetID, V extends Asset,
             if (kind != null) {
                 builder.append(formatTextureMaterialKind(kind));
             }
+        }
+    }
+
+    private void addTextureFormat(StringBuilder builder, TextureMaterialKind kind, TextureFormat format) {
+        if (format == null || format == TextureFormat.FMT_NONE) {
+            return;
+        }
+
+        var addFormat = switch (kind) {
+            case TMK_ALBEDO,
+                 TMK_SPECULAR,
+                 TMK_SMOOTHNESS,
+                 TMK_COVER,
+                 TMK_SSSMASK,
+                 TMK_COLORMASK,
+                 TMK_BLENDMASK,
+                 TMK_AO -> false;
+            case TMK_NORMAL -> format == TextureFormat.FMT_BC7;
+            case null, default -> true;
+        };
+
+        if (addFormat) {
+            builder.append(formatTextureFormat(format));
         }
     }
 
@@ -421,6 +451,7 @@ public abstract class AbstractMaterialReader<K extends AssetID, V extends Asset,
 
     private String formatTextureMaterialKind(TextureMaterialKind materialKind) {
         return switch (materialKind) {
+            case TMK_NONE, TMK_PAINTEDDATAGRID -> "";
             case TMK_ALBEDO -> "$mtlkind=albedo";
             case TMK_SPECULAR -> "$mtlkind=specular";
             case TMK_NORMAL -> "$mtlkind=normal";
@@ -444,11 +475,10 @@ public abstract class AbstractMaterialReader<K extends AssetID, V extends Asset,
             case TMK_TINTMASK -> "$mtlkind=tintmask";
             case TMK_TERRAIN_SPLATMAP -> "$mtlkind=terrainsplatmap";
             case TMK_ECOTOPE_LAYER -> "$mtlkind=ecotopelayer";
-            case TMK_DECALHEIGHTMAP -> "$mtlkind=decalheightmap";
+            case TMK_DECALHEIGHTMAP -> "$mtlkind=decalheight";
             case TMK_ALBEDO_UNSCALED -> "$mtlkind=albedounscaled";
             case TMK_ALBEDO_DETAILS -> "$mtlkind=albedodetails";
             case TMK_AO -> "$mtlkind=ao";
-            default -> "";
         };
     }
 
