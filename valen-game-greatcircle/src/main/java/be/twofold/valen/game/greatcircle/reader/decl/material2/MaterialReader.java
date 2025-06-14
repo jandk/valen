@@ -7,7 +7,7 @@ import be.twofold.valen.game.idtech.material.*;
 
 public final class MaterialReader extends AbstractMaterialReader<GreatCircleAssetID, GreatCircleAsset, GreatCircleArchive> {
     public MaterialReader(GreatCircleArchive archive, DeclReader declReader) {
-        super(archive, true, declReader);
+        super(archive, declReader, true);
     }
 
     @Override

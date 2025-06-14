@@ -7,7 +7,7 @@ import be.twofold.valen.game.idtech.material.*;
 
 public final class MaterialReader extends AbstractMaterialReader<EternalAssetID, EternalAsset, EternalArchive> {
     public MaterialReader(EternalArchive archive, DeclReader declReader) {
-        super(archive, true, declReader);
+        super(archive, declReader, true);
     }
 
     @Override

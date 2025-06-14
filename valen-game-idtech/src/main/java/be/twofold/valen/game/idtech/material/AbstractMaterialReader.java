@@ -78,14 +78,14 @@ public abstract class AbstractMaterialReader<K extends AssetID, V extends Asset,
     private final Logger log;
 
     private final A archive;
-    private final boolean bakedSmoothnessNormals;
+    private final boolean idTech8;
     protected final AbstractDeclReader<K, V, A> declReader;
 
-    protected AbstractMaterialReader(A archive, boolean bakedSmoothnessNormals, AbstractDeclReader<K, V, A> declReader) {
-        this.bakedSmoothnessNormals = bakedSmoothnessNormals;
+    protected AbstractMaterialReader(A archive, AbstractDeclReader<K, V, A> declReader, boolean idTech8) {
         this.log = LoggerFactory.getLogger(getClass());
         this.archive = Check.notNull(archive);
         this.declReader = Check.notNull(declReader);
+        this.idTech8 = idTech8;
     }
 
     @Override
@@ -192,7 +192,7 @@ public abstract class AbstractMaterialReader<K extends AssetID, V extends Asset,
         }
 
         var builder = new StringBuilder(filePath.toLowerCase());
-        if (parm.renderParm().materialKind == TextureMaterialKind.TMK_SMOOTHNESS && bakedSmoothnessNormals) {
+        if (idTech8 && parm.renderParm().materialKind == TextureMaterialKind.TMK_SMOOTHNESS) {
             var smoothnessNormal = allParms.entrySet().stream()
                 .filter(rlp -> rlp.getValue().renderParm().materialKind == parm.renderParm().smoothnessNormalParm)
                 .findFirst().orElseThrow();
@@ -370,9 +370,9 @@ public abstract class AbstractMaterialReader<K extends AssetID, V extends Asset,
             if (opts.atlasPadding() != null && opts.atlasPadding() != 0) {
                 builder.append(formatAtlasPadding(opts.atlasPadding()));
             }
-//            if (opts.minMip() != 0) {
-//                builder.append("$minmip=").append(opts.minMip());
-//            }
+            if (idTech8 && opts.minMip() != 0) {
+                builder.append("$minmip=").append(opts.minMip());
+            }
             if (opts.fullScaleBias()) {
                 builder.append("$fullscalebias");
             }
