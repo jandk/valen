@@ -97,8 +97,8 @@ public final class MainPresenter extends AbstractFXPresenter<MainView> {
                 var assetData = archive.loadAsset(asset.id(), type);
                 Platform.runLater(() -> getView().setupPreview(asset, assetData));
             } catch (IOException e) {
-                log.error("Could not load asset{}", asset.id().fileName(), e);
-                FxUtils.showExceptionDialog(e, "Could not load asset" + asset.id().fileName());
+                log.error("Could not load asset {}", asset.id().fileName(), e);
+                FxUtils.showExceptionDialog(e, "Could not load asset " + asset.id().fileName());
             }
         }
         lastAsset = asset;

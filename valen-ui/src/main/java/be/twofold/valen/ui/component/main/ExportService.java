@@ -134,9 +134,14 @@ final class ExportService extends Service<Void> {
 
         @SuppressWarnings("unchecked")
         private <T> Exporter<T> findExporter(Asset asset) {
-            var exporterId = asset.type() == AssetType.TEXTURE
-                ? settings.textureExporter().get().orElse("texture.png")
-                : null;
+            boolean isGltf = Set.of("glb", "gltf").contains(settings.modelExporter().get().orElse("gltf"));
+            var exporterId = switch (asset.type()) {
+                case ANIMATION -> "animation." + (isGltf ? "gltf" : "cast");
+                case MATERIAL -> "material." + (isGltf ? "gltf" : "cast");
+                case MODEL -> "model." + (isGltf ? "gltf" : "cast");
+                case TEXTURE -> settings.textureExporter().get().orElse("texture.png");
+                case RAW -> "binary.raw";
+            };
             var exporter = exporterId != null
                 ? Exporter.forTypeAndId(asset.type().getType(), exporterId)
                 : Exporter.forType(asset.type().getType()).findFirst().orElseThrow();

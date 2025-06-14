@@ -1,0 +1,62 @@
+//------------------------------------------------
+//--- 010 Editor v15.0.2 Binary Template
+//------------------------------------------------
+typedef int8   i8;
+typedef uint8  u8;
+typedef int16  i16;
+typedef uint16 u16;
+typedef int32  i32;
+typedef uint32 u32;
+typedef int64  i64;
+typedef uint64 u64;
+typedef hfloat f16;
+typedef float  f32;
+typedef double f64;
+
+typedef struct {
+    f32 x;
+    f32 y;
+} Vec2 <read=Str("(%f, %f)", x, y)>;
+
+typedef struct {
+    f32 x;
+    f32 y;
+    f32 z;
+} Vec3 <read=Str("(%f, %f, %f)", x, y, z)>;
+
+typedef struct {
+    f32 x;
+    f32 y;
+    f32 z;
+    f32 w;
+} Vec4 <read=Str("(%f, %f, %f, %f)", x, y, z, w)>;
+
+typedef struct {
+    Vec3 min;
+    Vec3 max;
+} Bounds;
+
+typedef struct {
+    f32 mat[9];
+} Mat3;
+
+typedef struct {
+    f32 mat[12];
+} Mat3x4;
+
+typedef struct {
+    u32  length;
+    char data[length];
+} StrP32 <read=(length > 0 ? data : "")>;
+
+typedef struct {
+    u32       length;
+    StrP32 data[length] <optimize=false>;
+} StrP32List;
+
+typedef struct {
+    uint compression;
+    uint uncompressedSize;
+    uint compressedSize;
+    uint offset;
+} GeoDiskLayout;

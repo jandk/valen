@@ -38,7 +38,7 @@ public final class Geo {
     }
 
     private <T extends Buffer> VertexBuffer<T> readBuffer(DataSource source, GeoAccessor<T> accessor) throws IOException {
-        var capacity = accessor.count() * accessor.info().elementType().size();
+        var capacity = accessor.count() * accessor.info().size();
         var buffer = accessor.info().componentType().allocate(capacity);
 
         var start = source.position() + accessor.offset();

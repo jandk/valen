@@ -37,10 +37,11 @@ final class ByteArrayDataSource implements DataSource, Closeable {
     }
 
     @Override
-    public void position(long pos) {
+    public DataSource position(long pos) {
         int intPos = Math.toIntExact(pos);
         Check.index(intPos, limit - offset + 1);
         this.position = offset + intPos;
+        return this;
     }
 
     @Override

@@ -4,31 +4,27 @@ import java.nio.*;
 
 public record VertexBufferInfo<T extends Buffer>(
     Semantic semantic,
-    ElementType elementType,
     ComponentType<T> componentType,
-    boolean normalized
+    int size
 ) {
-    public static final VertexBufferInfo<FloatBuffer> POSITION = new VertexBufferInfo<>(Semantic.POSITION, ElementType.VECTOR3, ComponentType.FLOAT, false);
-    public static final VertexBufferInfo<FloatBuffer> NORMAL = new VertexBufferInfo<>(Semantic.NORMAL, ElementType.VECTOR3, ComponentType.FLOAT, false);
-    public static final VertexBufferInfo<FloatBuffer> TANGENT = new VertexBufferInfo<>(Semantic.TANGENT, ElementType.VECTOR4, ComponentType.FLOAT, false);
+    public static final VertexBufferInfo<FloatBuffer> POSITION = new VertexBufferInfo<>(Semantic.POSITION, ComponentType.FLOAT, 3);
+    public static final VertexBufferInfo<FloatBuffer> NORMAL = new VertexBufferInfo<>(Semantic.NORMAL, ComponentType.FLOAT, 3);
+    public static final VertexBufferInfo<FloatBuffer> TANGENT = new VertexBufferInfo<>(Semantic.TANGENT, ComponentType.FLOAT, 4);
+    public static final VertexBufferInfo<FloatBuffer> TEX_COORDS = new VertexBufferInfo<>(Semantic.TEX_COORD, ComponentType.FLOAT, 2);
 
-    public static <T extends Buffer> VertexBufferInfo<T> colors(int n, ComponentType<T> componentType) {
-        return new VertexBufferInfo<>(new Semantic.Color(n), ElementType.VECTOR4, componentType, true);
+    public static <T extends Buffer> VertexBufferInfo<T> colors(ComponentType<T> componentType) {
+        return new VertexBufferInfo<>(Semantic.COLOR, componentType, 4);
     }
 
-    public static <T extends Buffer> VertexBufferInfo<T> joints(int n, ComponentType<T> componentType) {
-        return new VertexBufferInfo<>(new Semantic.Joints(n), ElementType.VECTOR4, componentType, false);
+    public static <T extends Buffer> VertexBufferInfo<T> joints(ComponentType<T> componentType, int size) {
+        return new VertexBufferInfo<>(Semantic.JOINTS, componentType, size);
     }
 
-    public static VertexBufferInfo<FloatBuffer> texCoords(int n) {
-        return new VertexBufferInfo<>(new Semantic.TexCoord(n), ElementType.VECTOR2, ComponentType.FLOAT, false);
-    }
-
-    public static <T extends Buffer> VertexBufferInfo<T> weights(int n, ComponentType<T> componentType) {
-        return new VertexBufferInfo<>(new Semantic.Weights(n), ElementType.VECTOR4, componentType, true);
+    public static <T extends Buffer> VertexBufferInfo<T> weights(ComponentType<T> componentType, int size) {
+        return new VertexBufferInfo<>(Semantic.WEIGHTS, componentType, size);
     }
 
     public static <T extends Buffer> VertexBufferInfo<T> indices(ComponentType<T> componentType) {
-        return new VertexBufferInfo<>(null, ElementType.SCALAR, componentType, false);
+        return new VertexBufferInfo<>(null, componentType, 1);
     }
 }

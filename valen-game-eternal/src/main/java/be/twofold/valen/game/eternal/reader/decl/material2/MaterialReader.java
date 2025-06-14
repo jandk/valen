@@ -1,29 +1,19 @@
 package be.twofold.valen.game.eternal.reader.decl.material2;
 
-import be.twofold.valen.core.io.*;
-import be.twofold.valen.core.material.*;
 import be.twofold.valen.game.eternal.*;
 import be.twofold.valen.game.eternal.reader.decl.*;
 import be.twofold.valen.game.eternal.resource.*;
 import be.twofold.valen.game.idtech.material.*;
 
-import java.io.*;
-
 public final class MaterialReader extends AbstractMaterialReader<EternalAssetID, EternalAsset, EternalArchive> {
     public MaterialReader(EternalArchive archive, DeclReader declReader) {
-        super(archive, declReader);
+        super(archive, declReader, true);
     }
 
     @Override
     public boolean canRead(EternalAsset resource) {
         return resource.id().type() == ResourceType.RsStreamFile
             && resource.id().name().name().startsWith("generated/decls/material2/");
-    }
-
-    @Override
-    public Material read(DataSource source, EternalAsset asset) throws IOException {
-        var object = declReader.read(source, asset);
-        return parseMaterial(object, asset);
     }
 
     @Override

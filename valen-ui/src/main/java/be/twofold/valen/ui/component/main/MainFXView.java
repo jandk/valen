@@ -162,6 +162,7 @@ public final class MainFXView implements MainView, FXView {
         var loadGame = new Button("Load Game");
         loadGame.setOnAction(_ -> eventBus.publish(new MainViewEvent.LoadGameClicked()));
 
+        archiveChooser.setPromptText("Select archive to load");
         archiveChooser.getSelectionModel().selectedItemProperty().addListener((_, _, newValue) -> selectArchive(newValue));
 
         var pane = new Pane();

@@ -18,7 +18,7 @@ public record Texture(
         Check.argument(width > 0, "width must be greater than 0");
         Check.argument(height > 0, "height must be greater than 0");
         Check.notNull(format, "format");
-        Check.argument(!surfaces.isEmpty(), "surfaces must not be empty");
+        // Check.argument(!surfaces.isEmpty(), "surfaces must not be empty");
         surfaces = List.copyOf(surfaces);
     }
 

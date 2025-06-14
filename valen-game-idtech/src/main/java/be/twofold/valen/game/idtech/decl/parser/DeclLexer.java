@@ -127,6 +127,9 @@ public final class DeclLexer {
         if (peek() == '-') {
             skip();
         }
+        if (peek() == ' ') {
+            skip();
+        }
         digits();
         if (peek() == '.') {
             skip();
@@ -143,7 +146,7 @@ public final class DeclLexer {
             // Floats can have a trailing f
             skip();
         }
-        return source.substring(start, index);
+        return source.substring(start, index).replace(" ", "");
     }
 
     private void digits() {

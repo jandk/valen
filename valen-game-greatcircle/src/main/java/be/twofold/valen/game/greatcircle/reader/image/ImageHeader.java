@@ -95,8 +95,6 @@ public record ImageHeader(
             case 12 -> TextureMaterialKind.TMK_DECALSPECULAR;
             case 13 -> TextureMaterialKind.TMK_LIGHTPROJECT;
             case 14 -> TextureMaterialKind.TMK_PARTICLE;
-            case 15 -> TextureMaterialKind.TMK_UNUSED_1;
-            case 16 -> TextureMaterialKind.TMK_UNUSED_2;
             case 17 -> TextureMaterialKind.TMK_LIGHTMAP;
             case 18 -> TextureMaterialKind.TMK_UI;
             case 19 -> TextureMaterialKind.TMK_FONT;
@@ -109,7 +107,6 @@ public record ImageHeader(
             case 26 -> TextureMaterialKind.TMK_DECALHEIGHTMAP;
             case 27 -> TextureMaterialKind.TMK_ALBEDO_UNSCALED;
             case 28 -> TextureMaterialKind.TMK_ALBEDO_DETAILS;
-            case 29 -> TextureMaterialKind.TMK_COUNT;
             default -> throw new IllegalArgumentException("Invalid texture material kind value " + value);
         };
     }
@@ -177,7 +174,6 @@ public record ImageHeader(
             case 58 -> TextureFormat.FMT_RG32_UINT;
             case 59 -> TextureFormat.FMT_STENCIL;
             case 60 -> TextureFormat.FMT_RGBA8_SNORM;
-            case 61 -> TextureFormat.FMT_NEXTAVAILABLE;
             default -> throw new IllegalArgumentException("Invalid texture format value " + value);
         };
     }

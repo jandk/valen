@@ -8,6 +8,8 @@ public enum TextureFilter {
     TF_NEAREST_MIPMAP_NEAREST,
     TF_LINEAR_MIPMAP_NEAREST,
     TF_TRILINEAR,
-    TF_MINMIP,
     TF_DEFAULT,
+
+    // Great Circle & Dark Ages
+    TF_MINMIP,
 }

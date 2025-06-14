@@ -94,7 +94,7 @@ public final class Md6MeshReader implements AssetReader<Model, GreatCircleAsset>
         for (var i = 0; i < meshes.size(); i++) {
             var meshInfo = md6.meshInfos().get(i);
             var joints = meshes.get(i)
-                .getBuffer(Semantic.JOINTS0)
+                .getBuffer(Semantic.JOINTS)
                 .orElseThrow();
 
             // Just assume it's a byte buffer, because we read it as such

@@ -36,7 +36,7 @@ public interface DataSource extends Closeable {
 
     long position();
 
-    void position(long pos) throws IOException;
+    DataSource position(long pos) throws IOException;
 
     @Override
     default void close() throws IOException {
@@ -169,6 +169,10 @@ public interface DataSource extends Closeable {
 
     default String readPString() throws IOException {
         return readString(readInt());
+    }
+
+    default <T> T readObject(ObjectMapper<T> mapper) throws IOException {
+        return mapper.read(this);
     }
 
     default <T> List<T> readObjects(int count, ObjectMapper<T> mapper) throws IOException {
