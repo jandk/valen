@@ -56,7 +56,7 @@ public final class ImageReader implements AssetReader<Texture, DarkAgesAsset> {
     private void readSingleStream(Image image, long hash) throws IOException {
         var lastMip = image.mipInfos().getLast();
         var uncompressedSize = lastMip.cumulativeSizeStreamDB() + lastMip.decompressedSize();
-        var bytes = archive.readStream(hash, uncompressedSize);
+        var bytes = archive.readStream(Hash.hash(hash, 0, 0), uncompressedSize);
         try (var mipSource = DataSource.fromBuffer(bytes)) {
             for (var i = 0; i < image.header().totalMipCount(); i++) {
                 image.mipData()[i] = mipSource.readBuffer(image.mipInfos().get(i).decompressedSize());

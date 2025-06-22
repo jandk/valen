@@ -15,28 +15,42 @@ public record DarkAgesAssetID(
         .thenComparing(DarkAgesAssetID::type)
         .thenComparing(DarkAgesAssetID::variation);
 
-//    private static final Map<ResourcesType, Set<ResourcesVariation>> Variations = new EnumMap<>(Map.of(
-//        ResourcesType.HavokShape, EnumSet.of(ResourcesVariation.HkMsvc64),
-//        ResourcesType.HkNavMesh, EnumSet.of(ResourcesVariation.HkMsvc64),
-//        ResourcesType.HkNavMeshMediator, EnumSet.of(ResourcesVariation.HkMsvc64),
-//        ResourcesType.HkNavVolume, EnumSet.of(ResourcesVariation.HkMsvc64),
-//        ResourcesType.HkNavVolumeMediator, EnumSet.of(ResourcesVariation.HkMsvc64),
-//        ResourcesType.RenderProgResource, EnumSet.of(
-//            ResourcesVariation.RenderProgVulkanPcAmd,
-//            ResourcesVariation.RenderProgVulkanPcAmdRetail,
-//            ResourcesVariation.RenderProgVulkanPcBase,
-//            ResourcesVariation.RenderProgVulkanPcBaseRetail
-//        )
-//    ));
+    private static final Map<ResourcesType, Set<ResourcesVariation>> Variations = new EnumMap<>(Map.ofEntries(
+        // Binary decls
+        Map.entry(ResourcesType.EntityDef, EnumSet.of(ResourcesVariation.RES_VAR_DECLS_NO_SANITYCHECKS)),
+        Map.entry(ResourcesType.LogicClass, EnumSet.of(ResourcesVariation.RES_VAR_DECLS_NO_SANITYCHECKS)),
+        Map.entry(ResourcesType.LogicEntity, EnumSet.of(ResourcesVariation.RES_VAR_DECLS_NO_SANITYCHECKS)),
+        Map.entry(ResourcesType.LogicFX, EnumSet.of(ResourcesVariation.RES_VAR_DECLS_NO_SANITYCHECKS)),
+        Map.entry(ResourcesType.LogicLibrary, EnumSet.of(ResourcesVariation.RES_VAR_DECLS_NO_SANITYCHECKS)),
+        Map.entry(ResourcesType.LogicUIWidget, EnumSet.of(ResourcesVariation.RES_VAR_DECLS_NO_SANITYCHECKS)),
+        Map.entry(ResourcesType.MapEntities, EnumSet.of(ResourcesVariation.RES_VAR_DECLS_NO_SANITYCHECKS)),
+
+        // Physics
+        Map.entry(ResourcesType.HavokCloth, EnumSet.of(ResourcesVariation.RES_VAR_PLATFORM_WIN64)),
+        Map.entry(ResourcesType.PhysicsRagdollResource, EnumSet.of(ResourcesVariation.RES_VAR_PLATFORM_WIN64)),
+        Map.entry(ResourcesType.CollisionShape, EnumSet.of(ResourcesVariation.RES_VAR_HK_MSVC_64)),
+        Map.entry(ResourcesType.HkNavVolumeIp, EnumSet.of(ResourcesVariation.RES_VAR_HK_MSVC_64)),
+        Map.entry(ResourcesType.MapEntityCollisionResources, EnumSet.of(ResourcesVariation.RES_VAR_HK_MSVC_64)),
+        Map.entry(ResourcesType.PhysicsWorldCollision, EnumSet.of(ResourcesVariation.RES_VAR_HK_MSVC_64)),
+
+        // Shaders
+        Map.entry(ResourcesType.OpacityMicroMapData, EnumSet.of(ResourcesVariation.RES_VAR_RENDERPROG_VULKAN_PC_BASE)),
+        Map.entry(ResourcesType.RenderProgResource, EnumSet.of(
+            ResourcesVariation.RES_VAR_RENDERPROG_VULKAN_PC_AMD,
+            ResourcesVariation.RES_VAR_RENDERPROG_VULKAN_PC_AMD_RETAIL,
+            ResourcesVariation.RES_VAR_RENDERPROG_VULKAN_PC_BASE,
+            ResourcesVariation.RES_VAR_RENDERPROG_VULKAN_PC_BASE_RETAIL
+        ))
+    ));
 
     public static DarkAgesAssetID from(String name, ResourcesType type) {
         var resourceName = new ResourceName(name);
-//        var variations = Variations
-//            .getOrDefault(type, Set.of(ResourcesVariation.None));
+        var variations = Variations
+            .getOrDefault(type, Set.of(ResourcesVariation.RES_VAR_NONE));
 
-//        if (variations.size() > 1) {
-//            throw new IllegalArgumentException("Multiple variations found for type: " + type + " (" + variations + ")");
-//        }
+        if (variations.size() > 1) {
+            throw new IllegalArgumentException("Multiple variations found for type: " + type + " (" + variations + ")");
+        }
 
         return new DarkAgesAssetID(
             resourceName,
@@ -45,16 +59,16 @@ public record DarkAgesAssetID(
         );
     }
 
-//    public static DarkAgesAssetID from(String name, ResourcesType type, ResourcesVariation variation) {
-////        if (!Variations.getOrDefault(type, Set.of(ResourcesVariation.None)).contains(variation)) {
-////            throw new IllegalArgumentException("Invalid variation for type: " + type + " (" + variation + ")");
-////        }
-//        return new DarkAgesAssetID(
-//            new ResourceName(name),
-//            type,
-//            0
-//        );
-//    }
+    public static DarkAgesAssetID from(String name, ResourcesType type, ResourcesVariation variation) {
+        if (!Variations.getOrDefault(type, Set.of(ResourcesVariation.RES_VAR_NONE)).contains(variation)) {
+            throw new IllegalArgumentException("Invalid variation for type: " + type + " (" + variation + ")");
+        }
+        return new DarkAgesAssetID(
+            new ResourceName(name),
+            type,
+            variation
+        );
+    }
 
     @Override
     public String fullName() {

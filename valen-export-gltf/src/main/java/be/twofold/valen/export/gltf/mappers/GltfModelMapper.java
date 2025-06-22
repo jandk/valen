@@ -47,17 +47,17 @@ public abstract class GltfModelMapper {
         var attributes = new HashMap<String, AccessorID>();
         for (var vertexBuffer : mesh.vertexBuffers()) {
             var semantic = vertexBuffer.info().semantic();
-            if (semantic == Semantic.COLOR) {
-                // TODO: Make Blender ignore vertex colors
-                continue;
-            } else if (semantic == Semantic.JOINTS) {
-                splitJoints((VertexBuffer<ShortBuffer>) vertexBuffer, attributes);
-            } else if (semantic == Semantic.WEIGHTS) {
-                splitWeights((VertexBuffer<FloatBuffer>) vertexBuffer, attributes);
-            } else {
-                var semanticString = mapSemantic(semantic);
-                var accessorID = buildAccessor(vertexBuffer, semantic);
-                attributes.put(semanticString, accessorID);
+            switch (semantic) {
+                case COLOR -> {
+                    // TODO: Make Blender ignore vertex colors
+                }
+                case JOINTS -> splitJoints((VertexBuffer<ShortBuffer>) vertexBuffer, attributes);
+                case WEIGHTS -> splitWeights((VertexBuffer<FloatBuffer>) vertexBuffer, attributes);
+                default -> {
+                    var semanticString = mapSemantic(semantic);
+                    var accessorID = buildAccessor(vertexBuffer, semantic);
+                    attributes.put(semanticString, accessorID);
+                }
             }
         }
         this.numTexCoords = 0;

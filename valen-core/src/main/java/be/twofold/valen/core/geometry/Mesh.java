@@ -11,7 +11,6 @@ public record Mesh(
     Optional<Material> material,
     Optional<String> name,
     List<BlendShape> blendShapes
-
 ) {
     public Mesh {
         Check.notNull(indexBuffer, "indices must not be null");
