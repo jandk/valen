@@ -12,6 +12,7 @@ public record Vegetation(
     VegetationWindData windData,
     boolean hasBillBoards,
     float maxLodDistance,
+    float unknown,
     boolean hasCustomNormals,
     List<GeometryDiskLayout> layouts,
     List<VegetationCollisionData> collisionData
@@ -25,6 +26,7 @@ public record Vegetation(
         var windData = VegetationWindData.read(source);
         var hasBillBoards = source.readBoolByte();
         var maxLodDistance = source.readFloat();
+        var unknown = source.readFloat();
         var hasCustomNormals = source.readBoolByte();
         var layouts = source.readObjects(header.numLods(), GeometryDiskLayout::read);
         var collisionData = source.readObjects(source.readInt(), VegetationCollisionData::read);
@@ -35,6 +37,7 @@ public record Vegetation(
             windData,
             hasBillBoards,
             maxLodDistance,
+            unknown,
             hasCustomNormals,
             layouts,
             collisionData
