@@ -13,14 +13,7 @@ public record Mesh(
     List<BlendShape> blendShapes
 ) {
     public Mesh {
-        Check.notNull(indexBuffer, "indexBuffer must not be null");
-
-        var count = vertexBuffers.stream()
-            .map(vb -> vb.info().semantic())
-            .distinct().count();
-        if (vertexBuffers.size() != count) {
-            throw new IllegalArgumentException("Multiple buffers with the same semantic");
-        }
+        Check.notNull(indexBuffer, "indices must not be null");
         vertexBuffers = List.copyOf(vertexBuffers);
     }
 
@@ -29,16 +22,17 @@ public record Mesh(
     }
 
     public Optional<VertexBuffer<?>> getBuffer(Semantic semantic) {
-        return vertexBuffers.stream()
-            .filter(vb -> vb.info().semantic().equals(semantic))
-            .findFirst();
+        return getBuffers(semantic).stream().findFirst();
     }
 
-    public List<VertexBuffer<?>> getBuffers(Class<? extends Semantic> type) {
+    public List<VertexBuffer<?>> getBuffers(Semantic semantic) {
         return vertexBuffers.stream()
-            .filter(vb -> type.isInstance(vb.info().semantic()))
-            .sorted(Comparator.comparingInt(vb -> vb.info().semantic().n()))
+            .filter(vb -> vb.info().semantic() == semantic)
             .toList();
+    }
+
+    public Mesh withVertexBuffers(List<VertexBuffer<?>> vertexBuffers) {
+        return new Mesh(indexBuffer, vertexBuffers, material, name, blendShapes);
     }
 
     @SuppressWarnings("OptionalUsedAsFieldOrParameterType")

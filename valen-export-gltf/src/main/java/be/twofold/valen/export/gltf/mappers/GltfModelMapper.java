@@ -15,9 +15,14 @@ import java.util.*;
 
 public abstract class GltfModelMapper {
     private static final Logger log = LoggerFactory.getLogger(GltfModelMapper.class);
+    private static final Set<Semantic> NORMALIZED = EnumSet.of(Semantic.TEX_COORD, Semantic.COLOR, Semantic.WEIGHTS);
 
     final GltfContext context;
     final GltfMaterialMapper materialMapper;
+    private int numTexCoords = 0;
+    private int numColors = 0;
+    private int numJoints = 0;
+    private int numWeights = 0;
 
     public GltfModelMapper(GltfContext context) {
         this.context = context;
@@ -42,14 +47,24 @@ public abstract class GltfModelMapper {
         var attributes = new HashMap<String, AccessorID>();
         for (var vertexBuffer : mesh.vertexBuffers()) {
             var semantic = vertexBuffer.info().semantic();
-            if (semantic instanceof Semantic.Color) {
-                // TODO: Make Blender ignore vertex colors
-                continue;
+            switch (semantic) {
+                case COLOR -> {
+                    // TODO: Make Blender ignore vertex colors
+                }
+                case JOINTS -> splitJoints((VertexBuffer<ShortBuffer>) vertexBuffer, attributes);
+                case WEIGHTS -> splitWeights((VertexBuffer<FloatBuffer>) vertexBuffer, attributes);
+                default -> {
+                    var semanticString = mapSemantic(semantic);
+                    var accessorID = buildAccessor(vertexBuffer, semantic);
+                    attributes.put(semanticString, accessorID);
+                }
             }
-            var semanticString = mapSemantic(semantic);
-            var accessorID = buildAccessor(vertexBuffer, semantic);
-            attributes.put(semanticString, accessorID);
         }
+        this.numTexCoords = 0;
+        this.numColors = 0;
+        this.numJoints = 0;
+        this.numWeights = 0;
+
         var indices = buildAccessor(mesh.indexBuffer(), null);
         var morphTargets = buildMorphTargets(mesh.blendShapes(), mesh.getBuffer(Semantic.POSITION).orElseThrow().count());
 
@@ -60,6 +75,50 @@ public abstract class GltfModelMapper {
             .targets(morphTargets)
             .build();
         return Optional.of(meshPrimitive);
+    }
+
+    private void splitJoints(VertexBuffer<ShortBuffer> vertexBuffer, Map<String, AccessorID> attributes) throws IOException {
+        int numBuffers = (vertexBuffer.info().size() + 3) / 4;
+        for (int b = 0; b < numBuffers; b++) {
+            var offset = b * 4;
+            var values = Math.min(4, vertexBuffer.info().size() - offset);
+            var joints = ShortBuffer.allocate(vertexBuffer.count() * 4);
+            for (int i = offset, o = 0; i < vertexBuffer.buffer().limit(); i += vertexBuffer.info().size(), o += 4) {
+                for (int j = 0; j < values; j++) {
+                    joints.put(o + j, vertexBuffer.buffer().get(i + j));
+                }
+                for (int j = values; j < 4; j++) {
+                    joints.put(o + j, (short) 0);
+                }
+            }
+
+            var newVertexBuffer = new VertexBuffer<>(joints, VertexBufferInfo.joints(ComponentType.UNSIGNED_SHORT, 4));
+            var semanticString = mapSemantic(Semantic.JOINTS);
+            var accessorID = buildAccessor(newVertexBuffer, Semantic.JOINTS);
+            attributes.put(semanticString, accessorID);
+        }
+    }
+
+    private void splitWeights(VertexBuffer<FloatBuffer> vertexBuffer, Map<String, AccessorID> attributes) throws IOException {
+        int numBuffers = (vertexBuffer.info().size() + 3) / 4;
+        for (int b = 0; b < numBuffers; b++) {
+            var offset = b * 4;
+            var values = Math.min(4, vertexBuffer.info().size() - offset);
+            var weights = FloatBuffer.allocate(vertexBuffer.count() * 4);
+            for (int i = offset, o = 0; i < vertexBuffer.buffer().limit(); i += vertexBuffer.info().size(), o += 4) {
+                for (int j = 0; j < values; j++) {
+                    weights.put(o + j, vertexBuffer.buffer().get(i + j));
+                }
+                for (int j = values; j < 4; j++) {
+                    weights.put(o + j, (short) 0);
+                }
+            }
+
+            var newVertexBuffer = new VertexBuffer<>(weights, VertexBufferInfo.weights(ComponentType.FLOAT, 4));
+            var semanticString = mapSemantic(Semantic.WEIGHTS);
+            var accessorID = buildAccessor(newVertexBuffer, Semantic.WEIGHTS);
+            attributes.put(semanticString, accessorID);
+        }
     }
 
     private List<Map<String, AccessorID>> buildMorphTargets(List<BlendShape> blendShapes, int count) throws IOException {
@@ -107,9 +166,9 @@ public abstract class GltfModelMapper {
 
         var accessor = ImmutableAccessor.builder()
             .bufferView(bufferView)
-            .componentType(mapComponentType(buffer.info().componentType()))
+            .componentType(mapComponentType(buffer.buffer()))
             .count(buffer.count())
-            .type(GltfModelMapper.mapElementType(buffer.info().elementType()));
+            .type(mapAccessorType(buffer.info().semantic()));
 
         if (semantic == Semantic.POSITION) {
             var bounds = Bounds.calculate((FloatBuffer) buffer.buffer());
@@ -118,46 +177,43 @@ public abstract class GltfModelMapper {
                 .max(GltfUtils.mapVector3(bounds.max()));
         }
 
-        if (buffer.info().normalized()) {
+        if (isNormalized(buffer)) {
             accessor.normalized(true);
         }
 
         return context.addAccessor(accessor.build());
     }
 
+    private boolean isNormalized(VertexBuffer<?> accessor) {
+        return NORMALIZED.contains(accessor.info().semantic())
+            && (accessor.buffer() instanceof ByteBuffer || accessor.buffer() instanceof ShortBuffer);
+    }
+
     void fixJointsAndWeights(Mesh mesh) {
         // TODO: Loop over joints and weights and fix them
-        mesh.getBuffer(Semantic.JOINTS0).ifPresent(joints -> mesh
-            .getBuffer(Semantic.WEIGHTS0).ifPresent(weights -> {
-                var ja = ((ByteBuffer) joints.buffer()).array();
-                var wa = ((ByteBuffer) weights.buffer()).array();
-                for (var i = 0; i < ja.length; i++) {
-                    if (wa[i] == 0) {
-                        ja[i] = 0;
+        mesh.getBuffer(Semantic.JOINTS).ifPresent(joints -> mesh
+            .getBuffer(Semantic.WEIGHTS).ifPresent(weights -> {
+                var jb = (ShortBuffer) joints.buffer();
+                var wb = (FloatBuffer) weights.buffer();
+                for (var i = 0; i < jb.limit(); i++) {
+                    if (wb.get(i) == 0) {
+                        jb.put(i, (short) 0);
                     }
                 }
             }));
     }
 
-    AccessorComponentType mapComponentType(ComponentType<?> componentType) {
-        if (componentType == ComponentType.BYTE) {
-            return AccessorComponentType.BYTE;
-        } else if (componentType == ComponentType.UNSIGNED_BYTE) {
-            return AccessorComponentType.UNSIGNED_BYTE;
-        } else if (componentType == ComponentType.SHORT) {
-            return AccessorComponentType.SHORT;
-        } else if (componentType == ComponentType.UNSIGNED_SHORT) {
-            return AccessorComponentType.UNSIGNED_SHORT;
-        } else if (componentType == ComponentType.UNSIGNED_INT) {
-            return AccessorComponentType.UNSIGNED_INT;
-        } else if (componentType == ComponentType.FLOAT) {
-            return AccessorComponentType.FLOAT;
-        } else {
-            throw new UnsupportedOperationException("Unsupported component type: " + componentType);
-        }
+    AccessorComponentType mapComponentType(Buffer buffer) {
+        return switch (buffer) {
+            case ByteBuffer _ -> AccessorComponentType.UNSIGNED_BYTE;
+            case ShortBuffer _ -> AccessorComponentType.UNSIGNED_SHORT;
+            case IntBuffer _ -> AccessorComponentType.UNSIGNED_INT;
+            case FloatBuffer _ -> AccessorComponentType.FLOAT;
+            default -> throw new UnsupportedOperationException("Unsupported buffer type: " + buffer);
+        };
     }
 
-    static AccessorType mapElementType(ElementType type) {
+    AccessorType mapElementType(ElementType type) {
         return switch (type) {
             case SCALAR -> AccessorType.SCALAR;
             case VECTOR2 -> AccessorType.VEC2;
@@ -171,13 +227,22 @@ public abstract class GltfModelMapper {
 
     String mapSemantic(Semantic semantic) {
         return switch (semantic) {
-            case Semantic.Position() -> "POSITION";
-            case Semantic.Normal() -> "NORMAL";
-            case Semantic.Tangent() -> "TANGENT";
-            case Semantic.TexCoord(var n) -> "TEXCOORD_" + n;
-            case Semantic.Color(var n) -> "COLOR_" + n;
-            case Semantic.Joints(var n) -> "JOINTS_" + n;
-            case Semantic.Weights(var n) -> "WEIGHTS_" + n;
+            case Semantic.POSITION -> "POSITION";
+            case Semantic.NORMAL -> "NORMAL";
+            case Semantic.TANGENT -> "TANGENT";
+            case Semantic.TEX_COORD -> "TEXCOORD_" + numTexCoords++;
+            case Semantic.COLOR -> "COLOR_" + numColors++;
+            case Semantic.JOINTS -> "JOINTS_" + numJoints++;
+            case Semantic.WEIGHTS -> "WEIGHTS_" + numWeights++;
+        };
+    }
+
+    AccessorType mapAccessorType(Semantic semantic) {
+        return switch (semantic) {
+            case Semantic.TEX_COORD -> AccessorType.VEC2;
+            case Semantic.POSITION, Semantic.NORMAL -> AccessorType.VEC3;
+            case Semantic.TANGENT, Semantic.COLOR, Semantic.JOINTS, Semantic.WEIGHTS -> AccessorType.VEC4;
+            case null -> AccessorType.SCALAR;
         };
     }
 }

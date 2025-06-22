@@ -22,13 +22,13 @@ public abstract class AbstractRenderParmReader<V extends Asset> implements Asset
 
     protected Object parseValue(DeclParser parser, RenderParm renderParm) {
         switch (renderParm.parmType) {
-            case PT_F32_VEC4:
+            case PT_F32_VEC4, PT_F16_VEC4:
                 return readVector4(parser);
-            case PT_F32_VEC3:
+            case PT_F32_VEC3, PT_F16_VEC3:
                 return readVector3(parser);
-            case PT_F32_VEC2:
+            case PT_F32_VEC2, PT_F16_VEC2:
                 return readVector2(parser);
-            case PT_F32:
+            case PT_F32, PT_F16:
                 return parser.expectNumber().floatValue();
             case PT_UI32:
             case PT_SI32:
@@ -71,6 +71,7 @@ public abstract class AbstractRenderParmReader<V extends Asset> implements Asset
                     default -> throw new UnsupportedOperationException();
                 };
             case PT_STORAGE_BUFFER:
+            case PT_BUFFER_REFERENCE:
                 Set<BufferViewFlag> flags = readStorageBufferFlags(parser);
                 String name = parser.expectName();
                 return new RenderParmStorageBuffer(flags, name);
@@ -81,9 +82,11 @@ public abstract class AbstractRenderParmReader<V extends Asset> implements Asset
             case PT_IMAGE2D_STORE_BUFFER:
             case PT_IMAGE2D_STORE_ARRAY_BUFFER:
             case PT_IMAGE3D_STORE_BUFFER:
+            case PT_IMAGECUBE_STORE_BUFFER:
             case PT_IMAGE2D_BUFFER:
             case PT_IMAGE2D_ARRAY_BUFFER:
             case PT_IMAGE3D_BUFFER:
+            case PT_IMAGECUBE_BUFFER:
             case PT_UNIFORM_TEXEL_BUFFER:
             case PT_STORAGE_TEXEL_BUFFER:
                 return ImageBufferFormat.parse(parser.expectName());
@@ -225,6 +228,11 @@ public abstract class AbstractRenderParmReader<V extends Asset> implements Asset
                     parser.expectName();
                     continue;
                 }
+                case "streamed" -> {
+                    result.streamed = true;
+                    parser.expectName();
+                    continue;
+                }
             }
 
             break;
@@ -274,16 +282,14 @@ public abstract class AbstractRenderParmReader<V extends Asset> implements Asset
         }
 
         var read = switch (token.value().toLowerCase()) {
-            case "streamed" -> {
-                result.streamed = true;
-                result.globallyIndexed = true;
-                yield true;
-            }
+            case "streamed" -> result.streamed = true;
             case "globallyindexed" -> result.globallyIndexed = true;
             case "material", "edit" -> result.editable = true;
-            case "sfsfeedback" -> result.sfsFeedback = true;
             case "env_nointerp" -> result.envNoInterpolation = true;
             case "fftbloom" -> result.fftBloom = true;
+            case "sfsfeedback" -> result.sfsFeedback = true;
+            case "materialfeedback" -> result.materialFeedback = true;
+            case "divergent" -> result.divergent = true;
             default -> false;
         };
 
@@ -316,18 +322,33 @@ public abstract class AbstractRenderParmReader<V extends Asset> implements Asset
                 continue;
             }
 
-            var token = parser.expectName();
-            if (token.equalsIgnoreCase("materialKind")) {
-                parser.expect(DeclTokenType.Assign);
-                result.materialKind = TextureMaterialKind.parse(parser.expectName());
-                continue;
+            var token = parser.expectName().toLowerCase();
+            switch (token) {
+                case "materialkind" -> {
+                    parser.expect(DeclTokenType.Assign);
+                    result.materialKind = TextureMaterialKind.parse(parser.expectName());
+                    continue;
+                }
+                case "smoothnessnormalparm" -> {
+                    parser.expect(DeclTokenType.Assign);
+                    result.smoothnessNormalParm = TextureMaterialKind.parse(parser.expectName());
+                    continue;
+                }
+                case "autobind" -> {
+                    // Just ignore this one
+                    if (parser.match(DeclTokenType.OpenBrace)) {
+                        parser.expectName();
+                        parser.expect(DeclTokenType.CloseBrace);
+                    }
+                    continue;
+                }
+                case "cvar" -> {
+                    // Just ignore this one
+                    continue;
+                }
             }
 
-            if (token.equalsIgnoreCase("smoothnessNormalParm")) {
-                parser.expect(DeclTokenType.Assign);
-                result.smoothnessNormalParm = TextureMaterialKind.parse(parser.expectName());
-                continue;
-            }
+            throw new IllegalArgumentException("Unsupported parm type: " + token);
         }
     }
 
@@ -340,6 +361,10 @@ public abstract class AbstractRenderParmReader<V extends Asset> implements Asset
         result.parmType = ParmType.parse(parser.expectName());
 
         result.declaredValue = parseValue(parser, result);
+        if (result.declaredValue instanceof ImageProperties imageProperties) {
+            result.streamed = imageProperties.streamed;
+        }
+
         parseExtras(parser, result);
         parser.expect(DeclTokenType.CloseBrace);
         return result;

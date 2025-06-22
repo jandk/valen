@@ -10,12 +10,12 @@ public record VertexBuffer<T extends Buffer>(
 ) {
     public VertexBuffer {
         Check.argument(
-            buffer.limit() % info.elementType().size() == 0,
-            () -> "buffer length must be a multiple of " + info.elementType().size()
+            buffer.limit() % info.size() == 0,
+            () -> "buffer length must be a multiple of " + info.size()
         );
     }
 
     public int count() {
-        return buffer.limit() / info.elementType().size();
+        return buffer.limit() / info.size();
     }
 }

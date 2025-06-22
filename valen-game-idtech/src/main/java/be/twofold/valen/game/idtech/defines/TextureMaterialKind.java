@@ -16,21 +16,24 @@ public enum TextureMaterialKind {
     TMK_DECALSPECULAR,
     TMK_LIGHTPROJECT,
     TMK_PARTICLE,
-    TMK_UNUSED_1,
-    TMK_UNUSED_2,
     TMK_LIGHTMAP,
     TMK_UI,
     TMK_FONT,
     TMK_LEGACY_FLASH_UI,
     TMK_LIGHTMAP_DIRECTIONAL,
     TMK_BLENDMASK,
+
+    // Great Circle
     TMK_TINTMASK,
     TMK_TERRAIN_SPLATMAP,
     TMK_ECOTOPE_LAYER,
     TMK_DECALHEIGHTMAP,
     TMK_ALBEDO_UNSCALED,
     TMK_ALBEDO_DETAILS,
-    TMK_COUNT,
+
+    // Dark Ages
+    TMK_AO,
+    TMK_PAINTEDDATAGRID,
     ;
 
     public static TextureMaterialKind parse(String textureMaterialKind) {
@@ -50,6 +53,7 @@ public enum TextureMaterialKind {
             case "lightproject" -> TextureMaterialKind.TMK_LIGHTPROJECT;
             case "particle" -> TextureMaterialKind.TMK_PARTICLE;
             case "blendmask" -> TextureMaterialKind.TMK_BLENDMASK;
+            case "ao" -> TextureMaterialKind.TMK_AO;
             default -> TextureMaterialKind.TMK_NONE;
         };
     }

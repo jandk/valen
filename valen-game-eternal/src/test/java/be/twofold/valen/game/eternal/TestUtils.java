@@ -34,11 +34,10 @@ public abstract class TestUtils {
                 var buffer = archive.loadAsset(asset.id(), ByteBuffer.class);
                 reader.read(DataSource.fromBuffer(buffer), asset);
             } catch (FileNotFoundException e) {
-                System.err.println("File not found");
+                System.err.println("File not found" + asset.id().fullName());
             } catch (Exception e) {
-                fail(e);
+                fail(asset.id().fullName(), e);
             }
         }
     }
-
 }

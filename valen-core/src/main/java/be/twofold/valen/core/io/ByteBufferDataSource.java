@@ -27,8 +27,9 @@ final class ByteBufferDataSource implements DataSource {
     }
 
     @Override
-    public void position(long pos) {
+    public DataSource position(long pos) {
         buffer.position(Math.toIntExact(pos));
+        return this;
     }
 
     @Override

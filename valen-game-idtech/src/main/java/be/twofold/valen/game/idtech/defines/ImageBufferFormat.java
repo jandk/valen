@@ -9,7 +9,6 @@ public enum ImageBufferFormat {
     IBF_RG32F,
     IBF_RG16F,
     IBF_R11F_G11F_B10F,
-    IBF_RGB9E5,
     IBF_R32F,
     IBF_R16F,
     IBF_RGBA16,
@@ -25,8 +24,6 @@ public enum ImageBufferFormat {
     IBF_RG8_SNORM,
     IBF_R16_SNORM,
     IBF_R8_SNORM,
-    IBF_RGBA16F_HALF,
-    IBF_RGBA8_SNORM_HALF,
     IBF_RGBA32I,
     IBF_RGBA16I,
     IBF_RGBA8I,
@@ -46,7 +43,11 @@ public enum ImageBufferFormat {
     IBF_R32UI,
     IBF_R16UI,
     IBF_R8UI,
-    IBF_INVALID,
+
+    // Great Circle & Dark Ages
+    IBF_RGB9E5,
+    IBF_RGBA16F_HALF,
+    IBF_RGBA8_SNORM_HALF,
     ;
 
     public static ImageBufferFormat parse(String format) {

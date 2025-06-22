@@ -6,7 +6,6 @@ public enum TextureFormat {
     FMT_RGBA16F,
     FMT_RGBA8,
     FMT_RGBA8_SRGB,
-    FMT_RGBA8_SNORM,
     FMT_ARGB8,
     FMT_ALPHA,
     FMT_L8A8_DEPRECATED,
@@ -27,7 +26,6 @@ public enum TextureFormat {
     FMT_DEPTH,
     FMT_DEPTH_STENCIL,
     FMT_DEPTH16,
-    FMT_STENCIL,
     FMT_X32F,
     FMT_Y16F_X16F,
     FMT_X16,
@@ -35,7 +33,6 @@ public enum TextureFormat {
     FMT_RGB565,
     FMT_R8,
     FMT_R11FG11FB10F,
-    FMT_R9G9B9E5,
     FMT_X16F,
     FMT_RG16F,
     FMT_R10G10B10A2,
@@ -43,8 +40,6 @@ public enum TextureFormat {
     FMT_R32_UINT,
     FMT_R16_UINT,
     FMT_R8_UINT,
-    FMT_RGBA32_UINT,
-    FMT_RG32_UINT,
     FMT_ASTC_4X4,
     FMT_ASTC_4X4_SRGB,
     FMT_ASTC_5X4,
@@ -62,7 +57,20 @@ public enum TextureFormat {
     FMT_ASTC_8X8,
     FMT_ASTC_8X8_SRGB,
     FMT_DEPTH32F,
-    FMT_NEXTAVAILABLE,
+
+    // Great Circle
+    FMT_RGBA8_SNORM,
+    FMT_STENCIL,
+    FMT_R9G9B9E5,
+    FMT_RGBA32_UINT,
+    FMT_RG32_UINT,
+
+    // Dark Ages
+    FMT_SMALLF,
+    FMT_MAINVIEW_SMALLF,
+    FMT_RGBA16_UINT,
+    FMT_RG16_UINT,
+    FMT_RGBA16,
     ;
 
     public static TextureFormat parse(String textureFormat) {

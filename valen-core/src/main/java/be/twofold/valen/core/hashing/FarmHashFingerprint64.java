@@ -1,78 +1,37 @@
-/*
- * Copyright (C) 2015 The Guava Authors
- *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
- * in compliance with the License. You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software distributed under the License
- * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
- * or implied. See the License for the specific language governing permissions and limitations under
- * the License.
- */
-
-/*
- * Adopted from Guava's FarmHashFingerprint64.java
- */
-
 package be.twofold.valen.core.hashing;
 
-import be.twofold.valen.core.util.*;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 
-import java.nio.*;
-
-/**
- * Implementation of FarmHash Fingerprint64, an open-source fingerprinting algorithm for strings.
- *
- * <p>Its speed is comparable to CityHash64, and its quality of hashing is at least as good.
- *
- * <p>Note to maintainers: This implementation relies on signed arithmetic being bit-wise equivalent
- * to unsigned arithmetic in all cases except:
- *
- * <ul>
- *   <li>comparisons (signed values can be negative)
- *   <li>division (avoided here)
- *   <li>shifting (right shift must be unsigned)
- * </ul>
- *
- * @author Kyle Maddison
- * @author Geoff Pike
- */
 final class FarmHashFingerprint64 implements HashFunction {
+    public static final FarmHashFingerprint64 INSTANCE = new FarmHashFingerprint64();
+
     // Some primes between 2^63 and 2^64 for various uses.
     private static final long K0 = 0xC3A5C85C97CB3127L;
     private static final long K1 = 0xB492B66FBE98F273L;
     private static final long K2 = 0x9AE16A3B2F90404FL;
+    private static final long SEED = 81;
 
-    FarmHashFingerprint64() {
+    private FarmHashFingerprint64() {
     }
 
     @Override
-    public HashCode hash(byte[] array, int offset, int length) {
-        Check.fromIndexSize(offset, length, array.length);
-        long hash = fingerprint(array, offset, length);
-        return HashCode.ofLong(hash);
+    public HashCode hash(ByteBuffer s) {
+        return HashCode.ofLong(fingerprint(s));
     }
 
-    @Override
-    public HashCode hash(ByteBuffer src) {
-        throw new UnsupportedOperationException();
-    }
-
-    // End of public functions.
-
-    private static long fingerprint(byte[] bytes, int offset, int length) {
+    private static long fingerprint(ByteBuffer s) {
+        int length = s.order(ByteOrder.LITTLE_ENDIAN).remaining();
         if (length <= 32) {
             if (length <= 16) {
-                return hashLength0to16(bytes, offset, length);
+                return hashLength0to16(s);
             } else {
-                return hashLength17to32(bytes, offset, length);
+                return hashLength17to32(s);
             }
         } else if (length <= 64) {
-            return hashLength33To64(bytes, offset, length);
+            return hashLength33to64(s);
         } else {
-            return hashLength65Plus(bytes, offset, length);
+            return hashLength65Plus(s);
         }
     }
 
@@ -89,128 +48,133 @@ final class FarmHashFingerprint64 implements HashFunction {
         return b;
     }
 
-    /**
-     * Computes intermediate hash of 32 bytes of byte array from the given offset. Results are
-     * returned in the output array because when we last measured, this was 12% faster than allocating
-     * new arrays every time.
-     */
-    private static void weakHashLength32WithSeeds(
-        byte[] bytes, int offset, long seedA, long seedB, long[] output) {
-        long part1 = load64(bytes, offset);
-        long part2 = load64(bytes, offset + 8);
-        long part3 = load64(bytes, offset + 16);
-        long part4 = load64(bytes, offset + 24);
+    private static UInt128 weakHashLength32WithSeeds(ByteBuffer s, long a, long b) {
+        long w = s.getLong();
+        long x = s.getLong();
+        long y = s.getLong();
+        long z = s.getLong();
 
-        seedA += part1;
-        seedB = Long.rotateRight(seedB + seedA + part4, 21);
-        long c = seedA;
-        seedA += part2;
-        seedA += part3;
-        seedB += Long.rotateRight(seedA, 44);
-        output[0] = seedA + part4;
-        output[1] = seedB + c;
+        a += w;
+        b = Long.rotateRight(b + a + z, 21);
+        long c = a;
+        a += x;
+        a += y;
+        b += Long.rotateRight(a, 44);
+        return new UInt128(a + z, b + c);
     }
 
-    private static long hashLength0to16(byte[] bytes, int offset, int length) {
+    private static long hashLength0to16(ByteBuffer s) {
+        int length = s.remaining();
         if (length >= 8) {
             long mul = K2 + length * 2L;
-            long a = load64(bytes, offset) + K2;
-            long b = load64(bytes, offset + length - 8);
+            long a = s.getLong() + K2;
+            long b = s.position(s.limit() - 8).getLong();
             long c = Long.rotateRight(b, 37) * mul + a;
             long d = (Long.rotateRight(a, 25) + b) * mul;
             return hashLength16(c, d, mul);
         }
         if (length >= 4) {
-            long mul = K2 + length * 2;
-            long a = load32(bytes, offset) & 0xFFFFFFFFL;
-            return hashLength16(length + (a << 3), load32(bytes, offset + length - 4) & 0xFFFFFFFFL, mul);
+            long mul = K2 + length * 2L;
+            long a = Integer.toUnsignedLong(s.getInt());
+            long b = Integer.toUnsignedLong(s.position(s.limit() - 4).getInt());
+            return hashLength16(length + (a << 3), b, mul);
         }
         if (length > 0) {
-            byte a = bytes[offset];
-            byte b = bytes[offset + (length >> 1)];
-            byte c = bytes[offset + (length - 1)];
-            int y = (a & 0xFF) + ((b & 0xFF) << 8);
-            int z = length + ((c & 0xFF) << 2);
+            int a = Byte.toUnsignedInt(s.get(0));
+            int b = Byte.toUnsignedInt(s.get(length >>> 1));
+            int c = Byte.toUnsignedInt(s.get(length - 1));
+            s.position(s.limit());
+
+            int y = a + (b << 8);
+            int z = length + (c << 2);
             return shiftMix(y * K2 ^ z * K0) * K2;
         }
         return K2;
     }
 
-    private static long hashLength17to32(byte[] bytes, int offset, int length) {
+    private static long hashLength17to32(ByteBuffer s) {
+        int length = s.remaining();
         long mul = K2 + length * 2L;
-        long a = load64(bytes, offset) * K1;
-        long b = load64(bytes, offset + 8);
-        long c = load64(bytes, offset + length - 8) * mul;
-        long d = load64(bytes, offset + length - 16) * K2;
+        long a = s.getLong(0) * K1;
+        long b = s.getLong(8);
+        long c = s.getLong(length - 8) * mul;
+        long d = s.getLong(length - 16) * K2;
+        s.position(s.limit());
+
         return hashLength16(Long.rotateRight(a + b, 43) + Long.rotateRight(c, 30) + d, a + Long.rotateRight(b + K2, 18) + c, mul);
     }
 
-    private static long hashLength33To64(byte[] bytes, int offset, int length) {
+    private static long hashLength33to64(ByteBuffer s) {
+        int length = s.remaining();
         long mul = K2 + length * 2L;
-        long a = load64(bytes, offset) * K2;
-        long b = load64(bytes, offset + 8);
-        long c = load64(bytes, offset + length - 8) * mul;
-        long d = load64(bytes, offset + length - 16) * K2;
+        long a = s.getLong(0) * K2;
+        long b = s.getLong(8);
+        long c = s.getLong(length - 8) * mul;
+        long d = s.getLong(length - 16) * K2;
         long y = Long.rotateRight(a + b, 43) + Long.rotateRight(c, 30) + d;
         long z = hashLength16(y, a + Long.rotateRight(b + K2, 18) + c, mul);
-        long e = load64(bytes, offset + 16) * mul;
-        long f = load64(bytes, offset + 24);
-        long g = (y + load64(bytes, offset + length - 32)) * mul;
-        long h = (z + load64(bytes, offset + length - 24)) * mul;
+        long e = s.getLong(16) * mul;
+        long f = s.getLong(24);
+        long g = (y + s.getLong(length - 32)) * mul;
+        long h = (z + s.getLong(length - 24)) * mul;
+        s.position(s.limit());
+
         return hashLength16(Long.rotateRight(e + f, 43) + Long.rotateRight(g, 30) + h, e + Long.rotateRight(f + a, 18) + g, mul);
     }
 
-    /*
-     * Compute an 8-byte hash of a byte array of length greater than 64 bytes.
-     */
-    private static long hashLength65Plus(byte[] bytes, int offset, int length) {
-        int seed = 81;
-        // For strings over 64 bytes we loop. Internal state consists of 56 bytes: v, w, x, y, and z.
-        long x = seed;
-        @SuppressWarnings("ConstantOverflow")
-        long y = seed * K1 + 113;
+    private static long hashLength65Plus(ByteBuffer s) {
+        // For strings over 64 bytes we loop.  Internal state consists of
+        // 56 bytes: v, w, x, y, and z.
+        int length = s.remaining();
+
+        long x = SEED;
+        @SuppressWarnings("NumericOverflow")
+        long y = SEED * K1 + 113;
         long z = shiftMix(y * K2 + 113) * K2;
-        long[] v = new long[2];
-        long[] w = new long[2];
-        x = x * K2 + load64(bytes, offset);
+        UInt128 v = new UInt128(0, 0);
+        UInt128 w = new UInt128(0, 0);
+        x = x * K2 + s.getLong(0);
 
-        // Set end so that after the loop we have 1 to 64 bytes left to process.
-        int end = offset + ((length - 1) / 64) * 64;
-        int last64offset = end + ((length - 1) & 63) - 63;
         do {
-            x = Long.rotateRight(x + y + v[0] + load64(bytes, offset + 8), 37) * K1;
-            y = Long.rotateRight(y + v[1] + load64(bytes, offset + 48), 42) * K1;
-            x ^= w[1];
-            y += v[0] + load64(bytes, offset + 40);
-            z = Long.rotateRight(z + w[0], 33) * K1;
-            weakHashLength32WithSeeds(bytes, offset, v[1] * K1, x + w[0], v);
-            weakHashLength32WithSeeds(bytes, offset + 32, z + w[1], y + load64(bytes, offset + 16), w);
-            long tmp = x;
+            int offset = s.position();
+            x = Long.rotateRight(x + y + v.first + s.getLong(offset + 8), 37) * K1;
+            y = Long.rotateRight(y + v.second + s.getLong(offset + 48), 42) * K1;
+            x ^= w.second;
+            y += v.first + s.getLong(offset + 40);
+            z = Long.rotateRight(z + w.first, 33) * K1;
+            long t = s.getLong(offset + 16);
+            v = weakHashLength32WithSeeds(s, v.second * K1, x + w.first);
+            w = weakHashLength32WithSeeds(s, z + w.second, y + t);
+            t = x;
             x = z;
-            z = tmp;
-            offset += 64;
-        } while (offset != end);
-        long mul = K1 + ((z & 0xFF) << 1);
-        // Operate on the last 64 bytes of input.
-        offset = last64offset;
-        w[0] += ((length - 1) & 63);
-        v[0] += w[0];
-        w[0] += v[0];
-        x = Long.rotateRight(x + y + v[0] + load64(bytes, offset + 8), 37) * mul;
-        y = Long.rotateRight(y + v[1] + load64(bytes, offset + 48), 42) * mul;
-        x ^= w[1] * 9;
-        y += v[0] * 9 + load64(bytes, offset + 40);
-        z = Long.rotateRight(z + w[0], 33) * mul;
-        weakHashLength32WithSeeds(bytes, offset, v[1] * mul, x + w[0], v);
-        weakHashLength32WithSeeds(bytes, offset + 32, z + w[1], y + load64(bytes, offset + 16), w);
-        return hashLength16(hashLength16(v[0], w[0], mul) + shiftMix(y) * K0 + x, hashLength16(v[1], w[1], mul) + z, mul);
+            z = t;
+        } while (s.remaining() > 64);
+
+        long mul = K1 + ((z & 0xff) << 1);
+        // Make s point to the last 64 bytes of input.
+        s.position(s.limit() - 64);
+        int offset = s.position();
+        w.first += ((length - 1) & 63);
+        v.first += w.first;
+        w.first += v.first;
+        x = Long.rotateRight(x + y + v.first + s.getLong(offset + 8), 37) * mul;
+        y = Long.rotateRight(y + v.second + s.getLong(offset + 48), 42) * mul;
+        x ^= w.second * 9;
+        y += v.first * 9 + s.getLong(offset + 40);
+        z = Long.rotateRight(z + w.first, 33) * mul;
+        long t = s.getLong(offset + 16);
+        v = weakHashLength32WithSeeds(s, v.second * mul, x + w.first);
+        w = weakHashLength32WithSeeds(s, z + w.second, y + t);
+        return hashLength16(hashLength16(v.first, w.first, mul) + shiftMix(y) * K0 + x, hashLength16(v.second, w.second, mul) + z, mul);
     }
 
-    private static int load32(byte[] input, int offset) {
-        return ByteArrays.getInt(input, offset);
-    }
+    private static final class UInt128 {
+        private long first;
+        private long second;
 
-    private static long load64(byte[] input, int offset) {
-        return ByteArrays.getLong(input, offset);
+        private UInt128(long first, long second) {
+            this.first = first;
+            this.second = second;
+        }
     }
 }

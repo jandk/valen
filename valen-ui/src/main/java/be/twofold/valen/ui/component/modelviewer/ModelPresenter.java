@@ -61,7 +61,7 @@ public final class ModelPresenter extends AbstractFXPresenter<ModelView> impleme
     private TriangleMesh mapMesh(Mesh mesh) {
         var pointBuffer = mesh.getBuffer(Semantic.POSITION).orElseThrow();
         var normalBuffer = mesh.getBuffer(Semantic.NORMAL).orElseThrow();
-        var texCoordBuffer = mesh.getBuffer(Semantic.TEX_COORD0).orElseThrow();
+        var texCoordBuffer = mesh.getBuffer(Semantic.TEX_COORD).orElseThrow();
 
         var result = new TriangleMesh(VertexFormat.POINT_NORMAL_TEXCOORD);
         copyPoints(pointBuffer, result.getPoints());
@@ -81,13 +81,23 @@ public final class ModelPresenter extends AbstractFXPresenter<ModelView> impleme
         }
 
         try {
-            var texture = property.get()
-                .reference().supplier().get();
-            var surface = texture.surfaces().stream() // .skip(2) was another idea
-                // I have to limit this, because the performance absolutely tanks
-                .filter(s -> s.width() <= 1024 && s.height() <= 1024)
-                .findFirst().orElseThrow();
-            var converted = Texture.fromSurface(surface, texture.format())
+            var reference = property.get().reference();
+            if (reference == null) {
+                return null;
+            }
+
+            var texture = reference.supplier().get();
+
+            // I have to limit this, because the performance absolutely tanks, not sure why yet...
+            var surface = texture.surfaces().stream()
+                // .filter(s -> s.width() <= 1024 && s.height() <= 1024)
+                .skip(2)
+                .findFirst();
+            if (surface.isEmpty()) {
+                return null;
+            }
+
+            var converted = Texture.fromSurface(surface.get(), texture.format())
                 .convert(TextureFormat.B8G8R8A8_UNORM, true);
 
             var pixelBuffer = new PixelBuffer<>(

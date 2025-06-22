@@ -8,14 +8,24 @@ public final class RenderParm {
     public ParmType parmType;
     public ParmEdit parmEdit;
     public ParmScope parmScope;
+    public TextureMaterialKind materialKind;
+    public TextureMaterialKind smoothnessNormalParm;
+
+    // Flags
+    // Eternal
     public boolean cubeFilterTexture;
     public boolean streamed;
     public boolean globallyIndexed;
     public boolean editable;
-    public boolean sfsFeedback;
     public boolean envNoInterpolation;
     public boolean fftBloom;
-    public TextureMaterialKind materialKind;
-    public TextureMaterialKind smoothnessNormalParm;
 
+    // Great Circle
+    public boolean sfsFeedback;
+    public boolean isTypeInfoShaderStruct;
+
+    // Dark Ages
+    public boolean materialFeedback;
+    public boolean divergent;
+    public boolean prefilterMips;
 }

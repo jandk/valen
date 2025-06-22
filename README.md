@@ -58,6 +58,7 @@ For now a bit terse, but you have to start somewhere
 |------------------------------------|----------|-----------|---------------|-----------|------------|------|
 | DOOM Eternal                       | Yes      | Yes       | Yes           | Yes       | Yes        | ---  |
 | Indiana Jones and the Great Circle | Yes      | Yes       | Partial (3/4) | Yes       | No         | Yes  |
+| DOOM: The Dark Ages                | Yes      | Yes       | Yes           | Yes       | Yes        | Yes  |
 
 ### Planned:
 

@@ -1,11 +1,12 @@
 package be.twofold.valen.core.hashing;
 
 import java.nio.*;
+import java.nio.charset.*;
 
 @FunctionalInterface
 public interface HashFunction {
     static HashFunction farmHashFingerprint64() {
-        return new FarmHashFingerprint64();
+        return FarmHashFingerprint64.INSTANCE;
     }
 
     static HashFunction murmurHash64B(long seed) {
@@ -20,8 +21,8 @@ public interface HashFunction {
         return new XXHash64(seed);
     }
 
-    default HashCode hash(byte[] array, int offset, int length) {
-        throw new UnsupportedOperationException();
+    default HashCode hash(String string) {
+        return hash(ByteBuffer.wrap(string.getBytes(StandardCharsets.UTF_8)));
     }
 
     HashCode hash(ByteBuffer src);

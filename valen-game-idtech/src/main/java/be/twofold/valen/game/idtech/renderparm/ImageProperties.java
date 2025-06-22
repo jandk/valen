@@ -8,5 +8,6 @@ public final class ImageProperties {
     public boolean fullScaleBias;
     public boolean fftBloom;
     public boolean noMips;
+    public boolean streamed;
     public String name;
 }
