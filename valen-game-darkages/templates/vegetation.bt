@@ -79,6 +79,7 @@ VegetationSurface       surfaces[header.numSurfaces] <optimize=false, style=sSec
 VegetationWindData      windData <style=sSection2>;
 u8                      hasBillBoards;
 f32                     maxLodDistance;
+f32                     unknown;
 u8                      hasCustomNormals;
 GeoDiskLayout           layouts[header.numLods] <style=sSection3>;
 u32                     numCollisionData;
