@@ -4,12 +4,12 @@ import be.twofold.valen.core.util.*;
 
 import java.util.*;
 
-public final class Shorts extends AbstractList<Short> implements Comparable<Shorts>, RandomAccess {
-    private final short[] array;
-    private final int fromIndex;
-    private final int toIndex;
+public class Shorts extends AbstractList<Short> implements Comparable<Shorts>, RandomAccess {
+    final short[] array;
+    final int fromIndex;
+    final int toIndex;
 
-    private Shorts(short[] array, int fromIndex, int toIndex) {
+    Shorts(short[] array, int fromIndex, int toIndex) {
         Check.fromToIndex(fromIndex, toIndex, array.length);
         this.array = array;
         this.fromIndex = fromIndex;

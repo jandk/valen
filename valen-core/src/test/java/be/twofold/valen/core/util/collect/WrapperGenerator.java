@@ -11,12 +11,12 @@ public class WrapperGenerator {
         
         import java.util.*;
         
-        public final class {class} extends AbstractList<{wrapper}> implements Comparable<{class}>, RandomAccess {
-            private final {primitive}[] array;
-            private final int fromIndex;
-            private final int toIndex;
+        public class {class} extends AbstractList<{wrapper}> implements Comparable<{class}>, RandomAccess {
+            final {primitive}[] array;
+            final int fromIndex;
+            final int toIndex;
         
-            private {class}({primitive}[] array, int fromIndex, int toIndex) {
+            {class}({primitive}[] array, int fromIndex, int toIndex) {
                 Check.fromToIndex(fromIndex, toIndex, array.length);
                 this.array = array;
                 this.fromIndex = fromIndex;
@@ -106,6 +106,38 @@ public class WrapperGenerator {
         }
         """;
 
+    private static final String MUTABLE_TEMPLATE = """
+        package be.twofold.valen.core.util.collect;
+        
+        import be.twofold.valen.core.util.*;
+        
+        public final class Mutable{class} extends {class} {
+            private Mutable{class}({primitive}[] array, int fromIndex, int toIndex) {
+                super(array, fromIndex, toIndex);
+            }
+        
+            public static Mutable{class} wrap({primitive}[] array) {
+                return new Mutable{class}(array, 0, array.length);
+            }
+        
+            public static Mutable{class} wrap({primitive}[] array, int fromIndex, int toIndex) {
+                return new Mutable{class}(array, fromIndex, toIndex);
+            }
+        
+            public void set{primitiveUpper}(int index, {primitive} value){
+                Check.index(index, size());
+                array[fromIndex + index] = value;
+            }
+        
+            @Override
+            public {wrapper} set(int index, {wrapper} element) {
+                {primitive} oldValue = get{primitiveUpper}(index);
+                set{primitiveUpper}(index, element);
+                return oldValue;
+            }
+        }
+        """;
+
     public static void main(String[] args) throws IOException {
         generate("Bytes", "Byte", "byte", "Byte");
         generate("Shorts", "Short", "short", "Short");
@@ -121,7 +153,13 @@ public class WrapperGenerator {
             .replace("{wrapper}", wrapperName)
             .replace("{primitive}", primitiveName)
             .replace("{primitiveUpper}", primitiveUpperName);
-
         Files.writeString(Path.of("valen-core/src/main/java/be/twofold/valen/core/util/collect/" + className + ".java"), code);
+
+        String mutableCode = MUTABLE_TEMPLATE
+            .replace("{class}", className)
+            .replace("{wrapper}", wrapperName)
+            .replace("{primitive}", primitiveName)
+            .replace("{primitiveUpper}", primitiveUpperName);
+        Files.writeString(Path.of("valen-core/src/main/java/be/twofold/valen/core/util/collect/Mutable" + className + ".java"), mutableCode);
     }
 }

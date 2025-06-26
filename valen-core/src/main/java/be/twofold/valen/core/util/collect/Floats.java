@@ -7,12 +7,12 @@ import java.util.AbstractList;
 import java.util.Arrays;
 import java.util.RandomAccess;
 
-public final class Floats extends AbstractList<Float> implements Comparable<Floats>, RandomAccess {
-    private final float[] array;
-    private final int fromIndex;
-    private final int toIndex;
+public class Floats extends AbstractList<Float> implements Comparable<Floats>, RandomAccess {
+    final float[] array;
+    final int fromIndex;
+    final int toIndex;
 
-    private Floats(float[] array, int fromIndex, int toIndex) {
+    Floats(float[] array, int fromIndex, int toIndex) {
         Check.fromToIndex(fromIndex, toIndex, array.length);
         this.array = array;
         this.fromIndex = fromIndex;
