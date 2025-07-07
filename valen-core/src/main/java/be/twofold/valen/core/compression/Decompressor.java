@@ -26,6 +26,10 @@ public interface Decompressor {
         return new OodleDecompressor(path);
     }
 
+    static Decompressor ooz(Path path) {
+        return new OozDecompressor(path);
+    }
+
     default ByteBuffer decompress(ByteBuffer src, int size) throws IOException {
         var dst = ByteBuffer.allocate(size);
         decompress(src, dst);
