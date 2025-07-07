@@ -1,4 +1,5 @@
 module valen.app {
+    requires java.logging;
     requires javafx.graphics;
     requires valen.core;
     requires valen.ui;

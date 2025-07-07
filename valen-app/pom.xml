@@ -56,7 +56,7 @@
         <!-- External -->
         <dependency>
             <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-simple</artifactId>
+            <artifactId>slf4j-jdk14</artifactId>
             <scope>compile</scope>
         </dependency>
         <dependency>
