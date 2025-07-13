@@ -6,10 +6,14 @@ import org.slf4j.*;
 
 import java.io.*;
 import java.lang.foreign.*;
+import java.net.*;
+import java.net.http.*;
 import java.nio.*;
 import java.nio.file.*;
 
 final class OodleDecompressor implements Decompressor {
+    private static final String OODLE_URL = "https://github.com/WorkingRobot/OodleUE/raw/refs/heads/main/Engine/Source/Programs/Shared/EpicGames.Oodle/Sdk/2.9.10/win/redist/oo2core_9_win64.dll";
+
     private static final Logger log = LoggerFactory.getLogger(OodleDecompressor.class);
 
     private final Arena arena = Arena.ofAuto();
@@ -22,6 +26,35 @@ final class OodleDecompressor implements Decompressor {
 
         int memorySizeNeeded = oodleFFM.OodleLZDecoder_MemorySizeNeeded(OodleLZ_Compressor.Invalid.value(), -1);
         decodeBuffer = arena.allocate(memorySizeNeeded);
+    }
+
+    static OodleDecompressor download() {
+        var uri = URI.create(OODLE_URL);
+        var fileName = Path.of(uri.getPath()).getFileName();
+        if (!Files.exists(fileName)) {
+            try (var client = HttpClient.newBuilder()
+                .followRedirects(HttpClient.Redirect.NORMAL)
+                .build()
+            ) {
+                var request = HttpRequest.newBuilder(uri)
+                    .GET()
+                    .build();
+
+                log.info("Downloading Oodle from {}", uri);
+                var response = client.send(request, HttpResponse.BodyHandlers.ofFile(fileName));
+                if (response.statusCode() != 200) {
+                    throw new Exception("HTTP error: " + response.statusCode());
+                }
+
+                fileName = response.body();
+                log.info("Downloaded Oodle to {}", fileName);
+            } catch (Exception e) {
+                log.error("Failed to download Oodle", e);
+                throw new RuntimeException(e);
+            }
+        }
+
+        return new OodleDecompressor(fileName);
     }
 
     @Override

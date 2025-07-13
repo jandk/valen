@@ -22,6 +22,10 @@ public interface Decompressor {
         return new LZ4Decompressor();
     }
 
+    static Decompressor oodle() {
+        return OodleDecompressor.download();
+    }
+
     static Decompressor oodle(Path path) {
         return new OodleDecompressor(path);
     }

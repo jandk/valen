@@ -20,7 +20,7 @@ public final class DarkAgesGame implements Game {
     DarkAgesGame(Path path) throws IOException {
         this.base = path.resolve("base");
         this.spec = PackageMapSpecReader.read(base.resolve("packagemapspec.json"));
-        this.decompressor = Decompressor.oodle(Path.of("oo2core_9_win64.dll"));
+        this.decompressor = Decompressor.oodle();
         this.streamDbCollection = loadStreams(base, spec, decompressor);
         this.commonCollection = loadResources(base, spec, decompressor, "common", "warehouse", "init");
     }
