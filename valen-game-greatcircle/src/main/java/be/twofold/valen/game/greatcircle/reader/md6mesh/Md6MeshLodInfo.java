@@ -1,6 +1,6 @@
 package be.twofold.valen.game.greatcircle.reader.md6mesh;
 
-import be.twofold.valen.core.io.*;
+import be.twofold.valen.core.io.BinaryReader;
 import be.twofold.valen.core.math.*;
 import be.twofold.valen.game.idtech.geometry.*;
 
@@ -21,27 +21,27 @@ record Md6MeshLodInfo(
     short[] blendShapeReferences,
     List<Md6MeshBlendShape> blendShapes
 ) implements LodInfo {
-    static Md6MeshLodInfo read(DataSource source) throws IOException {
-        var numVertices = source.readInt();
-        var numFaces = source.readInt();
-        var bounds = Bounds.read(source);
-        var vertexOffset = Vector3.read(source);
-        var vertexScale = source.readFloat();
-        var uvOffset = Vector2.read(source);
-        var uvScale = source.readFloat();
-        var flags = source.readInt();
-        var unkFloat1 = source.readFloat();
-        var unkFloat2 = source.readFloat();
+    static Md6MeshLodInfo read(BinaryReader reader) throws IOException {
+        var numVertices = reader.readInt();
+        var numFaces = reader.readInt();
+        var bounds = Bounds.read(reader);
+        var vertexOffset = Vector3.read(reader);
+        var vertexScale = reader.readFloat();
+        var uvOffset = Vector2.read(reader);
+        var uvScale = reader.readFloat();
+        var flags = reader.readInt();
+        var unkFloat1 = reader.readFloat();
+        var unkFloat2 = reader.readFloat();
 
-        var numBlendShapes = source.readInt();
+        var numBlendShapes = reader.readInt();
         short[] blendShapeReferences;
         List<Md6MeshBlendShape> blendShapes;
         if (numBlendShapes == 0) {
             blendShapeReferences = new short[0];
             blendShapes = List.of();
         } else {
-            blendShapeReferences = source.readShorts(source.readInt());
-            blendShapes = source.readObjects(numBlendShapes, Md6MeshBlendShape::read);
+            blendShapeReferences = reader.readShorts(reader.readInt());
+            blendShapes = reader.readObjects(numBlendShapes, Md6MeshBlendShape::read);
         }
 
         return new Md6MeshLodInfo(

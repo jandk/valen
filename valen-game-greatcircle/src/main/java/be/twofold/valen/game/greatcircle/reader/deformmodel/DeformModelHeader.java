@@ -13,15 +13,15 @@ public record DeformModelHeader(
     float unknown,
     List<String> bones2
 ) {
-    public static DeformModelHeader read(DataSource source) throws IOException {
-        var modelAsset = source.readPString();
-        var psdRig = source.readPString();
-        var hcRig = source.readPString();
-        var bones1 = source.readObjects(source.readInt(), DataSource::readPString);
-        float unknown = source.readFloat();
-        var bones2 = source.readObjects(source.readInt(), DataSource::readPString);
+    public static DeformModelHeader read(BinaryReader reader) throws IOException {
+        var modelAsset = reader.readPString();
+        var psdRig = reader.readPString();
+        var hcRig = reader.readPString();
+        var bones1 = reader.readObjects(reader.readInt(), BinaryReader::readPString);
+        float unknown = reader.readFloat();
+        var bones2 = reader.readObjects(reader.readInt(), BinaryReader::readPString);
         for (int i = 0; i < 5; i++) {
-            source.expectInt(0);
+            reader.expectInt(0);
         }
 
         return new DeformModelHeader(

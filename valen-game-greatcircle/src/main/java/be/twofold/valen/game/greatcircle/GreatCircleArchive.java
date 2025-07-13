@@ -56,7 +56,7 @@ public final class GreatCircleArchive implements Archive<GreatCircleAssetID, Gre
             ? resources.read(asset.id(), null)
             : common.read(asset.id(), null);
 
-        try (var source = DataSource.fromBuffer(buffer)) {
+        try (var source = BinaryReader.fromBuffer(buffer)) {
             return readers.read(asset, source, clazz);
         }
     }

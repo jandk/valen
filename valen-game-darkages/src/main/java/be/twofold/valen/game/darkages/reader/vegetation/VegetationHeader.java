@@ -8,9 +8,9 @@ public record VegetationHeader(
     int numSurfaces,
     int numLods
 ) {
-    public static VegetationHeader read(DataSource source) throws IOException {
-        var numSurfaces = source.readInt();
-        var numLods = source.readInt();
+    public static VegetationHeader read(BinaryReader reader) throws IOException {
+        var numSurfaces = reader.readInt();
+        var numLods = reader.readInt();
 
         return new VegetationHeader(
             numSurfaces,

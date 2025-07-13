@@ -1,6 +1,6 @@
 package be.twofold.valen.game.greatcircle.reader.resources;
 
-import be.twofold.valen.core.io.*;
+import be.twofold.valen.core.io.BinaryReader;
 
 import java.io.*;
 import java.nio.*;
@@ -17,20 +17,20 @@ public record Resources(
 ) {
     private static final CharsetDecoder DECODER = StandardCharsets.US_ASCII.newDecoder();
 
-    public static Resources read(DataSource source) throws IOException {
+    public static Resources read(BinaryReader reader) throws IOException {
         // Header
-        var header = ResourcesHeader.read(source);
+        var header = ResourcesHeader.read(reader);
 
         // File Entries
         // assert channel.position() == header.addrFileEntries();
-        var entries = source.readObjects(header.numFileEntries(), ResourcesEntry::read);
+        var entries = reader.readObjects(header.numFileEntries(), ResourcesEntry::read);
 
         // Path Strings
         // assert channel.position() == header.addrPathStringOffsets();
-        var numStrings = source.readLongAsInt();
-        var offsets = source.readLongsAsInts(numStrings);
+        var numStrings = reader.readLongAsInt();
+        var offsets = reader.readLongsAsInts(numStrings);
         var stringBufferLength = Math.toIntExact(header.addrDependencyEntries() - header.addrPathStringOffsets() - (numStrings + 1) * (long) Long.BYTES);
-        var stringBufferRaw = source.readBytes(stringBufferLength);
+        var stringBufferRaw = reader.readBytes(stringBufferLength);
         var stringBuffer = DECODER.decode(ByteBuffer.wrap(stringBufferRaw)).toString();
         var pathStrings = Arrays.stream(offsets)
             .mapToObj(i -> stringBuffer.substring(i, stringBuffer.indexOf('\0', i)))
@@ -41,9 +41,9 @@ public record Resources(
         // My guess is that the actual filenames don't matter, and the dependency structure is used to determine
         // which files to load. The filenames are only used for debugging purposes.
         // assert channel.position() == header.addrDependencyEntries();
-        var dependencies = source.readObjects(header.numDependencyEntries(), ResourcesDependency::read);
-        var dependencyIndex = source.readInts(header.numDependencyIndexes());
-        var pathStringIndex = source.readLongsAsInts(header.numPathStringIndexes());
+        var dependencies = reader.readObjects(header.numDependencyEntries(), ResourcesDependency::read);
+        var dependencyIndex = reader.readInts(header.numDependencyIndexes());
+        var pathStringIndex = reader.readLongsAsInts(header.numPathStringIndexes());
 
         // assert channel.position() == header.addrEndMarker();
         return new Resources(header, entries, pathStrings, pathStringIndex, dependencies, dependencyIndex);

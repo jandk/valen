@@ -129,7 +129,7 @@ final class DbImporter {
         var sql = "insert into resource(file_id, name, type, variation, start, size, uncompressedSize, dataCheckSum, defaultHash, timestamp, version, flags, compMode) " +
             "values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
 
-        try (var source = DataSource.fromPath(BASE.resolve(path));
+        try (var source = BinaryReader.fromPath(BASE.resolve(path));
              var statement = connection.prepareStatement(sql)
         ) {
             var resources = mapResources(Resources.read(source));
@@ -196,7 +196,7 @@ final class DbImporter {
     // region .streamdb
 
     private static StreamDb readStreamDb(String relativePath) {
-        try (var source = DataSource.fromPath(BASE.resolve(relativePath))) {
+        try (var source = BinaryReader.fromPath(BASE.resolve(relativePath))) {
             return StreamDb.read(source);
         } catch (IOException e) {
             throw new UncheckedIOException(e);

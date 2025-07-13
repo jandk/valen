@@ -8,9 +8,9 @@ public record HairStrandInfoGPU(
     int idxFirstPoint,
     int numPointsAndStrandIdx
 ) {
-    public static HairStrandInfoGPU read(DataSource source) throws IOException {
-        var idxFirstPoint = source.readInt();
-        var numPointsAndStrandIdx = source.readInt();
+    public static HairStrandInfoGPU read(BinaryReader reader) throws IOException {
+        var idxFirstPoint = reader.readInt();
+        var numPointsAndStrandIdx = reader.readInt();
         return new HairStrandInfoGPU(idxFirstPoint, numPointsAndStrandIdx);
     }
 }

@@ -17,19 +17,19 @@ public record Vegetation(
     List<GeometryDiskLayout> layouts,
     List<VegetationCollisionData> collisionData
 ) {
-    public static Vegetation read(DataSource source) throws IOException {
-        var header = VegetationHeader.read(source);
+    public static Vegetation read(BinaryReader reader) throws IOException {
+        var header = VegetationHeader.read(reader);
         if (header.numSurfaces() <= 0) {
             throw new UnsupportedOperationException();
         }
-        var surfaces = source.readObjects(header.numSurfaces(), ds -> VegetationSurface.read(ds, header.numLods()));
-        var windData = VegetationWindData.read(source);
-        var hasBillBoards = source.readBoolByte();
-        var maxLodDistance = source.readFloat();
-        var unknown = source.readFloat();
-        var hasCustomNormals = source.readBoolByte();
-        var layouts = source.readObjects(header.numLods(), GeometryDiskLayout::read);
-        var collisionData = source.readObjects(source.readInt(), VegetationCollisionData::read);
+        var surfaces = reader.readObjects(header.numSurfaces(), ds -> VegetationSurface.read(ds, header.numLods()));
+        var windData = VegetationWindData.read(reader);
+        var hasBillBoards = reader.readBoolByte();
+        var maxLodDistance = reader.readFloat();
+        var unknown = reader.readFloat();
+        var hasCustomNormals = reader.readBoolByte();
+        var layouts = reader.readObjects(header.numLods(), GeometryDiskLayout::read);
+        var collisionData = reader.readObjects(reader.readInt(), VegetationCollisionData::read);
 
         return new Vegetation(
             header,

@@ -9,10 +9,10 @@ public record StreamDbEntry(
     int length,
     StreamerCompression compressionMode
 ) {
-    public static StreamDbEntry read(DataSource source) throws IOException {
-        int offset16 = source.readInt();
-        int length = source.readInt();
-        StreamerCompression compressionMode = StreamerCompression.fromValue(source.readInt());
+    public static StreamDbEntry read(BinaryReader reader) throws IOException {
+        int offset16 = reader.readInt();
+        int length = reader.readInt();
+        StreamerCompression compressionMode = StreamerCompression.fromValue(reader.readInt());
 
         return new StreamDbEntry(
             offset16,

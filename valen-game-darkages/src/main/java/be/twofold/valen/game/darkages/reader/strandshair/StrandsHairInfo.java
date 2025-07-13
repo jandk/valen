@@ -8,9 +8,9 @@ record StrandsHairInfo(
     int idxFirstPoint,
     int numPointsAndStrandIdx
 ) {
-    static StrandsHairInfo read(DataSource source) throws IOException {
-        var idxFirstPoint = source.readInt();
-        var numPointsAndStrandIdx = source.readInt();
+    static StrandsHairInfo read(BinaryReader reader) throws IOException {
+        var idxFirstPoint = reader.readInt();
+        var numPointsAndStrandIdx = reader.readInt();
         return new StrandsHairInfo(idxFirstPoint, numPointsAndStrandIdx);
     }
 }

@@ -6,7 +6,7 @@ import java.io.*;
 import java.nio.*;
 import java.nio.channels.*;
 
-final class ChannelDataSource implements DataSource, Closeable {
+final class ChannelBinaryReader implements BinaryReader, Closeable {
     private final ByteBuffer buffer = Buffers
         .allocate(8192)
         .limit(0);
@@ -15,7 +15,7 @@ final class ChannelDataSource implements DataSource, Closeable {
     private final long size;
     private long position = 0;
 
-    ChannelDataSource(SeekableByteChannel channel) throws IOException {
+    ChannelBinaryReader(SeekableByteChannel channel) throws IOException {
         this.channel = channel;
         this.size = channel.size();
     }
@@ -63,7 +63,7 @@ final class ChannelDataSource implements DataSource, Closeable {
     }
 
     @Override
-    public DataSource position(long pos) throws IOException {
+    public BinaryReader position(long pos) throws IOException {
         Check.index(pos, size + 1);
 
         if (pos >= position && pos < position + buffer.limit()) {

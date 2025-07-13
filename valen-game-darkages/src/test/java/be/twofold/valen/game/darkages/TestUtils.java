@@ -34,7 +34,7 @@ public abstract class TestUtils {
         for (DarkAgesAsset asset : entries) {
             try {
                 var buffer = archive.loadAsset(asset.id(), ByteBuffer.class);
-                reader.read(DataSource.fromBuffer(buffer), asset);
+                reader.read(BinaryReader.fromBuffer(buffer), asset);
             } catch (FileNotFoundException e) {
                 System.err.println("File not found" + asset.id().fullName());
             } catch (Exception e) {

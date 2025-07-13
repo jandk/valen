@@ -2,7 +2,7 @@ package be.twofold.valen.game.greatcircle.reader.md6mesh;
 
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.geometry.*;
-import be.twofold.valen.core.io.*;
+import be.twofold.valen.core.io.BinaryReader;
 import be.twofold.valen.core.math.*;
 import be.twofold.valen.game.greatcircle.*;
 import be.twofold.valen.game.greatcircle.reader.geometry.*;
@@ -34,8 +34,8 @@ public final class Md6MeshReader implements AssetReader<Model, GreatCircleAsset>
     }
 
     @Override
-    public Model read(DataSource source, GreatCircleAsset asset) throws IOException {
-        var model = Md6Mesh.read(source);
+    public Model read(BinaryReader reader, GreatCircleAsset asset) throws IOException {
+        var model = Md6Mesh.read(reader);
         var meshes = new ArrayList<>(readMeshes(model, asset.hash()));
         var skeletonKey = GreatCircleAssetID.from(model.header().skeletonName(), ResourceType.skeleton);
         var skeleton = archive.loadAsset(skeletonKey, Skeleton.class);
@@ -65,7 +65,7 @@ public final class Md6MeshReader implements AssetReader<Model, GreatCircleAsset>
 
         var identity = (hash << 4) | lod;
         var buffer = archive.readStream(identity, uncompressedSize);
-        try (var source = DataSource.fromBuffer(buffer)) {
+        try (var source = BinaryReader.fromBuffer(buffer)) {
             var meshes = GeometryReader.readStreamedMesh(source, lodInfos, layouts, true);
             var allBlendShapes = BlendShapeReader.readBlendShapes(source, lodInfos, layouts);
 

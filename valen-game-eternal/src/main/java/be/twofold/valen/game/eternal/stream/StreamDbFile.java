@@ -20,15 +20,15 @@ public final class StreamDbFile implements Container<Long, StreamDbEntry> {
     private final Map<Long, StreamDbEntry> index;
     private final Decompressor decompressor;
     private final Path path;
-    private DataSource source;
+    private BinaryReader reader;
 
     public StreamDbFile(Path path, Decompressor decompressor) throws IOException {
         log.info("Loading streamdb: {}", path);
         this.decompressor = Check.notNull(decompressor);
         this.path = Check.notNull(path);
-        this.source = DataSource.fromPath(path);
+        this.reader = BinaryReader.fromPath(path);
 
-        var entries = StreamDb.read(source).entries();
+        var entries = StreamDb.read(reader).entries();
         this.index = entries.stream()
             .collect(Collectors.toUnmodifiableMap(
                 StreamDbEntry::identity,
@@ -52,8 +52,8 @@ public final class StreamDbFile implements Container<Long, StreamDbEntry> {
         Check.state(entry != null, () -> "Stream not found: " + key);
 
         log.debug("Reading stream: {}", String.format("%016X", entry.identity()));
-        source.position(entry.offset());
-        var compressed = source.readBuffer(entry.length());
+        reader.position(entry.offset());
+        var compressed = reader.readBuffer(entry.length());
         if (compressed.remaining() == size) {
             return compressed;
         }
@@ -63,9 +63,9 @@ public final class StreamDbFile implements Container<Long, StreamDbEntry> {
 
     @Override
     public void close() throws IOException {
-        if (source != null) {
-            source.close();
-            source = null;
+        if (reader != null) {
+            reader.close();
+            reader = null;
         }
     }
 

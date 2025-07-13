@@ -10,11 +10,11 @@ public record BlangEntry(
     String value,
     String feature
 ) {
-    public static BlangEntry read(DataSource source) throws IOException {
-        var hash = source.readInt();
-        var key = source.readPString();
-        var value = source.readPString();
-        var feature = source.readPString();
+    public static BlangEntry read(BinaryReader reader) throws IOException {
+        var hash = reader.readInt();
+        var key = reader.readPString();
+        var value = reader.readPString();
+        var feature = reader.readPString();
         return new BlangEntry(hash, key, value, feature);
     }
 }

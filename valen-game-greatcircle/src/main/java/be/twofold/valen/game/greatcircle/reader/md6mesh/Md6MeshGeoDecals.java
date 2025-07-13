@@ -1,6 +1,6 @@
 package be.twofold.valen.game.greatcircle.reader.md6mesh;
 
-import be.twofold.valen.core.io.*;
+import be.twofold.valen.core.io.BinaryReader;
 
 import java.io.*;
 
@@ -9,14 +9,14 @@ record Md6MeshGeoDecals(
     int[] geoDecalCounts,
     int[][] geoDecalIndices
 ) {
-    static Md6MeshGeoDecals read(DataSource source) throws IOException {
-        var materialName = source.readPString();
-        var numStreams = source.readInt();
-        var geoDecalCounts = source.readInts(numStreams);
+    static Md6MeshGeoDecals read(BinaryReader reader) throws IOException {
+        var materialName = reader.readPString();
+        var numStreams = reader.readInt();
+        var geoDecalCounts = reader.readInts(numStreams);
 
         var geoDecalIndices = new int[numStreams][];
         for (var stream = 0; stream < numStreams; stream++) {
-            geoDecalIndices[stream] = source.readInts(geoDecalCounts[stream]);
+            geoDecalIndices[stream] = reader.readInts(geoDecalCounts[stream]);
         }
 
         return new Md6MeshGeoDecals(

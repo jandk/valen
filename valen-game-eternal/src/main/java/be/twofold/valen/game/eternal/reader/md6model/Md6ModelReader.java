@@ -2,7 +2,7 @@ package be.twofold.valen.game.eternal.reader.md6model;
 
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.geometry.*;
-import be.twofold.valen.core.io.*;
+import be.twofold.valen.core.io.BinaryReader;
 import be.twofold.valen.core.math.*;
 import be.twofold.valen.game.eternal.*;
 import be.twofold.valen.game.eternal.reader.geometry.*;
@@ -32,8 +32,8 @@ public final class Md6ModelReader implements AssetReader<Model, EternalAsset> {
     }
 
     @Override
-    public Model read(DataSource source, EternalAsset resource) throws IOException {
-        var model = Md6Model.read(source);
+    public Model read(BinaryReader reader, EternalAsset resource) throws IOException {
+        var model = Md6Model.read(reader);
         var meshes = new ArrayList<>(readMeshes(model, resource.hash()));
         var skeletonKey = EternalAssetID.from(model.header().md6SkelName(), ResourceType.Skeleton);
         var skeleton = archive.loadAsset(skeletonKey, Skeleton.class);
@@ -63,7 +63,7 @@ public final class Md6ModelReader implements AssetReader<Model, EternalAsset> {
 
         var identity = (hash << 4) | lod;
         var buffer = archive.readStream(identity, uncompressedSize);
-        try (var source = DataSource.fromBuffer(buffer)) {
+        try (var source = BinaryReader.fromBuffer(buffer)) {
             return GeometryReader.readStreamedMesh(source, lodInfos, layouts, true);
         }
     }

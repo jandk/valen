@@ -119,24 +119,24 @@ public final class Geometry {
         };
     }
 
-    private static Vector2 readVector2UNorm16(DataSource source) throws IOException {
-        float x = MathF.unpackUNorm16(source.readShort());
-        float y = MathF.unpackUNorm16(source.readShort());
+    private static Vector2 readVector2UNorm16(BinaryReader reader) throws IOException {
+        float x = MathF.unpackUNorm16(reader.readShort());
+        float y = MathF.unpackUNorm16(reader.readShort());
         return new Vector2(x, y);
     }
 
-    private static Vector3 readVector3UNorm8Normal(DataSource source) throws IOException {
-        float x = MathF.unpackUNorm8Normal(source.readByte());
-        float y = MathF.unpackUNorm8Normal(source.readByte());
-        float z = MathF.unpackUNorm8Normal(source.readByte());
+    private static Vector3 readVector3UNorm8Normal(BinaryReader reader) throws IOException {
+        float x = MathF.unpackUNorm8Normal(reader.readByte());
+        float y = MathF.unpackUNorm8Normal(reader.readByte());
+        float z = MathF.unpackUNorm8Normal(reader.readByte());
         return new Vector3(x, y, z);
     }
 
-    private static Vector4 readVector4UNorm16(DataSource source) throws IOException {
-        float x = MathF.unpackUNorm16(source.readShort());
-        float y = MathF.unpackUNorm16(source.readShort());
-        float z = MathF.unpackUNorm16(source.readShort());
-        float w = MathF.unpackUNorm16(source.readShort());
+    private static Vector4 readVector4UNorm16(BinaryReader reader) throws IOException {
+        float x = MathF.unpackUNorm16(reader.readShort());
+        float y = MathF.unpackUNorm16(reader.readShort());
+        float z = MathF.unpackUNorm16(reader.readShort());
+        float w = MathF.unpackUNorm16(reader.readShort());
         return new Vector4(x, y, z, w);
     }
 }

@@ -10,10 +10,10 @@ public record StreamDb(
     long[] identities,
     List<StreamDbEntry> entries
 ) {
-    public static StreamDb read(DataSource source) throws IOException {
-        var header = StreamDbHeader.read(source);
-        var identities = source.readLongs(header.numEntries());
-        var entries = source.readObjects(header.numEntries(), StreamDbEntry::read);
+    public static StreamDb read(BinaryReader reader) throws IOException {
+        var header = StreamDbHeader.read(reader);
+        var identities = reader.readLongs(header.numEntries());
+        var entries = reader.readObjects(header.numEntries(), StreamDbEntry::read);
 
         return new StreamDb(
             header,

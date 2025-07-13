@@ -27,8 +27,8 @@ public final class DeformModelReader implements AssetReader<Model, GreatCircleAs
     }
 
     @Override
-    public Model read(DataSource source, GreatCircleAsset asset) throws IOException {
-        var deformModel = DeformModel.read(source);
+    public Model read(BinaryReader reader, GreatCircleAsset asset) throws IOException {
+        var deformModel = DeformModel.read(reader);
         var meshes = new ArrayList<>(readMeshes(deformModel, asset.hash()));
 
         if (readMaterials) {
@@ -60,7 +60,7 @@ public final class DeformModelReader implements AssetReader<Model, GreatCircleAs
 
         var identity = (hash << 4) | lod;
         var buffer = archive.readStream(identity, uncompressedSize);
-        try (var source = DataSource.fromBuffer(buffer)) {
+        try (var source = BinaryReader.fromBuffer(buffer)) {
             return GeometryReader.readStreamedMesh(source, lodInfos, layouts, true);
         }
     }

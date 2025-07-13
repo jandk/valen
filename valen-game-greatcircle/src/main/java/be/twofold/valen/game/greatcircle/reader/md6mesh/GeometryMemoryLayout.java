@@ -15,17 +15,17 @@ record GeometryMemoryLayout(
         int indexOffset,
         List<GeometryBlendShapeLayout> blendShapeLayouts
 ) implements GeoMemoryLayout {
-    static GeometryMemoryLayout read(DataSource source) throws IOException {
-        var combinedVertexMask = source.readInt();
-        var size = source.readInt();
-        var numVertexStreams = source.readInt();
-        var vertexMasks = source.readInts(numVertexStreams);
-        var vertexOffsets = source.readInts(numVertexStreams);
-        var indexOffset = source.readInt();
+    static GeometryMemoryLayout read(BinaryReader reader) throws IOException {
+        var combinedVertexMask = reader.readInt();
+        var size = reader.readInt();
+        var numVertexStreams = reader.readInt();
+        var vertexMasks = reader.readInts(numVertexStreams);
+        var vertexOffsets = reader.readInts(numVertexStreams);
+        var indexOffset = reader.readInt();
 
-        int blendSize = source.readInt();
+        int blendSize = reader.readInt();
         var blendShapeLayouts = blendSize != 0
-                ? source.readObjects(source.readInt(), GeometryBlendShapeLayout::read)
+            ? reader.readObjects(reader.readInt(), GeometryBlendShapeLayout::read)
                 : List.<GeometryBlendShapeLayout>of();
 
         return new GeometryMemoryLayout(

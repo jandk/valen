@@ -19,9 +19,9 @@ public record Vector2(
         return new Vector2(value, value);
     }
 
-    public static Vector2 read(DataSource source) throws IOException {
-        float x = source.readFloat();
-        float y = source.readFloat();
+    public static Vector2 read(BinaryReader reader) throws IOException {
+        float x = reader.readFloat();
+        float y = reader.readFloat();
         return new Vector2(x, y);
     }
 

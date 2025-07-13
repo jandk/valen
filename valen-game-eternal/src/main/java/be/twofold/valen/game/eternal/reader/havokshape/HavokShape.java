@@ -13,18 +13,18 @@ public record HavokShape(
     List<String> names,
     byte[] data
 ) {
-    public static HavokShape read(DataSource source) throws IOException {
-        var infos = source.readObjects(source.readInt(), HavokShapeInfo::read);
-        var names = source.readObjects(source.readInt(), bb -> readFixedString(bb, 1024));
-        var data = source.readBytes(source.readInt());
+    public static HavokShape read(BinaryReader reader) throws IOException {
+        var infos = reader.readObjects(reader.readInt(), HavokShapeInfo::read);
+        var names = reader.readObjects(reader.readInt(), bb -> readFixedString(bb, 1024));
+        var data = reader.readBytes(reader.readInt());
 
-        source.expectEnd();
+        reader.expectEnd();
 
         return new HavokShape(infos, names, data);
     }
 
-    private static String readFixedString(DataSource source, int length) throws IOException {
-        var bytes = source.readBytes(length);
+    private static String readFixedString(BinaryReader reader, int length) throws IOException {
+        var bytes = reader.readBytes(length);
         var index = 0;
         while (index < bytes.length && bytes[index] != 0) {
             index++;
@@ -35,7 +35,7 @@ public record HavokShape(
     public static void main(String[] args) throws IOException {
         var bytes = Files.readAllBytes(Path.of("D:\\Eternal\\DOOMExtracted\\maps\\game\\hub\\hub\\_combo\\world.hkshape"));
 
-        var shape = HavokShape.read(DataSource.fromArray(bytes));
+        var shape = HavokShape.read(BinaryReader.fromArray(bytes));
         HkTagFile.read(ByteBuffer.wrap(shape.data()));
     }
 }

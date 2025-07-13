@@ -12,20 +12,20 @@ public record StreamDb(
     List<StreamDbPrefetchBlock> prefetchBlocks,
     long[] prefetchIDs
 ) {
-    public static StreamDb read(DataSource source) throws IOException {
-        var header = StreamDbHeader.read(source);
-        var entries = source.readObjects(header.numEntries(), StreamDbEntry::read);
+    public static StreamDb read(BinaryReader reader) throws IOException {
+        var header = StreamDbHeader.read(reader);
+        var entries = reader.readObjects(header.numEntries(), StreamDbEntry::read);
         if (!header.flags().contains(StreamDbHeaderFlag.SDHF_HAS_PREFETCH_BLOCKS)) {
             return new StreamDb(header, entries, null, List.of(), new long[0]);
         }
 
-        var prefetchHeader = StreamDbPrefetchHeader.read(source);
-        var prefetchBlocks = source.readObjects(prefetchHeader.numPrefetchBlocks(), StreamDbPrefetchBlock::read);
+        var prefetchHeader = StreamDbPrefetchHeader.read(reader);
+        var prefetchBlocks = reader.readObjects(prefetchHeader.numPrefetchBlocks(), StreamDbPrefetchBlock::read);
 
         var numPrefetchIDs = prefetchBlocks.stream()
             .mapToInt(StreamDbPrefetchBlock::numItems)
             .sum();
-        var prefetchIDs = source.readLongs(numPrefetchIDs);
+        var prefetchIDs = reader.readLongs(numPrefetchIDs);
         return new StreamDb(header, entries, prefetchHeader, prefetchBlocks, prefetchIDs);
     }
 

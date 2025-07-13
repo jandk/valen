@@ -23,7 +23,7 @@ public final class BinkReader implements AssetReader<ByteBuffer, DarkAgesAsset> 
     }
 
     @Override
-    public ByteBuffer read(DataSource source, DarkAgesAsset asset) throws IOException {
+    public ByteBuffer read(BinaryReader reader, DarkAgesAsset asset) throws IOException {
         long hash = Hash.hash(asset.hash(), 0, 0);
         return archive.readStream(hash, -1);
     }

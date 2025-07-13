@@ -2,7 +2,7 @@ package be.twofold.valen.game.greatcircle.resource;
 
 import be.twofold.valen.core.compression.*;
 import be.twofold.valen.core.game.*;
-import be.twofold.valen.core.io.*;
+import be.twofold.valen.core.io.BinaryReader;
 import be.twofold.valen.core.util.*;
 import be.twofold.valen.game.greatcircle.*;
 import be.twofold.valen.game.greatcircle.reader.resources.*;
@@ -22,15 +22,15 @@ public final class ResourcesFile implements Container<GreatCircleAssetID, GreatC
     private final Decompressor decompressor;
     private final Path path;
 
-    private DataSource source;
+    private BinaryReader reader;
 
     public ResourcesFile(Path path, Decompressor decompressor) throws IOException {
         log.info("Loading resources: {}", path);
         this.decompressor = decompressor;
         this.path = Check.notNull(path);
-        this.source = DataSource.fromPath(path);
+        this.reader = BinaryReader.fromPath(path);
 
-        var resources = mapResources(Resources.read(source));
+        var resources = mapResources(Resources.read(reader));
         this.index = resources.stream()
             .collect(Collectors.toUnmodifiableMap(
                 GreatCircleAsset::id,
@@ -86,17 +86,17 @@ public final class ResourcesFile implements Container<GreatCircleAssetID, GreatC
             default -> throw new UnsupportedOperationException("Unsupported compression: " + resource.compression());
         };
 
-        source.position(resource.offset());
-        var compressed = source.readBuffer(resource.compressedSize());
+        reader.position(resource.offset());
+        var compressed = reader.readBuffer(resource.compressedSize());
         compressed.position(resource.compression() == ResourceCompressionMode.RES_COMP_MODE_KRAKEN_CHUNKED ? 12 : 0);
         return decompressor.decompress(compressed, resource.uncompressedSize());
     }
 
     @Override
     public void close() throws IOException {
-        if (source != null) {
-            source.close();
-            source = null;
+        if (reader != null) {
+            reader.close();
+            reader = null;
         }
     }
 

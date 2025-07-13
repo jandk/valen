@@ -19,19 +19,19 @@ public record HairHeader(
     Bounds bounds,
     Bounds tightBounds
 ) {
-    public static HairHeader read(DataSource source) throws IOException {
-        var numStrands = source.readInt();
-        var numParticles = source.readInt();
-        var numSegments = source.readInt();
-        var numBlendShapeLODs = source.readInt();
-        var compressionPosBias = Vector3.read(source);
-        var compressionPosScale = source.readFloat();
-        var blendShapeMatchMeshName = source.readPString();
-        var strandThickness = source.readFloat();
-        var averageSegmentLength = source.readFloat();
-        var allowSimulation = source.readBoolByte();
-        var bounds = Bounds.read(source);
-        var tightBounds = Bounds.read(source);
+    public static HairHeader read(BinaryReader reader) throws IOException {
+        var numStrands = reader.readInt();
+        var numParticles = reader.readInt();
+        var numSegments = reader.readInt();
+        var numBlendShapeLODs = reader.readInt();
+        var compressionPosBias = Vector3.read(reader);
+        var compressionPosScale = reader.readFloat();
+        var blendShapeMatchMeshName = reader.readPString();
+        var strandThickness = reader.readFloat();
+        var averageSegmentLength = reader.readFloat();
+        var allowSimulation = reader.readBoolByte();
+        var bounds = Bounds.read(reader);
+        var tightBounds = Bounds.read(reader);
 
         return new HairHeader(
             numStrands,

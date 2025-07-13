@@ -24,12 +24,12 @@ public record DeformModelLod(
     String materialName,
     List<Entry> entries
 ) implements LodInfo {
-    public static DeformModelLod read(DataSource source) throws IOException {
-        byte unknown1 = source.readByte();
-        int version = source.readInt();
+    public static DeformModelLod read(BinaryReader reader) throws IOException {
+        byte unknown1 = reader.readByte();
+        int version = reader.readInt();
         int numVertices;
         if (version < 0) {
-            numVertices = source.readInt();
+            numVertices = reader.readInt();
             version = -version;
         } else {
             numVertices = version;
@@ -38,19 +38,19 @@ public record DeformModelLod(
             throw new IOException("Unsupported version: " + version);
         }
 
-        int numIndices = source.readInt();
-        float unknown2 = source.readFloat();
-        int vertexMask = source.readInt();
-        Bounds bounds = Bounds.read(source);
-        Vector3 vertexOffset = Vector3.read(source);
-        float vertexScale = source.readFloat();
-        Vector2 uvOffset = Vector2.read(source);
-        float uvScale = source.readFloat();
-        int unknown3 = source.readInt();
-        float unknown4 = source.readFloat();
-        float unknown5 = source.readFloat();
-        String materialName = source.readPString();
-        List<Entry> entries = source.readObjects(source.readInt(), Entry::read);
+        int numIndices = reader.readInt();
+        float unknown2 = reader.readFloat();
+        int vertexMask = reader.readInt();
+        Bounds bounds = Bounds.read(reader);
+        Vector3 vertexOffset = Vector3.read(reader);
+        float vertexScale = reader.readFloat();
+        Vector2 uvOffset = Vector2.read(reader);
+        float uvScale = reader.readFloat();
+        int unknown3 = reader.readInt();
+        float unknown4 = reader.readFloat();
+        float unknown5 = reader.readFloat();
+        String materialName = reader.readPString();
+        List<Entry> entries = reader.readObjects(reader.readInt(), Entry::read);
 
         return new DeformModelLod(
             unknown1,
@@ -84,10 +84,10 @@ public record DeformModelLod(
         int unknown1,
         int unknown2
     ) {
-        public static Entry read(DataSource source) throws IOException {
-            var name = source.readPString();
-            var unknown1 = source.readInt();
-            var unknown2 = source.readInt();
+        public static Entry read(BinaryReader reader) throws IOException {
+            var name = reader.readPString();
+            var unknown1 = reader.readInt();
+            var unknown2 = reader.readInt();
             return new Entry(name, unknown1, unknown2);
         }
     }

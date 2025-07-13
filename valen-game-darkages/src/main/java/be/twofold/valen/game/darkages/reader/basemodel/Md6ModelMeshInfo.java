@@ -1,6 +1,6 @@
 package be.twofold.valen.game.darkages.reader.basemodel;
 
-import be.twofold.valen.core.io.*;
+import be.twofold.valen.core.io.BinaryReader;
 
 import java.io.*;
 import java.util.*;
@@ -13,22 +13,22 @@ public record Md6ModelMeshInfo(
     short unknown3,
     List<Md6ModelLodInfo> lodInfos
 ) {
-    public static Md6ModelMeshInfo read(DataSource source, int numLods) throws IOException {
-        var meshName = source.readPString();
-        var materialName = source.readPString();
-        var unknown1 = source.readInt();
-        var unknown2 = source.readInt();
-        var unknown3 = source.readShort();
+    public static Md6ModelMeshInfo read(BinaryReader reader, int numLods) throws IOException {
+        var meshName = reader.readPString();
+        var materialName = reader.readPString();
+        var unknown1 = reader.readInt();
+        var unknown2 = reader.readInt();
+        var unknown3 = reader.readShort();
 
         var lodInfos = new ArrayList<Md6ModelLodInfo>();
         for (var i = 0; i < numLods; i++) {
-            var absent = source.readBoolInt();
+            var absent = reader.readBoolInt();
             if (!absent) {
-                lodInfos.add(Md6ModelLodInfo.read(source));
+                lodInfos.add(Md6ModelLodInfo.read(reader));
             }
         }
-        source.expectByte((byte) 0); // morphMapPresent
-        source.expectInt(0); // blendShapesPresent
+        reader.expectByte((byte) 0); // morphMapPresent
+        reader.expectInt(0); // blendShapesPresent
 
         return new Md6ModelMeshInfo(
             meshName,

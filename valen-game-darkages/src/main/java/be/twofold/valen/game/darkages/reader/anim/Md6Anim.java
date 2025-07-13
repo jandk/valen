@@ -17,24 +17,24 @@ public record Md6Anim(
     int[] frameSetOffsetTable,
     Md6AnimStreamInfo streamInfo
 ) {
-    public static Md6Anim read(DataSource source) throws IOException {
-        var header = Md6AnimHeader.read(source);
-        var start = source.position();
-        var animData = Md6AnimData.read(source);
-        var animMap = Md6AnimMap.read(source);
+    public static Md6Anim read(BinaryReader reader) throws IOException {
+        var header = Md6AnimHeader.read(reader);
+        var start = reader.position();
+        var animData = Md6AnimData.read(reader);
+        var animMap = Md6AnimMap.read(reader);
 
-        var constR = source.position(start + animData.constROffset()).readObjects(animMap.constR().length, Md6Anim::decodeQuat);
-        var constS = source.position(start + animData.constSOffset()).readObjects(animMap.constS().length, Vector3::read);
-        var constT = source.position(start + animData.constTOffset()).readObjects(animMap.constT().length, Vector3::read);
+        var constR = reader.position(start + animData.constROffset()).readObjects(animMap.constR().length, Md6Anim::decodeQuat);
+        var constS = reader.position(start + animData.constSOffset()).readObjects(animMap.constS().length, Vector3::read);
+        var constT = reader.position(start + animData.constTOffset()).readObjects(animMap.constT().length, Vector3::read);
 
         // TODO: Figure out what index 1 does
-        var frameSetTable0 = source.position(start + animData.frameSetTblOffset()[0]).readBytes(animData.numFrames());
+        var frameSetTable0 = reader.position(start + animData.frameSetTblOffset()[0]).readBytes(animData.numFrames());
         // var frameSetTable1 = source.position(start + animData.frameSetTblOffset()[1]).readBytes(animData.numFrames());
-        var frameSetOffsetTable = source.position(start + animData.frameSetOffsetTblOffset()).readInts(animData.numFrameSets() + 1);
+        var frameSetOffsetTable = reader.position(start + animData.frameSetOffsetTblOffset()).readInts(animData.numFrameSets() + 1);
 
-        var streamInfo = source.position(start + header.size()).readObject(Md6AnimStreamInfo::read);
-        source.expectEnd(); // doesn't mean much here, but still
-        source.position(start); // Move here for frameSet reading
+        var streamInfo = reader.position(start + header.size()).readObject(Md6AnimStreamInfo::read);
+        reader.expectEnd(); // doesn't mean much here, but still
+        reader.position(start); // Move here for frameSet reading
 
         return new Md6Anim(
             header,
@@ -49,10 +49,10 @@ public record Md6Anim(
         );
     }
 
-    static Quaternion decodeQuat(DataSource source) throws IOException {
-        var x = source.readShort();
-        var y = source.readShort();
-        var z = source.readShort();
+    static Quaternion decodeQuat(BinaryReader reader) throws IOException {
+        var x = reader.readShort();
+        var y = reader.readShort();
+        var z = reader.readShort();
 
         var xBit = (x >>> 15) & 1;
         var yBit = (y >>> 15) & 1;

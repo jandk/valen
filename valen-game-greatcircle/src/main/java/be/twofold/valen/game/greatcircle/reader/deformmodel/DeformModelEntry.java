@@ -11,11 +11,11 @@ public record DeformModelEntry(
     Vector4 second,
     float f
 ) {
-    public static DeformModelEntry read(DataSource source) throws IOException {
-        var name = source.readPString();
-        var first = Vector3.read(source);
-        var second = Vector4.read(source);
-        var f = source.readFloat();
+    public static DeformModelEntry read(BinaryReader reader) throws IOException {
+        var name = reader.readPString();
+        var first = Vector3.read(reader);
+        var second = Vector4.read(reader);
+        var f = reader.readFloat();
         return new DeformModelEntry(name, first, second, f);
     }
 }

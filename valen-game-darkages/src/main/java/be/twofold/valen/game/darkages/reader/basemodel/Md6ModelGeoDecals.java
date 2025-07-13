@@ -1,6 +1,6 @@
 package be.twofold.valen.game.darkages.reader.basemodel;
 
-import be.twofold.valen.core.io.*;
+import be.twofold.valen.core.io.BinaryReader;
 
 import java.io.*;
 import java.util.*;
@@ -10,10 +10,10 @@ public record Md6ModelGeoDecals(
     int[] streamSizes,
     int[] decals
 ) {
-    public static Md6ModelGeoDecals read(DataSource source) throws IOException {
-        var geoDecalMaterialName = source.readPString();
-        var streamSizes = source.readInts(source.readInt());
-        var decals = source.readInts(Arrays.stream(streamSizes).sum());
+    public static Md6ModelGeoDecals read(BinaryReader reader) throws IOException {
+        var geoDecalMaterialName = reader.readPString();
+        var streamSizes = reader.readInts(reader.readInt());
+        var decals = reader.readInts(Arrays.stream(streamSizes).sum());
 
         return new Md6ModelGeoDecals(
             geoDecalMaterialName,

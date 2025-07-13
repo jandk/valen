@@ -10,11 +10,11 @@ public record HairStrandBlendShape(
     int triangleNormal,
     int triangleSide
 ) {
-    public static HairStrandBlendShape read(DataSource source) throws IOException {
-        var idxTriangle = source.readInt();
-        var barycentrics = source.readInt();
-        var triangleNormal = source.readInt();
-        var triangleSide = source.readInt();
+    public static HairStrandBlendShape read(BinaryReader reader) throws IOException {
+        var idxTriangle = reader.readInt();
+        var barycentrics = reader.readInt();
+        var triangleNormal = reader.readInt();
+        var triangleSide = reader.readInt();
         return new HairStrandBlendShape(idxTriangle, barycentrics, triangleNormal, triangleSide);
     }
 }

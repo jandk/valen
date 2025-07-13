@@ -24,13 +24,13 @@ public final class FileCompressedReader implements AssetReader<ByteBuffer, Etern
     }
 
     @Override
-    public ByteBuffer read(DataSource source, EternalAsset resource) throws IOException {
-        var header = FileCompressedHeader.read(source);
+    public ByteBuffer read(BinaryReader reader, EternalAsset resource) throws IOException {
+        var header = FileCompressedHeader.read(reader);
         if (header.compressedSize() == -1) {
-            return source.readBuffer(header.uncompressedSize());
+            return reader.readBuffer(header.uncompressedSize());
         }
 
-        var compressed = source.readBuffer(header.compressedSize());
+        var compressed = reader.readBuffer(header.compressedSize());
         return decompressor.decompress(compressed, header.uncompressedSize());
     }
 }

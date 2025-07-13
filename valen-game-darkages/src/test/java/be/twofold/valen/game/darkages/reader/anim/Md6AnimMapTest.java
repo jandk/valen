@@ -17,7 +17,7 @@ class Md6AnimMapTest {
         var expected = new int[]{
             53, 54, 91, 100, 101, 102, 103, 105
         };
-        var actual = Md6AnimMap.decodeRLE(DataSource.fromArray(bytes));
+        var actual = Md6AnimMap.decodeRLE(BinaryReader.fromArray(bytes));
         assertThat(actual).isEqualTo(expected);
     }
 
@@ -59,7 +59,7 @@ class Md6AnimMapTest {
             541, 542, 543, 549, 550, 551, 555, 558, 559, 560, 561, 563, 564, 565, 566, 568,
             569, 571, 572, 573, 575, 577, 578, 579, 582, 584
         };
-        var actual = Md6AnimMap.decodeRLE(DataSource.fromArray(bytes));
+        var actual = Md6AnimMap.decodeRLE(BinaryReader.fromArray(bytes));
         assertThat(actual).isEqualTo(expected);
     }
 }

@@ -1,6 +1,6 @@
 package be.twofold.valen.game.eternal.reader.md6model;
 
-import be.twofold.valen.core.io.*;
+import be.twofold.valen.core.io.BinaryReader;
 
 import java.io.*;
 
@@ -10,11 +10,11 @@ public record Md6ModelMaterialInfo(
     int firstVertex,
     int lastVertex
 ) {
-    public static Md6ModelMaterialInfo read(DataSource source) throws IOException {
-        var mtrName = source.readPString();
-        var renderSurface = source.readInt();
-        var firstVertex = source.readInt();
-        var lastVertex = source.readInt();
+    public static Md6ModelMaterialInfo read(BinaryReader reader) throws IOException {
+        var mtrName = reader.readPString();
+        var renderSurface = reader.readInt();
+        var firstVertex = reader.readInt();
+        var lastVertex = reader.readInt();
 
         return new Md6ModelMaterialInfo(
             mtrName,

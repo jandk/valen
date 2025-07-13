@@ -19,12 +19,12 @@ public final class BinaryFileReader implements AssetReader<ByteBuffer, DarkAgesA
     }
 
     @Override
-    public ByteBuffer read(DataSource source, DarkAgesAsset asset) throws IOException {
+    public ByteBuffer read(BinaryReader reader, DarkAgesAsset asset) throws IOException {
         try {
-            var salt = source.readBytes(12);
-            var iVec = source.readBytes(16);
-            var text = source.readBytes(Math.toIntExact(source.size() - (12 + 16 + 32)));
-            var hmac = source.readBytes(32);
+            var salt = reader.readBytes(12);
+            var iVec = reader.readBytes(16);
+            var text = reader.readBytes(Math.toIntExact(reader.size() - (12 + 16 + 32)));
+            var hmac = reader.readBytes(32);
 
             var digest = MessageDigest.getInstance("SHA-256");
             digest.update(salt);

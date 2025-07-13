@@ -1,6 +1,6 @@
 package be.twofold.valen.game.eternal.reader.resource;
 
-import be.twofold.valen.core.io.*;
+import be.twofold.valen.core.io.BinaryReader;
 
 import java.io.*;
 
@@ -18,32 +18,32 @@ public record ResourcesHeader(
     int addrData,
     int addrEndMarker
 ) {
-    public static ResourcesHeader read(DataSource source) throws IOException {
-        source.expectInt(0x4c434449);
-        source.expectInt(12);
-        source.expectInt(0);
-        source.expectInt(1);
-        source.expectLong(0xffffffffffL);
-        source.expectLong(0);
+    public static ResourcesHeader read(BinaryReader reader) throws IOException {
+        reader.expectInt(0x4c434449);
+        reader.expectInt(12);
+        reader.expectInt(0);
+        reader.expectInt(1);
+        reader.expectLong(0xffffffffffL);
+        reader.expectLong(0);
 
-        var numFileEntries = source.readInt();
-        var numDependencyEntries = source.readInt();
-        var numDependencyIndexes = source.readInt();
-        var numPathStringIndexes = source.readInt();
+        var numFileEntries = reader.readInt();
+        var numDependencyEntries = reader.readInt();
+        var numDependencyIndexes = reader.readInt();
+        var numPathStringIndexes = reader.readInt();
 
-        source.expectInt(0);
-        source.expectInt(0);
-        var sizeStrings = source.readInt();
-        source.expectInt(0);
+        reader.expectInt(0);
+        reader.expectInt(0);
+        var sizeStrings = reader.readInt();
+        reader.expectInt(0);
 
-        var addrPathStringOffsets = source.readLongAsInt();
-        var addrErrorLogs = source.readLongAsInt();
-        var addrFileEntries = source.readLongAsInt();
-        var addrDependencyEntries = source.readLongAsInt();
-        var addrDependencyIndexes = source.readLongAsInt();
-        var addrData = source.readLongAsInt();
-        source.expectInt(0);
-        var addrEndMarker = source.readLongAsInt();
+        var addrPathStringOffsets = reader.readLongAsInt();
+        var addrErrorLogs = reader.readLongAsInt();
+        var addrFileEntries = reader.readLongAsInt();
+        var addrDependencyEntries = reader.readLongAsInt();
+        var addrDependencyIndexes = reader.readLongAsInt();
+        var addrData = reader.readLongAsInt();
+        reader.expectInt(0);
+        var addrEndMarker = reader.readLongAsInt();
 
         return new ResourcesHeader(
             numFileEntries,

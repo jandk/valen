@@ -1,6 +1,6 @@
 package be.twofold.valen.game.darkages.reader.basemodel;
 
-import be.twofold.valen.core.io.*;
+import be.twofold.valen.core.io.BinaryReader;
 import be.twofold.valen.core.math.*;
 import be.twofold.valen.game.idtech.geometry.*;
 
@@ -20,19 +20,19 @@ public record Md6ModelLodInfo(
     float unknown3,
     short unknown4
 ) implements LodInfo {
-    public static Md6ModelLodInfo read(DataSource source) throws IOException {
-        var numVertices = source.readInt();
-        var numFaces = source.readInt();
-        var influence = source.readByte();
-        var bounds = Bounds.read(source);
-        var vertexOffset = Vector3.read(source);
-        var vertexScale = source.readFloat();
-        var uvOffset = Vector2.read(source);
-        var uvScale = source.readFloat();
-        var vertexMask = source.readInt();
-        var unknown2 = source.readFloat();
-        var unknown3 = source.readFloat();
-        var unknown4 = source.readShort();
+    public static Md6ModelLodInfo read(BinaryReader reader) throws IOException {
+        var numVertices = reader.readInt();
+        var numFaces = reader.readInt();
+        var influence = reader.readByte();
+        var bounds = Bounds.read(reader);
+        var vertexOffset = Vector3.read(reader);
+        var vertexScale = reader.readFloat();
+        var uvOffset = Vector2.read(reader);
+        var uvScale = reader.readFloat();
+        var vertexMask = reader.readInt();
+        var unknown2 = reader.readFloat();
+        var unknown3 = reader.readFloat();
+        var unknown4 = reader.readShort();
 
         return new Md6ModelLodInfo(
             numVertices,

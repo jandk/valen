@@ -32,33 +32,33 @@ public record MapFileStaticInstancesDeclExtra(
     byte unknown93,
     short unknown94
 ) {
-    public static MapFileStaticInstancesDeclExtra read(DataSource source) throws IOException {
-        float unknown00 = source.readFloat();
-        float unknown04 = source.readFloat();
-        float unknown08 = source.readFloat();
-        float unknown12 = source.readFloat();
-        float unknown16 = source.readFloat();
-        float unknown20 = source.readFloat();
-        float unknown24 = source.readFloat();
-        float unknown28 = source.readFloat();
-        float unknown32 = source.readFloat();
-        float unknown36 = source.readFloat();
-        float unknown40 = source.readFloat();
-        float unknown44 = source.readFloat();
-        float unknown48 = source.readFloat();
-        float unknown52 = source.readFloat();
-        float unknown56 = source.readFloat();
-        float unknown60 = source.readFloat();
-        float unknown64 = source.readFloat();
-        float unknown68 = source.readFloat();
-        int unknown72 = source.readInt();
-        float unknown76 = source.readFloat();
-        float unknown80 = source.readFloat();
-        float unknown84 = source.readFloat();
-        float unknown88 = source.readFloat();
-        byte unknown92 = source.readByte();
-        byte unknown93 = source.readByte();
-        short unknown94 = source.readShort();
+    public static MapFileStaticInstancesDeclExtra read(BinaryReader reader) throws IOException {
+        float unknown00 = reader.readFloat();
+        float unknown04 = reader.readFloat();
+        float unknown08 = reader.readFloat();
+        float unknown12 = reader.readFloat();
+        float unknown16 = reader.readFloat();
+        float unknown20 = reader.readFloat();
+        float unknown24 = reader.readFloat();
+        float unknown28 = reader.readFloat();
+        float unknown32 = reader.readFloat();
+        float unknown36 = reader.readFloat();
+        float unknown40 = reader.readFloat();
+        float unknown44 = reader.readFloat();
+        float unknown48 = reader.readFloat();
+        float unknown52 = reader.readFloat();
+        float unknown56 = reader.readFloat();
+        float unknown60 = reader.readFloat();
+        float unknown64 = reader.readFloat();
+        float unknown68 = reader.readFloat();
+        int unknown72 = reader.readInt();
+        float unknown76 = reader.readFloat();
+        float unknown80 = reader.readFloat();
+        float unknown84 = reader.readFloat();
+        float unknown88 = reader.readFloat();
+        byte unknown92 = reader.readByte();
+        byte unknown93 = reader.readByte();
+        short unknown94 = reader.readShort();
 
         return new MapFileStaticInstancesDeclExtra(
             unknown00,

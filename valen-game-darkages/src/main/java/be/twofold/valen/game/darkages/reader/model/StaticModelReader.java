@@ -33,9 +33,9 @@ public final class StaticModelReader implements AssetReader<Model, DarkAgesAsset
     }
 
     @Override
-    public Model read(DataSource source, DarkAgesAsset asset) throws IOException {
-        var model = StaticModel.read(source);
-        var meshes = new ArrayList<>(readMeshes(model, source, asset.hash()));
+    public Model read(BinaryReader reader, DarkAgesAsset asset) throws IOException {
+        var model = StaticModel.read(reader);
+        var meshes = new ArrayList<>(readMeshes(model, reader, asset.hash()));
 
         if (readMaterials) {
             Materials.apply(archive, meshes, model.meshInfos(), StaticModelMeshInfo::mtlDecl, _ -> null);
@@ -43,18 +43,18 @@ public final class StaticModelReader implements AssetReader<Model, DarkAgesAsset
         return new Model(meshes, Optional.empty(), Optional.of(asset.id().fullName()), Optional.empty(), Axis.Z);
     }
 
-    private List<Mesh> readMeshes(StaticModel model, DataSource source, long hash) throws IOException {
+    private List<Mesh> readMeshes(StaticModel model, BinaryReader reader, long hash) throws IOException {
         if (!model.header().streamable()) {
-            return readEmbeddedGeometry(model, source);
+            return readEmbeddedGeometry(model, reader);
         }
         return readStreamedGeometry(model, 0, hash);
     }
 
-    private List<Mesh> readEmbeddedGeometry(StaticModel model, DataSource source) throws IOException {
+    private List<Mesh> readEmbeddedGeometry(StaticModel model, BinaryReader reader) throws IOException {
         List<Mesh> meshes = new ArrayList<>();
         for (var meshInfo : model.meshInfos()) {
             Check.state(meshInfo.lodInfos().size() == 1);
-            meshes.add(GeometryReader.readEmbeddedMesh(source, meshInfo.lodInfos().getFirst()));
+            meshes.add(GeometryReader.readEmbeddedMesh(reader, meshInfo.lodInfos().getFirst()));
         }
         return meshes;
     }
@@ -69,7 +69,7 @@ public final class StaticModelReader implements AssetReader<Model, DarkAgesAsset
             .toList();
 
         var buffer = archive.readStream(streamHash, uncompressedSize);
-        var source = DataSource.fromBuffer(buffer);
+        var source = BinaryReader.fromBuffer(buffer);
         return GeometryReader.readStreamedMesh(source, lods, false);
     }
 }

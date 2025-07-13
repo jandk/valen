@@ -20,37 +20,37 @@ public record DeformModel(
     List<DeformModelEntry> entryList2,
     Bounds bounds
 ) {
-    public static DeformModel read(DataSource source) throws IOException {
-        var header = DeformModelHeader.read(source);
-        var meshes = source.readObjects(source.readInt(), DeformModelMesh::read);
-        var numStreams = source.readInt();
-        var memoryLayouts = source.readObjects(numStreams, GeometryMemoryLayout::read);
-        var unknown1 = source.readInt();
+    public static DeformModel read(BinaryReader reader) throws IOException {
+        var header = DeformModelHeader.read(reader);
+        var meshes = reader.readObjects(reader.readInt(), DeformModelMesh::read);
+        var numStreams = reader.readInt();
+        var memoryLayouts = reader.readObjects(numStreams, GeometryMemoryLayout::read);
+        var unknown1 = reader.readInt();
         var diskLayouts = new ArrayList<GeometryDiskLayout>();
         for (var i = 0; i < numStreams; i++) {
-            var diskLayout = GeometryDiskLayout.read(source, memoryLayouts.subList(i, i + 1));
+            var diskLayout = GeometryDiskLayout.read(reader, memoryLayouts.subList(i, i + 1));
             diskLayouts.add(diskLayout);
         }
 
         var skeleton1 = (Md6Skl) null;
         var skeleton2 = (Md6Skl) null;
         var unknown2 = (short[]) null;
-        var skeletonSize = source.readInt();
+        var skeletonSize = reader.readInt();
         if (skeletonSize != 0) {
-            var skeleton1Length = source.readInt();
+            var skeleton1Length = reader.readInt();
             if (skeleton1Length != 0) {
-                skeleton1 = Md6Skl.read(source);
+                skeleton1 = Md6Skl.read(reader);
             }
-            var skeleton2Length = source.readInt();
+            var skeleton2Length = reader.readInt();
             if (skeleton2Length != 0) {
-                skeleton2 = Md6Skl.read(source);
+                skeleton2 = Md6Skl.read(reader);
             }
-            unknown2 = source.readShorts(source.readInt());
+            unknown2 = reader.readShorts(reader.readInt());
         }
 
-        var entryList1 = source.readObjects(source.readInt(), DeformModelEntry::read);
-        var entryList2 = source.readObjects(source.readInt(), DeformModelEntry::read);
-        var bounds = Bounds.read(source);
+        var entryList1 = reader.readObjects(reader.readInt(), DeformModelEntry::read);
+        var entryList2 = reader.readObjects(reader.readInt(), DeformModelEntry::read);
+        var bounds = Bounds.read(reader);
 
         return new DeformModel(
             header,

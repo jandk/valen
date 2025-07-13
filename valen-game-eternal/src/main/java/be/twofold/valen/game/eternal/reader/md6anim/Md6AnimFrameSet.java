@@ -26,27 +26,27 @@ public record Md6AnimFrameSet(
     short frameRange,
     String pad
 ) {
-    public static Md6AnimFrameSet read(DataSource source) throws IOException {
-        short firstROffset = source.readShort();
-        short firstSOffset = source.readShort();
-        short firstTOffset = source.readShort();
-        short firstUOffset = source.readShort();
-        short rangeROffset = source.readShort();
-        short rangeSOffset = source.readShort();
-        short rangeTOffset = source.readShort();
-        short rangeUOffset = source.readShort();
-        short RBitsOffset = source.readShort();
-        short SBitsOffset = source.readShort();
-        short TBitsOffset = source.readShort();
-        short UBitsOffset = source.readShort();
-        short nextROffset = source.readShort();
-        short nextSOffset = source.readShort();
-        short nextTOffset = source.readShort();
-        short nextUOffset = source.readShort();
-        short totalSize = source.readShort();
-        short frameStart = source.readShort();
-        short frameRange = source.readShort();
-        String pad = new String(source.readBytes(10));
+    public static Md6AnimFrameSet read(BinaryReader reader) throws IOException {
+        short firstROffset = reader.readShort();
+        short firstSOffset = reader.readShort();
+        short firstTOffset = reader.readShort();
+        short firstUOffset = reader.readShort();
+        short rangeROffset = reader.readShort();
+        short rangeSOffset = reader.readShort();
+        short rangeTOffset = reader.readShort();
+        short rangeUOffset = reader.readShort();
+        short RBitsOffset = reader.readShort();
+        short SBitsOffset = reader.readShort();
+        short TBitsOffset = reader.readShort();
+        short UBitsOffset = reader.readShort();
+        short nextROffset = reader.readShort();
+        short nextSOffset = reader.readShort();
+        short nextTOffset = reader.readShort();
+        short nextUOffset = reader.readShort();
+        short totalSize = reader.readShort();
+        short frameStart = reader.readShort();
+        short frameRange = reader.readShort();
+        String pad = new String(reader.readBytes(10));
 
         return new Md6AnimFrameSet(
             firstROffset,

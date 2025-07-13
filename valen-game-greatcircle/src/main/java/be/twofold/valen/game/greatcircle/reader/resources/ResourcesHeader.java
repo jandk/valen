@@ -18,34 +18,34 @@ public record ResourcesHeader(
     int addrData,
     int addrEndMarker
 ) {
-    public static ResourcesHeader read(DataSource source) throws IOException {
-        source.expectInt(0x4C434449);
-        source.expectInt(13); // version
-        source.readLong(); // unknown
-        source.readInt(); // unknown
-        source.expectInt(0); // flags
-        source.expectInt(1); // numSegments
-        source.expectLong(0xFFFFFFFFFFL);
+    public static ResourcesHeader read(BinaryReader reader) throws IOException {
+        reader.expectInt(0x4C434449);
+        reader.expectInt(13); // version
+        reader.readLong(); // unknown
+        reader.readInt(); // unknown
+        reader.expectInt(0); // flags
+        reader.expectInt(1); // numSegments
+        reader.expectLong(0xFFFFFFFFFFL);
 
-        var numFileEntries = source.readInt();
-        var numDependencyEntries = source.readInt();
-        var numDependencyIndexes = source.readInt();
-        var numPathStringIndexes = source.readInt();
+        var numFileEntries = reader.readInt();
+        var numDependencyEntries = reader.readInt();
+        var numDependencyIndexes = reader.readInt();
+        var numPathStringIndexes = reader.readInt();
 
-        source.expectInt(0);
-        source.expectInt(0);
-        var sizeStrings = source.readInt();
-        source.expectInt(0);
+        reader.expectInt(0);
+        reader.expectInt(0);
+        var sizeStrings = reader.readInt();
+        reader.expectInt(0);
 
-        var addrPathStringOffsets = source.readLongAsInt();
-        var addrErrorLogs = source.readLongAsInt();
-        var addrFileEntries = source.readLongAsInt();
-        var addrDependencyEntries = source.readLongAsInt();
-        var addrDependencyIndexes = source.readLongAsInt();
-        var addrData = source.readLongAsInt();
-        source.expectInt(0);
-        var addrEndMarker = source.readLongAsInt();
-        source.readLong(); // unknown
+        var addrPathStringOffsets = reader.readLongAsInt();
+        var addrErrorLogs = reader.readLongAsInt();
+        var addrFileEntries = reader.readLongAsInt();
+        var addrDependencyEntries = reader.readLongAsInt();
+        var addrDependencyIndexes = reader.readLongAsInt();
+        var addrData = reader.readLongAsInt();
+        reader.expectInt(0);
+        var addrEndMarker = reader.readLongAsInt();
+        reader.readLong(); // unknown
 
         return new ResourcesHeader(
             numFileEntries,

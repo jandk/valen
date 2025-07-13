@@ -12,19 +12,19 @@ public record MapResources(
     List<MapResourcesAsset> assets,
     List<String> mapNames
 ) {
-    public static MapResources read(DataSource source) throws IOException {
-        var numLayerNames = source.readIntBE();
-        var layerNames = source.readObjects(numLayerNames, DataSource::readPString);
-        var unknown = source.readInt();
+    public static MapResources read(BinaryReader reader) throws IOException {
+        var numLayerNames = reader.readIntBE();
+        var layerNames = reader.readObjects(numLayerNames, BinaryReader::readPString);
+        var unknown = reader.readInt();
 
-        var numAssetTypes = source.readIntBE();
-        var assetTypes = source.readObjects(numAssetTypes, DataSource::readPString);
+        var numAssetTypes = reader.readIntBE();
+        var assetTypes = reader.readObjects(numAssetTypes, BinaryReader::readPString);
 
-        var numAssets = source.readIntBE();
-        var assets = source.readObjects(numAssets, MapResourcesAsset::read);
+        var numAssets = reader.readIntBE();
+        var assets = reader.readObjects(numAssets, MapResourcesAsset::read);
 
-        var numMapNames = source.readIntBE();
-        var mapNames = source.readObjects(numMapNames, DataSource::readPString);
+        var numMapNames = reader.readIntBE();
+        var mapNames = reader.readObjects(numMapNames, BinaryReader::readPString);
 
         return new MapResources(
             layerNames,

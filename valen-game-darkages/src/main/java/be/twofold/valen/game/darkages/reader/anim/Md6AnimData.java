@@ -54,29 +54,29 @@ public record Md6AnimData(
         }
     }
 
-    public static Md6AnimData read(DataSource source) throws IOException {
-        var totalSize = source.readInt();
-        var size = source.readShort();
-        var flags = source.readShort();
-        var numFrames = source.readShort();
-        var frameRate = source.readShort();
-        var srcSkel = source.readInt();
-        var baseSkel = source.readInt();
-        var numFrameSets = source.readShort();
-        var frameSetTblOffset = source.readShorts(2);
-        var frameSetOffsetTblOffset = source.readShort();
-        var constROffset = source.readShort();
-        var constSOffset = source.readShort();
-        var constTOffset = source.readShort();
-        var constUOffset = source.readShort();
-        var nextSize = source.readShort();
-        var jointWeightsOffset = source.readShort();
-        var numStreamedFrameSets = source.readShort();
-        var streamMethod = Md6AnimCompressionStreamMethod.fromValue(source.readByte());
-        source.expectByte((byte) 0); // pad
-        var assetScale = source.readFloat();
-        var startDelta = source.readFloats(12);
-        var endDelta = source.readFloats(12);
+    public static Md6AnimData read(BinaryReader reader) throws IOException {
+        var totalSize = reader.readInt();
+        var size = reader.readShort();
+        var flags = reader.readShort();
+        var numFrames = reader.readShort();
+        var frameRate = reader.readShort();
+        var srcSkel = reader.readInt();
+        var baseSkel = reader.readInt();
+        var numFrameSets = reader.readShort();
+        var frameSetTblOffset = reader.readShorts(2);
+        var frameSetOffsetTblOffset = reader.readShort();
+        var constROffset = reader.readShort();
+        var constSOffset = reader.readShort();
+        var constTOffset = reader.readShort();
+        var constUOffset = reader.readShort();
+        var nextSize = reader.readShort();
+        var jointWeightsOffset = reader.readShort();
+        var numStreamedFrameSets = reader.readShort();
+        var streamMethod = Md6AnimCompressionStreamMethod.fromValue(reader.readByte());
+        reader.expectByte((byte) 0); // pad
+        var assetScale = reader.readFloat();
+        var startDelta = reader.readFloats(12);
+        var endDelta = reader.readFloats(12);
 
         return new Md6AnimData(
             totalSize,

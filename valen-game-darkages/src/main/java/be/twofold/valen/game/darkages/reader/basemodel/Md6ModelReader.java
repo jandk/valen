@@ -2,7 +2,7 @@ package be.twofold.valen.game.darkages.reader.basemodel;
 
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.geometry.*;
-import be.twofold.valen.core.io.*;
+import be.twofold.valen.core.io.BinaryReader;
 import be.twofold.valen.core.math.*;
 import be.twofold.valen.game.darkages.*;
 import be.twofold.valen.game.darkages.reader.*;
@@ -30,12 +30,12 @@ public final class Md6ModelReader implements AssetReader<Model, DarkAgesAsset> {
     }
 
     @Override
-    public Model read(DataSource source, DarkAgesAsset asset) throws IOException {
-        var skelName = source.readPString();
+    public Model read(BinaryReader reader, DarkAgesAsset asset) throws IOException {
+        var skelName = reader.readPString();
         var skeletonKey = DarkAgesAssetID.from(skelName, ResourcesType.Skeleton);
         var skeleton = archive.loadAsset(skeletonKey, Skeleton.class);
-        var md6Model = Md6Model.read(source, skeleton.bones().size() + 7 & ~7);
-        source.expectEnd();
+        var md6Model = Md6Model.read(reader, skeleton.bones().size() + 7 & ~7);
+        reader.expectEnd();
 
         var meshes = readMeshes(md6Model, 0, asset.hash());
         if (readMaterials) {
@@ -62,7 +62,7 @@ public final class Md6ModelReader implements AssetReader<Model, DarkAgesAsset> {
         var identity = Hash.hash(hash, 4 - lod, 0);
         var buffer = archive.readStream(identity, uncompressedSize);
 
-        try (var source = DataSource.fromBuffer(buffer)) {
+        try (var source = BinaryReader.fromBuffer(buffer)) {
             List<Mesh> meshes = GeometryReader.readStreamedMesh(source, lodInfos, true);
             meshes = mergeJointsAndWeights(md6Model, meshes);
             fixJointIndices(md6Model, meshes);

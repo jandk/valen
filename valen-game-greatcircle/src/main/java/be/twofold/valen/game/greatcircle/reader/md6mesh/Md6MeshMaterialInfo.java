@@ -1,6 +1,6 @@
 package be.twofold.valen.game.greatcircle.reader.md6mesh;
 
-import be.twofold.valen.core.io.*;
+import be.twofold.valen.core.io.BinaryReader;
 
 import java.io.*;
 
@@ -10,11 +10,11 @@ record Md6MeshMaterialInfo(
     int firstVertex,
     int lastVertex
 ) {
-    static Md6MeshMaterialInfo read(DataSource source) throws IOException {
-        var mtrName = source.readPString();
-        var renderSurface = source.readInt();
-        var firstVertex = source.readInt();
-        var lastVertex = source.readInt();
+    static Md6MeshMaterialInfo read(BinaryReader reader) throws IOException {
+        var mtrName = reader.readPString();
+        var renderSurface = reader.readInt();
+        var firstVertex = reader.readInt();
+        var lastVertex = reader.readInt();
 
         return new Md6MeshMaterialInfo(
             mtrName,

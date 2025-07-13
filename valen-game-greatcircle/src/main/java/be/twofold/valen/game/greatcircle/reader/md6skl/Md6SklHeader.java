@@ -1,6 +1,6 @@
 package be.twofold.valen.game.greatcircle.reader.md6skl;
 
-import be.twofold.valen.core.io.*;
+import be.twofold.valen.core.io.BinaryReader;
 
 import java.io.*;
 
@@ -24,25 +24,25 @@ public record Md6SklHeader(
     short[] userWeightOffsets,
     byte[] pad
 ) {
-    public static Md6SklHeader read(DataSource source) throws IOException {
-        int size = source.readInt();
-        int inverseBasePoseOffset = source.readInt();
-        int basePoseOffset = source.readInt();
-        int skeletonCrc = source.readInt();
-        int userChannelCrc = source.readInt();
-        int combinedCrc = source.readInt();
-        short numJoints = source.readShort();
-        short numUserChannels = source.readShort();
-        short numRigControls = source.readShort();
-        short animationMaskOffset = source.readShort();
-        short parentTblOffset = source.readShort();
-        short lastChildTblOffset = source.readShort();
-        short jointHandleTblOffset = source.readShort();
-        short userChannelHandleTblOffset = source.readShort();
-        short rigControlHandleTblOffset = source.readShort();
-        short[] jointWeightOffsets = source.readShorts(8);
-        short[] userWeightOffsets = source.readShorts(8);
-        byte[] pad = source.readBytes(6);
+    public static Md6SklHeader read(BinaryReader reader) throws IOException {
+        int size = reader.readInt();
+        int inverseBasePoseOffset = reader.readInt();
+        int basePoseOffset = reader.readInt();
+        int skeletonCrc = reader.readInt();
+        int userChannelCrc = reader.readInt();
+        int combinedCrc = reader.readInt();
+        short numJoints = reader.readShort();
+        short numUserChannels = reader.readShort();
+        short numRigControls = reader.readShort();
+        short animationMaskOffset = reader.readShort();
+        short parentTblOffset = reader.readShort();
+        short lastChildTblOffset = reader.readShort();
+        short jointHandleTblOffset = reader.readShort();
+        short userChannelHandleTblOffset = reader.readShort();
+        short rigControlHandleTblOffset = reader.readShort();
+        short[] jointWeightOffsets = reader.readShorts(8);
+        short[] userWeightOffsets = reader.readShorts(8);
+        byte[] pad = reader.readBytes(6);
 
         return new Md6SklHeader(
             size,

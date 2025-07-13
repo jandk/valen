@@ -21,10 +21,10 @@ public record Vector3(
         return new Vector3(value, value, value);
     }
 
-    public static Vector3 read(DataSource source) throws IOException {
-        float x = source.readFloat();
-        float y = source.readFloat();
-        float z = source.readFloat();
+    public static Vector3 read(BinaryReader reader) throws IOException {
+        float x = reader.readFloat();
+        float y = reader.readFloat();
+        float z = reader.readFloat();
         return new Vector3(x, y, z);
     }
 

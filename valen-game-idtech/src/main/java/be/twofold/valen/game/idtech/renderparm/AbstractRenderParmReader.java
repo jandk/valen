@@ -352,8 +352,8 @@ public abstract class AbstractRenderParmReader<V extends Asset> implements Asset
         }
     }
 
-    protected RenderParm read(DataSource source) throws IOException {
-        var bytes = source.readBytes(Math.toIntExact(source.size()));
+    protected RenderParm read(BinaryReader reader) throws IOException {
+        var bytes = reader.readBytes(Math.toIntExact(reader.size()));
         var parser = new DeclParser(new String(bytes), true);
 
         var result = new RenderParm();

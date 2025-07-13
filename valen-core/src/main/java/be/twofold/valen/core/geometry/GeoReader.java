@@ -7,5 +7,5 @@ import java.nio.*;
 
 @FunctionalInterface
 public interface GeoReader<T extends Buffer> {
-    void read(DataSource source, T buffer) throws IOException;
+    void read(BinaryReader reader, T buffer) throws IOException;
 }

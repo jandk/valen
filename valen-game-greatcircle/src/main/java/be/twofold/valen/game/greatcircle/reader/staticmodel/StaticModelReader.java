@@ -32,9 +32,9 @@ public final class StaticModelReader implements AssetReader<Model, GreatCircleAs
     }
 
     @Override
-    public Model read(DataSource source, GreatCircleAsset asset) throws IOException {
-        var model = StaticModel.read(source, (Integer) asset.properties().get("version"));
-        var meshes = new ArrayList<>(readMeshes(model, source));
+    public Model read(BinaryReader reader, GreatCircleAsset asset) throws IOException {
+        var model = StaticModel.read(reader, (Integer) asset.properties().get("version"));
+        var meshes = new ArrayList<>(readMeshes(model, reader));
 
         if (readMaterials) {
             Materials.apply(archive, meshes, model.meshInfos(), StaticModelMeshInfo::mtlDecl, _ -> null);
@@ -42,18 +42,18 @@ public final class StaticModelReader implements AssetReader<Model, GreatCircleAs
         return new Model(meshes, Optional.empty(), Optional.of(asset.id().fullName()), Optional.empty(), Axis.Z);
     }
 
-    private List<Mesh> readMeshes(StaticModel model, DataSource source) throws IOException {
+    private List<Mesh> readMeshes(StaticModel model, BinaryReader reader) throws IOException {
         if (!model.header().streamable()) {
-            return readEmbeddedGeometry(model, source);
+            return readEmbeddedGeometry(model, reader);
         }
         return readStreamedGeometry(model, 0);
     }
 
-    private List<Mesh> readEmbeddedGeometry(StaticModel model, DataSource source) throws IOException {
+    private List<Mesh> readEmbeddedGeometry(StaticModel model, BinaryReader reader) throws IOException {
         List<Mesh> meshes = new ArrayList<>();
         for (var meshInfo : model.meshInfos()) {
             Check.state(meshInfo.lodInfos().size() == 1);
-            meshes.add(GeometryReader.readEmbeddedMesh(source, meshInfo.lodInfos().getFirst()));
+            meshes.add(GeometryReader.readEmbeddedMesh(reader, meshInfo.lodInfos().getFirst()));
         }
         return meshes;
     }
@@ -66,7 +66,7 @@ public final class StaticModelReader implements AssetReader<Model, GreatCircleAs
         var diskLayout = model.streamDiskLayouts().get(lod);
         var uncompressedSize = diskLayout.uncompressedSize();
         var buffer = archive.readStream(diskLayout.hash(), uncompressedSize);
-        var source = DataSource.fromBuffer(buffer);
+        var source = BinaryReader.fromBuffer(buffer);
         return GeometryReader.readStreamedMesh(source, lods, diskLayout.memoryLayouts(), false);
     }
 }

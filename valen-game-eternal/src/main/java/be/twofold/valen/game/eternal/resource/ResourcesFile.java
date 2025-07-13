@@ -3,7 +3,7 @@ package be.twofold.valen.game.eternal.resource;
 import be.twofold.valen.core.compression.*;
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.hashing.*;
-import be.twofold.valen.core.io.*;
+import be.twofold.valen.core.io.BinaryReader;
 import be.twofold.valen.core.util.*;
 import be.twofold.valen.game.eternal.*;
 import be.twofold.valen.game.eternal.reader.resource.*;
@@ -23,15 +23,15 @@ public final class ResourcesFile implements Container<EternalAssetID, EternalAss
     private final Decompressor decompressor;
     private final Path path;
 
-    private DataSource source;
+    private BinaryReader reader;
 
     public ResourcesFile(Path path, Decompressor decompressor) throws IOException {
         log.info("Loading resources: {}", path);
         this.decompressor = Check.notNull(decompressor);
         this.path = Check.notNull(path);
-        this.source = DataSource.fromPath(path);
+        this.reader = BinaryReader.fromPath(path);
 
-        var resources = mapResources(Resources.read(source));
+        var resources = mapResources(Resources.read(reader));
         this.index = resources.stream()
             .collect(Collectors.toUnmodifiableMap(
                 EternalAsset::id,
@@ -87,8 +87,8 @@ public final class ResourcesFile implements Container<EternalAssetID, EternalAss
         };
 
         // Read the chunk
-        source.position(resource.offset());
-        var compressed = source
+        reader.position(resource.offset());
+        var compressed = reader
             .readBuffer(resource.compressedSize())
             .position(resource.compression() == ResourceCompressionMode.RES_COMP_MODE_KRAKEN_CHUNKED ? 12 : 0);
         var decompressed = decompressor.decompress(compressed, resource.size());
@@ -105,9 +105,9 @@ public final class ResourcesFile implements Container<EternalAssetID, EternalAss
 
     @Override
     public void close() throws IOException {
-        if (source != null) {
-            source.close();
-            source = null;
+        if (reader != null) {
+            reader.close();
+            reader = null;
         }
     }
 

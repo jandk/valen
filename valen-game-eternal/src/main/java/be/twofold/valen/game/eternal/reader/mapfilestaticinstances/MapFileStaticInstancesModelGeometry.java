@@ -15,16 +15,16 @@ public record MapFileStaticInstancesModelGeometry(
     int flagsMaybe,
     int extraIndex
 ) {
-    public static MapFileStaticInstancesModelGeometry read(DataSource source) throws IOException {
-        var declLayerIndex = source.readShort();
-        var modelIndex = source.readShort();
-        var modelIndexVPaint = source.readShort();
-        source.expectShort((short) 0);
-        var translation = Vector3.read(source);
-        var rotation = Matrix3.read(source);
-        var scale = Vector3.read(source);
-        var flagsMaybe = source.readInt();
-        var extraIndex = source.readInt();
+    public static MapFileStaticInstancesModelGeometry read(BinaryReader reader) throws IOException {
+        var declLayerIndex = reader.readShort();
+        var modelIndex = reader.readShort();
+        var modelIndexVPaint = reader.readShort();
+        reader.expectShort((short) 0);
+        var translation = Vector3.read(reader);
+        var rotation = Matrix3.read(reader);
+        var scale = Vector3.read(reader);
+        var flagsMaybe = reader.readInt();
+        var extraIndex = reader.readInt();
         return new MapFileStaticInstancesModelGeometry(
             declLayerIndex,
             modelIndex,

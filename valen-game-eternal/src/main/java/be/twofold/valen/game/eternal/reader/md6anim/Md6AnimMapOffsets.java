@@ -14,15 +14,15 @@ public record Md6AnimMapOffsets(
     short animTRLEOffset,
     short animURLEOffset
 ) {
-    public static Md6AnimMapOffsets read(DataSource source) throws IOException {
-        short constRRLEOffset = source.readShort();
-        short constSRLEOffset = source.readShort();
-        short constTRLEOffset = source.readShort();
-        short constURLEOffset = source.readShort();
-        short animRRLEOffset = source.readShort();
-        short animSRLEOffset = source.readShort();
-        short animTRLEOffset = source.readShort();
-        short animURLEOffset = source.readShort();
+    public static Md6AnimMapOffsets read(BinaryReader reader) throws IOException {
+        short constRRLEOffset = reader.readShort();
+        short constSRLEOffset = reader.readShort();
+        short constTRLEOffset = reader.readShort();
+        short constURLEOffset = reader.readShort();
+        short animRRLEOffset = reader.readShort();
+        short animSRLEOffset = reader.readShort();
+        short animTRLEOffset = reader.readShort();
+        short animURLEOffset = reader.readShort();
 
         return new Md6AnimMapOffsets(
             constRRLEOffset,

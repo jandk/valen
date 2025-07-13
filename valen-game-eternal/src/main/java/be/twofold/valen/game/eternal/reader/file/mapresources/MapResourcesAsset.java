@@ -12,15 +12,15 @@ public record MapResourcesAsset(
     int unknown3,
     int unknown4
 ) {
-    public static MapResourcesAsset read(DataSource source) throws IOException {
-        int type = source.readIntBE();
-        String name = source.readPString();
-        int unknown1 = source.readIntBE();
-        int unknown2 = source.readIntBE();
-        int unknown3 = source.readIntBE();
-        source.expectInt(0);
-        source.expectInt(0);
-        int unknown4 = source.readIntBE();
+    public static MapResourcesAsset read(BinaryReader reader) throws IOException {
+        int type = reader.readIntBE();
+        String name = reader.readPString();
+        int unknown1 = reader.readIntBE();
+        int unknown2 = reader.readIntBE();
+        int unknown3 = reader.readIntBE();
+        reader.expectInt(0);
+        reader.expectInt(0);
+        int unknown4 = reader.readIntBE();
         return new MapResourcesAsset(
             type,
             name,

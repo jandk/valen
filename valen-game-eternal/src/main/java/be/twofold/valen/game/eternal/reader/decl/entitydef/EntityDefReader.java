@@ -17,8 +17,8 @@ public final class EntityDefReader implements AssetReader<JsonObject, EternalAss
     }
 
     @Override
-    public JsonObject read(DataSource source, EternalAsset resource) throws IOException {
-        var bytes = source.readBytes(Math.toIntExact(source.size()));
+    public JsonObject read(BinaryReader reader, EternalAsset resource) throws IOException {
+        var bytes = reader.readBytes(Math.toIntExact(reader.size()));
         var parser = new DeclParser(new String(bytes), true);
         return parser.parse();
     }

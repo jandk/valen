@@ -28,9 +28,9 @@ public final class ImageReader implements AssetReader<Texture, GreatCircleAsset>
     }
 
     @Override
-    public Texture read(DataSource source, GreatCircleAsset asset) throws IOException {
-        var image = Image.read(source);
-        source.expectEnd();
+    public Texture read(BinaryReader reader, GreatCircleAsset asset) throws IOException {
+        var image = Image.read(reader);
+        reader.expectEnd();
 
         if (readStreams) {
             /*

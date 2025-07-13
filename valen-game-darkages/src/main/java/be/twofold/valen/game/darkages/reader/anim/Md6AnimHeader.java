@@ -15,12 +15,12 @@ public record Md6AnimHeader(
     Bounds normalizedBounds,
     int size
 ) {
-    public static Md6AnimHeader read(DataSource source) throws IOException {
-        var skelName = source.readPString();
-        source.expectInt(0); // numAttachments
-        var translatedBounds = Bounds.read(source);
-        var normalizedBounds = Bounds.read(source);
-        var size = source.readInt();
+    public static Md6AnimHeader read(BinaryReader reader) throws IOException {
+        var skelName = reader.readPString();
+        reader.expectInt(0); // numAttachments
+        var translatedBounds = Bounds.read(reader);
+        var normalizedBounds = Bounds.read(reader);
+        var size = reader.readInt();
 
         return new Md6AnimHeader(
             skelName,

@@ -5,13 +5,13 @@ import be.twofold.valen.core.util.*;
 import java.io.*;
 import java.nio.*;
 
-final class ByteArrayDataSource implements DataSource, Closeable {
+final class ByteArrayBinaryReader implements BinaryReader, Closeable {
     private final byte[] array;
     private final int offset;
     private final int limit;
     private int position;
 
-    ByteArrayDataSource(byte[] array, int offset, int length) {
+    ByteArrayBinaryReader(byte[] array, int offset, int length) {
         Check.fromIndexSize(offset, length, array.length);
         this.array = array;
         this.offset = offset;
@@ -37,7 +37,7 @@ final class ByteArrayDataSource implements DataSource, Closeable {
     }
 
     @Override
-    public DataSource position(long pos) {
+    public BinaryReader position(long pos) {
         int intPos = Math.toIntExact(pos);
         Check.index(intPos, limit - offset + 1);
         this.position = offset + intPos;

@@ -48,29 +48,29 @@ public record Md6AnimFrameSet(
     short frameRange,
     byte lodIndex
 ) {
-    public static Md6AnimFrameSet read(DataSource source) throws IOException {
-        var firstROffset = source.readShort();
-        var firstSOffset = source.readShort();
-        var firstTOffset = source.readShort();
-        var firstUOffset = source.readShort();
-        var rangeROffset = source.readShort();
-        var rangeSOffset = source.readShort();
-        var rangeTOffset = source.readShort();
-        var rangeUOffset = source.readShort();
-        var RBitsOffset = source.readShort();
-        var SBitsOffset = source.readShort();
-        var TBitsOffset = source.readShort();
-        var UBitsOffset = source.readShort();
-        var nextROffset = source.readShort();
-        var nextSOffset = source.readShort();
-        var nextTOffset = source.readShort();
-        var nextUOffset = source.readShort();
-        var totalSize = source.readShort();
-        var frameStart = source.readShort();
-        var frameRange = source.readShort();
-        var lodIndex = source.readByte();
+    public static Md6AnimFrameSet read(BinaryReader reader) throws IOException {
+        var firstROffset = reader.readShort();
+        var firstSOffset = reader.readShort();
+        var firstTOffset = reader.readShort();
+        var firstUOffset = reader.readShort();
+        var rangeROffset = reader.readShort();
+        var rangeSOffset = reader.readShort();
+        var rangeTOffset = reader.readShort();
+        var rangeUOffset = reader.readShort();
+        var RBitsOffset = reader.readShort();
+        var SBitsOffset = reader.readShort();
+        var TBitsOffset = reader.readShort();
+        var UBitsOffset = reader.readShort();
+        var nextROffset = reader.readShort();
+        var nextSOffset = reader.readShort();
+        var nextTOffset = reader.readShort();
+        var nextUOffset = reader.readShort();
+        var totalSize = reader.readShort();
+        var frameStart = reader.readShort();
+        var frameRange = reader.readShort();
+        var lodIndex = reader.readByte();
         for (int i = 0; i < 9; i++) {
-            source.expectByte((byte) 0);
+            reader.expectByte((byte) 0);
         }
 
         return new Md6AnimFrameSet(

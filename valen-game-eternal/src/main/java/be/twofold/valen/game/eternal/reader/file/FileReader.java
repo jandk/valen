@@ -15,7 +15,7 @@ public final class FileReader implements AssetReader<ByteBuffer, EternalAsset> {
     }
 
     @Override
-    public ByteBuffer read(DataSource source, EternalAsset resource) throws IOException {
-        return File.read(source).data();
+    public ByteBuffer read(BinaryReader reader, EternalAsset resource) throws IOException {
+        return File.read(reader).data();
     }
 }

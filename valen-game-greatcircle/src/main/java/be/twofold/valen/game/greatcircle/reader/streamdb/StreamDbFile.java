@@ -17,14 +17,14 @@ public final class StreamDbFile implements Container<Long, StreamDbEntry> {
 
     private final Map<Long, StreamDbEntry> index;
     private final Decompressor decompressor;
-    private DataSource source;
+    private BinaryReader reader;
 
     public StreamDbFile(Path path, Decompressor decompressor) throws IOException {
         log.info("Loading streamdb: {}", path);
-        this.source = DataSource.fromPath(path);
+        this.reader = BinaryReader.fromPath(path);
         this.decompressor = decompressor;
 
-        var streamDb = StreamDb.read(source);
+        var streamDb = StreamDb.read(reader);
 
         var entries = new HashMap<Long, StreamDbEntry>();
         for (var i = 0; i < streamDb.identities().length; i++) {
@@ -56,16 +56,16 @@ public final class StreamDbFile implements Container<Long, StreamDbEntry> {
             default -> throw new IllegalStateException("Unexpected compression mode: " + entry.compressionMode());
         };
 
-        source.position(entry.offset());
-        var compressed = source.readBuffer(entry.length());
+        reader.position(entry.offset());
+        var compressed = reader.readBuffer(entry.length());
         return decompressor.decompress(compressed, size);
     }
 
     @Override
     public void close() throws IOException {
-        if (source != null) {
-            source.close();
-            source = null;
+        if (reader != null) {
+            reader.close();
+            reader = null;
         }
     }
 }

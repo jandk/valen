@@ -29,8 +29,8 @@ public abstract class AbstractDeclReader<K extends AssetID, V extends Asset, A e
     public abstract K getAssetID(String name, K baseAssetID);
 
     @Override
-    public JsonObject read(DataSource source, V asset) throws IOException {
-        var buffer = source.readBuffer(Math.toIntExact(source.size()));
+    public JsonObject read(BinaryReader reader, V asset) throws IOException {
+        var buffer = reader.readBuffer(Math.toIntExact(reader.size()));
         var object = DeclParser.parse(decode(buffer));
 
         @SuppressWarnings("unchecked")

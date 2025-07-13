@@ -11,11 +11,11 @@ public record MapFileStaticInstancesDeclGeometry(
     int extraIndex,
     int unknown52
 ) {
-    public static MapFileStaticInstancesDeclGeometry read(DataSource source) throws IOException {
-        var translation = Vector3.read(source);
-        var rotation = Matrix3.read(source);
-        var extraIndex = source.readInt();
-        var unknown52 = source.readInt();
+    public static MapFileStaticInstancesDeclGeometry read(BinaryReader reader) throws IOException {
+        var translation = Vector3.read(reader);
+        var rotation = Matrix3.read(reader);
+        var extraIndex = reader.readInt();
+        var unknown52 = reader.readInt();
 
         return new MapFileStaticInstancesDeclGeometry(
             translation,

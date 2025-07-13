@@ -8,9 +8,9 @@ public record MapFileStaticInstancesLayerStateChange(
     String checkpointName,
     String playerSpawnSpot
 ) {
-    public static MapFileStaticInstancesLayerStateChange read(DataSource source) throws IOException {
-        var checkpointName = source.readPString();
-        var playerSpawnSpot = source.readPString();
+    public static MapFileStaticInstancesLayerStateChange read(BinaryReader reader) throws IOException {
+        var checkpointName = reader.readPString();
+        var playerSpawnSpot = reader.readPString();
         return new MapFileStaticInstancesLayerStateChange(checkpointName, playerSpawnSpot);
     }
 }

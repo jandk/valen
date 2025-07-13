@@ -8,26 +8,26 @@ import java.nio.charset.*;
 import java.nio.file.*;
 import java.util.*;
 
-public interface DataSource extends Closeable {
-    static DataSource fromArray(byte[] array) {
+public interface BinaryReader extends Closeable {
+    static BinaryReader fromArray(byte[] array) {
         return fromArray(array, 0, array.length);
     }
 
-    static DataSource fromArray(byte[] array, int offset, int length) {
-        return new ByteArrayDataSource(array, offset, length);
+    static BinaryReader fromArray(byte[] array, int offset, int length) {
+        return new ByteArrayBinaryReader(array, offset, length);
     }
 
-    static DataSource fromBuffer(ByteBuffer buffer) {
+    static BinaryReader fromBuffer(ByteBuffer buffer) {
         if (buffer.hasArray()) {
-            var dataSource = new ByteArrayDataSource(buffer.array(), buffer.arrayOffset(), buffer.limit());
+            var dataSource = new ByteArrayBinaryReader(buffer.array(), buffer.arrayOffset(), buffer.limit());
             dataSource.position(buffer.position());
             return dataSource;
         }
-        return new ByteBufferDataSource(buffer);
+        return new ByteBufferBinaryReader(buffer);
     }
 
-    static DataSource fromPath(Path path) throws IOException {
-        return new ChannelDataSource(Files.newByteChannel(path, StandardOpenOption.READ));
+    static BinaryReader fromPath(Path path) throws IOException {
+        return new ChannelBinaryReader(Files.newByteChannel(path, StandardOpenOption.READ));
     }
 
     void read(ByteBuffer dst) throws IOException;
@@ -36,14 +36,14 @@ public interface DataSource extends Closeable {
 
     long position();
 
-    DataSource position(long pos) throws IOException;
+    BinaryReader position(long pos) throws IOException;
 
     @Override
     default void close() throws IOException {
     }
 
     default void skip(long count) throws IOException {
-        position(position() + count);
+        this.position(position() + count);
     }
 
     byte readByte() throws IOException;

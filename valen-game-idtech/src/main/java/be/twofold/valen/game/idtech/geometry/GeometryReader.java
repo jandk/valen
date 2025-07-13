@@ -8,7 +8,7 @@ import java.util.*;
 import java.util.stream.*;
 
 public final class GeometryReader {
-    public static Mesh readEmbeddedMesh(DataSource source, LodInfo lodInfo) throws IOException {
+    public static Mesh readEmbeddedMesh(BinaryReader reader, LodInfo lodInfo) throws IOException {
         var masks = GeometryVertexMask.FixedOrder.stream()
             .filter(mask -> (lodInfo.vertexMask() & mask.mask()) == mask.mask())
             .toList();
@@ -29,11 +29,11 @@ public final class GeometryReader {
         var faceInfo = new VertexBufferInfo<>(null, ComponentType.UNSIGNED_SHORT, 3);
         var faceAccessor = new GeoAccessor<>(offset, lodInfo.numFaces() * 3, Short.BYTES, faceInfo, Geometry.readFaceIndex());
 
-        return new Geo(true).readMesh(source, faceAccessor, vertexAccessors);
+        return new Geo(true).readMesh(reader, faceAccessor, vertexAccessors);
     }
 
     public static List<Mesh> readStreamedMesh(
-        DataSource source,
+        BinaryReader reader,
         List<LodInfo> lods,
         List<? extends GeoMemoryLayout> layouts,
         boolean animated
@@ -65,14 +65,14 @@ public final class GeometryReader {
                 var faceAccessor = new GeoAccessor<>(offsets.indexOffset, lodInfo.numFaces() * 3, Short.BYTES, faceInfo, Geometry.readFaceIndex());
                 offsets.indexOffset += lodInfo.numFaces() * 3 * Short.BYTES;
 
-                meshes.add(new Geo(true).readMesh(source, faceAccessor, vertexAccessors));
+                meshes.add(new Geo(true).readMesh(reader, faceAccessor, vertexAccessors));
             }
         }
         return meshes;
     }
 
     public static List<Mesh> readStreamedMesh(
-        DataSource source,
+        BinaryReader reader,
         List<LodInfo> lods,
         boolean animated
     ) throws IOException {
@@ -96,7 +96,7 @@ public final class GeometryReader {
             lodOffset += lod.numFaces() * 3 * Short.BYTES;
             offset = (offset + lodOffset + 7) & ~7;
 
-            meshes.add(new Geo(true).readMesh(source, faceAccessor, vertexAccessors));
+            meshes.add(new Geo(true).readMesh(reader, faceAccessor, vertexAccessors));
         }
 
         return meshes;

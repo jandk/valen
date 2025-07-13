@@ -21,38 +21,38 @@ public record LightDb(
     List<LightDbPart2> parts2,
     StreamDb streamDb
 ) {
-    public static LightDb read(DataSource source) throws IOException {
-        var header = LightDbHeader.read(source);
+    public static LightDb read(BinaryReader reader) throws IOException {
+        var header = LightDbHeader.read(reader);
 
-        source.expectPosition(header.indexOffset());
-        var indexEntries = source.readObjects(header.hashLength(), LightDbIndexEntry::read);
+        reader.expectPosition(header.indexOffset());
+        var indexEntries = reader.readObjects(header.hashLength(), LightDbIndexEntry::read);
 
-        source.expectPosition(header.hashOffset());
-        var hashes = source.readLongs(header.hashLength());
-        var hashIds = source.readInts(header.hashLength());
+        reader.expectPosition(header.hashOffset());
+        var hashes = reader.readLongs(header.hashLength());
+        var hashIds = reader.readInts(header.hashLength());
 
-        source.expectPosition(header.imageOffset());
+        reader.expectPosition(header.imageOffset());
         var imageHeaders = new ArrayList<LightDbImageHeader>();
         var images = new ArrayList<Image>();
         for (var i = 0; i < header.imageCount(); i++) {
-            imageHeaders.add(LightDbImageHeader.read(source));
-            images.add(Image.read(source));
+            imageHeaders.add(LightDbImageHeader.read(reader));
+            images.add(Image.read(reader));
         }
 
-        source.expectPosition(header.nameOffset());
-        var nameGroupMagic = source.readInt();
+        reader.expectPosition(header.nameOffset());
+        var nameGroupMagic = reader.readInt();
         Check.state(nameGroupMagic == 0x758ac962 || nameGroupMagic == 0x758ac961, "Invalid name group magic");
-        var nameGroups = source.readObjects(source.readInt(), LightDbNameGroup::read);
+        var nameGroups = reader.readObjects(reader.readInt(), LightDbNameGroup::read);
 
-        var unknownInts = source.readInts(6);
-        var numParts1 = source.readInt();
-        var numParts2 = source.readInt();
-        source.expectInt(0);
+        var unknownInts = reader.readInts(6);
+        var numParts1 = reader.readInt();
+        var numParts2 = reader.readInt();
+        reader.expectInt(0);
 
-        List<LightDbPart1> parts1 = source.readObjects(numParts1, LightDbPart1::read);
-        List<LightDbPart2> parts2 = source.readObjects(numParts2, LightDbPart2::read);
+        List<LightDbPart1> parts1 = reader.readObjects(numParts1, LightDbPart1::read);
+        List<LightDbPart2> parts2 = reader.readObjects(numParts2, LightDbPart2::read);
 
-        StreamDb streamDb = StreamDb.read(source);
+        StreamDb streamDb = StreamDb.read(reader);
 
         return new LightDb(
             header,

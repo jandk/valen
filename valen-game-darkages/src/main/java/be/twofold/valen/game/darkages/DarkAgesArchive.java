@@ -79,7 +79,7 @@ public final class DarkAgesArchive implements Archive<DarkAgesAssetID, DarkAgesA
             ? resources.read(asset.id(), null)
             : common.read(asset.id(), null);
 
-        try (var source = DataSource.fromBuffer(buffer)) {
+        try (var source = BinaryReader.fromBuffer(buffer)) {
             return readers.read(asset, source, clazz);
         }
     }

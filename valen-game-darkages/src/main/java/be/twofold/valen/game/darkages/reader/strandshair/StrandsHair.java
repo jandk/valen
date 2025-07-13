@@ -19,22 +19,22 @@ record StrandsHair(
     String collisionGridName,
     String attachedMeshName
 ) {
-    static StrandsHair read(DataSource source) throws IOException {
-        var header = StrandsHairHeader.read(source);
-        var strands = source.readInts(header.numStrands());
-        var particles = source.readShorts(header.numParticles() * 4);
-        var distances = source.readFloats(header.numStrands());
-        var infos = source.readInts(header.numParticles());
-        var segments = source.readInts(header.numSegments());
-        var visibility = source.readShorts(header.numParticles() / 4 * 4);
-        var strandsInfo = source.readObjects(header.numStrands(), StrandsHairInfo::read);
-        var locationInfo = source.readObjects(
+    static StrandsHair read(BinaryReader reader) throws IOException {
+        var header = StrandsHairHeader.read(reader);
+        var strands = reader.readInts(header.numStrands());
+        var particles = reader.readShorts(header.numParticles() * 4);
+        var distances = reader.readFloats(header.numStrands());
+        var infos = reader.readInts(header.numParticles());
+        var segments = reader.readInts(header.numSegments());
+        var visibility = reader.readShorts(header.numParticles() / 4 * 4);
+        var strandsInfo = reader.readObjects(header.numStrands(), StrandsHairInfo::read);
+        var locationInfo = reader.readObjects(
             header.numBlendShapeLODs() * header.numStrands(),
             StrandsHairLocationInfo::read
         );
-        var hasCollisionGrid = source.readBoolByte();
-        var collisionGridName = source.readPString();
-        var attachedMeshName = source.readPString();
+        var hasCollisionGrid = reader.readBoolByte();
+        var collisionGridName = reader.readPString();
+        var attachedMeshName = reader.readPString();
 
         return new StrandsHair(
             header,

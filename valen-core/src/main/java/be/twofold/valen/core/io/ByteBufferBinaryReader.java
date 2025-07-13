@@ -4,10 +4,10 @@ import be.twofold.valen.core.util.*;
 
 import java.nio.*;
 
-final class ByteBufferDataSource implements DataSource {
+final class ByteBufferBinaryReader implements BinaryReader {
     private final ByteBuffer buffer;
 
-    ByteBufferDataSource(ByteBuffer buffer) {
+    ByteBufferBinaryReader(ByteBuffer buffer) {
         this.buffer = buffer.order(ByteOrder.LITTLE_ENDIAN);
     }
 
@@ -27,7 +27,7 @@ final class ByteBufferDataSource implements DataSource {
     }
 
     @Override
-    public DataSource position(long pos) {
+    public BinaryReader position(long pos) {
         buffer.position(Math.toIntExact(pos));
         return this;
     }

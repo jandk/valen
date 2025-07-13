@@ -1,6 +1,6 @@
 package be.twofold.valen.game.eternal.reader.decl.renderparm;
 
-import be.twofold.valen.core.io.*;
+import be.twofold.valen.core.io.BinaryReader;
 import be.twofold.valen.game.eternal.*;
 import be.twofold.valen.game.eternal.resource.*;
 import be.twofold.valen.game.idtech.renderparm.*;
@@ -15,7 +15,7 @@ public final class RenderParmReader extends AbstractRenderParmReader<EternalAsse
     }
 
     @Override
-    public RenderParm read(DataSource source, EternalAsset resource) throws IOException {
-        return read(source);
+    public RenderParm read(BinaryReader reader, EternalAsset resource) throws IOException {
+        return read(reader);
     }
 }

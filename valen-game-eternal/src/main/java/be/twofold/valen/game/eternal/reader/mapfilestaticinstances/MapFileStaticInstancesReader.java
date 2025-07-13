@@ -24,8 +24,8 @@ public final class MapFileStaticInstancesReader implements AssetReader<Scene, Et
     }
 
     @Override
-    public Scene read(DataSource source, EternalAsset resource) throws IOException {
-        var staticInstances = MapFileStaticInstances.read(source);
+    public Scene read(BinaryReader reader, EternalAsset resource) throws IOException {
+        var staticInstances = MapFileStaticInstances.read(reader);
 
         var instances = new ArrayList<Instance>();
         for (int i = 0; i < staticInstances.modelInstanceNames().size(); i++) {

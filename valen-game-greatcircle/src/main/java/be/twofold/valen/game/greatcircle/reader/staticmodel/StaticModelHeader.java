@@ -12,12 +12,12 @@ public record StaticModelHeader(
     float[] maxLodDeviations,
     boolean streamable
 ) {
-    public static StaticModelHeader read(DataSource source) throws IOException {
-        Vector3 referencePosition = Vector3.read(source);
-        var numLods = source.readInt();
-        var numSurfaces = source.readInt();
-        var maxLodDeviations = source.readFloats(numLods);
-        var streamable = source.readBoolInt();
+    public static StaticModelHeader read(BinaryReader reader) throws IOException {
+        Vector3 referencePosition = Vector3.read(reader);
+        var numLods = reader.readInt();
+        var numSurfaces = reader.readInt();
+        var maxLodDeviations = reader.readFloats(numLods);
+        var streamable = reader.readBoolInt();
 
         return new StaticModelHeader(
             referencePosition,

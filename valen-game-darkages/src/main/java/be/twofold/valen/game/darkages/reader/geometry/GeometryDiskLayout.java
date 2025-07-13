@@ -12,11 +12,11 @@ public record GeometryDiskLayout(
     int compressedSize,
     int offset
 ) implements GeoDiskLayout {
-    public static GeometryDiskLayout read(DataSource source) throws IOException {
-        var compression = source.readInt();
-        var uncompressedSize = source.readInt();
-        var compressedSize = source.readInt();
-        var offset = source.readInt();
+    public static GeometryDiskLayout read(BinaryReader reader) throws IOException {
+        var compression = reader.readInt();
+        var uncompressedSize = reader.readInt();
+        var compressedSize = reader.readInt();
+        var offset = reader.readInt();
 
         return new GeometryDiskLayout(
             compression,

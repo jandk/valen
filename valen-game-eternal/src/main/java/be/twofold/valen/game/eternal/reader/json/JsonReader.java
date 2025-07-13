@@ -15,8 +15,8 @@ public final class JsonReader implements AssetReader<ByteBuffer, EternalAsset> {
     }
 
     @Override
-    public ByteBuffer read(DataSource source, EternalAsset asset) throws IOException {
-        int size = Math.toIntExact(source.readLongBE());
-        return source.readBuffer(size);
+    public ByteBuffer read(BinaryReader reader, EternalAsset asset) throws IOException {
+        int size = Math.toIntExact(reader.readLongBE());
+        return reader.readBuffer(size);
     }
 }

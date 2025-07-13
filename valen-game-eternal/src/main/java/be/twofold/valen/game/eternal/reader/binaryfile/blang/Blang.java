@@ -11,11 +11,11 @@ public record Blang(
     int numEntries,
     List<BlangEntry> entries
 ) {
-    public static Blang read(DataSource source) throws IOException {
-        var versionMaybe = source.readInt();
-        var unknownHash = source.readInt();
-        var numEntries = source.readIntBE(); // Big endian all of a sudden?
-        var entries = source.readObjects(numEntries, BlangEntry::read);
+    public static Blang read(BinaryReader reader) throws IOException {
+        var versionMaybe = reader.readInt();
+        var unknownHash = reader.readInt();
+        var numEntries = reader.readIntBE(); // Big endian all of a sudden?
+        var entries = reader.readObjects(numEntries, BlangEntry::read);
         return new Blang(versionMaybe, unknownHash, numEntries, entries);
     }
 }

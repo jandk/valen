@@ -4,5 +4,5 @@ import java.io.*;
 
 @FunctionalInterface
 public interface ObjectMapper<T> {
-    T read(DataSource source) throws IOException;
+    T read(BinaryReader reader) throws IOException;
 }

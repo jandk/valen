@@ -13,8 +13,8 @@ public record Image(
     List<ImageSlice> sliceInfos,
     ByteBuffer[] slices
 ) {
-    public static Image read(DataSource source) throws IOException {
-        var header = ImageHeader.read(source);
+    public static Image read(BinaryReader reader) throws IOException {
+        var header = ImageHeader.read(reader);
 
         var numSlices = header.mipCount() * Math.max(header.count(), 1);
         if (header.type() == TextureType.TT_CUBIC) {
@@ -22,12 +22,12 @@ public record Image(
         }
 
         var slices = new ByteBuffer[numSlices];
-        var sliceInfos = source.readObjects(numSlices, ImageSlice::read);
+        var sliceInfos = reader.readObjects(numSlices, ImageSlice::read);
         for (int i = header.startMip(); i < sliceInfos.size(); i++) {
-            slices[i] = source.readBuffer(sliceInfos.get(i).size());
+            slices[i] = reader.readBuffer(sliceInfos.get(i).size());
         }
 
-        source.expectEnd();
+        reader.expectEnd();
 
         return new Image(
             header,

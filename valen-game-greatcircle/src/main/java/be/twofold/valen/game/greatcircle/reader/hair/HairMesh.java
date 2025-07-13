@@ -18,26 +18,26 @@ public record HairMesh(
     short[] strandRootUVs,
     List<HairStrandBlendShape> strandBlendShapeInfo
 ) {
-    public static HairMesh read(DataSource source) throws IOException {
-        var header = HairHeader.read(source);
-        var particleSumPerStrand = source.readInts(header.numStrands());
-        var materials = source.readObjects(source.readInt(), DataSource::readPString);
-        var sourcePositions = source.readShorts(header.numParticles() * 4);
-        var particleInfo = source.readInts(header.numParticles());
-        var segments = source.readInts(header.numSegments());
-        var unknown1 = source.readShorts(header.numParticles());
+    public static HairMesh read(BinaryReader reader) throws IOException {
+        var header = HairHeader.read(reader);
+        var particleSumPerStrand = reader.readInts(header.numStrands());
+        var materials = reader.readObjects(reader.readInt(), BinaryReader::readPString);
+        var sourcePositions = reader.readShorts(header.numParticles() * 4);
+        var particleInfo = reader.readInts(header.numParticles());
+        var segments = reader.readInts(header.numSegments());
+        var unknown1 = reader.readShorts(header.numParticles());
 
         var gpuStrands = (List<HairStrandInfoGPU>) null;
         var particleStrandDistances = (float[]) null;
         var strandRootUVs = (short[]) null;
         if (header.allowSimulation()) {
-            gpuStrands = source.readObjects(header.numStrands(), HairStrandInfoGPU::read);
-            particleStrandDistances = source.readFloats(header.numStrands());
-            strandRootUVs = source.readShorts(header.numStrands() * 2);
+            gpuStrands = reader.readObjects(header.numStrands(), HairStrandInfoGPU::read);
+            particleStrandDistances = reader.readFloats(header.numStrands());
+            strandRootUVs = reader.readShorts(header.numStrands() * 2);
         }
 
         var numBlendShapes = header.numStrands() * header.numBlendShapeLODs();
-        var strandBlendShapeInfo = source.readObjects(numBlendShapes, HairStrandBlendShape::read);
+        var strandBlendShapeInfo = reader.readObjects(numBlendShapes, HairStrandBlendShape::read);
 
         return new HairMesh(
             header,

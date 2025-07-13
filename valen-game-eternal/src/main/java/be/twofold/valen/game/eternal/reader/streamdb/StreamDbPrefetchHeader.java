@@ -8,9 +8,9 @@ public record StreamDbPrefetchHeader(
     int numPrefetchBlocks,
     int totalLength
 ) {
-    public static StreamDbPrefetchHeader read(DataSource source) throws IOException {
-        var numPrefetchBlocks = source.readInt();
-        var totalLength = source.readInt();
+    public static StreamDbPrefetchHeader read(BinaryReader reader) throws IOException {
+        var numPrefetchBlocks = reader.readInt();
+        var totalLength = reader.readInt();
         return new StreamDbPrefetchHeader(numPrefetchBlocks, totalLength);
     }
 }

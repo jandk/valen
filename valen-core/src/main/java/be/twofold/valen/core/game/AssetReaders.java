@@ -14,11 +14,11 @@ public final class AssetReaders<A extends Asset> {
         this.readers = List.copyOf(readersCopy);
     }
 
-    public <R> R read(A asset, DataSource source, Class<R> clazz) throws IOException {
-        var reader = readers.stream()
+    public <R> R read(A asset, BinaryReader reader, Class<R> clazz) throws IOException {
+        var assetReader = readers.stream()
             .filter(ar -> ar.canRead(asset) && clazz.isAssignableFrom(ar.getReturnType()))
             .findFirst().orElseThrow(() -> new IOException("No reader found for " + asset));
 
-        return clazz.cast(reader.read(source, asset));
+        return clazz.cast(assetReader.read(reader, asset));
     }
 }

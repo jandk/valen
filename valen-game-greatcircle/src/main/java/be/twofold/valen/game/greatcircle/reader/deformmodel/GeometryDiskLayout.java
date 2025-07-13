@@ -13,11 +13,11 @@ record GeometryDiskLayout(
     int offset,
     List<GeometryMemoryLayout> memoryLayouts
 ) implements GeoDiskLayout {
-    static GeometryDiskLayout read(DataSource source, List<GeometryMemoryLayout> memoryLayouts) throws IOException {
-        var compression = source.readInt();
-        var uncompressedSize = source.readInt();
-        var compressedSize = source.readInt();
-        var offset = source.readInt();
+    static GeometryDiskLayout read(BinaryReader reader, List<GeometryMemoryLayout> memoryLayouts) throws IOException {
+        var compression = reader.readInt();
+        var uncompressedSize = reader.readInt();
+        var compressedSize = reader.readInt();
+        var offset = reader.readInt();
 
         return new GeometryDiskLayout(
             compression,

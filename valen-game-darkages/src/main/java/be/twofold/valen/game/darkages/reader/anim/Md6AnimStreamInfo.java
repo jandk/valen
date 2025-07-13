@@ -1,6 +1,6 @@
 package be.twofold.valen.game.darkages.reader.anim;
 
-import be.twofold.valen.core.io.*;
+import be.twofold.valen.core.io.BinaryReader;
 
 import java.io.*;
 import java.util.*;
@@ -12,18 +12,18 @@ public record Md6AnimStreamInfo(
 ) {
     private static final short[] EMPTY = new short[0];
 
-    public static Md6AnimStreamInfo read(DataSource source) throws IOException {
-        var numLayouts = source.readShort();
+    public static Md6AnimStreamInfo read(BinaryReader reader) throws IOException {
+        var numLayouts = reader.readShort();
 
         List<Md6AnimStreamDiskLayout> layouts = List.of();
         short[] streamFrameSetOffsets = EMPTY;
         short[] framsetToStreamLayout = EMPTY;
 
         if (numLayouts > 0) {
-            var numOffsets = source.readShort();
-            layouts = source.readObjects(numLayouts, Md6AnimStreamDiskLayout::read);
-            streamFrameSetOffsets = source.readShorts(numOffsets);
-            framsetToStreamLayout = source.readShorts(numOffsets);
+            var numOffsets = reader.readShort();
+            layouts = reader.readObjects(numLayouts, Md6AnimStreamDiskLayout::read);
+            streamFrameSetOffsets = reader.readShorts(numOffsets);
+            framsetToStreamLayout = reader.readShorts(numOffsets);
         }
 
         return new Md6AnimStreamInfo(

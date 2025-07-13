@@ -1,6 +1,6 @@
 package be.twofold.valen.game.eternal.reader.md6model;
 
-import be.twofold.valen.core.io.*;
+import be.twofold.valen.core.io.BinaryReader;
 import be.twofold.valen.core.math.*;
 import be.twofold.valen.game.idtech.geometry.*;
 
@@ -18,17 +18,17 @@ public record Md6ModelLodInfo(
     float unkFloat2,
     float unkFloat3
 ) implements LodInfo {
-    public static Md6ModelLodInfo read(DataSource source) throws IOException {
-        var numVertices = source.readInt();
-        var numFaces = source.readInt();
-        var bounds = Bounds.read(source);
-        var vertexOffset = Vector3.read(source);
-        var vertexScale = source.readFloat();
-        var uvOffset = Vector2.read(source);
-        var uvScale = source.readFloat();
-        var flags = source.readInt();
-        var unkFloat1 = source.readFloat();
-        var unkFloat2 = source.readFloat();
+    public static Md6ModelLodInfo read(BinaryReader reader) throws IOException {
+        var numVertices = reader.readInt();
+        var numFaces = reader.readInt();
+        var bounds = Bounds.read(reader);
+        var vertexOffset = Vector3.read(reader);
+        var vertexScale = reader.readFloat();
+        var uvOffset = Vector2.read(reader);
+        var uvScale = reader.readFloat();
+        var flags = reader.readInt();
+        var unkFloat1 = reader.readFloat();
+        var unkFloat2 = reader.readFloat();
 
         return new Md6ModelLodInfo(
             numVertices,

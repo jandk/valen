@@ -9,9 +9,9 @@ public record LightDbNameGroup(
     int id,
     List<String> names
 ) {
-    public static LightDbNameGroup read(DataSource source) throws IOException {
-        int id = source.readInt();
-        var names = source.readObjects(source.readInt(), DataSource::readPString);
+    public static LightDbNameGroup read(BinaryReader reader) throws IOException {
+        int id = reader.readInt();
+        var names = reader.readObjects(reader.readInt(), BinaryReader::readPString);
         return new LightDbNameGroup(id, names);
     }
 }

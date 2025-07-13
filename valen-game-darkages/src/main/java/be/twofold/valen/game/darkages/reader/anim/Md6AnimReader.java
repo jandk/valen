@@ -28,12 +28,12 @@ public final class Md6AnimReader implements AssetReader<Animation, DarkAgesAsset
     }
 
     @Override
-    public Animation read(DataSource source, DarkAgesAsset asset) throws IOException {
-        var anim = Md6Anim.read(source);
+    public Animation read(BinaryReader reader, DarkAgesAsset asset) throws IOException {
+        var anim = Md6Anim.read(reader);
         var skeleton = archive.loadAsset(DarkAgesAssetID.from(anim.header().skelName(), ResourcesType.Skeleton), Skeleton.class);
 
         var frameSets = switch (anim.data().streamMethod()) {
-            case UNSTREAMED -> readUnstreamed(source, anim.frameSetOffsetTable(), anim.map());
+            case UNSTREAMED -> readUnstreamed(reader, anim.frameSetOffsetTable(), anim.map());
             case UNSTREAMED_FIRST_FRAMESET -> throw new UnsupportedOperationException("UNSTREAMED_FIRST_FRAMESET");
             case STREAMED -> readStreamed(anim.streamInfo(), anim.map(), asset.hash());
             case LODS -> readStreamed(anim.streamInfo(), anim.map(), asset.hash());
@@ -51,26 +51,26 @@ public final class Md6AnimReader implements AssetReader<Animation, DarkAgesAsset
         return new Animation(skeleton, anim.data().frameRate(), tracks);
     }
 
-    private List<FrameSet> readUnstreamed(DataSource source, int[] frameSetOffsetTable, Md6AnimMap animMap) throws IOException {
-        var start = source.position();
+    private List<FrameSet> readUnstreamed(BinaryReader reader, int[] frameSetOffsetTable, Md6AnimMap animMap) throws IOException {
+        var start = reader.position();
         var frameSets = new ArrayList<FrameSet>();
         for (var i = 0; i < frameSetOffsetTable.length - 1; i++) {
             var frameSetOffset = start + frameSetOffsetTable[i] * 16L;
-            var frameSet = source.position(frameSetOffset).readObject(s -> FrameSet.read(s, frameSetOffset, animMap));
+            var frameSet = reader.position(frameSetOffset).readObject(s -> FrameSet.read(s, frameSetOffset, animMap));
             frameSets.add(frameSet);
         }
         return frameSets;
     }
 
     private List<FrameSet> readStreamed(Md6AnimStreamInfo streamInfo, Md6AnimMap animMap, long hash) throws IOException {
-        var sources = new DataSource[streamInfo.layouts().size()];
+        var sources = new BinaryReader[streamInfo.layouts().size()];
         var frameSets = new ArrayList<FrameSet>();
         for (int i = 0; i < streamInfo.framsetToStreamLayout().length; i++) {
             var layoutIndex = streamInfo.framsetToStreamLayout()[i];
             if (sources[layoutIndex] == null) {
                 var streamHash = Hash.hash(hash, 0, layoutIndex);
                 var buffer = archive.readStream(streamHash, streamInfo.layouts().get(layoutIndex).uncompressedSize());
-                sources[layoutIndex] = DataSource.fromBuffer(buffer);
+                sources[layoutIndex] = BinaryReader.fromBuffer(buffer);
             }
 
             var frameSetOffset = Short.toUnsignedInt(streamInfo.streamFrameSetOffsets()[i]);

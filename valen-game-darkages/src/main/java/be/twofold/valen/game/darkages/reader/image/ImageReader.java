@@ -28,14 +28,14 @@ public final class ImageReader implements AssetReader<Texture, DarkAgesAsset> {
     }
 
     @Override
-    public Texture read(DataSource source, DarkAgesAsset asset) throws IOException {
-        var image = read(source, asset.hash());
+    public Texture read(BinaryReader reader, DarkAgesAsset asset) throws IOException {
+        var image = read(reader, asset.hash());
         return new ImageMapper().map(image);
     }
 
-    public Image read(DataSource source, long hash) throws IOException {
-        var image = Image.read(source);
-        source.expectEnd();
+    public Image read(BinaryReader reader, long hash) throws IOException {
+        var image = Image.read(reader);
+        reader.expectEnd();
 
         if (readStreams) {
             /*
@@ -57,7 +57,7 @@ public final class ImageReader implements AssetReader<Texture, DarkAgesAsset> {
         var lastMip = image.mipInfos().getLast();
         var uncompressedSize = lastMip.cumulativeSizeStreamDB() + lastMip.decompressedSize();
         var bytes = archive.readStream(Hash.hash(hash, 0, 0), uncompressedSize);
-        try (var mipSource = DataSource.fromBuffer(bytes)) {
+        try (var mipSource = BinaryReader.fromBuffer(bytes)) {
             for (var i = 0; i < image.header().totalMipCount(); i++) {
                 image.mipData()[i] = mipSource.readBuffer(image.mipInfos().get(i).decompressedSize());
             }

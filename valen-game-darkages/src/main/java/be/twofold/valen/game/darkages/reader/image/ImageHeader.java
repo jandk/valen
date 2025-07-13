@@ -24,32 +24,32 @@ public record ImageHeader(
     byte unknown,
     int streamDBMipCount
 ) {
-    public static ImageHeader read(DataSource source) throws IOException {
-        source.expectByte((byte) 'B');
-        source.expectByte((byte) 'I');
-        source.expectByte((byte) 'M');
-        var version = source.readByte();
+    public static ImageHeader read(BinaryReader reader) throws IOException {
+        reader.expectByte((byte) 'B');
+        reader.expectByte((byte) 'I');
+        reader.expectByte((byte) 'M');
+        var version = reader.readByte();
 
-        var textureType = TextureType.fromValue(source.readInt());
-        var textureMaterialKind = toMaterialKind(source.readInt());
-        var pixelWidth = source.readInt();
-        var pixelHeight = source.readInt();
-        var depth = source.readInt();
-        var mipCount = source.readInt();
-        var unkFlags = source.readInt();
-        var albedoSpecularBias = source.readFloat();
-        var albedoSpecularScale = source.readFloat();
-        source.expectByte((byte) 0);
-        var textureFormat = toTextureFormat(source.readInt());
-        source.expectInt(8); // always 8
-        source.expectInt(0); // padding
-        source.expectShort((short) 0); // padding
-        var streamed = source.readBoolByte();
-        var singleStream = source.readBoolByte();
-        var noMips = source.readBoolByte();
-        var fftBloom = source.readBoolByte();
-        byte unknown = version >= 24 ? source.readByte() : 0;
-        var streamDBMipCount = source.readInt();
+        var textureType = TextureType.fromValue(reader.readInt());
+        var textureMaterialKind = toMaterialKind(reader.readInt());
+        var pixelWidth = reader.readInt();
+        var pixelHeight = reader.readInt();
+        var depth = reader.readInt();
+        var mipCount = reader.readInt();
+        var unkFlags = reader.readInt();
+        var albedoSpecularBias = reader.readFloat();
+        var albedoSpecularScale = reader.readFloat();
+        reader.expectByte((byte) 0);
+        var textureFormat = toTextureFormat(reader.readInt());
+        reader.expectInt(8); // always 8
+        reader.expectInt(0); // padding
+        reader.expectShort((short) 0); // padding
+        var streamed = reader.readBoolByte();
+        var singleStream = reader.readBoolByte();
+        var noMips = reader.readBoolByte();
+        var fftBloom = reader.readBoolByte();
+        byte unknown = version >= 24 ? reader.readByte() : 0;
+        var streamDBMipCount = reader.readInt();
 
         return new ImageHeader(
             version,
