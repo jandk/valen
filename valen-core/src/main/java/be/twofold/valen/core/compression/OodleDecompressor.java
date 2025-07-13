@@ -2,12 +2,12 @@ package be.twofold.valen.core.compression;
 
 import be.twofold.valen.core.compression.oodle.*;
 import be.twofold.valen.core.compression.oodle.ffm.*;
+import be.twofold.valen.core.util.*;
 import org.slf4j.*;
 
 import java.io.*;
 import java.lang.foreign.*;
 import java.net.*;
-import java.net.http.*;
 import java.nio.*;
 import java.nio.file.*;
 
@@ -20,7 +20,7 @@ final class OodleDecompressor implements Decompressor {
     private final OodleFFM oodleFFM;
     private final MemorySegment decodeBuffer;
 
-    OodleDecompressor(Path path) {
+    private OodleDecompressor(Path path) {
         oodleFFM = new OodleFFM(path, arena);
         log.info("Loaded Oodle version {}", getVersion());
 
@@ -28,30 +28,15 @@ final class OodleDecompressor implements Decompressor {
         decodeBuffer = arena.allocate(memorySizeNeeded);
     }
 
+    static OodleDecompressor load(Path path) {
+        return new OodleDecompressor(path);
+    }
+
     static OodleDecompressor download() {
         var uri = URI.create(OODLE_URL);
         var fileName = Path.of(uri.getPath()).getFileName();
         if (!Files.exists(fileName)) {
-            try (var client = HttpClient.newBuilder()
-                .followRedirects(HttpClient.Redirect.NORMAL)
-                .build()
-            ) {
-                var request = HttpRequest.newBuilder(uri)
-                    .GET()
-                    .build();
-
-                log.info("Downloading Oodle from {}", uri);
-                var response = client.send(request, HttpResponse.BodyHandlers.ofFile(fileName));
-                if (response.statusCode() != 200) {
-                    throw new Exception("HTTP error: " + response.statusCode());
-                }
-
-                fileName = response.body();
-                log.info("Downloaded Oodle to {}", fileName);
-            } catch (Exception e) {
-                log.error("Failed to download Oodle", e);
-                throw new RuntimeException(e);
-            }
+            HttpUtils.downloadFile(uri, fileName);
         }
 
         return new OodleDecompressor(fileName);

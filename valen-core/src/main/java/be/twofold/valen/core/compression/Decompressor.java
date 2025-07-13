@@ -27,7 +27,7 @@ public interface Decompressor {
     }
 
     static Decompressor oodle(Path path) {
-        return new OodleDecompressor(path);
+        return OodleDecompressor.load(path);
     }
 
     static Decompressor ooz(Path path) {
