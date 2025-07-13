@@ -37,7 +37,6 @@ public record DeformModel(
         var unknown2 = (short[]) null;
         var skeletonSize = source.readInt();
         if (skeletonSize != 0) {
-            System.out.println("skeletonSize = " + skeletonSize);
             var skeleton1Length = source.readInt();
             if (skeleton1Length != 0) {
                 skeleton1 = Md6Skl.read(source);
