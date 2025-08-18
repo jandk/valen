@@ -5,18 +5,19 @@ import be.twofold.valen.core.texture.*;
 import java.util.function.*;
 
 final class Swizzle extends Conversion {
+
     @Override
-    Texture apply(Texture texture, TextureFormat dstFormat) {
-        if (texture.format() == dstFormat) {
-            return texture;
+    Surface apply(Surface surface, TextureFormat dstFormat) {
+        if (surface.format() == dstFormat) {
+            return surface;
         }
 
-        var operator = operator(texture.format(), dstFormat);
+        var operator = operator(surface.format(), dstFormat);
         if (operator == null) {
-            return texture;
+            return surface;
         }
 
-        return map(texture, dstFormat, operator);
+        return operator.apply(surface).withFormat(dstFormat);
     }
 
     private UnaryOperator<Surface> operator(TextureFormat srcFormat, TextureFormat dstFormat) {
@@ -33,15 +34,15 @@ final class Swizzle extends Conversion {
 
     private Surface rgba_bgra(Surface surface, int stride) {
         var data = surface.data();
-        for (int i = 0; i < data.length; i += stride) {
+        for (var i = 0; i < data.length; i += stride) {
             swap(data, i, i + 2);
         }
         return surface;
     }
 
     private void swap(byte[] array, int i, int j) {
-        byte tmp = array[i];
+        var temp = array[i];
         array[i] = array[j];
-        array[j] = tmp;
+        array[j] = temp;
     }
 }

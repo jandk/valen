@@ -3,8 +3,6 @@ package be.twofold.valen.core.texture.conversion;
 import be.twofold.tinybcdec.*;
 import be.twofold.valen.core.texture.*;
 
-import java.util.function.*;
-
 final class Decompress extends Conversion {
     private final boolean reconstructZ;
 
@@ -13,23 +11,17 @@ final class Decompress extends Conversion {
     }
 
     @Override
-    Texture apply(Texture texture, TextureFormat dstFormat) {
-        if (!texture.format().isCompressed()) {
-            return texture;
+    Surface apply(Surface surface, TextureFormat dstFormat) {
+        if (!surface.format().isCompressed()) {
+            return surface;
         }
 
-        var format = getTextureFormat(texture.format());
-        var operator = decompressOperator(texture, format);
-        return map(texture, format, operator);
-    }
+        var format = getTextureFormat(surface.format());
+        var decoder = BlockDecoder.create(getBlockFormat(surface.format()));
 
-    private UnaryOperator<Surface> decompressOperator(Texture source, TextureFormat format) {
-        var decoder = BlockDecoder.create(getBlockFormat(source.format()));
-        return surface -> {
-            var result = Surface.create(surface.width(), surface.height(), format);
-            decoder.decode(surface.width(), surface.height(), surface.data(), 0, result.data(), 0);
-            return result;
-        };
+        var result = Surface.create(surface.width(), surface.height(), format);
+        decoder.decode(surface.width(), surface.height(), surface.data(), 0, result.data(), 0);
+        return result;
     }
 
     private TextureFormat getTextureFormat(TextureFormat source) {

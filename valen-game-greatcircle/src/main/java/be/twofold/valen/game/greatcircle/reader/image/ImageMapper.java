@@ -13,13 +13,13 @@ public final class ImageMapper {
         int width = minMip < 0 ? image.header().width() : image.sliceInfos().get(minMip).width();
         int height = minMip < 0 ? image.header().height() : image.sliceInfos().get(minMip).height();
         be.twofold.valen.core.texture.TextureFormat format = toImageFormat(image.header().textureFormat());
-        List<Surface> surfaces = convertMipMaps(image);
+        List<Surface> surfaces = convertMipMaps(image, format);
         boolean isCubeMap = image.header().type() == TextureType.TT_CUBIC;
 
         return new Texture(width, height, format, isCubeMap, surfaces, image.header().scale(), image.header().bias());
     }
 
-    private List<Surface> convertMipMaps(Image image) {
+    private List<Surface> convertMipMaps(Image image, be.twofold.valen.core.texture.TextureFormat format) {
         int faces = image.header().type() == TextureType.TT_CUBIC ? 6 : 1;
         int mipCount = image.sliceInfos().size() / faces;
         int minMip = image.minMip() < 0 ? mipCount : image.minMip();
@@ -35,6 +35,7 @@ public final class ImageMapper {
                 surfaces.add(new Surface(
                     image.sliceInfos().get(mipIndex).width(),
                     image.sliceInfos().get(mipIndex).height(),
+                    format,
                     Buffers.toArray(image.slices()[mipIndex])
                 ));
             }

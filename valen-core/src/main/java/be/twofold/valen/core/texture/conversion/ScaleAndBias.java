@@ -7,50 +7,53 @@ import org.slf4j.*;
 final class ScaleAndBias extends Conversion {
     private static final Logger log = LoggerFactory.getLogger(ScaleAndBias.class);
 
-    @Override
-    Texture apply(Texture texture, TextureFormat dstFormat) {
-        if (texture.format() != dstFormat) {
-            throw new IllegalArgumentException("source format does not match target format");
-        }
+    private final float scale;
+    private final float bias;
+    private final byte[] table;
 
-        var scale = texture.scale();
-        var bias = texture.bias();
-        if (bias == 0 && scale == 1) {
-            return texture;
-        }
-
-        log.info("Applying scale {} and bias {}", scale, bias);
-        return map(texture, dstFormat, surface -> {
-            scaleAndBiasArray(surface.data(), scale, bias, dstFormat);
-            return surface;
-        }).withScaleAndBias(1.0f, 0.0f);
+    ScaleAndBias(float scale, float bias) {
+        this.scale = scale;
+        this.bias = bias;
+        this.table = generateTable(scale, bias);
     }
 
-    private void scaleAndBiasArray(byte[] data, float scale, float bias, TextureFormat format) {
-        var table = generateTable(scale, bias);
+    @Override
+    Surface apply(Surface surface, TextureFormat dstFormat) {
+        if (surface.format() != dstFormat) {
+            throw new IllegalArgumentException("source format does not match target format");
+        }
+        if (scale == 1.0f && bias == 0.0f) {
+            return surface;
+        }
+
+        scaleAndBiasArray(surface.data(), dstFormat);
+        return surface;
+    }
+
+    private void scaleAndBiasArray(byte[] data, TextureFormat format) {
         switch (format) {
-            case R8_UNORM -> scaleAndBiasR(data, table);
-            case R8G8_UNORM -> scaleAndBiasRG(data, 2, table);
-            case R8G8B8_UNORM, B8G8R8_UNORM -> scaleAndBiasRGB(data, 3, table);
-            case R8G8B8A8_UNORM, B8G8R8A8_UNORM -> scaleAndBiasRGB(data, 4, table);
+            case R8_UNORM -> scaleAndBiasR(data);
+            case R8G8_UNORM -> scaleAndBiasRG(data);
+            case R8G8B8_UNORM, B8G8R8_UNORM -> scaleAndBiasRGB(data, 3);
+            case R8G8B8A8_UNORM, B8G8R8A8_UNORM -> scaleAndBiasRGB(data, 4);
             default -> throw uoe(format);
         }
     }
 
-    private void scaleAndBiasR(byte[] data, byte[] table) {
+    private void scaleAndBiasR(byte[] data) {
         for (int i = 0; i < data.length; i++) {
             data[i] = table[Byte.toUnsignedInt(data[i])];
         }
     }
 
-    private void scaleAndBiasRG(byte[] data, int stride, byte[] table) {
-        for (int i = 0; i < data.length; i += stride) {
+    private void scaleAndBiasRG(byte[] data) {
+        for (int i = 0; i < data.length; i += 2) {
             data[i/**/] = table[Byte.toUnsignedInt(data[i/**/])];
             data[i + 1] = table[Byte.toUnsignedInt(data[i + 1])];
         }
     }
 
-    private void scaleAndBiasRGB(byte[] data, int stride, byte[] table) {
+    private void scaleAndBiasRGB(byte[] data, int stride) {
         for (int i = 0; i < data.length; i += stride) {
             data[i/**/] = table[Byte.toUnsignedInt(data[i/**/])];
             data[i + 1] = table[Byte.toUnsignedInt(data[i + 1])];

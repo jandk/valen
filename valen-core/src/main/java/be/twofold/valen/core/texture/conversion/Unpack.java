@@ -5,19 +5,20 @@ import be.twofold.valen.core.texture.*;
 import java.util.function.*;
 
 final class Unpack extends Conversion {
+
     @Override
-    Texture apply(Texture texture, TextureFormat dstFormat) {
-        var srcFormat = texture.format();
+    Surface apply(Surface surface, TextureFormat dstFormat) {
+        var srcFormat = surface.format();
         if (srcFormat == dstFormat) {
-            return texture;
+            return surface;
         }
 
         var unpacker = unpacker(srcFormat, dstFormat);
         if (unpacker == null) {
-            return texture;
+            return surface;
         }
 
-        return map(texture, dstFormat, surface -> unpack(surface, dstFormat, unpacker));
+        return unpack(surface, dstFormat, unpacker);
     }
 
     private static Surface unpack(Surface source, TextureFormat dstFormat, BiConsumer<byte[], byte[]> operation) {
