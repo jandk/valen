@@ -20,7 +20,7 @@ public abstract class Conversion {
             throw new UnsupportedOperationException("Compressing textures is not supported");
         }
 
-        var decompress = new Decompress(reconstructZ);
+        var decompress = new Decompress();
         var tonemap = new Tonemap();
         var unpack = new Unpack();
         var swizzle = new Swizzle();
