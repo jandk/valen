@@ -28,7 +28,7 @@ final class Decompress extends Conversion {
                  BC3_SRGB, BC3_UNORM,
                  BC7_SRGB, BC7_UNORM -> TextureFormat.R8G8B8A8_UNORM;
             case BC4_SNORM, BC4_UNORM -> TextureFormat.R8_UNORM;
-            case BC5_SNORM, BC5_UNORM -> TextureFormat.R8G8B8_UNORM;
+            case BC5_SNORM, BC5_UNORM -> TextureFormat.R8G8_UNORM;
             case BC6H_SFLOAT, BC6H_UFLOAT -> TextureFormat.R16G16B16_SFLOAT;
             default -> throw uoe(source);
         };
