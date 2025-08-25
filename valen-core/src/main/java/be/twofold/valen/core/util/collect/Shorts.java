@@ -2,6 +2,7 @@ package be.twofold.valen.core.util.collect;
 
 import be.twofold.valen.core.util.*;
 
+import java.nio.*;
 import java.util.*;
 
 public class Shorts extends AbstractList<Short> implements Comparable<Shorts>, RandomAccess {
@@ -24,9 +25,35 @@ public class Shorts extends AbstractList<Short> implements Comparable<Shorts>, R
         return new Shorts(array, fromIndex, toIndex);
     }
 
+    public static Shorts allocate(int size) {
+        Check.argument(size >= 0, "size must be non-negative");
+        return new Shorts(new short[size], 0, size);
+    }
+
+    public static Shorts from(ShortBuffer buffer) {
+        Check.argument(buffer.hasArray(), "buffer must be backed by an array");
+        return new Shorts(buffer.array(), buffer.position(), buffer.limit());
+    }
+
     public short getShort(int index) {
         Check.index(index, size());
         return array[fromIndex + index];
+    }
+
+    public ShortBuffer asBuffer() {
+        return ShortBuffer.wrap(array, fromIndex, size()).asReadOnlyBuffer();
+    }
+
+    public void copyTo(MutableShorts target, int offset) {
+        System.arraycopy(array, fromIndex, target.array, target.fromIndex + offset, size());
+    }
+
+    public Shorts slice(int fromIndex) {
+        return subList(fromIndex, size());
+    }
+
+    public Shorts slice(int fromIndex, int toIndex) {
+        return subList(fromIndex, toIndex);
     }
 
 

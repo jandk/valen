@@ -9,6 +9,7 @@ public class WrapperGenerator {
         
         import be.twofold.valen.core.util.*;
         
+        import java.nio.*;
         import java.util.*;
         
         public class {class} extends AbstractList<{wrapper}> implements Comparable<{class}>, RandomAccess {
@@ -31,9 +32,35 @@ public class WrapperGenerator {
                 return new {class}(array, fromIndex, toIndex);
             }
         
+            public static {class} allocate(int size) {
+                Check.argument(size >= 0, "size must be non-negative");
+                return new {class}(new {primitive}[size], 0, size);
+            }
+        
+            public static {class} from({primitiveUpper}Buffer buffer) {
+                Check.argument(buffer.hasArray(), "buffer must be backed by an array");
+                return new {class}(buffer.array(), buffer.position(), buffer.limit());
+            }
+        
             public {primitive} get{primitiveUpper}(int index) {
                 Check.index(index, size());
                 return array[fromIndex + index];
+            }
+            {extraMethods}
+            public {primitiveUpper}Buffer asBuffer() {
+                return {primitiveUpper}Buffer.wrap(array, fromIndex, size()).asReadOnlyBuffer();
+            }
+        
+            public void copyTo(Mutable{class} target, int offset) {
+                System.arraycopy(array, fromIndex, target.array, target.fromIndex + offset, size());
+            }
+        
+            public {class} slice(int fromIndex) {
+                return subList(fromIndex, size());
+            }
+        
+            public {class} slice(int fromIndex, int toIndex) {
+                return subList(fromIndex, toIndex);
             }
         
         
@@ -111,6 +138,8 @@ public class WrapperGenerator {
         
         import be.twofold.valen.core.util.*;
         
+        import java.nio.*;
+        
         public final class Mutable{class} extends {class} {
             private Mutable{class}({primitive}[] array, int fromIndex, int toIndex) {
                 super(array, fromIndex, toIndex);
@@ -124,9 +153,17 @@ public class WrapperGenerator {
                 return new Mutable{class}(array, fromIndex, toIndex);
             }
         
+            public static Mutable{class} allocate(int size) {
+                return new Mutable{class}(new {primitive}[size], 0, size);
+            }
+        
             public void set{primitiveUpper}(int index, {primitive} value){
                 Check.index(index, size());
                 array[fromIndex + index] = value;
+            }
+        
+            public {primitiveUpper}Buffer asMutableBuffer() {
+                return {primitiveUpper}Buffer.wrap(array, fromIndex, size());
             }
         
             @Override
@@ -138,21 +175,70 @@ public class WrapperGenerator {
         }
         """;
 
+    private static final String ACCESS_TEMPLATE = """
+            public {prim} get{upper}(int offset) {
+                Check.fromIndexSize(offset, {size}, size());
+                return ByteArrays.get{upper}(array, fromIndex + offset);
+            }
+        """;
+
+    private static final String ACCESS_TEMPLATE_UNSIGNED = """
+            public {prim} getUnsigned{upper}(int offset) {
+                return {conv}(get{upper}(offset));
+            }
+        """;
+
     public static void main(String[] args) throws IOException {
-        generate("Bytes", "Byte", "byte", "Byte");
-        generate("Shorts", "Short", "short", "Short");
-        generate("Ints", "Integer", "int", "Int");
-        generate("Longs", "Long", "long", "Long");
-        generate("Floats", "Float", "float", "Float");
-        generate("Doubles", "Double", "double", "Double");
+        var extraMethods = generateExtraByteMethods();
+
+        generate("Bytes", "Byte", "byte", "Byte", extraMethods);
+        generate("Shorts", "Short", "short", "Short", "");
+        generate("Ints", "Integer", "int", "Int", "");
+        generate("Longs", "Long", "long", "Long", "");
+        generate("Floats", "Float", "float", "Float", "");
+        generate("Doubles", "Double", "double", "Double", "");
     }
 
-    private static void generate(String className, String wrapperName, String primitiveName, String primitiveUpperName) throws IOException {
+    private static String generateExtraByteMethods() {
+        var builder = new StringBuilder("\n");
+
+        generateUnsignedAccess(builder, "int", "Byte", "Byte.toUnsignedInt");
+        generateAccess(builder, "short", "Short", "Short.BYTES");
+        generateUnsignedAccess(builder, "int", "Short", "Short.toUnsignedInt");
+        generateAccess(builder, "int", "Int", "Integer.BYTES");
+        generateUnsignedAccess(builder, "long", "Int", "Integer.toUnsignedLong");
+        generateAccess(builder, "long", "Long", "Long.BYTES");
+        generateAccess(builder, "float", "Float", "Float.BYTES");
+        generateAccess(builder, "double", "Double", "Double.BYTES");
+
+        return builder.toString();
+    }
+
+    private static void generateAccess(StringBuilder builder, String prim, String upper, String size) {
+        String code = ACCESS_TEMPLATE
+            .replace("{prim}", prim)
+            .replace("{upper}", upper)
+            .replace("{size}", size);
+
+        builder.append(code).append('\n');
+    }
+
+    private static void generateUnsignedAccess(StringBuilder builder, String prim, String upper, String conv) {
+        String code = ACCESS_TEMPLATE_UNSIGNED
+            .replace("{prim}", prim)
+            .replace("{upper}", upper)
+            .replace("{conv}", conv);
+
+        builder.append(code).append('\n');
+    }
+
+    private static void generate(String className, String wrapperName, String primitiveName, String primitiveUpperName, String extraMethods) throws IOException {
         String code = TEMPLATE
             .replace("{class}", className)
             .replace("{wrapper}", wrapperName)
             .replace("{primitive}", primitiveName)
-            .replace("{primitiveUpper}", primitiveUpperName);
+            .replace("{primitiveUpper}", primitiveUpperName)
+            .replace("{extraMethods}", extraMethods);
         Files.writeString(Path.of("valen-core/src/main/java/be/twofold/valen/core/util/collect/" + className + ".java"), code);
 
         String mutableCode = MUTABLE_TEMPLATE

@@ -17,9 +17,8 @@ public final class MutableBytes extends Bytes {
         return new MutableBytes(array, fromIndex, toIndex);
     }
 
-    public static MutableBytes allocate(int length) {
-        Check.argument(length >= 0, "length must not be negative");
-        return wrap(new byte[length]);
+    public static MutableBytes allocate(int size) {
+        return new MutableBytes(new byte[size], 0, size);
     }
 
     public void setByte(int index, byte value) {

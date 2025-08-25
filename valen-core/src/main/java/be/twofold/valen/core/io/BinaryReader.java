@@ -67,7 +67,7 @@ public interface BinaryReader extends Closeable {
     }
 
     default Bytes readBytesStruct(int len) throws IOException {
-        return Bytes.fromBuffer(readBuffer(len));
+        return Bytes.from(readBuffer(len));
     }
 
     default byte[] readBytes(int len) throws IOException {

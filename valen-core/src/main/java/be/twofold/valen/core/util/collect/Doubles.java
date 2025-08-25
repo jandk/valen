@@ -2,6 +2,7 @@ package be.twofold.valen.core.util.collect;
 
 import be.twofold.valen.core.util.*;
 
+import java.nio.*;
 import java.util.*;
 
 public class Doubles extends AbstractList<Double> implements Comparable<Doubles>, RandomAccess {
@@ -24,9 +25,35 @@ public class Doubles extends AbstractList<Double> implements Comparable<Doubles>
         return new Doubles(array, fromIndex, toIndex);
     }
 
+    public static Doubles allocate(int size) {
+        Check.argument(size >= 0, "size must be non-negative");
+        return new Doubles(new double[size], 0, size);
+    }
+
+    public static Doubles from(DoubleBuffer buffer) {
+        Check.argument(buffer.hasArray(), "buffer must be backed by an array");
+        return new Doubles(buffer.array(), buffer.position(), buffer.limit());
+    }
+
     public double getDouble(int index) {
         Check.index(index, size());
         return array[fromIndex + index];
+    }
+
+    public DoubleBuffer asBuffer() {
+        return DoubleBuffer.wrap(array, fromIndex, size()).asReadOnlyBuffer();
+    }
+
+    public void copyTo(MutableDoubles target, int offset) {
+        System.arraycopy(array, fromIndex, target.array, target.fromIndex + offset, size());
+    }
+
+    public Doubles slice(int fromIndex) {
+        return subList(fromIndex, size());
+    }
+
+    public Doubles slice(int fromIndex, int toIndex) {
+        return subList(fromIndex, toIndex);
     }
 
 

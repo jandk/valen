@@ -25,13 +25,19 @@ public class Bytes extends AbstractList<Byte> implements Comparable<Bytes>, Rand
         return new Bytes(array, fromIndex, toIndex);
     }
 
-    public static Bytes fromBuffer(ByteBuffer buffer) {
-        return wrap(buffer.array(), buffer.position(), buffer.limit());
+    public static Bytes allocate(int size) {
+        Check.argument(size >= 0, "size must be non-negative");
+        return new Bytes(new byte[size], 0, size);
     }
 
-    public byte getByte(int offset) {
-        Check.index(offset, size());
-        return array[fromIndex + offset];
+    public static Bytes from(ByteBuffer buffer) {
+        Check.argument(buffer.hasArray(), "buffer must be backed by an array");
+        return new Bytes(buffer.array(), buffer.position(), buffer.limit());
+    }
+
+    public byte getByte(int index) {
+        Check.index(index, size());
+        return array[fromIndex + index];
     }
 
     public int getUnsignedByte(int offset) {
@@ -39,7 +45,7 @@ public class Bytes extends AbstractList<Byte> implements Comparable<Bytes>, Rand
     }
 
     public short getShort(int offset) {
-        Check.fromIndexSize(offset, 2, size());
+        Check.fromIndexSize(offset, Short.BYTES, size());
         return ByteArrays.getShort(array, fromIndex + offset);
     }
 
@@ -48,7 +54,7 @@ public class Bytes extends AbstractList<Byte> implements Comparable<Bytes>, Rand
     }
 
     public int getInt(int offset) {
-        Check.fromIndexSize(offset, 4, size());
+        Check.fromIndexSize(offset, Integer.BYTES, size());
         return ByteArrays.getInt(array, fromIndex + offset);
     }
 
@@ -57,14 +63,23 @@ public class Bytes extends AbstractList<Byte> implements Comparable<Bytes>, Rand
     }
 
     public long getLong(int offset) {
-        Check.fromIndexSize(offset, 8, size());
+        Check.fromIndexSize(offset, Long.BYTES, size());
         return ByteArrays.getLong(array, fromIndex + offset);
     }
 
+    public float getFloat(int offset) {
+        Check.fromIndexSize(offset, Float.BYTES, size());
+        return ByteArrays.getFloat(array, fromIndex + offset);
+    }
+
+    public double getDouble(int offset) {
+        Check.fromIndexSize(offset, Double.BYTES, size());
+        return ByteArrays.getDouble(array, fromIndex + offset);
+    }
+
+
     public ByteBuffer asBuffer() {
-        return ByteBuffer
-            .wrap(array, fromIndex, size())
-            .asReadOnlyBuffer();
+        return ByteBuffer.wrap(array, fromIndex, size()).asReadOnlyBuffer();
     }
 
     public void copyTo(MutableBytes target, int offset) {
@@ -72,7 +87,7 @@ public class Bytes extends AbstractList<Byte> implements Comparable<Bytes>, Rand
     }
 
     public Bytes slice(int fromIndex) {
-        return slice(fromIndex, toIndex);
+        return subList(fromIndex, size());
     }
 
     public Bytes slice(int fromIndex, int toIndex) {

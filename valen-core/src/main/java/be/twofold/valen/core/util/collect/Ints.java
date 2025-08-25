@@ -2,6 +2,7 @@ package be.twofold.valen.core.util.collect;
 
 import be.twofold.valen.core.util.*;
 
+import java.nio.*;
 import java.util.*;
 
 public class Ints extends AbstractList<Integer> implements Comparable<Ints>, RandomAccess {
@@ -24,9 +25,35 @@ public class Ints extends AbstractList<Integer> implements Comparable<Ints>, Ran
         return new Ints(array, fromIndex, toIndex);
     }
 
+    public static Ints allocate(int size) {
+        Check.argument(size >= 0, "size must be non-negative");
+        return new Ints(new int[size], 0, size);
+    }
+
+    public static Ints from(IntBuffer buffer) {
+        Check.argument(buffer.hasArray(), "buffer must be backed by an array");
+        return new Ints(buffer.array(), buffer.position(), buffer.limit());
+    }
+
     public int getInt(int index) {
         Check.index(index, size());
         return array[fromIndex + index];
+    }
+
+    public IntBuffer asBuffer() {
+        return IntBuffer.wrap(array, fromIndex, size()).asReadOnlyBuffer();
+    }
+
+    public void copyTo(MutableInts target, int offset) {
+        System.arraycopy(array, fromIndex, target.array, target.fromIndex + offset, size());
+    }
+
+    public Ints slice(int fromIndex) {
+        return subList(fromIndex, size());
+    }
+
+    public Ints slice(int fromIndex, int toIndex) {
+        return subList(fromIndex, toIndex);
     }
 
 

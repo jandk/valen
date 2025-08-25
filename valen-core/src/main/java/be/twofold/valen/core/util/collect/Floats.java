@@ -1,11 +1,9 @@
 package be.twofold.valen.core.util.collect;
 
-import be.twofold.valen.core.util.ArrayUtils;
-import be.twofold.valen.core.util.Check;
+import be.twofold.valen.core.util.*;
 
-import java.util.AbstractList;
-import java.util.Arrays;
-import java.util.RandomAccess;
+import java.nio.*;
+import java.util.*;
 
 public class Floats extends AbstractList<Float> implements Comparable<Floats>, RandomAccess {
     final float[] array;
@@ -27,9 +25,35 @@ public class Floats extends AbstractList<Float> implements Comparable<Floats>, R
         return new Floats(array, fromIndex, toIndex);
     }
 
+    public static Floats allocate(int size) {
+        Check.argument(size >= 0, "size must be non-negative");
+        return new Floats(new float[size], 0, size);
+    }
+
+    public static Floats from(FloatBuffer buffer) {
+        Check.argument(buffer.hasArray(), "buffer must be backed by an array");
+        return new Floats(buffer.array(), buffer.position(), buffer.limit());
+    }
+
     public float getFloat(int index) {
         Check.index(index, size());
         return array[fromIndex + index];
+    }
+
+    public FloatBuffer asBuffer() {
+        return FloatBuffer.wrap(array, fromIndex, size()).asReadOnlyBuffer();
+    }
+
+    public void copyTo(MutableFloats target, int offset) {
+        System.arraycopy(array, fromIndex, target.array, target.fromIndex + offset, size());
+    }
+
+    public Floats slice(int fromIndex) {
+        return subList(fromIndex, size());
+    }
+
+    public Floats slice(int fromIndex, int toIndex) {
+        return subList(fromIndex, toIndex);
     }
 
 
