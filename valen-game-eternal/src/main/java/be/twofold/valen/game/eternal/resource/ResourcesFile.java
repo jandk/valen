@@ -5,7 +5,6 @@ import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.hashing.*;
 import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.util.*;
-import be.twofold.valen.core.util.collect.*;
 import be.twofold.valen.game.eternal.*;
 import be.twofold.valen.game.eternal.reader.resource.*;
 import org.slf4j.*;
@@ -90,18 +89,17 @@ public final class ResourcesFile implements Container<EternalAssetID, EternalAss
         // Read the chunk
         reader.position(resource.offset());
         var compressed = reader
-            .readBuffer(resource.compressedSize())
-            .position(resource.compression() == ResourceCompressionMode.RES_COMP_MODE_KRAKEN_CHUNKED ? 12 : 0);
+            .readBytesStruct(resource.compressedSize())
+            .slice(resource.compression() == ResourceCompressionMode.RES_COMP_MODE_KRAKEN_CHUNKED ? 12 : 0);
         var decompressed = decompressor.decompress(compressed, resource.size());
 
         // Check hash
-        long checksum = HashFunction.murmurHash64B(0xDEADBEEFL).hash(Bytes.fromBuffer(decompressed)).asLong();
+        long checksum = HashFunction.murmurHash64B(0xDEADBEEFL).hash(decompressed).asLong();
         if (checksum != resource.checksum()) {
             System.err.println("Checksum mismatch! (" + checksum + " != " + resource.checksum() + ")");
         }
-        decompressed.rewind();
 
-        return decompressed;
+        return decompressed.asBuffer();
     }
 
     @Override

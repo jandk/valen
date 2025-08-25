@@ -2,7 +2,7 @@ package be.twofold.valen.game.greatcircle.resource;
 
 import be.twofold.valen.core.compression.*;
 import be.twofold.valen.core.game.*;
-import be.twofold.valen.core.io.BinaryReader;
+import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.util.*;
 import be.twofold.valen.game.greatcircle.*;
 import be.twofold.valen.game.greatcircle.reader.resources.*;
@@ -87,9 +87,10 @@ public final class ResourcesFile implements Container<GreatCircleAssetID, GreatC
         };
 
         reader.position(resource.offset());
-        var compressed = reader.readBuffer(resource.compressedSize());
-        compressed.position(resource.compression() == ResourceCompressionMode.RES_COMP_MODE_KRAKEN_CHUNKED ? 12 : 0);
-        return decompressor.decompress(compressed, resource.uncompressedSize());
+        var compressed = reader
+            .readBytesStruct(resource.compressedSize())
+            .slice(resource.compression() == ResourceCompressionMode.RES_COMP_MODE_KRAKEN_CHUNKED ? 12 : 0);
+        return decompressor.decompress(compressed, resource.uncompressedSize()).asBuffer();
     }
 
     @Override

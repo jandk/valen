@@ -1,7 +1,8 @@
 package be.twofold.valen.core.compression;
 
+import be.twofold.valen.core.util.collect.*;
+
 import java.io.*;
-import java.nio.*;
 import java.nio.file.*;
 
 @FunctionalInterface
@@ -34,12 +35,11 @@ public interface Decompressor {
         return new OozDecompressor(path);
     }
 
-    default ByteBuffer decompress(ByteBuffer src, int size) throws IOException {
-        var dst = ByteBuffer.allocate(size);
+    default Bytes decompress(Bytes src, int size) throws IOException {
+        var dst = MutableBytes.allocate(size);
         decompress(src, dst);
-        dst.flip();
         return dst;
     }
 
-    void decompress(ByteBuffer src, ByteBuffer dst) throws IOException;
+    void decompress(Bytes src, MutableBytes dst) throws IOException;
 }

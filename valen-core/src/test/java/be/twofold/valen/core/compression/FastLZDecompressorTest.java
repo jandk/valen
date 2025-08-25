@@ -1,11 +1,11 @@
 package be.twofold.valen.core.compression;
 
+import be.twofold.valen.core.util.collect.*;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.params.*;
 import org.junit.jupiter.params.provider.*;
 
 import java.io.*;
-import java.nio.*;
 import java.security.*;
 import java.util.*;
 
@@ -27,7 +27,7 @@ class FastLZDecompressorTest {
         var expected = new byte[]{0x41, 0x42, 0x43};
         var target = new byte[expected.length];
 
-        decompressor.decompress(ByteBuffer.wrap(source), ByteBuffer.wrap(target));
+        decompressor.decompress(Bytes.wrap(source), MutableBytes.wrap(target));
 
         assertThat(target).isEqualTo(expected);
     }
@@ -38,7 +38,7 @@ class FastLZDecompressorTest {
         var expected = new byte[]{0x41, 0x42, 0x43, 0x44, 0x42, 0x43, 0x44};
         var target = new byte[expected.length];
 
-        decompressor.decompress(ByteBuffer.wrap(source), ByteBuffer.wrap(target));
+        decompressor.decompress(Bytes.wrap(source), MutableBytes.wrap(target));
 
         assertThat(target).isEqualTo(expected);
     }
@@ -49,7 +49,7 @@ class FastLZDecompressorTest {
         var expected = new byte[]{0x61, 0x61, 0x61, 0x61, 0x61};
         var target = new byte[expected.length];
 
-        decompressor.decompress(ByteBuffer.wrap(source), ByteBuffer.wrap(target));
+        decompressor.decompress(Bytes.wrap(source), MutableBytes.wrap(target));
 
         assertThat(target).isEqualTo(expected);
     }
@@ -60,7 +60,7 @@ class FastLZDecompressorTest {
         var expected = new byte[]{0x44, 0x45, 0x44, 0x45, 0x44, 0x45, 0x44, 0x45, 0x44, 0x45, 0x44, 0x45};
         var target = new byte[expected.length];
 
-        decompressor.decompress(ByteBuffer.wrap(source), ByteBuffer.wrap(target));
+        decompressor.decompress(Bytes.wrap(source), MutableBytes.wrap(target));
 
         assertThat(target).isEqualTo(expected);
     }
@@ -76,12 +76,9 @@ class FastLZDecompressorTest {
         var source = new byte[temp.length + 2 * offset];
         System.arraycopy(temp, 0, source, offset, temp.length);
         var target = new byte[LENGTH + 2 * offset];
-        var src = ByteBuffer.wrap(source, offset, source.length - 2 * offset);
-        var dst = ByteBuffer.wrap(target, offset, target.length - 2 * offset);
+        var src = Bytes.wrap(source, offset, source.length - offset);
+        var dst = MutableBytes.wrap(target, offset, target.length - offset);
         decompressor.decompress(src, dst);
-
-        assertThat(src.hasRemaining()).isFalse();
-        assertThat(dst.hasRemaining()).isFalse();
 
         sha256.update(target, offset, LENGTH);
         assertThat(HexFormat.of().formatHex(sha256.digest()))
@@ -99,12 +96,9 @@ class FastLZDecompressorTest {
         var source = new byte[temp.length + 2 * offset];
         System.arraycopy(temp, 0, source, offset, temp.length);
         var target = new byte[LENGTH + 2 * offset];
-        var src = ByteBuffer.wrap(source, offset, source.length - 2 * offset);
-        var dst = ByteBuffer.wrap(target, offset, target.length - 2 * offset);
+        var src = Bytes.wrap(source, offset, source.length - offset);
+        var dst = MutableBytes.wrap(target, offset, target.length - offset);
         decompressor.decompress(src, dst);
-
-        assertThat(src.hasRemaining()).isFalse();
-        assertThat(dst.hasRemaining()).isFalse();
 
         sha256.update(target, offset, LENGTH);
         assertThat(HexFormat.of().formatHex(sha256.digest()))

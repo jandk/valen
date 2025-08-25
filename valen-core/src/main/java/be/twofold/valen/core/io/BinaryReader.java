@@ -1,6 +1,7 @@
 package be.twofold.valen.core.io;
 
 import be.twofold.valen.core.util.*;
+import be.twofold.valen.core.util.collect.*;
 
 import java.io.*;
 import java.nio.*;
@@ -63,6 +64,10 @@ public interface BinaryReader extends Closeable {
         read(buffer);
         buffer.flip();
         return buffer;
+    }
+
+    default Bytes readBytesStruct(int len) throws IOException {
+        return Bytes.fromBuffer(readBuffer(len));
     }
 
     default byte[] readBytes(int len) throws IOException {

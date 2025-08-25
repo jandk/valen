@@ -30,7 +30,7 @@ public final class FileCompressedReader implements AssetReader<ByteBuffer, Etern
             return reader.readBuffer(header.uncompressedSize());
         }
 
-        var compressed = reader.readBuffer(header.compressedSize());
-        return decompressor.decompress(compressed, header.uncompressedSize());
+        var compressed = reader.readBytesStruct(header.compressedSize());
+        return decompressor.decompress(compressed, header.uncompressedSize()).asBuffer();
     }
 }

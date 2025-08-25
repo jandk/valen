@@ -57,8 +57,8 @@ public final class StreamDbFile implements Container<Long, StreamDbEntry> {
         };
 
         reader.position(entry.offset());
-        var compressed = reader.readBuffer(entry.length());
-        return decompressor.decompress(compressed, size);
+        var compressed = reader.readBytesStruct(entry.length());
+        return decompressor.decompress(compressed, size).asBuffer();
     }
 
     @Override

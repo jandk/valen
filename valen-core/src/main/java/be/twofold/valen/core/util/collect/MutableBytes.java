@@ -2,6 +2,8 @@ package be.twofold.valen.core.util.collect;
 
 import be.twofold.valen.core.util.*;
 
+import java.nio.*;
+
 public final class MutableBytes extends Bytes {
     private MutableBytes(byte[] array, int fromIndex, int toIndex) {
         super(array, fromIndex, toIndex);
@@ -23,6 +25,10 @@ public final class MutableBytes extends Bytes {
     public void setByte(int index, byte value) {
         Check.index(index, size());
         array[fromIndex + index] = value;
+    }
+
+    public ByteBuffer asMutableBuffer() {
+        return ByteBuffer.wrap(array, fromIndex, size());
     }
 
     @Override

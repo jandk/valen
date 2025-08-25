@@ -1,39 +1,35 @@
 package be.twofold.valen.core.compression;
 
 import be.twofold.valen.core.util.*;
-
-import java.io.*;
-import java.nio.*;
+import be.twofold.valen.core.util.collect.*;
 
 abstract class LZDecompressor implements Decompressor {
     LZDecompressor() {
     }
 
-    int getUnsignedByte(ByteBuffer buffer) {
-        return Byte.toUnsignedInt(buffer.get());
+    void copyLiteral(Bytes src, int srcOff, MutableBytes dst, int dstOff, int len) {
+        Check.fromIndexSize(srcOff, len, src.size());
+        Check.fromIndexSize(dstOff, len, dst.size());
+
+        src.subList(srcOff, srcOff + len).copyTo(dst, dstOff);
     }
 
-    void copyLiteral(ByteBuffer src, ByteBuffer dst, int len) throws IOException {
-        if (len <= 0 || src.remaining() < len || dst.remaining() < len) {
-            throw new IOException("Invalid literal");
-        }
-        Buffers.copy(src, dst, len);
-    }
-
-    void copyReference(ByteBuffer dst, int offset, int length) throws IOException {
-        if (offset <= 0 || dst.position() - offset < 0 || length > dst.remaining()) {
-            throw new IOException("Invalid match");
+    void copyReference(MutableBytes dst, int dstOff, int offset, int length) {
+        Check.fromIndexSize(dstOff, length, dst.size());
+        int dstPos = dstOff - offset;
+        if (offset <= 0 || dstPos < 0) {
+            throw new IllegalArgumentException("Invalid match");
         }
         if (offset == 1) {
-            var b = dst.get(dst.position() - 1);
-            for (var i = 0; i < length; i++) {
-                dst.put(b);
+            byte b = dst.getByte(dstOff - 1);
+            for (int i = 0; i < length; i++) {
+                dst.setByte(dstOff + i, b);
             }
         } else if (offset >= length) {
-            dst.put(dst.slice(dst.position() - offset, length));
+            dst.subList(dstPos, dstPos + length).copyTo(dst, dstOff);
         } else {
-            for (int i = 0, pos = dst.position() - offset; i < length; i++) {
-                dst.put(dst.get(pos + i));
+            for (int i = 0; i < length; i++) {
+                dst.setByte(dstOff + i, dst.getByte(dstPos + i));
             }
         }
     }

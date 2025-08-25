@@ -93,16 +93,15 @@ public final class ResourcesFile implements Container<DarkAgesAssetID, DarkAgesA
         var compressed = reader
             .readBuffer(resource.compressedSize())
             .position(resource.compression() == ResourcesCompressionMode.RES_COMP_MODE_KRAKEN_CHUNKED ? 12 : 0);
-        var decompressed = decompressor.decompress(compressed, resource.size());
+        var decompressed = decompressor.decompress(Bytes.fromBuffer(compressed), resource.size());
 
         // Check hash
-        long checksum = HashFunction.murmurHash64B(0xDEADBEEFL).hash(Bytes.fromBuffer(decompressed)).asLong();
+        long checksum = HashFunction.murmurHash64B(0xDEADBEEFL).hash(decompressed).asLong();
         if (checksum != resource.checksum()) {
             System.err.println("Checksum mismatch! (" + checksum + " != " + resource.checksum() + ")");
         }
-        decompressed.rewind();
 
-        return decompressed;
+        return decompressed.asBuffer();
     }
 
     @Override

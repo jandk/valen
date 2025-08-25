@@ -53,12 +53,12 @@ public final class StreamDbFile implements Container<Long, StreamDbEntry> {
 
         log.debug("Reading stream: {}", String.format("%016X", entry.identity()));
         reader.position(entry.offset());
-        var compressed = reader.readBuffer(entry.length());
-        if (compressed.remaining() == size) {
-            return compressed;
+        var compressed = reader.readBytesStruct(entry.length());
+        if (compressed.size() == size) {
+            return compressed.asBuffer();
         }
 
-        return decompressor.decompress(compressed, size);
+        return decompressor.decompress(compressed, size).asBuffer();
     }
 
     @Override
