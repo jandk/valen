@@ -1,6 +1,6 @@
 package be.twofold.valen.core.hashing;
 
-import java.nio.*;
+import be.twofold.valen.core.util.collect.*;
 
 final class XXHashGenerator {
     private static final long PRIME32 = 0x000000009E3779B1L;
@@ -9,13 +9,13 @@ final class XXHashGenerator {
     private XXHashGenerator() {
     }
 
-    static ByteBuffer generate(int length) {
-        ByteBuffer buffer = ByteBuffer.allocate(length);
+    static Bytes generate(int length) {
+        MutableBytes bytes = MutableBytes.allocate(length);
         long byteGen = PRIME32;
-        while (buffer.hasRemaining()) {
-            buffer.put((byte) (byteGen >> 56));
+        for (int i = 0; i < length; i++) {
+            bytes.set(i, (byte) (byteGen >> 56));
             byteGen *= PRIME64;
         }
-        return buffer.flip();
+        return bytes;
     }
 }

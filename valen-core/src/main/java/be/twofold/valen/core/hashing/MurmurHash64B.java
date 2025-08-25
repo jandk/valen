@@ -1,44 +1,39 @@
 package be.twofold.valen.core.hashing;
 
-import java.nio.*;
+import be.twofold.valen.core.util.collect.*;
 
-final class MurmurHash64B implements HashFunction {
+record MurmurHash64B(long seed) implements HashFunction {
     private static final int M32 = 0x5BD1E995;
     private static final int R32 = 24;
 
-    private final long seed;
-
-    MurmurHash64B(long seed) {
-        this.seed = seed;
-    }
-
     @Override
-    public HashCode hash(ByteBuffer src) {
-        src.order(ByteOrder.LITTLE_ENDIAN);
-        var len = src.remaining();
+    public HashCode hash(Bytes src) {
+        var length = src.size();
+        var offset = 0;
 
-        int h1 = (int) (seed) ^ len;
+        int h1 = (int) (seed) ^ length;
         int h2 = (int) (seed >>> 32);
 
-        while (src.remaining() >= 8) {
-            h1 = round(h1, src.getInt());
-            h2 = round(h2, src.getInt());
+        while (offset + 8 <= length) {
+            h1 = round(h1, src.getInt(offset));
+            h2 = round(h2, src.getInt(offset + 4));
+            offset += 8;
         }
 
-        if (src.remaining() >= 4) {
-            h1 = round(h1, src.getInt());
+        if (offset + 4 <= length) {
+            h1 = round(h1, src.getInt(offset));
+            offset += 4;
         }
 
-        switch (src.remaining()) {
+        switch (length - offset) {
             case 3:
-                h2 ^= Byte.toUnsignedInt(src.get(src.position() + 2)) << 16;
+                h2 ^= src.getUnsignedByte(offset + 2) << 16;
             case 2:
-                h2 ^= Byte.toUnsignedInt(src.get(src.position() + 1)) << 8;
+                h2 ^= src.getUnsignedByte(offset + 1) << 8;
             case 1:
-                h2 ^= Byte.toUnsignedInt(src.get());
+                h2 ^= src.getUnsignedByte(offset);
                 h2 *= M32;
         }
-        src.position(src.limit());
 
         h1 = (h1 ^ (h2 >>> 18)) * M32;
         h2 = (h2 ^ (h1 >>> 22)) * M32;

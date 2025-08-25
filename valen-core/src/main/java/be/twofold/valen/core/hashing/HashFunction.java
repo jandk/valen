@@ -1,6 +1,7 @@
 package be.twofold.valen.core.hashing;
 
-import java.nio.*;
+import be.twofold.valen.core.util.collect.*;
+
 import java.nio.charset.*;
 
 @FunctionalInterface
@@ -22,8 +23,8 @@ public interface HashFunction {
     }
 
     default HashCode hash(String string) {
-        return hash(ByteBuffer.wrap(string.getBytes(StandardCharsets.UTF_8)));
+        return hash(Bytes.wrap(string.getBytes(StandardCharsets.UTF_8)));
     }
 
-    HashCode hash(ByteBuffer src);
+    HashCode hash(Bytes src);
 }

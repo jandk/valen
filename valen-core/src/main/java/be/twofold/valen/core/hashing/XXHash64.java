@@ -1,27 +1,21 @@
 package be.twofold.valen.core.hashing;
 
-import java.nio.*;
+import be.twofold.valen.core.util.collect.*;
 
-final class XXHash64 implements HashFunction {
+record XXHash64(long seed) implements HashFunction {
     private static final long PRIME64_1 = 0x9E3779B185EBCA87L;
     private static final long PRIME64_2 = 0xC2B2AE3D27D4EB4FL;
     private static final long PRIME64_3 = 0x165667B19E3779F9L;
     private static final long PRIME64_4 = 0x85EBCA77C2B2AE63L;
     private static final long PRIME64_5 = 0x27D4EB2F165667C5L;
 
-    private final long seed;
-
-    XXHash64(long seed) {
-        this.seed = seed;
-    }
-
     @Override
-    public HashCode hash(ByteBuffer src) {
-        src.order(ByteOrder.LITTLE_ENDIAN);
-        var len = src.remaining();
+    public HashCode hash(Bytes src) {
+        var length = src.size();
+        var offset = 0;
 
         long acc;
-        if (src.remaining() >= 32) {
+        if (offset + 32 <= length) {
             // Step 1: Initialize internal accumulators
             long acc1 = seed + PRIME64_1 + PRIME64_2;
             long acc2 = seed + PRIME64_2;
@@ -30,11 +24,12 @@ final class XXHash64 implements HashFunction {
 
             // Step 2: Process stripes
             do {
-                acc1 = round(acc1, src.getLong());
-                acc2 = round(acc2, src.getLong());
-                acc3 = round(acc3, src.getLong());
-                acc4 = round(acc4, src.getLong());
-            } while (src.remaining() >= 32);
+                acc1 = round(acc1, src.getLong(offset));
+                acc2 = round(acc2, src.getLong(offset + 8));
+                acc3 = round(acc3, src.getLong(offset + 16));
+                acc4 = round(acc4, src.getLong(offset + 24));
+                offset += 32;
+            } while (offset + 32 <= length);
 
             // Step 3: Accumulator convergence
             acc = Long.rotateLeft(acc1, 1)
@@ -52,27 +47,30 @@ final class XXHash64 implements HashFunction {
         }
 
         // Step 4: Add input length
-        acc = acc + len;
+        acc = acc + length;
 
         // Step 5: Consume remaining input
-        while (src.remaining() >= 8) {
-            long lane = src.getLong();
+        while (offset + 8 <= length) {
+            long lane = src.getLong(offset);
             acc = acc ^ round(0, lane);
             acc = Long.rotateLeft(acc, 27) * PRIME64_1;
             acc = acc + PRIME64_4;
+            offset += 8;
         }
 
-        if (src.remaining() >= 4) {
-            long lane = Integer.toUnsignedLong(src.getInt());
+        if (offset + 4 <= length) {
+            long lane = src.getUnsignedInt(offset);
             acc = acc ^ (lane * PRIME64_1);
             acc = Long.rotateLeft(acc, 23) * PRIME64_2;
             acc = acc + PRIME64_3;
+            offset += 4;
         }
 
-        while (src.hasRemaining()) {
-            long lane = Byte.toUnsignedLong(src.get());
+        while (offset + 1 <= length) {
+            long lane = src.getUnsignedByte(offset);
             acc = acc ^ (lane * PRIME64_5);
             acc = Long.rotateLeft(acc, 11) * PRIME64_1;
+            offset++;
         }
 
         // Step 6: Final mix (avalanche)

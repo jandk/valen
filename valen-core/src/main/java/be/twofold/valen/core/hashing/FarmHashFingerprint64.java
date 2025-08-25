@@ -1,7 +1,6 @@
 package be.twofold.valen.core.hashing;
 
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
+import be.twofold.valen.core.util.collect.*;
 
 final class FarmHashFingerprint64 implements HashFunction {
     public static final FarmHashFingerprint64 INSTANCE = new FarmHashFingerprint64();
@@ -16,12 +15,12 @@ final class FarmHashFingerprint64 implements HashFunction {
     }
 
     @Override
-    public HashCode hash(ByteBuffer s) {
-        return HashCode.ofLong(fingerprint(s));
+    public HashCode hash(Bytes src) {
+        return HashCode.ofLong(fingerprint(src));
     }
 
-    private static long fingerprint(ByteBuffer s) {
-        int length = s.order(ByteOrder.LITTLE_ENDIAN).remaining();
+    private static long fingerprint(Bytes s) {
+        int length = s.size();
         if (length <= 32) {
             if (length <= 16) {
                 return hashLength0to16(s);
@@ -48,11 +47,11 @@ final class FarmHashFingerprint64 implements HashFunction {
         return b;
     }
 
-    private static UInt128 weakHashLength32WithSeeds(ByteBuffer s, long a, long b) {
-        long w = s.getLong();
-        long x = s.getLong();
-        long y = s.getLong();
-        long z = s.getLong();
+    private static UInt128 weakHashLength32WithSeeds(Bytes s, int offset, long a, long b) {
+        long w = s.getLong(offset);
+        long x = s.getLong(offset + 8);
+        long y = s.getLong(offset + 16);
+        long z = s.getLong(offset + 24);
 
         a += w;
         b = Long.rotateRight(b + a + z, 21);
@@ -63,27 +62,26 @@ final class FarmHashFingerprint64 implements HashFunction {
         return new UInt128(a + z, b + c);
     }
 
-    private static long hashLength0to16(ByteBuffer s) {
-        int length = s.remaining();
+    private static long hashLength0to16(Bytes s) {
+        int length = s.size();
         if (length >= 8) {
             long mul = K2 + length * 2L;
-            long a = s.getLong() + K2;
-            long b = s.position(s.limit() - 8).getLong();
+            long a = s.getLong(0) + K2;
+            long b = s.getLong(s.size() - 8);
             long c = Long.rotateRight(b, 37) * mul + a;
             long d = (Long.rotateRight(a, 25) + b) * mul;
             return hashLength16(c, d, mul);
         }
         if (length >= 4) {
             long mul = K2 + length * 2L;
-            long a = Integer.toUnsignedLong(s.getInt());
-            long b = Integer.toUnsignedLong(s.position(s.limit() - 4).getInt());
+            long a = s.getUnsignedInt(0);
+            long b = s.getUnsignedInt(s.size() - 4);
             return hashLength16(length + (a << 3), b, mul);
         }
         if (length > 0) {
-            int a = Byte.toUnsignedInt(s.get(0));
-            int b = Byte.toUnsignedInt(s.get(length >>> 1));
-            int c = Byte.toUnsignedInt(s.get(length - 1));
-            s.position(s.limit());
+            int a = s.getUnsignedByte(0);
+            int b = s.getUnsignedByte(length >>> 1);
+            int c = s.getUnsignedByte(length - 1);
 
             int y = a + (b << 8);
             int z = length + (c << 2);
@@ -92,20 +90,19 @@ final class FarmHashFingerprint64 implements HashFunction {
         return K2;
     }
 
-    private static long hashLength17to32(ByteBuffer s) {
-        int length = s.remaining();
+    private static long hashLength17to32(Bytes s) {
+        int length = s.size();
         long mul = K2 + length * 2L;
         long a = s.getLong(0) * K1;
         long b = s.getLong(8);
         long c = s.getLong(length - 8) * mul;
         long d = s.getLong(length - 16) * K2;
-        s.position(s.limit());
 
         return hashLength16(Long.rotateRight(a + b, 43) + Long.rotateRight(c, 30) + d, a + Long.rotateRight(b + K2, 18) + c, mul);
     }
 
-    private static long hashLength33to64(ByteBuffer s) {
-        int length = s.remaining();
+    private static long hashLength33to64(Bytes s) {
+        int length = s.size();
         long mul = K2 + length * 2L;
         long a = s.getLong(0) * K2;
         long b = s.getLong(8);
@@ -117,15 +114,14 @@ final class FarmHashFingerprint64 implements HashFunction {
         long f = s.getLong(24);
         long g = (y + s.getLong(length - 32)) * mul;
         long h = (z + s.getLong(length - 24)) * mul;
-        s.position(s.limit());
 
         return hashLength16(Long.rotateRight(e + f, 43) + Long.rotateRight(g, 30) + h, e + Long.rotateRight(f + a, 18) + g, mul);
     }
 
-    private static long hashLength65Plus(ByteBuffer s) {
+    private static long hashLength65Plus(Bytes s) {
         // For strings over 64 bytes we loop.  Internal state consists of
         // 56 bytes: v, w, x, y, and z.
-        int length = s.remaining();
+        int length = s.size();
 
         long x = SEED;
         @SuppressWarnings("NumericOverflow")
@@ -135,25 +131,25 @@ final class FarmHashFingerprint64 implements HashFunction {
         UInt128 w = new UInt128(0, 0);
         x = x * K2 + s.getLong(0);
 
+        int offset = 0;
         do {
-            int offset = s.position();
             x = Long.rotateRight(x + y + v.first + s.getLong(offset + 8), 37) * K1;
             y = Long.rotateRight(y + v.second + s.getLong(offset + 48), 42) * K1;
             x ^= w.second;
             y += v.first + s.getLong(offset + 40);
             z = Long.rotateRight(z + w.first, 33) * K1;
             long t = s.getLong(offset + 16);
-            v = weakHashLength32WithSeeds(s, v.second * K1, x + w.first);
-            w = weakHashLength32WithSeeds(s, z + w.second, y + t);
+            v = weakHashLength32WithSeeds(s, offset, v.second * K1, x + w.first);
+            w = weakHashLength32WithSeeds(s, offset + 32, z + w.second, y + t);
             t = x;
             x = z;
             z = t;
-        } while (s.remaining() > 64);
+            offset += 64;
+        } while (offset + 64 < length);
 
         long mul = K1 + ((z & 0xff) << 1);
-        // Make s point to the last 64 bytes of input.
-        s.position(s.limit() - 64);
-        int offset = s.position();
+        // Make offset point to the last 64 bytes of input.
+        offset = s.size() - 64;
         w.first += ((length - 1) & 63);
         v.first += w.first;
         w.first += v.first;
@@ -163,8 +159,8 @@ final class FarmHashFingerprint64 implements HashFunction {
         y += v.first * 9 + s.getLong(offset + 40);
         z = Long.rotateRight(z + w.first, 33) * mul;
         long t = s.getLong(offset + 16);
-        v = weakHashLength32WithSeeds(s, v.second * mul, x + w.first);
-        w = weakHashLength32WithSeeds(s, z + w.second, y + t);
+        v = weakHashLength32WithSeeds(s, offset, v.second * mul, x + w.first);
+        w = weakHashLength32WithSeeds(s, offset + 32, z + w.second, y + t);
         return hashLength16(hashLength16(v.first, w.first, mul) + shiftMix(y) * K0 + x, hashLength16(v.second, w.second, mul) + z, mul);
     }
 

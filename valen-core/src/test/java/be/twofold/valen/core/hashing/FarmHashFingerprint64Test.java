@@ -1,8 +1,8 @@
 package be.twofold.valen.core.hashing;
 
+import be.twofold.valen.core.util.collect.*;
 import org.junit.jupiter.api.*;
 
-import java.nio.*;
 import java.nio.charset.*;
 
 import static org.assertj.core.api.Assertions.*;
@@ -58,7 +58,7 @@ class FarmHashFingerprint64Test {
     }
 
     private static long fingerprint(byte[] bytes, int length) {
-        return HASH_FUNCTION.hash(ByteBuffer.wrap(bytes, 0, length)).asLong();
+        return HASH_FUNCTION.hash(Bytes.wrap(bytes, 0, length)).asLong();
     }
 
     private static long remix(long h) {

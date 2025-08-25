@@ -3,8 +3,9 @@ package be.twofold.valen.game.darkages.reader.resources;
 import be.twofold.valen.core.compression.*;
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.hashing.*;
-import be.twofold.valen.core.io.BinaryReader;
+import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.util.*;
+import be.twofold.valen.core.util.collect.*;
 import be.twofold.valen.game.darkages.*;
 import org.slf4j.*;
 
@@ -95,7 +96,7 @@ public final class ResourcesFile implements Container<DarkAgesAssetID, DarkAgesA
         var decompressed = decompressor.decompress(compressed, resource.size());
 
         // Check hash
-        long checksum = HashFunction.murmurHash64B(0xDEADBEEFL).hash(decompressed).asLong();
+        long checksum = HashFunction.murmurHash64B(0xDEADBEEFL).hash(Bytes.fromBuffer(decompressed)).asLong();
         if (checksum != resource.checksum()) {
             System.err.println("Checksum mismatch! (" + checksum + " != " + resource.checksum() + ")");
         }

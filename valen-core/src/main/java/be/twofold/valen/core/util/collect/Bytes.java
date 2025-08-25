@@ -2,6 +2,7 @@ package be.twofold.valen.core.util.collect;
 
 import be.twofold.valen.core.util.*;
 
+import java.nio.*;
 import java.util.*;
 
 public class Bytes extends AbstractList<Byte> implements Comparable<Bytes>, RandomAccess {
@@ -24,9 +25,31 @@ public class Bytes extends AbstractList<Byte> implements Comparable<Bytes>, Rand
         return new Bytes(array, fromIndex, toIndex);
     }
 
-    public byte getByte(int index) {
-        Check.index(index, size());
-        return array[fromIndex + index];
+    public static Bytes fromBuffer(ByteBuffer buffer) {
+        return wrap(buffer.array(), buffer.position(), buffer.limit());
+    }
+
+    public byte getByte(int offset) {
+        Check.index(offset, size());
+        return array[fromIndex + offset];
+    }
+
+    public int getUnsignedByte(int offset) {
+        return Byte.toUnsignedInt(getByte(offset));
+    }
+
+    public int getInt(int offset) {
+        Check.fromIndexSize(offset, 4, size());
+        return ByteArrays.getInt(array, fromIndex + offset);
+    }
+
+    public long getUnsignedInt(int offset) {
+        return Integer.toUnsignedLong(getInt(offset));
+    }
+
+    public long getLong(int offset) {
+        Check.fromIndexSize(offset, 8, size());
+        return ByteArrays.getLong(array, fromIndex + offset);
     }
 
 
