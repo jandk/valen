@@ -19,7 +19,7 @@ public record Surface(
         Check.argument(width > 0, "width must be greater than 0");
         Check.argument(height > 0, "height must be greater than 0");
 
-        var data = new byte[format.block().surfaceSize(width, height)];
+        var data = new byte[format.surfaceSize(width, height)];
         return new Surface(width, height, format, data);
     }
 

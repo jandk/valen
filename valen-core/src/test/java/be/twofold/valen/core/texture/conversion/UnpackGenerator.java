@@ -16,7 +16,7 @@ class UnpackGenerator {
             for (var dstFormat : formats) {
                 if (srcFormat == dstFormat ||
                     formatToInterp(srcFormat) != formatToInterp(dstFormat) ||
-                    srcFormat.block().size() >= dstFormat.block().size() ||
+                    srcFormat.blockSize() >= dstFormat.blockSize() ||
                     bytesPerChannel(srcFormat) != bytesPerChannel(dstFormat)
                 ) {
                     continue;
@@ -50,12 +50,12 @@ class UnpackGenerator {
     }
 
     private static int bytesPerChannel(TextureFormat format) {
-        return format.block().size() / formatToChannels(format).size();
+        return format.blockSize() / formatToChannels(format).size();
     }
 
     private static void generate(TextureFormat srcFormat, TextureFormat dstFormat) {
-        var srcStride = srcFormat.block().size();
-        var dstStride = dstFormat.block().size();
+        var srcStride = srcFormat.blockSize();
+        var dstStride = dstFormat.blockSize();
         var singleStride = srcStride == dstStride;
 
         var incrementI = "i" + increment(srcStride);
