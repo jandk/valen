@@ -1,48 +1,42 @@
 package be.twofold.valen.core.texture;
 
 public enum TextureFormat {
-    R8_UNORM(Block.Bits8, Interp.UNorm),
-    R8G8_UNORM(Block.Bits16, Interp.UNorm),
-    R8G8B8_UNORM(Block.Bits24, Interp.UNorm),
-    R8G8B8A8_UNORM(Block.Bits32, Interp.UNorm),
-    B8G8R8_UNORM(Block.Bits24, Interp.UNorm),
-    B8G8R8A8_UNORM(Block.Bits32, Interp.UNorm),
-    R16_UNORM(Block.Bits16, Interp.UNorm),
-    R16G16B16A16_UNORM(Block.Bits64, Interp.UNorm),
-    R16_SFLOAT(Block.Bits16, Interp.SFloat),
-    R16G16_SFLOAT(Block.Bits32, Interp.SFloat),
-    R16G16B16_SFLOAT(Block.Bits48, Interp.SFloat),
-    R16G16B16A16_SFLOAT(Block.Bits64, Interp.SFloat),
+    R8_UNORM(Block.Bits8),
+    R8G8_UNORM(Block.Bits16),
+    R8G8B8_UNORM(Block.Bits24),
+    R8G8B8A8_UNORM(Block.Bits32),
+    B8G8R8_UNORM(Block.Bits24),
+    B8G8R8A8_UNORM(Block.Bits32),
+    R16_UNORM(Block.Bits16),
+    R16G16B16A16_UNORM(Block.Bits64),
+    R16_SFLOAT(Block.Bits16),
+    R16G16_SFLOAT(Block.Bits32),
+    R16G16B16_SFLOAT(Block.Bits48),
+    R16G16B16A16_SFLOAT(Block.Bits64),
 
-    BC1_UNORM(Block.BC1, Interp.UNorm),
-    BC1_SRGB(Block.BC1, Interp.SRGB),
-    BC2_UNORM(Block.BC2, Interp.UNorm),
-    BC2_SRGB(Block.BC2, Interp.SRGB),
-    BC3_UNORM(Block.BC3, Interp.UNorm),
-    BC3_SRGB(Block.BC3, Interp.SRGB),
-    BC4_UNORM(Block.BC4, Interp.UNorm),
-    BC4_SNORM(Block.BC4, Interp.SNorm),
-    BC5_UNORM(Block.BC5, Interp.UNorm),
-    BC5_SNORM(Block.BC5, Interp.SNorm),
-    BC6H_UFLOAT(Block.BC6H, Interp.UFloat),
-    BC6H_SFLOAT(Block.BC6H, Interp.SFloat),
-    BC7_UNORM(Block.BC7, Interp.UNorm),
-    BC7_SRGB(Block.BC7, Interp.SRGB);
+    BC1_UNORM(Block.BC1),
+    BC1_SRGB(Block.BC1),
+    BC2_UNORM(Block.BC2),
+    BC2_SRGB(Block.BC2),
+    BC3_UNORM(Block.BC3),
+    BC3_SRGB(Block.BC3),
+    BC4_UNORM(Block.BC4),
+    BC4_SNORM(Block.BC4),
+    BC5_UNORM(Block.BC5),
+    BC5_SNORM(Block.BC5),
+    BC6H_UFLOAT(Block.BC6H),
+    BC6H_SFLOAT(Block.BC6H),
+    BC7_UNORM(Block.BC7),
+    BC7_SRGB(Block.BC7);
 
     private final Block block;
-    private final Interp interp;
 
-    TextureFormat(Block block, Interp interp) {
+    TextureFormat(Block block) {
         this.block = block;
-        this.interp = interp;
     }
 
     public Block block() {
         return block;
-    }
-
-    public Interp interp() {
-        return interp;
     }
 
     public boolean hasAlpha() {
@@ -113,13 +107,4 @@ public enum TextureFormat {
             return blockWidth * blockHeight * size;
         }
     }
-
-    public enum Interp {
-        SFloat,
-        SNorm,
-        SRGB,
-        UFloat,
-        UNorm,
-    }
-
 }

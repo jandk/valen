@@ -15,7 +15,7 @@ class UnpackGenerator {
         for (var srcFormat : formats) {
             for (var dstFormat : formats) {
                 if (srcFormat == dstFormat ||
-                    srcFormat.interp() != dstFormat.interp() ||
+                    formatToInterp(srcFormat) != formatToInterp(dstFormat) ||
                     srcFormat.block().size() >= dstFormat.block().size() ||
                     bytesPerChannel(srcFormat) != bytesPerChannel(dstFormat)
                 ) {
@@ -79,7 +79,7 @@ class UnpackGenerator {
                     continue;
                 }
 
-                var fill = fill(dstChannelSize, dstFormat.interp());
+                var fill = fill(dstChannelSize, formatToInterp(dstFormat));
                 for (var i = 0; i < srcChannelSize; i++) {
                     if (fill[i] == 0) {
                         continue;
@@ -114,7 +114,7 @@ class UnpackGenerator {
         return s.substring(0, index) + s.charAt(index + 1) + s.substring(index + 2).toLowerCase();
     }
 
-    private static byte[] fill(int channelSize, TextureFormat.Interp interp) {
+    private static byte[] fill(int channelSize, Interp interp) {
         return switch (channelSize) {
             case 1 -> switch (interp) {
                 case SNorm -> new byte[]{0x7F};
@@ -122,10 +122,9 @@ class UnpackGenerator {
                 default -> throw new IllegalArgumentException();
             };
             case 2 -> switch (interp) {
-                case SFloat -> new byte[]{0x00, 0x3C};
+                case SFloat, UFloat -> new byte[]{0x00, 0x3C};
                 case SNorm -> new byte[]{(byte) 0xFF, 0x7F};
                 case UNorm, SRGB -> new byte[]{(byte) 0xFF, (byte) 0xFF};
-                default -> throw new IllegalArgumentException();
             };
             default -> throw new IllegalArgumentException();
         };
@@ -160,7 +159,49 @@ class UnpackGenerator {
         };
     }
 
+    private static Interp formatToInterp(TextureFormat format) {
+        return switch (format) {
+            case R8_UNORM,
+                 R8G8_UNORM,
+                 R8G8B8_UNORM,
+                 R8G8B8A8_UNORM,
+                 B8G8R8_UNORM,
+                 B8G8R8A8_UNORM,
+                 R16_UNORM,
+                 R16G16B16A16_UNORM,
+                 BC1_UNORM,
+                 BC2_UNORM,
+                 BC3_UNORM,
+                 BC4_UNORM,
+                 BC5_UNORM,
+                 BC7_UNORM -> Interp.UNorm;
+            case R16_SFLOAT,
+                 R16G16_SFLOAT,
+                 R16G16B16_SFLOAT,
+                 R16G16B16A16_SFLOAT,
+                 BC6H_SFLOAT -> Interp.SFloat;
+            case BC1_SRGB,
+                 BC2_SRGB,
+                 BC3_SRGB,
+                 BC7_SRGB -> Interp.SRGB;
+            case BC4_SNORM,
+                 BC5_SNORM -> Interp.SNorm;
+            case BC6H_UFLOAT -> Interp.UFloat;
+        };
+    }
+
     private enum Channel {
-        R, G, B, A;
+        R,
+        G,
+        B,
+        A,
+    }
+
+    private enum Interp {
+        SFloat,
+        SNorm,
+        SRGB,
+        UFloat,
+        UNorm,
     }
 }
