@@ -7,7 +7,9 @@ import java.util.*;
 
 public class Doubles extends AbstractList<Double> implements Comparable<Doubles>, RandomAccess {
     final double[] array;
+
     final int fromIndex;
+
     final int toIndex;
 
     Doubles(double[] array, int fromIndex, int toIndex) {
@@ -23,11 +25,6 @@ public class Doubles extends AbstractList<Double> implements Comparable<Doubles>
 
     public static Doubles wrap(double[] array, int fromIndex, int toIndex) {
         return new Doubles(array, fromIndex, toIndex);
-    }
-
-    public static Doubles allocate(int size) {
-        Check.argument(size >= 0, "size must be non-negative");
-        return new Doubles(new double[size], 0, size);
     }
 
     public static Doubles from(DoubleBuffer buffer) {
@@ -56,7 +53,6 @@ public class Doubles extends AbstractList<Double> implements Comparable<Doubles>
         return subList(fromIndex, toIndex);
     }
 
-
     @Override
     public int size() {
         return toIndex - fromIndex;
@@ -70,13 +66,12 @@ public class Doubles extends AbstractList<Double> implements Comparable<Doubles>
 
     @Override
     public boolean contains(Object o) {
-        return o instanceof Double value
-               && ArrayUtils.contains(array, fromIndex, toIndex, value);
+        return o instanceof java.lang.Double value && ArrayUtils.contains(array, fromIndex, toIndex, value);
     }
 
     @Override
     public int indexOf(Object o) {
-        if (o instanceof Double value) {
+        if (o instanceof java.lang.Double value) {
             int index = ArrayUtils.indexOf(array, fromIndex, toIndex, value);
             if (index >= 0) {
                 return index - fromIndex;
@@ -87,7 +82,7 @@ public class Doubles extends AbstractList<Double> implements Comparable<Doubles>
 
     @Override
     public int lastIndexOf(Object o) {
-        if (o instanceof Double value) {
+        if (o instanceof java.lang.Double value) {
             int index = ArrayUtils.lastIndexOf(array, fromIndex, toIndex, value);
             if (index >= 0) {
                 return index - fromIndex;
@@ -102,7 +97,6 @@ public class Doubles extends AbstractList<Double> implements Comparable<Doubles>
         return new Doubles(array, this.fromIndex + fromIndex, this.fromIndex + toIndex);
     }
 
-
     @Override
     public int compareTo(Doubles o) {
         return Arrays.compare(array, fromIndex, toIndex, o.array, o.fromIndex, o.toIndex);
@@ -110,8 +104,7 @@ public class Doubles extends AbstractList<Double> implements Comparable<Doubles>
 
     @Override
     public boolean equals(Object obj) {
-        return obj instanceof Doubles o
-               && Arrays.equals(array, fromIndex, toIndex, o.array, o.fromIndex, o.toIndex);
+        return obj instanceof Doubles o && Arrays.equals(array, fromIndex, toIndex, o.array, o.fromIndex, o.toIndex);
     }
 
     @Override

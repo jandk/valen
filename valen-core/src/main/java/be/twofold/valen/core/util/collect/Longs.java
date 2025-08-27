@@ -7,7 +7,9 @@ import java.util.*;
 
 public class Longs extends AbstractList<Long> implements Comparable<Longs>, RandomAccess {
     final long[] array;
+
     final int fromIndex;
+
     final int toIndex;
 
     Longs(long[] array, int fromIndex, int toIndex) {
@@ -23,11 +25,6 @@ public class Longs extends AbstractList<Long> implements Comparable<Longs>, Rand
 
     public static Longs wrap(long[] array, int fromIndex, int toIndex) {
         return new Longs(array, fromIndex, toIndex);
-    }
-
-    public static Longs allocate(int size) {
-        Check.argument(size >= 0, "size must be non-negative");
-        return new Longs(new long[size], 0, size);
     }
 
     public static Longs from(LongBuffer buffer) {
@@ -56,7 +53,6 @@ public class Longs extends AbstractList<Long> implements Comparable<Longs>, Rand
         return subList(fromIndex, toIndex);
     }
 
-
     @Override
     public int size() {
         return toIndex - fromIndex;
@@ -70,13 +66,12 @@ public class Longs extends AbstractList<Long> implements Comparable<Longs>, Rand
 
     @Override
     public boolean contains(Object o) {
-        return o instanceof Long value
-               && ArrayUtils.contains(array, fromIndex, toIndex, value);
+        return o instanceof java.lang.Long value && ArrayUtils.contains(array, fromIndex, toIndex, value);
     }
 
     @Override
     public int indexOf(Object o) {
-        if (o instanceof Long value) {
+        if (o instanceof java.lang.Long value) {
             int index = ArrayUtils.indexOf(array, fromIndex, toIndex, value);
             if (index >= 0) {
                 return index - fromIndex;
@@ -87,7 +82,7 @@ public class Longs extends AbstractList<Long> implements Comparable<Longs>, Rand
 
     @Override
     public int lastIndexOf(Object o) {
-        if (o instanceof Long value) {
+        if (o instanceof java.lang.Long value) {
             int index = ArrayUtils.lastIndexOf(array, fromIndex, toIndex, value);
             if (index >= 0) {
                 return index - fromIndex;
@@ -102,7 +97,6 @@ public class Longs extends AbstractList<Long> implements Comparable<Longs>, Rand
         return new Longs(array, this.fromIndex + fromIndex, this.fromIndex + toIndex);
     }
 
-
     @Override
     public int compareTo(Longs o) {
         return Arrays.compare(array, fromIndex, toIndex, o.array, o.fromIndex, o.toIndex);
@@ -110,8 +104,7 @@ public class Longs extends AbstractList<Long> implements Comparable<Longs>, Rand
 
     @Override
     public boolean equals(Object obj) {
-        return obj instanceof Longs o
-               && Arrays.equals(array, fromIndex, toIndex, o.array, o.fromIndex, o.toIndex);
+        return obj instanceof Longs o && Arrays.equals(array, fromIndex, toIndex, o.array, o.fromIndex, o.toIndex);
     }
 
     @Override

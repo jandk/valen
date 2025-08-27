@@ -7,7 +7,9 @@ import java.util.*;
 
 public class Bytes extends AbstractList<Byte> implements Comparable<Bytes>, RandomAccess {
     final byte[] array;
+
     final int fromIndex;
+
     final int toIndex;
 
     Bytes(byte[] array, int fromIndex, int toIndex) {
@@ -25,11 +27,6 @@ public class Bytes extends AbstractList<Byte> implements Comparable<Bytes>, Rand
         return new Bytes(array, fromIndex, toIndex);
     }
 
-    public static Bytes allocate(int size) {
-        Check.argument(size >= 0, "size must be non-negative");
-        return new Bytes(new byte[size], 0, size);
-    }
-
     public static Bytes from(ByteBuffer buffer) {
         Check.argument(buffer.hasArray(), "buffer must be backed by an array");
         return new Bytes(buffer.array(), buffer.position(), buffer.limit());
@@ -40,26 +37,14 @@ public class Bytes extends AbstractList<Byte> implements Comparable<Bytes>, Rand
         return array[fromIndex + index];
     }
 
-    public int getUnsignedByte(int offset) {
-        return Byte.toUnsignedInt(getByte(offset));
-    }
-
     public short getShort(int offset) {
         Check.fromIndexSize(offset, Short.BYTES, size());
         return ByteArrays.getShort(array, fromIndex + offset);
     }
 
-    public int getUnsignedShort(int offset) {
-        return Short.toUnsignedInt(getShort(offset));
-    }
-
     public int getInt(int offset) {
         Check.fromIndexSize(offset, Integer.BYTES, size());
         return ByteArrays.getInt(array, fromIndex + offset);
-    }
-
-    public long getUnsignedInt(int offset) {
-        return Integer.toUnsignedLong(getInt(offset));
     }
 
     public long getLong(int offset) {
@@ -77,6 +62,17 @@ public class Bytes extends AbstractList<Byte> implements Comparable<Bytes>, Rand
         return ByteArrays.getDouble(array, fromIndex + offset);
     }
 
+    public int getUnsignedByte(int offset) {
+        return Byte.toUnsignedInt(getByte(offset));
+    }
+
+    public int getUnsignedShort(int offset) {
+        return Short.toUnsignedInt(getShort(offset));
+    }
+
+    public long getUnsignedInt(int offset) {
+        return Integer.toUnsignedLong(getInt(offset));
+    }
 
     public ByteBuffer asBuffer() {
         return ByteBuffer.wrap(array, fromIndex, size()).asReadOnlyBuffer();
@@ -94,7 +90,6 @@ public class Bytes extends AbstractList<Byte> implements Comparable<Bytes>, Rand
         return subList(fromIndex, toIndex);
     }
 
-
     @Override
     public int size() {
         return toIndex - fromIndex;
@@ -108,13 +103,12 @@ public class Bytes extends AbstractList<Byte> implements Comparable<Bytes>, Rand
 
     @Override
     public boolean contains(Object o) {
-        return o instanceof Byte value
-               && ArrayUtils.contains(array, fromIndex, toIndex, value);
+        return o instanceof java.lang.Byte value && ArrayUtils.contains(array, fromIndex, toIndex, value);
     }
 
     @Override
     public int indexOf(Object o) {
-        if (o instanceof Byte value) {
+        if (o instanceof java.lang.Byte value) {
             int index = ArrayUtils.indexOf(array, fromIndex, toIndex, value);
             if (index >= 0) {
                 return index - fromIndex;
@@ -125,7 +119,7 @@ public class Bytes extends AbstractList<Byte> implements Comparable<Bytes>, Rand
 
     @Override
     public int lastIndexOf(Object o) {
-        if (o instanceof Byte value) {
+        if (o instanceof java.lang.Byte value) {
             int index = ArrayUtils.lastIndexOf(array, fromIndex, toIndex, value);
             if (index >= 0) {
                 return index - fromIndex;
@@ -140,7 +134,6 @@ public class Bytes extends AbstractList<Byte> implements Comparable<Bytes>, Rand
         return new Bytes(array, this.fromIndex + fromIndex, this.fromIndex + toIndex);
     }
 
-
     @Override
     public int compareTo(Bytes o) {
         return Arrays.compare(array, fromIndex, toIndex, o.array, o.fromIndex, o.toIndex);
@@ -148,8 +141,7 @@ public class Bytes extends AbstractList<Byte> implements Comparable<Bytes>, Rand
 
     @Override
     public boolean equals(Object obj) {
-        return obj instanceof Bytes o
-               && Arrays.equals(array, fromIndex, toIndex, o.array, o.fromIndex, o.toIndex);
+        return obj instanceof Bytes o && Arrays.equals(array, fromIndex, toIndex, o.array, o.fromIndex, o.toIndex);
     }
 
     @Override

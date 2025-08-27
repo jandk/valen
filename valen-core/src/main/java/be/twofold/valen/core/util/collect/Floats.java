@@ -7,7 +7,9 @@ import java.util.*;
 
 public class Floats extends AbstractList<Float> implements Comparable<Floats>, RandomAccess {
     final float[] array;
+
     final int fromIndex;
+
     final int toIndex;
 
     Floats(float[] array, int fromIndex, int toIndex) {
@@ -23,11 +25,6 @@ public class Floats extends AbstractList<Float> implements Comparable<Floats>, R
 
     public static Floats wrap(float[] array, int fromIndex, int toIndex) {
         return new Floats(array, fromIndex, toIndex);
-    }
-
-    public static Floats allocate(int size) {
-        Check.argument(size >= 0, "size must be non-negative");
-        return new Floats(new float[size], 0, size);
     }
 
     public static Floats from(FloatBuffer buffer) {
@@ -56,7 +53,6 @@ public class Floats extends AbstractList<Float> implements Comparable<Floats>, R
         return subList(fromIndex, toIndex);
     }
 
-
     @Override
     public int size() {
         return toIndex - fromIndex;
@@ -70,13 +66,12 @@ public class Floats extends AbstractList<Float> implements Comparable<Floats>, R
 
     @Override
     public boolean contains(Object o) {
-        return o instanceof Float value
-               && ArrayUtils.contains(array, fromIndex, toIndex, value);
+        return o instanceof java.lang.Float value && ArrayUtils.contains(array, fromIndex, toIndex, value);
     }
 
     @Override
     public int indexOf(Object o) {
-        if (o instanceof Float value) {
+        if (o instanceof java.lang.Float value) {
             int index = ArrayUtils.indexOf(array, fromIndex, toIndex, value);
             if (index >= 0) {
                 return index - fromIndex;
@@ -87,7 +82,7 @@ public class Floats extends AbstractList<Float> implements Comparable<Floats>, R
 
     @Override
     public int lastIndexOf(Object o) {
-        if (o instanceof Float value) {
+        if (o instanceof java.lang.Float value) {
             int index = ArrayUtils.lastIndexOf(array, fromIndex, toIndex, value);
             if (index >= 0) {
                 return index - fromIndex;
@@ -102,7 +97,6 @@ public class Floats extends AbstractList<Float> implements Comparable<Floats>, R
         return new Floats(array, this.fromIndex + fromIndex, this.fromIndex + toIndex);
     }
 
-
     @Override
     public int compareTo(Floats o) {
         return Arrays.compare(array, fromIndex, toIndex, o.array, o.fromIndex, o.toIndex);
@@ -110,8 +104,7 @@ public class Floats extends AbstractList<Float> implements Comparable<Floats>, R
 
     @Override
     public boolean equals(Object obj) {
-        return obj instanceof Floats o
-               && Arrays.equals(array, fromIndex, toIndex, o.array, o.fromIndex, o.toIndex);
+        return obj instanceof Floats o && Arrays.equals(array, fromIndex, toIndex, o.array, o.fromIndex, o.toIndex);
     }
 
     @Override

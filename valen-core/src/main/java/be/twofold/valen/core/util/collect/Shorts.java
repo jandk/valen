@@ -7,7 +7,9 @@ import java.util.*;
 
 public class Shorts extends AbstractList<Short> implements Comparable<Shorts>, RandomAccess {
     final short[] array;
+
     final int fromIndex;
+
     final int toIndex;
 
     Shorts(short[] array, int fromIndex, int toIndex) {
@@ -23,11 +25,6 @@ public class Shorts extends AbstractList<Short> implements Comparable<Shorts>, R
 
     public static Shorts wrap(short[] array, int fromIndex, int toIndex) {
         return new Shorts(array, fromIndex, toIndex);
-    }
-
-    public static Shorts allocate(int size) {
-        Check.argument(size >= 0, "size must be non-negative");
-        return new Shorts(new short[size], 0, size);
     }
 
     public static Shorts from(ShortBuffer buffer) {
@@ -56,7 +53,6 @@ public class Shorts extends AbstractList<Short> implements Comparable<Shorts>, R
         return subList(fromIndex, toIndex);
     }
 
-
     @Override
     public int size() {
         return toIndex - fromIndex;
@@ -70,13 +66,12 @@ public class Shorts extends AbstractList<Short> implements Comparable<Shorts>, R
 
     @Override
     public boolean contains(Object o) {
-        return o instanceof Short value
-               && ArrayUtils.contains(array, fromIndex, toIndex, value);
+        return o instanceof java.lang.Short value && ArrayUtils.contains(array, fromIndex, toIndex, value);
     }
 
     @Override
     public int indexOf(Object o) {
-        if (o instanceof Short value) {
+        if (o instanceof java.lang.Short value) {
             int index = ArrayUtils.indexOf(array, fromIndex, toIndex, value);
             if (index >= 0) {
                 return index - fromIndex;
@@ -87,7 +82,7 @@ public class Shorts extends AbstractList<Short> implements Comparable<Shorts>, R
 
     @Override
     public int lastIndexOf(Object o) {
-        if (o instanceof Short value) {
+        if (o instanceof java.lang.Short value) {
             int index = ArrayUtils.lastIndexOf(array, fromIndex, toIndex, value);
             if (index >= 0) {
                 return index - fromIndex;
@@ -102,7 +97,6 @@ public class Shorts extends AbstractList<Short> implements Comparable<Shorts>, R
         return new Shorts(array, this.fromIndex + fromIndex, this.fromIndex + toIndex);
     }
 
-
     @Override
     public int compareTo(Shorts o) {
         return Arrays.compare(array, fromIndex, toIndex, o.array, o.fromIndex, o.toIndex);
@@ -110,8 +104,7 @@ public class Shorts extends AbstractList<Short> implements Comparable<Shorts>, R
 
     @Override
     public boolean equals(Object obj) {
-        return obj instanceof Shorts o
-               && Arrays.equals(array, fromIndex, toIndex, o.array, o.fromIndex, o.toIndex);
+        return obj instanceof Shorts o && Arrays.equals(array, fromIndex, toIndex, o.array, o.fromIndex, o.toIndex);
     }
 
     @Override
