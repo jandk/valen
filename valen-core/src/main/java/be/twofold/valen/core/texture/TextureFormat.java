@@ -1,20 +1,18 @@
 package be.twofold.valen.core.texture;
 
-import java.util.*;
-
 public enum TextureFormat {
-    R8_UNORM(Block.Bits8, Interp.UNorm, Order.R),
-    R8G8_UNORM(Block.Bits16, Interp.UNorm, Order.RG),
-    R8G8B8_UNORM(Block.Bits24, Interp.UNorm, Order.RGB),
-    R8G8B8A8_UNORM(Block.Bits32, Interp.UNorm, Order.RGBA),
-    B8G8R8_UNORM(Block.Bits24, Interp.UNorm, Order.BGR),
-    B8G8R8A8_UNORM(Block.Bits32, Interp.UNorm, Order.BGRA),
-    R16_UNORM(Block.Bits16, Interp.UNorm, Order.R),
-    R16G16B16A16_UNORM(Block.Bits64, Interp.UNorm, Order.RGBA),
-    R16_SFLOAT(Block.Bits16, Interp.SFloat, Order.R),
-    R16G16_SFLOAT(Block.Bits32, Interp.SFloat, Order.RG),
-    R16G16B16_SFLOAT(Block.Bits48, Interp.SFloat, Order.RGB),
-    R16G16B16A16_SFLOAT(Block.Bits64, Interp.SFloat, Order.RGBA),
+    R8_UNORM(Block.Bits8, Interp.UNorm),
+    R8G8_UNORM(Block.Bits16, Interp.UNorm),
+    R8G8B8_UNORM(Block.Bits24, Interp.UNorm),
+    R8G8B8A8_UNORM(Block.Bits32, Interp.UNorm),
+    B8G8R8_UNORM(Block.Bits24, Interp.UNorm),
+    B8G8R8A8_UNORM(Block.Bits32, Interp.UNorm),
+    R16_UNORM(Block.Bits16, Interp.UNorm),
+    R16G16B16A16_UNORM(Block.Bits64, Interp.UNorm),
+    R16_SFLOAT(Block.Bits16, Interp.SFloat),
+    R16G16_SFLOAT(Block.Bits32, Interp.SFloat),
+    R16G16B16_SFLOAT(Block.Bits48, Interp.SFloat),
+    R16G16B16A16_SFLOAT(Block.Bits64, Interp.SFloat),
 
     BC1_UNORM(Block.BC1, Interp.UNorm),
     BC1_SRGB(Block.BC1, Interp.SRGB),
@@ -33,16 +31,10 @@ public enum TextureFormat {
 
     private final Block block;
     private final Interp interp;
-    private final Order order;
 
     TextureFormat(Block block, Interp interp) {
-        this(block, interp, null);
-    }
-
-    TextureFormat(Block block, Interp interp, Order order) {
         this.block = block;
         this.interp = interp;
-        this.order = order;
     }
 
     public Block block() {
@@ -51,10 +43,6 @@ public enum TextureFormat {
 
     public Interp interp() {
         return interp;
-    }
-
-    public Optional<Order> order() {
-        return Optional.ofNullable(order);
     }
 
     public boolean hasAlpha() {
@@ -134,47 +122,4 @@ public enum TextureFormat {
         UNorm,
     }
 
-    public enum Order {
-        R(1, 0, -1, -1, -1),
-        RG(2, 0, 1, -1, -1),
-        RGB(3, 0, 1, 2, -1),
-        RGBA(4, 0, 1, 2, 3),
-        BGR(3, 2, 1, 0, -1),
-        BGRA(4, 2, 1, 0, 3),
-        ABGR(4, 3, 2, 1, 0);
-
-        private final int count;
-        private final int r;
-        private final int g;
-        private final int b;
-        private final int a;
-
-        Order(int count, int r, int g, int b, int a) {
-            this.count = count;
-            this.r = r;
-            this.g = g;
-            this.b = b;
-            this.a = a;
-        }
-
-        public int count() {
-            return count;
-        }
-
-        public int r() {
-            return r;
-        }
-
-        public int g() {
-            return g;
-        }
-
-        public int b() {
-            return b;
-        }
-
-        public int a() {
-            return a;
-        }
-    }
 }

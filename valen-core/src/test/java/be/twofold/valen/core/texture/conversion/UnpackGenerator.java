@@ -3,6 +3,7 @@ package be.twofold.valen.core.texture.conversion;
 import be.twofold.valen.core.texture.*;
 
 import java.util.*;
+import java.util.stream.*;
 
 class UnpackGenerator {
     public static void main(String[] args) {
@@ -49,7 +50,7 @@ class UnpackGenerator {
     }
 
     private static int bytesPerChannel(TextureFormat format) {
-        return format.block().size() / format.order().get().count();
+        return format.block().size() / formatToChannels(format).size();
     }
 
     private static void generate(TextureFormat srcFormat, TextureFormat dstFormat) {
@@ -65,12 +66,16 @@ class UnpackGenerator {
 
         var srcChannelSize = bytesPerChannel(srcFormat);
         var dstChannelSize = bytesPerChannel(dstFormat);
-        var srcOrders = ChannelOrder.fromOrder(srcFormat.order().get());
-        var dstOrders = ChannelOrder.fromOrder(dstFormat.order().get());
-        for (var dstOrder : dstOrders) {
-            var srcOrderOpt = ChannelOrder.getOrder(srcOrders, dstOrder.channel());
-            if (srcOrderOpt.isEmpty()) {
-                if (dstOrder.channel() != Channel.A) {
+        var srcChannels = formatToChannels(srcFormat);
+        var dstChannels = formatToChannels(dstFormat);
+        for (int dstIndex = 0; dstIndex < dstChannels.size(); dstIndex++) {
+            var dstChannel = dstChannels.get(dstIndex);
+            var srcIndexOpt = IntStream.range(0, srcChannels.size())
+                .filter(i1 -> srcChannels.get(i1) == dstChannel)
+                .findFirst();
+
+            if (srcIndexOpt.isEmpty()) {
+                if (dstChannel != Channel.A) {
                     continue;
                 }
 
@@ -79,17 +84,17 @@ class UnpackGenerator {
                     if (fill[i] == 0) {
                         continue;
                     }
-                    var dstOffset = dstOrder.getOrder() * dstChannelSize + i;
+                    var dstOffset = dstIndex * dstChannelSize + i;
                     var filler = String.format("(byte) 0x%02X", fill[i]);
                     System.out.println("        dst[" + (singleStride ? "i" : "o") + offset(dstOffset) + "] = " + filler + ";");
                 }
                 continue;
             }
 
-            var srcOrder = srcOrderOpt.get();
+            var srcIndex = srcIndexOpt.getAsInt();
             for (var i = 0; i < srcChannelSize; i++) {
-                var srcOffset = srcOrder.getOrder() * srcChannelSize + i;
-                var dstOffset = dstOrder.getOrder() * dstChannelSize + i;
+                var srcOffset = srcIndex * srcChannelSize + i;
+                var dstOffset = dstIndex * dstChannelSize + i;
                 System.out.println("        dst[" + (singleStride ? "i" : "o") + offset(dstOffset) + "] = src[i" + offset(srcOffset) + "];");
             }
         }
@@ -137,28 +142,25 @@ class UnpackGenerator {
         return " += " + stride;
     }
 
-    private enum Channel {
-        R, G, B, A;
+    private static List<Channel> formatToChannels(TextureFormat format) {
+        return switch (format) {
+            case R8_UNORM,
+                 R16_UNORM,
+                 R16_SFLOAT -> List.of(Channel.R);
+            case R8G8_UNORM,
+                 R16G16_SFLOAT -> List.of(Channel.R, Channel.G);
+            case R8G8B8_UNORM,
+                 R16G16B16_SFLOAT -> List.of(Channel.R, Channel.G, Channel.B);
+            case R8G8B8A8_UNORM,
+                 R16G16B16A16_UNORM,
+                 R16G16B16A16_SFLOAT -> List.of(Channel.R, Channel.G, Channel.B, Channel.A);
+            case B8G8R8_UNORM -> List.of(Channel.B, Channel.G, Channel.R);
+            case B8G8R8A8_UNORM -> List.of(Channel.B, Channel.G, Channel.R, Channel.A);
+            default -> throw new UnsupportedOperationException();
+        };
     }
 
-    private record ChannelOrder(
-        Channel channel,
-        int getOrder
-    ) {
-        private static List<ChannelOrder> fromOrder(TextureFormat.Order order) {
-            List<ChannelOrder> orders = new ArrayList<>();
-            if (order.r() >= 0) orders.add(new ChannelOrder(Channel.R, order.r()));
-            if (order.g() >= 0) orders.add(new ChannelOrder(Channel.G, order.g()));
-            if (order.b() >= 0) orders.add(new ChannelOrder(Channel.B, order.b()));
-            if (order.a() >= 0) orders.add(new ChannelOrder(Channel.A, order.a()));
-            orders.sort(Comparator.comparing(ChannelOrder::getOrder));
-            return orders;
-        }
-
-        private static Optional<ChannelOrder> getOrder(List<ChannelOrder> orders, Channel channel) {
-            return orders.stream()
-                .filter(co -> co.channel == channel)
-                .findFirst();
-        }
+    private enum Channel {
+        R, G, B, A;
     }
 }
