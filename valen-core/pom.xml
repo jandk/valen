@@ -15,6 +15,12 @@
             <groupId>be.twofold</groupId>
             <artifactId>tinybcdec</artifactId>
         </dependency>
+
+        <dependency>
+            <groupId>com.squareup</groupId>
+            <artifactId>javapoet</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
 </project>
