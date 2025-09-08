@@ -1,6 +1,6 @@
 package be.twofold.valen.game.greatcircle.reader.resources;
 
-import be.twofold.valen.core.io.BinaryReader;
+import be.twofold.valen.core.io.*;
 
 import java.io.*;
 
@@ -9,6 +9,7 @@ public record ResourcesEntry(
     int nameString,
     int depIndices,
     int strings,
+    long specialHashes,
     long dataOffset,
     int dataSize,
     int uncompressedSize,
@@ -20,7 +21,8 @@ public record ResourcesEntry(
     ResourceCompressionMode compMode,
     short variation,
     short numStrings,
-    short numDependencies
+    short numDependencies,
+    short numSpecialHashes
 ) {
     public static ResourcesEntry read(BinaryReader reader) throws IOException {
         var resourceTypeString = reader.readLongAsInt();
@@ -28,7 +30,7 @@ public record ResourcesEntry(
         reader.expectLong(-1); // descString
         var depIndices = reader.readLongAsInt();
         var strings = reader.readLongAsInt();
-        reader.expectLong(0); // specialHashes
+        long specialHashes = reader.readLong(); // specialHashes
         reader.expectLong(0); // metaEntries
         var dataOffset = reader.readLong();
         var dataSize = reader.readLongAsInt();
@@ -46,7 +48,7 @@ public record ResourcesEntry(
         var numStrings = reader.readShort();
         reader.expectShort((short) 0); // numSources
         var numDependencies = reader.readShort();
-        reader.expectShort((short) 0); // numSpecialHashes
+        var numSpecialHashes = reader.readShort();
         reader.expectShort((short) 0); // numMetaEntries
         reader.skip(6); // padding
 
@@ -55,6 +57,7 @@ public record ResourcesEntry(
             nameString,
             depIndices,
             strings,
+            specialHashes,
             dataOffset,
             dataSize,
             uncompressedSize,
@@ -66,7 +69,8 @@ public record ResourcesEntry(
             compMode,
             variation,
             numStrings,
-            numDependencies
+            numDependencies,
+            numSpecialHashes
         );
     }
 }

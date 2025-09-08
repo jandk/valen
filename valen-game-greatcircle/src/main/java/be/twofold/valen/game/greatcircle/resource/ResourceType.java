@@ -129,6 +129,7 @@ public enum ResourceType implements ValueEnum<String> {
     layer("layer"),
     leveluprewardtable("leveluprewardtable"),
     levelupxptable("levelupxptable"),
+    lightbarsetting("lightbarsetting"),
     lipsyncanim("lipsyncanim"),
     loadout("loadout"),
     loadoutammo("loadoutammo"),
@@ -181,6 +182,7 @@ public enum ResourceType implements ValueEnum<String> {
     playerarmik("playerarmik"),
     playerlegik("playerlegik"),
     posematching("posematching"),
+    progressionscaler("progressionscaler"),
     projectilepenetration("projectilepenetration"),
     psdrig("psdrig"),
     pushreaction("pushreaction"),
@@ -270,6 +272,7 @@ public enum ResourceType implements ValueEnum<String> {
     uisection("uisection"),
     uisectionlogic("uisectionlogic"),
     uiwidget("uiwidget"),
+    usersetting("usersetting"),
     usersettinglist("usersettinglist"),
     variation("variation"),
     vegetationdeformation("vegetationdeformation"),
@@ -289,7 +292,8 @@ public enum ResourceType implements ValueEnum<String> {
     weaponupgrademuzzle("weaponupgrademuzzle"),
     weaponupgradesight("weaponupgradesight"),
     wear("wear"),
-    whipeffector("whipeffector");
+    whipeffector("whipeffector"),
+    ;
 
     private final String value;
 

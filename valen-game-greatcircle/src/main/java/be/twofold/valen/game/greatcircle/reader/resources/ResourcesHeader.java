@@ -9,6 +9,7 @@ public record ResourcesHeader(
     int numDependencyEntries,
     int numDependencyIndexes,
     int numPathStringIndexes,
+    int numSpecialHashes,
     int sizeStrings,
     int addrPathStringOffsets,
     int addrErrorLogs,
@@ -32,7 +33,7 @@ public record ResourcesHeader(
         var numDependencyIndexes = reader.readInt();
         var numPathStringIndexes = reader.readInt();
 
-        reader.expectInt(0);
+        var numSpecialHashes = reader.readInt();
         reader.expectInt(0);
         var sizeStrings = reader.readInt();
         reader.expectInt(0);
@@ -52,6 +53,7 @@ public record ResourcesHeader(
             numDependencyEntries,
             numDependencyIndexes,
             numPathStringIndexes,
+            numSpecialHashes,
             sizeStrings,
             addrPathStringOffsets,
             addrErrorLogs,

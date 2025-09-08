@@ -33,7 +33,7 @@ public final class Buffers {
             return buffer.array();
         }
 
-        log.warn("Actually copying buffer of size {}", buffer.remaining());
+        // log.warn("Actually copying buffer of size {}", buffer.remaining());
         var bytes = new byte[buffer.remaining()];
         buffer.get(bytes);
         return bytes;

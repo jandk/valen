@@ -1,6 +1,6 @@
 package be.twofold.valen.game.greatcircle.reader.resources;
 
-import be.twofold.valen.core.io.BinaryReader;
+import be.twofold.valen.core.io.*;
 
 import java.io.*;
 import java.nio.*;
@@ -13,7 +13,8 @@ public record Resources(
     List<String> pathStrings,
     int[] pathStringIndex,
     List<ResourcesDependency> dependencies,
-    int[] dependencyIndex
+    int[] dependencyIndex,
+    List<ResourceSpecialHash> specialHashes
 ) {
     private static final CharsetDecoder DECODER = StandardCharsets.US_ASCII.newDecoder();
 
@@ -42,11 +43,12 @@ public record Resources(
         // which files to load. The filenames are only used for debugging purposes.
         // assert channel.position() == header.addrDependencyEntries();
         var dependencies = reader.readObjects(header.numDependencyEntries(), ResourcesDependency::read);
+        var specialHashes = reader.readObjects(header.numSpecialHashes(), ResourceSpecialHash::read);
         var dependencyIndex = reader.readInts(header.numDependencyIndexes());
         var pathStringIndex = reader.readLongsAsInts(header.numPathStringIndexes());
 
         // assert channel.position() == header.addrEndMarker();
-        return new Resources(header, entries, pathStrings, pathStringIndex, dependencies, dependencyIndex);
+        return new Resources(header, entries, pathStrings, pathStringIndex, dependencies, dependencyIndex, specialHashes);
     }
 
     @Override

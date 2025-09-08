@@ -2,7 +2,7 @@ package be.twofold.valen.game.greatcircle.reader.md6mesh;
 
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.geometry.*;
-import be.twofold.valen.core.io.BinaryReader;
+import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.math.*;
 import be.twofold.valen.game.greatcircle.*;
 import be.twofold.valen.game.greatcircle.reader.geometry.*;
@@ -36,9 +36,12 @@ public final class Md6MeshReader implements AssetReader<Model, GreatCircleAsset>
     @Override
     public Model read(BinaryReader reader, GreatCircleAsset asset) throws IOException {
         var model = Md6Mesh.read(reader);
-        var meshes = new ArrayList<>(readMeshes(model, asset.hash()));
+        if (model.header().skeletonName().equals("models/characters/abgal/abgal_wear_base.md6skl")) {
+            System.out.println("Fount it!");
+        }
         var skeletonKey = GreatCircleAssetID.from(model.header().skeletonName(), ResourceType.skeleton);
         var skeleton = archive.loadAsset(skeletonKey, Skeleton.class);
+        var meshes = new ArrayList<>(readMeshes(model, asset.hash()));
 
         if (readMaterials) {
             Materials.apply(archive, meshes, model.meshInfos(), Md6MeshInfo::materialName, Md6MeshInfo::meshName);
