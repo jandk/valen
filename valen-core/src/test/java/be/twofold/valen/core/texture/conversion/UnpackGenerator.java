@@ -1,12 +1,19 @@
 package be.twofold.valen.core.texture.conversion;
 
 import be.twofold.valen.core.texture.*;
+import com.squareup.javapoet.*;
 
+import javax.lang.model.element.*;
+import java.io.*;
+import java.nio.file.*;
 import java.util.*;
+import java.util.function.*;
 import java.util.stream.*;
 
-class UnpackGenerator {
-    public static void main(String[] args) {
+final class UnpackGenerator {
+    private static final String CLASS_NAME = "Unpackers";
+
+    public static void main(String[] args) throws IOException {
         var formats = Arrays.stream(TextureFormat.values())
             .filter(f -> !f.isCompressed())
             .toList();
@@ -25,50 +32,94 @@ class UnpackGenerator {
             }
         }
 
-        System.out.println("return switch (srcFormat) {");
-        for (var entry : pairs.entrySet()) {
-            var srcFormat = entry.getKey();
-            System.out.println("    case " + srcFormat + " -> switch (dstFormat) {");
-            for (var dstFormat : entry.getValue())
-                System.out.println("        case " + dstFormat + " -> Unpack::" + methodName(srcFormat, dstFormat) + ";");
-            System.out.println("        default -> null;");
-            System.out.println("    };");
-        }
-        System.out.println("    default -> null;");
-        System.out.println("};");
-        System.out.println();
-        System.out.println();
+        // Generate the switch statement method
+        var switchMethod = generateGetConverter(pairs);
 
+        // Generate all conversion methods
+        List<MethodSpec> conversionMethods = new ArrayList<>();
         for (var entry : pairs.entrySet()) {
             var srcFormat = entry.getKey();
             for (var dstFormat : entry.getValue()) {
-                generate(srcFormat, dstFormat);
+                conversionMethods.add(generateConversionMethod(srcFormat, dstFormat));
             }
         }
 
-//        generate(TextureFormat.R8G8B8_UNORM, 1, TextureFormat.B8G8R8A8_UNORM, 1);
+        // Create the class
+        var unpackClass = TypeSpec.classBuilder(CLASS_NAME)
+            .addModifiers(Modifier.FINAL)
+            .addMethod(switchMethod)
+            .addMethods(conversionMethods)
+            .build();
+
+        // Write to file
+        JavaFile
+            .builder("be.twofold.valen.core.texture.conversion", unpackClass)
+            .indent("    ")
+            .build()
+            .writeTo(Path.of("valen-core/src/main/java"));
     }
 
-    private static int bytesPerChannel(TextureFormat format) {
-        return format.blockSize() / formatToChannels(format).size();
+    private static MethodSpec generateGetConverter(LinkedHashMap<TextureFormat, List<TextureFormat>> pairs) {
+        var builder = CodeBlock.builder()
+            .beginControlFlow("switch (srcFormat)");
+
+        for (var entry : pairs.entrySet()) {
+            builder.beginControlFlow("case $L:", entry.getKey());
+            generateGetConverterInnerSwitch(builder, entry.getKey(), entry.getValue());
+            builder.endControlFlow();
+        }
+
+        builder
+            .endControlFlow()
+            .addStatement("return null");
+
+        return MethodSpec.methodBuilder("getConverter")
+            .addModifiers(Modifier.STATIC)
+            .returns(ParameterizedTypeName.get(BiConsumer.class, byte[].class, byte[].class))
+            .addParameter(TextureFormat.class, "srcFormat")
+            .addParameter(TextureFormat.class, "dstFormat")
+            .addCode(builder.build())
+            .build();
     }
 
-    private static void generate(TextureFormat srcFormat, TextureFormat dstFormat) {
+    private static void generateGetConverterInnerSwitch(CodeBlock.Builder builder, TextureFormat srcFormat, List<TextureFormat> dstFormats) {
+        builder.beginControlFlow("switch (dstFormat)");
+
+        for (var dstFormat : dstFormats) {
+            builder
+                .beginControlFlow("case $L:", dstFormat)
+                .addStatement("return $T::$L", ClassName.get("", CLASS_NAME), methodName(srcFormat, dstFormat))
+                .endControlFlow();
+        }
+
+        builder
+            .beginControlFlow("default:")
+            .addStatement("break")
+            .endControlFlow();
+
+        builder.endControlFlow();
+    }
+
+    private static MethodSpec generateConversionMethod(TextureFormat srcFormat, TextureFormat dstFormat) {
         var srcStride = srcFormat.blockSize();
         var dstStride = dstFormat.blockSize();
         var singleStride = srcStride == dstStride;
 
-        var incrementI = "i" + increment(srcStride);
-        var incrementO = "o" + increment(dstStride);
+        var methodCode = CodeBlock.builder();
+        // Generate for loop
+        if (singleStride) {
+            methodCode.beginControlFlow("for (int i = 0; i < src.length; i$L)", increment(srcStride));
+        } else {
+            methodCode.beginControlFlow("for (int i = 0, o = 0; i < src.length; i$L, o$L)", increment(srcStride), increment(dstStride));
+        }
 
-        System.out.println("private static void " + methodName(srcFormat, dstFormat) + "(byte[] src, byte[] dst) {");
-        System.out.println("    for (int i = 0" + (singleStride ? "" : ", o = 0") + "; i < src.length; " + incrementI + (singleStride ? "" : ", " + incrementO) + ") {");
-
+        // Generate channel copying logic
         var srcChannelSize = bytesPerChannel(srcFormat);
         var dstChannelSize = bytesPerChannel(dstFormat);
         var srcChannels = formatToChannels(srcFormat);
         var dstChannels = formatToChannels(dstFormat);
-        for (int dstIndex = 0; dstIndex < dstChannels.size(); dstIndex++) {
+
+        for (var dstIndex = 0; dstIndex < dstChannels.size(); dstIndex++) {
             var dstChannel = dstChannels.get(dstIndex);
             var srcIndexOpt = IntStream.range(0, srcChannels.size())
                 .filter(i1 -> srcChannels.get(i1) == dstChannel)
@@ -86,7 +137,9 @@ class UnpackGenerator {
                     }
                     var dstOffset = dstIndex * dstChannelSize + i;
                     var filler = String.format("(byte) 0x%02X", fill[i]);
-                    System.out.println("        dst[" + (singleStride ? "i" : "o") + offset(dstOffset) + "] = " + filler + ";");
+                    var indexExpr = singleStride ? "i" : "o";
+                    var offsetExpr = offset(dstOffset);
+                    methodCode.addStatement("dst[$L$L] = $L", indexExpr, offsetExpr, filler);
                 }
                 continue;
             }
@@ -95,13 +148,26 @@ class UnpackGenerator {
             for (var i = 0; i < srcChannelSize; i++) {
                 var srcOffset = srcIndex * srcChannelSize + i;
                 var dstOffset = dstIndex * dstChannelSize + i;
-                System.out.println("        dst[" + (singleStride ? "i" : "o") + offset(dstOffset) + "] = src[i" + offset(srcOffset) + "];");
+                var dstIndexExpr = singleStride ? "i" : "o";
+                var dstOffsetExpr = offset(dstOffset);
+                var srcOffsetExpr = offset(srcOffset);
+                methodCode.addStatement("dst[$L$L] = src[i$L]", dstIndexExpr, dstOffsetExpr, srcOffsetExpr);
             }
         }
 
-        System.out.println("    }");
-        System.out.println("}");
-        System.out.println();
+        methodCode.endControlFlow();
+
+        return MethodSpec.methodBuilder(methodName(srcFormat, dstFormat))
+            .addModifiers(Modifier.PRIVATE, Modifier.STATIC)
+            .returns(TypeName.VOID)
+            .addParameter(byte[].class, "src")
+            .addParameter(byte[].class, "dst")
+            .addCode(methodCode.build())
+            .build();
+    }
+
+    private static int bytesPerChannel(TextureFormat format) {
+        return format.blockSize() / formatToChannels(format).size();
     }
 
     private static String methodName(TextureFormat srcFormat, TextureFormat dstFormat) {
@@ -135,10 +201,7 @@ class UnpackGenerator {
     }
 
     private static String increment(int stride) {
-        if (stride == 1) {
-            return "++";
-        }
-        return " += " + stride;
+        return stride == 1 ? "++" : " += " + stride;
     }
 
     private static List<Channel> formatToChannels(TextureFormat format) {
