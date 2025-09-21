@@ -1,6 +1,7 @@
 package be.twofold.valen.game.darkages;
 
 import be.twofold.valen.core.game.*;
+import be.twofold.valen.core.util.*;
 import be.twofold.valen.game.darkages.reader.resources.*;
 
 import java.util.*;
@@ -48,9 +49,7 @@ public record DarkAgesAssetID(
         var variations = Variations
             .getOrDefault(type, Set.of(ResourcesVariation.RES_VAR_NONE));
 
-        if (variations.size() > 1) {
-            throw new IllegalArgumentException("Multiple variations found for type: " + type + " (" + variations + ")");
-        }
+        Check.state(variations.size() == 1, "Multiple variations found");
 
         return new DarkAgesAssetID(
             resourceName,
@@ -60,9 +59,7 @@ public record DarkAgesAssetID(
     }
 
     public static DarkAgesAssetID from(String name, ResourcesType type, ResourcesVariation variation) {
-        if (!Variations.getOrDefault(type, Set.of(ResourcesVariation.RES_VAR_NONE)).contains(variation)) {
-            throw new IllegalArgumentException("Invalid variation for type: " + type + " (" + variation + ")");
-        }
+        Check.argument(Variations.getOrDefault(type, Set.of(ResourcesVariation.RES_VAR_NONE)).contains(variation), "Invalid variation for type: " + type + " (" + variation + ")");
         return new DarkAgesAssetID(
             new ResourceName(name),
             type,

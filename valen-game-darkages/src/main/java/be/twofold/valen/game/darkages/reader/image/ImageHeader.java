@@ -112,7 +112,7 @@ public record ImageHeader(
             case 20 -> TextureMaterialKind.TMK_LEGACY_FLASH_UI;
             case 22 -> TextureMaterialKind.TMK_BLENDMASK;
             case 23 -> TextureMaterialKind.TMK_PAINTEDDATAGRID;
-            default -> throw new IllegalArgumentException("Invalid texture material kind value " + value);
+            default -> throw new UnsupportedOperationException("Unsupported texture material kind value " + value);
         };
     }
 
@@ -181,7 +181,7 @@ public record ImageHeader(
             case 60 -> TextureFormat.FMT_SMALLF;
             case 61 -> TextureFormat.FMT_MAINVIEW_SMALLF;
             case 62 -> TextureFormat.FMT_RG16_UINT;
-            default -> throw new IllegalArgumentException("Invalid texture format value " + value);
+            default -> throw new UnsupportedOperationException("Unsupported texture format value " + value);
         };
     }
 }

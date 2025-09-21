@@ -2,6 +2,7 @@ package be.twofold.valen.game.greatcircle.reader.deformmodel;
 
 import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.math.*;
+import be.twofold.valen.core.util.*;
 import be.twofold.valen.game.idtech.geometry.*;
 
 import java.io.*;
@@ -24,6 +25,10 @@ public record DeformModelLod(
     String materialName,
     List<Entry> entries
 ) implements LodInfo {
+    public DeformModelLod {
+        Check.argument(numIndices % 3 == 0, "numIndices must be a multiple of 3");
+    }
+
     public static DeformModelLod read(BinaryReader reader) throws IOException {
         byte unknown1 = reader.readByte();
         int version = reader.readInt();
@@ -73,9 +78,6 @@ public record DeformModelLod(
 
     @Override
     public int numFaces() {
-        if (numIndices % 3 != 0) {
-            throw new IllegalArgumentException("numIndices must be a multiple of 3");
-        }
         return numIndices / 3;
     }
 

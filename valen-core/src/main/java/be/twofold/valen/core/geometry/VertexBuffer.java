@@ -9,10 +9,7 @@ public record VertexBuffer<T extends Buffer>(
     VertexBufferInfo<T> info
 ) {
     public VertexBuffer {
-        Check.argument(
-            buffer.limit() % info.size() == 0,
-            () -> "buffer length must be a multiple of " + info.size()
-        );
+        Check.argument(buffer.limit() % info.size() == 0, "buffer.limit() % info.size() != 0");
     }
 
     public int count() {

@@ -14,7 +14,7 @@ public final class BinkReader implements AssetReader<ByteBuffer, DarkAgesAsset> 
     private final DarkAgesArchive archive;
 
     public BinkReader(DarkAgesArchive archive) {
-        this.archive = Check.notNull(archive);
+        this.archive = Check.notNull(archive, "archive");
     }
 
     @Override

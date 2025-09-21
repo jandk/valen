@@ -1,6 +1,7 @@
 package be.twofold.valen.core.geometry;
 
 import be.twofold.valen.core.material.*;
+import be.twofold.valen.core.util.*;
 
 import java.nio.*;
 import java.util.*;
@@ -13,8 +14,6 @@ public record Mesh2(
     List<BlendShape> blendShapes
 ) {
     public Mesh2 {
-        if (faceBuffer.limit() % 3 != 0) { // implicit null-check
-            throw new IllegalArgumentException("faceBuffer must be a multiple of 3");
-        }
+        Check.argument(faceBuffer.limit() % 3 == 0, "faceBuffer must be a multiple of 3");
     }
 }

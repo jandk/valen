@@ -9,7 +9,7 @@ public final class FunctionalStringConverter<T> extends StringConverter<T> {
     private final Function<? super T, String> converter;
 
     public FunctionalStringConverter(Function<? super T, String> converter) {
-        this.converter = Check.notNull(converter);
+        this.converter = Check.notNull(converter, "converter");
     }
 
     @Override

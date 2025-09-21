@@ -16,10 +16,9 @@ abstract class LZDecompressor implements Decompressor {
 
     void copyReference(MutableBytes dst, int dstOff, int offset, int length) {
         Check.fromIndexSize(dstOff, length, dst.size());
+        Check.argument(offset > 0 && dstOff - offset >= 0, "Invalid match");
+
         int dstPos = dstOff - offset;
-        if (offset <= 0 || dstPos < 0) {
-            throw new IllegalArgumentException("Invalid match");
-        }
         if (offset == 1) {
             byte b = dst.getByte(dstOff - 1);
             for (int i = 0; i < length; i++) {

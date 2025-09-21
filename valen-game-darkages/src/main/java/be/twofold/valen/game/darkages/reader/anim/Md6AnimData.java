@@ -50,7 +50,7 @@ public record Md6AnimData(
 ) {
     public Md6AnimData {
         if (numStreamedFrameSets != 0 && streamMethod != Md6AnimCompressionStreamMethod.LODS) {
-            Check.argument(numFrameSets == numStreamedFrameSets);
+            Check.argument(numFrameSets == numStreamedFrameSets, "numFrameSets and numStreamedFrameSets must be equal");
         }
     }
 

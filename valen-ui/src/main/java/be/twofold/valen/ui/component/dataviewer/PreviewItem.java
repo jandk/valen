@@ -7,6 +7,6 @@ record PreviewItem(
     Object value
 ) {
     PreviewItem {
-        Check.notNull(name);
+        Check.notNull(name, "name");
     }
 }

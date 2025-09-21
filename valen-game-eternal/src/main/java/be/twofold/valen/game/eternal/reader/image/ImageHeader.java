@@ -73,7 +73,7 @@ public record ImageHeader(
         var mask = switch (textureType) {
             case TT_2D -> 0x0f;
             case TT_CUBIC -> 0xff;
-            default -> throw new IllegalArgumentException("Unsupported texture type: " + textureType);
+            default -> throw new UnsupportedOperationException("Unsupported texture type: " + textureType);
         };
         return streamDBMipCount & mask;
     }
@@ -82,7 +82,7 @@ public record ImageHeader(
         var faces = switch (textureType) {
             case TT_2D -> 1;
             case TT_CUBIC -> 6;
-            default -> throw new IllegalArgumentException("Unsupported texture type: " + textureType);
+            default -> throw new UnsupportedOperationException("Unsupported texture type: " + textureType);
         };
         return mipCount * faces;
     }
@@ -110,7 +110,7 @@ public record ImageHeader(
             case 20 -> TextureMaterialKind.TMK_LEGACY_FLASH_UI;
             case 21 -> TextureMaterialKind.TMK_LIGHTMAP_DIRECTIONAL;
             case 22 -> TextureMaterialKind.TMK_BLENDMASK;
-            default -> throw new IllegalArgumentException("Invalid texture material kind value " + value);
+            default -> throw new UnsupportedOperationException("Unsupported texture material kind value " + value);
         };
     }
 
@@ -172,7 +172,7 @@ public record ImageHeader(
             case 53 -> TextureFormat.FMT_DEPTH32F;
             case 54 -> TextureFormat.FMT_BC1_ZERO_ALPHA;
             case 55 -> TextureFormat.FMT_R8_UINT;
-            default -> throw new IllegalArgumentException("Invalid texture format value " + value);
+            default -> throw new UnsupportedOperationException("Unsupported texture format value " + value);
         };
     }
 }

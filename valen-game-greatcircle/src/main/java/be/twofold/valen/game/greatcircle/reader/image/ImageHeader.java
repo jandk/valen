@@ -107,7 +107,7 @@ public record ImageHeader(
             case 26 -> TextureMaterialKind.TMK_DECALHEIGHTMAP;
             case 27 -> TextureMaterialKind.TMK_ALBEDO_UNSCALED;
             case 28 -> TextureMaterialKind.TMK_ALBEDO_DETAILS;
-            default -> throw new IllegalArgumentException("Invalid texture material kind value " + value);
+            default -> throw new UnsupportedOperationException("Unsupported texture material kind value " + value);
         };
     }
 
@@ -174,7 +174,7 @@ public record ImageHeader(
             case 58 -> TextureFormat.FMT_RG32_UINT;
             case 59 -> TextureFormat.FMT_STENCIL;
             case 60 -> TextureFormat.FMT_RGBA8_SNORM;
-            default -> throw new IllegalArgumentException("Invalid texture format value " + value);
+            default -> throw new UnsupportedOperationException("Unsupported texture format value " + value);
         };
     }
 }

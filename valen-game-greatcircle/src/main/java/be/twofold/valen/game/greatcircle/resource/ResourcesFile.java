@@ -27,7 +27,7 @@ public final class ResourcesFile implements Container<GreatCircleAssetID, GreatC
     public ResourcesFile(Path path, Decompressor decompressor) throws IOException {
         log.info("Loading resources: {}", path);
         this.decompressor = decompressor;
-        this.path = Check.notNull(path);
+        this.path = Check.notNull(path, "path");
         this.reader = BinaryReader.fromPath(path);
 
         var resources = mapResources(Resources.read(reader));

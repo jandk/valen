@@ -1,6 +1,7 @@
 package be.twofold.valen.export.cast.mappers;
 
 import be.twofold.valen.core.geometry.*;
+import be.twofold.valen.core.util.*;
 import be.twofold.valen.format.cast.*;
 
 import java.io.*;
@@ -69,10 +70,8 @@ public final class CastModelMapper {
     }
 
     private IntBuffer mapColorBuffer(Buffer buffer) {
-        if (!(buffer instanceof ByteBuffer bb)) {
-            throw new IllegalArgumentException("Unsupported color buffer type: " + buffer.getClass());
-        }
-        return bb.asIntBuffer();
+        Check.argument(buffer instanceof ByteBuffer, "Unsupported color buffer type");
+        return ((ByteBuffer) buffer).asIntBuffer();
     }
 
     private void buildMorphTargets(CastNode.Model modelNode, CastNode.Mesh meshNode, List<BlendShape> blendShapes) throws IOException {

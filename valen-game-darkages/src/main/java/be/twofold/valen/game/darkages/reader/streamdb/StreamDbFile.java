@@ -23,8 +23,8 @@ public final class StreamDbFile implements Container<Long, StreamDbEntry> {
 
     public StreamDbFile(Path path, Decompressor decompressor) throws IOException {
         log.info("Loading streamdb: {}", path);
-        this.decompressor = Check.notNull(decompressor);
-        this.path = Check.notNull(path);
+        this.decompressor = Check.notNull(decompressor, "decompressor");
+        this.path = Check.notNull(path, "path");
         this.reader = BinaryReader.fromPath(path);
 
         var entries = StreamDb.read(reader).entries();

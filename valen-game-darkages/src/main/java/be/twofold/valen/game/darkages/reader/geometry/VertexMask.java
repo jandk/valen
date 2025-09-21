@@ -1,5 +1,7 @@
 package be.twofold.valen.game.darkages.reader.geometry;
 
+import be.twofold.valen.core.util.*;
+
 import java.util.*;
 
 public enum VertexMask {
@@ -52,9 +54,7 @@ public enum VertexMask {
                 value &= ~mask.mask;
             }
         }
-        if (value != 0) {
-            throw new IllegalArgumentException("Left over bits: " + value);
-        }
+        Check.state(value == 0, "There's left over bits");
         return result;
     }
 }

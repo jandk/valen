@@ -185,14 +185,14 @@ final class UnpackGenerator {
             case 1 -> switch (interp) {
                 case SNorm -> new byte[]{0x7F};
                 case UNorm, SRGB -> new byte[]{(byte) 0xFF};
-                default -> throw new IllegalArgumentException();
+                default -> throw new UnsupportedOperationException();
             };
             case 2 -> switch (interp) {
                 case SFloat, UFloat -> new byte[]{0x00, 0x3C};
                 case SNorm -> new byte[]{(byte) 0xFF, 0x7F};
                 case UNorm, SRGB -> new byte[]{(byte) 0xFF, (byte) 0xFF};
             };
-            default -> throw new IllegalArgumentException();
+            default -> throw new UnsupportedOperationException();
         };
     }
 

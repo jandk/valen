@@ -7,7 +7,7 @@ public interface ThrowingSupplier<T, X extends Exception> {
     static <T, X extends Exception> ThrowingSupplier<T, X> lazy(
         ThrowingSupplier<T, X> supplier
     ) {
-        Check.notNull(supplier, "supplier must not be null");
+        Check.notNull(supplier, "supplier");
 
         return new ThrowingSupplier<>() {
             private volatile ThrowingSupplier<T, X> delegate = supplier;

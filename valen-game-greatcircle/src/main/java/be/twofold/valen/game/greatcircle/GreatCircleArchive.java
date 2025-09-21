@@ -30,9 +30,9 @@ public final class GreatCircleArchive implements Archive<GreatCircleAssetID, Gre
         Container<GreatCircleAssetID, GreatCircleAsset> common,
         Container<GreatCircleAssetID, GreatCircleAsset> resources
     ) {
-        this.streams = Check.notNull(streams);
-        this.common = Check.notNull(common);
-        this.resources = Check.notNull(resources);
+        this.streams = Check.notNull(streams, "streams");
+        this.common = Check.notNull(common, "common");
+        this.resources = Check.notNull(resources, "resources");
 
         var declReader = new DeclReader(this);
         this.readers = new AssetReaders<>(List.of(

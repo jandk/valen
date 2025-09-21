@@ -1,19 +1,16 @@
 package be.twofold.valen.core.util;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.function.Function;
-import java.util.stream.Collectors;
+import java.util.*;
+import java.util.function.*;
+import java.util.stream.*;
 
 public interface ValueEnum<V> {
     Map<Class<?>, Map<?, ?>> LOOKUP = new HashMap<>();
 
-    static <V, E extends ValueEnum<V>> E fromValue(Class<E> enumClass, V value) throws IllegalArgumentException {
+    static <V, E extends ValueEnum<V>> E fromValue(Class<E> enumClass, V value) {
         E enumValue = lookup(enumClass, value);
         if (enumValue == null) {
-            throw new IllegalArgumentException("Unknown " + enumClass.getName() + " value: '" + value + "'");
+            throw new NoSuchElementException("Unknown " + enumClass.getName() + " value: '" + value + "'");
         }
         return enumValue;
     }
@@ -25,8 +22,8 @@ public interface ValueEnum<V> {
     @SuppressWarnings("unchecked")
     private static <K, E extends ValueEnum<K>> E lookup(Class<E> enumType, K value) {
         return (E) LOOKUP
-                .computeIfAbsent(enumType, _ -> valueMap(enumType))
-                .get(value);
+            .computeIfAbsent(enumType, _ -> valueMap(enumType))
+            .get(value);
     }
 
     private static <K, E extends ValueEnum<K>> Map<K, E> valueMap(Class<E> enumType) {

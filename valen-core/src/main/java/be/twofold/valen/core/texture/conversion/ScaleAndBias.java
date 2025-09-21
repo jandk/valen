@@ -2,6 +2,7 @@ package be.twofold.valen.core.texture.conversion;
 
 import be.twofold.valen.core.math.*;
 import be.twofold.valen.core.texture.*;
+import be.twofold.valen.core.util.*;
 import org.slf4j.*;
 
 final class ScaleAndBias extends Conversion {
@@ -19,9 +20,7 @@ final class ScaleAndBias extends Conversion {
 
     @Override
     Surface apply(Surface surface, TextureFormat dstFormat) {
-        if (surface.format() != dstFormat) {
-            throw new IllegalArgumentException("source format does not match target format");
-        }
+        Check.argument(surface.format() == dstFormat, "source format does not match target format");
         if (scale == 1.0f && bias == 0.0f) {
             return surface;
         }

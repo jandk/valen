@@ -9,15 +9,15 @@ public record Surface(
     byte[] data
 ) {
     public Surface {
-        Check.argument(width > 0, "width must be greater than 0");
-        Check.argument(height > 0, "height must be greater than 0");
-        Check.notNull(format, "format is null");
-        Check.notNull(data, "data is null");
+        Check.positive(width, "width");
+        Check.positive(height, "height");
+        Check.notNull(format, "format");
+        Check.notNull(data, "data");
     }
 
     public static Surface create(int width, int height, TextureFormat format) {
-        Check.argument(width > 0, "width must be greater than 0");
-        Check.argument(height > 0, "height must be greater than 0");
+        Check.positive(width, "width");
+        Check.positive(height, "height");
 
         var data = new byte[format.surfaceSize(width, height)];
         return new Surface(width, height, format, data);

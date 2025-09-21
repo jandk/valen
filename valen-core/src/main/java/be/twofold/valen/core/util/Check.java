@@ -7,42 +7,16 @@ public final class Check {
         throw new AssertionError();
     }
 
-    public static <T> T notNull(T obj) {
+    public static <T> T notNull(T obj, String param) {
         if (obj == null) {
-            throw new NullPointerException();
+            throw new NullPointerException(param + " can not be null");
         }
         return obj;
-    }
-
-    public static <T> T notNull(T obj, String message) {
-        if (obj == null) {
-            throw new NullPointerException(message);
-        }
-        return obj;
-    }
-
-    public static <T> T notNull(T obj, Supplier<String> messageSupplier) {
-        if (obj == null) {
-            throw new NullPointerException(messageSupplier == null ? null : messageSupplier.get());
-        }
-        return obj;
-    }
-
-    public static void argument(boolean condition) {
-        if (!condition) {
-            throw new IllegalArgumentException();
-        }
     }
 
     public static void argument(boolean condition, String message) {
         if (!condition) {
             throw new IllegalArgumentException(message);
-        }
-    }
-
-    public static void argument(boolean condition, Supplier<String> messageSupplier) {
-        if (!condition) {
-            throw new IllegalArgumentException(messageSupplier == null ? null : messageSupplier.get());
         }
     }
 
@@ -104,5 +78,19 @@ public final class Check {
             throw new IndexOutOfBoundsException(String.format("Range [%s, %<s + %s) out of bounds for length %s", fromIndex, size, length));
         }
         return fromIndex;
+    }
+
+    public static int positive(int value, String param) {
+        if (value <= 0) {
+            throw new IllegalArgumentException(param + " must be greater than 0");
+        }
+        return value;
+    }
+
+    public static int positiveOrZero(int value, String param) {
+        if (value < 0) {
+            throw new IllegalArgumentException(param + " must be greater than or equal to 0");
+        }
+        return value;
     }
 }

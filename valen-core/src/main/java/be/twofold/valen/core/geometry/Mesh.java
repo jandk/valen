@@ -13,7 +13,7 @@ public record Mesh(
     List<BlendShape> blendShapes
 ) {
     public Mesh {
-        Check.notNull(indexBuffer, "indices must not be null");
+        Check.notNull(indexBuffer, "indexBuffer");
         vertexBuffers = List.copyOf(vertexBuffers);
     }
 

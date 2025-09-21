@@ -2,6 +2,7 @@ package be.twofold.valen.game.idtech.decl;
 
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.io.*;
+import be.twofold.valen.core.util.*;
 import be.twofold.valen.game.idtech.decl.parser.*;
 import com.google.gson.*;
 
@@ -126,9 +127,7 @@ public abstract class AbstractDeclReader<K extends AssetID, V extends Asset, A e
                 continue;
             }
             var matcher = ItemPattern.matcher(entry.getKey());
-            if (!matcher.matches()) {
-                throw new IllegalArgumentException("Invalid id: " + entry.getKey());
-            }
+            Check.argument(matcher.matches(), "Invalid id: " + entry.getKey());
             var index = Integer.parseInt(matcher.group(1));
             if (index >= size) {
                 continue;

@@ -27,11 +27,7 @@ public record VertexBuffer2(
     }
 
     private void check(Buffer buffer, int count, int elementSize) {
-        if (buffer.limit() % elementSize != 0) {
-            throw new IllegalArgumentException("buffer length must be a multiple of " + elementSize);
-        }
-        if (buffer.limit() != count * elementSize) {
-            throw new IllegalArgumentException("buffer length must be equal to count * elementSize");
-        }
+        Check.argument(buffer.limit() % elementSize == 0, "buffer length must be a multiple of elementSize");
+        Check.argument(buffer.limit() == count * elementSize, "buffer length must be equal to count * elementSize");
     }
 }

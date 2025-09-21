@@ -1,5 +1,6 @@
 package be.twofold.valen.game.eternal.reader.decl;
 
+import be.twofold.valen.core.util.*;
 import be.twofold.valen.game.eternal.*;
 import be.twofold.valen.game.eternal.resource.*;
 import be.twofold.valen.game.idtech.decl.*;
@@ -53,9 +54,7 @@ public final class DeclReader extends AbstractDeclReader<EternalAssetID, Eternal
     }
 
     private String getBasePath(String name) {
-        if (!name.startsWith(RootPrefix)) {
-            throw new IllegalArgumentException("Invalid decl name: " + name);
-        }
+        Check.argument(name.startsWith(RootPrefix), "Invalid decl name: " + name);
 
         name = name.substring(RootPrefix.length());
         return name.substring(0, name.indexOf('/'));

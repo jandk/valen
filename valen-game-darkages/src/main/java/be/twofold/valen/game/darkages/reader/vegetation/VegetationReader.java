@@ -19,7 +19,7 @@ public final class VegetationReader implements AssetReader<Model, DarkAgesAsset>
     private final boolean readMaterials;
 
     public VegetationReader(DarkAgesArchive archive, boolean readMaterials) {
-        this.archive = Check.notNull(archive);
+        this.archive = Check.notNull(archive, "archive");
         this.readMaterials = readMaterials;
     }
 

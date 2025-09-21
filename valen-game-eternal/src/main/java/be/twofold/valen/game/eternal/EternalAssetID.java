@@ -1,6 +1,7 @@
 package be.twofold.valen.game.eternal;
 
 import be.twofold.valen.core.game.*;
+import be.twofold.valen.core.util.*;
 import be.twofold.valen.game.eternal.resource.*;
 
 import java.util.*;
@@ -34,9 +35,7 @@ public record EternalAssetID(
         var variations = Variations
             .getOrDefault(type, Set.of(ResourceVariation.None));
 
-        if (variations.size() > 1) {
-            throw new IllegalArgumentException("Multiple variations found for type: " + type + " (" + variations + ")");
-        }
+        Check.state(variations.size() == 1, "Multiple variations found");
 
         return new EternalAssetID(
             resourceName,
@@ -46,9 +45,7 @@ public record EternalAssetID(
     }
 
     public static EternalAssetID from(String name, ResourceType type, ResourceVariation variation) {
-        if (!Variations.getOrDefault(type, Set.of(ResourceVariation.None)).contains(variation)) {
-            throw new IllegalArgumentException("Invalid variation for type: " + type + " (" + variation + ")");
-        }
+        Check.argument(Variations.getOrDefault(type, Set.of(ResourceVariation.None)).contains(variation), "Invalid variation for type: " + type + " (" + variation + ")");
         return new EternalAssetID(
             new ResourceName(name),
             type,

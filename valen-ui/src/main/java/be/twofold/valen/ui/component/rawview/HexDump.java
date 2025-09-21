@@ -21,7 +21,7 @@ final class HexDump {
 
     public HexDump(ByteBuffer binary, Font font, Color primary, Color secondary) {
         this.builder = new TextFlowBuilder(font);
-        this.binary = Check.notNull(binary);
+        this.binary = Check.notNull(binary, "binary");
         this.primary = primary;
         this.secondary = secondary;
     }

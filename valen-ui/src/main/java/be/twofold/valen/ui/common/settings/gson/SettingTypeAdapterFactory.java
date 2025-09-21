@@ -30,7 +30,7 @@ public final class SettingTypeAdapterFactory implements TypeAdapterFactory {
         private final TypeAdapter<E> elementTypeAdapter;
 
         private Adapter(TypeAdapter<E> elementTypeAdapter) {
-            this.elementTypeAdapter = Check.notNull(elementTypeAdapter);
+            this.elementTypeAdapter = Check.notNull(elementTypeAdapter, "elementTypeAdapter");
         }
 
         @Override

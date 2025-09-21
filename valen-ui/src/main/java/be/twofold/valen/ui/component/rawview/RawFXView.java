@@ -122,7 +122,7 @@ public final class RawFXView implements RawView, FXView {
         private final int size;
 
         public IndexObservableList(int size) {
-            Check.argument(size >= 0);
+            Check.positiveOrZero(size, "size");
             this.size = size;
         }
 
