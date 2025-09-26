@@ -11,12 +11,15 @@ import javafx.application.*;
 import javafx.concurrent.*;
 import javafx.scene.*;
 import javafx.stage.*;
+import org.slf4j.*;
 
 import java.nio.file.*;
 import java.util.*;
 import java.util.stream.*;
 
 final class ExportService extends Service<Void> {
+    private static final Logger log = LoggerFactory.getLogger(ExportService.class);
+
     private final Settings settings;
     private final Stage stage;
     private Archive<AssetID, Asset> archive;
@@ -127,7 +130,7 @@ final class ExportService extends Service<Void> {
                 Files.createDirectories(targetPath.getParent());
                 exporter.export(rawAsset, targetPath);
             } catch (Exception e) {
-                e.printStackTrace();
+                log.warn("Failed exporting asset", e);
                 failedAssets.add(asset.id());
             }
         }
