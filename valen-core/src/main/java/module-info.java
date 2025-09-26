@@ -4,6 +4,8 @@ module valen.core {
     requires java.net.http;
     requires org.slf4j;
 
+    requires static java.compiler;
+
     exports be.twofold.valen.core.animation;
     exports be.twofold.valen.core.compression;
     exports be.twofold.valen.core.export;
