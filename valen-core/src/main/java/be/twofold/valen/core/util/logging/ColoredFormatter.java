@@ -1,5 +1,6 @@
 package be.twofold.valen.core.util.logging;
 
+import java.io.*;
 import java.time.*;
 import java.time.format.*;
 import java.util.*;
@@ -33,12 +34,22 @@ public final class ColoredFormatter extends Formatter {
         // Shorten logger name
         logger = LOGGER_NAMES.computeIfAbsent(logger, s -> shorten(s, 40));
 
-        return String.format("%s %s%-5s%s --- [%15.15s] %s%-40s%s : %s%n",
+        var throwable = "";
+        if (record.getThrown() != null) {
+            var sw = new StringWriter();
+            var pw = new PrintWriter(sw);
+            pw.println();
+            record.getThrown().printStackTrace(pw);
+            pw.close();
+            throwable = sw.toString();
+        }
+
+        return String.format("%s %s%-5s%s --- [%15.15s] %s%-40s%s : %s%s%n",
             time,
             levelColor(level), level, RESET,
             thread,
             CYAN, logger, RESET,
-            message
+            message, throwable
         );
     }
 
