@@ -153,7 +153,7 @@ public final class MainPresenter extends AbstractFXPresenter<MainView> {
 
     private Predicate<Asset> buildPredicate(String assetName, Collection<AssetType> assetTypes) {
         var predicates = new ArrayList<Predicate<Asset>>();
-        if (assetName != null) {
+        if (assetName != null && !assetName.isEmpty()) {
             predicates.add(asset -> asset.id().fullName().contains(assetName));
         }
         if (assetTypes != null && !assetTypes.isEmpty()) {

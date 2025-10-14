@@ -3,6 +3,7 @@ package be.twofold.valen.core.util.collect;
 import be.twofold.valen.core.util.*;
 
 import java.nio.*;
+import java.nio.charset.*;
 import java.util.*;
 
 public class Bytes extends AbstractList<Byte> implements Comparable<Bytes>, RandomAccess {
@@ -152,5 +153,9 @@ public class Bytes extends AbstractList<Byte> implements Comparable<Bytes>, Rand
     @Override
     public String toString() {
         return ArrayUtils.toString(array, fromIndex, toIndex);
+    }
+
+    public String toString(Charset charset) {
+        return new String(array, fromIndex, size(), charset);
     }
 }

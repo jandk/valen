@@ -19,6 +19,7 @@
         <module>valen-format-gltf</module>
         <module>valen-format-png</module>
         <module>valen-game-darkages</module>
+        <module>valen-game-dyinglight</module>
         <module>valen-game-eternal</module>
         <module>valen-game-greatcircle</module>
         <module>valen-game-idtech</module>
@@ -157,6 +158,11 @@
             <dependency>
                 <groupId>be.twofold</groupId>
                 <artifactId>valen-game-eternal</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>be.twofold</groupId>
+                <artifactId>valen-game-dyinglight</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
