@@ -4,6 +4,7 @@ import be.twofold.valen.core.util.*;
 import org.jetbrains.annotations.*;
 
 import java.nio.*;
+import java.nio.charset.*;
 import java.util.*;
 
 @Debug.Renderer(
@@ -157,5 +158,9 @@ public class Bytes implements Comparable<Bytes>, RandomAccess {
             builder.append(", ").append(array[i]);
         }
         return builder.append(']').toString();
+    }
+
+    public String toString(Charset charset) {
+        return new String(array, fromIndex, size(), charset);
     }
 }
