@@ -31,17 +31,16 @@ public final class CastModelMapper {
         var meshNode = modelNode.createMesh();
         mesh.name().ifPresent(meshNode::setName);
         meshNode.setFaceBuffer(mesh.indexBuffer().asBuffer());
-        var positionBuffer = mesh.getPositions().buffer().asBuffer();
-        meshNode.setVertexPositionBuffer(positionBuffer);
-        mesh.getNormals().ifPresent(buffer -> meshNode.setVertexNormalBuffer(buffer.buffer().asBuffer()));
-        mesh.getTangents().ifPresent(buffer -> meshNode.setVertexTangentBuffer(mapTangentBuffer(buffer.buffer().asBuffer())));
+        meshNode.setVertexPositionBuffer(mesh.getPositions().asBuffer());
+        mesh.getNormals().ifPresent(buffer -> meshNode.setVertexNormalBuffer(buffer.asBuffer()));
+        mesh.getTangents().ifPresent(buffer -> meshNode.setVertexTangentBuffer(mapTangentBuffer(buffer.asBuffer())));
 
         var colorBuffers = mesh.getBuffers(Semantic.COLOR);
         colorBuffers.forEach(buffer -> meshNode.addVertexColorBuffer(mapColorBuffer(buffer.buffer().asBuffer())));
         meshNode.setColorLayerCount(colorBuffers.size());
 
-        var uvBuffers = mesh.getBuffers(Semantic.TEX_COORD);
-        uvBuffers.forEach(buffer -> meshNode.addVertexUVBuffer((FloatBuffer) buffer.buffer().asBuffer()));
+        var uvBuffers = mesh.getTexCoords();
+        uvBuffers.forEach(buffer -> meshNode.addVertexUVBuffer(buffer.asBuffer()));
         meshNode.setUVLayerCount(uvBuffers.size());
 
         mesh.getJoints().ifPresent(buffer -> {

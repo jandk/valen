@@ -60,15 +60,12 @@ public final class ModelPresenter extends AbstractFXPresenter<ModelView> impleme
     }
 
     private TriangleMesh mapMesh(Mesh mesh) {
-        var pointBuffer = mesh.getPositions();
-        var normalBuffer = mesh.getNormals().orElseThrow();
-        var texCoordBuffer = mesh.getTexCoords().orElseThrow();
 
         var result = new TriangleMesh(VertexFormat.POINT_NORMAL_TEXCOORD);
-        copyPoints(pointBuffer, result.getPoints());
-        copy(normalBuffer, result.getNormals());
-        copy(texCoordBuffer, result.getTexCoords());
         copyIndices(mesh.indexBuffer(), result.getFaces());
+        copyPoints(mesh.getPositions(), result.getPoints());
+        copy(mesh.getNormals().orElseThrow(), result.getNormals());
+        copy(mesh.getTexCoords().getFirst(), result.getTexCoords());
         return result;
     }
 
@@ -118,17 +115,15 @@ public final class ModelPresenter extends AbstractFXPresenter<ModelView> impleme
         }
     }
 
-    private void copy(VertexBuffer<Floats> buffer, ObservableFloatArray floatArray) {
-        var floatBuffer = buffer.buffer();
-        var array = new float[floatBuffer.size()];
-        floatBuffer.copyTo(MutableFloats.wrap(array), 0);
+    private void copy(Floats floats, ObservableFloatArray floatArray) {
+        var array = new float[floats.size()];
+        floats.copyTo(MutableFloats.wrap(array), 0);
         floatArray.setAll(array);
     }
 
-    private void copyPoints(VertexBuffer<Floats> buffer, ObservableFloatArray floatArray) {
-        var floatBuffer = buffer.buffer();
-        var array = new float[floatBuffer.size()];
-        floatBuffer.copyTo(MutableFloats.wrap(array), 0);
+    private void copyPoints(Floats floats, ObservableFloatArray floatArray) {
+        var array = new float[floats.size()];
+        floats.copyTo(MutableFloats.wrap(array), 0);
 
         for (var i = 0; i < array.length; i++) {
             array[i] *= 100;

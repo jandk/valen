@@ -69,7 +69,14 @@ final class MeshBuilder {
         var positionBuffer = new VertexBuffer<>(MutableFloats.wrap(positions, 0, vertexSize * 3), VertexBufferInfo.POSITION);
         var texCoordBuffer = new VertexBuffer<>(MutableFloats.wrap(texCoords, 0, vertexSize * 2), VertexBufferInfo.TEX_COORDS);
         var normalBuffer = new VertexBuffer<>(MutableFloats.wrap(normals, 0, vertexSize * 3), VertexBufferInfo.NORMAL);
-        return new Mesh(indexBuffer, List.of(positionBuffer, texCoordBuffer, normalBuffer));
+        return new Mesh(
+            indexBuffer,
+            Floats.wrap(positions),
+            Optional.of(Floats.wrap(normals)),
+            Optional.empty(),
+            List.of(Floats.wrap(texCoords)),
+            List.of(positionBuffer, texCoordBuffer, normalBuffer)
+        );
     }
 
     private float squash(float f) {

@@ -36,7 +36,29 @@ public final class Geo {
         }
 
         reader.position(startPosition);
-        return new Mesh(indexBuffer, vertexBuffers);
+
+        var positions = vertexBuffers.stream()
+            .filter(vb -> vb.info().semantic() == Semantic.POSITION)
+            .findFirst()
+            .map(vb -> (Floats) vb.buffer())
+            .orElseThrow();
+
+        var normals = vertexBuffers.stream()
+            .filter(vb -> vb.info().semantic() == Semantic.NORMAL)
+            .findFirst()
+            .map(vb -> (Floats) vb.buffer());
+
+        var tangents = vertexBuffers.stream()
+            .filter(vb -> vb.info().semantic() == Semantic.TANGENT)
+            .findFirst()
+            .map(vb -> (Floats) vb.buffer());
+
+        var texCoords = vertexBuffers.stream()
+            .filter(vb -> vb.info().semantic() == Semantic.TEX_COORD)
+            .map(vb -> (Floats) vb.buffer())
+            .toList();
+
+        return new Mesh(indexBuffer, positions, normals, tangents, texCoords, vertexBuffers);
     }
 
     private MutableInts readIndexBuffer(BinaryReader reader, GeoAccessor<MutableInts> accessor, int count) throws IOException {
