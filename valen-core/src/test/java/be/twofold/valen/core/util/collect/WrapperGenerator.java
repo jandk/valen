@@ -30,7 +30,7 @@ final class WrapperGenerator {
         boolean addExtraMethods
     ) throws IOException {
         writeClass(createWrapperClass(className, primitiveClass, wrapperClass, bufferClass, addExtraMethods));
-        writeClass(createMutableWrapperClass(className, primitiveClass, wrapperClass, bufferClass, addExtraMethods));
+        writeClass(createMutableWrapperClass(className, primitiveClass, bufferClass, addExtraMethods));
     }
 
     private static TypeSpec createWrapperClass(
@@ -126,6 +126,15 @@ final class WrapperGenerator {
             .build());
 
         // slice methods
+        addSliceMethods(builder, thisType);
+
+        // Override methods
+        addOverrideMethods(builder, className, wrapperType, primitiveClass, thisType);
+
+        return builder.build();
+    }
+
+    private static void addSliceMethods(TypeSpec.Builder builder, ClassName thisType) {
         builder.addMethod(MethodSpec.methodBuilder("slice")
             .addModifiers(Modifier.PUBLIC)
             .returns(thisType)
@@ -141,11 +150,6 @@ final class WrapperGenerator {
             .addStatement("$T.fromToIndex(fromIndex, toIndex, size())", CHECK_CLASS)
             .addStatement("return new $L(array, this.fromIndex + fromIndex, this.fromIndex + toIndex)", thisType)
             .build());
-
-        // Override methods
-        addOverrideMethods(builder, className, wrapperType, primitiveClass, thisType);
-
-        return builder.build();
     }
 
     private static void addOverrideMethods(
@@ -305,12 +309,12 @@ final class WrapperGenerator {
     private static TypeSpec createMutableWrapperClass(
         String className,
         Class<?> primitiveClass,
-        Class<?> wrapperClass,
         Class<?> bufferClass,
-        boolean addExtraMethods) {
+        boolean addExtraMethods
+    ) {
         var primitiveArrayType = ArrayTypeName.of(TypeName.get(primitiveClass));
-        var wrapperTypeName = TypeName.get(wrapperClass);
         var bufferMethodName = bufferClass.getSimpleName().replace("Buffer", "");
+        var thisType = ClassName.get("", "Mutable" + className);
 
         var builder = TypeSpec.classBuilder("Mutable" + className)
             .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
@@ -326,14 +330,14 @@ final class WrapperGenerator {
 
         builder.addMethod(MethodSpec.methodBuilder("wrap")
             .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
-            .returns(ClassName.get("", "Mutable" + className))
+            .returns(thisType)
             .addParameter(primitiveArrayType, "array")
             .addStatement("return new Mutable$L(array, 0, array.length)", className)
             .build());
 
         builder.addMethod(MethodSpec.methodBuilder("wrap")
             .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
-            .returns(ClassName.get("", "Mutable" + className))
+            .returns(thisType)
             .addParameter(primitiveArrayType, "array")
             .addParameter(int.class, "fromIndex")
             .addParameter(int.class, "toIndex")
@@ -342,14 +346,14 @@ final class WrapperGenerator {
 
         builder.addMethod(MethodSpec.methodBuilder("allocate")
             .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
-            .returns(ClassName.get("", "Mutable" + className))
+            .returns(thisType)
             .addParameter(int.class, "size")
             .addStatement("return new Mutable$L(new $L[size], 0, size)", className, primitiveClass)
             .build());
 
         builder.addMethod(MethodSpec.methodBuilder("set" + bufferMethodName)
             .addModifiers(Modifier.PUBLIC)
-            .returns(ClassName.get("", "Mutable" + className))
+            .returns(thisType)
             .addParameter(int.class, "index")
             .addParameter(primitiveClass, "value")
             .addStatement("$T.index(index, size())", CHECK_CLASS)
@@ -366,6 +370,8 @@ final class WrapperGenerator {
             .returns(bufferClass)
             .addStatement("return $T.wrap(array, fromIndex, size())", bufferClass)
             .build());
+
+        addSliceMethods(builder, thisType);
 
         return builder.build();
     }

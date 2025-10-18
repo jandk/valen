@@ -30,4 +30,13 @@ public final class MutableInts extends Ints {
     public IntBuffer asMutableBuffer() {
         return IntBuffer.wrap(array, fromIndex, size());
     }
+
+    public MutableInts slice(int fromIndex) {
+        return slice(fromIndex, size());
+    }
+
+    public MutableInts slice(int fromIndex, int toIndex) {
+        Check.fromToIndex(fromIndex, toIndex, size());
+        return new MutableInts(array, this.fromIndex + fromIndex, this.fromIndex + toIndex);
+    }
 }

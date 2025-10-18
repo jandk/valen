@@ -30,4 +30,13 @@ public final class MutableDoubles extends Doubles {
     public DoubleBuffer asMutableBuffer() {
         return DoubleBuffer.wrap(array, fromIndex, size());
     }
+
+    public MutableDoubles slice(int fromIndex) {
+        return slice(fromIndex, size());
+    }
+
+    public MutableDoubles slice(int fromIndex, int toIndex) {
+        Check.fromToIndex(fromIndex, toIndex, size());
+        return new MutableDoubles(array, this.fromIndex + fromIndex, this.fromIndex + toIndex);
+    }
 }

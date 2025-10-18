@@ -60,4 +60,13 @@ public final class MutableBytes extends Bytes {
     public ByteBuffer asMutableBuffer() {
         return ByteBuffer.wrap(array, fromIndex, size());
     }
+
+    public MutableBytes slice(int fromIndex) {
+        return slice(fromIndex, size());
+    }
+
+    public MutableBytes slice(int fromIndex, int toIndex) {
+        Check.fromToIndex(fromIndex, toIndex, size());
+        return new MutableBytes(array, this.fromIndex + fromIndex, this.fromIndex + toIndex);
+    }
 }
