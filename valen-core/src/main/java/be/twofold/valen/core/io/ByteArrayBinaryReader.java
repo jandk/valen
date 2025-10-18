@@ -54,35 +54,35 @@ final class ByteArrayBinaryReader implements BinaryReader, Closeable {
 
     @Override
     public short readShort() {
-        var value = ByteArrays.getShort(array, position);
+        var value = ByteArrays.getShort(array, position, ByteOrder.LITTLE_ENDIAN);
         position += Short.BYTES;
         return value;
     }
 
     @Override
     public int readInt() {
-        var value = ByteArrays.getInt(array, position);
+        var value = ByteArrays.getInt(array, position, ByteOrder.LITTLE_ENDIAN);
         position += Integer.BYTES;
         return value;
     }
 
     @Override
     public long readLong() {
-        var value = ByteArrays.getLong(array, position);
+        var value = ByteArrays.getLong(array, position, ByteOrder.LITTLE_ENDIAN);
         position += Long.BYTES;
         return value;
     }
 
     @Override
     public float readFloat() {
-        var value = ByteArrays.getFloat(array, position);
+        var value = ByteArrays.getFloat(array, position, ByteOrder.LITTLE_ENDIAN);
         position += Float.BYTES;
         return value;
     }
 
     @Override
     public double readDouble() {
-        var value = ByteArrays.getDouble(array, position);
+        var value = ByteArrays.getDouble(array, position, ByteOrder.LITTLE_ENDIAN);
         position += Double.BYTES;
         return value;
     }

@@ -21,9 +21,10 @@ public final class MutableShorts extends Shorts {
         return new MutableShorts(new short[size], 0, size);
     }
 
-    public void setShort(int index, short value) {
+    public MutableShorts setShort(int index, short value) {
         Check.index(index, size());
         array[fromIndex + index] = value;
+        return this;
     }
 
     public ShortBuffer asMutableBuffer() {

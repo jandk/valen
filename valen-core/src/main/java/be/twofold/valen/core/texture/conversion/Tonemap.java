@@ -4,6 +4,7 @@ import be.twofold.valen.core.math.*;
 import be.twofold.valen.core.texture.*;
 import be.twofold.valen.core.util.*;
 
+import java.nio.*;
 import java.util.function.*;
 
 final class Tonemap extends Conversion {
@@ -54,7 +55,7 @@ final class Tonemap extends Conversion {
         var src = surface.data();
         var dst = target.data();
         for (int i = 0, o = 0; i < src.length; i += 2, o++) {
-            dst[o] = halfToSrgb(ByteArrays.getShort(src, i));
+            dst[o] = halfToSrgb(ByteArrays.getShort(src, i, ByteOrder.LITTLE_ENDIAN));
         }
         return target;
     }

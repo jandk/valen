@@ -21,9 +21,10 @@ public final class MutableLongs extends Longs {
         return new MutableLongs(new long[size], 0, size);
     }
 
-    public void setLong(int index, long value) {
+    public MutableLongs setLong(int index, long value) {
         Check.index(index, size());
         array[fromIndex + index] = value;
+        return this;
     }
 
     public LongBuffer asMutableBuffer() {

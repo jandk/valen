@@ -21,9 +21,10 @@ public final class MutableInts extends Ints {
         return new MutableInts(new int[size], 0, size);
     }
 
-    public void setInt(int index, int value) {
+    public MutableInts setInt(int index, int value) {
         Check.index(index, size());
         array[fromIndex + index] = value;
+        return this;
     }
 
     public IntBuffer asMutableBuffer() {

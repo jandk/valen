@@ -21,9 +21,10 @@ public final class MutableDoubles extends Doubles {
         return new MutableDoubles(new double[size], 0, size);
     }
 
-    public void setDouble(int index, double value) {
+    public MutableDoubles setDouble(int index, double value) {
         Check.index(index, size());
         array[fromIndex + index] = value;
+        return this;
     }
 
     public DoubleBuffer asMutableBuffer() {

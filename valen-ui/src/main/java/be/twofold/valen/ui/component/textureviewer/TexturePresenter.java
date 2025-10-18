@@ -11,6 +11,7 @@ import jakarta.inject.*;
 import javafx.scene.image.*;
 import org.slf4j.*;
 
+import java.nio.*;
 import java.util.*;
 import java.util.function.*;
 
@@ -100,9 +101,9 @@ public final class TexturePresenter extends AbstractFXPresenter<TextureView> imp
     private void splatGray() {
         var data = decoded.surfaces().getFirst().data();
         for (int i = 0; i < data.length; i += 4) {
-            int bgra = ByteArrays.getInt(data, i);
+            int bgra = ByteArrays.getInt(data, i, ByteOrder.LITTLE_ENDIAN);
             bgra = ((bgra >> 16) & 0xFF) * 0x010101 | (bgra & 0xFF000000);
-            ByteArrays.setInt(data, i, bgra);
+            ByteArrays.setInt(data, i, bgra, ByteOrder.LITTLE_ENDIAN);
         }
     }
 
@@ -140,9 +141,9 @@ public final class TexturePresenter extends AbstractFXPresenter<TextureView> imp
 
         var data = decoded.surfaces().getFirst().data();
         for (int i = 0; i < data.length; i += 4) {
-            int bgra = ByteArrays.getInt(data, i);
+            int bgra = ByteArrays.getInt(data, i, ByteOrder.LITTLE_ENDIAN);
             bgra = operator.applyAsInt(bgra);
-            ByteArrays.setInt(imagePixels, i, bgra);
+            ByteArrays.setInt(imagePixels, i, bgra, ByteOrder.LITTLE_ENDIAN);
         }
 
         var width = (int) image.getWidth();

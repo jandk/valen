@@ -43,27 +43,27 @@ public class Bytes implements Comparable<Bytes>, RandomAccess {
 
     public short getShort(int offset) {
         Check.fromIndexSize(offset, Short.BYTES, size());
-        return ByteArrays.getShort(array, fromIndex + offset);
+        return ByteArrays.getShort(array, fromIndex + offset, ByteOrder.LITTLE_ENDIAN);
     }
 
     public int getInt(int offset) {
         Check.fromIndexSize(offset, Integer.BYTES, size());
-        return ByteArrays.getInt(array, fromIndex + offset);
+        return ByteArrays.getInt(array, fromIndex + offset, ByteOrder.LITTLE_ENDIAN);
     }
 
     public long getLong(int offset) {
         Check.fromIndexSize(offset, Long.BYTES, size());
-        return ByteArrays.getLong(array, fromIndex + offset);
+        return ByteArrays.getLong(array, fromIndex + offset, ByteOrder.LITTLE_ENDIAN);
     }
 
     public float getFloat(int offset) {
         Check.fromIndexSize(offset, Float.BYTES, size());
-        return ByteArrays.getFloat(array, fromIndex + offset);
+        return ByteArrays.getFloat(array, fromIndex + offset, ByteOrder.LITTLE_ENDIAN);
     }
 
     public double getDouble(int offset) {
         Check.fromIndexSize(offset, Double.BYTES, size());
-        return ByteArrays.getDouble(array, fromIndex + offset);
+        return ByteArrays.getDouble(array, fromIndex + offset, ByteOrder.LITTLE_ENDIAN);
     }
 
     public int getUnsignedByte(int offset) {

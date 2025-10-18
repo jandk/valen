@@ -21,9 +21,10 @@ public final class MutableFloats extends Floats {
         return new MutableFloats(new float[size], 0, size);
     }
 
-    public void setFloat(int index, float value) {
+    public MutableFloats setFloat(int index, float value) {
         Check.index(index, size());
         array[fromIndex + index] = value;
+        return this;
     }
 
     public FloatBuffer asMutableBuffer() {
