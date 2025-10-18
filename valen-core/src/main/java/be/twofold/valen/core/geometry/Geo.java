@@ -16,20 +16,22 @@ public final class Geo {
     public Mesh readMesh(
         BinaryReader reader,
         GeoAccessor<?> indexAccessor,
-        List<GeoAccessor<?>> vertexAccessors
+        int indexCount,
+        List<GeoAccessor<?>> vertexAccessors,
+        int vertexCount
     ) throws IOException {
         var startPosition = reader.position();
 
         reader.position(startPosition);
-        var indexBuffer = readBuffer(reader, indexAccessor);
+        var indexBuffer = readBuffer(reader, indexAccessor, indexCount);
         if (flipWindingOrder) {
             invertIndices(indexBuffer.buffer());
         }
 
         var vertexBuffers = new ArrayList<VertexBuffer<?>>();
-        for (var accessor : vertexAccessors) {
+        for (var vertexAccessor : vertexAccessors) {
             reader.position(startPosition);
-            var vertexBuffer = readBuffer(reader, accessor);
+            var vertexBuffer = readBuffer(reader, vertexAccessor, vertexCount);
             vertexBuffers.add(vertexBuffer);
         }
 
@@ -37,12 +39,12 @@ public final class Geo {
         return new Mesh(indexBuffer, vertexBuffers);
     }
 
-    private <T extends Buffer> VertexBuffer<T> readBuffer(BinaryReader reader, GeoAccessor<T> accessor) throws IOException {
-        var capacity = accessor.count() * accessor.info().size();
+    private <T extends Buffer> VertexBuffer<T> readBuffer(BinaryReader reader, GeoAccessor<T> accessor, int count) throws IOException {
+        var capacity = count * accessor.info().size();
         var buffer = accessor.info().componentType().allocate(capacity);
 
         var start = reader.position() + accessor.offset();
-        for (var i = 0L; i < accessor.count(); i++) {
+        for (var i = 0L; i < count; i++) {
             reader.position(start + i * accessor.stride());
             accessor.reader().read(reader, buffer);
         }
