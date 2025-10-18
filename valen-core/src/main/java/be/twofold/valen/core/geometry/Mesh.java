@@ -7,10 +7,10 @@ import be.twofold.valen.core.util.collect.*;
 import java.util.*;
 
 public record Mesh(
-    VertexBuffer<?> indexBuffer,
+    Ints indexBuffer,
     List<VertexBuffer<?>> vertexBuffers,
-    Optional<Material> material,
     Optional<String> name,
+    Optional<Material> material,
     List<BlendShape> blendShapes
 ) {
     public Mesh {
@@ -18,7 +18,7 @@ public record Mesh(
         vertexBuffers = List.copyOf(vertexBuffers);
     }
 
-    public Mesh(VertexBuffer<?> indexBuffer, List<VertexBuffer<?>> vertexBuffers) {
+    public Mesh(Ints indexBuffer, List<VertexBuffer<?>> vertexBuffers) {
         this(indexBuffer, vertexBuffers, Optional.empty(), Optional.empty(), List.of());
     }
 
@@ -49,20 +49,20 @@ public record Mesh(
     }
 
     public Mesh withVertexBuffers(List<VertexBuffer<?>> vertexBuffers) {
-        return new Mesh(indexBuffer, vertexBuffers, material, name, blendShapes);
+        return new Mesh(indexBuffer, vertexBuffers, name, material, blendShapes);
     }
 
     @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
     public Mesh withMaterial(Optional<Material> material) {
-        return new Mesh(indexBuffer, vertexBuffers, material, name, blendShapes);
+        return new Mesh(indexBuffer, vertexBuffers, name, material, blendShapes);
     }
 
     @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
     public Mesh withName(Optional<String> name) {
-        return new Mesh(indexBuffer, vertexBuffers, material, name, blendShapes);
+        return new Mesh(indexBuffer, vertexBuffers, name, material, blendShapes);
     }
 
     public Mesh withBlendShapes(List<BlendShape> blendShapes) {
-        return new Mesh(indexBuffer, vertexBuffers, material, name, blendShapes);
+        return new Mesh(indexBuffer, vertexBuffers, name, material, blendShapes);
     }
 }

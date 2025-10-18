@@ -30,7 +30,7 @@ public final class CastModelMapper {
     private void mapMesh(CastNode.Model modelNode, Mesh mesh) throws IOException {
         var meshNode = modelNode.createMesh();
         mesh.name().ifPresent(meshNode::setName);
-        meshNode.setFaceBuffer(mesh.indexBuffer().buffer().asBuffer());
+        meshNode.setFaceBuffer(mesh.indexBuffer().asBuffer());
         var positionBuffer = mesh.getPositions().buffer().asBuffer();
         meshNode.setVertexPositionBuffer(positionBuffer);
         mesh.getNormals().ifPresent(buffer -> meshNode.setVertexNormalBuffer(buffer.buffer().asBuffer()));

@@ -15,7 +15,7 @@ public final class Geo {
 
     public Mesh readMesh(
         BinaryReader reader,
-        GeoAccessor<?> indexAccessor,
+        GeoAccessor<MutableInts> indexAccessor,
         int indexCount,
         List<GeoAccessor<?>> vertexAccessors,
         int vertexCount
@@ -23,15 +23,15 @@ public final class Geo {
         var startPosition = reader.position();
 
         reader.position(startPosition);
-        var indexBuffer = readBuffer(reader, indexAccessor, indexCount);
+        var indexBuffer = readIndexBuffer(reader, indexAccessor, indexCount);
         if (flipWindingOrder) {
-            invertIndices(indexBuffer.buffer());
+            invertIndices(indexBuffer);
         }
 
         var vertexBuffers = new ArrayList<VertexBuffer<?>>();
         for (var vertexAccessor : vertexAccessors) {
             reader.position(startPosition);
-            var vertexBuffer = readBuffer(reader, vertexAccessor, vertexCount);
+            var vertexBuffer = readVertexBuffer(reader, vertexAccessor, vertexCount);
             vertexBuffers.add(vertexBuffer);
         }
 
@@ -39,7 +39,21 @@ public final class Geo {
         return new Mesh(indexBuffer, vertexBuffers);
     }
 
-    private <T extends WrappedArray> VertexBuffer<T> readBuffer(BinaryReader reader, GeoAccessor<T> accessor, int count) throws IOException {
+    private MutableInts readIndexBuffer(BinaryReader reader, GeoAccessor<MutableInts> accessor, int count) throws IOException {
+        var capacity = count * accessor.info().size();
+        var buffer = MutableInts.allocate(capacity);
+
+        var start = reader.position() + accessor.offset();
+        var offset = 0;
+        for (var i = 0L; i < count; i++) {
+            reader.position(start + i * accessor.stride());
+            offset += accessor.reader().read(reader, buffer, offset);
+        }
+
+        return buffer;
+    }
+
+    private <T extends WrappedArray> VertexBuffer<T> readVertexBuffer(BinaryReader reader, GeoAccessor<T> accessor, int count) throws IOException {
         var capacity = count * accessor.info().size();
         var buffer = accessor.info().componentType().allocate(capacity);
 
@@ -53,36 +67,11 @@ public final class Geo {
         return new VertexBuffer<>(buffer, accessor.info());
     }
 
-    private void invertIndices(Object array) {
-        switch (array) {
-            case MutableBytes bytes -> invert(bytes);
-            case MutableShorts shorts -> invert(shorts);
-            case MutableInts ints -> invert(ints);
-            default -> throw new UnsupportedOperationException("Unsupported array type: " + array.getClass());
-        }
-    }
-
-    private void invert(MutableBytes bytes) {
-        for (int i = 0, lim = bytes.size(); i < lim; i += 3) {
-            var temp = bytes.getByte(i);
-            bytes.setByte(i, bytes.getByte(i + 2));
-            bytes.setByte(i + 2, temp);
-        }
-    }
-
-    private void invert(MutableShorts shorts) {
-        for (int i = 0, lim = shorts.size(); i < lim; i += 3) {
-            var temp = shorts.getShort(i);
-            shorts.setShort(i, shorts.getShort(i + 2));
-            shorts.setShort(i + 2, temp);
-        }
-    }
-
-    private void invert(MutableInts ints) {
-        for (int i = 0, lim = ints.size(); i < lim; i += 3) {
-            var temp = ints.getInt(i);
-            ints.setInt(i, ints.getInt(i + 2));
-            ints.setInt(i + 2, temp);
+    private void invertIndices(MutableInts indexBuffer) {
+        for (int i = 0, lim = indexBuffer.size(); i < lim; i += 3) {
+            var temp = indexBuffer.getInt(i);
+            indexBuffer.setInt(i, indexBuffer.getInt(i + 2));
+            indexBuffer.setInt(i + 2, temp);
         }
     }
 }

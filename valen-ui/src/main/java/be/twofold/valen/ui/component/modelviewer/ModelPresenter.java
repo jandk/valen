@@ -136,22 +136,15 @@ public final class ModelPresenter extends AbstractFXPresenter<ModelView> impleme
         floatArray.setAll(array);
     }
 
-    private void copyIndices(VertexBuffer<?> buffer, ObservableFaceArray faces) {
-        switch (buffer.buffer()) {
-            case MutableBytes _ -> throw new UnsupportedOperationException("Bytes not supported yet");
-            case MutableShorts shorts -> {
-                var capacity = shorts.size();
-                var indices = new int[capacity * 3];
-                for (int i = 0, o = 0; i < capacity; i++) {
-                    var index = Short.toUnsignedInt(shorts.getShort(i));
-                    indices[o++] = index;
-                    indices[o++] = index;
-                    indices[o++] = index;
-                }
-                faces.addAll(indices);
-            }
-            case MutableInts _ -> throw new UnsupportedOperationException("Ints not supported yet");
-            default -> throw new UnsupportedOperationException("Unexpected type: " + buffer.buffer().getClass());
+    private void copyIndices(Ints buffer, ObservableFaceArray faces) {
+        var capacity = buffer.size();
+        var indices = new int[capacity * 3];
+        for (int i = 0, o = 0; i < capacity; i++) {
+            var index = buffer.getInt(i);
+            indices[o++] = index;
+            indices[o++] = index;
+            indices[o++] = index;
         }
+        faces.addAll(indices);
     }
 }

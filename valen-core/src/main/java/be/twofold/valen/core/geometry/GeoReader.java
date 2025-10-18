@@ -111,8 +111,11 @@ public interface GeoReader<T> {
         };
     }
 
-    static GeoReader<MutableShorts> readFaceIndex() {
-        return copyShorts(1);
+    static GeoReader<MutableInts> readShortAsInt() {
+        return (source, target, offset) -> {
+            target.setInt(offset, Short.toUnsignedInt(source.readShort()));
+            return 1;
+        };
     }
 
     static GeoReader<MutableShorts> copyBytesAsShorts(int n) {
@@ -137,15 +140,6 @@ public interface GeoReader<T> {
         return (source, target, offset) -> {
             for (int i = 0; i < n; i++) {
                 target.setByte(offset + i, source.readByte());
-            }
-            return n;
-        };
-    }
-
-    static GeoReader<MutableShorts> copyShorts(int n) {
-        return (source, target, offset) -> {
-            for (int i = 0; i < n; i++) {
-                target.setShort(offset + i, source.readShort());
             }
             return n;
         };

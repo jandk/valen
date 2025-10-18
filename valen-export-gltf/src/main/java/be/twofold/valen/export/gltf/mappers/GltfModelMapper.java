@@ -31,7 +31,7 @@ public abstract class GltfModelMapper {
     }
 
     Optional<MeshPrimitiveSchema> mapMeshPrimitive(Mesh mesh) throws IOException {
-        if (mesh.indexBuffer().count() == 0) {
+        if (mesh.indexBuffer().size() == 0) {
             log.warn("No indices found for {}, skipping", mesh.name().orElse("<unnamed>"));
             return Optional.empty();
         }
@@ -66,7 +66,7 @@ public abstract class GltfModelMapper {
         this.numJoints = 0;
         this.numWeights = 0;
 
-        var indices = buildAccessor(mesh.indexBuffer(), null);
+        var indices = buildAccessor(mesh.indexBuffer());
         var morphTargets = buildMorphTargets(mesh.blendShapes(), mesh.getBuffer(Semantic.POSITION).orElseThrow().count());
 
         var meshPrimitive = ImmutableMeshPrimitive.builder()
@@ -158,12 +158,20 @@ public abstract class GltfModelMapper {
         return morphTargets;
     }
 
-    private AccessorID buildAccessor(VertexBuffer<?> buffer, Semantic semantic) throws IOException {
-        var target = semantic == null
-            ? BufferViewTarget.ELEMENT_ARRAY_BUFFER
-            : BufferViewTarget.ARRAY_BUFFER;
+    private AccessorID buildAccessor(Ints buffer) throws IOException {
+        var bufferView = context.createBufferView(buffer.asBuffer(), BufferViewTarget.ELEMENT_ARRAY_BUFFER);
 
-        var bufferView = context.createBufferView(buffer.buffer().asBuffer(), target);
+        var accessor = ImmutableAccessor.builder()
+            .bufferView(bufferView)
+            .componentType(mapComponentType(buffer.asBuffer()))
+            .count(buffer.size() / 3)
+            .type(AccessorType.SCALAR);
+
+        return context.addAccessor(accessor.build());
+    }
+
+    private AccessorID buildAccessor(VertexBuffer<?> buffer, Semantic semantic) throws IOException {
+        var bufferView = context.createBufferView(buffer.buffer().asBuffer(), BufferViewTarget.ARRAY_BUFFER);
 
         var accessor = ImmutableAccessor.builder()
             .bufferView(bufferView)

@@ -26,8 +26,8 @@ public final class GeometryReader {
         }
 
         offset += stride * (lodInfo.numVertices() - 1);
-        var faceInfo = new VertexBufferInfo<>(null, ComponentType.UNSIGNED_SHORT, 3);
-        var faceAccessor = new GeoAccessor<>(offset, Short.BYTES, faceInfo, GeoReader.readFaceIndex());
+        var faceInfo = new VertexBufferInfo<>(null, ComponentType.UNSIGNED_INT, 3);
+        var faceAccessor = new GeoAccessor<>(offset, Short.BYTES, faceInfo, GeoReader.readShortAsInt());
 
         return new Geo(true)
             .readMesh(reader, faceAccessor, lodInfo.numFaces() * 3, vertexAccessors, lodInfo.numVertices());
@@ -62,8 +62,8 @@ public final class GeometryReader {
                     offsets.vertexOffsets[v] += lodInfo.numVertices() * mask.size();
                 }
 
-                var faceInfo = VertexBufferInfo.indices(ComponentType.UNSIGNED_SHORT);
-                var faceAccessor = new GeoAccessor<>(offsets.indexOffset, Short.BYTES, faceInfo, GeoReader.readFaceIndex());
+                var faceInfo = VertexBufferInfo.indices(ComponentType.UNSIGNED_INT);
+                var faceAccessor = new GeoAccessor<>(offsets.indexOffset, Short.BYTES, faceInfo, GeoReader.readShortAsInt());
                 offsets.indexOffset += lodInfo.numFaces() * 3 * Short.BYTES;
 
                 meshes.add(new Geo(true)
@@ -93,8 +93,8 @@ public final class GeometryReader {
                 lodOffset = lod.numVertices() * maskSize + bufferOffset;
             }
 
-            var faceInfo = VertexBufferInfo.indices(ComponentType.UNSIGNED_SHORT);
-            var faceAccessor = new GeoAccessor<>(offset + lodOffset, Short.BYTES, faceInfo, GeoReader.readFaceIndex());
+            var faceInfo = VertexBufferInfo.indices(ComponentType.UNSIGNED_INT);
+            var faceAccessor = new GeoAccessor<>(offset + lodOffset, Short.BYTES, faceInfo, GeoReader.readShortAsInt());
             lodOffset += lod.numFaces() * 3 * Short.BYTES;
             offset = (offset + lodOffset + 7) & ~7;
 
