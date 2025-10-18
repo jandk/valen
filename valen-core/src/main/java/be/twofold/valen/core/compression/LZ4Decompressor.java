@@ -11,7 +11,7 @@ final class LZ4Decompressor extends LZDecompressor {
     @Override
     public void decompress(Bytes src, MutableBytes dst) throws IOException {
         // Special case
-        if (dst.isEmpty()) {
+        if (dst.size() == 0) {
             if (src.size() != 1 || src.getByte(0) != 0) {
                 throw new IOException("Invalid empty block");
             }

@@ -29,11 +29,4 @@ public final class MutableDoubles extends Doubles {
     public DoubleBuffer asMutableBuffer() {
         return DoubleBuffer.wrap(array, fromIndex, size());
     }
-
-    @Override
-    public Double set(int index, Double element) {
-        double oldValue = getDouble(index);
-        setDouble(index, element);
-        return oldValue;
-    }
 }

@@ -5,7 +5,7 @@ import be.twofold.valen.core.util.*;
 import java.nio.*;
 import java.util.*;
 
-public class Longs extends AbstractList<Long> implements Comparable<Longs>, RandomAccess {
+public class Longs implements Comparable<Longs>, RandomAccess {
     final long[] array;
 
     final int fromIndex;
@@ -46,55 +46,38 @@ public class Longs extends AbstractList<Long> implements Comparable<Longs>, Rand
     }
 
     public Longs slice(int fromIndex) {
-        return subList(fromIndex, size());
+        return slice(fromIndex, size());
     }
 
     public Longs slice(int fromIndex, int toIndex) {
-        return subList(fromIndex, toIndex);
+        Check.fromToIndex(fromIndex, toIndex, size());
+        return new Longs(array, this.fromIndex + fromIndex, this.fromIndex + toIndex);
     }
 
-    @Override
     public int size() {
         return toIndex - fromIndex;
     }
 
-    @Override
-    @Deprecated
-    public Long get(int index) {
-        return getLong(index);
+    public boolean contains(long value) {
+        return indexOf(value) >= 0;
     }
 
-    @Override
-    public boolean contains(Object o) {
-        return o instanceof java.lang.Long value && ArrayUtils.contains(array, fromIndex, toIndex, value);
-    }
-
-    @Override
-    public int indexOf(Object o) {
-        if (o instanceof java.lang.Long value) {
-            int index = ArrayUtils.indexOf(array, fromIndex, toIndex, value);
-            if (index >= 0) {
-                return index - fromIndex;
+    public int indexOf(long value) {
+        for (int i = fromIndex; i < toIndex; i++) {
+            if (array[i] == value) {
+                return i - fromIndex;
             }
         }
         return -1;
     }
 
-    @Override
-    public int lastIndexOf(Object o) {
-        if (o instanceof java.lang.Long value) {
-            int index = ArrayUtils.lastIndexOf(array, fromIndex, toIndex, value);
-            if (index >= 0) {
-                return index - fromIndex;
+    public int lastIndexOf(long value) {
+        for (int i = toIndex - 1; i >= fromIndex; i--) {
+            if (array[i] == value) {
+                return i - fromIndex;
             }
         }
         return -1;
-    }
-
-    @Override
-    public Longs subList(int fromIndex, int toIndex) {
-        Check.fromToIndex(fromIndex, toIndex, size());
-        return new Longs(array, this.fromIndex + fromIndex, this.fromIndex + toIndex);
     }
 
     @Override
@@ -109,11 +92,23 @@ public class Longs extends AbstractList<Long> implements Comparable<Longs>, Rand
 
     @Override
     public int hashCode() {
-        return ArrayUtils.hashCode(array, fromIndex, toIndex);
+        int result = 1;
+        for (int i = fromIndex; i < toIndex; i++) {
+            result = 31 * result + Long.hashCode(array[i]);
+        }
+        return result;
     }
 
     @Override
     public String toString() {
-        return ArrayUtils.toString(array, fromIndex, toIndex);
+        if (fromIndex == toIndex) {
+            return "[]";
+        }
+        StringBuilder builder = new StringBuilder();
+        builder.append('[').append(array[fromIndex]);
+        for (int i = fromIndex + 1; i < toIndex; i++) {
+            builder.append(", ").append(array[i]);
+        }
+        return builder.append(']').toString();
     }
 }

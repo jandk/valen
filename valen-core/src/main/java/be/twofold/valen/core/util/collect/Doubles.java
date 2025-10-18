@@ -5,7 +5,7 @@ import be.twofold.valen.core.util.*;
 import java.nio.*;
 import java.util.*;
 
-public class Doubles extends AbstractList<Double> implements Comparable<Doubles>, RandomAccess {
+public class Doubles implements Comparable<Doubles>, RandomAccess {
     final double[] array;
 
     final int fromIndex;
@@ -46,55 +46,38 @@ public class Doubles extends AbstractList<Double> implements Comparable<Doubles>
     }
 
     public Doubles slice(int fromIndex) {
-        return subList(fromIndex, size());
+        return slice(fromIndex, size());
     }
 
     public Doubles slice(int fromIndex, int toIndex) {
-        return subList(fromIndex, toIndex);
+        Check.fromToIndex(fromIndex, toIndex, size());
+        return new Doubles(array, this.fromIndex + fromIndex, this.fromIndex + toIndex);
     }
 
-    @Override
     public int size() {
         return toIndex - fromIndex;
     }
 
-    @Override
-    @Deprecated
-    public Double get(int index) {
-        return getDouble(index);
+    public boolean contains(double value) {
+        return indexOf(value) >= 0;
     }
 
-    @Override
-    public boolean contains(Object o) {
-        return o instanceof java.lang.Double value && ArrayUtils.contains(array, fromIndex, toIndex, value);
-    }
-
-    @Override
-    public int indexOf(Object o) {
-        if (o instanceof java.lang.Double value) {
-            int index = ArrayUtils.indexOf(array, fromIndex, toIndex, value);
-            if (index >= 0) {
-                return index - fromIndex;
+    public int indexOf(double value) {
+        for (int i = fromIndex; i < toIndex; i++) {
+            if (Double.compare(array[i], value) == 0) {
+                return i - fromIndex;
             }
         }
         return -1;
     }
 
-    @Override
-    public int lastIndexOf(Object o) {
-        if (o instanceof java.lang.Double value) {
-            int index = ArrayUtils.lastIndexOf(array, fromIndex, toIndex, value);
-            if (index >= 0) {
-                return index - fromIndex;
+    public int lastIndexOf(double value) {
+        for (int i = toIndex - 1; i >= fromIndex; i--) {
+            if (Double.compare(array[i], value) == 0) {
+                return i - fromIndex;
             }
         }
         return -1;
-    }
-
-    @Override
-    public Doubles subList(int fromIndex, int toIndex) {
-        Check.fromToIndex(fromIndex, toIndex, size());
-        return new Doubles(array, this.fromIndex + fromIndex, this.fromIndex + toIndex);
     }
 
     @Override
@@ -109,11 +92,23 @@ public class Doubles extends AbstractList<Double> implements Comparable<Doubles>
 
     @Override
     public int hashCode() {
-        return ArrayUtils.hashCode(array, fromIndex, toIndex);
+        int result = 1;
+        for (int i = fromIndex; i < toIndex; i++) {
+            result = 31 * result + Double.hashCode(array[i]);
+        }
+        return result;
     }
 
     @Override
     public String toString() {
-        return ArrayUtils.toString(array, fromIndex, toIndex);
+        if (fromIndex == toIndex) {
+            return "[]";
+        }
+        StringBuilder builder = new StringBuilder();
+        builder.append('[').append(array[fromIndex]);
+        for (int i = fromIndex + 1; i < toIndex; i++) {
+            builder.append(", ").append(array[i]);
+        }
+        return builder.append(']').toString();
     }
 }

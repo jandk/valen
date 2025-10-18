@@ -11,7 +11,7 @@ abstract class LZDecompressor implements Decompressor {
         Check.fromIndexSize(srcOff, len, src.size());
         Check.fromIndexSize(dstOff, len, dst.size());
 
-        src.subList(srcOff, srcOff + len).copyTo(dst, dstOff);
+        src.slice(srcOff, srcOff + len).copyTo(dst, dstOff);
     }
 
     void copyReference(MutableBytes dst, int dstOff, int offset, int length) {
@@ -25,7 +25,7 @@ abstract class LZDecompressor implements Decompressor {
                 dst.setByte(dstOff + i, b);
             }
         } else if (offset >= length) {
-            dst.subList(dstPos, dstPos + length).copyTo(dst, dstOff);
+            dst.slice(dstPos, dstPos + length).copyTo(dst, dstOff);
         } else {
             for (int i = 0; i < length; i++) {
                 dst.setByte(dstOff + i, dst.getByte(dstPos + i));

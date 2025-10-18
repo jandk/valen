@@ -29,11 +29,4 @@ public final class MutableLongs extends Longs {
     public LongBuffer asMutableBuffer() {
         return LongBuffer.wrap(array, fromIndex, size());
     }
-
-    @Override
-    public Long set(int index, Long element) {
-        long oldValue = getLong(index);
-        setLong(index, element);
-        return oldValue;
-    }
 }

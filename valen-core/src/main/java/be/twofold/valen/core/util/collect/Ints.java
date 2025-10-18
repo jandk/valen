@@ -5,7 +5,7 @@ import be.twofold.valen.core.util.*;
 import java.nio.*;
 import java.util.*;
 
-public class Ints extends AbstractList<Integer> implements Comparable<Ints>, RandomAccess {
+public class Ints implements Comparable<Ints>, RandomAccess {
     final int[] array;
 
     final int fromIndex;
@@ -46,55 +46,38 @@ public class Ints extends AbstractList<Integer> implements Comparable<Ints>, Ran
     }
 
     public Ints slice(int fromIndex) {
-        return subList(fromIndex, size());
+        return slice(fromIndex, size());
     }
 
     public Ints slice(int fromIndex, int toIndex) {
-        return subList(fromIndex, toIndex);
+        Check.fromToIndex(fromIndex, toIndex, size());
+        return new Ints(array, this.fromIndex + fromIndex, this.fromIndex + toIndex);
     }
 
-    @Override
     public int size() {
         return toIndex - fromIndex;
     }
 
-    @Override
-    @Deprecated
-    public Integer get(int index) {
-        return getInt(index);
+    public boolean contains(int value) {
+        return indexOf(value) >= 0;
     }
 
-    @Override
-    public boolean contains(Object o) {
-        return o instanceof java.lang.Integer value && ArrayUtils.contains(array, fromIndex, toIndex, value);
-    }
-
-    @Override
-    public int indexOf(Object o) {
-        if (o instanceof java.lang.Integer value) {
-            int index = ArrayUtils.indexOf(array, fromIndex, toIndex, value);
-            if (index >= 0) {
-                return index - fromIndex;
+    public int indexOf(int value) {
+        for (int i = fromIndex; i < toIndex; i++) {
+            if (array[i] == value) {
+                return i - fromIndex;
             }
         }
         return -1;
     }
 
-    @Override
-    public int lastIndexOf(Object o) {
-        if (o instanceof java.lang.Integer value) {
-            int index = ArrayUtils.lastIndexOf(array, fromIndex, toIndex, value);
-            if (index >= 0) {
-                return index - fromIndex;
+    public int lastIndexOf(int value) {
+        for (int i = toIndex - 1; i >= fromIndex; i--) {
+            if (array[i] == value) {
+                return i - fromIndex;
             }
         }
         return -1;
-    }
-
-    @Override
-    public Ints subList(int fromIndex, int toIndex) {
-        Check.fromToIndex(fromIndex, toIndex, size());
-        return new Ints(array, this.fromIndex + fromIndex, this.fromIndex + toIndex);
     }
 
     @Override
@@ -109,11 +92,23 @@ public class Ints extends AbstractList<Integer> implements Comparable<Ints>, Ran
 
     @Override
     public int hashCode() {
-        return ArrayUtils.hashCode(array, fromIndex, toIndex);
+        int result = 1;
+        for (int i = fromIndex; i < toIndex; i++) {
+            result = 31 * result + Integer.hashCode(array[i]);
+        }
+        return result;
     }
 
     @Override
     public String toString() {
-        return ArrayUtils.toString(array, fromIndex, toIndex);
+        if (fromIndex == toIndex) {
+            return "[]";
+        }
+        StringBuilder builder = new StringBuilder();
+        builder.append('[').append(array[fromIndex]);
+        for (int i = fromIndex + 1; i < toIndex; i++) {
+            builder.append(", ").append(array[i]);
+        }
+        return builder.append(']').toString();
     }
 }

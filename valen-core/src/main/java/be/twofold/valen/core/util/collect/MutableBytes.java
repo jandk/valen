@@ -29,11 +29,4 @@ public final class MutableBytes extends Bytes {
     public ByteBuffer asMutableBuffer() {
         return ByteBuffer.wrap(array, fromIndex, size());
     }
-
-    @Override
-    public Byte set(int index, Byte element) {
-        byte oldValue = getByte(index);
-        setByte(index, element);
-        return oldValue;
-    }
 }

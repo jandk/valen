@@ -29,11 +29,4 @@ public final class MutableShorts extends Shorts {
     public ShortBuffer asMutableBuffer() {
         return ShortBuffer.wrap(array, fromIndex, size());
     }
-
-    @Override
-    public Short set(int index, Short element) {
-        short oldValue = getShort(index);
-        setShort(index, element);
-        return oldValue;
-    }
 }

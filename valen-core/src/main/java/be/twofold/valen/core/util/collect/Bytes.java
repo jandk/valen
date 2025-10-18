@@ -5,7 +5,7 @@ import be.twofold.valen.core.util.*;
 import java.nio.*;
 import java.util.*;
 
-public class Bytes extends AbstractList<Byte> implements Comparable<Bytes>, RandomAccess {
+public class Bytes implements Comparable<Bytes>, RandomAccess {
     final byte[] array;
 
     final int fromIndex;
@@ -83,55 +83,38 @@ public class Bytes extends AbstractList<Byte> implements Comparable<Bytes>, Rand
     }
 
     public Bytes slice(int fromIndex) {
-        return subList(fromIndex, size());
+        return slice(fromIndex, size());
     }
 
     public Bytes slice(int fromIndex, int toIndex) {
-        return subList(fromIndex, toIndex);
+        Check.fromToIndex(fromIndex, toIndex, size());
+        return new Bytes(array, this.fromIndex + fromIndex, this.fromIndex + toIndex);
     }
 
-    @Override
     public int size() {
         return toIndex - fromIndex;
     }
 
-    @Override
-    @Deprecated
-    public Byte get(int index) {
-        return getByte(index);
+    public boolean contains(byte value) {
+        return indexOf(value) >= 0;
     }
 
-    @Override
-    public boolean contains(Object o) {
-        return o instanceof java.lang.Byte value && ArrayUtils.contains(array, fromIndex, toIndex, value);
-    }
-
-    @Override
-    public int indexOf(Object o) {
-        if (o instanceof java.lang.Byte value) {
-            int index = ArrayUtils.indexOf(array, fromIndex, toIndex, value);
-            if (index >= 0) {
-                return index - fromIndex;
+    public int indexOf(byte value) {
+        for (int i = fromIndex; i < toIndex; i++) {
+            if (array[i] == value) {
+                return i - fromIndex;
             }
         }
         return -1;
     }
 
-    @Override
-    public int lastIndexOf(Object o) {
-        if (o instanceof java.lang.Byte value) {
-            int index = ArrayUtils.lastIndexOf(array, fromIndex, toIndex, value);
-            if (index >= 0) {
-                return index - fromIndex;
+    public int lastIndexOf(byte value) {
+        for (int i = toIndex - 1; i >= fromIndex; i--) {
+            if (array[i] == value) {
+                return i - fromIndex;
             }
         }
         return -1;
-    }
-
-    @Override
-    public Bytes subList(int fromIndex, int toIndex) {
-        Check.fromToIndex(fromIndex, toIndex, size());
-        return new Bytes(array, this.fromIndex + fromIndex, this.fromIndex + toIndex);
     }
 
     @Override
@@ -146,11 +129,23 @@ public class Bytes extends AbstractList<Byte> implements Comparable<Bytes>, Rand
 
     @Override
     public int hashCode() {
-        return ArrayUtils.hashCode(array, fromIndex, toIndex);
+        int result = 1;
+        for (int i = fromIndex; i < toIndex; i++) {
+            result = 31 * result + Byte.hashCode(array[i]);
+        }
+        return result;
     }
 
     @Override
     public String toString() {
-        return ArrayUtils.toString(array, fromIndex, toIndex);
+        if (fromIndex == toIndex) {
+            return "[]";
+        }
+        StringBuilder builder = new StringBuilder();
+        builder.append('[').append(array[fromIndex]);
+        for (int i = fromIndex + 1; i < toIndex; i++) {
+            builder.append(", ").append(array[i]);
+        }
+        return builder.append(']').toString();
     }
 }

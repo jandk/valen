@@ -29,11 +29,4 @@ public final class MutableInts extends Ints {
     public IntBuffer asMutableBuffer() {
         return IntBuffer.wrap(array, fromIndex, size());
     }
-
-    @Override
-    public Integer set(int index, Integer element) {
-        int oldValue = getInt(index);
-        setInt(index, element);
-        return oldValue;
-    }
 }

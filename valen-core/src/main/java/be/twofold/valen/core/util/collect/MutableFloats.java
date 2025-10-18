@@ -29,11 +29,4 @@ public final class MutableFloats extends Floats {
     public FloatBuffer asMutableBuffer() {
         return FloatBuffer.wrap(array, fromIndex, size());
     }
-
-    @Override
-    public Float set(int index, Float element) {
-        float oldValue = getFloat(index);
-        setFloat(index, element);
-        return oldValue;
-    }
 }

@@ -11,7 +11,6 @@ import java.util.*;
 final class WrapperGenerator {
     public static final ClassName CHECK_CLASS = ClassName.get("be.twofold.valen.core.util", "Check");
     public static final ClassName BYTE_ARRAYS_CLASS = ClassName.get("be.twofold.valen.core.util", "ByteArrays");
-    public static final ClassName ARRAY_UTILS_CLASS = ClassName.get("be.twofold.valen.core.util", "ArrayUtils");
 
     public static void main(String[] args) throws IOException {
         generate("Bytes", byte.class, Byte.class, ByteBuffer.class, true);
@@ -46,7 +45,6 @@ final class WrapperGenerator {
 
         var builder = TypeSpec.classBuilder(className)
             .addModifiers(Modifier.PUBLIC)
-            .superclass(ParameterizedTypeName.get(ClassName.get(AbstractList.class), wrapperType))
             .addSuperinterface(ParameterizedTypeName.get(ClassName.get(Comparable.class), thisType))
             .addSuperinterface(RandomAccess.class);
 
@@ -128,7 +126,7 @@ final class WrapperGenerator {
             .addModifiers(Modifier.PUBLIC)
             .returns(thisType)
             .addParameter(int.class, "fromIndex")
-            .addStatement("return subList(fromIndex, size())")
+            .addStatement("return slice(fromIndex, size())")
             .build());
 
         builder.addMethod(MethodSpec.methodBuilder("slice")
@@ -136,11 +134,12 @@ final class WrapperGenerator {
             .returns(thisType)
             .addParameter(int.class, "fromIndex")
             .addParameter(int.class, "toIndex")
-            .addStatement("return subList(fromIndex, toIndex)")
+            .addStatement("$T.fromToIndex(fromIndex, toIndex, size())", CHECK_CLASS)
+            .addStatement("return new $L(array, this.fromIndex + fromIndex, this.fromIndex + toIndex)", thisType)
             .build());
 
         // Override methods
-        addOverrideMethods(builder, className, bufferMethodName, wrapperType, thisType);
+        addOverrideMethods(builder, className, wrapperType, primitiveClass, thisType);
 
         return builder.build();
     }
@@ -148,91 +147,105 @@ final class WrapperGenerator {
     private static void addOverrideMethods(
         TypeSpec.Builder builder,
         String className,
-        String bufferMethodName,
         TypeName wrapperType,
+        Class<?> primitiveClass,
         TypeName thisType
     ) {
         // size method
-        builder.addMethod(override("size")
+        builder.addMethod(MethodSpec.methodBuilder("size")
+            .addModifiers(Modifier.PUBLIC)
             .returns(int.class)
             .addStatement("return toIndex - fromIndex")
             .build());
 
-        // get method (deprecated)
-        builder.addMethod(override("get")
-            .addAnnotation(Deprecated.class)
-            .returns(wrapperType)
-            .addParameter(int.class, "index")
-            .addStatement("return get$L(index)", bufferMethodName)
-            .build());
-
         // contains method
-        builder.addMethod(override("contains")
+        builder.addMethod(MethodSpec.methodBuilder("contains")
+            .addModifiers(Modifier.PUBLIC)
             .returns(boolean.class)
-            .addParameter(Object.class, "o")
-            .addStatement("return o instanceof $L value && $T.contains(array, fromIndex, toIndex, value)", wrapperType, ARRAY_UTILS_CLASS)
+            .addParameter(primitiveClass, "value")
+            .addStatement("return indexOf(value) >= 0")
             .build());
 
         // indexOf method
-        builder.addMethod(override("indexOf")
+        builder.addMethod(MethodSpec.methodBuilder("indexOf")
+            .addModifiers(Modifier.PUBLIC)
             .returns(int.class)
-            .addParameter(Object.class, "o")
-            .beginControlFlow("if (o instanceof $L value)", wrapperType)
-            .addStatement("int index = $T.indexOf(array, fromIndex, toIndex, value)", ARRAY_UTILS_CLASS)
-            .beginControlFlow("if (index >= 0)")
-            .addStatement("return index - fromIndex")
+            .addParameter(primitiveClass, "value")
+            .beginControlFlow("for (int i = fromIndex; i < toIndex; i++)")
+            .beginControlFlow("if (" + generateEquals("array[i]", "value", primitiveClass) + ")")
+            .addStatement("return i - fromIndex")
             .endControlFlow()
             .endControlFlow()
             .addStatement("return -1")
             .build());
 
         // lastIndexOf method
-        builder.addMethod(override("lastIndexOf")
+        builder.addMethod(MethodSpec.methodBuilder("lastIndexOf")
+            .addModifiers(Modifier.PUBLIC)
             .returns(int.class)
-            .addParameter(Object.class, "o")
-            .beginControlFlow("if (o instanceof $L value)", wrapperType)
-            .addStatement("int index = $T.lastIndexOf(array, fromIndex, toIndex, value)", ARRAY_UTILS_CLASS)
-            .beginControlFlow("if (index >= 0)")
-            .addStatement("return index - fromIndex")
+            .addParameter(primitiveClass, "value")
+            .beginControlFlow("for (int i = toIndex - 1; i >= fromIndex; i--)")
+            .beginControlFlow("if (" + generateEquals("array[i]", "value", primitiveClass) + ")")
+            .addStatement("return i - fromIndex")
             .endControlFlow()
             .endControlFlow()
             .addStatement("return -1")
             .build());
 
-        // subList method
-        builder.addMethod(override("subList")
-            .returns(thisType)
-            .addParameter(int.class, "fromIndex")
-            .addParameter(int.class, "toIndex")
-            .addStatement("$T.fromToIndex(fromIndex, toIndex, size())", CHECK_CLASS)
-            .addStatement("return new $L(array, this.fromIndex + fromIndex, this.fromIndex + toIndex)", className)
-            .build());
-
         // compareTo method
-        builder.addMethod(override("compareTo")
+        builder.addMethod(MethodSpec.methodBuilder("compareTo")
+            .addModifiers(Modifier.PUBLIC)
+            .addAnnotation(Override.class)
             .returns(int.class)
             .addParameter(thisType, "o")
             .addStatement("return $T.compare(array, fromIndex, toIndex, o.array, o.fromIndex, o.toIndex)", Arrays.class)
             .build());
 
         // equals method
-        builder.addMethod(override("equals")
+        builder.addMethod(MethodSpec.methodBuilder("equals")
+            .addModifiers(Modifier.PUBLIC)
+            .addAnnotation(Override.class)
             .returns(boolean.class)
             .addParameter(Object.class, "obj")
             .addStatement("return obj instanceof $L o && $T.equals(array, fromIndex, toIndex, o.array, o.fromIndex, o.toIndex)", className, Arrays.class)
             .build());
 
         // hashCode method
-        builder.addMethod(override("hashCode")
+        builder.addMethod(MethodSpec.methodBuilder("hashCode")
+            .addModifiers(Modifier.PUBLIC)
+            .addAnnotation(Override.class)
             .returns(int.class)
-            .addStatement("return $T.hashCode(array, fromIndex, toIndex)", ARRAY_UTILS_CLASS)
+            .addStatement("int result = 1")
+            .beginControlFlow("for (int i = fromIndex; i < toIndex; i++)")
+            .addStatement("result = 31 * result + $T.hashCode(array[i])", wrapperType)
+            .endControlFlow()
+            .addStatement("return result")
             .build());
 
         // toString method
-        builder.addMethod(override("toString")
+        builder.addMethod(MethodSpec.methodBuilder("toString")
+            .addModifiers(Modifier.PUBLIC)
+            .addAnnotation(Override.class)
             .returns(String.class)
-            .addStatement("return $T.toString(array, fromIndex, toIndex)", ARRAY_UTILS_CLASS)
+            .beginControlFlow("if (fromIndex == toIndex)")
+            .addStatement("return \"[]\"")
+            .endControlFlow()
+            .addStatement("StringBuilder builder = new StringBuilder()")
+            .addStatement("builder.append('[').append(array[fromIndex])")
+            .beginControlFlow("for (int i = fromIndex + 1; i < toIndex; i++)")
+            .addStatement("builder.append(\", \").append(array[i])")
+            .endControlFlow()
+            .addStatement("return builder.append(']').toString()")
             .build());
+    }
+
+    private static String generateEquals(String left, String right, Class<?> type) {
+        return switch (type.getSimpleName()) {
+            case "byte", "short", "int", "long" -> left + " == " + right;
+            case "float" -> "Float.compare(" + left + ", " + right + ") == 0";
+            case "double" -> "Double.compare(" + left + ", " + right + ") == 0";
+            default -> throw new UnsupportedOperationException();
+        };
     }
 
     private static void addExtraBytesMethods(TypeSpec.Builder classBuilder) {
@@ -325,22 +338,7 @@ final class WrapperGenerator {
             .addStatement("return $T.wrap(array, fromIndex, size())", bufferClass)
             .build());
 
-        builder.addMethod(override("set")
-            .returns(wrapperTypeName)
-            .addParameter(int.class, "index")
-            .addParameter(wrapperTypeName, "element")
-            .addStatement("$L oldValue = get$L(index)", primitiveClass, bufferMethodName)
-            .addStatement("set$L(index, element)", bufferMethodName)
-            .addStatement("return oldValue")
-            .build());
-
         return builder.build();
-    }
-
-    private static MethodSpec.Builder override(String name) {
-        return MethodSpec.methodBuilder(name)
-            .addModifiers(Modifier.PUBLIC)
-            .addAnnotation(Override.class);
     }
 
     private static void writeClass(TypeSpec typeSpec) throws IOException {
