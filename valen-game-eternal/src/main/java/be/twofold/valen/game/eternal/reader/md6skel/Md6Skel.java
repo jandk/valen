@@ -1,7 +1,8 @@
 package be.twofold.valen.game.eternal.reader.md6skel;
 
-import be.twofold.valen.core.io.BinaryReader;
+import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.math.*;
+import be.twofold.valen.core.util.collect.*;
 
 import java.io.*;
 import java.util.*;
@@ -11,7 +12,7 @@ public record Md6Skel(
     List<Quaternion> rotations,
     List<Vector3> scales,
     List<Vector3> translations,
-    short[] parents,
+    Shorts parents,
     List<Matrix4> inverseBasePoses,
     List<String> names
 ) {
@@ -24,7 +25,7 @@ public record Md6Skel(
         var translations = reader.readObjects(header.numJoints8(), Vector3::read);
 
         reader.position(header.parentTblOffset() + 4);
-        var parents = reader.readShorts(header.numJoints8());
+        var parents = reader.readShortsStruct(header.numJoints8());
 
         reader.position(header.inverseBasePoseOffset() + 4);
         var inverseBasePoses = reader.readObjects(header.numJoints8(), Md6Skel::readInverseBasePose);

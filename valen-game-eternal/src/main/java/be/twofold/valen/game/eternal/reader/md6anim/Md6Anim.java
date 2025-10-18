@@ -2,6 +2,7 @@ package be.twofold.valen.game.eternal.reader.md6anim;
 
 import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.math.*;
+import be.twofold.valen.core.util.collect.*;
 import org.slf4j.*;
 
 import java.io.*;
@@ -29,9 +30,9 @@ public record Md6Anim(
         }
 
         var animMap = animMaps.getFirst();
-        var constR = reader.position(start + data.constROffset()).readObjects(animMap.constR().length, Md6Anim::decodeQuat);
-        var constS = reader.position(start + data.constSOffset()).readObjects(animMap.constS().length, Vector3::read);
-        var constT = reader.position(start + data.constTOffset()).readObjects(animMap.constT().length, Vector3::read);
+        var constR = reader.position(start + data.constROffset()).readObjects(animMap.constR().size(), Md6Anim::decodeQuat);
+        var constS = reader.position(start + data.constSOffset()).readObjects(animMap.constS().size(), Vector3::read);
+        var constT = reader.position(start + data.constTOffset()).readObjects(animMap.constT().size(), Vector3::read);
 
         var frameSetTable = reader.position(start + data.frameSetTblOffset()).readBytes(data.numFrames());
         var frameSetOffsetTable = reader.position(start + data.frameSetOffsetTblOffset()).readInts(data.numFrameSets() + 1);
@@ -78,14 +79,14 @@ public record Md6Anim(
     private static FrameSet readFrameSet(BinaryReader reader, int frameSetOffset, Md6AnimMap animMap) throws IOException {
         var animFrameSet = Md6AnimFrameSet.read(reader);
 
-        var firstR = reader.position(frameSetOffset + animFrameSet.firstROffset()).readObjects(animMap.animR().length, Md6Anim::decodeQuat);
-        var firstS = reader.position(frameSetOffset + animFrameSet.firstSOffset()).readObjects(animMap.animS().length, Vector3::read);
-        var firstT = reader.position(frameSetOffset + animFrameSet.firstTOffset()).readObjects(animMap.animT().length, Vector3::read);
+        var firstR = reader.position(frameSetOffset + animFrameSet.firstROffset()).readObjects(animMap.animR().size(), Md6Anim::decodeQuat);
+        var firstS = reader.position(frameSetOffset + animFrameSet.firstSOffset()).readObjects(animMap.animS().size(), Vector3::read);
+        var firstT = reader.position(frameSetOffset + animFrameSet.firstTOffset()).readObjects(animMap.animT().size(), Vector3::read);
 
         var bytesPerBone = (animFrameSet.frameRange() + 7) >> 3;
-        var bitsR = reader.position(frameSetOffset + animFrameSet.RBitsOffset()).readObject(s -> new Bits(s.readBytes(bytesPerBone * animMap.animR().length)));
-        var bitsS = reader.position(frameSetOffset + animFrameSet.SBitsOffset()).readObject(s -> new Bits(s.readBytes(bytesPerBone * animMap.animS().length)));
-        var bitsT = reader.position(frameSetOffset + animFrameSet.TBitsOffset()).readObject(s -> new Bits(s.readBytes(bytesPerBone * animMap.animT().length)));
+        var bitsR = reader.position(frameSetOffset + animFrameSet.RBitsOffset()).readObject(s -> new Bits(s.readBytesStruct(bytesPerBone * animMap.animR().size())));
+        var bitsS = reader.position(frameSetOffset + animFrameSet.SBitsOffset()).readObject(s -> new Bits(s.readBytesStruct(bytesPerBone * animMap.animS().size())));
+        var bitsT = reader.position(frameSetOffset + animFrameSet.TBitsOffset()).readObject(s -> new Bits(s.readBytesStruct(bytesPerBone * animMap.animT().size())));
 
         var rangeR = reader.position(frameSetOffset + animFrameSet.rangeROffset()).readObjects(bitsR.cardinality(), Md6Anim::decodeQuat);
         var rangeS = reader.position(frameSetOffset + animFrameSet.rangeSOffset()).readObjects(bitsS.cardinality(), Vector3::read);
@@ -123,23 +124,25 @@ public record Md6Anim(
         };
     }
 
-    static int[] decodeRLE(BinaryReader reader, int numJoints) throws IOException {
+    static Ints decodeRLE(BinaryReader reader, int numJoints) throws IOException {
         var size = Byte.toUnsignedInt(reader.readByte());
         var length = Math.min(size, numJoints);
 
-        var result = new int[length];
+        var result = MutableInts.allocate(length);
         for (var o = 0; o < length; ) {
             int count = reader.readByte();
             if ((count & 0x80) != 0) {
                 count &= 0x7F;
-                Arrays.fill(result, o, o + count, (byte) numJoints);
+                for (int i = o; i < o + count; i++) {
+                    result.setInt(i, numJoints);
+                }
                 o += count;
                 continue;
             }
 
             int value = Byte.toUnsignedInt(reader.readByte());
             for (var i = 0; i < count; i++) {
-                result[o++] = value + i;
+                result.setInt(o++, value + i);
             }
         }
         return result;

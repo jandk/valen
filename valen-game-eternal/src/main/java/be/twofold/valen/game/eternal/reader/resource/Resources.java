@@ -1,6 +1,7 @@
 package be.twofold.valen.game.eternal.reader.resource;
 
-import be.twofold.valen.core.io.BinaryReader;
+import be.twofold.valen.core.io.*;
+import be.twofold.valen.core.util.collect.*;
 
 import java.io.*;
 import java.nio.charset.*;
@@ -10,9 +11,9 @@ public record Resources(
     ResourcesHeader header,
     List<ResourcesEntry> entries,
     List<String> pathStrings,
-    int[] pathStringIndex,
+    Ints pathStringIndex,
     List<ResourcesDependency> dependencies,
-    int[] dependencyIndex
+    Ints dependencyIndex
 ) {
     private static final CharsetDecoder DECODER = StandardCharsets.US_ASCII.newDecoder();
 
@@ -41,8 +42,8 @@ public record Resources(
         // which files to load. The filenames are only used for debugging purposes.
         // assert channel.position() == header.addrDependencyEntries();
         var dependencies = reader.readObjects(header.numDependencyEntries(), ResourcesDependency::read);
-        var dependencyIndex = reader.readInts(header.numDependencyIndexes());
-        var pathStringIndex = reader.readLongsAsInts(header.numPathStringIndexes());
+        var dependencyIndex = reader.readIntsStruct(header.numDependencyIndexes());
+        var pathStringIndex = reader.readLongsAsIntsStruct(header.numPathStringIndexes());
 
         // assert channel.position() == header.addrEndMarker();
         return new Resources(header, entries, pathStrings, pathStringIndex, dependencies, dependencyIndex);
@@ -54,9 +55,9 @@ public record Resources(
             "header=" + header + ", " +
             "entries=(" + entries.size() + " entries), " +
             "pathStrings=(" + pathStrings.size() + " strings), " +
-            "pathStringIndex=(" + pathStringIndex.length + " indices), " +
+            "pathStringIndex=(" + pathStringIndex.size() + " indices), " +
             "dependencies=(" + dependencies.size() + " entries), " +
-            "dependencyIndex=(" + dependencyIndex.length + " indices)" +
+            "dependencyIndex=(" + dependencyIndex.size() + " indices)" +
             "]";
     }
 }

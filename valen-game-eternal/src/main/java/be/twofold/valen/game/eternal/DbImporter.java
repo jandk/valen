@@ -162,8 +162,8 @@ final class DbImporter {
     }
 
     private ResourceEntity mapResource(Resources resources, ResourcesEntry entry) {
-        var name = resources.pathStrings().get(resources.pathStringIndex()[entry.strings() + 1]);
-        var type = resources.pathStrings().get(resources.pathStringIndex()[entry.strings()]);
+        var name = resources.pathStrings().get(resources.pathStringIndex().getInt(entry.strings() + 1));
+        var type = resources.pathStrings().get(resources.pathStringIndex().getInt(entry.strings()));
         var variation = ResourceVariation.fromValue(entry.variation()).name();
         var offset = entry.dataOffset();
         var size = entry.dataSize();

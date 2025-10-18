@@ -1,14 +1,15 @@
 package be.twofold.valen.game.eternal.reader.md6anim;
 
 import be.twofold.valen.core.util.*;
+import be.twofold.valen.core.util.collect.*;
 
 import java.util.*;
 
 public final class Bits {
-    private final byte[] bytes;
+    private final Bytes bytes;
 
-    public Bits(byte[] bytes) {
-        this.bytes = Arrays.copyOf(bytes, bytes.length);
+    public Bits(Bytes bytes) {
+        this.bytes = Objects.requireNonNull(bytes);
     }
 
     public boolean get(int index) {
@@ -16,17 +17,17 @@ public final class Bits {
 
         int byteIndex = index >> 3;
         int bitIndex = 0x80 >> (index & 7);
-        return (bytes[byteIndex] & bitIndex) != 0;
+        return (bytes.getByte(byteIndex) & bitIndex) != 0;
     }
 
     public int size() {
-        return bytes.length * 8;
+        return bytes.size() * 8;
     }
 
     public int cardinality() {
         int count = 0;
-        for (byte b : bytes) {
-            count += Integer.bitCount(Byte.toUnsignedInt(b));
+        for (int i = 0; i < bytes.size(); i++) {
+            count += Integer.bitCount(Byte.toUnsignedInt(bytes.getByte(i)));
         }
         return count;
     }
@@ -34,11 +35,11 @@ public final class Bits {
     @Override
     public boolean equals(Object obj) {
         return obj instanceof Bits other
-               && Arrays.equals(bytes, other.bytes);
+            && bytes.equals(other.bytes);
     }
 
     @Override
     public int hashCode() {
-        return Arrays.hashCode(bytes);
+        return bytes.hashCode();
     }
 }

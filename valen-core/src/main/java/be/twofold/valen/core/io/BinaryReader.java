@@ -53,10 +53,6 @@ public interface BinaryReader extends Closeable {
         return buffer;
     }
 
-    default Bytes readBytesStruct(int len) throws IOException {
-        return Bytes.from(readBuffer(len));
-    }
-
     default byte[] readBytes(int len) throws IOException {
         return Buffers.toArray(readBuffer(len));
     }
@@ -142,6 +138,36 @@ public interface BinaryReader extends Closeable {
         }
         return result;
     }
+
+
+    default Bytes readBytesStruct(int len) throws IOException {
+        return Bytes.from(readBuffer(len));
+    }
+
+    default Shorts readShortsStruct(int len) throws IOException {
+        return Shorts.wrap(readShorts(len));
+    }
+
+    default Ints readIntsStruct(int len) throws IOException {
+        return Ints.wrap(readInts(len));
+    }
+
+    default Longs readLongsStruct(int len) throws IOException {
+        return Longs.wrap(readLongs(len));
+    }
+
+    default Ints readLongsAsIntsStruct(int len) throws IOException {
+        return Ints.wrap(readLongsAsInts(len));
+    }
+
+    default Floats readFloatsStruct(int len) throws IOException {
+        return Floats.wrap(readFloats(len));
+    }
+
+    default Doubles readDoublesStruct(int len) throws IOException {
+        return Doubles.wrap(readDoubles(len));
+    }
+
 
     default String readString(int length) throws IOException {
         return StandardCharsets.UTF_8.decode(readBuffer(length)).toString();

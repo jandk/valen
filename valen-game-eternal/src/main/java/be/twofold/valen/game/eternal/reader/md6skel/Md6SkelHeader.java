@@ -1,6 +1,7 @@
 package be.twofold.valen.game.eternal.reader.md6skel;
 
-import be.twofold.valen.core.io.BinaryReader;
+import be.twofold.valen.core.io.*;
+import be.twofold.valen.core.util.collect.*;
 
 import java.io.*;
 
@@ -15,11 +16,11 @@ public record Md6SkelHeader(
     short lastChildTblOffset,
     short jointHandleTblOffset,
     short userChannelHandleTblOffset,
-    short[] jointWeightOffsets,
-    short[] userWeightOffsets,
+    Shorts jointWeightOffsets,
+    Shorts userWeightOffsets,
     short extraJointTblOffset,
     short loadedDataSize,
-    byte[] pad
+    Bytes pad
 ) {
     public static Md6SkelHeader read(BinaryReader reader) throws IOException {
         reader.skip(4); // These are a copy of the compressedSize
@@ -33,12 +34,12 @@ public record Md6SkelHeader(
         var lastChildTblOffset = reader.readShort();
         var jointHandleTblOffset = reader.readShort();
         var userChannelHandleTblOffset = reader.readShort();
-        var jointWeightOffsets = reader.readShorts(8);
-        var userWeightOffsets = reader.readShorts(8);
+        var jointWeightOffsets = reader.readShortsStruct(8);
+        var userWeightOffsets = reader.readShortsStruct(8);
         var extraJointTblOffset = reader.readShort();
         reader.expectShort((short) 0); // skelRemapTblOffset
         var loadedDataSize = reader.readShort();
-        var pad = reader.readBytes(6);
+        var pad = reader.readBytesStruct(6);
 
         return new Md6SkelHeader(
             size,

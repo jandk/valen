@@ -2,6 +2,7 @@ package be.twofold.valen.game.eternal.reader.lightdb;
 
 import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.util.*;
+import be.twofold.valen.core.util.collect.*;
 import be.twofold.valen.game.eternal.reader.image.*;
 import be.twofold.valen.game.eternal.reader.streamdb.*;
 
@@ -11,12 +12,12 @@ import java.util.*;
 public record LightDb(
     LightDbHeader header,
     List<LightDbIndexEntry> indexEntries,
-    long[] hashes,
-    int[] hashIds,
+    Longs hashes,
+    Ints hashIds,
     List<LightDbImageHeader> imageHeaders,
     List<Image> images,
     List<LightDbNameGroup> nameGroups,
-    int[] unknownInts,
+    Ints unknownInts,
     List<LightDbPart1> parts1,
     List<LightDbPart2> parts2,
     StreamDb streamDb
@@ -28,8 +29,8 @@ public record LightDb(
         var indexEntries = reader.readObjects(header.hashLength(), LightDbIndexEntry::read);
 
         reader.expectPosition(header.hashOffset());
-        var hashes = reader.readLongs(header.hashLength());
-        var hashIds = reader.readInts(header.hashLength());
+        var hashes = reader.readLongsStruct(header.hashLength());
+        var hashIds = reader.readIntsStruct(header.hashLength());
 
         reader.expectPosition(header.imageOffset());
         var imageHeaders = new ArrayList<LightDbImageHeader>();
@@ -44,7 +45,7 @@ public record LightDb(
         Check.state(nameGroupMagic == 0x758ac962 || nameGroupMagic == 0x758ac961, "Invalid name group magic");
         var nameGroups = reader.readObjects(reader.readInt(), LightDbNameGroup::read);
 
-        var unknownInts = reader.readInts(6);
+        var unknownInts = reader.readIntsStruct(6);
         var numParts1 = reader.readInt();
         var numParts2 = reader.readInt();
         reader.expectInt(0);
