@@ -13,7 +13,7 @@ final class XXHashGenerator {
         MutableBytes bytes = MutableBytes.allocate(length);
         long byteGen = PRIME32;
         for (int i = 0; i < length; i++) {
-            bytes.set(i, (byte) (byteGen >> 56));
+            bytes.setByte(i, (byte) (byteGen >> 56));
             byteGen *= PRIME64;
         }
         return bytes;
