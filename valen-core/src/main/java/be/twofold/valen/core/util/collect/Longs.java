@@ -9,7 +9,7 @@ import java.util.*;
 @Debug.Renderer(
     childrenArray = "java.util.Arrays.copyOfRange(array, fromIndex, toIndex)"
 )
-public class Longs implements Comparable<Longs>, RandomAccess {
+public class Longs implements Comparable<Longs>, WrappedArray {
     private static final Longs EMPTY = wrap(new long[0]);
 
     final long[] array;
@@ -47,6 +47,7 @@ public class Longs implements Comparable<Longs>, RandomAccess {
         return array[fromIndex + index];
     }
 
+    @Override
     public LongBuffer asBuffer() {
         return LongBuffer.wrap(array, fromIndex, size()).asReadOnlyBuffer();
     }
@@ -64,6 +65,7 @@ public class Longs implements Comparable<Longs>, RandomAccess {
         return new Longs(array, this.fromIndex + fromIndex, this.fromIndex + toIndex);
     }
 
+    @Override
     public int size() {
         return toIndex - fromIndex;
     }

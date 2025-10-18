@@ -3,8 +3,8 @@ package be.twofold.valen.core.export;
 import be.twofold.valen.core.geometry.*;
 import be.twofold.valen.core.math.*;
 import be.twofold.valen.core.util.*;
+import be.twofold.valen.core.util.collect.*;
 
-import java.nio.*;
 import java.util.*;
 
 final class MeshBuilder {
@@ -65,10 +65,10 @@ final class MeshBuilder {
     }
 
     Mesh build() {
-        var indexBuffer = new VertexBuffer<>(IntBuffer.wrap(indices, 0, indexSize), VertexBufferInfo.indices(ComponentType.UNSIGNED_INT));
-        var positionBuffer = new VertexBuffer<>(FloatBuffer.wrap(positions, 0, vertexSize * 3), VertexBufferInfo.POSITION);
-        var texCoordBuffer = new VertexBuffer<>(FloatBuffer.wrap(texCoords, 0, vertexSize * 2), VertexBufferInfo.TEX_COORDS);
-        var normalBuffer = new VertexBuffer<>(FloatBuffer.wrap(normals, 0, vertexSize * 3), VertexBufferInfo.NORMAL);
+        var indexBuffer = new VertexBuffer<>(MutableInts.wrap(indices, 0, indexSize), VertexBufferInfo.indices(ComponentType.UNSIGNED_INT));
+        var positionBuffer = new VertexBuffer<>(MutableFloats.wrap(positions, 0, vertexSize * 3), VertexBufferInfo.POSITION);
+        var texCoordBuffer = new VertexBuffer<>(MutableFloats.wrap(texCoords, 0, vertexSize * 2), VertexBufferInfo.TEX_COORDS);
+        var normalBuffer = new VertexBuffer<>(MutableFloats.wrap(normals, 0, vertexSize * 3), VertexBufferInfo.NORMAL);
         return new Mesh(indexBuffer, List.of(positionBuffer, texCoordBuffer, normalBuffer));
     }
 

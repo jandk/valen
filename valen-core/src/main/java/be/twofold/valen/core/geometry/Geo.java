@@ -1,9 +1,9 @@
 package be.twofold.valen.core.geometry;
 
 import be.twofold.valen.core.io.*;
+import be.twofold.valen.core.util.collect.*;
 
 import java.io.*;
-import java.nio.*;
 import java.util.*;
 
 public final class Geo {
@@ -39,51 +39,50 @@ public final class Geo {
         return new Mesh(indexBuffer, vertexBuffers);
     }
 
-    private <T extends Buffer> VertexBuffer<T> readBuffer(BinaryReader reader, GeoAccessor<T> accessor, int count) throws IOException {
+    private <T extends WrappedArray> VertexBuffer<T> readBuffer(BinaryReader reader, GeoAccessor<T> accessor, int count) throws IOException {
         var capacity = count * accessor.info().size();
         var buffer = accessor.info().componentType().allocate(capacity);
 
         var start = reader.position() + accessor.offset();
+        var offset = 0;
         for (var i = 0L; i < count; i++) {
             reader.position(start + i * accessor.stride());
-            accessor.reader().read(reader, buffer);
+            offset += accessor.reader().read(reader, buffer, offset);
         }
 
-        buffer.flip();
         return new VertexBuffer<>(buffer, accessor.info());
     }
 
-    private void invertIndices(Buffer buffer) {
-        switch (buffer) {
-            case ByteBuffer bb -> invert(bb);
-            case ShortBuffer sb -> invert(sb);
-            case IntBuffer ib -> invert(ib);
-            default -> throw new UnsupportedOperationException("Unsupported buffer type: " + buffer.getClass());
+    private void invertIndices(Object array) {
+        switch (array) {
+            case MutableBytes bytes -> invert(bytes);
+            case MutableShorts shorts -> invert(shorts);
+            case MutableInts ints -> invert(ints);
+            default -> throw new UnsupportedOperationException("Unsupported array type: " + array.getClass());
         }
     }
 
-    private void invert(ByteBuffer bb) {
-        for (int i = 0, lim = bb.limit(); i < lim; i += 3) {
-            var temp = bb.get(i);
-            bb.put(i, bb.get(i + 2));
-            bb.put(i + 2, temp);
+    private void invert(MutableBytes bytes) {
+        for (int i = 0, lim = bytes.size(); i < lim; i += 3) {
+            var temp = bytes.getByte(i);
+            bytes.setByte(i, bytes.getByte(i + 2));
+            bytes.setByte(i + 2, temp);
         }
     }
 
-    private void invert(ShortBuffer sb) {
-        for (int i = 0, lim = sb.limit(); i < lim; i += 3) {
-            var temp = sb.get(i);
-            sb.put(i, sb.get(i + 2));
-            sb.put(i + 2, temp);
+    private void invert(MutableShorts shorts) {
+        for (int i = 0, lim = shorts.size(); i < lim; i += 3) {
+            var temp = shorts.getShort(i);
+            shorts.setShort(i, shorts.getShort(i + 2));
+            shorts.setShort(i + 2, temp);
         }
     }
 
-    private void invert(IntBuffer ib) {
-        for (int i = 0, lim = ib.limit(); i < lim; i += 3) {
-            var temp = ib.get(i);
-            ib.put(i, ib.get(i + 2));
-            ib.put(i + 2, temp);
+    private void invert(MutableInts ints) {
+        for (int i = 0, lim = ints.size(); i < lim; i += 3) {
+            var temp = ints.getInt(i);
+            ints.setInt(i, ints.getInt(i + 2));
+            ints.setInt(i + 2, temp);
         }
     }
-
 }

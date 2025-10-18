@@ -9,7 +9,7 @@ import java.util.*;
 @Debug.Renderer(
     childrenArray = "java.util.Arrays.copyOfRange(array, fromIndex, toIndex)"
 )
-public class Ints implements Comparable<Ints>, RandomAccess {
+public class Ints implements Comparable<Ints>, WrappedArray {
     private static final Ints EMPTY = wrap(new int[0]);
 
     final int[] array;
@@ -47,6 +47,7 @@ public class Ints implements Comparable<Ints>, RandomAccess {
         return array[fromIndex + index];
     }
 
+    @Override
     public IntBuffer asBuffer() {
         return IntBuffer.wrap(array, fromIndex, size()).asReadOnlyBuffer();
     }
@@ -64,6 +65,7 @@ public class Ints implements Comparable<Ints>, RandomAccess {
         return new Ints(array, this.fromIndex + fromIndex, this.fromIndex + toIndex);
     }
 
+    @Override
     public int size() {
         return toIndex - fromIndex;
     }

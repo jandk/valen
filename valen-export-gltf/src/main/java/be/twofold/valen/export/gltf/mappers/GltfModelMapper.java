@@ -2,6 +2,7 @@ package be.twofold.valen.export.gltf.mappers;
 
 import be.twofold.valen.core.geometry.*;
 import be.twofold.valen.core.math.*;
+import be.twofold.valen.core.util.collect.*;
 import be.twofold.valen.format.gltf.*;
 import be.twofold.valen.format.gltf.model.accessor.*;
 import be.twofold.valen.format.gltf.model.bufferview.*;
@@ -51,8 +52,8 @@ public abstract class GltfModelMapper {
                 case COLOR -> {
                     // TODO: Make Blender ignore vertex colors
                 }
-                case JOINTS -> splitJoints((VertexBuffer<ShortBuffer>) vertexBuffer, attributes);
-                case WEIGHTS -> splitWeights((VertexBuffer<FloatBuffer>) vertexBuffer, attributes);
+                case JOINTS -> splitJoints((VertexBuffer<Shorts>) vertexBuffer, attributes);
+                case WEIGHTS -> splitWeights((VertexBuffer<Floats>) vertexBuffer, attributes);
                 default -> {
                     var semanticString = mapSemantic(semantic);
                     var accessorID = buildAccessor(vertexBuffer, semantic);
@@ -77,18 +78,18 @@ public abstract class GltfModelMapper {
         return Optional.of(meshPrimitive);
     }
 
-    private void splitJoints(VertexBuffer<ShortBuffer> vertexBuffer, Map<String, AccessorID> attributes) throws IOException {
+    private void splitJoints(VertexBuffer<Shorts> vertexBuffer, Map<String, AccessorID> attributes) throws IOException {
         int numBuffers = (vertexBuffer.info().size() + 3) / 4;
         for (int b = 0; b < numBuffers; b++) {
             var offset = b * 4;
             var values = Math.min(4, vertexBuffer.info().size() - offset);
-            var joints = ShortBuffer.allocate(vertexBuffer.count() * 4);
-            for (int i = offset, o = 0; i < vertexBuffer.buffer().limit(); i += vertexBuffer.info().size(), o += 4) {
+            var joints = MutableShorts.allocate(vertexBuffer.count() * 4);
+            for (int i = offset, o = 0; i < vertexBuffer.buffer().size(); i += vertexBuffer.info().size(), o += 4) {
                 for (int j = 0; j < values; j++) {
-                    joints.put(o + j, vertexBuffer.buffer().get(i + j));
+                    joints.setShort(o + j, vertexBuffer.buffer().getShort(i + j));
                 }
                 for (int j = values; j < 4; j++) {
-                    joints.put(o + j, (short) 0);
+                    joints.setShort(o + j, (short) 0);
                 }
             }
 
@@ -99,18 +100,18 @@ public abstract class GltfModelMapper {
         }
     }
 
-    private void splitWeights(VertexBuffer<FloatBuffer> vertexBuffer, Map<String, AccessorID> attributes) throws IOException {
+    private void splitWeights(VertexBuffer<Floats> vertexBuffer, Map<String, AccessorID> attributes) throws IOException {
         int numBuffers = (vertexBuffer.info().size() + 3) / 4;
         for (int b = 0; b < numBuffers; b++) {
             var offset = b * 4;
             var values = Math.min(4, vertexBuffer.info().size() - offset);
-            var weights = FloatBuffer.allocate(vertexBuffer.count() * 4);
-            for (int i = offset, o = 0; i < vertexBuffer.buffer().limit(); i += vertexBuffer.info().size(), o += 4) {
+            var weights = MutableFloats.allocate(vertexBuffer.count() * 4);
+            for (int i = offset, o = 0; i < vertexBuffer.buffer().size(); i += vertexBuffer.info().size(), o += 4) {
                 for (int j = 0; j < values; j++) {
-                    weights.put(o + j, vertexBuffer.buffer().get(i + j));
+                    weights.setFloat(o + j, vertexBuffer.buffer().getFloat(i + j));
                 }
                 for (int j = values; j < 4; j++) {
-                    weights.put(o + j, (short) 0);
+                    weights.setFloat(o + j, (short) 0);
                 }
             }
 
@@ -162,16 +163,16 @@ public abstract class GltfModelMapper {
             ? BufferViewTarget.ELEMENT_ARRAY_BUFFER
             : BufferViewTarget.ARRAY_BUFFER;
 
-        var bufferView = context.createBufferView(buffer.buffer(), target);
+        var bufferView = context.createBufferView(buffer.buffer().asBuffer(), target);
 
         var accessor = ImmutableAccessor.builder()
             .bufferView(bufferView)
-            .componentType(mapComponentType(buffer.buffer()))
+            .componentType(mapComponentType(buffer.buffer().asBuffer()))
             .count(buffer.count())
             .type(mapAccessorType(buffer.info().semantic()));
 
         if (semantic == Semantic.POSITION) {
-            var bounds = Bounds.calculate((FloatBuffer) buffer.buffer());
+            var bounds = Bounds.calculate((FloatBuffer) buffer.buffer().asBuffer());
             accessor
                 .min(GltfUtils.mapVector3(bounds.min()))
                 .max(GltfUtils.mapVector3(bounds.max()));
@@ -186,18 +187,18 @@ public abstract class GltfModelMapper {
 
     private boolean isNormalized(VertexBuffer<?> accessor) {
         return NORMALIZED.contains(accessor.info().semantic())
-            && (accessor.buffer() instanceof ByteBuffer || accessor.buffer() instanceof ShortBuffer);
+            && (accessor.buffer() instanceof Bytes || accessor.buffer() instanceof Shorts);
     }
 
     void fixJointsAndWeights(Mesh mesh) {
         // TODO: Loop over joints and weights and fix them
         mesh.getBuffer(Semantic.JOINTS).ifPresent(joints -> mesh
             .getBuffer(Semantic.WEIGHTS).ifPresent(weights -> {
-                var jb = (ShortBuffer) joints.buffer();
-                var wb = (FloatBuffer) weights.buffer();
-                for (var i = 0; i < jb.limit(); i++) {
-                    if (wb.get(i) == 0) {
-                        jb.put(i, (short) 0);
+                var jb = (MutableShorts) joints.buffer();
+                var wb = (MutableFloats) weights.buffer();
+                for (var i = 0; i < jb.size(); i++) {
+                    if (wb.getFloat(i) == 0) {
+                        jb.setShort(i, (short) 0);
                     }
                 }
             }));

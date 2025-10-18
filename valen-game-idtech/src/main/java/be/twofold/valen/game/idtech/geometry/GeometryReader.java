@@ -27,7 +27,7 @@ public final class GeometryReader {
 
         offset += stride * (lodInfo.numVertices() - 1);
         var faceInfo = new VertexBufferInfo<>(null, ComponentType.UNSIGNED_SHORT, 3);
-        var faceAccessor = new GeoAccessor<>(offset, Short.BYTES, faceInfo, Geometry.readFaceIndex());
+        var faceAccessor = new GeoAccessor<>(offset, Short.BYTES, faceInfo, GeoReader.readFaceIndex());
 
         return new Geo(true)
             .readMesh(reader, faceAccessor, lodInfo.numFaces() * 3, vertexAccessors, lodInfo.numVertices());
@@ -63,7 +63,7 @@ public final class GeometryReader {
                 }
 
                 var faceInfo = VertexBufferInfo.indices(ComponentType.UNSIGNED_SHORT);
-                var faceAccessor = new GeoAccessor<>(offsets.indexOffset, Short.BYTES, faceInfo, Geometry.readFaceIndex());
+                var faceAccessor = new GeoAccessor<>(offsets.indexOffset, Short.BYTES, faceInfo, GeoReader.readFaceIndex());
                 offsets.indexOffset += lodInfo.numFaces() * 3 * Short.BYTES;
 
                 meshes.add(new Geo(true)
@@ -94,7 +94,7 @@ public final class GeometryReader {
             }
 
             var faceInfo = VertexBufferInfo.indices(ComponentType.UNSIGNED_SHORT);
-            var faceAccessor = new GeoAccessor<>(offset + lodOffset, Short.BYTES, faceInfo, Geometry.readFaceIndex());
+            var faceAccessor = new GeoAccessor<>(offset + lodOffset, Short.BYTES, faceInfo, GeoReader.readFaceIndex());
             lodOffset += lod.numFaces() * 3 * Short.BYTES;
             offset = (offset + lodOffset + 7) & ~7;
 
@@ -127,56 +127,59 @@ public final class GeometryReader {
     private static List<GeoAccessor<?>> buildAccessors(int offset, int stride, GeometryVertexMask mask, LodInfo lodInfo, SkinningMode skinningMode) {
         return switch (mask) {
             case POSITION_SHORT -> List.of(
-                new GeoAccessor<>(offset, stride, VertexBufferInfo.POSITION, Geometry.readPackedPosition(lodInfo.vertexScale(), lodInfo.vertexOffset()))
+                new GeoAccessor<>(offset, stride, VertexBufferInfo.POSITION, GeoReader.readPackedPosition(lodInfo.vertexScale(), lodInfo.vertexOffset()))
             );
             case POSITION -> List.of(
-                new GeoAccessor<>(offset, stride, VertexBufferInfo.POSITION, Geometry.readPosition(lodInfo.vertexScale(), lodInfo.vertexOffset()))
+                new GeoAccessor<>(offset, stride, VertexBufferInfo.POSITION, GeoReader.readPosition(lodInfo.vertexScale(), lodInfo.vertexOffset()))
             );
             case NORMAL_TANGENT -> {
-                var normal = new GeoAccessor<>(offset, stride, VertexBufferInfo.NORMAL, Geometry.readPackedNormal());
-                var tangent = new GeoAccessor<>(offset, stride, VertexBufferInfo.TANGENT, Geometry.readPackedTangent());
+                var normal = new GeoAccessor<>(offset, stride, VertexBufferInfo.NORMAL, GeoReader.readPackedNormal());
+                var tangent = new GeoAccessor<>(offset, stride, VertexBufferInfo.TANGENT, GeoReader.readPackedTangent());
                 var interleaved = switch (skinningMode) {
                     case None -> null;
                     case Fixed4 ->
-                        new GeoAccessor<>(offset, stride, VertexBufferInfo.weights(ComponentType.FLOAT, 4), Geometry.readWeight4(true));
+                        new GeoAccessor<>(offset, stride, VertexBufferInfo.weights(ComponentType.FLOAT, 4), GeoReader.readWeight4(true));
                     case Skinning4 ->
-                        new GeoAccessor<>(offset, stride, VertexBufferInfo.weights(ComponentType.FLOAT, 3), Geometry.readWeight4(false));
+                        new GeoAccessor<>(offset, stride, VertexBufferInfo.weights(ComponentType.FLOAT, 3), GeoReader.readWeight4(false));
                     case Skinning1 ->
-                        new GeoAccessor<>(offset, stride, VertexBufferInfo.joints(ComponentType.UNSIGNED_SHORT, 1), Geometry.readBone1());
+                        new GeoAccessor<>(offset, stride, VertexBufferInfo.joints(ComponentType.UNSIGNED_SHORT, 1), GeoReader.readBone1());
                     case Skinning6 ->
-                        new GeoAccessor<>(offset, stride, VertexBufferInfo.weights(ComponentType.FLOAT, 3), Geometry.readWeight6());
+                        new GeoAccessor<>(offset, stride, VertexBufferInfo.weights(ComponentType.FLOAT, 3), GeoReader.readWeight6());
                     case Skinning8 ->
-                        new GeoAccessor<>(offset, stride, VertexBufferInfo.weights(ComponentType.FLOAT, 3), Geometry.readWeight8());
+                        new GeoAccessor<>(offset, stride, VertexBufferInfo.weights(ComponentType.FLOAT, 3), GeoReader.readWeight8());
                 };
                 yield interleaved != null ? List.of(normal, tangent, interleaved) : List.of(normal, tangent);
             }
             case MATERIAL_UV, MATERIAL_UV1, LIGHTMAP_UV, MATERIAL_UV2 -> List.of(
-                new GeoAccessor<>(offset, stride, VertexBufferInfo.TEX_COORDS, Geometry.readUV(lodInfo.uvScale(), lodInfo.uvOffset()))
+                new GeoAccessor<>(offset, stride, VertexBufferInfo.TEX_COORDS, GeoReader.readUV(lodInfo.uvScale(), lodInfo.uvOffset()))
             );
             case MATERIAL_UV_SHORT, MATERIAL_UV1_SHORT, LIGHTMAP_UV_SHORT, MATERIAL_UV2_SHORT -> List.of(
-                new GeoAccessor<>(offset, stride, VertexBufferInfo.TEX_COORDS, Geometry.readPackedUV(lodInfo.uvScale(), lodInfo.uvOffset()))
+                new GeoAccessor<>(offset, stride, VertexBufferInfo.TEX_COORDS, GeoReader.readPackedUV(lodInfo.uvScale(), lodInfo.uvOffset()))
             );
             case COLOR -> List.of(
                 switch (skinningMode) {
                     case Fixed4 ->
-                        new GeoAccessor<>(offset, stride, VertexBufferInfo.joints(ComponentType.UNSIGNED_SHORT, 4), Geometry.copyBytesAsShorts(4));
+                        new GeoAccessor<>(offset, stride, VertexBufferInfo.joints(ComponentType.UNSIGNED_SHORT, 4), GeoReader.copyBytesAsShorts(4));
                     default ->
-                        new GeoAccessor<>(offset, stride, VertexBufferInfo.colors(ComponentType.UNSIGNED_BYTE), Geometry.copyBytes(4));
+                        new GeoAccessor<>(offset, stride, VertexBufferInfo.colors(ComponentType.UNSIGNED_BYTE), GeoReader.copyBytes(4));
                 }
             );
             case SKINNING_1 -> skinningMode != SkinningMode.None ? List.of(
-                new GeoAccessor<>(offset, stride, VertexBufferInfo.weights(ComponentType.FLOAT, 1), (_, dst) -> dst.put(1.0f))
+                new GeoAccessor<>(offset, stride, VertexBufferInfo.weights(ComponentType.FLOAT, 1), (_, dst, offset0) -> {
+                    dst.setFloat(offset0, 1.0f);
+                    return 1;
+                })
             ) : List.of();
             case SKINNING_4 -> List.of(
-                new GeoAccessor<>(offset, stride, VertexBufferInfo.joints(ComponentType.UNSIGNED_SHORT, 4), Geometry.copyBytesAsShorts(4))
+                new GeoAccessor<>(offset, stride, VertexBufferInfo.joints(ComponentType.UNSIGNED_SHORT, 4), GeoReader.copyBytesAsShorts(4))
             );
             case SKINNING_6 -> List.of(
-                new GeoAccessor<>(offset, stride, VertexBufferInfo.joints(ComponentType.UNSIGNED_SHORT, 6), Geometry.copyBytesAsShorts(6)),
-                new GeoAccessor<>(offset + 6, stride, VertexBufferInfo.weights(ComponentType.FLOAT, 2), Geometry.copyBytesAsFloats(2))
+                new GeoAccessor<>(offset, stride, VertexBufferInfo.joints(ComponentType.UNSIGNED_SHORT, 6), GeoReader.copyBytesAsShorts(6)),
+                new GeoAccessor<>(offset + 6, stride, VertexBufferInfo.weights(ComponentType.FLOAT, 2), GeoReader.copyBytesAsFloats(2))
             );
             case SKINNING_8 -> List.of(
-                new GeoAccessor<>(offset, stride, VertexBufferInfo.joints(ComponentType.UNSIGNED_SHORT, 8), Geometry.copyBytesAsShorts(8)),
-                new GeoAccessor<>(offset + 8, stride, VertexBufferInfo.weights(ComponentType.FLOAT, 4), Geometry.copyBytesAsFloats(4))
+                new GeoAccessor<>(offset, stride, VertexBufferInfo.joints(ComponentType.UNSIGNED_SHORT, 8), GeoReader.copyBytesAsShorts(8)),
+                new GeoAccessor<>(offset + 8, stride, VertexBufferInfo.weights(ComponentType.FLOAT, 4), GeoReader.copyBytesAsFloats(4))
             );
         };
     }

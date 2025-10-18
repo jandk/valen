@@ -2,6 +2,7 @@ package be.twofold.valen.core.geometry;
 
 import be.twofold.valen.core.material.*;
 import be.twofold.valen.core.util.*;
+import be.twofold.valen.core.util.collect.*;
 
 import java.util.*;
 
@@ -23,6 +24,22 @@ public record Mesh(
 
     public Optional<VertexBuffer<?>> getBuffer(Semantic semantic) {
         return getBuffers(semantic).stream().findFirst();
+    }
+
+    public VertexBuffer<Floats> getPositions() {
+        return (VertexBuffer<Floats>) getBuffer(Semantic.POSITION).orElseThrow();
+    }
+
+    public Optional<VertexBuffer<Floats>> getNormals() {
+        return getBuffer(Semantic.NORMAL).map(vb -> (VertexBuffer<Floats>) vb);
+    }
+
+    public Optional<VertexBuffer<Floats>> getTangents() {
+        return getBuffer(Semantic.TANGENT).map(vb -> (VertexBuffer<Floats>) vb);
+    }
+
+    public Optional<VertexBuffer<Floats>> getTexCoords() {
+        return getBuffer(Semantic.TEX_COORD).map(vb -> (VertexBuffer<Floats>) vb);
     }
 
     public List<VertexBuffer<?>> getBuffers(Semantic semantic) {

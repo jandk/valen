@@ -9,7 +9,7 @@ import java.util.*;
 @Debug.Renderer(
     childrenArray = "java.util.Arrays.copyOfRange(array, fromIndex, toIndex)"
 )
-public class Bytes implements Comparable<Bytes>, RandomAccess {
+public class Bytes implements Comparable<Bytes>, WrappedArray {
     private static final Bytes EMPTY = wrap(new byte[0]);
 
     final byte[] array;
@@ -84,6 +84,7 @@ public class Bytes implements Comparable<Bytes>, RandomAccess {
         return Integer.toUnsignedLong(getInt(offset));
     }
 
+    @Override
     public ByteBuffer asBuffer() {
         return ByteBuffer.wrap(array, fromIndex, size()).asReadOnlyBuffer();
     }
@@ -101,6 +102,7 @@ public class Bytes implements Comparable<Bytes>, RandomAccess {
         return new Bytes(array, this.fromIndex + fromIndex, this.fromIndex + toIndex);
     }
 
+    @Override
     public int size() {
         return toIndex - fromIndex;
     }

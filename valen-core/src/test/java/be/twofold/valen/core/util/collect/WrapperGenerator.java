@@ -14,12 +14,29 @@ final class WrapperGenerator {
     public static final ClassName BYTE_ARRAYS_CLASS = ClassName.get("be.twofold.valen.core.util", "ByteArrays");
 
     public static void main(String[] args) throws IOException {
+        generateInterface();
         generate("Bytes", byte.class, Byte.class, ByteBuffer.class, true);
         generate("Shorts", short.class, Short.class, ShortBuffer.class, false);
         generate("Ints", int.class, Integer.class, IntBuffer.class, false);
         generate("Longs", long.class, Long.class, LongBuffer.class, false);
         generate("Floats", float.class, Float.class, FloatBuffer.class, false);
         generate("Doubles", double.class, Double.class, DoubleBuffer.class, false);
+    }
+
+    private static void generateInterface() throws IOException {
+        var typeSpec = TypeSpec.interfaceBuilder("WrappedArray")
+            .addModifiers(Modifier.PUBLIC)
+            .addMethod(MethodSpec.methodBuilder("size")
+                .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
+                .returns(int.class)
+                .build())
+            .addMethod(MethodSpec.methodBuilder("asBuffer")
+                .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
+                .returns(Buffer.class)
+                .build())
+            .build();
+
+        writeClass(typeSpec);
     }
 
     private static void generate(
@@ -47,7 +64,7 @@ final class WrapperGenerator {
         var builder = TypeSpec.classBuilder(className)
             .addModifiers(Modifier.PUBLIC)
             .addSuperinterface(ParameterizedTypeName.get(ClassName.get(Comparable.class), thisType))
-            .addSuperinterface(RandomAccess.class)
+            .addSuperinterface(ClassName.get("", "WrappedArray"))
             .addAnnotation(AnnotationSpec.builder(Debug.Renderer.class)
                 .addMember("childrenArray", "$S", "java.util.Arrays.copyOfRange(array, fromIndex, toIndex)")
                 .build());
@@ -121,6 +138,7 @@ final class WrapperGenerator {
 
         // asBuffer method
         builder.addMethod(MethodSpec.methodBuilder("asBuffer")
+            .addAnnotation(Override.class)
             .addModifiers(Modifier.PUBLIC)
             .returns(bufferClass)
             .addStatement("return $T.wrap(array, fromIndex, size()).asReadOnlyBuffer()", bufferClass)
@@ -153,6 +171,7 @@ final class WrapperGenerator {
     ) {
         // size method
         builder.addMethod(MethodSpec.methodBuilder("size")
+            .addAnnotation(Override.class)
             .addModifiers(Modifier.PUBLIC)
             .returns(int.class)
             .addStatement("return toIndex - fromIndex")

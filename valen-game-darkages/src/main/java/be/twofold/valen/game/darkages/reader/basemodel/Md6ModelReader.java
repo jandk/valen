@@ -4,6 +4,7 @@ import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.geometry.*;
 import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.math.*;
+import be.twofold.valen.core.util.collect.*;
 import be.twofold.valen.game.darkages.*;
 import be.twofold.valen.game.darkages.reader.*;
 import be.twofold.valen.game.darkages.reader.geometry.*;
@@ -11,7 +12,6 @@ import be.twofold.valen.game.darkages.reader.resources.*;
 import be.twofold.valen.game.idtech.geometry.*;
 
 import java.io.*;
-import java.nio.*;
 import java.util.*;
 import java.util.stream.*;
 
@@ -90,27 +90,27 @@ public final class Md6ModelReader implements AssetReader<Model, DarkAgesAsset> {
             .sum() + 1;
 
         int count = weightBuffers.getFirst().count();
-        var joints = (ShortBuffer) mesh.getBuffer(Semantic.JOINTS).orElseThrow().buffer();
+        var joints = (MutableShorts) mesh.getBuffer(Semantic.JOINTS).orElseThrow().buffer();
         if (influence != realInfluence) {
-            for (int i = 0, o = 0, lim = joints.limit(); i < lim; i += influence, o += realInfluence) {
+            for (int i = 0, o = 0, lim = joints.size(); i < lim; i += influence, o += realInfluence) {
                 for (int j = 0; j < realInfluence; j++) {
-                    joints.put(o + j, joints.get(i + j));
+                    joints.setShort(o + j, joints.getShort(i + j));
                 }
             }
-            joints.limit(count * realInfluence);
+            joints.slice(0, count * realInfluence);
         }
 
-        var buffer1 = (FloatBuffer) weightBuffers.getFirst().buffer();
-        var buffer2 = (FloatBuffer) weightBuffers.getLast().buffer();
-        var weights = FloatBuffer.allocate(realInfluence * count);
+        var buffer1 = (Floats) weightBuffers.getFirst().buffer();
+        var buffer2 = (Floats) weightBuffers.getLast().buffer();
+        var weights = MutableFloats.allocate(realInfluence * count);
 
         var localInfluence = new float[realInfluence];
-        for (int c = 0; c < count; c++) {
+        for (int c = 0, i1 = 0, i2 = 0, o = 0; c < count; c++) {
             for (int i = 1; i < influence - 3; i++) {
-                localInfluence[i] = buffer2.get();
+                localInfluence[i] = buffer2.getFloat(i2++);
             }
             for (int i = influence - 3; i < realInfluence; i++) {
-                localInfluence[i] = buffer1.get();
+                localInfluence[i] = buffer1.getFloat(i1++);
             }
             float weight = 1.0f;
             for (int i = 1; i < realInfluence; i++) {
@@ -118,14 +118,15 @@ public final class Md6ModelReader implements AssetReader<Model, DarkAgesAsset> {
             }
             localInfluence[0] = weight;
 
-            weights.put(localInfluence);
+            Floats.wrap(localInfluence).copyTo(weights, o);
+            o += localInfluence.length;
         }
 
         var vertexBuffers = mesh.vertexBuffers().stream()
             .filter(vb -> vb.info().semantic() != Semantic.JOINTS && vb.info().semantic() != Semantic.WEIGHTS)
             .collect(Collectors.toList());
         vertexBuffers.add(new VertexBuffer<>(joints, VertexBufferInfo.joints(ComponentType.UNSIGNED_SHORT, realInfluence)));
-        vertexBuffers.add(new VertexBuffer<>(weights.flip(), VertexBufferInfo.weights(ComponentType.FLOAT, realInfluence)));
+        vertexBuffers.add(new VertexBuffer<>(weights, VertexBufferInfo.weights(ComponentType.FLOAT, realInfluence)));
         return mesh.withVertexBuffers(vertexBuffers);
     }
 
@@ -137,13 +138,13 @@ public final class Md6ModelReader implements AssetReader<Model, DarkAgesAsset> {
         for (var i = 0; i < meshes.size(); i++) {
             var meshInfo = md6.meshInfos().get(i);
             var offset = meshInfo.lodInfos().getFirst().unknown4();
-            var buffer = meshes.get(i)
+            var shorts = meshes.get(i)
                 .getBuffer(Semantic.JOINTS)
-                .map(vb -> (ShortBuffer) vb.buffer())
+                .map(vb -> (MutableShorts) vb.buffer())
                 .orElseThrow();
 
-            for (var j = 0; j < buffer.limit(); j++) {
-                var index0 = Short.toUnsignedInt(buffer.get(j));
+            for (var j = 0; j < shorts.size(); j++) {
+                var index0 = Short.toUnsignedInt(shorts.getShort(j));
                 var index1 = index0 + offset;
                 short index2;
                 if (index1 < skinnedJointsLen8) {
@@ -156,7 +157,7 @@ public final class Md6ModelReader implements AssetReader<Model, DarkAgesAsset> {
                         index2 = skinnedJoints[extraJoints[index11 - skinnedJointsLen8]];
                     }
                 }
-                buffer.put(j, index2);
+                shorts.setShort(j, index2);
             }
         }
     }

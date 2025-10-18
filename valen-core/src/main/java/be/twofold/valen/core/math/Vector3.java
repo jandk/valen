@@ -2,6 +2,7 @@ package be.twofold.valen.core.math;
 
 import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.util.*;
+import be.twofold.valen.core.util.collect.*;
 
 import java.io.*;
 import java.nio.*;
@@ -97,6 +98,12 @@ public record Vector3(
         buffer.put(x);
         buffer.put(y);
         buffer.put(z);
+    }
+
+    public void toFloats(MutableFloats floats, int offset) {
+        floats.setFloat(offset/**/, x);
+        floats.setFloat(offset + 1, y);
+        floats.setFloat(offset + 2, z);
     }
 
     public Vector3 map(FloatUnaryOperator operator) {

@@ -1,18 +1,17 @@
 package be.twofold.valen.core.geometry;
 
 import be.twofold.valen.core.util.*;
+import be.twofold.valen.core.util.collect.*;
 
-import java.nio.*;
-
-public record VertexBuffer<T extends Buffer>(
+public record VertexBuffer<T extends WrappedArray>(
     T buffer,
     VertexBufferInfo<T> info
 ) {
     public VertexBuffer {
-        Check.argument(buffer.limit() % info.size() == 0, "buffer.limit() % info.size() != 0");
+        Check.argument(buffer.size() % info.size() == 0, "buffer.size() % info.size() != 0");
     }
 
     public int count() {
-        return buffer.limit() / info.size();
+        return buffer.size() / info.size();
     }
 }

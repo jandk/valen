@@ -30,25 +30,25 @@ public final class CastModelMapper {
     private void mapMesh(CastNode.Model modelNode, Mesh mesh) throws IOException {
         var meshNode = modelNode.createMesh();
         mesh.name().ifPresent(meshNode::setName);
-        meshNode.setFaceBuffer(mesh.indexBuffer().buffer());
-        var positionBuffer = (FloatBuffer) mesh.getBuffer(Semantic.POSITION).orElseThrow().buffer();
+        meshNode.setFaceBuffer(mesh.indexBuffer().buffer().asBuffer());
+        var positionBuffer = mesh.getPositions().buffer().asBuffer();
         meshNode.setVertexPositionBuffer(positionBuffer);
-        mesh.getBuffer(Semantic.NORMAL).ifPresent(buffer -> meshNode.setVertexNormalBuffer((FloatBuffer) buffer.buffer()));
-        mesh.getBuffer(Semantic.TANGENT).ifPresent(buffer -> meshNode.setVertexTangentBuffer(mapTangentBuffer((FloatBuffer) buffer.buffer())));
+        mesh.getNormals().ifPresent(buffer -> meshNode.setVertexNormalBuffer(buffer.buffer().asBuffer()));
+        mesh.getTangents().ifPresent(buffer -> meshNode.setVertexTangentBuffer(mapTangentBuffer(buffer.buffer().asBuffer())));
 
         var colorBuffers = mesh.getBuffers(Semantic.COLOR);
-        colorBuffers.forEach(buffer -> meshNode.addVertexColorBuffer(mapColorBuffer(buffer.buffer())));
+        colorBuffers.forEach(buffer -> meshNode.addVertexColorBuffer(mapColorBuffer(buffer.buffer().asBuffer())));
         meshNode.setColorLayerCount(colorBuffers.size());
 
         var uvBuffers = mesh.getBuffers(Semantic.TEX_COORD);
-        uvBuffers.forEach(buffer -> meshNode.addVertexUVBuffer((FloatBuffer) buffer.buffer()));
+        uvBuffers.forEach(buffer -> meshNode.addVertexUVBuffer((FloatBuffer) buffer.buffer().asBuffer()));
         meshNode.setUVLayerCount(uvBuffers.size());
 
         mesh.getBuffer(Semantic.JOINTS).ifPresent(buffer -> {
             meshNode.setMaximumWeightInfluence(buffer.info().size());
-            meshNode.setVertexWeightBoneBuffer(buffer.buffer());
+            meshNode.setVertexWeightBoneBuffer(buffer.buffer().asBuffer());
         });
-        mesh.getBuffer(Semantic.WEIGHTS).ifPresent(buffer -> meshNode.setVertexWeightValueBuffer((FloatBuffer) buffer.buffer()));
+        mesh.getBuffer(Semantic.WEIGHTS).ifPresent(buffer -> meshNode.setVertexWeightValueBuffer((FloatBuffer) buffer.buffer().asBuffer()));
 
         if (mesh.material().isPresent()) {
             meshNode.setMaterial(materialMapper.map(mesh.material().get(), modelNode));

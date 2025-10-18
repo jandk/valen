@@ -4,6 +4,7 @@ import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.geometry.*;
 import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.math.*;
+import be.twofold.valen.core.util.collect.*;
 import be.twofold.valen.game.greatcircle.*;
 import be.twofold.valen.game.greatcircle.reader.geometry.*;
 import be.twofold.valen.game.greatcircle.resource.*;
@@ -11,7 +12,6 @@ import be.twofold.valen.game.idtech.geometry.*;
 import org.slf4j.*;
 
 import java.io.*;
-import java.nio.*;
 import java.util.*;
 
 public final class Md6MeshReader implements AssetReader<Model, GreatCircleAsset> {
@@ -101,9 +101,9 @@ public final class Md6MeshReader implements AssetReader<Model, GreatCircleAsset>
                 .orElseThrow();
 
             // Just assume it's a byte buffer, because we read it as such
-            var array = ((ShortBuffer) joints.buffer()).array();
-            for (var j = 0; j < array.length; j++) {
-                array[j] = lookup[Short.toUnsignedInt(array[j]) + meshInfo.unknown2()];
+            var shorts = (MutableShorts) joints.buffer();
+            for (var j = 0; j < shorts.size(); j++) {
+                shorts.setShort(j, lookup[Short.toUnsignedInt(shorts.getShort(j)) + meshInfo.unknown2()]);
             }
         }
     }
