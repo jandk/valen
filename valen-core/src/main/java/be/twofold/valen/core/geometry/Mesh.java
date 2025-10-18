@@ -27,7 +27,7 @@ public record Mesh(
     }
 
     public VertexBuffer<Floats> getPositions() {
-        return (VertexBuffer<Floats>) getBuffer(Semantic.POSITION).orElseThrow();
+        return getBuffer(Semantic.POSITION).map(vb -> (VertexBuffer<Floats>) vb).orElseThrow();
     }
 
     public Optional<VertexBuffer<Floats>> getNormals() {
@@ -40,6 +40,14 @@ public record Mesh(
 
     public Optional<VertexBuffer<Floats>> getTexCoords() {
         return getBuffer(Semantic.TEX_COORD).map(vb -> (VertexBuffer<Floats>) vb);
+    }
+
+    public Optional<VertexBuffer<Shorts>> getJoints() {
+        return getBuffer(Semantic.JOINTS).map(vb -> (VertexBuffer<Shorts>) vb);
+    }
+
+    public Optional<VertexBuffer<Floats>> getWeights() {
+        return getBuffer(Semantic.WEIGHTS).map(vb -> (VertexBuffer<Floats>) vb);
     }
 
     public List<VertexBuffer<?>> getBuffers(Semantic semantic) {

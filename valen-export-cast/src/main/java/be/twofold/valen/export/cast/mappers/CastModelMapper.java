@@ -44,11 +44,13 @@ public final class CastModelMapper {
         uvBuffers.forEach(buffer -> meshNode.addVertexUVBuffer((FloatBuffer) buffer.buffer().asBuffer()));
         meshNode.setUVLayerCount(uvBuffers.size());
 
-        mesh.getBuffer(Semantic.JOINTS).ifPresent(buffer -> {
+        mesh.getJoints().ifPresent(buffer -> {
             meshNode.setMaximumWeightInfluence(buffer.info().size());
             meshNode.setVertexWeightBoneBuffer(buffer.buffer().asBuffer());
         });
-        mesh.getBuffer(Semantic.WEIGHTS).ifPresent(buffer -> meshNode.setVertexWeightValueBuffer((FloatBuffer) buffer.buffer().asBuffer()));
+        mesh.getWeights().ifPresent(buffer -> {
+            meshNode.setVertexWeightValueBuffer(buffer.buffer().asBuffer());
+        });
 
         if (mesh.material().isPresent()) {
             meshNode.setMaterial(materialMapper.map(mesh.material().get(), modelNode));
@@ -74,7 +76,7 @@ public final class CastModelMapper {
         return ((ByteBuffer) buffer).asIntBuffer();
     }
 
-    private void buildMorphTargets(CastNode.Model modelNode, CastNode.Mesh meshNode, List<BlendShape> blendShapes) throws IOException {
+    private void buildMorphTargets(CastNode.Model modelNode, CastNode.Mesh meshNode, List<BlendShape> blendShapes) {
         if (blendShapes.isEmpty()) {
             return;
         }
