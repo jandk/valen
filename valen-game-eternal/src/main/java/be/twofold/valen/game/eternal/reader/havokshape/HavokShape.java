@@ -1,6 +1,7 @@
 package be.twofold.valen.game.eternal.reader.havokshape;
 
 import be.twofold.valen.core.io.*;
+import be.twofold.valen.core.util.collect.*;
 
 import java.io.*;
 import java.nio.*;
@@ -35,7 +36,7 @@ public record HavokShape(
     public static void main(String[] args) throws IOException {
         var bytes = Files.readAllBytes(Path.of("D:\\Eternal\\DOOMExtracted\\maps\\game\\hub\\hub\\_combo\\world.hkshape"));
 
-        var shape = HavokShape.read(BinaryReader.fromArray(bytes));
+        var shape = HavokShape.read(BinaryReader.fromBytes(Bytes.wrap(bytes)));
         HkTagFile.read(ByteBuffer.wrap(shape.data()));
     }
 }

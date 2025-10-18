@@ -1,11 +1,11 @@
 package be.twofold.valen.ui.component.rawview;
 
-import java.nio.*;
+import be.twofold.valen.core.util.collect.*;
 
 // TODO: Turn this into a single union type
 public interface RawView {
 
-    void setBinary(ByteBuffer buffer);
+    void setBinary(Bytes bytes);
 
     void setText(String text);
 

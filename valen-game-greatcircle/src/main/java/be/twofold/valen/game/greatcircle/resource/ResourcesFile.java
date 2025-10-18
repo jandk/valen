@@ -4,12 +4,12 @@ import be.twofold.valen.core.compression.*;
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.util.*;
+import be.twofold.valen.core.util.collect.*;
 import be.twofold.valen.game.greatcircle.*;
 import be.twofold.valen.game.greatcircle.reader.resources.*;
 import org.slf4j.*;
 
 import java.io.*;
-import java.nio.*;
 import java.nio.file.*;
 import java.util.*;
 import java.util.function.*;
@@ -76,7 +76,7 @@ public final class ResourcesFile implements Container<GreatCircleAssetID, GreatC
     }
 
     @Override
-    public ByteBuffer read(GreatCircleAssetID key, Integer size) throws IOException {
+    public Bytes read(GreatCircleAssetID key, Integer size) throws IOException {
         var resource = index.get(key);
         Check.state(resource != null, () -> "Resource not found: " + key.name());
 
@@ -90,7 +90,7 @@ public final class ResourcesFile implements Container<GreatCircleAssetID, GreatC
         var compressed = reader
             .readBytesStruct(resource.compressedSize())
             .slice(resource.compression() == ResourceCompressionMode.RES_COMP_MODE_KRAKEN_CHUNKED ? 12 : 0);
-        return decompressor.decompress(compressed, resource.uncompressedSize()).asBuffer();
+        return decompressor.decompress(compressed, resource.uncompressedSize());
     }
 
     @Override

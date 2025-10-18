@@ -59,8 +59,8 @@ public final class DeformModelReader implements AssetReader<Model, GreatCircleAs
         var layouts = deformModel.diskLayouts().get(lod).memoryLayouts();
 
         var identity = (hash << 4) | lod;
-        var buffer = archive.readStream(identity, uncompressedSize);
-        try (var source = BinaryReader.fromBuffer(buffer)) {
+        var bytes = archive.readStream(identity, uncompressedSize);
+        try (var source = BinaryReader.fromBytes(bytes)) {
             return GeometryReader.readStreamedMesh(source, lodInfos, layouts, true);
         }
     }

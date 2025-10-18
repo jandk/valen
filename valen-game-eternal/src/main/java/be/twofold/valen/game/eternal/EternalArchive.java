@@ -4,11 +4,11 @@ import be.twofold.valen.core.compression.*;
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.util.*;
+import be.twofold.valen.core.util.collect.*;
 import be.twofold.valen.game.eternal.reader.binaryfile.*;
 import be.twofold.valen.game.eternal.reader.decl.*;
 import be.twofold.valen.game.eternal.reader.decl.material2.*;
 import be.twofold.valen.game.eternal.reader.decl.renderparm.*;
-import be.twofold.valen.game.eternal.reader.file.*;
 import be.twofold.valen.game.eternal.reader.file.FileReader;
 import be.twofold.valen.game.eternal.reader.filecompressed.*;
 import be.twofold.valen.game.eternal.reader.image.*;
@@ -21,7 +21,6 @@ import be.twofold.valen.game.eternal.reader.staticmodel.*;
 import be.twofold.valen.game.eternal.reader.streamdb.*;
 
 import java.io.*;
-import java.nio.*;
 import java.util.*;
 import java.util.stream.*;
 
@@ -81,11 +80,11 @@ public final class EternalArchive implements Archive<EternalAssetID, EternalAsse
     public <T> T loadAsset(EternalAssetID identifier, Class<T> clazz) throws IOException {
         var asset = get(identifier).orElseThrow(FileNotFoundException::new);
 
-        var buffer = resources.exists(asset.id())
+        var bytes = resources.exists(asset.id())
             ? resources.read(asset.id(), null)
             : common.read(asset.id(), null);
 
-        try (var source = BinaryReader.fromBuffer(buffer)) {
+        try (var source = BinaryReader.fromBytes(bytes)) {
             return readers.read(asset, source, clazz);
         }
     }
@@ -94,7 +93,7 @@ public final class EternalArchive implements Archive<EternalAssetID, EternalAsse
         return streams.exists(identifier);
     }
 
-    public ByteBuffer readStream(long identifier, int size) throws IOException {
+    public Bytes readStream(long identifier, int size) throws IOException {
         return streams.read(identifier, size);
     }
 

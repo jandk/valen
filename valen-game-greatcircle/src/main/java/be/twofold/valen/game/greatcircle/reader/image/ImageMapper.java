@@ -36,7 +36,7 @@ public final class ImageMapper {
                     image.sliceInfos().get(mipIndex).width(),
                     image.sliceInfos().get(mipIndex).height(),
                     format,
-                    Buffers.toArray(image.slices()[mipIndex])
+                    Buffers.toArray(image.slices()[mipIndex].asBuffer())
                 ));
             }
         }

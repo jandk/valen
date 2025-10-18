@@ -6,7 +6,6 @@ import be.twofold.valen.core.texture.*;
 import be.twofold.valen.format.cast.*;
 
 import java.io.*;
-import java.nio.*;
 import java.nio.file.*;
 import java.util.*;
 import java.util.concurrent.*;
@@ -29,7 +28,7 @@ public final class CastTextureMapper {
             return existingHash;
         }
 
-        var bytes = textureToPng(reference.supplier().get()).array();
+        var bytes = textureToPng(reference.supplier().get());
         var path = imagePath.resolve(reference.filename() + ".png");
         Files.write(path, bytes);
 
@@ -42,10 +41,10 @@ public final class CastTextureMapper {
         return hash;
     }
 
-    private ByteBuffer textureToPng(Texture texture) throws IOException {
+    private byte[] textureToPng(Texture texture) throws IOException {
         try (var out = new ByteArrayOutputStream()) {
             pngExporter.export(texture, out);
-            return ByteBuffer.wrap(out.toByteArray());
+            return out.toByteArray();
         }
     }
 }

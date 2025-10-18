@@ -67,8 +67,8 @@ public final class Md6MeshReader implements AssetReader<Model, GreatCircleAsset>
         var layouts = md6.layouts().get(lod).memoryLayouts();
 
         var identity = (hash << 4) | lod;
-        var buffer = archive.readStream(identity, uncompressedSize);
-        try (var source = BinaryReader.fromBuffer(buffer)) {
+        var bytes = archive.readStream(identity, uncompressedSize);
+        try (var source = BinaryReader.fromBytes(bytes)) {
             var meshes = GeometryReader.readStreamedMesh(source, lodInfos, layouts, true);
             var allBlendShapes = BlendShapeReader.readBlendShapes(source, lodInfos, layouts);
 

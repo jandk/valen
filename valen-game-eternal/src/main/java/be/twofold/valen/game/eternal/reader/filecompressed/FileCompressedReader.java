@@ -4,13 +4,13 @@ import be.twofold.valen.core.compression.*;
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.util.*;
+import be.twofold.valen.core.util.collect.*;
 import be.twofold.valen.game.eternal.*;
 import be.twofold.valen.game.eternal.resource.*;
 
 import java.io.*;
-import java.nio.*;
 
-public final class FileCompressedReader implements AssetReader<ByteBuffer, EternalAsset> {
+public final class FileCompressedReader implements AssetReader<Bytes, EternalAsset> {
     private final Decompressor decompressor;
 
     public FileCompressedReader(Decompressor decompressor) {
@@ -24,13 +24,13 @@ public final class FileCompressedReader implements AssetReader<ByteBuffer, Etern
     }
 
     @Override
-    public ByteBuffer read(BinaryReader reader, EternalAsset resource) throws IOException {
+    public Bytes read(BinaryReader reader, EternalAsset resource) throws IOException {
         var header = FileCompressedHeader.read(reader);
         if (header.compressedSize() == -1) {
-            return reader.readBuffer(header.uncompressedSize());
+            return reader.readBytesStruct(header.uncompressedSize());
         }
 
         var compressed = reader.readBytesStruct(header.compressedSize());
-        return decompressor.decompress(compressed, header.uncompressedSize()).asBuffer();
+        return decompressor.decompress(compressed, header.uncompressedSize());
     }
 }

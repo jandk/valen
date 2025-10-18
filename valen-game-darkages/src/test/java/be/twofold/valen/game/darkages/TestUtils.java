@@ -2,9 +2,9 @@ package be.twofold.valen.game.darkages;
 
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.io.*;
+import be.twofold.valen.core.util.collect.*;
 
 import java.io.*;
-import java.nio.*;
 import java.nio.file.*;
 import java.util.*;
 import java.util.function.*;
@@ -33,8 +33,8 @@ public abstract class TestUtils {
 
         for (DarkAgesAsset asset : entries) {
             try {
-                var buffer = archive.loadAsset(asset.id(), ByteBuffer.class);
-                reader.read(BinaryReader.fromBuffer(buffer), asset);
+                var fromBytes = archive.loadAsset(asset.id(), Bytes.class);
+                reader.read(BinaryReader.fromBytes(fromBytes), asset);
             } catch (FileNotFoundException e) {
                 System.err.println("File not found" + asset.id().fullName());
             } catch (Exception e) {

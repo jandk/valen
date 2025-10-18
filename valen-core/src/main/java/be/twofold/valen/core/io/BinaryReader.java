@@ -10,23 +10,6 @@ import java.nio.file.*;
 import java.util.*;
 
 public interface BinaryReader extends Closeable {
-    static BinaryReader fromArray(byte[] array) {
-        return fromArray(array, 0, array.length);
-    }
-
-    static BinaryReader fromArray(byte[] array, int offset, int length) {
-        return new ByteArrayBinaryReader(array, offset, length);
-    }
-
-    static BinaryReader fromBuffer(ByteBuffer buffer) {
-        if (buffer.hasArray()) {
-            var dataSource = new ByteArrayBinaryReader(buffer.array(), buffer.arrayOffset(), buffer.limit());
-            dataSource.position(buffer.position());
-            return dataSource;
-        }
-        return new ByteBufferBinaryReader(buffer);
-    }
-
     static BinaryReader fromBytes(Bytes bytes) {
         return new BytesBinaryReader(bytes);
     }

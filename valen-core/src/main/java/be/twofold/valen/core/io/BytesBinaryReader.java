@@ -15,7 +15,9 @@ final class BytesBinaryReader implements BinaryReader {
 
     @Override
     public void read(ByteBuffer dst) {
-        Buffers.copy(bytes.asBuffer(), dst);
+        int length = dst.remaining();
+        Buffers.copy(bytes.slice(position).asBuffer(), dst);
+        position += length;
     }
 
     @Override
@@ -30,7 +32,7 @@ final class BytesBinaryReader implements BinaryReader {
 
     @Override
     public BinaryReader position(long pos) {
-        this.position = Math.toIntExact(pos);
+        position = Math.toIntExact(pos);
         return this;
     }
 

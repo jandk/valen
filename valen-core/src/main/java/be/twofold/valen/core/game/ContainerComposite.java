@@ -1,7 +1,8 @@
 package be.twofold.valen.core.game;
 
+import be.twofold.valen.core.util.collect.*;
+
 import java.io.*;
-import java.nio.*;
 import java.util.*;
 import java.util.stream.*;
 
@@ -25,7 +26,7 @@ final class ContainerComposite<K, V> implements Container<K, V> {
     }
 
     @Override
-    public ByteBuffer read(K key, Integer size) throws IOException {
+    public Bytes read(K key, Integer size) throws IOException {
         for (var file : containers) {
             if (file.exists(key)) {
                 return file.read(key, size);

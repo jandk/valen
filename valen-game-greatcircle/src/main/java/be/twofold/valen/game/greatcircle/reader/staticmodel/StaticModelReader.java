@@ -65,8 +65,8 @@ public final class StaticModelReader implements AssetReader<Model, GreatCircleAs
 
         var diskLayout = model.streamDiskLayouts().get(lod);
         var uncompressedSize = diskLayout.uncompressedSize();
-        var buffer = archive.readStream(diskLayout.hash(), uncompressedSize);
-        var source = BinaryReader.fromBuffer(buffer);
+        var bytes = archive.readStream(diskLayout.hash(), uncompressedSize);
+        var source = BinaryReader.fromBytes(bytes);
         return GeometryReader.readStreamedMesh(source, lods, diskLayout.memoryLayouts(), false);
     }
 }

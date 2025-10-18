@@ -1,6 +1,6 @@
 package be.twofold.valen.game.darkages.reader.resources;
 
-import be.twofold.valen.core.io.BinaryReader;
+import be.twofold.valen.core.io.*;
 
 import java.io.*;
 import java.nio.charset.*;
@@ -29,8 +29,8 @@ public record Resources(
         var numStrings = reader.readLongAsInt();
         var offsets = reader.readLongsAsInts(numStrings);
         var stringBufferLength = Math.toIntExact(header.addrDependencyEntries() - header.addrPathStringOffsets() - (numStrings + 1) * (long) Long.BYTES);
-        var stringBufferRaw = reader.readBuffer(stringBufferLength);
-        var stringBuffer = DECODER.decode(stringBufferRaw).toString();
+        var stringBufferRaw = reader.readBytesStruct(stringBufferLength);
+        var stringBuffer = DECODER.decode(stringBufferRaw.asBuffer()).toString();
         var pathStrings = Arrays.stream(offsets)
             .mapToObj(i -> stringBuffer.substring(i, stringBuffer.indexOf('\0', i)))
             .toList();

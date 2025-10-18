@@ -3,7 +3,6 @@ package be.twofold.valen.game.eternal.reader.file.mapresources;
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.io.*;
 import be.twofold.valen.game.eternal.*;
-import be.twofold.valen.game.eternal.reader.file.*;
 import be.twofold.valen.game.eternal.reader.file.FileReader;
 import be.twofold.valen.game.eternal.resource.*;
 
@@ -24,7 +23,7 @@ public final class MapResourcesReader implements AssetReader<MapResources, Etern
 
     @Override
     public MapResources read(BinaryReader reader, EternalAsset resource) throws IOException {
-        var buffer = fileReader.read(reader, resource);
-        return MapResources.read(BinaryReader.fromBuffer(buffer));
+        var bytes = fileReader.read(reader, resource);
+        return MapResources.read(BinaryReader.fromBytes(bytes));
     }
 }

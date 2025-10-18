@@ -2,6 +2,7 @@ package be.twofold.valen.ui.component.main;
 
 import backbonefx.event.*;
 import be.twofold.valen.core.game.*;
+import be.twofold.valen.core.util.collect.*;
 import be.twofold.valen.ui.*;
 import be.twofold.valen.ui.common.*;
 import be.twofold.valen.ui.common.settings.*;
@@ -15,7 +16,6 @@ import org.jetbrains.annotations.*;
 import org.slf4j.*;
 
 import java.io.*;
-import java.nio.*;
 import java.util.*;
 import java.util.function.*;
 import java.util.stream.*;
@@ -92,7 +92,7 @@ public final class MainPresenter extends AbstractFXPresenter<MainView> {
             try {
                 var type = switch (asset.type()) {
                     case MODEL, TEXTURE -> asset.type().getType();
-                    default -> ByteBuffer.class;
+                    default -> Bytes.class;
                 };
                 var assetData = archive.loadAsset(asset.id(), type);
                 Platform.runLater(() -> getView().setupPreview(asset, assetData));

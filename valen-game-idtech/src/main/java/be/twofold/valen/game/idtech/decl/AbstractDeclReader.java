@@ -3,11 +3,11 @@ package be.twofold.valen.game.idtech.decl;
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.util.*;
+import be.twofold.valen.core.util.collect.*;
 import be.twofold.valen.game.idtech.decl.parser.*;
 import com.google.gson.*;
 
 import java.io.*;
-import java.nio.*;
 import java.nio.charset.*;
 import java.util.*;
 import java.util.regex.*;
@@ -31,8 +31,8 @@ public abstract class AbstractDeclReader<K extends AssetID, V extends Asset, A e
 
     @Override
     public JsonObject read(BinaryReader reader, V asset) throws IOException {
-        var buffer = reader.readBuffer(Math.toIntExact(reader.size()));
-        var object = DeclParser.parse(decode(buffer));
+        var bytes = reader.readBytesStruct(Math.toIntExact(reader.size()));
+        var object = DeclParser.parse(decode(bytes));
 
         @SuppressWarnings("unchecked")
         var result = loadInherit(object, (K) asset.id());
@@ -58,22 +58,21 @@ public abstract class AbstractDeclReader<K extends AssetID, V extends Asset, A e
             return merge(inherit, object);
         }
 
-        var buffer = archive.loadAsset(inheritID, ByteBuffer.class);
-        inherit = DeclParser.parse(decode(buffer));
+        var bytes = archive.loadAsset(inheritID, Bytes.class);
+        inherit = DeclParser.parse(decode(bytes));
         inherit = loadInherit(inherit, baseAssetID);
         declCache.put(inheritID, inherit);
         return merge(inherit, object);
     }
 
 
-    private String decode(ByteBuffer buffer) throws IOException {
+    private String decode(Bytes bytes) throws IOException {
         // Either UTF-8 or ISO-8859-1, so out is always smaller
         try {
-            return Utf8Decoder.decode(buffer).toString();
+            return Utf8Decoder.decode(bytes.asBuffer()).toString();
         } catch (CharacterCodingException e) {
             try {
-                buffer.rewind();
-                return Iso88591Decoder.decode(buffer).toString();
+                return Iso88591Decoder.decode(bytes.asBuffer()).toString();
             } catch (CharacterCodingException ex) {
                 throw new IOException("Failed to decode", ex);
             }

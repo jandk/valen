@@ -4,11 +4,11 @@ import be.twofold.valen.core.compression.*;
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.util.*;
+import be.twofold.valen.core.util.collect.*;
 import be.twofold.valen.game.eternal.reader.streamdb.*;
 import org.slf4j.*;
 
 import java.io.*;
-import java.nio.*;
 import java.nio.file.*;
 import java.util.*;
 import java.util.function.*;
@@ -47,7 +47,7 @@ public final class StreamDbFile implements Container<Long, StreamDbEntry> {
     }
 
     @Override
-    public ByteBuffer read(Long key, Integer size) throws IOException {
+    public Bytes read(Long key, Integer size) throws IOException {
         var entry = index.get(key);
         Check.state(entry != null, () -> "Stream not found: " + key);
 
@@ -55,10 +55,10 @@ public final class StreamDbFile implements Container<Long, StreamDbEntry> {
         reader.position(entry.offset());
         var compressed = reader.readBytesStruct(entry.length());
         if (compressed.size() == size) {
-            return compressed.asBuffer();
+            return compressed;
         }
 
-        return decompressor.decompress(compressed, size).asBuffer();
+        return decompressor.decompress(compressed, size);
     }
 
     @Override

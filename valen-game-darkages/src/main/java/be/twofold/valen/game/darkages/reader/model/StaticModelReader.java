@@ -68,8 +68,8 @@ public final class StaticModelReader implements AssetReader<Model, DarkAgesAsset
             .<LodInfo>map(mi -> mi.lodInfos().get(lod))
             .toList();
 
-        var buffer = archive.readStream(streamHash, uncompressedSize);
-        var source = BinaryReader.fromBuffer(buffer);
+        var bytes = archive.readStream(streamHash, uncompressedSize);
+        var source = BinaryReader.fromBytes(bytes);
         return GeometryReader.readStreamedMesh(source, lods, false);
     }
 }

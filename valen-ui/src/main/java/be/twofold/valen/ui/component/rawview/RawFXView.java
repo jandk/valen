@@ -1,6 +1,7 @@
 package be.twofold.valen.ui.component.rawview;
 
 import be.twofold.valen.core.util.*;
+import be.twofold.valen.core.util.collect.*;
 import be.twofold.valen.ui.common.*;
 import jakarta.inject.*;
 import javafx.collections.*;
@@ -10,7 +11,6 @@ import javafx.scene.layout.*;
 import javafx.scene.paint.*;
 import javafx.scene.text.*;
 
-import java.nio.*;
 import java.util.*;
 import java.util.stream.*;
 
@@ -57,12 +57,12 @@ public final class RawFXView implements RawView, FXView {
     }
 
     @Override
-    public void setBinary(ByteBuffer buffer) {
+    public void setBinary(Bytes bytes) {
         // TODO: Choose themed color
-        hexDump = new HexDump(buffer, MONOSPACED, Color.WHITE, Color.GRAY);
+        hexDump = new HexDump(bytes, MONOSPACED, Color.WHITE, Color.GRAY);
         lines = null;
 
-        binaryView.setItems(new IndexObservableList((buffer.limit() + 15) / 16));
+        binaryView.setItems(new IndexObservableList((bytes.size() + 15) / 16));
         textView.setItems(FXCollections.emptyObservableList());
         view.getChildren().setAll(binaryView);
     }

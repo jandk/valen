@@ -1,8 +1,8 @@
 package be.twofold.valen.ui.component.rawview;
 
 import be.twofold.valen.core.util.*;
+import be.twofold.valen.core.util.collect.*;
 
-import java.nio.*;
 import java.nio.charset.*;
 import java.util.*;
 import java.util.stream.*;
@@ -13,29 +13,29 @@ final class BinaryToText {
         new Utf8Converter()
     );
 
-    public Optional<String> binaryToText(ByteBuffer buffer) {
+    public Optional<String> binaryToText(Bytes bytes) {
         return converters.stream()
-            .flatMap(converter -> converter.convert(buffer).stream())
+            .flatMap(converter -> converter.convert(bytes).stream())
             .findFirst();
     }
 
     private interface Converter {
-        Optional<String> convert(ByteBuffer buffer);
+        Optional<String> convert(Bytes bytes);
     }
 
     static final class BomConverter implements Converter {
         @Override
-        public Optional<String> convert(ByteBuffer buffer) {
+        public Optional<String> convert(Bytes bytes) {
             return Arrays.stream(ByteOrderMark.values())
-                .filter(bom -> checkSingleBom(buffer, bom))
+                .filter(bom -> checkSingleBom(bytes, bom))
                 .findFirst()
-                .map(bom -> bom.charset().decode(buffer.position(bom.length())).toString());
+                .map(bom -> bom.charset().decode(bytes.slice(bom.length()).asBuffer()).toString());
         }
 
-        private boolean checkSingleBom(ByteBuffer buffer, ByteOrderMark bom) {
-            return bom.length() <= buffer.remaining() &&
+        private boolean checkSingleBom(Bytes bytes, ByteOrderMark bom) {
+            return bom.length() <= bytes.size() &&
                 IntStream.range(0, bom.length())
-                    .noneMatch(i -> buffer.get(i) != bom.bytes()[i]);
+                    .noneMatch(i -> bytes.getByte(i) != bom.bytes()[i]);
         }
 
         private enum ByteOrderMark {
@@ -69,18 +69,10 @@ final class BinaryToText {
 
     static final class Utf8Converter implements Converter {
         @Override
-        public Optional<String> convert(ByteBuffer buffer) {
-            return isValid(buffer.slice())
-                ? Optional.of(StandardCharsets.UTF_8.decode(buffer).toString())
+        public Optional<String> convert(Bytes bytes) {
+            return Utf8.isValid(bytes) && !bytes.contains((byte) 0)
+                ? Optional.of(StandardCharsets.UTF_8.decode(bytes.asBuffer()).toString())
                 : Optional.empty();
-        }
-
-        private boolean isValid(ByteBuffer buffer) {
-            return Utf8.isValid(
-                buffer.array(),
-                buffer.arrayOffset() + buffer.position(),
-                buffer.arrayOffset() + buffer.limit()
-            );
         }
     }
 }

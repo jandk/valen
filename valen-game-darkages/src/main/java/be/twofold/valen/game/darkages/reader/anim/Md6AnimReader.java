@@ -5,12 +5,12 @@ import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.geometry.*;
 import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.util.*;
+import be.twofold.valen.core.util.collect.*;
 import be.twofold.valen.game.darkages.*;
 import be.twofold.valen.game.darkages.reader.*;
 import be.twofold.valen.game.darkages.reader.resources.*;
 
 import java.io.*;
-import java.nio.*;
 import java.util.*;
 import java.util.function.*;
 import java.util.stream.*;
@@ -69,8 +69,8 @@ public final class Md6AnimReader implements AssetReader<Animation, DarkAgesAsset
             var layoutIndex = streamInfo.framsetToStreamLayout()[i];
             if (sources[layoutIndex] == null) {
                 var streamHash = Hash.hash(hash, 0, layoutIndex);
-                var buffer = archive.readStream(streamHash, streamInfo.layouts().get(layoutIndex).uncompressedSize());
-                sources[layoutIndex] = BinaryReader.fromBuffer(buffer);
+                var bytes = archive.readStream(streamHash, streamInfo.layouts().get(layoutIndex).uncompressedSize());
+                sources[layoutIndex] = BinaryReader.fromBytes(bytes);
             }
 
             var frameSetOffset = Short.toUnsignedInt(streamInfo.streamFrameSetOffsets()[i]);
@@ -94,7 +94,7 @@ public final class Md6AnimReader implements AssetReader<Animation, DarkAgesAsset
     private <T> List<Track<T>> mapAnimated(
         int[] animBoneIds,
         List<FrameSet> frameSets,
-        Function<FrameSet, ByteBuffer> bitsMapper,
+        Function<FrameSet, Bytes> bitsMapper,
         Function<FrameSet, List<T>> firstMapper,
         Function<FrameSet, List<T>> rangeMapper,
         BiFunction<Integer, List<KeyFrame<T>>, Track<T>> constructor
@@ -124,18 +124,18 @@ public final class Md6AnimReader implements AssetReader<Animation, DarkAgesAsset
     }
 
     // Standard anims use this
-    private boolean checkFrameBE(ByteBuffer buffer, int boneId, int bytesPerBone, int frame) {
+    private boolean checkFrameBE(Bytes bytes, int boneId, int bytesPerBone, int frame) {
         int frameByte = frame >> 3;
         int byteIndex = boneId * bytesPerBone + frameByte;
         int bitIndex = 0x80 >> (frame & 7);
-        return (buffer.get(byteIndex) & bitIndex) != 0;
+        return (bytes.getByte(byteIndex) & bitIndex) != 0;
     }
 
     // LODS use this
-    private boolean checkFrameLE(ByteBuffer buffer, int boneId, int bytesPerBone, int frame) {
+    private boolean checkFrameLE(Bytes bytes, int boneId, int bytesPerBone, int frame) {
         int frameByte = bytesPerBone - (frame >> 3) - 1;
         int byteIndex = boneId * bytesPerBone + frameByte;
         int bitIndex = 0x80 >> (frame & 7);
-        return (buffer.get(byteIndex) & bitIndex) != 0;
+        return (bytes.getByte(byteIndex) & bitIndex) != 0;
     }
 }

@@ -2,9 +2,9 @@ package be.twofold.valen.core.game;
 
 import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.util.*;
+import be.twofold.valen.core.util.collect.*;
 
 import java.io.*;
-import java.nio.*;
 
 public interface AssetReader<R, A extends Asset> {
 
@@ -18,7 +18,7 @@ public interface AssetReader<R, A extends Asset> {
             .orElseThrow();
     }
 
-    static <A extends Asset> AssetReader<ByteBuffer, A> raw() {
+    static <A extends Asset> AssetReader<Bytes, A> raw() {
         return new AssetReader<>() {
             @Override
             public boolean canRead(A asset) {
@@ -26,8 +26,8 @@ public interface AssetReader<R, A extends Asset> {
             }
 
             @Override
-            public ByteBuffer read(BinaryReader reader, A asset) throws IOException {
-                return reader.readBuffer(Math.toIntExact(reader.size()));
+            public Bytes read(BinaryReader reader, A asset) throws IOException {
+                return reader.readBytesStruct(Math.toIntExact(reader.size()));
             }
         };
     }

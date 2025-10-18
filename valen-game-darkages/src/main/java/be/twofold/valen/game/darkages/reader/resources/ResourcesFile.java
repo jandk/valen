@@ -10,7 +10,6 @@ import be.twofold.valen.game.darkages.*;
 import org.slf4j.*;
 
 import java.io.*;
-import java.nio.*;
 import java.nio.file.*;
 import java.util.*;
 import java.util.function.*;
@@ -77,7 +76,7 @@ public final class ResourcesFile implements Container<DarkAgesAssetID, DarkAgesA
     }
 
     @Override
-    public ByteBuffer read(DarkAgesAssetID key, Integer size) throws IOException {
+    public Bytes read(DarkAgesAssetID key, Integer size) throws IOException {
         var resource = index.get(key);
         Check.state(resource != null, () -> "Resource not found: " + key.name());
 
@@ -101,7 +100,7 @@ public final class ResourcesFile implements Container<DarkAgesAssetID, DarkAgesA
             System.err.println("Checksum mismatch! (" + checksum + " != " + resource.checksum() + ")");
         }
 
-        return decompressed.asBuffer();
+        return decompressed;
     }
 
     @Override

@@ -56,9 +56,9 @@ public final class ImageReader implements AssetReader<Texture, EternalAsset> {
         var lastMip = image.mipInfos().getLast();
         var uncompressedSize = lastMip.cumulativeSizeStreamDB() + lastMip.decompressedSize();
         var bytes = archive.readStream(hash, uncompressedSize);
-        try (var mipSource = BinaryReader.fromBuffer(bytes)) {
+        try (var mipSource = BinaryReader.fromBytes(bytes)) {
             for (var i = 0; i < image.header().totalMipCount(); i++) {
-                image.mipData()[i] = mipSource.readBuffer(image.mipInfos().get(i).decompressedSize());
+                image.mipData()[i] = mipSource.readBytesStruct(image.mipInfos().get(i).decompressedSize());
             }
         }
     }

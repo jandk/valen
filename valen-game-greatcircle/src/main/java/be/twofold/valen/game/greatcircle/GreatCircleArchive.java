@@ -3,6 +3,7 @@ package be.twofold.valen.game.greatcircle;
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.util.*;
+import be.twofold.valen.core.util.collect.*;
 import be.twofold.valen.game.greatcircle.reader.decl.*;
 import be.twofold.valen.game.greatcircle.reader.decl.material2.*;
 import be.twofold.valen.game.greatcircle.reader.decl.renderparm.*;
@@ -15,7 +16,6 @@ import be.twofold.valen.game.greatcircle.reader.staticmodel.*;
 import be.twofold.valen.game.greatcircle.reader.streamdb.*;
 
 import java.io.*;
-import java.nio.*;
 import java.util.*;
 import java.util.stream.*;
 
@@ -52,11 +52,11 @@ public final class GreatCircleArchive implements Archive<GreatCircleAssetID, Gre
     public <T> T loadAsset(GreatCircleAssetID identifier, Class<T> clazz) throws IOException {
         var asset = get(identifier).orElseThrow(FileNotFoundException::new);
 
-        var buffer = resources.exists(asset.id())
+        var bytes = resources.exists(asset.id())
             ? resources.read(asset.id(), null)
             : common.read(asset.id(), null);
 
-        try (var source = BinaryReader.fromBuffer(buffer)) {
+        try (var source = BinaryReader.fromBytes(bytes)) {
             return readers.read(asset, source, clazz);
         }
     }
@@ -78,7 +78,7 @@ public final class GreatCircleArchive implements Archive<GreatCircleAssetID, Gre
         return streams.exists(identifier);
     }
 
-    public ByteBuffer readStream(long identifier, int size) throws IOException {
+    public Bytes readStream(long identifier, int size) throws IOException {
         return streams.read(identifier, size);
     }
 

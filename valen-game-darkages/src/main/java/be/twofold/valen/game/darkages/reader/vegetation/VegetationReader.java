@@ -49,9 +49,9 @@ public final class VegetationReader implements AssetReader<Model, DarkAgesAsset>
             .toList();
 
         var identity = Hash.hash(hash, 4 - lod, 0);
-        var buffer = archive.readStream(identity, uncompressedSize);
+        var bytes = archive.readStream(identity, uncompressedSize);
 
-        try (var source = BinaryReader.fromBuffer(buffer)) {
+        try (var source = BinaryReader.fromBytes(bytes)) {
             return GeometryReader.readStreamedMesh(source, lodInfos, false);
         }
     }

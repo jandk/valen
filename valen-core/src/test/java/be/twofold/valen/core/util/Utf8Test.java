@@ -1,5 +1,6 @@
 package be.twofold.valen.core.util;
 
+import be.twofold.valen.core.util.collect.*;
 import org.junit.jupiter.api.*;
 
 import java.nio.charset.*;
@@ -31,7 +32,7 @@ class Utf8Test {
 
             byte[] bytes = utf8Array(cp);
             var format = HexFormat.of().withDelimiter(" ");
-            assertThat(Utf8.isValid(bytes))
+            assertThat(Utf8.isValid(Bytes.wrap(bytes)))
                 .withFailMessage(() -> "Invalid but should be valid: " + format.formatHex(bytes))
                 .isTrue();
         }
@@ -112,7 +113,7 @@ class Utf8Test {
 
     private void assertNotValid(byte[] bytes) {
         var format = HexFormat.of().withDelimiter(" ");
-        assertThat(Utf8.isValid(bytes))
+        assertThat(Utf8.isValid(Bytes.wrap(bytes)))
             .withFailMessage(() -> "Valid but should be invalid: " + format.formatHex(bytes))
             .isFalse();
     }

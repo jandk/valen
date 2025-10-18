@@ -1,15 +1,9 @@
 package be.twofold.valen.game.darkages.reader;
 
-import java.nio.*;
-
 public final class Hash {
     private static final long C1 = 0xFF51AFD7ED558CCDL;
     private static final long C2 = 0xC4CEB9FE1A85EC53L;
     private static final long C3 = 0x000000009E3779B9L;
-
-    public static long hash(ByteBuffer key) {
-        return hash(key.getLong(0), key.getInt(8), key.getInt(12));
-    }
 
     public static long hash(long hash, int param1, int param2) {
         long k0 = hash;

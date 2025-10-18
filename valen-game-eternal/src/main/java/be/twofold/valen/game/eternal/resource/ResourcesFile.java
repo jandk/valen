@@ -5,12 +5,12 @@ import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.hashing.*;
 import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.util.*;
+import be.twofold.valen.core.util.collect.*;
 import be.twofold.valen.game.eternal.*;
 import be.twofold.valen.game.eternal.reader.resource.*;
 import org.slf4j.*;
 
 import java.io.*;
-import java.nio.*;
 import java.nio.file.*;
 import java.util.*;
 import java.util.function.*;
@@ -75,7 +75,7 @@ public final class ResourcesFile implements Container<EternalAssetID, EternalAss
     }
 
     @Override
-    public ByteBuffer read(EternalAssetID key, Integer size) throws IOException {
+    public Bytes read(EternalAssetID key, Integer size) throws IOException {
         var resource = index.get(key);
         Check.state(resource != null, () -> "Resource not found: " + key.name());
 
@@ -99,7 +99,7 @@ public final class ResourcesFile implements Container<EternalAssetID, EternalAss
             System.err.println("Checksum mismatch! (" + checksum + " != " + resource.checksum() + ")");
         }
 
-        return decompressed.asBuffer();
+        return decompressed;
     }
 
     @Override

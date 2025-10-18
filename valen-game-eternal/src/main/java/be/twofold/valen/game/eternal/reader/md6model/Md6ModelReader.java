@@ -2,7 +2,7 @@ package be.twofold.valen.game.eternal.reader.md6model;
 
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.geometry.*;
-import be.twofold.valen.core.io.BinaryReader;
+import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.math.*;
 import be.twofold.valen.game.eternal.*;
 import be.twofold.valen.game.eternal.reader.geometry.*;
@@ -62,8 +62,8 @@ public final class Md6ModelReader implements AssetReader<Model, EternalAsset> {
         var layouts = md6.layouts().get(lod).memoryLayouts();
 
         var identity = (hash << 4) | lod;
-        var buffer = archive.readStream(identity, uncompressedSize);
-        try (var source = BinaryReader.fromBuffer(buffer)) {
+        var bytes = archive.readStream(identity, uncompressedSize);
+        try (var source = BinaryReader.fromBytes(bytes)) {
             return GeometryReader.readStreamedMesh(source, lodInfos, layouts, true);
         }
     }

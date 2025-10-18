@@ -1,5 +1,7 @@
 package be.twofold.valen.core.util;
 
+import be.twofold.valen.core.util.collect.*;
+
 import java.util.*;
 
 /**
@@ -59,72 +61,58 @@ public final class Utf8 {
     }
 
     /**
-     * Checks whether the entire byte array is a well-formed UTF-8 sequence.
+     * Checks whether the bytes instance is a valid UTF-8 instance
      *
      * @param bytes the bytes to check
-     * @return true if valid UTF-8, false otherwise
-     */
-    public static boolean isValid(byte[] bytes) {
-        return isValid(bytes, 0, bytes.length);
-    }
-
-    /**
-     * Checks whether a slice of the byte array is a well-formed UTF-8 sequence.
-     *
-     * @param array     the byte array
-     * @param fromIndex inclusive start index
-     * @param toIndex   exclusive end index
      * @return true if the slice is valid UTF-8, false otherwise
-     * @throws IndexOutOfBoundsException if the indices are out of bounds
      */
-    public static boolean isValid(byte[] array, int fromIndex, int toIndex) {
-        Objects.checkFromToIndex(fromIndex, toIndex, array.length);
-
-        int index = fromIndex;
+    public static boolean isValid(Bytes bytes) {
+        int index = 0;
+        int limit = bytes.size();
         while (true) {
             int b0;
             do {
-                if (index >= toIndex) {
+                if (index >= limit) {
                     return true;
                 }
-                b0 = array[index++];
+                b0 = bytes.getByte(index++);
             } while (b0 >= 0);
 
             if (b0 < (byte) 0xE0) { // 2-byte
-                if (index >= toIndex) {
+                if (index >= limit) {
                     return false;
                 }
 
                 if (b0 < (byte) 0xC2                 // overlong
-                    || array[index++] >= (byte) 0xC0 // continuation
+                    || bytes.getByte(index++) >= (byte) 0xC0 // continuation
                 ) {
                     return false;
                 }
             } else if (b0 < (byte) 0xF0) { // 3-byte
-                if (index + 1 >= toIndex) {
+                if (index + 1 >= limit) {
                     return false;
                 }
 
-                int b1 = array[index++];
+                int b1 = bytes.getByte(index++);
                 if (b1 >= (byte) 0xC0                           // continuation
                     || (b0 == (byte) 0xE0 && b1 < (byte) 0xA0)  // overlong
                     || (b0 == (byte) 0xED && b1 >= (byte) 0xA0) // surrogate
-                    || array[index++] >= (byte) 0xC0            // continuation
+                    || bytes.getByte(index++) >= (byte) 0xC0            // continuation
                 ) {
                     return false;
                 }
             } else { // 4-byte
-                if (index + 2 >= toIndex) {
+                if (index + 2 >= limit) {
                     return false;
                 }
 
-                byte b1 = array[index++];
+                byte b1 = bytes.getByte(index++);
                 if (b1 >= (byte) 0xC0                           // continuation
                     || (b0 == (byte) 0xF0 && b1 < (byte) 0x90)  // overlong
                     || (b0 == (byte) 0xF4 && b1 >= (byte) 0x90) // > max cp
                     || (b0 >= (byte) 0xF5)                      // > max cp
-                    || array[index++] >= (byte) 0xC0            // continuation
-                    || array[index++] >= (byte) 0xC0            // continuation
+                    || bytes.getByte(index++) >= (byte) 0xC0            // continuation
+                    || bytes.getByte(index++) >= (byte) 0xC0            // continuation
                 ) {
                     return false;
                 }

@@ -4,6 +4,7 @@ import be.twofold.valen.core.compression.*;
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.util.*;
+import be.twofold.valen.core.util.collect.*;
 import be.twofold.valen.game.darkages.reader.anim.*;
 import be.twofold.valen.game.darkages.reader.basemodel.*;
 import be.twofold.valen.game.darkages.reader.binaryfile.*;
@@ -19,7 +20,6 @@ import be.twofold.valen.game.darkages.reader.streamdb.*;
 import be.twofold.valen.game.darkages.reader.vegetation.*;
 
 import java.io.*;
-import java.nio.*;
 import java.util.*;
 import java.util.stream.*;
 
@@ -75,11 +75,11 @@ public final class DarkAgesArchive implements Archive<DarkAgesAssetID, DarkAgesA
     public <T> T loadAsset(DarkAgesAssetID identifier, Class<T> clazz) throws IOException {
         var asset = get(identifier).orElseThrow(FileNotFoundException::new);
 
-        var buffer = resources.exists(asset.id())
+        var bytes = resources.exists(asset.id())
             ? resources.read(asset.id(), null)
             : common.read(asset.id(), null);
 
-        try (var source = BinaryReader.fromBuffer(buffer)) {
+        try (var source = BinaryReader.fromBytes(bytes)) {
             return readers.read(asset, source, clazz);
         }
     }
@@ -88,7 +88,7 @@ public final class DarkAgesArchive implements Archive<DarkAgesAssetID, DarkAgesA
         return streams.exists(identifier);
     }
 
-    public ByteBuffer readStream(long identifier, int size) throws IOException {
+    public Bytes readStream(long identifier, int size) throws IOException {
         return streams.read(identifier, size < 0 ? null : size);
     }
 

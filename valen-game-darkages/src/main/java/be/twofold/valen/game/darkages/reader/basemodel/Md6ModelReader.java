@@ -2,7 +2,7 @@ package be.twofold.valen.game.darkages.reader.basemodel;
 
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.geometry.*;
-import be.twofold.valen.core.io.BinaryReader;
+import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.math.*;
 import be.twofold.valen.game.darkages.*;
 import be.twofold.valen.game.darkages.reader.*;
@@ -60,9 +60,9 @@ public final class Md6ModelReader implements AssetReader<Model, DarkAgesAsset> {
             .toList();
 
         var identity = Hash.hash(hash, 4 - lod, 0);
-        var buffer = archive.readStream(identity, uncompressedSize);
+        var bytes = archive.readStream(identity, uncompressedSize);
 
-        try (var source = BinaryReader.fromBuffer(buffer)) {
+        try (var source = BinaryReader.fromBytes(bytes)) {
             List<Mesh> meshes = GeometryReader.readStreamedMesh(source, lodInfos, true);
             meshes = mergeJointsAndWeights(md6Model, meshes);
             fixJointIndices(md6Model, meshes);
