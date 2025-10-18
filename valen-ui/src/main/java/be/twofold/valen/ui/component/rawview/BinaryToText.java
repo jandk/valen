@@ -1,5 +1,7 @@
 package be.twofold.valen.ui.component.rawview;
 
+import be.twofold.valen.core.util.*;
+
 import java.nio.*;
 import java.nio.charset.*;
 import java.util.*;
@@ -74,61 +76,11 @@ final class BinaryToText {
         }
 
         private boolean isValid(ByteBuffer buffer) {
-            while (buffer.hasRemaining()) {
-                int b0 = buffer.get() & 0xFF;
-                if ((b0 & 0x80) == 0) {
-                    if (b0 == 0x00) {
-                        return false;
-                    }
-                } else if ((b0 & 0xE0) == 0xC0) {
-                    if (buffer.remaining() < 1) {
-                        return false;
-                    }
-                    int b1 = buffer.get() & 0xFF;
-                    if (b0 < 0xC2 || badTail(b1)) {
-                        return false;
-                    }
-                } else if ((b0 & 0xF0) == 0xE0) {
-                    if (buffer.remaining() < 2) {
-                        return false;
-                    }
-
-                    int b1 = buffer.get() & 0xFF;
-                    if ((b0 == 0xE0) && (b1 < 0xA0 || b1 > 0xBF) ||
-                        (b0 >= 0xE1 && b0 <= 0xEC) && badTail(b1) ||
-                        (b0 == 0xED) && (b1 < 0x80 || b1 > 0x9F) ||
-                        (b0 >= 0xEE && b0 <= 0xEF) && badTail(b1)) {
-                        return false;
-                    }
-
-                    int b2 = buffer.get() & 0xFF;
-                    if (badTail(b2)) {
-                        return false;
-                    }
-                } else if ((b0 & 0xF8) == 0xF0) {
-                    if (buffer.remaining() < 3) {
-                        return false;
-                    }
-
-                    int b1 = buffer.get() & 0xFF;
-                    if ((b0 == 0xF0) && (b1 < 0x90 || b1 > 0xBF) ||
-                        (b0 >= 0xF1 && b0 <= 0xF3) && badTail(b1) ||
-                        (b0 == 0xF4) && (b1 < 0x80 || b1 > 0x8F)) {
-                        return false;
-                    }
-
-                    int b2 = buffer.get() & 0xFF;
-                    int b3 = buffer.get() & 0xFF;
-                    if (badTail(b2) || badTail(b3)) {
-                        return false;
-                    }
-                }
-            }
-            return true;
-        }
-
-        private boolean badTail(int i) {
-            return (i & 0xC0) != 0x80;
+            return Utf8.isValid(
+                buffer.array(),
+                buffer.arrayOffset() + buffer.position(),
+                buffer.arrayOffset() + buffer.limit()
+            );
         }
     }
 }
