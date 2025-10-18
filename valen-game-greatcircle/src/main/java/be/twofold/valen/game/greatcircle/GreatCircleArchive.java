@@ -37,7 +37,7 @@ public final class GreatCircleArchive implements Archive<GreatCircleAssetID, Gre
         var declReader = new DeclReader(this);
         this.readers = new AssetReaders<>(List.of(
             new DeformModelReader(this, true),
-            new HairReader(this),
+            new HairReader(),
             new ImageReader(this),
             new MaterialReader(this, declReader),
             new Md6MeshReader(this),

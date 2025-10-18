@@ -7,7 +7,7 @@ public final class CastHairMapper {
     public void map(CastNode.Model modelNode, Hair hair) {
         modelNode.createHair()
             .setName(hair.name())
-            .setSegmentsBuffer(hair.segments())
-            .setParticleBuffer(hair.positions());
+                .setSegmentsBuffer(hair.segments().asBuffer())
+                .setParticleBuffer(hair.positions().asBuffer());
     }
 }
