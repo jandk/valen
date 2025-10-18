@@ -10,6 +10,8 @@ import java.util.*;
     childrenArray = "java.util.Arrays.copyOfRange(array, fromIndex, toIndex)"
 )
 public class Longs implements Comparable<Longs>, RandomAccess {
+    private static final Longs EMPTY = wrap(new long[0]);
+
     final long[] array;
 
     final int fromIndex;
@@ -21,6 +23,10 @@ public class Longs implements Comparable<Longs>, RandomAccess {
         this.array = array;
         this.fromIndex = fromIndex;
         this.toIndex = toIndex;
+    }
+
+    public static Longs empty() {
+        return EMPTY;
     }
 
     public static Longs wrap(long[] array) {
@@ -45,7 +51,7 @@ public class Longs implements Comparable<Longs>, RandomAccess {
         return LongBuffer.wrap(array, fromIndex, size()).asReadOnlyBuffer();
     }
 
-    public void copyTo(MutableLongs target, int offset) {
+    public void copyTo(Longs target, int offset) {
         System.arraycopy(array, fromIndex, target.array, target.fromIndex + offset, size());
     }
 

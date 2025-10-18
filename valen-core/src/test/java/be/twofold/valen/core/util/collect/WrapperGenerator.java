@@ -30,7 +30,7 @@ final class WrapperGenerator {
         boolean addExtraMethods
     ) throws IOException {
         writeClass(createWrapperClass(className, primitiveClass, wrapperClass, bufferClass, addExtraMethods));
-        writeClass(createMutableWrapperClass(className, primitiveClass, bufferClass, addExtraMethods));
+        writeClass(createMutableWrapperClass("Mutable" + className, className, primitiveClass, bufferClass, addExtraMethods));
     }
 
     private static TypeSpec createWrapperClass(
@@ -53,6 +53,9 @@ final class WrapperGenerator {
                 .build());
 
         // Fields
+        builder.addField(FieldSpec.builder(thisType, "EMPTY", Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
+            .initializer("wrap(new $T[0])", primitiveClass)
+            .build());
         builder.addField(FieldSpec.builder(arrayType, "array", Modifier.FINAL).build());
         builder.addField(FieldSpec.builder(int.class, "fromIndex", Modifier.FINAL).build());
         builder.addField(FieldSpec.builder(int.class, "toIndex", Modifier.FINAL).build());
@@ -66,6 +69,13 @@ final class WrapperGenerator {
             .addStatement("this.array = array")
             .addStatement("this.fromIndex = fromIndex")
             .addStatement("this.toIndex = toIndex")
+            .build());
+
+        // Static empty method
+        builder.addMethod(MethodSpec.methodBuilder("empty")
+            .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
+            .returns(thisType)
+            .addStatement("return EMPTY")
             .build());
 
         // Static wrap methods
@@ -85,7 +95,7 @@ final class WrapperGenerator {
             .addStatement("return new $L(array, fromIndex, toIndex)", className)
             .build());
 
-        // from method
+        // Static from method
         var bufferMethodName = bufferClass.getSimpleName().replace("Buffer", "");
         builder.addMethod(MethodSpec.methodBuilder("from")
             .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
@@ -120,7 +130,7 @@ final class WrapperGenerator {
         builder.addMethod(MethodSpec.methodBuilder("copyTo")
             .addModifiers(Modifier.PUBLIC)
             .returns(void.class)
-            .addParameter(ClassName.get("", "Mutable" + className), "target")
+            .addParameter(thisType, "target")
             .addParameter(int.class, "offset")
             .addStatement("$T.arraycopy(array, fromIndex, target.array, target.fromIndex + offset, size())", System.class)
             .build());
@@ -132,24 +142,6 @@ final class WrapperGenerator {
         addOverrideMethods(builder, className, wrapperType, primitiveClass, thisType);
 
         return builder.build();
-    }
-
-    private static void addSliceMethods(TypeSpec.Builder builder, ClassName thisType) {
-        builder.addMethod(MethodSpec.methodBuilder("slice")
-            .addModifiers(Modifier.PUBLIC)
-            .returns(thisType)
-            .addParameter(int.class, "fromIndex")
-            .addStatement("return slice(fromIndex, size())")
-            .build());
-
-        builder.addMethod(MethodSpec.methodBuilder("slice")
-            .addModifiers(Modifier.PUBLIC)
-            .returns(thisType)
-            .addParameter(int.class, "fromIndex")
-            .addParameter(int.class, "toIndex")
-            .addStatement("$T.fromToIndex(fromIndex, toIndex, size())", CHECK_CLASS)
-            .addStatement("return new $L(array, this.fromIndex + fromIndex, this.fromIndex + toIndex)", thisType)
-            .build());
     }
 
     private static void addOverrideMethods(
@@ -286,18 +278,18 @@ final class WrapperGenerator {
             .build());
     }
 
-    private static void addExtraMutableBytesMethods(TypeSpec.Builder classBuilder, String className) {
-        generateSet(classBuilder, short.class, "Short", "Short.BYTES", className);
-        generateSet(classBuilder, int.class, "Int", "Integer.BYTES", className);
-        generateSet(classBuilder, long.class, "Long", "Long.BYTES", className);
-        generateSet(classBuilder, float.class, "Float", "Float.BYTES", className);
-        generateSet(classBuilder, double.class, "Double", "Double.BYTES", className);
+    private static void addExtraMutableBytesMethods(TypeSpec.Builder classBuilder, ClassName thisType) {
+        generateSet(classBuilder, short.class, "Short", "Short.BYTES", thisType);
+        generateSet(classBuilder, int.class, "Int", "Integer.BYTES", thisType);
+        generateSet(classBuilder, long.class, "Long", "Long.BYTES", thisType);
+        generateSet(classBuilder, float.class, "Float", "Float.BYTES", thisType);
+        generateSet(classBuilder, double.class, "Double", "Double.BYTES", thisType);
     }
 
-    private static void generateSet(TypeSpec.Builder classBuilder, Class<?> primitive, String upper, String size, String className) {
+    private static void generateSet(TypeSpec.Builder classBuilder, Class<?> primitive, String upper, String size, ClassName thisType) {
         classBuilder.addMethod(MethodSpec.methodBuilder("set" + upper)
             .addModifiers(Modifier.PUBLIC)
-            .returns(ClassName.get("", "Mutable" + className))
+            .returns(thisType)
             .addParameter(int.class, "offset")
             .addParameter(primitive, "value")
             .addStatement("$T.fromIndexSize(offset, $L, size())", CHECK_CLASS, size)
@@ -308,17 +300,18 @@ final class WrapperGenerator {
 
     private static TypeSpec createMutableWrapperClass(
         String className,
+        String baseClassName,
         Class<?> primitiveClass,
         Class<?> bufferClass,
         boolean addExtraMethods
     ) {
+        var thisType = ClassName.get("", className);
         var primitiveArrayType = ArrayTypeName.of(TypeName.get(primitiveClass));
         var bufferMethodName = bufferClass.getSimpleName().replace("Buffer", "");
-        var thisType = ClassName.get("", "Mutable" + className);
 
-        var builder = TypeSpec.classBuilder("Mutable" + className)
+        var builder = TypeSpec.classBuilder(className)
             .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
-            .superclass(ClassName.get("", className));
+            .superclass(ClassName.get("", baseClassName));
 
         builder.addMethod(MethodSpec.constructorBuilder()
             .addModifiers(Modifier.PRIVATE)
@@ -332,7 +325,7 @@ final class WrapperGenerator {
             .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
             .returns(thisType)
             .addParameter(primitiveArrayType, "array")
-            .addStatement("return new Mutable$L(array, 0, array.length)", className)
+            .addStatement("return new $L(array, 0, array.length)", className)
             .build());
 
         builder.addMethod(MethodSpec.methodBuilder("wrap")
@@ -341,14 +334,14 @@ final class WrapperGenerator {
             .addParameter(primitiveArrayType, "array")
             .addParameter(int.class, "fromIndex")
             .addParameter(int.class, "toIndex")
-            .addStatement("return new Mutable$L(array, fromIndex, toIndex)", className)
+            .addStatement("return new $L(array, fromIndex, toIndex)", className)
             .build());
 
         builder.addMethod(MethodSpec.methodBuilder("allocate")
             .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
             .returns(thisType)
             .addParameter(int.class, "size")
-            .addStatement("return new Mutable$L(new $L[size], 0, size)", className, primitiveClass)
+            .addStatement("return new $L(new $L[size], 0, size)", className, primitiveClass)
             .build());
 
         builder.addMethod(MethodSpec.methodBuilder("set" + bufferMethodName)
@@ -362,7 +355,7 @@ final class WrapperGenerator {
             .build());
 
         if (addExtraMethods) {
-            addExtraMutableBytesMethods(builder, className);
+            addExtraMutableBytesMethods(builder, thisType);
         }
 
         builder.addMethod(MethodSpec.methodBuilder("asMutableBuffer")
@@ -374,6 +367,24 @@ final class WrapperGenerator {
         addSliceMethods(builder, thisType);
 
         return builder.build();
+    }
+
+    private static void addSliceMethods(TypeSpec.Builder builder, ClassName thisType) {
+        builder.addMethod(MethodSpec.methodBuilder("slice")
+            .addModifiers(Modifier.PUBLIC)
+            .returns(thisType)
+            .addParameter(int.class, "fromIndex")
+            .addStatement("return slice(fromIndex, size())")
+            .build());
+
+        builder.addMethod(MethodSpec.methodBuilder("slice")
+            .addModifiers(Modifier.PUBLIC)
+            .returns(thisType)
+            .addParameter(int.class, "fromIndex")
+            .addParameter(int.class, "toIndex")
+            .addStatement("$T.fromToIndex(fromIndex, toIndex, size())", CHECK_CLASS)
+            .addStatement("return new $L(array, this.fromIndex + fromIndex, this.fromIndex + toIndex)", thisType)
+            .build());
     }
 
     private static void writeClass(TypeSpec typeSpec) throws IOException {
