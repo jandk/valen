@@ -15,6 +15,10 @@
             <groupId>be.twofold</groupId>
             <artifactId>tinybcdec</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.jetbrains</groupId>
+            <artifactId>annotations</artifactId>
+        </dependency>
 
         <dependency>
             <groupId>com.squareup</groupId>

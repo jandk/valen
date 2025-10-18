@@ -1,10 +1,14 @@
 package be.twofold.valen.core.util.collect;
 
 import be.twofold.valen.core.util.*;
+import org.jetbrains.annotations.*;
 
 import java.nio.*;
 import java.util.*;
 
+@Debug.Renderer(
+    childrenArray = "java.util.Arrays.copyOfRange(array, fromIndex, toIndex)"
+)
 public class Doubles implements Comparable<Doubles>, RandomAccess {
     final double[] array;
 

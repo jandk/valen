@@ -1,6 +1,7 @@
 package be.twofold.valen.core.util.collect;
 
 import com.squareup.javapoet.*;
+import org.jetbrains.annotations.*;
 
 import javax.lang.model.element.*;
 import java.io.*;
@@ -46,7 +47,10 @@ final class WrapperGenerator {
         var builder = TypeSpec.classBuilder(className)
             .addModifiers(Modifier.PUBLIC)
             .addSuperinterface(ParameterizedTypeName.get(ClassName.get(Comparable.class), thisType))
-            .addSuperinterface(RandomAccess.class);
+            .addSuperinterface(RandomAccess.class)
+            .addAnnotation(AnnotationSpec.builder(Debug.Renderer.class)
+                .addMember("childrenArray", "$S", "java.util.Arrays.copyOfRange(array, fromIndex, toIndex)")
+                .build());
 
         // Fields
         builder.addField(FieldSpec.builder(arrayType, "array", Modifier.FINAL).build());
