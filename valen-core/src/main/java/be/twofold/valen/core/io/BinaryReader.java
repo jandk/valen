@@ -27,6 +27,10 @@ public interface BinaryReader extends Closeable {
         return new ByteBufferBinaryReader(buffer);
     }
 
+    static BinaryReader fromBytes(Bytes bytes) {
+        return new BytesBinaryReader(bytes);
+    }
+
     static BinaryReader fromPath(Path path) throws IOException {
         return new ChannelBinaryReader(Files.newByteChannel(path, StandardOpenOption.READ));
     }
