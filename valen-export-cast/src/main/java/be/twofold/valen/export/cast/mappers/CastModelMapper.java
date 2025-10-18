@@ -30,25 +30,27 @@ public final class CastModelMapper {
     private void mapMesh(CastNode.Model modelNode, Mesh mesh) throws IOException {
         var meshNode = modelNode.createMesh();
         mesh.name().ifPresent(meshNode::setName);
-        meshNode.setFaceBuffer(mesh.indexBuffer().asBuffer());
-        meshNode.setVertexPositionBuffer(mesh.getPositions().asBuffer());
-        mesh.getNormals().ifPresent(buffer -> meshNode.setVertexNormalBuffer(buffer.asBuffer()));
-        mesh.getTangents().ifPresent(buffer -> meshNode.setVertexTangentBuffer(mapTangentBuffer(buffer.asBuffer())));
+        meshNode.setFaceBuffer(mesh.indexBuffer().indices().asBuffer());
 
-        var colorBuffers = mesh.getBuffers(Semantic.COLOR);
-        colorBuffers.forEach(buffer -> meshNode.addVertexColorBuffer(mapColorBuffer(buffer.buffer().asBuffer())));
+        var vertexBuffer = mesh.vertexBuffer();
+        meshNode.setVertexPositionBuffer(vertexBuffer.positions().asBuffer());
+        vertexBuffer.normals().ifPresent(buffer -> meshNode.setVertexNormalBuffer(buffer.asBuffer()));
+        vertexBuffer.tangents().ifPresent(buffer -> meshNode.setVertexTangentBuffer(mapTangentBuffer(buffer.asBuffer())));
+
+        var colorBuffers = vertexBuffer.colors().stream().toList();
+        colorBuffers.forEach(buffer -> meshNode.addVertexColorBuffer(mapColorBuffer(buffer.asBuffer())));
         meshNode.setColorLayerCount(colorBuffers.size());
 
-        var uvBuffers = mesh.getTexCoords();
+        var uvBuffers = vertexBuffer.texCoords();
         uvBuffers.forEach(buffer -> meshNode.addVertexUVBuffer(buffer.asBuffer()));
         meshNode.setUVLayerCount(uvBuffers.size());
 
-        mesh.getJoints().ifPresent(buffer -> {
-            meshNode.setMaximumWeightInfluence(buffer.info().size());
-            meshNode.setVertexWeightBoneBuffer(buffer.buffer().asBuffer());
+        vertexBuffer.joints().ifPresent(buffer -> {
+            meshNode.setMaximumWeightInfluence(vertexBuffer.maximumInfluence());
+            meshNode.setVertexWeightBoneBuffer(buffer.asBuffer());
         });
-        mesh.getWeights().ifPresent(buffer -> {
-            meshNode.setVertexWeightValueBuffer(buffer.buffer().asBuffer());
+        vertexBuffer.weights().ifPresent(buffer -> {
+            meshNode.setVertexWeightValueBuffer(buffer.asBuffer());
         });
 
         if (mesh.material().isPresent()) {

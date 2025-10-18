@@ -25,7 +25,7 @@ public final class Geo {
         reader.position(startPosition);
         var indexBuffer = readIndexBuffer(reader, indexAccessor, indexCount);
         if (flipWindingOrder) {
-            invertIndices(indexBuffer);
+            invertIndices((MutableInts) indexBuffer.indices());
         }
 
         var vertexBuffers = new ArrayList<VertexBuffer<?>>();
@@ -58,10 +58,35 @@ public final class Geo {
             .map(vb -> (Floats) vb.buffer())
             .toList();
 
-        return new Mesh(indexBuffer, positions, normals, tangents, texCoords, vertexBuffers);
+        var joints = vertexBuffers.stream()
+            .filter(vb -> vb.info().semantic() == Semantic.JOINTS)
+            .findFirst();
+
+        var weights = vertexBuffers.stream()
+            .filter(vb -> vb.info().semantic() == Semantic.WEIGHTS)
+            .findFirst()
+            .map(vb -> (Floats) vb.buffer());
+
+        var colors = vertexBuffers.stream()
+            .filter(vb -> vb.info().semantic() == Semantic.COLOR)
+            .findFirst()
+            .map(vb -> (Bytes) vb.buffer());
+
+        var vertexBuffer = new VertexBuffer2(
+            positions,
+            normals,
+            tangents,
+            texCoords,
+            joints.map(vb -> (Shorts) vb.buffer()),
+            weights,
+            colors,
+            joints.map(vb -> vb.info().size()).orElse(0)
+        );
+
+        return new Mesh(indexBuffer, vertexBuffer);
     }
 
-    private MutableInts readIndexBuffer(BinaryReader reader, GeoAccessor<MutableInts> accessor, int count) throws IOException {
+    private IndexBuffer readIndexBuffer(BinaryReader reader, GeoAccessor<MutableInts> accessor, int count) throws IOException {
         var capacity = count * accessor.info().size();
         var buffer = MutableInts.allocate(capacity);
 
@@ -72,7 +97,7 @@ public final class Geo {
             offset += accessor.reader().read(reader, buffer, offset);
         }
 
-        return buffer;
+        return new IndexBuffer(buffer);
     }
 
     private <T extends WrappedArray> VertexBuffer<T> readVertexBuffer(BinaryReader reader, GeoAccessor<T> accessor, int count) throws IOException {

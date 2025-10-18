@@ -10,8 +10,4 @@ public record VertexBuffer<T extends WrappedArray>(
     public VertexBuffer {
         Check.argument(buffer.size() % info.size() == 0, "buffer.size() % info.size() != 0");
     }
-
-    public int count() {
-        return buffer.size() / info.size();
-    }
 }

@@ -62,10 +62,12 @@ public final class ModelPresenter extends AbstractFXPresenter<ModelView> impleme
     private TriangleMesh mapMesh(Mesh mesh) {
 
         var result = new TriangleMesh(VertexFormat.POINT_NORMAL_TEXCOORD);
-        copyIndices(mesh.indexBuffer(), result.getFaces());
-        copyPoints(mesh.getPositions(), result.getPoints());
-        copy(mesh.getNormals().orElseThrow(), result.getNormals());
-        copy(mesh.getTexCoords().getFirst(), result.getTexCoords());
+        copyIndices(mesh.indexBuffer().indices(), result.getFaces());
+
+        var vertexBuffer = mesh.vertexBuffer();
+        copyPoints(vertexBuffer.positions(), result.getPoints());
+        copy(vertexBuffer.normals().orElseThrow(), result.getNormals());
+        copy(vertexBuffer.texCoords().getFirst(), result.getTexCoords());
         return result;
     }
 

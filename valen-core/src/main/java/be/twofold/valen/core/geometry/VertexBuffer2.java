@@ -12,18 +12,26 @@ public record VertexBuffer2(
     List<Floats> texCoords,
     Optional<Shorts> joints,
     Optional<Floats> weights,
-    Optional<Bytes> colors
+    Optional<Bytes> colors,
+    int maximumInfluence
 ) {
     public VertexBuffer2 {
         Check.notNull(positions, "positions");
-        normals.ifPresent(fb -> check(fb.size(), positions.size(), 3));
-        tangents.ifPresent(fb -> check(fb.size(), positions.size(), 4));
+        Check.argument(positions.size() % 3 == 0, "positions.size() % 3 != 0");
+
+        int vertexCount = positions.size() / 3;
+        normals.ifPresent(fb -> check(fb.size(), vertexCount, 3));
+        tangents.ifPresent(fb -> check(fb.size(), vertexCount, 4));
         for (var fb : texCoords) {
-            check(fb.size(), positions.size(), 2);
+            check(fb.size(), vertexCount, 2);
         }
-        joints.ifPresent(sb -> check(sb.size(), positions.size(), 4));
-        weights.ifPresent(fb -> check(fb.size(), positions.size(), 4));
-        colors.ifPresent(bb -> check(bb.size(), positions.size(), 4));
+        joints.ifPresent(sb -> check(sb.size(), vertexCount, maximumInfluence));
+        weights.ifPresent(fb -> check(fb.size(), vertexCount, maximumInfluence));
+        colors.ifPresent(bb -> check(bb.size(), vertexCount, 4));
+    }
+
+    public int vertexCount() {
+        return positions.size() / 3;
     }
 
     private void check(int length, int count, int elementSize) {
