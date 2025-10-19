@@ -8,13 +8,10 @@ import java.io.*;
 
 @FunctionalInterface
 public interface GeoReader<T> {
-    int read(BinaryReader source, T target, int offset) throws IOException;
+    void read(BinaryReader source, T target, int offset) throws IOException;
 
     static GeoReader<MutableFloats> readPosition(float scale, Vector3 bias) {
-        return (source, target, offset) -> {
-            Vector3.read(source).fma(scale, bias).toFloats(target, offset);
-            return 3;
-        };
+        return (source, target, offset) -> Vector3.read(source).fma(scale, bias).toFloats(target, offset);
     }
 
     static GeoReader<MutableFloats> readPackedPosition(float scale, Vector3 bias) {
@@ -25,15 +22,11 @@ public interface GeoReader<T> {
             source.skip(2);
 
             new Vector3(x, y, z).fma(scale, bias).toFloats(target, offset);
-            return 3;
         };
     }
 
     static GeoReader<MutableFloats> readPackedNormal() {
-        return (source, target, offset) -> {
-            readVector3UNorm8Normal(source).normalize().toFloats(target, offset);
-            return 3;
-        };
+        return (source, target, offset) -> readVector3UNorm8Normal(source).normalize().toFloats(target, offset);
     }
 
     static GeoReader<MutableFloats> readPackedTangent() {
@@ -43,7 +36,6 @@ public interface GeoReader<T> {
             Vector3 xyz = readVector3UNorm8Normal(source).normalize();
             float w = Float.intBitsToFloat(((source.readByte() & 0x80) << 24) | 0x3F800000);
             new Vector4(xyz, w).toFloats(target, offset);
-            return 4;
         };
     }
 
@@ -73,17 +65,14 @@ public interface GeoReader<T> {
             float w = ((wn & 0x0f)) * factor2;
 
             int shift = 0;
-            int result = 3;
             if (write0) {
                 shift = 1;
-                result = 4;
                 target.setFloat(offset, 1.0f - y - z - w);
             }
 
             target.setFloat(offset + shift, y);
             target.setFloat(offset + shift, z);
             target.setFloat(offset + shift, w);
-            return result;
         };
     }
 
@@ -91,14 +80,12 @@ public interface GeoReader<T> {
         return (source, target, offset) -> {
             source.skip(3);
             target.setShort(offset, (short) Byte.toUnsignedInt(source.readByte()));
-            return 1;
         };
     }
 
     static GeoReader<MutableFloats> readUV(float scale, Vector2 bias) {
         return (source, target, offset) -> {
             Vector2.read(source).fma(scale, bias).toFloats(target, offset);
-            return 2;
         };
     }
 
@@ -107,14 +94,12 @@ public interface GeoReader<T> {
             float x = MathF.unpackUNorm16(source.readShort());
             float y = MathF.unpackUNorm16(source.readShort());
             new Vector2(x, y).fma(scale, bias).toFloats(target, offset);
-            return 2;
         };
     }
 
     static GeoReader<MutableInts> readShortAsInt() {
         return (source, target, offset) -> {
             target.setInt(offset, Short.toUnsignedInt(source.readShort()));
-            return 1;
         };
     }
 
@@ -123,7 +108,6 @@ public interface GeoReader<T> {
             for (int i = 0; i < n; i++) {
                 target.setShort(offset + i, (short) Byte.toUnsignedInt(source.readByte()));
             }
-            return n;
         };
     }
 
@@ -132,7 +116,6 @@ public interface GeoReader<T> {
             for (int i = 0; i < n; i++) {
                 target.setFloat(offset + i, MathF.unpackUNorm8(source.readByte()));
             }
-            return n;
         };
     }
 
@@ -141,7 +124,6 @@ public interface GeoReader<T> {
             for (int i = 0; i < n; i++) {
                 target.setByte(offset + i, source.readByte());
             }
-            return n;
         };
     }
 

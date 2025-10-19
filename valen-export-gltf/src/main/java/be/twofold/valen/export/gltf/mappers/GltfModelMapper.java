@@ -29,7 +29,7 @@ public abstract class GltfModelMapper {
     }
 
     Optional<MeshPrimitiveSchema> mapMeshPrimitive(Mesh mesh) throws IOException {
-        if (mesh.indices().size() == 0) {
+        if (mesh.faceCount() == 0) {
             log.warn("No indices found for {}, skipping", mesh.name().orElse("<unnamed>"));
             return Optional.empty();
         }
@@ -50,6 +50,12 @@ public abstract class GltfModelMapper {
         mesh.texCoords().forEach(floats -> attributes.put("TEXCOORD_" + numTexCoords++, buildAccessor(floats, AccessorComponentType.FLOAT, AccessorType.VEC2, false)));
         mesh.joints().ifPresent(shorts -> splitJoints(shorts, mesh.maximumInfluence(), attributes));
         mesh.weights().ifPresent(floats -> splitWeights(floats, mesh.maximumInfluence(), attributes));
+        mesh.custom().forEach((name, vertexBuffer) -> {
+            var sanitizedName = "_" + name.toUpperCase(Locale.ROOT);
+            var componentType = mapComponentType(vertexBuffer.componentType());
+            var accessorType = mapElementType(vertexBuffer.elementType());
+            attributes.put(sanitizedName, buildAccessor(vertexBuffer.array(), componentType, accessorType, false));
+        });
         // We don't do anything with colors, as Blender likes to incorporate vertex colors
 
         this.numTexCoords = 0;
@@ -67,6 +73,32 @@ public abstract class GltfModelMapper {
             .targets(morphTargets)
             .build();
         return Optional.of(meshPrimitive);
+    }
+
+    private AccessorComponentType mapComponentType(ComponentType<?> componentType) {
+        if (componentType == ComponentType.UNSIGNED_BYTE) {
+            return AccessorComponentType.UNSIGNED_BYTE;
+        } else if (componentType == ComponentType.UNSIGNED_SHORT) {
+            return AccessorComponentType.UNSIGNED_SHORT;
+        } else if (componentType == ComponentType.UNSIGNED_INT) {
+            return AccessorComponentType.UNSIGNED_INT;
+        } else if (componentType == ComponentType.FLOAT) {
+            return AccessorComponentType.FLOAT;
+        } else {
+            throw new UnsupportedOperationException();
+        }
+    }
+
+    private AccessorType mapElementType(ElementType elementType) {
+        return switch (elementType) {
+            case SCALAR -> AccessorType.SCALAR;
+            case VECTOR2 -> AccessorType.VEC2;
+            case VECTOR3 -> AccessorType.VEC3;
+            case VECTOR4 -> AccessorType.VEC4;
+            case MATRIX2 -> AccessorType.MAT2;
+            case MATRIX3 -> AccessorType.MAT3;
+            case MATRIX4 -> AccessorType.MAT4;
+        };
     }
 
     private BufferViewID createBufferView(WrappedArray array, BufferViewTarget target) {
@@ -183,8 +215,7 @@ public abstract class GltfModelMapper {
         return context.addAccessor(builder.build());
     }
 
-    void fixJointsAndWeights(Mesh mesh) {
-        // TODO: Loop over joints and weights and fix them
+    private void fixJointsAndWeights(Mesh mesh) {
         mesh.joints().map(MutableShorts.class::cast).ifPresent(joints ->
             mesh.weights().map(MutableFloats.class::cast).ifPresent(weights -> {
                 for (var i = 0; i < joints.size(); i++) {

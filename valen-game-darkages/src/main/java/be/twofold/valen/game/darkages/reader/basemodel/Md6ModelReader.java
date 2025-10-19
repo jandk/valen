@@ -64,7 +64,7 @@ public final class Md6ModelReader implements AssetReader<Model, DarkAgesAsset> {
         try (var source = BinaryReader.fromBytes(bytes)) {
             List<Mesh> meshes = GeometryReader.readStreamedMesh(source, lodInfos, true);
             // meshes = mergeJointsAndWeights(md6Model, meshes);
-            fixJointIndices(md6Model, meshes);
+            // fixJointIndices(md6Model, meshes);
             return meshes;
         }
     }

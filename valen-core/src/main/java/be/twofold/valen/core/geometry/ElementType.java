@@ -12,13 +12,13 @@ public enum ElementType {
     MATRIX3(9),
     MATRIX4(16);
 
-    private final int size;
+    private final int count;
 
-    ElementType(int size) {
-        this.size = size;
+    ElementType(int count) {
+        this.count = count;
     }
 
-    public int size() {
-        return size;
+    public int count() {
+        return count;
     }
 }

@@ -74,7 +74,8 @@ final class MeshBuilder {
             List.of(),
             Optional.empty(),
             Optional.empty(),
-            0
+            0,
+            Map.of()
         );
     }
 

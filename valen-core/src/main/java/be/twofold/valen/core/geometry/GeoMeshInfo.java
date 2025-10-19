@@ -16,6 +16,7 @@ public final class GeoMeshInfo {
     private final List<GeoBufferInfo<MutableBytes>> colors;
     private final GeoBufferInfo<MutableShorts> joints;
     private final GeoBufferInfo<MutableFloats> weights;
+    private final Map<String, GeoBufferInfo<?>> custom;
 
     public GeoMeshInfo(
         int indexCount,
@@ -27,7 +28,8 @@ public final class GeoMeshInfo {
         List<GeoBufferInfo<MutableFloats>> texCoords,
         List<GeoBufferInfo<MutableBytes>> colors,
         GeoBufferInfo<MutableShorts> joints,
-        GeoBufferInfo<MutableFloats> weights
+        GeoBufferInfo<MutableFloats> weights,
+        Map<String, GeoBufferInfo<?>> custom
     ) {
         this.indexCount = indexCount;
         this.vertexCount = vertexCount;
@@ -39,6 +41,7 @@ public final class GeoMeshInfo {
         this.colors = List.copyOf(colors);
         this.joints = joints;
         this.weights = weights;
+        this.custom = Map.copyOf(custom);
     }
 
     public static Builder builder(int indexCount, int vertexCount) {
@@ -85,6 +88,10 @@ public final class GeoMeshInfo {
         return Optional.ofNullable(weights);
     }
 
+    public Map<String, GeoBufferInfo<?>> custom() {
+        return custom;
+    }
+
     public static final class Builder {
         private final int indexCount;
         private final int vertexCount;
@@ -97,6 +104,7 @@ public final class GeoMeshInfo {
         private final List<GeoBufferInfo<MutableBytes>> colors = new ArrayList<>();
         private GeoBufferInfo<MutableShorts> joints;
         private GeoBufferInfo<MutableFloats> weights;
+        private final Map<String, GeoBufferInfo<?>> custom = new HashMap<>();
 
         private Builder(int indexCount, int vertexCount) {
             this.indexCount = Check.positiveOrZero(indexCount, "indexCount");
@@ -104,58 +112,52 @@ public final class GeoMeshInfo {
         }
 
         public Builder indices(int offset, int stride, GeoReader<MutableInts> reader) {
-            this.indices = new GeoBufferInfo<>(offset, stride, 1, reader, ComponentType.UNSIGNED_INT);
+            this.indices = new GeoBufferInfo<>(offset, stride, 1, reader, ElementType.SCALAR, ComponentType.UNSIGNED_INT);
             return this;
         }
 
         public Builder positions(int offset, int stride, GeoReader<MutableFloats> reader) {
-            this.positions = new GeoBufferInfo<>(offset, stride, 3, reader, ComponentType.FLOAT);
+            this.positions = new GeoBufferInfo<>(offset, stride, 1, reader, ElementType.VECTOR3, ComponentType.FLOAT);
             return this;
         }
 
         public Builder normals(int offset, int stride, GeoReader<MutableFloats> reader) {
-            this.normals = new GeoBufferInfo<>(offset, stride, 3, reader, ComponentType.FLOAT);
+            this.normals = new GeoBufferInfo<>(offset, stride, 1, reader, ElementType.VECTOR3, ComponentType.FLOAT);
             return this;
         }
 
         public Builder tangents(int offset, int stride, GeoReader<MutableFloats> reader) {
-            this.tangents = new GeoBufferInfo<>(offset, stride, 4, reader, ComponentType.FLOAT);
+            this.tangents = new GeoBufferInfo<>(offset, stride, 1, reader, ElementType.VECTOR4, ComponentType.FLOAT);
             return this;
         }
 
         public Builder addTexCoords(int offset, int stride, GeoReader<MutableFloats> reader) {
-            this.texCoords.add(new GeoBufferInfo<>(offset, stride, 2, reader, ComponentType.FLOAT));
+            this.texCoords.add(new GeoBufferInfo<>(offset, stride, 1, reader, ElementType.VECTOR2, ComponentType.FLOAT));
             return this;
         }
 
         public Builder addColors(int offset, int stride, GeoReader<MutableBytes> reader) {
-            this.colors.add(new GeoBufferInfo<>(offset, stride, 4, reader, ComponentType.UNSIGNED_BYTE));
+            this.colors.add(new GeoBufferInfo<>(offset, stride, 1, reader, ElementType.VECTOR4, ComponentType.UNSIGNED_BYTE));
             return this;
         }
 
         public Builder joints(int offset, int stride, int length, GeoReader<MutableShorts> reader) {
-            this.joints = new GeoBufferInfo<>(offset, stride, length, reader, ComponentType.UNSIGNED_SHORT);
+            this.joints = new GeoBufferInfo<>(offset, stride, length, reader, ElementType.SCALAR, ComponentType.UNSIGNED_SHORT);
             return this;
         }
 
         public Builder weights(int offset, int stride, int length, GeoReader<MutableFloats> reader) {
-            this.weights = new GeoBufferInfo<>(offset, stride, length, reader, ComponentType.FLOAT);
+            this.weights = new GeoBufferInfo<>(offset, stride, length, reader, ElementType.SCALAR, ComponentType.FLOAT);
+            return this;
+        }
+
+        public <T extends WrappedArray> Builder custom(String name, int offset, int stride, GeoReader<T> reader, ComponentType<T> componentType, ElementType elementType) {
+            this.custom.put(name, new GeoBufferInfo<>(offset, stride, 1, reader, elementType, componentType));
             return this;
         }
 
         public GeoMeshInfo build() {
-            return new GeoMeshInfo(
-                indexCount,
-                vertexCount,
-                indices,
-                positions,
-                normals,
-                tangents,
-                texCoords,
-                colors,
-                joints,
-                weights
-            );
+            return new GeoMeshInfo(indexCount, vertexCount, indices, positions, normals, tangents, texCoords, colors, joints, weights, custom);
         }
     }
 }
