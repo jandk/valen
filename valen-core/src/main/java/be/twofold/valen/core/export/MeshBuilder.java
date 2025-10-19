@@ -65,18 +65,17 @@ final class MeshBuilder {
     }
 
     Mesh build() {
-        var indexBuffer = new IndexBuffer(Ints.wrap(indices, 0, indexSize));
-        var vertexBuffer = new VertexBuffer2(
-            Floats.wrap(positions),
-            Optional.of(Floats.wrap(normals)),
+        return new Mesh(
+            MutableInts.wrap(indices, 0, indexSize),
+            MutableFloats.wrap(positions),
+            Optional.of(MutableFloats.wrap(normals)),
             Optional.empty(),
-            List.of(Floats.wrap(texCoords)),
-            Optional.empty(),
+            List.of(MutableFloats.wrap(texCoords)),
+            List.of(),
             Optional.empty(),
             Optional.empty(),
             0
         );
-        return new Mesh(indexBuffer, vertexBuffer);
     }
 
     private float squash(float f) {

@@ -29,7 +29,7 @@ public abstract class GltfModelMapper {
     }
 
     Optional<MeshPrimitiveSchema> mapMeshPrimitive(Mesh mesh) throws IOException {
-        if (mesh.indexBuffer().isEmpty()) {
+        if (mesh.indices().size() == 0) {
             log.warn("No indices found for {}, skipping", mesh.name().orElse("<unnamed>"));
             return Optional.empty();
         }
@@ -43,14 +43,13 @@ public abstract class GltfModelMapper {
         // Have to fix up the joints and weights first
         fixJointsAndWeights(mesh);
 
-        var vertexBuffer = mesh.vertexBuffer();
         var attributes = new HashMap<String, AccessorID>();
-        attributes.put("POSITION", buildAccessor(vertexBuffer.positions(), AccessorComponentType.FLOAT, AccessorType.VEC3, true));
-        vertexBuffer.normals().ifPresent(floats -> attributes.put("NORMAL", buildAccessor(floats, AccessorComponentType.FLOAT, AccessorType.VEC3, false)));
-        vertexBuffer.tangents().ifPresent(floats -> attributes.put("TANGENT", buildAccessor(floats, AccessorComponentType.FLOAT, AccessorType.VEC4, false)));
-        vertexBuffer.texCoords().forEach(floats -> attributes.put("TEXCOORD_" + numTexCoords++, buildAccessor(floats, AccessorComponentType.FLOAT, AccessorType.VEC2, false)));
-        vertexBuffer.joints().ifPresent(shorts -> splitJoints(shorts, vertexBuffer.maximumInfluence(), attributes));
-        vertexBuffer.weights().ifPresent(floats -> splitWeights(floats, vertexBuffer.maximumInfluence(), attributes));
+        attributes.put("POSITION", buildAccessor(mesh.positions(), AccessorComponentType.FLOAT, AccessorType.VEC3, true));
+        mesh.normals().ifPresent(floats -> attributes.put("NORMAL", buildAccessor(floats, AccessorComponentType.FLOAT, AccessorType.VEC3, false)));
+        mesh.tangents().ifPresent(floats -> attributes.put("TANGENT", buildAccessor(floats, AccessorComponentType.FLOAT, AccessorType.VEC4, false)));
+        mesh.texCoords().forEach(floats -> attributes.put("TEXCOORD_" + numTexCoords++, buildAccessor(floats, AccessorComponentType.FLOAT, AccessorType.VEC2, false)));
+        mesh.joints().ifPresent(shorts -> splitJoints(shorts, mesh.maximumInfluence(), attributes));
+        mesh.weights().ifPresent(floats -> splitWeights(floats, mesh.maximumInfluence(), attributes));
         // We don't do anything with colors, as Blender likes to incorporate vertex colors
 
         this.numTexCoords = 0;
@@ -58,8 +57,8 @@ public abstract class GltfModelMapper {
         this.numJoints = 0;
         this.numWeights = 0;
 
-        var indices = buildAccessor(mesh.indexBuffer().indices());
-        var morphTargets = buildMorphTargets(mesh.blendShapes(), mesh.indexBuffer().faceCount());
+        var indices = buildAccessor(mesh.indices());
+        var morphTargets = buildMorphTargets(mesh.blendShapes(), mesh.faceCount());
 
         var meshPrimitive = ImmutableMeshPrimitive.builder()
             .attributes(attributes)
@@ -186,13 +185,11 @@ public abstract class GltfModelMapper {
 
     void fixJointsAndWeights(Mesh mesh) {
         // TODO: Loop over joints and weights and fix them
-        mesh.vertexBuffer().joints().ifPresent(joints ->
-            mesh.vertexBuffer().weights().ifPresent(weights -> {
-                var jb = (MutableShorts) joints;
-                var wb = (MutableFloats) weights;
-                for (var i = 0; i < jb.size(); i++) {
-                    if (wb.getFloat(i) == 0) {
-                        jb.setShort(i, (short) 0);
+        mesh.joints().map(MutableShorts.class::cast).ifPresent(joints ->
+            mesh.weights().map(MutableFloats.class::cast).ifPresent(weights -> {
+                for (var i = 0; i < joints.size(); i++) {
+                    if (weights.getFloat(i) == 0) {
+                        joints.setShort(i, (short) 0);
                     }
                 }
             }));

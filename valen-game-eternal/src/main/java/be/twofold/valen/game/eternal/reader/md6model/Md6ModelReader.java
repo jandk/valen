@@ -81,7 +81,7 @@ public final class Md6ModelReader implements AssetReader<Model, EternalAsset> {
             var meshInfo = md6.meshInfos().get(i);
 
             // Just assume it's a mutable buffer, because we read it as such
-            var joints = meshes.get(i).vertexBuffer().joints().map(MutableShorts.class::cast).orElseThrow();
+            var joints = meshes.get(i).joints().map(MutableShorts.class::cast).orElseThrow();
             for (var j = 0; j < joints.size(); j++) {
                 joints.setShort(j, lookup[Short.toUnsignedInt(joints.getShort(j)) + meshInfo.unknown2()]);
             }

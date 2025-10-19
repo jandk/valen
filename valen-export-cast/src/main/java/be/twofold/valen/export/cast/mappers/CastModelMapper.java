@@ -30,28 +30,24 @@ public final class CastModelMapper {
     private void mapMesh(CastNode.Model modelNode, Mesh mesh) throws IOException {
         var meshNode = modelNode.createMesh();
         mesh.name().ifPresent(meshNode::setName);
-        meshNode.setFaceBuffer(mesh.indexBuffer().indices().asBuffer());
+        meshNode.setFaceBuffer(mesh.indices().asBuffer());
+        meshNode.setVertexPositionBuffer(mesh.positions().asBuffer());
+        mesh.normals().ifPresent(buffer -> meshNode.setVertexNormalBuffer(buffer.asBuffer()));
+        mesh.tangents().ifPresent(buffer -> meshNode.setVertexTangentBuffer(mapTangentBuffer(buffer.asBuffer())));
 
-        var vertexBuffer = mesh.vertexBuffer();
-        meshNode.setVertexPositionBuffer(vertexBuffer.positions().asBuffer());
-        vertexBuffer.normals().ifPresent(buffer -> meshNode.setVertexNormalBuffer(buffer.asBuffer()));
-        vertexBuffer.tangents().ifPresent(buffer -> meshNode.setVertexTangentBuffer(mapTangentBuffer(buffer.asBuffer())));
-
-        var colorBuffers = vertexBuffer.colors().stream().toList();
+        var colorBuffers = mesh.colors().stream().toList();
         colorBuffers.forEach(buffer -> meshNode.addVertexColorBuffer(mapColorBuffer(buffer.asBuffer())));
         meshNode.setColorLayerCount(colorBuffers.size());
 
-        var uvBuffers = vertexBuffer.texCoords();
+        var uvBuffers = mesh.texCoords();
         uvBuffers.forEach(buffer -> meshNode.addVertexUVBuffer(buffer.asBuffer()));
         meshNode.setUVLayerCount(uvBuffers.size());
 
-        vertexBuffer.joints().ifPresent(buffer -> {
-            meshNode.setMaximumWeightInfluence(vertexBuffer.maximumInfluence());
-            meshNode.setVertexWeightBoneBuffer(buffer.asBuffer());
-        });
-        vertexBuffer.weights().ifPresent(buffer -> {
-            meshNode.setVertexWeightValueBuffer(buffer.asBuffer());
-        });
+        if (mesh.maximumInfluence() != 0) {
+            meshNode.setMaximumWeightInfluence(mesh.maximumInfluence());
+            mesh.joints().ifPresent(shorts -> meshNode.setVertexWeightBoneBuffer(shorts.asBuffer()));
+            mesh.weights().ifPresent(floats -> meshNode.setVertexWeightValueBuffer(floats.asBuffer()));
+        }
 
         if (mesh.material().isPresent()) {
             meshNode.setMaterial(materialMapper.map(mesh.material().get(), modelNode));

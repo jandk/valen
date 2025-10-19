@@ -5,6 +5,7 @@ import be.twofold.valen.core.util.collect.*;
 
 import java.io.*;
 import java.util.*;
+import java.util.stream.*;
 
 public final class Geo {
     private final boolean flipWindingOrder;
@@ -15,110 +16,63 @@ public final class Geo {
 
     public Mesh readMesh(
         BinaryReader reader,
-        GeoAccessor<MutableInts> indexAccessor,
-        int indexCount,
-        List<GeoAccessor<?>> vertexAccessors,
-        int vertexCount
-    ) throws IOException {
-        var startPosition = reader.position();
-
-        reader.position(startPosition);
-        var indexBuffer = readIndexBuffer(reader, indexAccessor, indexCount);
+        GeoMeshInfo bufferInfo
+    ) {
+        var indices = readVertexBuffer(reader, bufferInfo.indices(), bufferInfo.indexCount());
         if (flipWindingOrder) {
-            invertIndices((MutableInts) indexBuffer.indices());
+            invertIndices(indices);
         }
 
-        var vertexBuffers = new ArrayList<VertexBuffer<?>>();
-        for (var vertexAccessor : vertexAccessors) {
-            reader.position(startPosition);
-            var vertexBuffer = readVertexBuffer(reader, vertexAccessor, vertexCount);
-            vertexBuffers.add(vertexBuffer);
-        }
+        Floats positions = readVertexBuffer(reader, bufferInfo.positions(), bufferInfo.vertexCount());
+        Optional<Floats> normals = bufferInfo.normals().map(info -> readVertexBuffer(reader, info, bufferInfo.vertexCount()));
+        Optional<Floats> tangents = bufferInfo.tangents().map(info -> readVertexBuffer(reader, info, bufferInfo.vertexCount()));
+        List<Floats> texCoords = bufferInfo.texCoords().stream()
+            .map(info -> readVertexBuffer(reader, info, bufferInfo.vertexCount()))
+            .collect(Collectors.toUnmodifiableList());
+        List<Bytes> colors = bufferInfo.colors().stream()
+            .map(info -> readVertexBuffer(reader, info, bufferInfo.vertexCount()))
+            .collect(Collectors.toUnmodifiableList());
+        Optional<Shorts> joints = bufferInfo.joints().map(info -> readVertexBuffer(reader, info, bufferInfo.vertexCount()));
+        Optional<Floats> weights = bufferInfo.weights().map(info -> readVertexBuffer(reader, info, bufferInfo.vertexCount()));
 
-        reader.position(startPosition);
 
-        var positions = vertexBuffers.stream()
-            .filter(vb -> vb.info().semantic() == Semantic.POSITION)
-            .findFirst()
-            .map(vb -> (Floats) vb.buffer())
-            .orElseThrow();
-
-        var normals = vertexBuffers.stream()
-            .filter(vb -> vb.info().semantic() == Semantic.NORMAL)
-            .findFirst()
-            .map(vb -> (Floats) vb.buffer());
-
-        var tangents = vertexBuffers.stream()
-            .filter(vb -> vb.info().semantic() == Semantic.TANGENT)
-            .findFirst()
-            .map(vb -> (Floats) vb.buffer());
-
-        var texCoords = vertexBuffers.stream()
-            .filter(vb -> vb.info().semantic() == Semantic.TEX_COORD)
-            .map(vb -> (Floats) vb.buffer())
-            .toList();
-
-        var joints = vertexBuffers.stream()
-            .filter(vb -> vb.info().semantic() == Semantic.JOINTS)
-            .findFirst();
-
-        var weights = vertexBuffers.stream()
-            .filter(vb -> vb.info().semantic() == Semantic.WEIGHTS)
-            .findFirst()
-            .map(vb -> (Floats) vb.buffer());
-
-        var colors = vertexBuffers.stream()
-            .filter(vb -> vb.info().semantic() == Semantic.COLOR)
-            .findFirst()
-            .map(vb -> (Bytes) vb.buffer());
-
-        var vertexBuffer = new VertexBuffer2(
+        return new Mesh(
+            indices,
             positions,
             normals,
             tangents,
             texCoords,
-            joints.map(vb -> (Shorts) vb.buffer()),
-            weights,
             colors,
-            joints.map(vb -> vb.info().size()).orElse(0)
+            joints,
+            weights,
+            0
         );
-
-        return new Mesh(indexBuffer, vertexBuffer);
     }
 
-    private IndexBuffer readIndexBuffer(BinaryReader reader, GeoAccessor<MutableInts> accessor, int count) throws IOException {
-        var capacity = count * accessor.info().size();
-        var buffer = MutableInts.allocate(capacity);
+    private <T extends WrappedArray> T readVertexBuffer(BinaryReader reader, GeoBufferInfo<T> accessor, int count) {
+        int capacity = count * accessor.length();
+        T buffer = accessor.allocate(capacity);
 
-        var start = reader.position() + accessor.offset();
-        var offset = 0;
-        for (var i = 0L; i < count; i++) {
-            reader.position(start + i * accessor.stride());
-            offset += accessor.reader().read(reader, buffer, offset);
+        try {
+            long start = accessor.offset();
+            int offset = 0;
+            for (long i = 0L; i < count; i++) {
+                reader.position(start + i * accessor.stride());
+                accessor.reader().read(reader, buffer, offset);
+                offset += accessor.length();
+            }
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
         }
 
-        return new IndexBuffer(buffer);
+        return buffer;
     }
 
-    private <T extends WrappedArray> VertexBuffer<T> readVertexBuffer(BinaryReader reader, GeoAccessor<T> accessor, int count) throws IOException {
-        var capacity = count * accessor.info().size();
-        var buffer = accessor.info().componentType().allocate(capacity);
-
-        var start = reader.position() + accessor.offset();
-        var offset = 0;
-        for (var i = 0L; i < count; i++) {
-            reader.position(start + i * accessor.stride());
-            offset += accessor.reader().read(reader, buffer, offset);
-        }
-
-        return new VertexBuffer<>(buffer, accessor.info());
-    }
-
-    private void invertIndices(MutableInts indexBuffer) {
-        for (int i = 0, lim = indexBuffer.size(); i < lim; i += 3) {
-            var temp = indexBuffer.getInt(i);
-            indexBuffer.setInt(i, indexBuffer.getInt(i + 2));
-            indexBuffer.setInt(i + 2, temp);
+    private void invertIndices(MutableInts ints) {
+        for (int i = 0, lim = ints.size(); i < lim; i += 3) {
+            int temp = ints.getInt(i);
+            ints.setInt(i, ints.getInt(i + 2));
+            ints.setInt(i + 2, temp);
         }
     }
 }
