@@ -1,6 +1,6 @@
 package be.twofold.valen.core.math;
 
-import be.twofold.valen.core.io.BinaryReader;
+import be.twofold.valen.core.io.*;
 
 import java.io.*;
 import java.nio.*;
@@ -119,6 +119,22 @@ public record Quaternion(float x, float y, float z, float w) {
             w * other.z + x * other.y - y * other.x + z * other.w,
             w * other.w - x * other.x - y * other.y - z * other.z
         );
+    }
+
+    /**
+     * Returns the conjugate of this quaternion.
+     */
+    public Quaternion conjugate() {
+        return new Quaternion(-x, -y, -z, w);
+    }
+
+    /**
+     * Returns the multiplicative inverse of this quaternion.
+     * For unit quaternions this equals the conjugate.
+     */
+    public Quaternion invert() {
+        float invLenSq = 1.0f / lengthSquared();
+        return new Quaternion(-x * invLenSq, -y * invLenSq, -z * invLenSq, w * invLenSq);
     }
 
     public void toBuffer(FloatBuffer buffer) {

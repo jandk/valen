@@ -24,7 +24,7 @@ public class DyingLightGame implements Game {
     }
 
     @Override
-    public Archive<?, ?> loadArchive(String name) throws IOException {
+    public DyingLightArchive loadArchive(String name) throws IOException {
         PackInfo pack = packs.stream()
             .filter(p -> p.name().equals(name))
             .findFirst().orElseThrow();

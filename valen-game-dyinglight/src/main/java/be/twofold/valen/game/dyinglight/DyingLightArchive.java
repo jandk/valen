@@ -3,10 +3,11 @@ package be.twofold.valen.game.dyinglight;
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.util.collect.*;
+import be.twofold.valen.game.dyinglight.reader.mesh.*;
 import be.twofold.valen.game.dyinglight.reader.rpack.*;
+import be.twofold.valen.game.dyinglight.reader.texture.*;
 
 import java.io.*;
-import java.nio.*;
 import java.nio.charset.*;
 import java.nio.file.*;
 import java.util.*;
@@ -20,6 +21,11 @@ public class DyingLightArchive implements Archive<DyingLightAssetID, DyingLightA
     private final List<RDPPart> parts;
     private final List<RDPFile> files;
     private final List<String> filenames;
+
+    private final AssetReaders<DyingLightAsset> readers = new AssetReaders<>(List.of(
+        new DLMeshReader(),
+        new DLTextureReader()
+    ));
 
     private final Map<DyingLightAssetID, DyingLightAsset> index;
 
@@ -47,31 +53,32 @@ public class DyingLightArchive implements Archive<DyingLightAssetID, DyingLightA
     public <T> T loadAsset(DyingLightAssetID identifier, Class<T> clazz) throws IOException {
         var asset = get(identifier).orElseThrow(FileNotFoundException::new);
 
-        if (clazz == ByteBuffer.class) {
-            return clazz.cast(readFile(asset.file()));
+        Bytes bytes = readFile(asset.file());
+        try (var source = BinaryReader.fromBytes(bytes)) {
+            return readers.read(asset, source, clazz);
         }
-
-        throw new IOException("No reader found for " + asset);
+        // throw new IOException("No reader found for " + asset);
     }
 
-    private ByteBuffer readFile(RDPFile file) throws IOException {
+    private Bytes readFile(RDPFile file) throws IOException {
         var parts = this.parts.subList(file.partIndex(), file.partIndex() + file.numParts());
         var size = parts.stream().mapToInt(RDPPart::size).sum();
-        var buffer = ByteBuffer.allocate(size);
-
+        var bytes = MutableBytes.allocate(size);
+        var offset = 0;
         for (RDPPart part : parts) {
-            buffer.put(readPart(part));
+            readPart(part).copyTo(bytes, offset);
+            offset += part.size();
         }
 
-        return buffer.flip();
+        return bytes;
     }
 
-    private ByteBuffer readPart(RDPPart part) throws IOException {
+    private Bytes readPart(RDPPart part) throws IOException {
         var section = sections.get(part.sectionIndex());
-        var offset = section.offset() + part.offset() << 4;
+        var offset = (long) section.offset() + (long) part.offset() << 4;
         return reader
             .position(offset)
-            .readBuffer(part.size());
+            .readBytesStruct(part.size());
     }
 
     @Override
@@ -109,8 +116,12 @@ public class DyingLightArchive implements Archive<DyingLightAssetID, DyingLightA
     }
 
     private DyingLightAsset mapFile(RDPFile file) {
-        var id = new DyingLightAssetID(filenames.get(file.fileIndex()));
+        String name = filenames.get(file.fileIndex());
+        var id = new DyingLightAssetID(name, file.type());
         var parts = this.parts.subList(file.partIndex(), file.partIndex() + file.numParts());
-        return new DyingLightAsset(id, file, parts);
+        List<ResourceType> sectionTypes = parts.stream()
+            .map(part -> sections.get(part.sectionIndex()).type())
+            .toList();
+        return new DyingLightAsset(id, file, parts, sectionTypes);
     }
 }

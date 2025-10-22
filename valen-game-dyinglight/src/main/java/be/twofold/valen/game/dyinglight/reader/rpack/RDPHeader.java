@@ -15,7 +15,8 @@ public record RDPHeader(
     public static RDPHeader read(BinaryReader reader) throws IOException {
         reader.expectInt(0x4C365052); // magic
         reader.expectInt(4); // version
-        reader.expectInt(4096); // block alignment?
+        // reader.expectInt(4096); // block alignment?
+        var unk = reader.readInt(); // block alignment?
 
         var numParts = reader.readInt();
         var numSections = reader.readInt();

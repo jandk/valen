@@ -8,11 +8,44 @@ import java.util.*;
 public record DyingLightAsset(
     DyingLightAssetID id,
     RDPFile file,
-    List<RDPPart> parts
+    List<RDPPart> parts,
+    List<ResourceType> sectionTypes
 ) implements Asset {
     @Override
     public AssetType type() {
-        return AssetType.RAW;
+        return switch (id.type()) {
+            case Mesh -> AssetType.MODEL;
+            case Texture -> AssetType.TEXTURE;
+            default -> AssetType.RAW;
+        };
+    }
+
+    public boolean hasSection(ResourceType type) {
+        return sectionTypes.contains(type);
+    }
+
+    public long sectionOffset(ResourceType type) {
+        long totalOffset = 0;
+        for (int i = 0; i < parts.size(); i++) {
+            final RDPPart part = parts.get(i);
+            final ResourceType sectionType = sectionTypes.get(i);
+            if (sectionType == type) {
+                return totalOffset;
+            }
+            totalOffset += part.size();
+        }
+        return -1;
+    }
+
+    public long sectionSize(ResourceType type) {
+        for (int i = 0; i < parts.size(); i++) {
+            final RDPPart part = parts.get(i);
+            final ResourceType sectionType = sectionTypes.get(i);
+            if (sectionType == type) {
+                return part.size();
+            }
+        }
+        return -1;
     }
 
     @Override

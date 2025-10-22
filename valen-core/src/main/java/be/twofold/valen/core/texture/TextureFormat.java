@@ -3,12 +3,16 @@ package be.twofold.valen.core.texture;
 public enum TextureFormat {
     // Uncompressed formats
     R8_UNORM,
+    R8_SNORM,
     R8G8_UNORM,
+    R8G8_SNORM,
     R8G8B8_UNORM,
     R8G8B8A8_UNORM,
+    R8G8B8A8_SNORM,
     B8G8R8_UNORM,
     B8G8R8A8_UNORM,
     R16_UNORM,
+    R16_SNORM,
     R16G16B16A16_UNORM,
     R16_SFLOAT,
     R16G16_SFLOAT,
@@ -42,11 +46,12 @@ public enum TextureFormat {
 
     public int blockSize() {
         return switch (this) {
-            case R8_UNORM -> 1;
-            case R8G8_UNORM,
-                 R16_UNORM, R16_SFLOAT -> 2;
+            case R8_UNORM, R8_SNORM -> 1;
+            case R8G8_UNORM, R8G8_SNORM,
+                 R16_UNORM, R16_SNORM, R16_SFLOAT -> 2;
             case R8G8B8_UNORM, B8G8R8_UNORM -> 3;
             case R8G8B8A8_UNORM, B8G8R8A8_UNORM,
+                 R8G8B8A8_SNORM,
                  R16G16_SFLOAT -> 4;
             case R16G16B16A16_UNORM, R16G16B16A16_SFLOAT,
                  BC1_UNORM, BC1_SRGB,
@@ -62,7 +67,7 @@ public enum TextureFormat {
 
     public boolean hasAlpha() {
         return switch (this) {
-            case R8G8B8A8_UNORM, B8G8R8A8_UNORM,
+            case R8G8B8A8_UNORM, R8G8B8A8_SNORM, B8G8R8A8_UNORM,
                  R16G16B16A16_UNORM, R16G16B16A16_SFLOAT,
                  BC1_UNORM, BC1_SRGB,
                  BC2_UNORM, BC2_SRGB,

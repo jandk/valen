@@ -247,7 +247,11 @@ final class UnpackGenerator {
                  BC2_SRGB,
                  BC3_SRGB,
                  BC7_SRGB -> Interp.SRGB;
-            case BC4_SNORM,
+            case R8_SNORM,
+                 R8G8_SNORM,
+                 R8G8B8A8_SNORM,
+                 R16_SNORM,
+                 BC4_SNORM,
                  BC5_SNORM -> Interp.SNorm;
             case BC6H_UFLOAT -> Interp.UFloat;
         };

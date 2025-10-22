@@ -11,7 +11,7 @@ public record RDPSection(
     byte unk02,
     byte unk03,
     int offset,
-    int size,
+    long size,
     int numAssets
 ) {
     public static RDPSection read(BinaryReader reader) throws IOException {
@@ -20,7 +20,7 @@ public record RDPSection(
         var unk02 = reader.readByte();
         var unk03 = reader.readByte();
         var offset = reader.readInt();
-        var size = reader.readLongAsInt();
+        var size = reader.readLong();
         var numAssets = reader.readInt();
 
         return new RDPSection(

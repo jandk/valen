@@ -85,12 +85,16 @@ public final class DdsExporter extends TextureExporter {
     private static DxgiFormat mapFormat(TextureFormat format) {
         return switch (format) {
             case R8_UNORM -> DxgiFormat.R8_UNORM;
+            case R8_SNORM -> DxgiFormat.R8_SNORM;
             case R8G8_UNORM -> DxgiFormat.R8G8_UNORM;
+            case R8G8_SNORM -> DxgiFormat.R8G8_SNORM;
             case R8G8B8_UNORM,
                  R8G8B8A8_UNORM -> DxgiFormat.R8G8B8A8_UNORM;
+            case R8G8B8A8_SNORM -> DxgiFormat.R8G8B8A8_SNORM;
             case B8G8R8_UNORM,
                  B8G8R8A8_UNORM -> DxgiFormat.B8G8R8A8_UNORM;
             case R16_UNORM -> DxgiFormat.R16_UNORM;
+            case R16_SNORM -> DxgiFormat.R16_SNORM;
             case R16G16B16A16_UNORM -> DxgiFormat.R16G16B16A16_UNORM;
             case R16_SFLOAT -> DxgiFormat.R16_FLOAT;
             case R16G16_SFLOAT -> DxgiFormat.R16G16_FLOAT;

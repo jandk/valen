@@ -30,15 +30,16 @@ public final class PngExporter extends TextureExporter {
     @Override
     public TextureFormat chooseFormat(TextureFormat format) {
         return switch (format) {
-            case R8_UNORM,
+            case R8_UNORM, R8_SNORM,
                  BC4_UNORM,
                  BC4_SNORM -> TextureFormat.R8_UNORM;
-            case R8G8_UNORM,
+            case R8G8_UNORM, R8G8_SNORM,
                  R8G8B8_UNORM,
                  B8G8R8_UNORM,
                  BC5_UNORM,
                  BC5_SNORM -> TextureFormat.R8G8B8_UNORM;
-            case R8G8B8A8_UNORM, B8G8R8A8_UNORM,
+            case R8G8B8A8_UNORM, R8G8B8A8_SNORM,
+                 B8G8R8A8_UNORM,
                  BC1_UNORM,
                  BC1_SRGB,
                  BC2_UNORM,
@@ -48,6 +49,7 @@ public final class PngExporter extends TextureExporter {
                  BC7_UNORM,
                  BC7_SRGB -> TextureFormat.R8G8B8A8_UNORM;
             case R16_UNORM -> TextureFormat.R16_UNORM;
+            case R16_SNORM -> TextureFormat.R16_SNORM;
             case R16G16B16A16_UNORM -> TextureFormat.R16G16B16A16_UNORM;
 
             // These are special cases, should probably be exported to OpenEXR
