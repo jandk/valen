@@ -83,7 +83,7 @@ public final class Utf8 {
                     return false;
                 }
 
-                if (b0 < (byte) 0xC2                 // overlong
+                if (b0 < (byte) 0xC2                         // overlong
                     || bytes.getByte(index++) >= (byte) 0xC0 // continuation
                 ) {
                     return false;
@@ -97,7 +97,7 @@ public final class Utf8 {
                 if (b1 >= (byte) 0xC0                           // continuation
                     || (b0 == (byte) 0xE0 && b1 < (byte) 0xA0)  // overlong
                     || (b0 == (byte) 0xED && b1 >= (byte) 0xA0) // surrogate
-                    || bytes.getByte(index++) >= (byte) 0xC0            // continuation
+                    || bytes.getByte(index++) >= (byte) 0xC0    // continuation
                 ) {
                     return false;
                 }
@@ -111,8 +111,8 @@ public final class Utf8 {
                     || (b0 == (byte) 0xF0 && b1 < (byte) 0x90)  // overlong
                     || (b0 == (byte) 0xF4 && b1 >= (byte) 0x90) // > max cp
                     || (b0 >= (byte) 0xF5)                      // > max cp
-                    || bytes.getByte(index++) >= (byte) 0xC0            // continuation
-                    || bytes.getByte(index++) >= (byte) 0xC0            // continuation
+                    || bytes.getByte(index++) >= (byte) 0xC0    // continuation
+                    || bytes.getByte(index++) >= (byte) 0xC0    // continuation
                 ) {
                     return false;
                 }
