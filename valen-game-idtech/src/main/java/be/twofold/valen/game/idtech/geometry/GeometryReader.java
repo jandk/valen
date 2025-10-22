@@ -127,11 +127,10 @@ public final class GeometryReader {
                     .tangents(offset, stride, GeoReader.readPackedTangent());
                 yield switch (skinningMode) {
                     case None -> builder;
-                    case Fixed4 -> builder.weights(offset, stride, 4, GeoReader.readWeight4(true));
-                    case Skinning4 -> builder.weights(offset, stride, 3, GeoReader.readWeight4(false));
+                    case Fixed4, Skinning4 -> builder.weights(offset, stride, 4, GeoReader.readWeight4());
                     case Skinning1 -> builder.joints(offset, stride, 1, GeoReader.readBone1());
-                    case Skinning6 -> builder.weights(offset, stride, 3, GeoReader.readWeight6());
-                    case Skinning8 -> builder.weights(offset, stride, 3, GeoReader.readWeight8());
+                    case Skinning6 -> builder.weights(offset, stride, 4, GeoReader.readWeight6());
+                    case Skinning8 -> builder.weights(offset, stride, 4, GeoReader.readWeight8());
                 };
             }
             case MATERIAL_UV, MATERIAL_UV1, LIGHTMAP_UV, MATERIAL_UV2 ->
@@ -149,10 +148,10 @@ public final class GeometryReader {
             case SKINNING_4 -> builder.joints(offset, stride, 4, GeoReader.copyBytesAsShorts(4));
             case SKINNING_6 -> builder
                 .joints(offset, stride, 6, GeoReader.copyBytesAsShorts(6))
-                .weights(offset + 6, stride, 2, GeoReader.copyBytesAsFloats(2));
+                .custom("W", offset + 6, stride, 2, GeoReader.copyBytesAsFloats(2), ComponentType.FLOAT, ElementType.SCALAR);
             case SKINNING_8 -> builder
                 .joints(offset, stride, 8, GeoReader.copyBytesAsShorts(8))
-                .weights(offset + 8, stride, 4, GeoReader.copyBytesAsFloats(4));
+                .custom("W", offset + 8, stride, 4, GeoReader.copyBytesAsFloats(2), ComponentType.FLOAT, ElementType.SCALAR);
         };
     }
 

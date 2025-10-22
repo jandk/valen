@@ -43,8 +43,8 @@ public final class CastModelMapper {
         uvBuffers.forEach(buffer -> meshNode.addVertexUVBuffer(buffer.asBuffer()));
         meshNode.setUVLayerCount(uvBuffers.size());
 
-        if (mesh.maximumInfluence() != 0) {
-            meshNode.setMaximumWeightInfluence(mesh.maximumInfluence());
+        if (mesh.maxInfluence() != 0) {
+            meshNode.setMaximumWeightInfluence(mesh.maxInfluence());
             mesh.joints().ifPresent(shorts -> meshNode.setVertexWeightBoneBuffer(shorts.asBuffer()));
             mesh.weights().ifPresent(floats -> meshNode.setVertexWeightValueBuffer(floats.asBuffer()));
         }
@@ -59,13 +59,13 @@ public final class CastModelMapper {
     private FloatBuffer mapTangentBuffer(FloatBuffer buffer) {
         buffer.rewind();
         var limit = buffer.limit();
+        var newBuffer = FloatBuffer.allocate(limit * 3 / 4);
         for (int i = 0, o = 0; i < limit; i += 4, o += 3) {
-            buffer.put(o/**/, buffer.get(i/**/));
-            buffer.put(o + 1, buffer.get(i + 1));
-            buffer.put(o + 2, buffer.get(i + 2));
+            newBuffer.put(o/**/, buffer.get(i/**/));
+            newBuffer.put(o + 1, buffer.get(i + 1));
+            newBuffer.put(o + 2, buffer.get(i + 2));
         }
-        buffer.limit(limit * 3 / 4);
-        return buffer;
+        return newBuffer;
     }
 
     private IntBuffer mapColorBuffer(Buffer buffer) {

@@ -48,8 +48,8 @@ public abstract class GltfModelMapper {
         mesh.normals().ifPresent(floats -> attributes.put("NORMAL", buildAccessor(floats, AccessorComponentType.FLOAT, AccessorType.VEC3, false)));
         mesh.tangents().ifPresent(floats -> attributes.put("TANGENT", buildAccessor(floats, AccessorComponentType.FLOAT, AccessorType.VEC4, false)));
         mesh.texCoords().forEach(floats -> attributes.put("TEXCOORD_" + numTexCoords++, buildAccessor(floats, AccessorComponentType.FLOAT, AccessorType.VEC2, false)));
-        mesh.joints().ifPresent(shorts -> splitJoints(shorts, mesh.maximumInfluence(), attributes));
-        mesh.weights().ifPresent(floats -> splitWeights(floats, mesh.maximumInfluence(), attributes));
+        mesh.joints().ifPresent(shorts -> splitJoints(shorts, mesh.maxInfluence(), attributes));
+        mesh.weights().ifPresent(floats -> splitWeights(floats, mesh.maxInfluence(), attributes));
         mesh.custom().forEach((name, vertexBuffer) -> {
             var sanitizedName = "_" + name.toUpperCase(Locale.ROOT);
             var componentType = mapComponentType(vertexBuffer.componentType());
@@ -109,15 +109,15 @@ public abstract class GltfModelMapper {
         }
     }
 
-    private void splitJoints(Shorts shorts, int maximumInfluence, Map<String, AccessorID> attributes) {
-        int numBuffers = (maximumInfluence + 3) / 4;
-        int numVertices = shorts.size() / maximumInfluence;
+    private void splitJoints(Shorts shorts, int maxInfluence, Map<String, AccessorID> attributes) {
+        int numBuffers = (maxInfluence + 3) / 4;
+        int numVertices = shorts.size() / maxInfluence;
 
         for (int b = 0; b < numBuffers; b++) {
             var offset = b * 4;
-            var values = Math.min(4, maximumInfluence - offset);
+            var values = Math.min(4, maxInfluence - offset);
             var joints = MutableShorts.allocate(numVertices * 4);
-            for (int i = offset, o = 0; i < shorts.size(); i += maximumInfluence, o += 4) {
+            for (int i = offset, o = 0; i < shorts.size(); i += maxInfluence, o += 4) {
                 for (int j = 0; j < values; j++) {
                     joints.setShort(o + j, shorts.getShort(i + j));
                 }
@@ -129,15 +129,15 @@ public abstract class GltfModelMapper {
         }
     }
 
-    private void splitWeights(Floats floats, int maximumInfluence, Map<String, AccessorID> attributes) {
-        int numBuffers = (maximumInfluence + 3) / 4;
-        int numVertices = floats.size() / maximumInfluence;
+    private void splitWeights(Floats floats, int maxInfluence, Map<String, AccessorID> attributes) {
+        int numBuffers = (maxInfluence + 3) / 4;
+        int numVertices = floats.size() / maxInfluence;
 
         for (int b = 0; b < numBuffers; b++) {
             var offset = b * 4;
-            var values = Math.min(4, maximumInfluence - offset);
+            var values = Math.min(4, maxInfluence - offset);
             var weights = MutableFloats.allocate(numVertices * 4);
-            for (int i = offset, o = 0; i < floats.size(); i += maximumInfluence, o += 4) {
+            for (int i = offset, o = 0; i < floats.size(); i += maxInfluence, o += 4) {
                 for (int j = 0; j < values; j++) {
                     weights.setFloat(o + j, floats.getFloat(i + j));
                 }

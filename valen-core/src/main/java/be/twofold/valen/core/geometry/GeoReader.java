@@ -39,19 +39,19 @@ public interface GeoReader<T> {
         };
     }
 
-    static GeoReader<MutableFloats> readWeight4(boolean write0) {
-        return readNormalTangentWeights(45.0f, 60.0f, write0);
+    static GeoReader<MutableFloats> readWeight4() {
+        return readNormalTangentWeights(45.0f, 60.0f);
     }
 
     static GeoReader<MutableFloats> readWeight6() {
-        return readNormalTangentWeights(75.0f, 89.0f, false);
+        return readNormalTangentWeights(75.0f, 89.0f);
     }
 
     static GeoReader<MutableFloats> readWeight8() {
-        return readNormalTangentWeights(104.0f, 120.0f, false);
+        return readNormalTangentWeights(104.0f, 120.0f);
     }
 
-    private static GeoReader<MutableFloats> readNormalTangentWeights(float scale1, float scale2, boolean write0) {
+    private static GeoReader<MutableFloats> readNormalTangentWeights(float scale1, float scale2) {
         float factor1 = 1.0f / scale1;
         float factor2 = 1.0f / scale2;
         return (source, target, offset) -> {
@@ -64,15 +64,10 @@ public interface GeoReader<T> {
             float z = ((wn & 0xf0) >>> 4) * factor1;
             float w = ((wn & 0x0f)) * factor2;
 
-            int shift = 0;
-            if (write0) {
-                shift = 1;
-                target.setFloat(offset, 1.0f - y - z - w);
-            }
-
-            target.setFloat(offset + shift, y);
-            target.setFloat(offset + shift, z);
-            target.setFloat(offset + shift, w);
+            target.setFloat(offset/**/, 1.0f - y - z - w);
+            target.setFloat(offset + 1, y);
+            target.setFloat(offset + 2, z);
+            target.setFloat(offset + 3, w);
         };
     }
 

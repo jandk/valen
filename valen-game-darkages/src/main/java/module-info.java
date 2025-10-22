@@ -4,7 +4,8 @@ module valen.game.darkages {
     requires valen.core;
     requires valen.game.idtech;
 
-    requires static java.sql; // For import only
+    requires static java.sql;
+    requires org.jetbrains.annotations; // For import only
 
     provides be.twofold.valen.core.game.GameFactory
         with be.twofold.valen.game.darkages.DarkAgesGameFactory;

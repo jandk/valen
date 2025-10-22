@@ -16,7 +16,7 @@ public record Mesh(
     List<Bytes> colors,
     Optional<Shorts> joints,
     Optional<Floats> weights,
-    int maximumInfluence,
+    int maxInfluence,
     Map<String, VertexBuffer<?>> custom,
     Optional<String> name,
     Optional<Material> material,
@@ -31,9 +31,9 @@ public record Mesh(
         tangents.ifPresent(floats -> check(floats.size(), vertexCount, 4));
         texCoords.forEach(floats -> check(floats.size(), vertexCount, 2));
         colors.forEach(bytes -> check(bytes.size(), vertexCount, 4));
-        if (Check.positiveOrZero(maximumInfluence, "maximumInfluence") > 0) {
-            joints.ifPresent(shorts -> check(shorts.size(), vertexCount, maximumInfluence));
-            weights.ifPresent(floats -> check(floats.size(), vertexCount, maximumInfluence));
+        if (Check.positiveOrZero(maxInfluence, "maxInfluence") > 0) {
+            joints.ifPresent(shorts -> check(shorts.size(), vertexCount, maxInfluence));
+            weights.ifPresent(floats -> check(floats.size(), vertexCount, maxInfluence));
         }
         custom.values().forEach(vb -> check(vb.array().size(), vertexCount, vb.count()));
     }
@@ -47,10 +47,10 @@ public record Mesh(
         List<Bytes> colors,
         Optional<Shorts> joints,
         Optional<Floats> weights,
-        int maximumInfluence,
+        int maxInfluence,
         Map<String, VertexBuffer<?>> custom
     ) {
-        this(indices, positions, normals, tangents, texCoords, colors, joints, weights, maximumInfluence, custom, Optional.empty(), Optional.empty(), List.of());
+        this(indices, positions, normals, tangents, texCoords, colors, joints, weights, maxInfluence, custom, Optional.empty(), Optional.empty(), List.of());
     }
 
     private static void check(int length, int count, int elementSize) {
@@ -66,15 +66,23 @@ public record Mesh(
         return positions.size() / 3;
     }
 
+    public Mesh withJointsAndWeights(Shorts joints, Floats weights) {
+        return new Mesh(indices, positions, normals, tangents, texCoords, colors, Optional.of(joints), Optional.of(weights), maxInfluence, custom, name, material, blendShapes);
+    }
+
+    public Mesh withMaxInfluence(int maxInfluence) {
+        return new Mesh(indices, positions, normals, tangents, texCoords, colors, joints, weights, maxInfluence, custom, name, material, blendShapes);
+    }
+
     public Mesh withName(Optional<String> name) {
-        return new Mesh(indices, positions, normals, tangents, texCoords, colors, joints, weights, maximumInfluence, custom, name, material, blendShapes);
+        return new Mesh(indices, positions, normals, tangents, texCoords, colors, joints, weights, maxInfluence, custom, name, material, blendShapes);
     }
 
     public Mesh withMaterial(Optional<Material> material) {
-        return new Mesh(indices, positions, normals, tangents, texCoords, colors, joints, weights, maximumInfluence, custom, name, material, blendShapes);
+        return new Mesh(indices, positions, normals, tangents, texCoords, colors, joints, weights, maxInfluence, custom, name, material, blendShapes);
     }
 
     public Mesh withBlendShapes(List<BlendShape> blendShapes) {
-        return new Mesh(indices, positions, normals, tangents, texCoords, colors, joints, weights, maximumInfluence, custom, name, material, blendShapes);
+        return new Mesh(indices, positions, normals, tangents, texCoords, colors, joints, weights, maxInfluence, custom, name, material, blendShapes);
     }
 }
