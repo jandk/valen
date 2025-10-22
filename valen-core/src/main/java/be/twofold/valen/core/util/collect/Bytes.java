@@ -163,4 +163,8 @@ public class Bytes implements Comparable<Bytes>, RandomAccess {
     public String toString(Charset charset) {
         return new String(array, fromIndex, size(), charset);
     }
+
+    public String toString(Charset charset) {
+        return new String(array, fromIndex, size(), charset);
+    }
 }
