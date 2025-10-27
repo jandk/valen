@@ -8,7 +8,7 @@ import java.util.*;
 /**
  * Metadata about the glTF asset.
  */
-@Schema2Style
+@SchemaStyle
 @Value.Immutable
 public interface AssetSchema extends GltfProperty {
 

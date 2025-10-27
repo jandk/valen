@@ -10,7 +10,7 @@ import java.util.*;
 /**
  * The material appearance of a primitive.
  */
-@Schema2Style
+@SchemaStyle
 @Value.Immutable
 public interface MaterialSchema extends GltfChildOfRootProperty {
 

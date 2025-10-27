@@ -10,7 +10,7 @@ import java.util.*;
 /**
  * Image data used to create a texture. Image <b>MAY</b> be referenced by an URI (or IRI) or a buffer view index.
  */
-@Schema2Style
+@SchemaStyle
 @Value.Immutable
 public interface ImageSchema extends GltfChildOfRootProperty {
 

@@ -17,7 +17,7 @@ import java.util.*;
  * vertices, then the rotation, and then the translation. If none are provided, the transform is the identity. When a
  * node is targeted for animation (referenced by an animation.channel.target), {@code matrix} **MUST NOT** be present.
  */
-@Schema2Style
+@SchemaStyle
 @Value.Immutable
 public interface NodeSchema extends GltfChildOfRootProperty {
 

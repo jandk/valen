@@ -10,7 +10,7 @@ import java.util.*;
 /**
  * Geometry to be rendered with the given material.
  */
-@Schema2Style
+@SchemaStyle
 @Value.Immutable
 public interface MeshPrimitiveSchema extends GltfProperty {
 

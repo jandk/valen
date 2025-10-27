@@ -8,7 +8,7 @@ import java.util.*;
 /**
  * glTF extension that adjusts the strength of emissive material properties.
  */
-@Schema2Style
+@SchemaStyle
 @Value.Immutable
 public interface KHRMaterialsEmissiveStrengthSchema extends GltfProperty, Extension {
 

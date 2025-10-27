@@ -6,7 +6,7 @@ import org.immutables.value.*;
 /**
  * Sparse storage of accessor values that deviate from their initialization value.
  */
-@Schema2Style
+@SchemaStyle
 @Value.Immutable
 public interface AccessorSparseSchema extends GltfProperty {
 

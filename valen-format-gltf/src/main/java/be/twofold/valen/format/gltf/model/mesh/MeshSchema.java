@@ -8,7 +8,7 @@ import java.util.*;
 /**
  * A set of primitives to be rendered.  Its global transform is defined by a node that references it.
  */
-@Schema2Style
+@SchemaStyle
 @Value.Immutable
 public interface MeshSchema extends GltfChildOfRootProperty {
 

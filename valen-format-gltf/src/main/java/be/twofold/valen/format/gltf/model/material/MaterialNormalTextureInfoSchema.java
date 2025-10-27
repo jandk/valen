@@ -9,7 +9,7 @@ import java.util.*;
 /**
  * Material Normal Texture Info
  */
-@Schema2Style
+@SchemaStyle
 @Value.Immutable
 public interface MaterialNormalTextureInfoSchema extends TextureInfoSchema {
 

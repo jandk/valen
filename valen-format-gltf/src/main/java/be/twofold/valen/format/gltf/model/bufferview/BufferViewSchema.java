@@ -9,7 +9,7 @@ import java.util.*;
 /**
  * A view into a buffer generally representing a subset of the buffer.
  */
-@Schema2Style
+@SchemaStyle
 @Value.Immutable
 public interface BufferViewSchema extends GltfChildOfRootProperty {
 

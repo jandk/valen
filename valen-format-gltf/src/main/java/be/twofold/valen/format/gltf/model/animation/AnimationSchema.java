@@ -8,7 +8,7 @@ import java.util.*;
 /**
  * A keyframe animation.
  */
-@Schema2Style
+@SchemaStyle
 @Value.Immutable
 public interface AnimationSchema extends GltfChildOfRootProperty {
 

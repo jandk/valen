@@ -6,7 +6,7 @@ import org.immutables.value.*;
 /**
  * An orthographic camera containing properties to create an orthographic projection matrix.
  */
-@Schema2Style
+@SchemaStyle
 @Value.Immutable
 public interface CameraOrthographicSchema extends GltfProperty {
 
