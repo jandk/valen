@@ -1,10 +1,9 @@
 package be.twofold.valen.export.cast;
 
+import be.twofold.tinycast.*;
 import be.twofold.valen.core.scene.*;
 import be.twofold.valen.export.cast.mappers.*;
-import be.twofold.valen.format.cast.*;
 
-import java.io.*;
 import java.nio.file.*;
 
 public final class CastSceneExporter extends CastExporter<Scene> {
@@ -19,15 +18,15 @@ public final class CastSceneExporter extends CastExporter<Scene> {
     }
 
     @Override
-    public void doExport(Scene scene, CastNode.Root root, Path castPath, Path imagePath) throws IOException {
+    public void doExport(Scene scene, CastNodes.Root root, Path castPath, Path imagePath) {
         for (var instance : scene.instances()) {
-            CastNode.Instance instanceNode = root.createInstance();
+            CastNodes.Instance instanceNode = root.createInstance();
             var referenceFile = instanceNode.createFile()
                 .setPath(instance.modelReference().filename() + ".cast");
 
             instanceNode
                 .setName(instance.name())
-                .setReferenceFile(referenceFile.hash())
+                .setReferenceFile(referenceFile.getHash())
                 .setPosition(CastUtils.mapVector3(instance.translation()))
                 .setRotation(CastUtils.mapQuaternion(instance.rotation()))
                 .setScale(CastUtils.mapVector3(instance.scale()));

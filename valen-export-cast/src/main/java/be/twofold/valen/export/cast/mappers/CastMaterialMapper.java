@@ -1,8 +1,8 @@
 package be.twofold.valen.export.cast.mappers;
 
+import be.twofold.tinycast.*;
 import be.twofold.valen.core.material.*;
 import be.twofold.valen.core.math.*;
-import be.twofold.valen.format.cast.*;
 
 import java.io.*;
 import java.nio.file.*;
@@ -18,7 +18,7 @@ public final class CastMaterialMapper {
         this.textureMapper = new CastTextureMapper(castPath, imagePath);
     }
 
-    public Long map(Material material, CastNode.Model model) throws IOException {
+    public Long map(Material material, CastNodes.Model model) throws IOException {
         if (material == null) {
             return null;
         }
@@ -28,8 +28,8 @@ public final class CastMaterialMapper {
         }
 
         var materialNode = model.createMaterial()
-                .setName(material.name())
-                .setType(CastNode.Type.PBR);
+            .setName(material.name())
+            .setType(CastNodes.Type.PBR);
         for (var property : material.properties()) {
             switch (property.type()) {
                 case Unknown -> mapProperty(materialNode, property, materialNode::addExtra);
@@ -42,11 +42,11 @@ public final class CastMaterialMapper {
             }
         }
 
-        materials.put(material.name(), materialNode.hash());
-        return materialNode.hash();
+        materials.put(material.name(), materialNode.getHash());
+        return materialNode.getHash();
     }
 
-    private void mapProperty(CastNode.Material material, MaterialProperty property, Consumer<Long> setter) throws IOException {
+    private void mapProperty(CastNodes.Material material, MaterialProperty property, Consumer<Long> setter) throws IOException {
         if (property.reference() != null) {
             setter.accept(textureMapper.map(property.reference(), material));
         } else if (property.factor() != null) {
@@ -54,10 +54,10 @@ public final class CastMaterialMapper {
         }
     }
 
-    private long mapFactor(CastNode.Material material, Vector4 color) {
+    private long mapFactor(CastNodes.Material material, Vector4 color) {
         return material.createColor()
-                .setColorSpace(CastNode.ColorSpace.LINEAR)
+            .setColorSpace(CastNodes.ColorSpace.LINEAR)
             .setRgbaColor(CastUtils.mapVector4(color))
-                .hash();
+            .getHash();
     }
 }

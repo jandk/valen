@@ -1,9 +1,9 @@
 package be.twofold.valen.export.cast.mappers;
 
+import be.twofold.tinycast.*;
 import be.twofold.valen.core.export.*;
 import be.twofold.valen.core.material.*;
 import be.twofold.valen.core.texture.*;
-import be.twofold.valen.format.cast.*;
 
 import java.io.*;
 import java.nio.file.*;
@@ -22,7 +22,7 @@ public final class CastTextureMapper {
         pngExporter.setProperty("reconstructZ", true);
     }
 
-    public Long map(TextureReference reference, CastNode.Material material) throws IOException {
+    public Long map(TextureReference reference, CastNodes.Material material) throws IOException {
         var existingHash = textures.get(reference.filename());
         if (existingHash != null) {
             return existingHash;
@@ -35,7 +35,7 @@ public final class CastTextureMapper {
         var pathString = castPath.getParent().relativize(path).toString().replace('\\', '/');
         var hash = material.createFile()
             .setPath(pathString)
-            .hash();
+            .getHash();
 
         textures.put(reference.filename(), hash);
         return hash;

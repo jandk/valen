@@ -1,7 +1,7 @@
 package be.twofold.valen.export.cast.mappers;
 
+import be.twofold.tinycast.*;
 import be.twofold.valen.core.math.*;
-import be.twofold.valen.format.cast.*;
 
 public final class CastUtils {
     private CastUtils() {

@@ -1,15 +1,14 @@
 package be.twofold.valen.export.cast;
 
-import be.twofold.valen.core.export.MeshGenerator;
-import be.twofold.valen.core.geometry.Model;
-import be.twofold.valen.core.material.Material;
-import be.twofold.valen.core.math.Axis;
-import be.twofold.valen.format.cast.CastNode;
+import be.twofold.tinycast.*;
+import be.twofold.valen.core.export.*;
+import be.twofold.valen.core.geometry.*;
+import be.twofold.valen.core.material.*;
+import be.twofold.valen.core.math.*;
 
-import java.io.IOException;
-import java.nio.file.Path;
-import java.util.List;
-import java.util.Optional;
+import java.io.*;
+import java.nio.file.*;
+import java.util.*;
 
 public final class CastMaterialExporter extends CastExporter<Material> {
     private final CastModelExporter modelExporter = new CastModelExporter();
@@ -25,7 +24,7 @@ public final class CastMaterialExporter extends CastExporter<Material> {
     }
 
     @Override
-    public void doExport(Material material, CastNode.Root root, Path castPath, Path imagePath) throws IOException {
+    public void doExport(Material material, CastNodes.Root root, Path castPath, Path imagePath) throws IOException {
         var mesh = MeshGenerator
                 .createSphere(16, 16)
                 .withMaterial(Optional.of(material));

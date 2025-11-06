@@ -1,7 +1,7 @@
 package be.twofold.valen.export.cast;
 
+import be.twofold.tinycast.*;
 import be.twofold.valen.core.export.*;
-import be.twofold.valen.format.cast.*;
 
 import java.io.*;
 import java.nio.file.*;
@@ -18,7 +18,7 @@ public abstract class CastExporter<T> implements Exporter<T> {
     }
 
     @Override
-    public void export(T value, OutputStream out) throws IOException {
+    public void export(T value, OutputStream out) {
         // TODO: Eehm, Liskov fail for now
         throw new UnsupportedOperationException("GLTF can't export to a stream");
     }
@@ -30,7 +30,7 @@ public abstract class CastExporter<T> implements Exporter<T> {
             Files.createDirectory(imagePath);
         }
 
-        var cast = new Cast();
+        var cast = Cast.create(0x5A4C524E454C4156L);
         var root = cast.createRoot();
         root.createMetadata()
             .setAuthor("JanDK")
@@ -40,8 +40,10 @@ public abstract class CastExporter<T> implements Exporter<T> {
 
         try (var out = Files.newOutputStream(path)) {
             cast.write(out);
+        } catch (CastException e) {
+            throw new IOException(e);
         }
     }
 
-    public abstract void doExport(T value, CastNode.Root root, Path castPath, Path imagePath) throws IOException;
+    public abstract void doExport(T value, CastNodes.Root root, Path castPath, Path imagePath) throws IOException;
 }

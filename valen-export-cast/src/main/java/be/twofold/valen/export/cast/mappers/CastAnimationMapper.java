@@ -1,17 +1,14 @@
 package be.twofold.valen.export.cast.mappers;
 
-import be.twofold.valen.core.animation.Animation;
-import be.twofold.valen.core.animation.Track;
-import be.twofold.valen.core.math.Quaternion;
-import be.twofold.valen.core.math.Vector3;
-import be.twofold.valen.format.cast.CastNode;
+import be.twofold.tinycast.*;
+import be.twofold.valen.core.animation.*;
+import be.twofold.valen.core.math.*;
 
-import java.nio.FloatBuffer;
-import java.nio.IntBuffer;
-import java.util.function.Function;
+import java.nio.*;
+import java.util.function.*;
 
 public final class CastAnimationMapper {
-    public long map(Animation animation, CastNode.Root root) {
+    public long map(Animation animation, CastNodes.Root root) {
         var animationNode = root.createAnimation()
                 .setFramerate((float) animation.frameRate());
 
@@ -20,54 +17,54 @@ public final class CastAnimationMapper {
             var boneName = bones.get(track.boneId()).name();
             mapCurve(animationNode, track, boneName);
         }
-        return animationNode.hash();
+        return animationNode.getHash();
     }
 
-    private void mapCurve(CastNode.Animation animationNode, Track<?> track, String boneName) {
+    private void mapCurve(CastNodes.Animation animationNode, Track<?> track, String boneName) {
         switch (track) {
             case Track.Rotation rotation -> {
                 createCurve(animationNode, boneName)
-                        .setKeyPropertyName(CastNode.KeyPropertyName.RQ)
+                    .setKeyPropertyName(CastNodes.KeyPropertyName.RQ)
                         .setKeyFrameBuffer(frames(rotation))
                         .setKeyValueBufferV4(rotation(rotation));
             }
             case Track.Translation translation -> {
                 var frames = frames(translation);
                 createCurve(animationNode, boneName)
-                        .setKeyPropertyName(CastNode.KeyPropertyName.TX)
+                    .setKeyPropertyName(CastNodes.KeyPropertyName.TX)
                         .setKeyFrameBuffer(frames)
-                        .setKeyValueBuffer(translationScale(translation, Vector3::x));
+                    .setKeyValueBufferF32(translationScale(translation, Vector3::x));
                 createCurve(animationNode, boneName)
-                        .setKeyPropertyName(CastNode.KeyPropertyName.TY)
+                    .setKeyPropertyName(CastNodes.KeyPropertyName.TY)
                         .setKeyFrameBuffer(frames)
-                        .setKeyValueBuffer(translationScale(translation, Vector3::y));
+                    .setKeyValueBufferF32(translationScale(translation, Vector3::y));
                 createCurve(animationNode, boneName)
-                        .setKeyPropertyName(CastNode.KeyPropertyName.TZ)
+                    .setKeyPropertyName(CastNodes.KeyPropertyName.TZ)
                         .setKeyFrameBuffer(frames)
-                        .setKeyValueBuffer(translationScale(translation, Vector3::z));
+                    .setKeyValueBufferF32(translationScale(translation, Vector3::z));
             }
             case Track.Scale scale -> {
                 var frames = frames(scale);
                 createCurve(animationNode, boneName)
-                        .setKeyPropertyName(CastNode.KeyPropertyName.SX)
+                    .setKeyPropertyName(CastNodes.KeyPropertyName.SX)
                         .setKeyFrameBuffer(frames)
-                        .setKeyValueBuffer(translationScale(scale, Vector3::x));
+                    .setKeyValueBufferF32(translationScale(scale, Vector3::x));
                 createCurve(animationNode, boneName)
-                        .setKeyPropertyName(CastNode.KeyPropertyName.SY)
+                    .setKeyPropertyName(CastNodes.KeyPropertyName.SY)
                         .setKeyFrameBuffer(frames)
-                        .setKeyValueBuffer(translationScale(scale, Vector3::y));
+                    .setKeyValueBufferF32(translationScale(scale, Vector3::y));
                 createCurve(animationNode, boneName)
-                        .setKeyPropertyName(CastNode.KeyPropertyName.SZ)
+                    .setKeyPropertyName(CastNodes.KeyPropertyName.SZ)
                         .setKeyFrameBuffer(frames)
-                        .setKeyValueBuffer(translationScale(scale, Vector3::z));
+                    .setKeyValueBufferF32(translationScale(scale, Vector3::z));
             }
         }
     }
 
-    private static CastNode.Curve createCurve(CastNode.Animation animationNode, String boneName) {
+    private static CastNodes.Curve createCurve(CastNodes.Animation animationNode, String boneName) {
         return animationNode.createCurve()
                 .setNodeName(boneName)
-                .setMode(CastNode.Mode.ABSOLUTE);
+            .setMode(CastNodes.Mode.ABSOLUTE);
     }
 
     private static FloatBuffer rotation(Track<Quaternion> rotation) {

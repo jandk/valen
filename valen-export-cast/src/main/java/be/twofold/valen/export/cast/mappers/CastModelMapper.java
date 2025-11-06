@@ -1,8 +1,8 @@
 package be.twofold.valen.export.cast.mappers;
 
+import be.twofold.tinycast.*;
 import be.twofold.valen.core.geometry.*;
 import be.twofold.valen.core.util.*;
-import be.twofold.valen.format.cast.*;
 
 import java.io.*;
 import java.nio.*;
@@ -17,7 +17,7 @@ public final class CastModelMapper {
         materialMapper = new CastMaterialMapper(castPath, imagePath);
     }
 
-    public CastNode.Model map(Model value, CastNode.Root root) throws IOException {
+    public CastNodes.Model map(Model value, CastNodes.Root root) throws IOException {
         var modelNode = root.createModel();
         value.name().ifPresent(modelNode::setName);
         value.skeleton().ifPresent(skeleton -> skeletonMapper.map(skeleton, modelNode));
@@ -27,7 +27,7 @@ public final class CastModelMapper {
         return modelNode;
     }
 
-    private void mapMesh(CastNode.Model modelNode, Mesh mesh) throws IOException {
+    private void mapMesh(CastNodes.Model modelNode, Mesh mesh) throws IOException {
         var meshNode = modelNode.createMesh();
         mesh.name().ifPresent(meshNode::setName);
         meshNode.setFaceBuffer(mesh.indices().asBuffer());
@@ -36,7 +36,7 @@ public final class CastModelMapper {
         mesh.tangents().ifPresent(buffer -> meshNode.setVertexTangentBuffer(mapTangentBuffer(buffer.asBuffer())));
 
         var colorBuffers = mesh.colors().stream().toList();
-        colorBuffers.forEach(buffer -> meshNode.addVertexColorBuffer(mapColorBuffer(buffer.asBuffer())));
+        colorBuffers.forEach(buffer -> meshNode.addVertexColorBufferI32(mapColorBuffer(buffer.asBuffer())));
         meshNode.setColorLayerCount(colorBuffers.size());
 
         var uvBuffers = mesh.texCoords();
@@ -73,7 +73,7 @@ public final class CastModelMapper {
         return ((ByteBuffer) buffer).asIntBuffer();
     }
 
-    private void buildMorphTargets(CastNode.Model modelNode, CastNode.Mesh meshNode, List<BlendShape> blendShapes) {
+    private void buildMorphTargets(CastNodes.Model modelNode, CastNodes.Mesh meshNode, List<BlendShape> blendShapes) {
         if (blendShapes.isEmpty()) {
             return;
         }
@@ -82,13 +82,13 @@ public final class CastModelMapper {
             var absolute = makeAbsolute(meshNode, blendShape);
             modelNode.createBlendShape()
                 .setName(blendShape.name())
-                .setBaseShape(meshNode.hash())
+                .setBaseShape(meshNode.getHash())
                 .setTargetShapeVertexIndices(blendShape.indices())
                 .setTargetShapeVertexPositions(absolute);
         }
     }
 
-    private FloatBuffer makeAbsolute(CastNode.Mesh meshNode, BlendShape blendShape) {
+    private FloatBuffer makeAbsolute(CastNodes.Mesh meshNode, BlendShape blendShape) {
         var positions = meshNode.getVertexPositionBuffer();
         var relatives = blendShape.values();
         var absolutes = FloatBuffer.allocate(relatives.capacity());
