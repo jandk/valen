@@ -3,11 +3,8 @@ package be.twofold.valen.core.texture.conversion;
 import be.twofold.valen.core.math.*;
 import be.twofold.valen.core.texture.*;
 import be.twofold.valen.core.util.*;
-import org.slf4j.*;
 
 final class ScaleAndBias extends Conversion {
-    private static final Logger log = LoggerFactory.getLogger(ScaleAndBias.class);
-
     private final float scale;
     private final float bias;
     private final byte[] table;
@@ -69,22 +66,8 @@ final class ScaleAndBias extends Conversion {
     }
 
     private static byte scaleAndBias(byte b, float scale, float bias) {
-        float f = srgbToLinear(MathF.unpackUNorm8(b));
+        float f = MathF.srgbToLinear(MathF.unpackUNorm8(b));
         f = Math.fma(f, scale, bias);
-        return MathF.packUNorm8(linearToSrgb(f));
-    }
-
-    private static float linearToSrgb(float f) {
-        if (f <= (0.04045f / 12.92f)) {
-            return f * 12.92f;
-        }
-        return Math.fma(MathF.pow(f, 1.0f / 2.4f), 1.055f, -0.055f);
-    }
-
-    private static float srgbToLinear(float f) {
-        if (f <= 0.04045f) {
-            return f * (1.0f / 12.92f);
-        }
-        return MathF.pow(Math.fma(f, 1.0f / 1.055f, 0.055f / 1.055f), 2.4f);
+        return MathF.packUNorm8(MathF.linearToSrgb(f));
     }
 }
