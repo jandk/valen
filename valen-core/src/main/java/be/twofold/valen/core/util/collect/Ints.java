@@ -52,7 +52,7 @@ public class Ints implements Comparable<Ints>, WrappedArray {
         return IntBuffer.wrap(array, fromIndex, size()).asReadOnlyBuffer();
     }
 
-    public void copyTo(Ints target, int offset) {
+    public void copyTo(MutableInts target, int offset) {
         System.arraycopy(array, fromIndex, target.array, target.fromIndex + offset, size());
     }
 

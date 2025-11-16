@@ -52,7 +52,7 @@ public class Floats implements Comparable<Floats>, WrappedArray {
         return FloatBuffer.wrap(array, fromIndex, size()).asReadOnlyBuffer();
     }
 
-    public void copyTo(Floats target, int offset) {
+    public void copyTo(MutableFloats target, int offset) {
         System.arraycopy(array, fromIndex, target.array, target.fromIndex + offset, size());
     }
 

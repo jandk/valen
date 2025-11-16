@@ -52,7 +52,7 @@ public class Longs implements Comparable<Longs>, WrappedArray {
         return LongBuffer.wrap(array, fromIndex, size()).asReadOnlyBuffer();
     }
 
-    public void copyTo(Longs target, int offset) {
+    public void copyTo(MutableLongs target, int offset) {
         System.arraycopy(array, fromIndex, target.array, target.fromIndex + offset, size());
     }
 

@@ -52,7 +52,7 @@ public class Doubles implements Comparable<Doubles>, WrappedArray {
         return DoubleBuffer.wrap(array, fromIndex, size()).asReadOnlyBuffer();
     }
 
-    public void copyTo(Doubles target, int offset) {
+    public void copyTo(MutableDoubles target, int offset) {
         System.arraycopy(array, fromIndex, target.array, target.fromIndex + offset, size());
     }
 

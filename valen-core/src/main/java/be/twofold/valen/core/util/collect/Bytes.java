@@ -89,7 +89,7 @@ public class Bytes implements Comparable<Bytes>, WrappedArray {
         return ByteBuffer.wrap(array, fromIndex, size()).asReadOnlyBuffer();
     }
 
-    public void copyTo(Bytes target, int offset) {
+    public void copyTo(MutableBytes target, int offset) {
         System.arraycopy(array, fromIndex, target.array, target.fromIndex + offset, size());
     }
 

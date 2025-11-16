@@ -58,6 +58,7 @@ final class WrapperGenerator {
         boolean addExtraMethods
     ) {
         var thisType = ClassName.get("", className);
+        var mutableType = ClassName.get("", "Mutable" + className);
         var arrayType = ArrayTypeName.of(TypeName.get(primitiveClass));
         var wrapperType = TypeName.get(wrapperClass);
 
@@ -148,7 +149,7 @@ final class WrapperGenerator {
         builder.addMethod(MethodSpec.methodBuilder("copyTo")
             .addModifiers(Modifier.PUBLIC)
             .returns(void.class)
-            .addParameter(thisType, "target")
+            .addParameter(mutableType, "target")
             .addParameter(int.class, "offset")
             .addStatement("$T.arraycopy(array, fromIndex, target.array, target.fromIndex + offset, size())", System.class)
             .build());

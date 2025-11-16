@@ -52,7 +52,7 @@ public class Shorts implements Comparable<Shorts>, WrappedArray {
         return ShortBuffer.wrap(array, fromIndex, size()).asReadOnlyBuffer();
     }
 
-    public void copyTo(Shorts target, int offset) {
+    public void copyTo(MutableShorts target, int offset) {
         System.arraycopy(array, fromIndex, target.array, target.fromIndex + offset, size());
     }
 
