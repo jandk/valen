@@ -10,6 +10,10 @@ public interface HashFunction {
         return FarmHashFingerprint64.INSTANCE;
     }
 
+    static HashFunction md5() {
+        return new MessageDigestHashFunction("MD5");
+    }
+
     static HashFunction murmurHash64B(long seed) {
         return new MurmurHash64B(seed);
     }
