@@ -3,6 +3,7 @@ package be.twofold.valen.core.util.collect;
 import be.twofold.valen.core.util.*;
 
 import java.nio.*;
+import java.util.*;
 
 public final class MutableDoubles extends Doubles {
     private MutableDoubles(double[] array, int fromIndex, int toIndex) {
@@ -24,6 +25,11 @@ public final class MutableDoubles extends Doubles {
     public MutableDoubles setDouble(int index, double value) {
         Check.index(index, size());
         array[fromIndex + index] = value;
+        return this;
+    }
+
+    public MutableDoubles fill(double value) {
+        Arrays.fill(array, fromIndex, toIndex, value);
         return this;
     }
 

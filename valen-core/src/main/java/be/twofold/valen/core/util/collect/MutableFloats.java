@@ -3,6 +3,7 @@ package be.twofold.valen.core.util.collect;
 import be.twofold.valen.core.util.*;
 
 import java.nio.*;
+import java.util.*;
 
 public final class MutableFloats extends Floats {
     private MutableFloats(float[] array, int fromIndex, int toIndex) {
@@ -24,6 +25,11 @@ public final class MutableFloats extends Floats {
     public MutableFloats setFloat(int index, float value) {
         Check.index(index, size());
         array[fromIndex + index] = value;
+        return this;
+    }
+
+    public MutableFloats fill(float value) {
+        Arrays.fill(array, fromIndex, toIndex, value);
         return this;
     }
 

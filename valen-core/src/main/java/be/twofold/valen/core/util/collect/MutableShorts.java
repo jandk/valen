@@ -3,6 +3,7 @@ package be.twofold.valen.core.util.collect;
 import be.twofold.valen.core.util.*;
 
 import java.nio.*;
+import java.util.*;
 
 public final class MutableShorts extends Shorts {
     private MutableShorts(short[] array, int fromIndex, int toIndex) {
@@ -24,6 +25,11 @@ public final class MutableShorts extends Shorts {
     public MutableShorts setShort(int index, short value) {
         Check.index(index, size());
         array[fromIndex + index] = value;
+        return this;
+    }
+
+    public MutableShorts fill(short value) {
+        Arrays.fill(array, fromIndex, toIndex, value);
         return this;
     }
 

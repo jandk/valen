@@ -3,6 +3,7 @@ package be.twofold.valen.core.util.collect;
 import be.twofold.valen.core.util.*;
 
 import java.nio.*;
+import java.util.*;
 
 public final class MutableLongs extends Longs {
     private MutableLongs(long[] array, int fromIndex, int toIndex) {
@@ -24,6 +25,11 @@ public final class MutableLongs extends Longs {
     public MutableLongs setLong(int index, long value) {
         Check.index(index, size());
         array[fromIndex + index] = value;
+        return this;
+    }
+
+    public MutableLongs fill(long value) {
+        Arrays.fill(array, fromIndex, toIndex, value);
         return this;
     }
 

@@ -3,6 +3,7 @@ package be.twofold.valen.core.util.collect;
 import be.twofold.valen.core.util.*;
 
 import java.nio.*;
+import java.util.*;
 
 public final class MutableBytes extends Bytes {
     private MutableBytes(byte[] array, int fromIndex, int toIndex) {
@@ -54,6 +55,11 @@ public final class MutableBytes extends Bytes {
     public MutableBytes setDouble(int offset, double value) {
         Check.fromIndexSize(offset, Double.BYTES, size());
         VH_DOUBLE_LE.set(array, fromIndex + offset, value);
+        return this;
+    }
+
+    public MutableBytes fill(byte value) {
+        Arrays.fill(array, fromIndex, toIndex, value);
         return this;
     }
 

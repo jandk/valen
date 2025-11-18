@@ -18,17 +18,15 @@ abstract class LZDecompressor implements Decompressor {
         Check.fromIndexSize(dstOff, length, dst.size());
         Check.argument(offset > 0 && dstOff - offset >= 0, "Invalid match");
 
-        int dstPos = dstOff - offset;
+        int srcPos = dstOff - offset;
         if (offset == 1) {
             byte b = dst.getByte(dstOff - 1);
-            for (int i = 0; i < length; i++) {
-                dst.setByte(dstOff + i, b);
-            }
+            dst.slice(dstOff, dstOff + length).fill(b);
         } else if (offset >= length) {
-            dst.slice(dstPos, dstPos + length).copyTo(dst, dstOff);
+            dst.slice(srcPos, srcPos + length).copyTo(dst, dstOff);
         } else {
             for (int i = 0; i < length; i++) {
-                dst.setByte(dstOff + i, dst.getByte(dstPos + i));
+                dst.setByte(dstOff + i, dst.getByte(srcPos + i));
             }
         }
     }

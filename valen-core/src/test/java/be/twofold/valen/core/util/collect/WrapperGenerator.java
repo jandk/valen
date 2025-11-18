@@ -384,6 +384,14 @@ final class WrapperGenerator {
             addExtraMutableBytesMethods(builder, thisType);
         }
 
+        builder.addMethod(MethodSpec.methodBuilder("fill")
+            .addModifiers(Modifier.PUBLIC)
+            .addParameter(primitiveClass, "value")
+            .returns(thisType)
+            .addStatement("$T.fill(array, fromIndex, toIndex, value)", Arrays.class)
+            .addStatement("return this")
+            .build());
+
         builder.addMethod(MethodSpec.methodBuilder("asMutableBuffer")
             .addModifiers(Modifier.PUBLIC)
             .returns(bufferClass)
