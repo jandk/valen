@@ -2,9 +2,8 @@ package be.twofold.valen.core.texture.conversion;
 
 import be.twofold.valen.core.math.*;
 import be.twofold.valen.core.texture.*;
-import be.twofold.valen.core.util.*;
+import be.twofold.valen.core.util.collect.*;
 
-import java.nio.*;
 import java.util.function.*;
 
 final class Tonemap extends Conversion {
@@ -52,10 +51,10 @@ final class Tonemap extends Conversion {
     private Surface toneMapF16(Surface surface, TextureFormat format) {
         Surface target = Surface.create(surface.width(), surface.height(), format);
 
-        var src = surface.data();
+        var src = Bytes.wrap(surface.data());
         var dst = target.data();
-        for (int i = 0, o = 0; i < src.length; i += 2, o++) {
-            dst[o] = halfToSrgb(ByteArrays.getShort(src, i, ByteOrder.LITTLE_ENDIAN));
+        for (int i = 0, o = 0; i < src.size(); i += 2, o++) {
+            dst[o] = halfToSrgb(src.getShort(i));
         }
         return target;
     }

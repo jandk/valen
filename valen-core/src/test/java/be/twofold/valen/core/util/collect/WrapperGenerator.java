@@ -5,6 +5,7 @@ import org.jetbrains.annotations.*;
 
 import javax.lang.model.element.*;
 import java.io.*;
+import java.lang.invoke.*;
 import java.nio.*;
 import java.nio.file.*;
 import java.util.*;
@@ -15,12 +16,12 @@ final class WrapperGenerator {
 
     public static void main(String[] args) throws IOException {
         generateInterface();
-        generate("Bytes", byte.class, Byte.class, ByteBuffer.class, true);
-        generate("Shorts", short.class, Short.class, ShortBuffer.class, false);
-        generate("Ints", int.class, Integer.class, IntBuffer.class, false);
-        generate("Longs", long.class, Long.class, LongBuffer.class, false);
-        generate("Floats", float.class, Float.class, FloatBuffer.class, false);
-        generate("Doubles", double.class, Double.class, DoubleBuffer.class, false);
+        generate("Bytes", byte.class, Byte.class, ByteBuffer.class);
+        generate("Shorts", short.class, Short.class, ShortBuffer.class);
+        generate("Ints", int.class, Integer.class, IntBuffer.class);
+        generate("Longs", long.class, Long.class, LongBuffer.class);
+        generate("Floats", float.class, Float.class, FloatBuffer.class);
+        generate("Doubles", double.class, Double.class, DoubleBuffer.class);
     }
 
     private static void generateInterface() throws IOException {
@@ -43,19 +44,17 @@ final class WrapperGenerator {
         String className,
         Class<?> primitiveClass,
         Class<?> wrapperClass,
-        Class<?> bufferClass,
-        boolean addExtraMethods
+        Class<?> bufferClass
     ) throws IOException {
-        writeClass(createWrapperClass(className, primitiveClass, wrapperClass, bufferClass, addExtraMethods));
-        writeClass(createMutableWrapperClass("Mutable" + className, className, primitiveClass, bufferClass, addExtraMethods));
+        writeClass(createWrapperClass(className, primitiveClass, wrapperClass, bufferClass));
+        writeClass(createMutableWrapperClass("Mutable" + className, className, primitiveClass, bufferClass));
     }
 
     private static TypeSpec createWrapperClass(
         String className,
         Class<?> primitiveClass,
         Class<?> wrapperClass,
-        Class<?> bufferClass,
-        boolean addExtraMethods
+        Class<?> bufferClass
     ) {
         var thisType = ClassName.get("", className);
         var mutableType = ClassName.get("", "Mutable" + className);
@@ -74,6 +73,14 @@ final class WrapperGenerator {
         builder.addField(FieldSpec.builder(thisType, "EMPTY", Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
             .initializer("wrap(new $T[0])", primitiveClass)
             .build());
+        if (primitiveClass == byte.class) {
+            for (String s : List.of("short", "int", "long", "float", "double")) {
+                builder.addField(FieldSpec.builder(VarHandle.class, "VH_" + s.toUpperCase() + "_LE", Modifier.STATIC, Modifier.FINAL)
+                    .initializer("$T.byteArrayViewVarHandle($L[].class, $T.$L).withInvokeExactBehavior()", MethodHandles.class, s, ByteOrder.class, ByteOrder.LITTLE_ENDIAN)
+                    .build());
+            }
+        }
+
         builder.addField(FieldSpec.builder(arrayType, "array", Modifier.FINAL).build());
         builder.addField(FieldSpec.builder(int.class, "fromIndex", Modifier.FINAL).build());
         builder.addField(FieldSpec.builder(int.class, "toIndex", Modifier.FINAL).build());
@@ -133,7 +140,7 @@ final class WrapperGenerator {
             .build());
 
         // Add extra methods for Bytes
-        if (addExtraMethods) {
+        if (primitiveClass == byte.class) {
             addExtraBytesMethods(builder);
         }
 
@@ -285,7 +292,7 @@ final class WrapperGenerator {
             .returns(primitive)
             .addParameter(int.class, "offset")
             .addStatement("$T.fromIndexSize(offset, $L, size())", CHECK_CLASS, size)
-            .addStatement("return $T.get$L(array, fromIndex + offset, $T.$L)", BYTE_ARRAYS_CLASS, upper, ByteOrder.class, ByteOrder.LITTLE_ENDIAN)
+            .addStatement("return ($T) $L.get(array, fromIndex + offset)", primitive, "VH_" + primitive.getSimpleName().toUpperCase() + "_LE")
             .build());
     }
 
@@ -313,7 +320,7 @@ final class WrapperGenerator {
             .addParameter(int.class, "offset")
             .addParameter(primitive, "value")
             .addStatement("$T.fromIndexSize(offset, $L, size())", CHECK_CLASS, size)
-            .addStatement("$T.set$L(array, fromIndex + offset, value, $T.$L)", BYTE_ARRAYS_CLASS, upper, ByteOrder.class, ByteOrder.LITTLE_ENDIAN)
+            .addStatement("$L.set(array, fromIndex + offset, value)", "VH_" + primitive.getSimpleName().toUpperCase() + "_LE")
             .addStatement("return this")
             .build());
     }
@@ -322,8 +329,7 @@ final class WrapperGenerator {
         String className,
         String baseClassName,
         Class<?> primitiveClass,
-        Class<?> bufferClass,
-        boolean addExtraMethods
+        Class<?> bufferClass
     ) {
         var thisType = ClassName.get("", className);
         var primitiveArrayType = ArrayTypeName.of(TypeName.get(primitiveClass));
@@ -374,7 +380,7 @@ final class WrapperGenerator {
             .addStatement("return this")
             .build());
 
-        if (addExtraMethods) {
+        if (primitiveClass == byte.class) {
             addExtraMutableBytesMethods(builder, thisType);
         }
 

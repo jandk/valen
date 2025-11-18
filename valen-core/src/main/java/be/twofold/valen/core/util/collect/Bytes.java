@@ -3,6 +3,7 @@ package be.twofold.valen.core.util.collect;
 import be.twofold.valen.core.util.*;
 import org.jetbrains.annotations.*;
 
+import java.lang.invoke.*;
 import java.nio.*;
 import java.util.*;
 
@@ -11,6 +12,16 @@ import java.util.*;
 )
 public class Bytes implements Comparable<Bytes>, WrappedArray {
     private static final Bytes EMPTY = wrap(new byte[0]);
+
+    static final VarHandle VH_SHORT_LE = MethodHandles.byteArrayViewVarHandle(short[].class, ByteOrder.LITTLE_ENDIAN).withInvokeExactBehavior();
+
+    static final VarHandle VH_INT_LE = MethodHandles.byteArrayViewVarHandle(int[].class, ByteOrder.LITTLE_ENDIAN).withInvokeExactBehavior();
+
+    static final VarHandle VH_LONG_LE = MethodHandles.byteArrayViewVarHandle(long[].class, ByteOrder.LITTLE_ENDIAN).withInvokeExactBehavior();
+
+    static final VarHandle VH_FLOAT_LE = MethodHandles.byteArrayViewVarHandle(float[].class, ByteOrder.LITTLE_ENDIAN).withInvokeExactBehavior();
+
+    static final VarHandle VH_DOUBLE_LE = MethodHandles.byteArrayViewVarHandle(double[].class, ByteOrder.LITTLE_ENDIAN).withInvokeExactBehavior();
 
     final byte[] array;
 
@@ -49,27 +60,27 @@ public class Bytes implements Comparable<Bytes>, WrappedArray {
 
     public short getShort(int offset) {
         Check.fromIndexSize(offset, Short.BYTES, size());
-        return ByteArrays.getShort(array, fromIndex + offset, ByteOrder.LITTLE_ENDIAN);
+        return (short) VH_SHORT_LE.get(array, fromIndex + offset);
     }
 
     public int getInt(int offset) {
         Check.fromIndexSize(offset, Integer.BYTES, size());
-        return ByteArrays.getInt(array, fromIndex + offset, ByteOrder.LITTLE_ENDIAN);
+        return (int) VH_INT_LE.get(array, fromIndex + offset);
     }
 
     public long getLong(int offset) {
         Check.fromIndexSize(offset, Long.BYTES, size());
-        return ByteArrays.getLong(array, fromIndex + offset, ByteOrder.LITTLE_ENDIAN);
+        return (long) VH_LONG_LE.get(array, fromIndex + offset);
     }
 
     public float getFloat(int offset) {
         Check.fromIndexSize(offset, Float.BYTES, size());
-        return ByteArrays.getFloat(array, fromIndex + offset, ByteOrder.LITTLE_ENDIAN);
+        return (float) VH_FLOAT_LE.get(array, fromIndex + offset);
     }
 
     public double getDouble(int offset) {
         Check.fromIndexSize(offset, Double.BYTES, size());
-        return ByteArrays.getDouble(array, fromIndex + offset, ByteOrder.LITTLE_ENDIAN);
+        return (double) VH_DOUBLE_LE.get(array, fromIndex + offset);
     }
 
     public int getUnsignedByte(int offset) {

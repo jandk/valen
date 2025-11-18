@@ -3,7 +3,7 @@ package be.twofold.valen.ui.component.textureviewer;
 import backbonefx.event.*;
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.texture.*;
-import be.twofold.valen.core.util.*;
+import be.twofold.valen.core.util.collect.*;
 import be.twofold.valen.ui.common.*;
 import be.twofold.valen.ui.common.settings.*;
 import be.twofold.valen.ui.component.*;
@@ -11,7 +11,6 @@ import jakarta.inject.*;
 import javafx.scene.image.*;
 import org.slf4j.*;
 
-import java.nio.*;
 import java.util.*;
 import java.util.function.*;
 
@@ -27,7 +26,7 @@ public final class TexturePresenter extends AbstractFXPresenter<TextureView> imp
 
     private final Settings settings;
 
-    private byte[] imagePixels;
+    private MutableBytes imagePixels;
     private Texture decoded;
     private boolean premultiplied;
     private WritableImage image;
@@ -99,11 +98,11 @@ public final class TexturePresenter extends AbstractFXPresenter<TextureView> imp
     }
 
     private void splatGray() {
-        var data = decoded.surfaces().getFirst().data();
-        for (int i = 0; i < data.length; i += 4) {
-            int bgra = ByteArrays.getInt(data, i, ByteOrder.LITTLE_ENDIAN);
+        var data = MutableBytes.wrap(decoded.surfaces().getFirst().data());
+        for (int i = 0; i < data.size(); i += 4) {
+            int bgra = data.getInt(i);
             bgra = ((bgra >> 16) & 0xFF) * 0x010101 | (bgra & 0xFF000000);
-            ByteArrays.setInt(data, i, bgra, ByteOrder.LITTLE_ENDIAN);
+            data.setInt(i, bgra);
         }
     }
 
@@ -126,7 +125,7 @@ public final class TexturePresenter extends AbstractFXPresenter<TextureView> imp
         this.channel = channel;
 
         if (imagePixels == null) {
-            imagePixels = new byte[decoded.width() * decoded.height() * 4];
+            imagePixels = MutableBytes.allocate(decoded.width() * decoded.height() * 4);
         }
 
         // B8G8R8A8
@@ -139,11 +138,11 @@ public final class TexturePresenter extends AbstractFXPresenter<TextureView> imp
             case ALL -> premultiplied ? IntUnaryOperator.identity() : this::premultiply;
         };
 
-        var data = decoded.surfaces().getFirst().data();
-        for (int i = 0; i < data.length; i += 4) {
-            int bgra = ByteArrays.getInt(data, i, ByteOrder.LITTLE_ENDIAN);
+        var data = Bytes.wrap(decoded.surfaces().getFirst().data());
+        for (int i = 0; i < data.size(); i += 4) {
+            int bgra = data.getInt(i);
             bgra = operator.applyAsInt(bgra);
-            ByteArrays.setInt(imagePixels, i, bgra, ByteOrder.LITTLE_ENDIAN);
+            imagePixels.setInt(i, bgra);
         }
 
         var width = (int) image.getWidth();
@@ -151,7 +150,7 @@ public final class TexturePresenter extends AbstractFXPresenter<TextureView> imp
         image.getPixelWriter().setPixels(
             0, 0, width, height,
             PixelFormat.getByteBgraPreInstance(),
-            imagePixels, 0, width * 4
+            imagePixels.asMutableBuffer(), width * 4
         );
     }
 
