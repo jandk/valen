@@ -2,7 +2,6 @@ package be.twofold.valen.core.hashing;
 
 import be.twofold.valen.core.util.collect.*;
 
-import java.nio.charset.*;
 import java.util.*;
 
 public abstract class HashCode {
@@ -10,15 +9,15 @@ public abstract class HashCode {
     }
 
     public static HashCode ofInt(int hashCode) {
-        return new IntHashCode(hashCode);
+        return new OfInt(hashCode);
     }
 
     public static HashCode ofLong(long hashCode) {
-        return new LongHashCode(hashCode);
+        return new OfLong(hashCode);
     }
 
     public static HashCode ofBytes(Bytes hashCode) {
-        return new BytesHashCode(hashCode);
+        return new OfBytes(hashCode);
     }
 
     public abstract int asInt();
@@ -34,10 +33,10 @@ public abstract class HashCode {
     @Override
     public abstract String toString();
 
-    private static final class IntHashCode extends HashCode {
+    private static final class OfInt extends HashCode {
         private final int hashCode;
 
-        private IntHashCode(int hashCode) {
+        private OfInt(int hashCode) {
             this.hashCode = hashCode;
         }
 
@@ -53,7 +52,7 @@ public abstract class HashCode {
 
         @Override
         public boolean equals(Object obj) {
-            return obj instanceof IntHashCode other
+            return obj instanceof OfInt other
                 && hashCode == other.hashCode;
         }
 
@@ -68,10 +67,10 @@ public abstract class HashCode {
         }
     }
 
-    private static final class LongHashCode extends HashCode {
+    private static final class OfLong extends HashCode {
         private final long hashCode;
 
-        private LongHashCode(long hashCode) {
+        private OfLong(long hashCode) {
             this.hashCode = hashCode;
         }
 
@@ -87,7 +86,7 @@ public abstract class HashCode {
 
         @Override
         public boolean equals(Object obj) {
-            return obj instanceof LongHashCode other
+            return obj instanceof OfLong other
                 && hashCode == other.hashCode;
         }
 
@@ -102,10 +101,10 @@ public abstract class HashCode {
         }
     }
 
-    private static final class BytesHashCode extends HashCode {
+    private static final class OfBytes extends HashCode {
         private final Bytes hashCode;
 
-        private BytesHashCode(Bytes hashCode) {
+        private OfBytes(Bytes hashCode) {
             this.hashCode = hashCode;
         }
 
@@ -121,7 +120,7 @@ public abstract class HashCode {
 
         @Override
         public boolean equals(Object obj) {
-            return obj instanceof BytesHashCode other
+            return obj instanceof OfBytes other
                 && hashCode.equals(other.hashCode);
         }
 
@@ -132,15 +131,11 @@ public abstract class HashCode {
 
         @Override
         public String toString() {
-            // TODO: Encoding a Bytes should be done through some sort of encoding...
-            byte[] hex = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
-            byte[] result = new byte[hashCode.size() * 2];
+            var builder = new StringBuilder(hashCode.size() * 2);
             for (int i = 0; i < hashCode.size(); i++) {
-                int b = hashCode.getByte(i);
-                result[i * 2] = hex[(b >> 4) & 0xf];
-                result[i * 2 + 1] = hex[b & 0xf];
+                HexFormat.of().toHexDigits(builder, hashCode.getByte(i));
             }
-            return new String(result, StandardCharsets.ISO_8859_1);
+            return builder.toString();
         }
     }
 }
