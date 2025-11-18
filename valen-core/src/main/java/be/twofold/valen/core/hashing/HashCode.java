@@ -24,6 +24,8 @@ public abstract class HashCode {
 
     public abstract long asLong();
 
+    public abstract Bytes asBytes();
+
     @Override
     public abstract boolean equals(Object obj);
 
@@ -48,6 +50,13 @@ public abstract class HashCode {
         @Override
         public long asLong() {
             return Integer.toUnsignedLong(hashCode);
+        }
+
+        @Override
+        public Bytes asBytes() {
+            return MutableBytes
+                .allocate(Integer.BYTES)
+                .setInt(0, hashCode);
         }
 
         @Override
@@ -85,6 +94,13 @@ public abstract class HashCode {
         }
 
         @Override
+        public Bytes asBytes() {
+            return MutableBytes
+                .allocate(Long.BYTES)
+                .setLong(0, hashCode);
+        }
+
+        @Override
         public boolean equals(Object obj) {
             return obj instanceof OfLong other
                 && hashCode == other.hashCode;
@@ -116,6 +132,11 @@ public abstract class HashCode {
         @Override
         public long asLong() {
             return hashCode.getLong(0);
+        }
+
+        @Override
+        public Bytes asBytes() {
+            return hashCode;
         }
 
         @Override
