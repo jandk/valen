@@ -3,6 +3,8 @@ package be.twofold.valen.core.compression;
 import be.twofold.valen.core.util.*;
 import be.twofold.valen.core.util.collect.*;
 
+import java.util.*;
+
 abstract class LZDecompressor implements Decompressor {
     LZDecompressor() {
     }
@@ -28,6 +30,7 @@ abstract class LZDecompressor implements Decompressor {
             for (int i = 0; i < length; i++) {
                 dst.set(dstOff + i, dst.get(srcPos + i));
             }
+            overlap.merge(length, 1, Integer::sum);
         }
     }
 }

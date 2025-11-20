@@ -4,6 +4,7 @@ import be.twofold.valen.core.export.*;
 import be.twofold.valen.core.texture.*;
 
 import java.io.*;
+import java.util.*;
 
 public final class DdsExporter extends TextureExporter {
     @Override
@@ -47,39 +48,41 @@ public final class DdsExporter extends TextureExporter {
     private DdsHeader createHeader(Texture texture) {
         var format = mapFormat(texture.format());
 
-        var flags = DdsHeader.DDS_HEADER_FLAGS_TEXTURE;
+        var flags = EnumSet.of(DdsHeaderFlags.DDSD_CAPS, DdsHeaderFlags.DDSD_HEIGHT, DdsHeaderFlags.DDSD_WIDTH, DdsHeaderFlags.DDSD_PIXELFORMAT);
         var height = texture.height();
         var width = texture.width();
-        var caps1 = DdsHeader.DDSCAPS_TEXTURE;
+        var caps1 = EnumSet.of(DdsHeaderCaps1.DDSCAPS_TEXTURE);
 
         var mipMapCount = texture.surfaces().size() / (texture.isCubeMap() ? 6 : 1);
         if (mipMapCount > 0) {
-            flags |= DdsHeader.DDSD_MIPMAPCOUNT;
+            flags.add(DdsHeaderFlags.DDSD_MIPMAPCOUNT);
 
             if (mipMapCount > 1) {
-                caps1 |= DdsHeader.DDSCAPS_COMPLEX | DdsHeader.DDSCAPS_MIPMAP;
+                caps1.add(DdsHeaderCaps1.DDSCAPS_COMPLEX);
+                caps1.add(DdsHeaderCaps1.DDSCAPS_MIPMAP);
             }
         }
 
         int pitchOrLinearSize;
         if (format.isCompressed()) {
-            flags |= DdsHeader.DDSD_LINEARSIZE;
+            flags.add(DdsHeaderFlags.DDSD_LINEARSIZE);
             pitchOrLinearSize = computeLinearSize(texture.width(), texture.height(), format);
         } else {
-            flags |= DdsHeader.DDSD_PITCH;
+            flags.add(DdsHeaderFlags.DDSD_PITCH);
             pitchOrLinearSize = computePitch(texture.width(), format);
         }
 
         var pixelFormat = createPixelFormat();
         var header10 = createHeaderDxt10(texture, format);
 
-        var caps2 = 0;
+        var caps2 = EnumSet.noneOf(DdsHeaderCaps2.class);
         if (texture.isCubeMap()) {
-            caps1 |= DdsHeader.DDSCAPS_COMPLEX;
-            caps2 |= DdsHeader.DDSCAPS2_CUBEMAP | DdsHeader.DDSCAPS2_CUBEMAP_ALL_FACES;
+            caps1.add(DdsHeaderCaps1.DDSCAPS_COMPLEX);
+            caps2.add(DdsHeaderCaps2.DDSCAPS2_CUBEMAP);
+            caps2.addAll(DdsHeaderCaps2.DDSCAPS2_CUBEMAP_ALL_FACES);
         }
 
-        return new DdsHeader(flags, height, width, pitchOrLinearSize, 0, mipMapCount, pixelFormat, caps1, caps2, header10);
+        return new DdsHeader(flags, height, width, pitchOrLinearSize, 0, mipMapCount, pixelFormat, caps1, caps2, Optional.of(header10));
     }
 
     private static DxgiFormat mapFormat(TextureFormat format) {
@@ -114,15 +117,21 @@ public final class DdsExporter extends TextureExporter {
     }
 
     private DdsPixelFormat createPixelFormat() {
-        var flags = DdsPixelFormat.DDPF_FOURCC;
-        var fourCC = 'D' | 'X' << 8 | '1' << 16 | '0' << 24;
-        return new DdsPixelFormat(flags, fourCC, 0, 0, 0, 0, 0);
+        return new DdsPixelFormat(
+            EnumSet.of(DdsPixelFormatFlags.DDPF_FOURCC),
+            DdsPixelFormatFourCC.DX10,
+            0,
+            0,
+            0,
+            0,
+            0
+        );
     }
 
     private DdsHeaderDxt10 createHeaderDxt10(Texture texture, DxgiFormat format) {
         var miscFlag = texture.isCubeMap() ? DdsHeaderDxt10.DDS_RESOURCE_MISC_TEXTURECUBE : 0;
         return new DdsHeaderDxt10(
-            format.getCode(),
+            format,
             DdsHeaderDxt10.DDS_DIMENSION_TEXTURE2D,
             miscFlag,
             1,

@@ -1,32 +1,54 @@
 package be.twofold.valen.export.dds;
 
 import java.nio.*;
+import java.util.*;
 
 record DdsPixelFormat(
-    int flags,
-    int fourCC,
+    Set<DdsPixelFormatFlags> flags,
+    DdsPixelFormatFourCC fourCC,
     int rgbBitCount,
     int rBitMask,
     int gBitMask,
     int bBitMask,
     int aBitMask
 ) {
-    // dwFlags
-    public static final int DDPF_ALPHAPIXELS = 0x1;
-    public static final int DDPF_ALPHA = 0x2;
-    public static final int DDPF_FOURCC = 0x4;
-    public static final int DDPF_RGB = 0x40;
-    public static final int DDPF_YUV = 0x200;
-    public static final int DDPF_LUMINANCE = 0x20000;
-
     public static final int SIZE = 32;
+
+    DdsPixelFormat {
+        flags = EnumSet.copyOf(flags);
+        Objects.requireNonNull(fourCC);
+    }
+
+    public static DdsPixelFormat fromBuffer(ByteBuffer buffer) throws DdsException {
+        if (buffer.getInt() != SIZE) {
+            throw new DdsException("Invalid DdsPixelFormat size");
+        }
+
+        var flags = DdsPixelFormatFlags.fromValue(buffer.getInt());
+        var fourCC = DdsPixelFormatFourCC.fromValue(buffer.getInt());
+        var rgbBitCount = buffer.getInt();
+        var rBitMask = buffer.getInt();
+        var gBitMask = buffer.getInt();
+        var bBitMask = buffer.getInt();
+        var aBitMask = buffer.getInt();
+
+        return new DdsPixelFormat(
+            flags,
+            fourCC,
+            rgbBitCount,
+            rBitMask,
+            gBitMask,
+            bBitMask,
+            aBitMask
+        );
+    }
 
     public ByteBuffer toBuffer() {
         return ByteBuffer.allocate(SIZE)
             .order(ByteOrder.LITTLE_ENDIAN)
             .putInt(SIZE)
-            .putInt(flags)
-            .putInt(fourCC)
+            .putInt(flags.stream().mapToInt(DdsPixelFormatFlags::getValue).reduce(0, Integer::sum))
+            .putInt(fourCC.getValue())
             .putInt(rgbBitCount)
             .putInt(rBitMask)
             .putInt(gBitMask)
