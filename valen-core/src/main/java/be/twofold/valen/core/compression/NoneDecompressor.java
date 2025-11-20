@@ -5,6 +5,10 @@ import be.twofold.valen.core.util.collect.*;
 import java.io.*;
 
 final class NoneDecompressor implements Decompressor {
+    static final NoneDecompressor INSTANCE = new NoneDecompressor();
+
+    private NoneDecompressor() {
+    }
 
     @Override
     public void decompress(Bytes src, MutableBytes dst) throws IOException {

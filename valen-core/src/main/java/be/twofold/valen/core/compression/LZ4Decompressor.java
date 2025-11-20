@@ -42,6 +42,9 @@ final class LZ4Decompressor extends LZDecompressor {
 
             // End of input check
             if (srcOff >= src.size()) {
+                System.out.println(fills);
+                System.out.println(copies);
+                System.out.println(overlap);
                 return /*dstPos - targetOffset*/;
             }
 

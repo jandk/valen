@@ -8,7 +8,7 @@ import java.nio.file.*;
 @FunctionalInterface
 public interface Decompressor {
     static Decompressor none() {
-        return new NoneDecompressor();
+        return NoneDecompressor.INSTANCE;
     }
 
     static Decompressor fastLZ() {
@@ -37,7 +37,11 @@ public interface Decompressor {
 
     default Bytes decompress(Bytes src, int size) throws IOException {
         var dst = MutableBytes.allocate(size);
+        var t0 = System.nanoTime();
         decompress(src, dst);
+        var t1 = System.nanoTime();
+        double duration = (t1 - t0) / 1e9;
+        System.out.printf("Decompressing took %.2f ms (%.2f GB/s)%n", duration * 1e3, size / duration / (1 << 30));
         return dst;
     }
 

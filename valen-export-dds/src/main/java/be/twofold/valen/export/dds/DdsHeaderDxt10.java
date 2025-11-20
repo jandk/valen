@@ -5,7 +5,7 @@ import be.twofold.valen.core.util.*;
 import java.nio.*;
 
 record DdsHeaderDxt10(
-    int dxgiFormat,
+    DxgiFormat dxgiFormat,
     int resourceDimension,
     int miscFlag,
     int arraySize,
@@ -28,9 +28,25 @@ record DdsHeaderDxt10(
 
     public static final int SIZE = 20;
 
+    public static DdsHeaderDxt10 fromBuffer(ByteBuffer buffer) throws DdsException {
+        var dxgiFormat = DxgiFormat.fromCode(buffer.getInt());
+        var resourceDimension = buffer.getInt();
+        var miscFlag = buffer.getInt();
+        var arraySize = buffer.getInt();
+        var miscFlags2 = buffer.getInt();
+
+        return new DdsHeaderDxt10(
+            dxgiFormat,
+            resourceDimension,
+            miscFlag,
+            arraySize,
+            miscFlags2
+        );
+    }
+
     public ByteBuffer toBuffer() {
         return Buffers.allocate(SIZE)
-            .putInt(dxgiFormat)
+            .putInt(dxgiFormat.getCode())
             .putInt(resourceDimension)
             .putInt(miscFlag)
             .putInt(arraySize)

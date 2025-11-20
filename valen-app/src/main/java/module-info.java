@@ -14,6 +14,7 @@ module valen.app {
     requires valen.game.darkages;
     requires valen.game.eternal;
     requires valen.game.greatcircle;
+    requires valen.game.gustav;
 
     exports be.twofold.valen;
 }
