@@ -149,7 +149,11 @@ public interface BinaryReader extends Closeable {
     }
 
     default String readString(int length) throws IOException {
-        return StandardCharsets.UTF_8.decode(this.readBytes(length).asBuffer()).toString();
+        return readString(length, StandardCharsets.UTF_8);
+    }
+
+    default String readString(int length, Charset charset) throws IOException {
+        return charset.newDecoder().decode(readBytes(length).asBuffer()).toString();
     }
 
     default String readCString() throws IOException {
