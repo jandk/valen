@@ -3,7 +3,7 @@ package be.twofold.valen.export.dds;
 import java.nio.*;
 import java.util.*;
 
-record DdsHeader(
+public record DdsHeader(
     Set<DdsHeaderFlags> flags,
     int height,
     int width,
@@ -18,7 +18,7 @@ record DdsHeader(
     public static final int SIZE = 124;
     public static final int MAGIC = 0x20534444;
 
-    DdsHeader {
+    public DdsHeader {
         flags = EnumSet.copyOf(flags);
         Objects.requireNonNull(pixelFormat);
         caps1 = EnumSet.copyOf(caps1);

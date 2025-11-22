@@ -93,6 +93,7 @@ public final class DdsExporter extends TextureExporter {
                  R8G8B8A8_UNORM -> DxgiFormat.R8G8B8A8_UNORM;
             case B8G8R8_UNORM,
                  B8G8R8A8_UNORM -> DxgiFormat.B8G8R8A8_UNORM;
+            case R10G10B10A2_UNORM -> DxgiFormat.R10G10B10A2_UNORM;
             case R16_UNORM -> DxgiFormat.R16_UNORM;
             case R16G16B16A16_UNORM -> DxgiFormat.R16G16B16A16_UNORM;
             case R16_SFLOAT -> DxgiFormat.R16_FLOAT;

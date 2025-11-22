@@ -230,6 +230,7 @@ final class UnpackGenerator {
                  R8G8B8A8_UNORM,
                  B8G8R8_UNORM,
                  B8G8R8A8_UNORM,
+                 R10G10B10A2_UNORM,
                  R16_UNORM,
                  R16G16B16A16_UNORM,
                  BC1_UNORM,
