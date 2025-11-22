@@ -4,7 +4,7 @@ import be.twofold.valen.core.util.*;
 
 import java.nio.*;
 
-record DdsHeaderDxt10(
+public record DdsHeaderDxt10(
     DxgiFormat dxgiFormat,
     int resourceDimension,
     int miscFlag,

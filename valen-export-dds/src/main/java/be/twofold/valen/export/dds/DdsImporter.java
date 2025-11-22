@@ -61,6 +61,7 @@ public final class DdsImporter implements AssetReader<Texture, Asset> {
 
     private TextureFormat mapDxgiFormat(DxgiFormat dxgiFormat) {
         return switch (dxgiFormat) {
+            case R10G10B10A2_UNORM -> TextureFormat.R10G10B10A2_UNORM;
             case R16_FLOAT -> TextureFormat.R16_SFLOAT;
             case R16G16_FLOAT -> TextureFormat.R16G16_SFLOAT;
             case R16G16B16A16_FLOAT -> TextureFormat.R16G16B16A16_SFLOAT;

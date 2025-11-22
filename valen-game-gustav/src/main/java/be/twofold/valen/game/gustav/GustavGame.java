@@ -30,7 +30,7 @@ public final class GustavGame implements Game {
     }
 
     @Override
-    public Archive<?, ?> loadArchive(String name) throws IOException {
+    public GustavArchive loadArchive(String name) throws IOException {
         return new GustavArchive(dataPath.resolve(name + ".pak"));
     }
 

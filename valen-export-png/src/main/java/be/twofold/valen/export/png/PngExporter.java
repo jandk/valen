@@ -48,7 +48,8 @@ public final class PngExporter extends TextureExporter {
                  BC7_UNORM,
                  BC7_SRGB -> TextureFormat.R8G8B8A8_UNORM;
             case R16_UNORM -> TextureFormat.R16_UNORM;
-            case R16G16B16A16_UNORM -> TextureFormat.R16G16B16A16_UNORM;
+            case R10G10B10A2_UNORM,
+                 R16G16B16A16_UNORM -> TextureFormat.R16G16B16A16_UNORM;
 
             // These are special cases, should probably be exported to OpenEXR
             case R16_SFLOAT -> TextureFormat.R8_UNORM;

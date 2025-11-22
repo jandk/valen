@@ -57,8 +57,8 @@ public final class CsvUtils {
 
     private static String toString(Object value) {
         var s = switch (value) {
-            case Collection<?> ignored -> "";
-            case Map<?, ?> ignored -> "";
+//            case Collection<?> ignored -> "";
+//            case Map<?, ?> ignored -> "";
             case byte[] bytes -> Arrays.toString(bytes);
             case short[] shorts -> Arrays.toString(shorts);
             case int[] ints -> Arrays.toString(ints);
