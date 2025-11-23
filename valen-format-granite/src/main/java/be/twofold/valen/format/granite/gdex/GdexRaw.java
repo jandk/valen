@@ -11,4 +11,10 @@ final class GdexRaw extends Gdex {
         super(tag);
         this.value = Objects.requireNonNull(value);
     }
+
+    @Override
+    public Optional<Bytes> asBytes() {
+        return Optional.of(value);
+    }
+
 }

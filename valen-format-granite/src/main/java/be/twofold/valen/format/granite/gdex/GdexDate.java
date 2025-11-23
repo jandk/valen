@@ -1,6 +1,7 @@
 package be.twofold.valen.format.granite.gdex;
 
 import java.time.*;
+import java.util.*;
 
 final class GdexDate extends Gdex {
     private final Instant value;
@@ -9,4 +10,10 @@ final class GdexDate extends Gdex {
         super(tag);
         this.value = value;
     }
+
+    @Override
+    public Optional<Instant> asDate() {
+        return Optional.of(value);
+    }
+
 }
