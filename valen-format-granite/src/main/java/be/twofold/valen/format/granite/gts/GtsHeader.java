@@ -7,6 +7,7 @@ import java.io.*;
 import java.util.*;
 
 public record GtsHeader(
+    int version,
     UUID guid,
     int layerCount,
     int layerOffset,
@@ -31,7 +32,10 @@ public record GtsHeader(
 ) {
     public static GtsHeader read(BinaryReader reader) throws IOException {
         reader.expectInt(0x47505247);
-        reader.expectInt(5);
+        var version = reader.readInt();
+        if (version != 5 && version != 6) {
+            throw new UnsupportedOperationException("Unsupported version: " + version);
+        }
         reader.expectInt(0);
         var guid = DotNetUtils.guidBytesToUUID(reader.readBytesStruct(16));
         var layerCount = reader.readInt();
@@ -63,6 +67,7 @@ public record GtsHeader(
         }
 
         return new GtsHeader(
+            version,
             guid,
             layerCount,
             layerOffset,

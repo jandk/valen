@@ -94,7 +94,7 @@ final class XmlReader {
 
     private XmlLayerDescription parseLayerDescription(Element element) {
         var attrs = element.getAttributes();
-        var name = attrs.getNamedItem("Name").getNodeValue();
+        var name = attrs.getNamedItem("Name") == null ? null : attrs.getNamedItem("Name").getNodeValue();
         var compressionFormat = attrs.getNamedItem("CompressionFormat").getNodeValue();
         var qualityProfile = attrs.getNamedItem("QualityProfile").getNodeValue();
         var dataType = attrs.getNamedItem("DataType").getNodeValue();

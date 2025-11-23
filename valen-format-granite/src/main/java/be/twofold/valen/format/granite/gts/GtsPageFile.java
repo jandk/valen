@@ -10,19 +10,22 @@ public record GtsPageFile(
     String filename,
     int pageCount,
     Bytes checksum,
-    int type
+    int type,
+    int size
 ) {
-    public static GtsPageFile read(BinaryReader reader) throws IOException {
+    public static GtsPageFile read(BinaryReader reader, int version) throws IOException {
         var filename = reader.readString(0x200, StandardCharsets.UTF_16LE).trim();
         var pageCount = reader.readInt();
         var checksum = reader.readBytesStruct(16);
         var type = reader.readInt();
+        int size = version > 5 ? reader.readLongAsInt() : 0;
 
         return new GtsPageFile(
             filename,
             pageCount,
             checksum,
-            type
+            type,
+            size
         );
     }
 }
