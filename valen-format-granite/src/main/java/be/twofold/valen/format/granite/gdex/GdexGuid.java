@@ -9,4 +9,10 @@ final class GdexGuid extends Gdex {
         super(tag);
         this.value = value;
     }
+
+    @Override
+    public Optional<UUID> asGuid() {
+        return Optional.of(value);
+    }
+
 }

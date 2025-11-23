@@ -7,7 +7,8 @@ import java.io.*;
 
 public enum GdexItemFlags implements ValueEnum<Integer> {
     NONE(0),
-    LONG_HEADER(1);;
+    LONG_HEADER(1),
+    ;
 
     private final int value;
 

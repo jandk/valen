@@ -11,4 +11,10 @@ abstract sealed class GdexArray<T> extends Gdex
         super(tag);
         this.values = List.copyOf(values);
     }
+
+    @Override
+    public Optional<List<?>> asArray() {
+        return Optional.of(values);
+    }
+
 }

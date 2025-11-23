@@ -9,4 +9,9 @@ final class GdexString extends Gdex {
         super(tag);
         this.value = Objects.requireNonNull(value);
     }
+
+    @Override
+    public Optional<String> asString() {
+        return Optional.of(value);
+    }
 }
