@@ -15,13 +15,13 @@ final class Stringifier {
 
     private StringBuilder stringify0(Gdex gdex) {
         switch (gdex) {
-            case GdexArray<?> _ -> appendArray(gdex.asArray().orElseThrow());
-            case GdexDate _ -> builder.append(gdex.asDate().orElseThrow());
-            case GdexDouble _, GdexFloat _, GdexInt32 _, GdexInt64 _ -> builder.append(gdex.asNumber().orElseThrow());
-            case GdexGuid _ -> builder.append(gdex.asGuid().orElseThrow());
-            case GdexRaw _ -> appendRaw(gdex.asBytes().orElseThrow());
-            case GdexString _ -> appendString(gdex.asString().orElseThrow());
-            case GdexStruct _ -> appendStruct(gdex.asStruct().orElseThrow());
+            case GdexArray<?> _ -> appendArray(gdex.asArray());
+            case GdexDate _ -> builder.append(gdex.asDate());
+            case GdexDouble _, GdexFloat _, GdexInt32 _, GdexInt64 _ -> builder.append(gdex.asNumber());
+            case GdexGuid _ -> builder.append(gdex.asGuid());
+            case GdexRaw _ -> appendRaw(gdex.asBytes());
+            case GdexString _ -> appendString(gdex.asString());
+            case GdexStruct _ -> appendStruct(gdex.asStruct());
         }
         return builder;
     }

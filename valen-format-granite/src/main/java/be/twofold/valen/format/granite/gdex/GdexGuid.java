@@ -11,8 +11,7 @@ final class GdexGuid extends Gdex {
     }
 
     @Override
-    public Optional<UUID> asGuid() {
-        return Optional.of(value);
+    public UUID asGuid() {
+        return value;
     }
-
 }

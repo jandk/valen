@@ -31,7 +31,7 @@ public record Gts(
         var tiles = reader.position(header.tileOffset()).readObjects(header.tileCount(), GtsTile::read);
         var tileIndex = reader.position(header.tileIndexOffset()).readInts(header.tileIndexCount());
         var pageFiles = reader.position(header.pageFileOffset()).readObjects(header.pageFileCount(), GtsPageFile::read);
-        var metadata = reader.position(header.metaOffset()).readObject(Gdex::read).asStruct().orElseThrow();
+        var metadata = reader.position(header.metaOffset()).readObject(Gdex::read).asStruct();
         var paramBlocks = reader.position(header.paramBlockOffset()).readObjects(header.paramBlockCount(), GtsParamBlock::read);
 
         reader.position(header.thumbnailOffset());

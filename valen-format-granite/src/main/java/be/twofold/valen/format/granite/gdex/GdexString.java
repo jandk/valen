@@ -11,7 +11,7 @@ final class GdexString extends Gdex {
     }
 
     @Override
-    public Optional<String> asString() {
-        return Optional.of(value);
+    public String asString() {
+        return value;
     }
 }

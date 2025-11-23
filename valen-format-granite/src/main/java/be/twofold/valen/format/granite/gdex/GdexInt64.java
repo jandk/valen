@@ -1,7 +1,5 @@
 package be.twofold.valen.format.granite.gdex;
 
-import java.util.*;
-
 final class GdexInt64 extends Gdex {
     private final long value;
 
@@ -11,8 +9,7 @@ final class GdexInt64 extends Gdex {
     }
 
     @Override
-    public Optional<Number> asNumber() {
-        return Optional.of(value);
+    public Long asNumber() {
+        return value;
     }
-
 }

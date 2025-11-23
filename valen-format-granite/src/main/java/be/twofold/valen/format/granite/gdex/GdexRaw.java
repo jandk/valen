@@ -13,8 +13,7 @@ final class GdexRaw extends Gdex {
     }
 
     @Override
-    public Optional<Bytes> asBytes() {
-        return Optional.of(value);
+    public Bytes asBytes() {
+        return value;
     }
-
 }

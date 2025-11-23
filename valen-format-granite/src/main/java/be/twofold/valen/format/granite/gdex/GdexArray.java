@@ -13,8 +13,7 @@ abstract sealed class GdexArray<T> extends Gdex
     }
 
     @Override
-    public Optional<List<?>> asArray() {
-        return Optional.of(values);
+    public List<?> asArray() {
+        return values;
     }
-
 }

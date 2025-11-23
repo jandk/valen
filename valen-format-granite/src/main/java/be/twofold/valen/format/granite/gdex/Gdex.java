@@ -24,32 +24,32 @@ public sealed abstract class Gdex
         return tag;
     }
 
-    public Optional<List<?>> asArray() {
-        return Optional.empty();
+    public List<?> asArray() {
+        throw new ClassCastException(getClass().getSimpleName());
     }
 
-    public Optional<Bytes> asBytes() {
-        return Optional.empty();
+    public Bytes asBytes() {
+        throw new ClassCastException(getClass().getSimpleName());
     }
 
-    public Optional<Instant> asDate() {
-        return Optional.empty();
+    public Instant asDate() {
+        throw new ClassCastException(getClass().getSimpleName());
     }
 
-    public Optional<UUID> asGuid() {
-        return Optional.empty();
+    public UUID asGuid() {
+        throw new ClassCastException(getClass().getSimpleName());
     }
 
-    public Optional<Number> asNumber() {
-        return Optional.empty();
+    public Number asNumber() {
+        throw new ClassCastException(getClass().getSimpleName());
     }
 
-    public Optional<String> asString() {
-        return Optional.empty();
+    public String asString() {
+        throw new ClassCastException(getClass().getSimpleName());
     }
 
-    public Optional<GdexStruct> asStruct() {
-        return Optional.empty();
+    public GdexStruct asStruct() {
+        throw new ClassCastException(getClass().getSimpleName());
     }
 
     @Override
