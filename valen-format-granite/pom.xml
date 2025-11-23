@@ -15,5 +15,10 @@
             <groupId>be.twofold</groupId>
             <artifactId>valen-core</artifactId>
         </dependency>
+
+        <dependency>
+            <groupId>be.twofold</groupId>
+            <artifactId>valen-export-dds</artifactId>
+        </dependency>
     </dependencies>
 </project>

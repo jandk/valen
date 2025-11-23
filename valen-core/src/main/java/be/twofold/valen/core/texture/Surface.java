@@ -31,33 +31,43 @@ public record Surface(
         return new Surface(width, height, format, data);
     }
 
+    public static void copy(
+        Surface src, int srcX, int srcY,
+        Surface dst, int dstX, int dstY,
+        int width, int height
+    ) {
+        Check.fromIndexSize(srcX, width, src.width);
+        Check.fromIndexSize(srcY, height, src.height);
+        Check.fromIndexSize(dstX, width, dst.width);
+        Check.fromIndexSize(dstY, height, dst.height);
+        Check.argument(src.format == dst.format, "format mismatch");
 
-    //    public void copyFrom(Surface src, int x, int y) {
-//        Check.fromIndexSize(x, src.width, width);
-//        Check.fromIndexSize(y, src.height, height);
-//        Check.argument(x % format.block().width() == 0, "x must be a multiple of " + format.block().width());
-//        Check.argument(y % format.block().height() == 0, "y must be a multiple of " + format.block().height());
-//        Check.argument(format == src.format, "format mismatch");
-//
-//        var dstOffsetX = x / format.block().width();
-//        var dstOffsetY = y / format.block().height();
-//        var srcCountBytes = src.tileCountX() * format.block().size();
-//
-//        for (var tileY = 0; tileY < src.tileCountY(); tileY++) {
-//            var srcIndex = tileY * srcCountBytes;
-//            var dstIndex = ((dstOffsetY + tileY) * tileCountX() + dstOffsetX) * format.block().size();
-//            System.arraycopy(src.data, srcIndex, data, dstIndex, srcCountBytes);
-//        }
-//    }
-//
-//    public int tileCountX() {
-//        return width / format.block().width();
-//    }
-//
-//    public int tileCountY() {
-//        return height / format.block().height();
-//    }
-//
+        var format = src.format;
+        int blockWidth = format.blockWidth();
+        int blockHeight = format.blockHeight();
+        Check.argument(srcX % blockWidth == 0, "srcX must be a multiple of " + blockWidth);
+        Check.argument(srcY % blockHeight == 0, "srcY must be a multiple of " + blockHeight);
+        Check.argument(dstX % blockWidth == 0, "dstX must be a multiple of " + blockWidth);
+        Check.argument(dstY % blockHeight == 0, "dstY must be a multiple of " + blockHeight);
+
+        var srcTileX = srcX / blockWidth;
+        var srcTileY = srcY / blockHeight;
+        var srcTileWidth = src.width / blockWidth;
+
+        var dstTileX = dstX / blockWidth;
+        var dstTileY = dstY / blockHeight;
+        var dstTileWidth = dst.width / blockWidth;
+
+        var tileHeight = height / blockHeight;
+        var tileStride = width / blockWidth * format.blockSize();
+
+        for (var ty = 0; ty < tileHeight; ty++) {
+            var srcIndex = ((srcTileY + ty) * srcTileWidth + srcTileX) * format.blockSize();
+            var dstIndex = ((dstTileY + ty) * dstTileWidth + dstTileX) * format.blockSize();
+            System.arraycopy(src.data, srcIndex, dst.data, dstIndex, tileStride);
+        }
+    }
+
     @Override
     public String toString() {
         return "Surface(" +

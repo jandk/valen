@@ -7,17 +7,24 @@ import java.io.*;
 public record GtsLevel(
     int width,
     int height,
-    int offset
+    int offset,
+    int[] indices
 ) {
-    public static GtsLevel read(BinaryReader reader) throws IOException {
-        int width = reader.readInt();
-        int height = reader.readInt();
-        int offset = reader.readLongAsInt();
+    public static GtsLevel read(BinaryReader reader, int layerCount) throws IOException {
+        var width = reader.readInt();
+        var height = reader.readInt();
+        var offset = reader.readLongAsInt();
+
+        // Step out
+        var position = reader.position();
+        var indices = reader.position(offset).readInts(width * height * layerCount);
+        reader.position(position);
 
         return new GtsLevel(
             width,
             height,
-            offset
+            offset,
+            indices
         );
     }
 }

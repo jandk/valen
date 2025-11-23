@@ -4,13 +4,14 @@ import be.twofold.valen.core.io.*;
 import be.twofold.valen.format.granite.gdex.*;
 
 import java.io.*;
+import java.nio.file.*;
 import java.util.*;
 
 public record Gts(
+    Path path,
     GtsHeader header,
     List<GtsLayer> layers,
     List<GtsLevel> levels,
-    int[] indices,
     List<GtsTile> tiles,
     int[] tileIndex,
     List<GtsPageFile> pageFiles,
@@ -18,16 +19,16 @@ public record Gts(
     List<GtsParamBlock> paramBlocks,
     List<GtsThumbnail> thumbnails
 ) {
-    public static Gts read(BinaryReader reader) throws IOException {
+    public static Gts load(Path path) throws IOException {
+        try (var reader = BinaryReader.fromPath(path)) {
+            return read(reader, path);
+        }
+    }
+
+    public static Gts read(BinaryReader reader, Path path) throws IOException {
         var header = GtsHeader.read(reader);
         var layers = reader.position(header.layerOffset()).readObjects(header.layerCount(), GtsLayer::read);
-        var levels = reader.position(header.levelOffset()).readObjects(header.levelCount(), GtsLevel::read);
-
-        int indicesCount = levels.stream()
-            .mapToInt(level -> level.width() * level.height() * header.layerCount())
-            .sum();
-        var indices = reader.readInts(indicesCount);
-
+        var levels = reader.position(header.levelOffset()).readObjects(header.levelCount(), r -> GtsLevel.read(r, header.layerCount()));
         var tiles = reader.position(header.tileOffset()).readObjects(header.tileCount(), GtsTile::read);
         var tileIndex = reader.position(header.tileIndexOffset()).readInts(header.tileIndexCount());
         var pageFiles = reader.position(header.pageFileOffset()).readObjects(header.pageFileCount(), r -> GtsPageFile.read(r, header.version()));
@@ -40,10 +41,10 @@ public record Gts(
         var thumbnails = reader.readObjects(thumbnailCount, GtsThumbnail::read);
 
         return new Gts(
+            path,
             header,
             layers,
             levels,
-            indices,
             tiles,
             tileIndex,
             pageFiles,
