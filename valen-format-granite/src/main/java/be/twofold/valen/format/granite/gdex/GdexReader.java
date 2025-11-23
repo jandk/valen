@@ -46,7 +46,8 @@ final class GdexReader {
                 yield new GdexStruct(tag, values);
             }
             case STRING -> {
-                var value = reader.readString(size, StandardCharsets.UTF_16LE);
+                var value = reader.readString(size - 2, StandardCharsets.UTF_16LE);
+                reader.skip(2);
                 yield new GdexString(tag, value);
             }
             case INT32 -> {
@@ -71,22 +72,22 @@ final class GdexReader {
                 yield new GdexDate(tag, value);
             }
             case INT32_ARRAY -> {
-                int count = verifyArraySize(size, Integer.BYTES, "int32_array");
+                var count = verifyArraySize(size, Integer.BYTES, "int32_array");
                 var values = reader.readObjects(count, BinaryReader::readInt);
                 yield new GdexInt32Array(tag, values);
             }
             case FLOAT_ARRAY -> {
-                int count = verifyArraySize(size, Float.BYTES, "float_array");
+                var count = verifyArraySize(size, Float.BYTES, "float_array");
                 var values = reader.readObjects(count, BinaryReader::readFloat);
                 yield new GdexFloatArray(tag, values);
             }
             case INT64_ARRAY -> {
-                int count = verifyArraySize(size, Long.BYTES, "int64_array");
+                var count = verifyArraySize(size, Long.BYTES, "int64_array");
                 var values = reader.readObjects(count, BinaryReader::readLong);
                 yield new GdexInt64Array(tag, values);
             }
             case DOUBLE_ARRAY -> {
-                int count = verifyArraySize(size, Double.BYTES, "double_array");
+                var count = verifyArraySize(size, Double.BYTES, "double_array");
                 var values = reader.readObjects(count, BinaryReader::readDouble);
                 yield new GdexDoubleArray(tag, values);
             }
@@ -96,7 +97,7 @@ final class GdexReader {
                 yield new GdexGuid(tag, value);
             }
             case GUID_ARRAY -> {
-                int count = verifyArraySize(size, 16, "guid_array");
+                var count = verifyArraySize(size, 16, "guid_array");
                 var values = reader.readObjects(count, r -> DotNetUtils.guidBytesToUUID(r.readBytesStruct(16)));
                 yield new GdexGuidArray(tag, values);
             }
@@ -104,7 +105,7 @@ final class GdexReader {
     }
 
     private static int verifyArraySize(int size, int elementSize, String name) throws IOException {
-        int count = size / elementSize;
+        var count = size / elementSize;
         verifySize(count * elementSize, size, name);
         return count;
     }
