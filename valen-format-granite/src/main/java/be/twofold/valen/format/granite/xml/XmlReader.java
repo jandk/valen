@@ -6,7 +6,6 @@ import org.xml.sax.*;
 
 import javax.xml.parsers.*;
 import java.io.*;
-import java.nio.file.*;
 import java.time.*;
 import java.time.format.*;
 import java.util.*;
@@ -59,8 +58,8 @@ final class XmlReader {
     }
 
     private XmlBuildConfig parseBuildConfig(Element element) {
-        var outputDirectory = Path.of(findChild(element, "OutputDirectory").getTextContent());
-        var soupOutputDirectory = Path.of(findChild(element, "SoupOutputDirectory").getTextContent());
+        var outputDirectory = findChild(element, "OutputDirectory").getTextContent();
+        var soupOutputDirectory = findChild(element, "SoupOutputDirectory").getTextContent();
         var outputType = findChild(element, "OutputType").getTextContent();
         var outputName = findChild(element, "OutputName").getTextContent();
         var warningLevel = Integer.parseInt(findChild(element, "WarningLevel").getTextContent());
@@ -171,7 +170,9 @@ final class XmlReader {
 
     private XmlTexture parseTexture(Element element) {
         var attrs = element.getAttributes();
-        var src = Path.of(attrs.getNamedItem("Src").getNodeValue());
+        var src = attrs.getNamedItem("Src").getNodeValue();
+        var row = Optional.ofNullable(attrs.getNamedItem("Row")).map(node -> Integer.parseInt(node.getNodeValue()));
+        var column = Optional.ofNullable(attrs.getNamedItem("Column")).map(node -> Integer.parseInt(node.getNodeValue()));
         var subIndex = Integer.parseInt(attrs.getNamedItem("SubIndex").getNodeValue());
         var width = Integer.parseInt(attrs.getNamedItem("Width").getNodeValue());
         var height = Integer.parseInt(attrs.getNamedItem("Height").getNodeValue());
@@ -181,6 +182,8 @@ final class XmlReader {
 
         return new XmlTexture(
             src,
+            row,
+            column,
             subIndex,
             width,
             height,

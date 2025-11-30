@@ -1,10 +1,8 @@
 package be.twofold.valen.format.granite.xml;
 
-import java.nio.file.*;
-
 public record XmlBuildConfig(
-    Path outputDirectory,
-    Path soupOutputDirectory,
+    String outputDirectory,
+    String soupOutputDirectory,
     String outputType,
     String outputName,
     int warningLevel,

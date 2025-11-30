@@ -1,6 +1,7 @@
 package be.twofold.valen.format.granite.gts;
 
 import be.twofold.valen.core.io.*;
+import be.twofold.valen.core.util.collect.*;
 
 import java.io.*;
 
@@ -8,7 +9,7 @@ public record GtsLevel(
     int width,
     int height,
     int offset,
-    int[] indices
+    Ints indices
 ) {
     public static GtsLevel read(BinaryReader reader, int layerCount) throws IOException {
         var width = reader.readInt();
@@ -17,7 +18,7 @@ public record GtsLevel(
 
         // Step out
         var position = reader.position();
-        var indices = reader.position(offset).readInts(width * height * layerCount);
+        var indices = reader.position(offset).readIntsStruct(width * height * layerCount);
         reader.position(position);
 
         return new GtsLevel(
