@@ -16,7 +16,7 @@ class FastLZDecompressorTest {
     private static final int LENGTH = 138216;
 
     private final MessageDigest sha256 = MessageDigest.getInstance("SHA256");
-    private final FastLZDecompressor decompressor = new FastLZDecompressor();
+    private final FastLZDecompressor decompressor = FastLZDecompressor.INSTANCE;
 
     FastLZDecompressorTest() throws NoSuchAlgorithmException {
     }

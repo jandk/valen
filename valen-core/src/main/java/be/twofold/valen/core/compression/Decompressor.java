@@ -12,7 +12,7 @@ public interface Decompressor {
     }
 
     static Decompressor fastLZ() {
-        return new FastLZDecompressor();
+        return FastLZDecompressor.INSTANCE;
     }
 
     static Decompressor inflate(boolean raw) {
@@ -20,7 +20,7 @@ public interface Decompressor {
     }
 
     static Decompressor lz4() {
-        return new LZ4Decompressor();
+        return LZ4Decompressor.INSTANCE;
     }
 
     static Decompressor oodle() {
@@ -37,11 +37,7 @@ public interface Decompressor {
 
     default Bytes decompress(Bytes src, int size) throws IOException {
         var dst = MutableBytes.allocate(size);
-        var t0 = System.nanoTime();
         decompress(src, dst);
-        var t1 = System.nanoTime();
-        double duration = (t1 - t0) / 1e9;
-        System.out.printf("Decompressing took %.2f ms (%.2f GB/s)%n", duration * 1e3, size / duration / (1 << 30));
         return dst;
     }
 

@@ -5,7 +5,9 @@ import be.twofold.valen.core.util.collect.*;
 import java.io.*;
 
 final class FastLZDecompressor extends LZDecompressor {
-    FastLZDecompressor() {
+    static final FastLZDecompressor INSTANCE = new FastLZDecompressor();
+
+    private FastLZDecompressor() {
     }
 
     @Override
