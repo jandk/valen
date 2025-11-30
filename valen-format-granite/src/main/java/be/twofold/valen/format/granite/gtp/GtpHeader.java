@@ -8,6 +8,7 @@ import java.io.*;
 record GtpHeader(
     Bytes md5Sum
 ) {
+    static final int BYTES = 24;
 
     static GtpHeader read(BinaryReader reader) throws IOException {
         reader.expectInt(0x50415247); // magic
