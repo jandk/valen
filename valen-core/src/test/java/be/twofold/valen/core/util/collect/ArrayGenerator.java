@@ -282,14 +282,11 @@ final class ArrayGenerator {
             generateGet(classBuilder, float.class, "Float", "Float.BYTES");
             generateGet(classBuilder, double.class, "Double", "Double.BYTES");
             generateGetUnsigned(classBuilder, int.class, "", "getUnsigned", "Byte.toUnsignedInt");
-            generateGetUnsigned(classBuilder, long.class, "", "getUnsignedAsLong", "Byte.toUnsignedLong");
             generateGetUnsigned(classBuilder, int.class, "Short", "getUnsignedShort", "Short.toUnsignedInt");
-            generateGetUnsigned(classBuilder, long.class, "Short", "getUnsignedShortAsLong", "Short.toUnsignedLong");
             generateGetUnsigned(classBuilder, long.class, "Int", "getUnsignedInt", "Integer.toUnsignedLong");
         }
         if (primitiveClass == short.class) {
             generateGetUnsigned(classBuilder, int.class, "", "getUnsigned", "Short.toUnsignedInt");
-            generateGetUnsigned(classBuilder, long.class, "", "getUnsignedAsLong", "Short.toUnsignedLong");
         }
         if (primitiveClass == int.class) {
             generateGetUnsigned(classBuilder, long.class, "", "getUnsigned", "Integer.toUnsignedLong");

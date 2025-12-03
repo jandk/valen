@@ -87,16 +87,8 @@ public class Bytes implements Comparable<Bytes>, Array {
         return Byte.toUnsignedInt(get(offset));
     }
 
-    public long getUnsignedAsLong(int offset) {
-        return Byte.toUnsignedLong(get(offset));
-    }
-
     public int getUnsignedShort(int offset) {
         return Short.toUnsignedInt(getShort(offset));
-    }
-
-    public long getUnsignedShortAsLong(int offset) {
-        return Short.toUnsignedLong(getShort(offset));
     }
 
     public long getUnsignedInt(int offset) {
