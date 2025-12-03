@@ -80,7 +80,7 @@ public final class ColoredFormatter extends Formatter {
         return switch (level) {
             case "SEVERE" -> RED;
             case "WARNING" -> YELLOW;
-            case "INFO" -> GREEN;
+            case "INFO", "FINE" -> GREEN;
             default -> RESET;
         };
     }
