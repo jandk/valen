@@ -42,7 +42,7 @@ public class Shorts implements Comparable<Shorts>, Array {
         return new Shorts(buffer.array(), buffer.position(), buffer.limit());
     }
 
-    public short getShort(int index) {
+    public short get(int index) {
         Check.index(index, length());
         return array[fromIndex + index];
     }

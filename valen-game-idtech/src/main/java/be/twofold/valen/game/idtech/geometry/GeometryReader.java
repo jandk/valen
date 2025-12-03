@@ -143,7 +143,7 @@ public final class GeometryReader {
             };
             case SKINNING_1 -> switch (skinningMode) {
                 case None -> builder;
-                default -> builder.weights(offset, stride, 1, (_, dst, offset0) -> dst.setFloat(offset0, 1.0f));
+                default -> builder.weights(offset, stride, 1, (_, dst, offset0) -> dst.set(offset0, 1.0f));
             };
             case SKINNING_4 -> builder.joints(offset, stride, 4, GeoReader.copyBytesAsShorts(4));
             case SKINNING_6 -> builder

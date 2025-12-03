@@ -22,7 +22,7 @@ public final class MutableShorts extends Shorts {
         return new MutableShorts(new short[length], 0, length);
     }
 
-    public MutableShorts setShort(int index, short value) {
+    public MutableShorts set(int index, short value) {
         Check.index(index, length());
         array[fromIndex + index] = value;
         return this;

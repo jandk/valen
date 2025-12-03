@@ -64,17 +64,17 @@ public interface GeoReader<T> {
             float z = ((wn & 0xf0) >>> 4) * factor1;
             float w = ((wn & 0x0f)) * factor2;
 
-            target.setFloat(offset/**/, 1.0f - y - z - w);
-            target.setFloat(offset + 1, y);
-            target.setFloat(offset + 2, z);
-            target.setFloat(offset + 3, w);
+            target.set(offset/**/, 1.0f - y - z - w);
+            target.set(offset + 1, y);
+            target.set(offset + 2, z);
+            target.set(offset + 3, w);
         };
     }
 
     static GeoReader<MutableShorts> readBone1() {
         return (source, target, offset) -> {
             source.skip(3);
-            target.setShort(offset, (short) Byte.toUnsignedInt(source.readByte()));
+            target.set(offset, (short) Byte.toUnsignedInt(source.readByte()));
         };
     }
 
@@ -94,14 +94,14 @@ public interface GeoReader<T> {
 
     static GeoReader<MutableInts> readShortAsInt() {
         return (source, target, offset) -> {
-            target.setInt(offset, Short.toUnsignedInt(source.readShort()));
+            target.set(offset, Short.toUnsignedInt(source.readShort()));
         };
     }
 
     static GeoReader<MutableShorts> copyBytesAsShorts(int n) {
         return (source, target, offset) -> {
             for (int i = 0; i < n; i++) {
-                target.setShort(offset + i, (short) Byte.toUnsignedInt(source.readByte()));
+                target.set(offset + i, (short) Byte.toUnsignedInt(source.readByte()));
             }
         };
     }
@@ -109,7 +109,7 @@ public interface GeoReader<T> {
     static GeoReader<MutableFloats> copyBytesAsFloats(int n) {
         return (source, target, offset) -> {
             for (int i = 0; i < n; i++) {
-                target.setFloat(offset + i, MathF.unpackUNorm8(source.readByte()));
+                target.set(offset + i, MathF.unpackUNorm8(source.readByte()));
             }
         };
     }
@@ -117,7 +117,7 @@ public interface GeoReader<T> {
     static GeoReader<MutableBytes> copyBytes(int n) {
         return (source, target, offset) -> {
             for (int i = 0; i < n; i++) {
-                target.setByte(offset + i, source.readByte());
+                target.set(offset + i, source.readByte());
             }
         };
     }

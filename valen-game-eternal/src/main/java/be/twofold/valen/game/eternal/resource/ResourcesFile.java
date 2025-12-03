@@ -46,8 +46,8 @@ public final class ResourcesFile implements Container<EternalAssetID, EternalAss
     }
 
     private EternalAsset mapResourceEntry(Resources resources, ResourcesEntry entry) {
-        var type = resources.pathStrings().get(resources.pathStringIndex().getInt(entry.strings()));
-        var name = resources.pathStrings().get(resources.pathStringIndex().getInt(entry.strings() + 1));
+        var type = resources.pathStrings().get(resources.pathStringIndex().get(entry.strings()));
+        var name = resources.pathStrings().get(resources.pathStringIndex().get(entry.strings() + 1));
 
         var resourceName = new ResourceName(name);
         var resourceType = ResourceType.fromName(type);

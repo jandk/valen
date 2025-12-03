@@ -42,7 +42,7 @@ public class Ints implements Comparable<Ints>, Array {
         return new Ints(buffer.array(), buffer.position(), buffer.limit());
     }
 
-    public int getInt(int index) {
+    public int get(int index) {
         Check.index(index, length());
         return array[fromIndex + index];
     }

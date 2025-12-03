@@ -128,7 +128,7 @@ public final class Md6AnimReader implements AssetReader<Animation, DarkAgesAsset
         int frameByte = frame >> 3;
         int byteIndex = boneId * bytesPerBone + frameByte;
         int bitIndex = 0x80 >> (frame & 7);
-        return (bytes.getByte(byteIndex) & bitIndex) != 0;
+        return (bytes.get(byteIndex) & bitIndex) != 0;
     }
 
     // LODS use this
@@ -136,6 +136,6 @@ public final class Md6AnimReader implements AssetReader<Animation, DarkAgesAsset
         int frameByte = bytesPerBone - (frame >> 3) - 1;
         int byteIndex = boneId * bytesPerBone + frameByte;
         int bitIndex = 0x80 >> (frame & 7);
-        return (bytes.getByte(byteIndex) & bitIndex) != 0;
+        return (bytes.get(byteIndex) & bitIndex) != 0;
     }
 }

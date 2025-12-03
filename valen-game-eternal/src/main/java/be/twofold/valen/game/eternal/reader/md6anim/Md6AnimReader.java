@@ -58,7 +58,7 @@ public final class Md6AnimReader implements AssetReader<Animation, EternalAsset>
         BiFunction<Integer, List<KeyFrame<T>>, Track<T>> constructor
     ) {
         return IntStream.range(0, boneIDs.length())
-            .mapToObj(i -> constructor.apply(boneIDs.getInt(i), List.of(new KeyFrame<>(0, values.get(i)))))
+            .mapToObj(i -> constructor.apply(boneIDs.get(i), List.of(new KeyFrame<>(0, values.get(i)))))
             .toList();
     }
 
@@ -78,7 +78,7 @@ public final class Md6AnimReader implements AssetReader<Animation, EternalAsset>
             var range = rangeMapper.apply(frameSet);
 
             for (int i = 0, vi = 0; i < animBoneIds.length(); i++) {
-                var curve = curves.computeIfAbsent(animBoneIds.getInt(i), _ -> new ArrayList<>());
+                var curve = curves.computeIfAbsent(animBoneIds.get(i), _ -> new ArrayList<>());
                 curve.add(new KeyFrame<>(frameSet.frameStart(), first.get(i)));
                 for (var frame = 0; frame < frameSet.frameRange(); frame++) {
                     if (bits.get(i * frameSet.bytesPerBone() * 8 + frame)) {

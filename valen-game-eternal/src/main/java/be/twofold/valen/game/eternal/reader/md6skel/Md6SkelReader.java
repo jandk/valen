@@ -33,7 +33,7 @@ public final class Md6SkelReader implements AssetReader<Skeleton, EternalAsset> 
     private Bone mapBone(Md6Skel skeleton, int index) {
         return new Bone(
             skeleton.names().get(index),
-            skeleton.parents().getShort(index),
+            skeleton.parents().get(index),
             skeleton.rotations().get(index),
             skeleton.scales().get(index),
             skeleton.translations().get(index),

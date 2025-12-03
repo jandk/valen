@@ -22,7 +22,7 @@ public final class MutableDoubles extends Doubles {
         return new MutableDoubles(new double[length], 0, length);
     }
 
-    public MutableDoubles setDouble(int index, double value) {
+    public MutableDoubles set(int index, double value) {
         Check.index(index, length());
         array[fromIndex + index] = value;
         return this;

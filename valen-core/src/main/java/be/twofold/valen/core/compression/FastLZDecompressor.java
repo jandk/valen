@@ -10,11 +10,11 @@ final class FastLZDecompressor extends LZDecompressor {
 
     @Override
     public void decompress(Bytes src, MutableBytes dst) throws IOException {
-        Level level = Level.from(src.getByte(0));
+        Level level = Level.from(src.get(0));
 
         int srcOff = 0;
         int dstOff = 0;
-        int opcode = src.getByte(srcOff++) & 0x1F; // Could have had a pretty loop, but no
+        int opcode = src.get(srcOff++) & 0x1F; // Could have had a pretty loop, but no
         while (true) {
             if ((opcode & 0xE0) == 0x00) {
                 // If the upper 3 bits are 0, we have a literal

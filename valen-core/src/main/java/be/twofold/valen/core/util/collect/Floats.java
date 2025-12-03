@@ -42,7 +42,7 @@ public class Floats implements Comparable<Floats>, Array {
         return new Floats(buffer.array(), buffer.position(), buffer.limit());
     }
 
-    public float getFloat(int index) {
+    public float get(int index) {
         Check.index(index, length());
         return array[fromIndex + index];
     }

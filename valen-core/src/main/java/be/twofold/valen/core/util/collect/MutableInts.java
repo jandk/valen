@@ -22,7 +22,7 @@ public final class MutableInts extends Ints {
         return new MutableInts(new int[length], 0, length);
     }
 
-    public MutableInts setInt(int index, int value) {
+    public MutableInts set(int index, int value) {
         Check.index(index, length());
         array[fromIndex + index] = value;
         return this;

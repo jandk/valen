@@ -154,7 +154,7 @@ public abstract class HashCode {
         public String toString() {
             var builder = new StringBuilder(hashCode.length() * 2);
             for (int i = 0; i < hashCode.length(); i++) {
-                HexFormat.of().toHexDigits(builder, hashCode.getByte(i));
+                HexFormat.of().toHexDigits(builder, hashCode.get(i));
             }
             return builder.toString();
         }

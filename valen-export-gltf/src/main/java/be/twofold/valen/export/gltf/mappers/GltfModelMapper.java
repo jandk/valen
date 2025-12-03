@@ -119,10 +119,10 @@ public abstract class GltfModelMapper {
             var joints = MutableShorts.allocate(numVertices * 4);
             for (int i = offset, o = 0; i < shorts.length(); i += maxInfluence, o += 4) {
                 for (int j = 0; j < values; j++) {
-                    joints.setShort(o + j, shorts.getShort(i + j));
+                    joints.set(o + j, shorts.get(i + j));
                 }
                 for (int j = values; j < 4; j++) {
-                    joints.setShort(o + j, (short) 0);
+                    joints.set(o + j, (short) 0);
                 }
             }
             attributes.put("JOINTS_" + numJoints++, buildAccessor(joints, AccessorComponentType.UNSIGNED_SHORT, AccessorType.VEC4, false));
@@ -139,10 +139,10 @@ public abstract class GltfModelMapper {
             var weights = MutableFloats.allocate(numVertices * 4);
             for (int i = offset, o = 0; i < floats.length(); i += maxInfluence, o += 4) {
                 for (int j = 0; j < values; j++) {
-                    weights.setFloat(o + j, floats.getFloat(i + j));
+                    weights.set(o + j, floats.get(i + j));
                 }
                 for (int j = values; j < 4; j++) {
-                    weights.setFloat(o + j, (short) 0);
+                    weights.set(o + j, (short) 0);
                 }
             }
             attributes.put("WEIGHTS_" + numWeights++, buildAccessor(weights, AccessorComponentType.FLOAT, AccessorType.VEC4, false));
@@ -219,8 +219,8 @@ public abstract class GltfModelMapper {
         mesh.joints().map(MutableShorts.class::cast).ifPresent(joints ->
             mesh.weights().map(MutableFloats.class::cast).ifPresent(weights -> {
                 for (var i = 0; i < joints.length(); i++) {
-                    if (weights.getFloat(i) == 0) {
-                        joints.setShort(i, (short) 0);
+                    if (weights.get(i) == 0) {
+                        joints.set(i, (short) 0);
                     }
                 }
             }));

@@ -22,7 +22,7 @@ public final class MutableBytes extends Bytes {
         return new MutableBytes(new byte[length], 0, length);
     }
 
-    public MutableBytes setByte(int index, byte value) {
+    public MutableBytes set(int index, byte value) {
         Check.index(index, length());
         array[fromIndex + index] = value;
         return this;

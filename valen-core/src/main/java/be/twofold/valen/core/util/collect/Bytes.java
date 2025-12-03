@@ -53,7 +53,7 @@ public class Bytes implements Comparable<Bytes>, Array {
         return new Bytes(buffer.array(), buffer.position(), buffer.limit());
     }
 
-    public byte getByte(int index) {
+    public byte get(int index) {
         Check.index(index, length());
         return array[fromIndex + index];
     }
@@ -84,15 +84,15 @@ public class Bytes implements Comparable<Bytes>, Array {
     }
 
     public int getUnsignedByte(int offset) {
-        return Byte.toUnsignedInt(getByte(offset));
+        return Byte.toUnsignedInt(get(offset));
     }
 
     public int getUnsignedShort(int offset) {
-        return Short.toUnsignedInt(getShort(offset));
+        return Short.toUnsignedInt(get(offset));
     }
 
     public long getUnsignedInt(int offset) {
-        return Integer.toUnsignedLong(getInt(offset));
+        return Integer.toUnsignedLong(get(offset));
     }
 
     @Override

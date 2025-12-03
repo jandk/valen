@@ -22,7 +22,7 @@ public final class MutableLongs extends Longs {
         return new MutableLongs(new long[length], 0, length);
     }
 
-    public MutableLongs setLong(int index, long value) {
+    public MutableLongs set(int index, long value) {
         Check.index(index, length());
         array[fromIndex + index] = value;
         return this;

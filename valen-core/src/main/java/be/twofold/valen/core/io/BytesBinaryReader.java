@@ -38,7 +38,7 @@ final class BytesBinaryReader implements BinaryReader {
 
     @Override
     public byte readByte() {
-        byte result = bytes.getByte(position);
+        byte result = bytes.get(position);
         position += Byte.BYTES;
         return result;
     }

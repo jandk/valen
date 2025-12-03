@@ -18,7 +18,7 @@ public record Md6ModelGeoDecals(
 
         var geoDecalIndices = new ArrayList<Ints>();
         for (var stream = 0; stream < numStreams; stream++) {
-            geoDecalIndices.add(reader.readIntsStruct(geoDecalCounts.getInt(stream)));
+            geoDecalIndices.add(reader.readIntsStruct(geoDecalCounts.get(stream)));
         }
 
         return new Md6ModelGeoDecals(

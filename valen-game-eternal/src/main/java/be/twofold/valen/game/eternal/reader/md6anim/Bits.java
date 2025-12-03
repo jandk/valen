@@ -17,7 +17,7 @@ public final class Bits {
 
         int byteIndex = index >> 3;
         int bitIndex = 0x80 >> (index & 7);
-        return (bytes.getByte(byteIndex) & bitIndex) != 0;
+        return (bytes.get(byteIndex) & bitIndex) != 0;
     }
 
     public int size() {
@@ -27,7 +27,7 @@ public final class Bits {
     public int cardinality() {
         int count = 0;
         for (int i = 0; i < bytes.length(); i++) {
-            count += Integer.bitCount(Byte.toUnsignedInt(bytes.getByte(i)));
+            count += Integer.bitCount(Byte.toUnsignedInt(bytes.get(i)));
         }
         return count;
     }

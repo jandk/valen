@@ -136,7 +136,7 @@ public final class ModelPresenter extends AbstractFXPresenter<ModelView> impleme
         var capacity = buffer.length();
         var indices = new int[capacity * 3];
         for (int i = 0, o = 0; i < capacity; i++) {
-            var index = buffer.getInt(i);
+            var index = buffer.get(i);
             indices[o++] = index;
             indices[o++] = index;
             indices[o++] = index;

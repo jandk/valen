@@ -42,7 +42,7 @@ public class Longs implements Comparable<Longs>, Array {
         return new Longs(buffer.array(), buffer.position(), buffer.limit());
     }
 
-    public long getLong(int index) {
+    public long get(int index) {
         Check.index(index, length());
         return array[fromIndex + index];
     }

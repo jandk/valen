@@ -134,7 +134,7 @@ public record Md6Anim(
             if ((count & 0x80) != 0) {
                 count &= 0x7F;
                 for (int i = o; i < o + count; i++) {
-                    result.setInt(i, numJoints);
+                    result.set(i, numJoints);
                 }
                 o += count;
                 continue;
@@ -142,7 +142,7 @@ public record Md6Anim(
 
             int value = Byte.toUnsignedInt(reader.readByte());
             for (var i = 0; i < count; i++) {
-                result.setInt(o++, value + i);
+                result.set(o++, value + i);
             }
         }
         return result;

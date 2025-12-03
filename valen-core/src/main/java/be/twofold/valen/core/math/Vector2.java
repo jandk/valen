@@ -86,8 +86,8 @@ public record Vector2(
     }
 
     public void toFloats(MutableFloats floats, int offset) {
-        floats.setFloat(offset/**/, x);
-        floats.setFloat(offset + 1, y);
+        floats.set(offset/**/, x);
+        floats.set(offset + 1, y);
     }
 
     public Vector2 map(FloatUnaryOperator operator) {

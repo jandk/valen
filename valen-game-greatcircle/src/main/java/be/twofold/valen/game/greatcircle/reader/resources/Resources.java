@@ -30,7 +30,7 @@ public record Resources(
         // assert channel.position() == header.addrPathStringOffsets();
         var numStrings = reader.readLongAsInt();
         var offsets = reader.readLongsAsInts(numStrings);
-        var stringBufferLength = Math.toIntExact(header.addrDependencyEntries() - header.addrPathStringOffsets() - (numStrings + 1) * (long) Long.BYTES);
+        var stringBufferLength = header.addrDependencyEntries() - header.addrPathStringOffsets() - (numStrings + 1) * Long.BYTES;
         var stringBufferRaw = reader.readBytes(stringBufferLength);
         var stringBuffer = DECODER.decode(ByteBuffer.wrap(stringBufferRaw)).toString();
         var pathStrings = Arrays.stream(offsets)

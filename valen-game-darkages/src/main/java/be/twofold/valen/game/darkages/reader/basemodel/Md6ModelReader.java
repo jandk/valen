@@ -104,11 +104,11 @@ public final class Md6ModelReader implements AssetReader<Model, DarkAgesAsset> {
         var localInfluence = new float[realInfluence];
         for (int c = 0, i1 = 0, i2 = 0, o = 0; c < mesh.vertexCount(); c++) {
             for (int i = 1; i < influence - 3; i++) {
-                localInfluence[i] = buffer1.getFloat(i2++);
+                localInfluence[i] = buffer1.get(i2++);
             }
             i1++; // skip calculated weight
             for (int i = influence - 3; i < realInfluence; i++) {
-                localInfluence[i] = buffer2.getFloat(i1++);
+                localInfluence[i] = buffer2.get(i1++);
             }
             float weight = 1.0f;
             for (int i = 1; i < realInfluence; i++) {
@@ -130,7 +130,7 @@ public final class Md6ModelReader implements AssetReader<Model, DarkAgesAsset> {
 
         for (int i = 0, o = 0, lim = joints.length(); i < lim; i += influence, o += realInfluence) {
             for (int j = 0; j < realInfluence; j++) {
-                joints.setShort(o + j, joints.getShort(i + j));
+                joints.set(o + j, joints.get(i + j));
             }
         }
         return joints.slice(0, mesh.vertexCount() * realInfluence);
@@ -147,7 +147,7 @@ public final class Md6ModelReader implements AssetReader<Model, DarkAgesAsset> {
             var shorts = meshes.get(i).joints().map(MutableShorts.class::cast).orElseThrow();
 
             for (var j = 0; j < shorts.length(); j++) {
-                var index0 = Short.toUnsignedInt(shorts.getShort(j));
+                var index0 = Short.toUnsignedInt(shorts.get(j));
                 var index1 = index0 + offset;
                 short index2;
                 if (index1 < skinnedJointsLen8) {
@@ -160,7 +160,7 @@ public final class Md6ModelReader implements AssetReader<Model, DarkAgesAsset> {
                         index2 = skinnedJoints[extraJoints[index11 - skinnedJointsLen8]];
                     }
                 }
-                shorts.setShort(j, index2);
+                shorts.set(j, index2);
             }
         }
     }

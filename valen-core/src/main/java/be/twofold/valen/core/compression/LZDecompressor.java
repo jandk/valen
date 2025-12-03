@@ -20,13 +20,13 @@ abstract class LZDecompressor implements Decompressor {
 
         int srcPos = dstOff - offset;
         if (offset == 1) {
-            byte b = dst.getByte(dstOff - 1);
+            byte b = dst.get(dstOff - 1);
             dst.slice(dstOff, dstOff + length).fill(b);
         } else if (offset >= length) {
             dst.slice(srcPos, srcPos + length).copyTo(dst, dstOff);
         } else {
             for (int i = 0; i < length; i++) {
-                dst.setByte(dstOff + i, dst.getByte(srcPos + i));
+                dst.set(dstOff + i, dst.get(srcPos + i));
             }
         }
     }

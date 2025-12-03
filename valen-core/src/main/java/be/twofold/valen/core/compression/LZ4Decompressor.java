@@ -12,7 +12,7 @@ final class LZ4Decompressor extends LZDecompressor {
     public void decompress(Bytes src, MutableBytes dst) throws IOException {
         // Special case
         if (dst.length() == 0) {
-            if (src.length() != 1 || src.getByte(0) != 0) {
+            if (src.length() != 1 || src.get(0) != 0) {
                 throw new IOException("Invalid empty block");
             }
             return /*0*/;
@@ -21,7 +21,7 @@ final class LZ4Decompressor extends LZDecompressor {
         int srcOff = 0;
         int dstOff = 0;
         while (true) {
-            int token = src.getByte(srcOff++);
+            int token = src.get(srcOff++);
 
             // Get the literal len
             int literalLength = (token >>> 4) & 0x0F;

@@ -121,7 +121,6 @@ final class ArrayGenerator {
             .build());
 
         // Static from method
-        var bufferMethodName = bufferClass.getSimpleName().replace("Buffer", "");
         builder.addMethod(MethodSpec.methodBuilder("from")
             .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
             .returns(thisType)
@@ -131,7 +130,7 @@ final class ArrayGenerator {
             .build());
 
         // getPrimitive method
-        builder.addMethod(MethodSpec.methodBuilder("get" + bufferMethodName)
+        builder.addMethod(MethodSpec.methodBuilder("get")
             .addModifiers(Modifier.PUBLIC)
             .returns(primitiveClass)
             .addParameter(int.class, "index")
@@ -301,7 +300,7 @@ final class ArrayGenerator {
             .addModifiers(Modifier.PUBLIC)
             .returns(primitive)
             .addParameter(int.class, "offset")
-            .addStatement("return $L(get$L(offset))", conv, upper)
+            .addStatement("return $L(get(offset))", conv)
             .build());
     }
 
@@ -333,7 +332,6 @@ final class ArrayGenerator {
     ) {
         var thisType = ClassName.get("", className);
         var primitiveArrayType = ArrayTypeName.of(TypeName.get(primitiveClass));
-        var bufferMethodName = bufferClass.getSimpleName().replace("Buffer", "");
 
         var builder = TypeSpec.classBuilder(className)
             .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
@@ -370,7 +368,7 @@ final class ArrayGenerator {
             .addStatement("return new $L(new $L[length], 0, length)", className, primitiveClass)
             .build());
 
-        builder.addMethod(MethodSpec.methodBuilder("set" + bufferMethodName)
+        builder.addMethod(MethodSpec.methodBuilder("set")
             .addModifiers(Modifier.PUBLIC)
             .returns(thisType)
             .addParameter(int.class, "index")

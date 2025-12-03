@@ -104,10 +104,10 @@ public record Vector4(
     }
 
     public void toFloats(MutableFloats floats, int offset) {
-        floats.setFloat(offset/**/, x);
-        floats.setFloat(offset + 1, y);
-        floats.setFloat(offset + 2, z);
-        floats.setFloat(offset + 3, w);
+        floats.set(offset/**/, x);
+        floats.set(offset + 1, y);
+        floats.set(offset + 2, z);
+        floats.set(offset + 3, w);
     }
 
     public Vector4 map(FloatUnaryOperator operator) {

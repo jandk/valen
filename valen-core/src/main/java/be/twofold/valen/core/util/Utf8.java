@@ -75,7 +75,7 @@ public final class Utf8 {
                 if (index >= limit) {
                     return true;
                 }
-                b0 = bytes.getByte(index++);
+                b0 = bytes.get(index++);
             } while (b0 >= 0);
 
             if (b0 < (byte) 0xE0) { // 2-byte
@@ -84,7 +84,7 @@ public final class Utf8 {
                 }
 
                 if (b0 < (byte) 0xC2                         // overlong
-                    || bytes.getByte(index++) >= (byte) 0xC0 // continuation
+                    || bytes.get(index++) >= (byte) 0xC0 // continuation
                 ) {
                     return false;
                 }
@@ -93,11 +93,11 @@ public final class Utf8 {
                     return false;
                 }
 
-                int b1 = bytes.getByte(index++);
+                int b1 = bytes.get(index++);
                 if (b1 >= (byte) 0xC0                           // continuation
                     || (b0 == (byte) 0xE0 && b1 < (byte) 0xA0)  // overlong
                     || (b0 == (byte) 0xED && b1 >= (byte) 0xA0) // surrogate
-                    || bytes.getByte(index++) >= (byte) 0xC0    // continuation
+                    || bytes.get(index++) >= (byte) 0xC0    // continuation
                 ) {
                     return false;
                 }
@@ -106,13 +106,13 @@ public final class Utf8 {
                     return false;
                 }
 
-                byte b1 = bytes.getByte(index++);
+                byte b1 = bytes.get(index++);
                 if (b1 >= (byte) 0xC0                           // continuation
                     || (b0 == (byte) 0xF0 && b1 < (byte) 0x90)  // overlong
                     || (b0 == (byte) 0xF4 && b1 >= (byte) 0x90) // > max cp
                     || (b0 >= (byte) 0xF5)                      // > max cp
-                    || bytes.getByte(index++) >= (byte) 0xC0    // continuation
-                    || bytes.getByte(index++) >= (byte) 0xC0    // continuation
+                    || bytes.get(index++) >= (byte) 0xC0    // continuation
+                    || bytes.get(index++) >= (byte) 0xC0    // continuation
                 ) {
                     return false;
                 }

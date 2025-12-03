@@ -22,7 +22,7 @@ public final class MutableFloats extends Floats {
         return new MutableFloats(new float[length], 0, length);
     }
 
-    public MutableFloats setFloat(int index, float value) {
+    public MutableFloats set(int index, float value) {
         Check.index(index, length());
         array[fromIndex + index] = value;
         return this;

@@ -101,9 +101,9 @@ public record Vector3(
     }
 
     public void toFloats(MutableFloats floats, int offset) {
-        floats.setFloat(offset/**/, x);
-        floats.setFloat(offset + 1, y);
-        floats.setFloat(offset + 2, z);
+        floats.set(offset/**/, x);
+        floats.set(offset + 1, y);
+        floats.set(offset + 2, z);
     }
 
     public Vector3 map(FloatUnaryOperator operator) {

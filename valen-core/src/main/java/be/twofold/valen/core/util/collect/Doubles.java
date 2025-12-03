@@ -42,7 +42,7 @@ public class Doubles implements Comparable<Doubles>, Array {
         return new Doubles(buffer.array(), buffer.position(), buffer.limit());
     }
 
-    public double getDouble(int index) {
+    public double get(int index) {
         Check.index(index, length());
         return array[fromIndex + index];
     }
