@@ -47,7 +47,7 @@ public record Bounds(
         float maxX = Float.NEGATIVE_INFINITY;
         float maxY = Float.NEGATIVE_INFINITY;
         float maxZ = Float.NEGATIVE_INFINITY;
-        for (int i = 0; i < vertices.size(); i += 3) {
+        for (int i = 0; i < vertices.length(); i += 3) {
             float x = vertices.getFloat(i/**/);
             float y = vertices.getFloat(i + 1);
             float z = vertices.getFloat(i + 2);

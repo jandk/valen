@@ -43,30 +43,30 @@ public class Floats implements Comparable<Floats>, Array {
     }
 
     public float getFloat(int index) {
-        Check.index(index, size());
+        Check.index(index, length());
         return array[fromIndex + index];
     }
 
     @Override
     public FloatBuffer asBuffer() {
-        return FloatBuffer.wrap(array, fromIndex, size()).asReadOnlyBuffer();
+        return FloatBuffer.wrap(array, fromIndex, length()).asReadOnlyBuffer();
     }
 
     public void copyTo(MutableFloats target, int offset) {
-        System.arraycopy(array, fromIndex, target.array, target.fromIndex + offset, size());
+        System.arraycopy(array, fromIndex, target.array, target.fromIndex + offset, length());
     }
 
     public Floats slice(int fromIndex) {
-        return slice(fromIndex, size());
+        return slice(fromIndex, length());
     }
 
     public Floats slice(int fromIndex, int toIndex) {
-        Check.fromToIndex(fromIndex, toIndex, size());
+        Check.fromToIndex(fromIndex, toIndex, length());
         return new Floats(array, this.fromIndex + fromIndex, this.fromIndex + toIndex);
     }
 
     @Override
-    public int size() {
+    public int length() {
         return toIndex - fromIndex;
     }
 

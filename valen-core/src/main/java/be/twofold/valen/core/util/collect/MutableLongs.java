@@ -18,12 +18,12 @@ public final class MutableLongs extends Longs {
         return new MutableLongs(array, fromIndex, toIndex);
     }
 
-    public static MutableLongs allocate(int size) {
-        return new MutableLongs(new long[size], 0, size);
+    public static MutableLongs allocate(int length) {
+        return new MutableLongs(new long[length], 0, length);
     }
 
     public MutableLongs setLong(int index, long value) {
-        Check.index(index, size());
+        Check.index(index, length());
         array[fromIndex + index] = value;
         return this;
     }
@@ -34,15 +34,15 @@ public final class MutableLongs extends Longs {
     }
 
     public LongBuffer asMutableBuffer() {
-        return LongBuffer.wrap(array, fromIndex, size());
+        return LongBuffer.wrap(array, fromIndex, length());
     }
 
     public MutableLongs slice(int fromIndex) {
-        return slice(fromIndex, size());
+        return slice(fromIndex, length());
     }
 
     public MutableLongs slice(int fromIndex, int toIndex) {
-        Check.fromToIndex(fromIndex, toIndex, size());
+        Check.fromToIndex(fromIndex, toIndex, length());
         return new MutableLongs(array, this.fromIndex + fromIndex, this.fromIndex + toIndex);
     }
 }

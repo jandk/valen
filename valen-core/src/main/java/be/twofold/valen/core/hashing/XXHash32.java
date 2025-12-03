@@ -11,7 +11,7 @@ record XXHash32(int seed) implements HashFunction {
 
     @Override
     public HashCode hash(Bytes src) {
-        var length = src.size();
+        var length = src.length();
         var offset = 0;
 
         int acc;

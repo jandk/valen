@@ -43,30 +43,30 @@ public class Shorts implements Comparable<Shorts>, Array {
     }
 
     public short getShort(int index) {
-        Check.index(index, size());
+        Check.index(index, length());
         return array[fromIndex + index];
     }
 
     @Override
     public ShortBuffer asBuffer() {
-        return ShortBuffer.wrap(array, fromIndex, size()).asReadOnlyBuffer();
+        return ShortBuffer.wrap(array, fromIndex, length()).asReadOnlyBuffer();
     }
 
     public void copyTo(MutableShorts target, int offset) {
-        System.arraycopy(array, fromIndex, target.array, target.fromIndex + offset, size());
+        System.arraycopy(array, fromIndex, target.array, target.fromIndex + offset, length());
     }
 
     public Shorts slice(int fromIndex) {
-        return slice(fromIndex, size());
+        return slice(fromIndex, length());
     }
 
     public Shorts slice(int fromIndex, int toIndex) {
-        Check.fromToIndex(fromIndex, toIndex, size());
+        Check.fromToIndex(fromIndex, toIndex, length());
         return new Shorts(array, this.fromIndex + fromIndex, this.fromIndex + toIndex);
     }
 
     @Override
-    public int size() {
+    public int length() {
         return toIndex - fromIndex;
     }
 

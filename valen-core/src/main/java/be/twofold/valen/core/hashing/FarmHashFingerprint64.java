@@ -20,7 +20,7 @@ final class FarmHashFingerprint64 implements HashFunction {
     }
 
     private static long fingerprint(Bytes s) {
-        int length = s.size();
+        int length = s.length();
         if (length <= 32) {
             if (length <= 16) {
                 return hashLength0to16(s);
@@ -63,11 +63,11 @@ final class FarmHashFingerprint64 implements HashFunction {
     }
 
     private static long hashLength0to16(Bytes s) {
-        int length = s.size();
+        int length = s.length();
         if (length >= 8) {
             long mul = K2 + length * 2L;
             long a = s.getLong(0) + K2;
-            long b = s.getLong(s.size() - 8);
+            long b = s.getLong(s.length() - 8);
             long c = Long.rotateRight(b, 37) * mul + a;
             long d = (Long.rotateRight(a, 25) + b) * mul;
             return hashLength16(c, d, mul);
@@ -75,7 +75,7 @@ final class FarmHashFingerprint64 implements HashFunction {
         if (length >= 4) {
             long mul = K2 + length * 2L;
             long a = s.getUnsignedInt(0);
-            long b = s.getUnsignedInt(s.size() - 4);
+            long b = s.getUnsignedInt(s.length() - 4);
             return hashLength16(length + (a << 3), b, mul);
         }
         if (length > 0) {
@@ -91,7 +91,7 @@ final class FarmHashFingerprint64 implements HashFunction {
     }
 
     private static long hashLength17to32(Bytes s) {
-        int length = s.size();
+        int length = s.length();
         long mul = K2 + length * 2L;
         long a = s.getLong(0) * K1;
         long b = s.getLong(8);
@@ -102,7 +102,7 @@ final class FarmHashFingerprint64 implements HashFunction {
     }
 
     private static long hashLength33to64(Bytes s) {
-        int length = s.size();
+        int length = s.length();
         long mul = K2 + length * 2L;
         long a = s.getLong(0) * K2;
         long b = s.getLong(8);
@@ -121,7 +121,7 @@ final class FarmHashFingerprint64 implements HashFunction {
     private static long hashLength65Plus(Bytes s) {
         // For strings over 64 bytes we loop.  Internal state consists of
         // 56 bytes: v, w, x, y, and z.
-        int length = s.size();
+        int length = s.length();
 
         long x = SEED;
         @SuppressWarnings("NumericOverflow")
@@ -149,7 +149,7 @@ final class FarmHashFingerprint64 implements HashFunction {
 
         long mul = K1 + ((z & 0xff) << 1);
         // Make offset point to the last 64 bytes of input.
-        offset = s.size() - 64;
+        offset = s.length() - 64;
         w.first += ((length - 1) & 63);
         v.first += w.first;
         w.first += v.first;

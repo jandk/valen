@@ -54,7 +54,7 @@ public record FrameSet(
 
     private static int cardinality(Bytes bytes) {
         int count = 0;
-        for (int i = 0; i < bytes.size(); i++) {
+        for (int i = 0; i < bytes.length(); i++) {
             count += Integer.bitCount(bytes.getUnsignedByte(i));
         }
         return count;

@@ -11,8 +11,8 @@ final class LZ4Decompressor extends LZDecompressor {
     @Override
     public void decompress(Bytes src, MutableBytes dst) throws IOException {
         // Special case
-        if (dst.size() == 0) {
-            if (src.size() != 1 || src.getByte(0) != 0) {
+        if (dst.length() == 0) {
+            if (src.length() != 1 || src.getByte(0) != 0) {
                 throw new IOException("Invalid empty block");
             }
             return /*0*/;
@@ -41,7 +41,7 @@ final class LZ4Decompressor extends LZDecompressor {
             }
 
             // End of input check
-            if (srcOff >= src.size()) {
+            if (srcOff >= src.length()) {
                 return /*dstPos - targetOffset*/;
             }
 

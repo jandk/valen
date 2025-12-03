@@ -111,13 +111,13 @@ public abstract class GltfModelMapper {
 
     private void splitJoints(Shorts shorts, int maxInfluence, Map<String, AccessorID> attributes) {
         int numBuffers = (maxInfluence + 3) / 4;
-        int numVertices = shorts.size() / maxInfluence;
+        int numVertices = shorts.length() / maxInfluence;
 
         for (int b = 0; b < numBuffers; b++) {
             var offset = b * 4;
             var values = Math.min(4, maxInfluence - offset);
             var joints = MutableShorts.allocate(numVertices * 4);
-            for (int i = offset, o = 0; i < shorts.size(); i += maxInfluence, o += 4) {
+            for (int i = offset, o = 0; i < shorts.length(); i += maxInfluence, o += 4) {
                 for (int j = 0; j < values; j++) {
                     joints.setShort(o + j, shorts.getShort(i + j));
                 }
@@ -131,13 +131,13 @@ public abstract class GltfModelMapper {
 
     private void splitWeights(Floats floats, int maxInfluence, Map<String, AccessorID> attributes) {
         int numBuffers = (maxInfluence + 3) / 4;
-        int numVertices = floats.size() / maxInfluence;
+        int numVertices = floats.length() / maxInfluence;
 
         for (int b = 0; b < numBuffers; b++) {
             var offset = b * 4;
             var values = Math.min(4, maxInfluence - offset);
             var weights = MutableFloats.allocate(numVertices * 4);
-            for (int i = offset, o = 0; i < floats.size(); i += maxInfluence, o += 4) {
+            for (int i = offset, o = 0; i < floats.length(); i += maxInfluence, o += 4) {
                 for (int j = 0; j < values; j++) {
                     weights.setFloat(o + j, floats.getFloat(i + j));
                 }
@@ -191,7 +191,7 @@ public abstract class GltfModelMapper {
         var accessor = ImmutableAccessor.builder()
             .bufferView(bufferView)
             .componentType(AccessorComponentType.UNSIGNED_INT)
-            .count(buffer.size())
+            .count(buffer.length())
             .type(AccessorType.SCALAR);
 
         return context.addAccessor(accessor.build());
@@ -202,7 +202,7 @@ public abstract class GltfModelMapper {
         var builder = ImmutableAccessor.builder()
             .bufferView(bufferView)
             .componentType(componentType)
-            .count(buffer.size() / type.size())
+            .count(buffer.length() / type.size())
             .type(type);
 
         if (withBounds) {
@@ -218,7 +218,7 @@ public abstract class GltfModelMapper {
     private void fixJointsAndWeights(Mesh mesh) {
         mesh.joints().map(MutableShorts.class::cast).ifPresent(joints ->
             mesh.weights().map(MutableFloats.class::cast).ifPresent(weights -> {
-                for (var i = 0; i < joints.size(); i++) {
+                for (var i = 0; i < joints.length(); i++) {
                     if (weights.getFloat(i) == 0) {
                         joints.setShort(i, (short) 0);
                     }

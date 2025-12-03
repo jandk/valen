@@ -33,7 +33,7 @@ final class BinaryToText {
         }
 
         private boolean checkSingleBom(Bytes bytes, ByteOrderMark bom) {
-            return bom.length() <= bytes.size() &&
+            return bom.length() <= bytes.length() &&
                 IntStream.range(0, bom.length())
                     .noneMatch(i -> bytes.getByte(i) != bom.bytes()[i]);
         }

@@ -152,8 +152,8 @@ public abstract class HashCode {
 
         @Override
         public String toString() {
-            var builder = new StringBuilder(hashCode.size() * 2);
-            for (int i = 0; i < hashCode.size(); i++) {
+            var builder = new StringBuilder(hashCode.length() * 2);
+            for (int i = 0; i < hashCode.length(); i++) {
                 HexFormat.of().toHexDigits(builder, hashCode.getByte(i));
             }
             return builder.toString();

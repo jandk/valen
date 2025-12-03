@@ -18,42 +18,42 @@ public final class MutableBytes extends Bytes {
         return new MutableBytes(array, fromIndex, toIndex);
     }
 
-    public static MutableBytes allocate(int size) {
-        return new MutableBytes(new byte[size], 0, size);
+    public static MutableBytes allocate(int length) {
+        return new MutableBytes(new byte[length], 0, length);
     }
 
     public MutableBytes setByte(int index, byte value) {
-        Check.index(index, size());
+        Check.index(index, length());
         array[fromIndex + index] = value;
         return this;
     }
 
     public MutableBytes setShort(int offset, short value) {
-        Check.fromIndexSize(offset, Short.BYTES, size());
+        Check.fromIndexSize(offset, Short.BYTES, length());
         VH_SHORT_LE.set(array, fromIndex + offset, value);
         return this;
     }
 
     public MutableBytes setInt(int offset, int value) {
-        Check.fromIndexSize(offset, Integer.BYTES, size());
+        Check.fromIndexSize(offset, Integer.BYTES, length());
         VH_INT_LE.set(array, fromIndex + offset, value);
         return this;
     }
 
     public MutableBytes setLong(int offset, long value) {
-        Check.fromIndexSize(offset, Long.BYTES, size());
+        Check.fromIndexSize(offset, Long.BYTES, length());
         VH_LONG_LE.set(array, fromIndex + offset, value);
         return this;
     }
 
     public MutableBytes setFloat(int offset, float value) {
-        Check.fromIndexSize(offset, Float.BYTES, size());
+        Check.fromIndexSize(offset, Float.BYTES, length());
         VH_FLOAT_LE.set(array, fromIndex + offset, value);
         return this;
     }
 
     public MutableBytes setDouble(int offset, double value) {
-        Check.fromIndexSize(offset, Double.BYTES, size());
+        Check.fromIndexSize(offset, Double.BYTES, length());
         VH_DOUBLE_LE.set(array, fromIndex + offset, value);
         return this;
     }
@@ -64,15 +64,15 @@ public final class MutableBytes extends Bytes {
     }
 
     public ByteBuffer asMutableBuffer() {
-        return ByteBuffer.wrap(array, fromIndex, size());
+        return ByteBuffer.wrap(array, fromIndex, length());
     }
 
     public MutableBytes slice(int fromIndex) {
-        return slice(fromIndex, size());
+        return slice(fromIndex, length());
     }
 
     public MutableBytes slice(int fromIndex, int toIndex) {
-        Check.fromToIndex(fromIndex, toIndex, size());
+        Check.fromToIndex(fromIndex, toIndex, length());
         return new MutableBytes(array, this.fromIndex + fromIndex, this.fromIndex + toIndex);
     }
 }

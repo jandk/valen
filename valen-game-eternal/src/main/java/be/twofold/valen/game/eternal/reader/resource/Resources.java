@@ -55,9 +55,9 @@ public record Resources(
             "header=" + header + ", " +
             "entries=(" + entries.size() + " entries), " +
             "pathStrings=(" + pathStrings.size() + " strings), " +
-            "pathStringIndex=(" + pathStringIndex.size() + " indices), " +
+            "pathStringIndex=(" + pathStringIndex.length() + " indices), " +
             "dependencies=(" + dependencies.size() + " entries), " +
-            "dependencyIndex=(" + dependencyIndex.size() + " indices)" +
+            "dependencyIndex=(" + dependencyIndex.length() + " indices)" +
             "]";
     }
 }

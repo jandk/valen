@@ -18,12 +18,12 @@ public final class MutableFloats extends Floats {
         return new MutableFloats(array, fromIndex, toIndex);
     }
 
-    public static MutableFloats allocate(int size) {
-        return new MutableFloats(new float[size], 0, size);
+    public static MutableFloats allocate(int length) {
+        return new MutableFloats(new float[length], 0, length);
     }
 
     public MutableFloats setFloat(int index, float value) {
-        Check.index(index, size());
+        Check.index(index, length());
         array[fromIndex + index] = value;
         return this;
     }
@@ -34,15 +34,15 @@ public final class MutableFloats extends Floats {
     }
 
     public FloatBuffer asMutableBuffer() {
-        return FloatBuffer.wrap(array, fromIndex, size());
+        return FloatBuffer.wrap(array, fromIndex, length());
     }
 
     public MutableFloats slice(int fromIndex) {
-        return slice(fromIndex, size());
+        return slice(fromIndex, length());
     }
 
     public MutableFloats slice(int fromIndex, int toIndex) {
-        Check.fromToIndex(fromIndex, toIndex, size());
+        Check.fromToIndex(fromIndex, toIndex, length());
         return new MutableFloats(array, this.fromIndex + fromIndex, this.fromIndex + toIndex);
     }
 }

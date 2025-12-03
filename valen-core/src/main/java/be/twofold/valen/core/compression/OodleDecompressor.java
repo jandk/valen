@@ -45,9 +45,9 @@ final class OodleDecompressor implements Decompressor {
     @Override
     public void decompress(Bytes src, MutableBytes dst) throws IOException {
         try (var confined = Arena.ofConfined()) {
-            var srcSegment = confined.allocate(src.size())
+            var srcSegment = confined.allocate(src.length())
                 .copyFrom(MemorySegment.ofBuffer(src.asBuffer()));
-            var dstSegment = confined.allocate(dst.size());
+            var dstSegment = confined.allocate(dst.length());
 
             var result = (int) oodleFFM.OodleLZ_Decompress(
                 srcSegment, srcSegment.byteSize(), dstSegment, dstSegment.byteSize(),
@@ -58,8 +58,8 @@ final class OodleDecompressor implements Decompressor {
                 OodleLZ_Decode_ThreadPhase.All.value()
             );
 
-            if (result != dst.size()) {
-                throw new IOException("Decompression failed, expected " + dst.size() + ", got " + result);
+            if (result != dst.length()) {
+                throw new IOException("Decompression failed, expected " + dst.length() + ", got " + result);
             }
             MemorySegment.ofBuffer(dst.asMutableBuffer())
                 .copyFrom(dstSegment);

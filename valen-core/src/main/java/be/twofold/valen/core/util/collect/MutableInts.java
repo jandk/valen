@@ -18,12 +18,12 @@ public final class MutableInts extends Ints {
         return new MutableInts(array, fromIndex, toIndex);
     }
 
-    public static MutableInts allocate(int size) {
-        return new MutableInts(new int[size], 0, size);
+    public static MutableInts allocate(int length) {
+        return new MutableInts(new int[length], 0, length);
     }
 
     public MutableInts setInt(int index, int value) {
-        Check.index(index, size());
+        Check.index(index, length());
         array[fromIndex + index] = value;
         return this;
     }
@@ -34,15 +34,15 @@ public final class MutableInts extends Ints {
     }
 
     public IntBuffer asMutableBuffer() {
-        return IntBuffer.wrap(array, fromIndex, size());
+        return IntBuffer.wrap(array, fromIndex, length());
     }
 
     public MutableInts slice(int fromIndex) {
-        return slice(fromIndex, size());
+        return slice(fromIndex, length());
     }
 
     public MutableInts slice(int fromIndex, int toIndex) {
-        Check.fromToIndex(fromIndex, toIndex, size());
+        Check.fromToIndex(fromIndex, toIndex, length());
         return new MutableInts(array, this.fromIndex + fromIndex, this.fromIndex + toIndex);
     }
 }

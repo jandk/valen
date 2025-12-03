@@ -11,8 +11,8 @@ import java.nio.file.*;
 import java.util.*;
 
 final class ArrayGenerator {
-    public static final ClassName CHECK_CLASS = ClassName.get("be.twofold.valen.core.util", "Check");
-    public static final ClassName BYTE_ARRAYS_CLASS = ClassName.get("be.twofold.valen.core.util", "ByteArrays");
+    private static final ClassName CHECK_CLASS = ClassName.get("be.twofold.valen.core.util", "Check");
+    private static final String PARENT_CLASS_NAME = "Array";
 
     public static void main(String[] args) throws IOException {
         generateInterface();
@@ -25,9 +25,9 @@ final class ArrayGenerator {
     }
 
     private static void generateInterface() throws IOException {
-        var typeSpec = TypeSpec.interfaceBuilder("Array")
+        var typeSpec = TypeSpec.interfaceBuilder(PARENT_CLASS_NAME)
             .addModifiers(Modifier.PUBLIC)
-            .addMethod(MethodSpec.methodBuilder("size")
+            .addMethod(MethodSpec.methodBuilder("length")
                 .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
                 .returns(int.class)
                 .build())
@@ -64,7 +64,7 @@ final class ArrayGenerator {
         var builder = TypeSpec.classBuilder(className)
             .addModifiers(Modifier.PUBLIC)
             .addSuperinterface(ParameterizedTypeName.get(ClassName.get(Comparable.class), thisType))
-            .addSuperinterface(ClassName.get("", "Array"))
+            .addSuperinterface(ClassName.get("", PARENT_CLASS_NAME))
             .addAnnotation(AnnotationSpec.builder(Debug.Renderer.class)
                 .addMember("childrenArray", "$S", "java.util.Arrays.copyOfRange(array, fromIndex, toIndex)")
                 .build());
@@ -135,7 +135,7 @@ final class ArrayGenerator {
             .addModifiers(Modifier.PUBLIC)
             .returns(primitiveClass)
             .addParameter(int.class, "index")
-            .addStatement("$T.index(index, size())", CHECK_CLASS)
+            .addStatement("$T.index(index, length())", CHECK_CLASS)
             .addStatement("return array[fromIndex + index]")
             .build());
 
@@ -149,7 +149,7 @@ final class ArrayGenerator {
             .addAnnotation(Override.class)
             .addModifiers(Modifier.PUBLIC)
             .returns(bufferClass)
-            .addStatement("return $T.wrap(array, fromIndex, size()).asReadOnlyBuffer()", bufferClass)
+            .addStatement("return $T.wrap(array, fromIndex, length()).asReadOnlyBuffer()", bufferClass)
             .build());
 
         // copyTo method
@@ -158,7 +158,7 @@ final class ArrayGenerator {
             .returns(void.class)
             .addParameter(mutableType, "target")
             .addParameter(int.class, "offset")
-            .addStatement("$T.arraycopy(array, fromIndex, target.array, target.fromIndex + offset, size())", System.class)
+            .addStatement("$T.arraycopy(array, fromIndex, target.array, target.fromIndex + offset, length())", System.class)
             .build());
 
         // slice methods
@@ -177,8 +177,8 @@ final class ArrayGenerator {
         Class<?> primitiveClass,
         TypeName thisType
     ) {
-        // size method
-        builder.addMethod(MethodSpec.methodBuilder("size")
+        // length method
+        builder.addMethod(MethodSpec.methodBuilder("length")
             .addAnnotation(Override.class)
             .addModifiers(Modifier.PUBLIC)
             .returns(int.class)
@@ -286,12 +286,12 @@ final class ArrayGenerator {
         generateGetUnsigned(classBuilder, long.class, "Int", "Integer.toUnsignedLong");
     }
 
-    private static void generateGet(TypeSpec.Builder classBuilder, Class<?> primitive, String upper, String size) {
+    private static void generateGet(TypeSpec.Builder classBuilder, Class<?> primitive, String upper, String length) {
         classBuilder.addMethod(MethodSpec.methodBuilder("get" + upper)
             .addModifiers(Modifier.PUBLIC)
             .returns(primitive)
             .addParameter(int.class, "offset")
-            .addStatement("$T.fromIndexSize(offset, $L, size())", CHECK_CLASS, size)
+            .addStatement("$T.fromIndexSize(offset, $L, length())", CHECK_CLASS, length)
             .addStatement("return ($T) $L.get(array, fromIndex + offset)", primitive, "VH_" + primitive.getSimpleName().toUpperCase() + "_LE")
             .build());
     }
@@ -313,13 +313,13 @@ final class ArrayGenerator {
         generateSet(classBuilder, double.class, "Double", "Double.BYTES", thisType);
     }
 
-    private static void generateSet(TypeSpec.Builder classBuilder, Class<?> primitive, String upper, String size, ClassName thisType) {
+    private static void generateSet(TypeSpec.Builder classBuilder, Class<?> primitive, String upper, String length, ClassName thisType) {
         classBuilder.addMethod(MethodSpec.methodBuilder("set" + upper)
             .addModifiers(Modifier.PUBLIC)
             .returns(thisType)
             .addParameter(int.class, "offset")
             .addParameter(primitive, "value")
-            .addStatement("$T.fromIndexSize(offset, $L, size())", CHECK_CLASS, size)
+            .addStatement("$T.fromIndexSize(offset, $L, length())", CHECK_CLASS, length)
             .addStatement("$L.set(array, fromIndex + offset, value)", "VH_" + primitive.getSimpleName().toUpperCase() + "_LE")
             .addStatement("return this")
             .build());
@@ -366,8 +366,8 @@ final class ArrayGenerator {
         builder.addMethod(MethodSpec.methodBuilder("allocate")
             .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
             .returns(thisType)
-            .addParameter(int.class, "size")
-            .addStatement("return new $L(new $L[size], 0, size)", className, primitiveClass)
+            .addParameter(int.class, "length")
+            .addStatement("return new $L(new $L[length], 0, length)", className, primitiveClass)
             .build());
 
         builder.addMethod(MethodSpec.methodBuilder("set" + bufferMethodName)
@@ -375,7 +375,7 @@ final class ArrayGenerator {
             .returns(thisType)
             .addParameter(int.class, "index")
             .addParameter(primitiveClass, "value")
-            .addStatement("$T.index(index, size())", CHECK_CLASS)
+            .addStatement("$T.index(index, length())", CHECK_CLASS)
             .addStatement("array[fromIndex + index] = value")
             .addStatement("return this")
             .build());
@@ -395,7 +395,7 @@ final class ArrayGenerator {
         builder.addMethod(MethodSpec.methodBuilder("asMutableBuffer")
             .addModifiers(Modifier.PUBLIC)
             .returns(bufferClass)
-            .addStatement("return $T.wrap(array, fromIndex, size())", bufferClass)
+            .addStatement("return $T.wrap(array, fromIndex, length())", bufferClass)
             .build());
 
         addSliceMethods(builder, thisType);
@@ -408,7 +408,7 @@ final class ArrayGenerator {
             .addModifiers(Modifier.PUBLIC)
             .returns(thisType)
             .addParameter(int.class, "fromIndex")
-            .addStatement("return slice(fromIndex, size())")
+            .addStatement("return slice(fromIndex, length())")
             .build());
 
         builder.addMethod(MethodSpec.methodBuilder("slice")
@@ -416,7 +416,7 @@ final class ArrayGenerator {
             .returns(thisType)
             .addParameter(int.class, "fromIndex")
             .addParameter(int.class, "toIndex")
-            .addStatement("$T.fromToIndex(fromIndex, toIndex, size())", CHECK_CLASS)
+            .addStatement("$T.fromToIndex(fromIndex, toIndex, length())", CHECK_CLASS)
             .addStatement("return new $L(array, this.fromIndex + fromIndex, this.fromIndex + toIndex)", thisType)
             .build());
     }

@@ -37,7 +37,7 @@ public record StreamDb(
             "entries=(" + entries.size() + " entries), " +
             "prefetchHeader=" + prefetchHeader + ", " +
             "prefetchBlocks=(" + prefetchBlocks.size() + " blocks), " +
-            "prefetchIDs=(" + prefetchIDs.size() + " IDs)" +
+            "prefetchIDs=(" + prefetchIDs.length() + " IDs)" +
             "]";
     }
 }

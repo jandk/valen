@@ -24,18 +24,18 @@ public record Mesh(
 ) {
     public Mesh {
         Check.notNull(indices, "indices");
-        Check.argument(positions.size() % 3 == 0, "positions.size() % 3 != 0");
+        Check.argument(positions.length() % 3 == 0, "positions.size() % 3 != 0");
 
-        int vertexCount = positions.size() / 3;
-        normals.ifPresent(floats -> check(floats.size(), vertexCount, 3));
-        tangents.ifPresent(floats -> check(floats.size(), vertexCount, 4));
-        texCoords.forEach(floats -> check(floats.size(), vertexCount, 2));
-        colors.forEach(bytes -> check(bytes.size(), vertexCount, 4));
+        int vertexCount = positions.length() / 3;
+        normals.ifPresent(floats -> check(floats.length(), vertexCount, 3));
+        tangents.ifPresent(floats -> check(floats.length(), vertexCount, 4));
+        texCoords.forEach(floats -> check(floats.length(), vertexCount, 2));
+        colors.forEach(bytes -> check(bytes.length(), vertexCount, 4));
         if (Check.positiveOrZero(maxInfluence, "maxInfluence") > 0) {
-            joints.ifPresent(shorts -> check(shorts.size(), vertexCount, maxInfluence));
-            weights.ifPresent(floats -> check(floats.size(), vertexCount, maxInfluence));
+            joints.ifPresent(shorts -> check(shorts.length(), vertexCount, maxInfluence));
+            weights.ifPresent(floats -> check(floats.length(), vertexCount, maxInfluence));
         }
-        custom.values().forEach(vb -> check(vb.array().size(), vertexCount, vb.count()));
+        custom.values().forEach(vb -> check(vb.array().length(), vertexCount, vb.count()));
     }
 
     public Mesh(
@@ -59,11 +59,11 @@ public record Mesh(
     }
 
     public int faceCount() {
-        return indices.size() / 3;
+        return indices.length() / 3;
     }
 
     public int vertexCount() {
-        return positions.size() / 3;
+        return positions.length() / 3;
     }
 
     public Mesh withJointsAndWeights(Shorts joints, Floats weights) {

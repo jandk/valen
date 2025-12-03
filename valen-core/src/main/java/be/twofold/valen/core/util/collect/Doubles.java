@@ -43,30 +43,30 @@ public class Doubles implements Comparable<Doubles>, Array {
     }
 
     public double getDouble(int index) {
-        Check.index(index, size());
+        Check.index(index, length());
         return array[fromIndex + index];
     }
 
     @Override
     public DoubleBuffer asBuffer() {
-        return DoubleBuffer.wrap(array, fromIndex, size()).asReadOnlyBuffer();
+        return DoubleBuffer.wrap(array, fromIndex, length()).asReadOnlyBuffer();
     }
 
     public void copyTo(MutableDoubles target, int offset) {
-        System.arraycopy(array, fromIndex, target.array, target.fromIndex + offset, size());
+        System.arraycopy(array, fromIndex, target.array, target.fromIndex + offset, length());
     }
 
     public Doubles slice(int fromIndex) {
-        return slice(fromIndex, size());
+        return slice(fromIndex, length());
     }
 
     public Doubles slice(int fromIndex, int toIndex) {
-        Check.fromToIndex(fromIndex, toIndex, size());
+        Check.fromToIndex(fromIndex, toIndex, length());
         return new Doubles(array, this.fromIndex + fromIndex, this.fromIndex + toIndex);
     }
 
     @Override
-    public int size() {
+    public int length() {
         return toIndex - fromIndex;
     }
 

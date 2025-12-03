@@ -18,12 +18,12 @@ public final class MutableShorts extends Shorts {
         return new MutableShorts(array, fromIndex, toIndex);
     }
 
-    public static MutableShorts allocate(int size) {
-        return new MutableShorts(new short[size], 0, size);
+    public static MutableShorts allocate(int length) {
+        return new MutableShorts(new short[length], 0, length);
     }
 
     public MutableShorts setShort(int index, short value) {
-        Check.index(index, size());
+        Check.index(index, length());
         array[fromIndex + index] = value;
         return this;
     }
@@ -34,15 +34,15 @@ public final class MutableShorts extends Shorts {
     }
 
     public ShortBuffer asMutableBuffer() {
-        return ShortBuffer.wrap(array, fromIndex, size());
+        return ShortBuffer.wrap(array, fromIndex, length());
     }
 
     public MutableShorts slice(int fromIndex) {
-        return slice(fromIndex, size());
+        return slice(fromIndex, length());
     }
 
     public MutableShorts slice(int fromIndex, int toIndex) {
-        Check.fromToIndex(fromIndex, toIndex, size());
+        Check.fromToIndex(fromIndex, toIndex, length());
         return new MutableShorts(array, this.fromIndex + fromIndex, this.fromIndex + toIndex);
     }
 }

@@ -18,12 +18,12 @@ public final class MutableDoubles extends Doubles {
         return new MutableDoubles(array, fromIndex, toIndex);
     }
 
-    public static MutableDoubles allocate(int size) {
-        return new MutableDoubles(new double[size], 0, size);
+    public static MutableDoubles allocate(int length) {
+        return new MutableDoubles(new double[length], 0, length);
     }
 
     public MutableDoubles setDouble(int index, double value) {
-        Check.index(index, size());
+        Check.index(index, length());
         array[fromIndex + index] = value;
         return this;
     }
@@ -34,15 +34,15 @@ public final class MutableDoubles extends Doubles {
     }
 
     public DoubleBuffer asMutableBuffer() {
-        return DoubleBuffer.wrap(array, fromIndex, size());
+        return DoubleBuffer.wrap(array, fromIndex, length());
     }
 
     public MutableDoubles slice(int fromIndex) {
-        return slice(fromIndex, size());
+        return slice(fromIndex, length());
     }
 
     public MutableDoubles slice(int fromIndex, int toIndex) {
-        Check.fromToIndex(fromIndex, toIndex, size());
+        Check.fromToIndex(fromIndex, toIndex, length());
         return new MutableDoubles(array, this.fromIndex + fromIndex, this.fromIndex + toIndex);
     }
 }

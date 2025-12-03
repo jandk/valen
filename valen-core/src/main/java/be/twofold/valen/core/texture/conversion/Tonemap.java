@@ -53,7 +53,7 @@ final class Tonemap extends Conversion {
 
         var src = Bytes.wrap(surface.data());
         var dst = target.data();
-        for (int i = 0, o = 0; i < src.size(); i += 2, o++) {
+        for (int i = 0, o = 0; i < src.length(); i += 2, o++) {
             dst[o] = halfToSrgb(src.getShort(i));
         }
         return target;

@@ -62,7 +62,7 @@ public final class RawFXView implements RawView, FXView {
         hexDump = new HexDump(bytes, MONOSPACED, Color.WHITE, Color.GRAY);
         lines = null;
 
-        binaryView.setItems(new IndexObservableList((bytes.size() + 15) / 16));
+        binaryView.setItems(new IndexObservableList((bytes.length() + 15) / 16));
         textView.setItems(FXCollections.emptyObservableList());
         view.getChildren().setAll(binaryView);
     }

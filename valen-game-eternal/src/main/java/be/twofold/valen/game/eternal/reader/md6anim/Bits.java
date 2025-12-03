@@ -21,12 +21,12 @@ public final class Bits {
     }
 
     public int size() {
-        return bytes.size() * 8;
+        return bytes.length() * 8;
     }
 
     public int cardinality() {
         int count = 0;
-        for (int i = 0; i < bytes.size(); i++) {
+        for (int i = 0; i < bytes.length(); i++) {
             count += Integer.bitCount(Byte.toUnsignedInt(bytes.getByte(i)));
         }
         return count;

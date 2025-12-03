@@ -117,13 +117,13 @@ public final class ModelPresenter extends AbstractFXPresenter<ModelView> impleme
     }
 
     private void copy(Floats floats, ObservableFloatArray floatArray) {
-        var array = new float[floats.size()];
+        var array = new float[floats.length()];
         floats.copyTo(MutableFloats.wrap(array), 0);
         floatArray.setAll(array);
     }
 
     private void copyPoints(Floats floats, ObservableFloatArray floatArray) {
-        var array = new float[floats.size()];
+        var array = new float[floats.length()];
         floats.copyTo(MutableFloats.wrap(array), 0);
 
         for (var i = 0; i < array.length; i++) {
@@ -133,7 +133,7 @@ public final class ModelPresenter extends AbstractFXPresenter<ModelView> impleme
     }
 
     private void copyIndices(Ints buffer, ObservableFaceArray faces) {
-        var capacity = buffer.size();
+        var capacity = buffer.length();
         var indices = new int[capacity * 3];
         for (int i = 0, o = 0; i < capacity; i++) {
             var index = buffer.getInt(i);

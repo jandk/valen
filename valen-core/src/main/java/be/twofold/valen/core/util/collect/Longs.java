@@ -43,30 +43,30 @@ public class Longs implements Comparable<Longs>, Array {
     }
 
     public long getLong(int index) {
-        Check.index(index, size());
+        Check.index(index, length());
         return array[fromIndex + index];
     }
 
     @Override
     public LongBuffer asBuffer() {
-        return LongBuffer.wrap(array, fromIndex, size()).asReadOnlyBuffer();
+        return LongBuffer.wrap(array, fromIndex, length()).asReadOnlyBuffer();
     }
 
     public void copyTo(MutableLongs target, int offset) {
-        System.arraycopy(array, fromIndex, target.array, target.fromIndex + offset, size());
+        System.arraycopy(array, fromIndex, target.array, target.fromIndex + offset, length());
     }
 
     public Longs slice(int fromIndex) {
-        return slice(fromIndex, size());
+        return slice(fromIndex, length());
     }
 
     public Longs slice(int fromIndex, int toIndex) {
-        Check.fromToIndex(fromIndex, toIndex, size());
+        Check.fromToIndex(fromIndex, toIndex, length());
         return new Longs(array, this.fromIndex + fromIndex, this.fromIndex + toIndex);
     }
 
     @Override
-    public int size() {
+    public int length() {
         return toIndex - fromIndex;
     }
 

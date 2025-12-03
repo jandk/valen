@@ -68,7 +68,7 @@ public final class Utf8 {
      */
     public static boolean isValid(Bytes bytes) {
         int index = 0;
-        int limit = bytes.size();
+        int limit = bytes.length();
         while (true) {
             int b0;
             do {

@@ -99,7 +99,7 @@ public final class TexturePresenter extends AbstractFXPresenter<TextureView> imp
 
     private void splatGray() {
         var data = MutableBytes.wrap(decoded.surfaces().getFirst().data());
-        for (int i = 0; i < data.size(); i += 4) {
+        for (int i = 0; i < data.length(); i += 4) {
             int bgra = data.getInt(i);
             bgra = ((bgra >> 16) & 0xFF) * 0x010101 | (bgra & 0xFF000000);
             data.setInt(i, bgra);
@@ -139,7 +139,7 @@ public final class TexturePresenter extends AbstractFXPresenter<TextureView> imp
         };
 
         var data = Bytes.wrap(decoded.surfaces().getFirst().data());
-        for (int i = 0; i < data.size(); i += 4) {
+        for (int i = 0; i < data.length(); i += 4) {
             int bgra = data.getInt(i);
             bgra = operator.applyAsInt(bgra);
             imagePixels.setInt(i, bgra);

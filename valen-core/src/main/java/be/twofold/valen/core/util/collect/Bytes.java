@@ -54,32 +54,32 @@ public class Bytes implements Comparable<Bytes>, Array {
     }
 
     public byte getByte(int index) {
-        Check.index(index, size());
+        Check.index(index, length());
         return array[fromIndex + index];
     }
 
     public short getShort(int offset) {
-        Check.fromIndexSize(offset, Short.BYTES, size());
+        Check.fromIndexSize(offset, Short.BYTES, length());
         return (short) VH_SHORT_LE.get(array, fromIndex + offset);
     }
 
     public int getInt(int offset) {
-        Check.fromIndexSize(offset, Integer.BYTES, size());
+        Check.fromIndexSize(offset, Integer.BYTES, length());
         return (int) VH_INT_LE.get(array, fromIndex + offset);
     }
 
     public long getLong(int offset) {
-        Check.fromIndexSize(offset, Long.BYTES, size());
+        Check.fromIndexSize(offset, Long.BYTES, length());
         return (long) VH_LONG_LE.get(array, fromIndex + offset);
     }
 
     public float getFloat(int offset) {
-        Check.fromIndexSize(offset, Float.BYTES, size());
+        Check.fromIndexSize(offset, Float.BYTES, length());
         return (float) VH_FLOAT_LE.get(array, fromIndex + offset);
     }
 
     public double getDouble(int offset) {
-        Check.fromIndexSize(offset, Double.BYTES, size());
+        Check.fromIndexSize(offset, Double.BYTES, length());
         return (double) VH_DOUBLE_LE.get(array, fromIndex + offset);
     }
 
@@ -97,24 +97,24 @@ public class Bytes implements Comparable<Bytes>, Array {
 
     @Override
     public ByteBuffer asBuffer() {
-        return ByteBuffer.wrap(array, fromIndex, size()).asReadOnlyBuffer();
+        return ByteBuffer.wrap(array, fromIndex, length()).asReadOnlyBuffer();
     }
 
     public void copyTo(MutableBytes target, int offset) {
-        System.arraycopy(array, fromIndex, target.array, target.fromIndex + offset, size());
+        System.arraycopy(array, fromIndex, target.array, target.fromIndex + offset, length());
     }
 
     public Bytes slice(int fromIndex) {
-        return slice(fromIndex, size());
+        return slice(fromIndex, length());
     }
 
     public Bytes slice(int fromIndex, int toIndex) {
-        Check.fromToIndex(fromIndex, toIndex, size());
+        Check.fromToIndex(fromIndex, toIndex, length());
         return new Bytes(array, this.fromIndex + fromIndex, this.fromIndex + toIndex);
     }
 
     @Override
-    public int size() {
+    public int length() {
         return toIndex - fromIndex;
     }
 

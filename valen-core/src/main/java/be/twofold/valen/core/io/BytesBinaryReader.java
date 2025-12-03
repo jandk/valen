@@ -22,7 +22,7 @@ final class BytesBinaryReader implements BinaryReader {
 
     @Override
     public long size() {
-        return bytes.size();
+        return bytes.length();
     }
 
     @Override

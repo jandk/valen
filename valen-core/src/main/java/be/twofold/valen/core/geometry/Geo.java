@@ -65,7 +65,7 @@ public final class Geo {
     }
 
     private void invertIndices(MutableInts ints) {
-        for (int i = 0, lim = ints.size(); i < lim; i += 3) {
+        for (int i = 0, lim = ints.length(); i < lim; i += 3) {
             int temp = ints.getInt(i);
             ints.setInt(i, ints.getInt(i + 2));
             ints.setInt(i + 2, temp);

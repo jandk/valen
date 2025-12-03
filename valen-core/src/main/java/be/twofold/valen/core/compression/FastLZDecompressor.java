@@ -58,7 +58,7 @@ final class FastLZDecompressor extends LZDecompressor {
                 dstOff += matchLength;
             }
 
-            if (srcOff >= src.size()) {
+            if (srcOff >= src.length()) {
                 break;
             }
             opcode = src.getUnsignedByte(srcOff++);
