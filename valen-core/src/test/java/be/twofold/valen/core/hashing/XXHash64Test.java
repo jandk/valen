@@ -22,7 +22,7 @@ class XXHash64Test {
     @Test
     void testWithOffset() {
         byte[] buffer = "The quick brown fox jumps over the lazy dog".getBytes();
-        long actual = new XXHash64(123).hash(Bytes.wrap(buffer, 4, 39)).asLong();
+        long actual = new XXHash64(123).hash(Bytes.wrap(buffer, 4, 43 - 2 * 4)).asLong();
         assertThat(actual).isEqualTo(0x4FD1367565445C53L);
     }
 }

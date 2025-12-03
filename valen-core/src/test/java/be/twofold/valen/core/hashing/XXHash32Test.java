@@ -22,7 +22,7 @@ class XXHash32Test {
     @Test
     void testWithOffset() {
         byte[] buffer = "The quick brown fox jumps over the lazy dog".getBytes();
-        int actual = new XXHash32(123).hash(Bytes.wrap(buffer, 4, 39)).asInt();
+        int actual = new XXHash32(123).hash(Bytes.wrap(buffer, 4, 43 - 2 * 4)).asInt();
         assertThat(actual).isEqualTo(0xE6C0EA2E);
     }
 }

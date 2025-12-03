@@ -7,22 +7,22 @@ import java.nio.*;
 import java.util.*;
 
 @Debug.Renderer(
-    childrenArray = "java.util.Arrays.copyOfRange(array, fromIndex, toIndex)"
+    childrenArray = "java.util.Arrays.copyOfRange(array, offset, offset + length)"
 )
 public class Ints implements Comparable<Ints>, Array {
     private static final Ints EMPTY = wrap(new int[0]);
 
     final int[] array;
 
-    final int fromIndex;
+    final int offset;
 
-    final int toIndex;
+    final int length;
 
-    Ints(int[] array, int fromIndex, int toIndex) {
-        Check.fromToIndex(fromIndex, toIndex, array.length);
+    Ints(int[] array, int offset, int length) {
+        Check.fromIndexSize(offset, length, array.length);
         this.array = array;
-        this.fromIndex = fromIndex;
-        this.toIndex = toIndex;
+        this.offset = offset;
+        this.length = length;
     }
 
     public static Ints empty() {
@@ -33,8 +33,8 @@ public class Ints implements Comparable<Ints>, Array {
         return new Ints(array, 0, array.length);
     }
 
-    public static Ints wrap(int[] array, int fromIndex, int toIndex) {
-        return new Ints(array, fromIndex, toIndex);
+    public static Ints wrap(int[] array, int offset, int length) {
+        return new Ints(array, offset, length);
     }
 
     public static Ints from(IntBuffer buffer) {
@@ -43,8 +43,8 @@ public class Ints implements Comparable<Ints>, Array {
     }
 
     public int get(int index) {
-        Check.index(index, length());
-        return array[fromIndex + index];
+        Check.index(index, length);
+        return array[offset + index];
     }
 
     public long getUnsigned(int offset) {
@@ -53,25 +53,25 @@ public class Ints implements Comparable<Ints>, Array {
 
     @Override
     public IntBuffer asBuffer() {
-        return IntBuffer.wrap(array, fromIndex, length()).asReadOnlyBuffer();
+        return IntBuffer.wrap(array, offset, length).asReadOnlyBuffer();
     }
 
     public void copyTo(MutableInts target, int offset) {
-        System.arraycopy(array, fromIndex, target.array, target.fromIndex + offset, length());
+        System.arraycopy(array, this.offset, target.array, target.offset + offset, length);
     }
 
-    public Ints slice(int fromIndex) {
-        return slice(fromIndex, length());
+    public Ints slice(int offset) {
+        return slice(offset, length - offset);
     }
 
-    public Ints slice(int fromIndex, int toIndex) {
-        Check.fromToIndex(fromIndex, toIndex, length());
-        return new Ints(array, this.fromIndex + fromIndex, this.fromIndex + toIndex);
+    public Ints slice(int offset, int length) {
+        Check.fromIndexSize(offset, length, this.length);
+        return new Ints(array, this.offset + offset, length);
     }
 
     @Override
     public int length() {
-        return toIndex - fromIndex;
+        return length;
     }
 
     public boolean contains(int value) {
@@ -79,18 +79,18 @@ public class Ints implements Comparable<Ints>, Array {
     }
 
     public int indexOf(int value) {
-        for (int i = fromIndex; i < toIndex; i++) {
+        for (int i = offset, limit = offset + length; i < limit; i++) {
             if (array[i] == value) {
-                return i - fromIndex;
+                return i - offset;
             }
         }
         return -1;
     }
 
     public int lastIndexOf(int value) {
-        for (int i = toIndex - 1; i >= fromIndex; i--) {
+        for (int i = offset + length - 1; i >= offset; i--) {
             if (array[i] == value) {
-                return i - fromIndex;
+                return i - offset;
             }
         }
         return -1;
@@ -98,18 +98,18 @@ public class Ints implements Comparable<Ints>, Array {
 
     @Override
     public int compareTo(Ints o) {
-        return Arrays.compare(array, fromIndex, toIndex, o.array, o.fromIndex, o.toIndex);
+        return Arrays.compare(array, offset, offset + length, o.array, o.offset, o.offset + o.length);
     }
 
     @Override
     public boolean equals(Object obj) {
-        return obj instanceof Ints o && Arrays.equals(array, fromIndex, toIndex, o.array, o.fromIndex, o.toIndex);
+        return obj instanceof Ints o && Arrays.equals(array, offset, offset + length, o.array, o.offset, o.offset + o.length);
     }
 
     @Override
     public int hashCode() {
         int result = 1;
-        for (int i = fromIndex; i < toIndex; i++) {
+        for (int i = offset, limit = offset + length; i < limit; i++) {
             result = 31 * result + Integer.hashCode(array[i]);
         }
         return result;
@@ -117,12 +117,12 @@ public class Ints implements Comparable<Ints>, Array {
 
     @Override
     public String toString() {
-        if (fromIndex == toIndex) {
+        if (length == 0) {
             return "[]";
         }
         StringBuilder builder = new StringBuilder();
-        builder.append('[').append(array[fromIndex]);
-        for (int i = fromIndex + 1; i < toIndex; i++) {
+        builder.append('[').append(array[offset]);
+        for (int i = offset + 1, limit = offset + length; i < limit; i++) {
             builder.append(", ").append(array[i]);
         }
         return builder.append(']').toString();

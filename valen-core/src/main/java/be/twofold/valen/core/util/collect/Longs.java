@@ -7,22 +7,22 @@ import java.nio.*;
 import java.util.*;
 
 @Debug.Renderer(
-    childrenArray = "java.util.Arrays.copyOfRange(array, fromIndex, toIndex)"
+    childrenArray = "java.util.Arrays.copyOfRange(array, offset, offset + length)"
 )
 public class Longs implements Comparable<Longs>, Array {
     private static final Longs EMPTY = wrap(new long[0]);
 
     final long[] array;
 
-    final int fromIndex;
+    final int offset;
 
-    final int toIndex;
+    final int length;
 
-    Longs(long[] array, int fromIndex, int toIndex) {
-        Check.fromToIndex(fromIndex, toIndex, array.length);
+    Longs(long[] array, int offset, int length) {
+        Check.fromIndexSize(offset, length, array.length);
         this.array = array;
-        this.fromIndex = fromIndex;
-        this.toIndex = toIndex;
+        this.offset = offset;
+        this.length = length;
     }
 
     public static Longs empty() {
@@ -33,8 +33,8 @@ public class Longs implements Comparable<Longs>, Array {
         return new Longs(array, 0, array.length);
     }
 
-    public static Longs wrap(long[] array, int fromIndex, int toIndex) {
-        return new Longs(array, fromIndex, toIndex);
+    public static Longs wrap(long[] array, int offset, int length) {
+        return new Longs(array, offset, length);
     }
 
     public static Longs from(LongBuffer buffer) {
@@ -43,31 +43,31 @@ public class Longs implements Comparable<Longs>, Array {
     }
 
     public long get(int index) {
-        Check.index(index, length());
-        return array[fromIndex + index];
+        Check.index(index, length);
+        return array[offset + index];
     }
 
     @Override
     public LongBuffer asBuffer() {
-        return LongBuffer.wrap(array, fromIndex, length()).asReadOnlyBuffer();
+        return LongBuffer.wrap(array, offset, length).asReadOnlyBuffer();
     }
 
     public void copyTo(MutableLongs target, int offset) {
-        System.arraycopy(array, fromIndex, target.array, target.fromIndex + offset, length());
+        System.arraycopy(array, this.offset, target.array, target.offset + offset, length);
     }
 
-    public Longs slice(int fromIndex) {
-        return slice(fromIndex, length());
+    public Longs slice(int offset) {
+        return slice(offset, length - offset);
     }
 
-    public Longs slice(int fromIndex, int toIndex) {
-        Check.fromToIndex(fromIndex, toIndex, length());
-        return new Longs(array, this.fromIndex + fromIndex, this.fromIndex + toIndex);
+    public Longs slice(int offset, int length) {
+        Check.fromIndexSize(offset, length, this.length);
+        return new Longs(array, this.offset + offset, length);
     }
 
     @Override
     public int length() {
-        return toIndex - fromIndex;
+        return length;
     }
 
     public boolean contains(long value) {
@@ -75,18 +75,18 @@ public class Longs implements Comparable<Longs>, Array {
     }
 
     public int indexOf(long value) {
-        for (int i = fromIndex; i < toIndex; i++) {
+        for (int i = offset, limit = offset + length; i < limit; i++) {
             if (array[i] == value) {
-                return i - fromIndex;
+                return i - offset;
             }
         }
         return -1;
     }
 
     public int lastIndexOf(long value) {
-        for (int i = toIndex - 1; i >= fromIndex; i--) {
+        for (int i = offset + length - 1; i >= offset; i--) {
             if (array[i] == value) {
-                return i - fromIndex;
+                return i - offset;
             }
         }
         return -1;
@@ -94,18 +94,18 @@ public class Longs implements Comparable<Longs>, Array {
 
     @Override
     public int compareTo(Longs o) {
-        return Arrays.compare(array, fromIndex, toIndex, o.array, o.fromIndex, o.toIndex);
+        return Arrays.compare(array, offset, offset + length, o.array, o.offset, o.offset + o.length);
     }
 
     @Override
     public boolean equals(Object obj) {
-        return obj instanceof Longs o && Arrays.equals(array, fromIndex, toIndex, o.array, o.fromIndex, o.toIndex);
+        return obj instanceof Longs o && Arrays.equals(array, offset, offset + length, o.array, o.offset, o.offset + o.length);
     }
 
     @Override
     public int hashCode() {
         int result = 1;
-        for (int i = fromIndex; i < toIndex; i++) {
+        for (int i = offset, limit = offset + length; i < limit; i++) {
             result = 31 * result + Long.hashCode(array[i]);
         }
         return result;
@@ -113,12 +113,12 @@ public class Longs implements Comparable<Longs>, Array {
 
     @Override
     public String toString() {
-        if (fromIndex == toIndex) {
+        if (length == 0) {
             return "[]";
         }
         StringBuilder builder = new StringBuilder();
-        builder.append('[').append(array[fromIndex]);
-        for (int i = fromIndex + 1; i < toIndex; i++) {
+        builder.append('[').append(array[offset]);
+        for (int i = offset + 1, limit = offset + length; i < limit; i++) {
             builder.append(", ").append(array[i]);
         }
         return builder.append(']').toString();

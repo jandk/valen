@@ -7,22 +7,22 @@ import java.nio.*;
 import java.util.*;
 
 @Debug.Renderer(
-    childrenArray = "java.util.Arrays.copyOfRange(array, fromIndex, toIndex)"
+    childrenArray = "java.util.Arrays.copyOfRange(array, offset, offset + length)"
 )
 public class Doubles implements Comparable<Doubles>, Array {
     private static final Doubles EMPTY = wrap(new double[0]);
 
     final double[] array;
 
-    final int fromIndex;
+    final int offset;
 
-    final int toIndex;
+    final int length;
 
-    Doubles(double[] array, int fromIndex, int toIndex) {
-        Check.fromToIndex(fromIndex, toIndex, array.length);
+    Doubles(double[] array, int offset, int length) {
+        Check.fromIndexSize(offset, length, array.length);
         this.array = array;
-        this.fromIndex = fromIndex;
-        this.toIndex = toIndex;
+        this.offset = offset;
+        this.length = length;
     }
 
     public static Doubles empty() {
@@ -33,8 +33,8 @@ public class Doubles implements Comparable<Doubles>, Array {
         return new Doubles(array, 0, array.length);
     }
 
-    public static Doubles wrap(double[] array, int fromIndex, int toIndex) {
-        return new Doubles(array, fromIndex, toIndex);
+    public static Doubles wrap(double[] array, int offset, int length) {
+        return new Doubles(array, offset, length);
     }
 
     public static Doubles from(DoubleBuffer buffer) {
@@ -43,31 +43,31 @@ public class Doubles implements Comparable<Doubles>, Array {
     }
 
     public double get(int index) {
-        Check.index(index, length());
-        return array[fromIndex + index];
+        Check.index(index, length);
+        return array[offset + index];
     }
 
     @Override
     public DoubleBuffer asBuffer() {
-        return DoubleBuffer.wrap(array, fromIndex, length()).asReadOnlyBuffer();
+        return DoubleBuffer.wrap(array, offset, length).asReadOnlyBuffer();
     }
 
     public void copyTo(MutableDoubles target, int offset) {
-        System.arraycopy(array, fromIndex, target.array, target.fromIndex + offset, length());
+        System.arraycopy(array, this.offset, target.array, target.offset + offset, length);
     }
 
-    public Doubles slice(int fromIndex) {
-        return slice(fromIndex, length());
+    public Doubles slice(int offset) {
+        return slice(offset, length - offset);
     }
 
-    public Doubles slice(int fromIndex, int toIndex) {
-        Check.fromToIndex(fromIndex, toIndex, length());
-        return new Doubles(array, this.fromIndex + fromIndex, this.fromIndex + toIndex);
+    public Doubles slice(int offset, int length) {
+        Check.fromIndexSize(offset, length, this.length);
+        return new Doubles(array, this.offset + offset, length);
     }
 
     @Override
     public int length() {
-        return toIndex - fromIndex;
+        return length;
     }
 
     public boolean contains(double value) {
@@ -75,18 +75,18 @@ public class Doubles implements Comparable<Doubles>, Array {
     }
 
     public int indexOf(double value) {
-        for (int i = fromIndex; i < toIndex; i++) {
+        for (int i = offset, limit = offset + length; i < limit; i++) {
             if (Double.compare(array[i], value) == 0) {
-                return i - fromIndex;
+                return i - offset;
             }
         }
         return -1;
     }
 
     public int lastIndexOf(double value) {
-        for (int i = toIndex - 1; i >= fromIndex; i--) {
+        for (int i = offset + length - 1; i >= offset; i--) {
             if (Double.compare(array[i], value) == 0) {
-                return i - fromIndex;
+                return i - offset;
             }
         }
         return -1;
@@ -94,18 +94,18 @@ public class Doubles implements Comparable<Doubles>, Array {
 
     @Override
     public int compareTo(Doubles o) {
-        return Arrays.compare(array, fromIndex, toIndex, o.array, o.fromIndex, o.toIndex);
+        return Arrays.compare(array, offset, offset + length, o.array, o.offset, o.offset + o.length);
     }
 
     @Override
     public boolean equals(Object obj) {
-        return obj instanceof Doubles o && Arrays.equals(array, fromIndex, toIndex, o.array, o.fromIndex, o.toIndex);
+        return obj instanceof Doubles o && Arrays.equals(array, offset, offset + length, o.array, o.offset, o.offset + o.length);
     }
 
     @Override
     public int hashCode() {
         int result = 1;
-        for (int i = fromIndex; i < toIndex; i++) {
+        for (int i = offset, limit = offset + length; i < limit; i++) {
             result = 31 * result + Double.hashCode(array[i]);
         }
         return result;
@@ -113,12 +113,12 @@ public class Doubles implements Comparable<Doubles>, Array {
 
     @Override
     public String toString() {
-        if (fromIndex == toIndex) {
+        if (length == 0) {
             return "[]";
         }
         StringBuilder builder = new StringBuilder();
-        builder.append('[').append(array[fromIndex]);
-        for (int i = fromIndex + 1; i < toIndex; i++) {
+        builder.append('[').append(array[offset]);
+        for (int i = offset + 1, limit = offset + length; i < limit; i++) {
             builder.append(", ").append(array[i]);
         }
         return builder.append(']').toString();

@@ -31,8 +31,8 @@ class LZ4DecompressorTest {
         System.arraycopy(temp, 0, source, offset, temp.length);
         var target = new byte[LENGTH + 2 * offset];
 
-        var src = Bytes.wrap(source, offset, source.length - offset);
-        var dst = MutableBytes.wrap(target, offset, target.length - offset);
+        var src = Bytes.wrap(source, offset, source.length - 2 * offset);
+        var dst = MutableBytes.wrap(target, offset, target.length - 2 * offset);
         decompressor.decompress(src, dst);
 
         sha256.update(target, offset, LENGTH);

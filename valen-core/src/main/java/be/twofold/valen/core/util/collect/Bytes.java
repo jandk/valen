@@ -8,7 +8,7 @@ import java.nio.*;
 import java.util.*;
 
 @Debug.Renderer(
-    childrenArray = "java.util.Arrays.copyOfRange(array, fromIndex, toIndex)"
+    childrenArray = "java.util.Arrays.copyOfRange(array, offset, offset + length)"
 )
 public class Bytes implements Comparable<Bytes>, Array {
     private static final Bytes EMPTY = wrap(new byte[0]);
@@ -25,15 +25,15 @@ public class Bytes implements Comparable<Bytes>, Array {
 
     final byte[] array;
 
-    final int fromIndex;
+    final int offset;
 
-    final int toIndex;
+    final int length;
 
-    Bytes(byte[] array, int fromIndex, int toIndex) {
-        Check.fromToIndex(fromIndex, toIndex, array.length);
+    Bytes(byte[] array, int offset, int length) {
+        Check.fromIndexSize(offset, length, array.length);
         this.array = array;
-        this.fromIndex = fromIndex;
-        this.toIndex = toIndex;
+        this.offset = offset;
+        this.length = length;
     }
 
     public static Bytes empty() {
@@ -44,8 +44,8 @@ public class Bytes implements Comparable<Bytes>, Array {
         return new Bytes(array, 0, array.length);
     }
 
-    public static Bytes wrap(byte[] array, int fromIndex, int toIndex) {
-        return new Bytes(array, fromIndex, toIndex);
+    public static Bytes wrap(byte[] array, int offset, int length) {
+        return new Bytes(array, offset, length);
     }
 
     public static Bytes from(ByteBuffer buffer) {
@@ -54,33 +54,33 @@ public class Bytes implements Comparable<Bytes>, Array {
     }
 
     public byte get(int index) {
-        Check.index(index, length());
-        return array[fromIndex + index];
+        Check.index(index, length);
+        return array[offset + index];
     }
 
     public short getShort(int offset) {
-        Check.fromIndexSize(offset, Short.BYTES, length());
-        return (short) VH_SHORT_LE.get(array, fromIndex + offset);
+        Check.fromIndexSize(offset, Short.BYTES, length);
+        return (short) VH_SHORT_LE.get(array, this.offset + offset);
     }
 
     public int getInt(int offset) {
-        Check.fromIndexSize(offset, Integer.BYTES, length());
-        return (int) VH_INT_LE.get(array, fromIndex + offset);
+        Check.fromIndexSize(offset, Integer.BYTES, length);
+        return (int) VH_INT_LE.get(array, this.offset + offset);
     }
 
     public long getLong(int offset) {
-        Check.fromIndexSize(offset, Long.BYTES, length());
-        return (long) VH_LONG_LE.get(array, fromIndex + offset);
+        Check.fromIndexSize(offset, Long.BYTES, length);
+        return (long) VH_LONG_LE.get(array, this.offset + offset);
     }
 
     public float getFloat(int offset) {
-        Check.fromIndexSize(offset, Float.BYTES, length());
-        return (float) VH_FLOAT_LE.get(array, fromIndex + offset);
+        Check.fromIndexSize(offset, Float.BYTES, length);
+        return (float) VH_FLOAT_LE.get(array, this.offset + offset);
     }
 
     public double getDouble(int offset) {
-        Check.fromIndexSize(offset, Double.BYTES, length());
-        return (double) VH_DOUBLE_LE.get(array, fromIndex + offset);
+        Check.fromIndexSize(offset, Double.BYTES, length);
+        return (double) VH_DOUBLE_LE.get(array, this.offset + offset);
     }
 
     public int getUnsigned(int offset) {
@@ -92,38 +92,38 @@ public class Bytes implements Comparable<Bytes>, Array {
     }
 
     public int getUnsignedShort(int offset) {
-        return Short.toUnsignedInt(get(offset));
+        return Short.toUnsignedInt(getShort(offset));
     }
 
     public long getUnsignedShortAsLong(int offset) {
-        return Short.toUnsignedInt(get(offset));
+        return Short.toUnsignedLong(getShort(offset));
     }
 
     public long getUnsignedInt(int offset) {
-        return Integer.toUnsignedLong(get(offset));
+        return Integer.toUnsignedLong(getInt(offset));
     }
 
     @Override
     public ByteBuffer asBuffer() {
-        return ByteBuffer.wrap(array, fromIndex, length()).asReadOnlyBuffer();
+        return ByteBuffer.wrap(array, offset, length).asReadOnlyBuffer();
     }
 
     public void copyTo(MutableBytes target, int offset) {
-        System.arraycopy(array, fromIndex, target.array, target.fromIndex + offset, length());
+        System.arraycopy(array, this.offset, target.array, target.offset + offset, length);
     }
 
-    public Bytes slice(int fromIndex) {
-        return slice(fromIndex, length());
+    public Bytes slice(int offset) {
+        return slice(offset, length - offset);
     }
 
-    public Bytes slice(int fromIndex, int toIndex) {
-        Check.fromToIndex(fromIndex, toIndex, length());
-        return new Bytes(array, this.fromIndex + fromIndex, this.fromIndex + toIndex);
+    public Bytes slice(int offset, int length) {
+        Check.fromIndexSize(offset, length, this.length);
+        return new Bytes(array, this.offset + offset, length);
     }
 
     @Override
     public int length() {
-        return toIndex - fromIndex;
+        return length;
     }
 
     public boolean contains(byte value) {
@@ -131,18 +131,18 @@ public class Bytes implements Comparable<Bytes>, Array {
     }
 
     public int indexOf(byte value) {
-        for (int i = fromIndex; i < toIndex; i++) {
+        for (int i = offset, limit = offset + length; i < limit; i++) {
             if (array[i] == value) {
-                return i - fromIndex;
+                return i - offset;
             }
         }
         return -1;
     }
 
     public int lastIndexOf(byte value) {
-        for (int i = toIndex - 1; i >= fromIndex; i--) {
+        for (int i = offset + length - 1; i >= offset; i--) {
             if (array[i] == value) {
-                return i - fromIndex;
+                return i - offset;
             }
         }
         return -1;
@@ -150,18 +150,18 @@ public class Bytes implements Comparable<Bytes>, Array {
 
     @Override
     public int compareTo(Bytes o) {
-        return Arrays.compare(array, fromIndex, toIndex, o.array, o.fromIndex, o.toIndex);
+        return Arrays.compare(array, offset, offset + length, o.array, o.offset, o.offset + o.length);
     }
 
     @Override
     public boolean equals(Object obj) {
-        return obj instanceof Bytes o && Arrays.equals(array, fromIndex, toIndex, o.array, o.fromIndex, o.toIndex);
+        return obj instanceof Bytes o && Arrays.equals(array, offset, offset + length, o.array, o.offset, o.offset + o.length);
     }
 
     @Override
     public int hashCode() {
         int result = 1;
-        for (int i = fromIndex; i < toIndex; i++) {
+        for (int i = offset, limit = offset + length; i < limit; i++) {
             result = 31 * result + Byte.hashCode(array[i]);
         }
         return result;
@@ -169,12 +169,12 @@ public class Bytes implements Comparable<Bytes>, Array {
 
     @Override
     public String toString() {
-        if (fromIndex == toIndex) {
+        if (length == 0) {
             return "[]";
         }
         StringBuilder builder = new StringBuilder();
-        builder.append('[').append(array[fromIndex]);
-        for (int i = fromIndex + 1; i < toIndex; i++) {
+        builder.append('[').append(array[offset]);
+        for (int i = offset + 1, limit = offset + length; i < limit; i++) {
             builder.append(", ").append(array[i]);
         }
         return builder.append(']').toString();

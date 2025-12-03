@@ -7,22 +7,22 @@ import java.nio.*;
 import java.util.*;
 
 @Debug.Renderer(
-    childrenArray = "java.util.Arrays.copyOfRange(array, fromIndex, toIndex)"
+    childrenArray = "java.util.Arrays.copyOfRange(array, offset, offset + length)"
 )
 public class Shorts implements Comparable<Shorts>, Array {
     private static final Shorts EMPTY = wrap(new short[0]);
 
     final short[] array;
 
-    final int fromIndex;
+    final int offset;
 
-    final int toIndex;
+    final int length;
 
-    Shorts(short[] array, int fromIndex, int toIndex) {
-        Check.fromToIndex(fromIndex, toIndex, array.length);
+    Shorts(short[] array, int offset, int length) {
+        Check.fromIndexSize(offset, length, array.length);
         this.array = array;
-        this.fromIndex = fromIndex;
-        this.toIndex = toIndex;
+        this.offset = offset;
+        this.length = length;
     }
 
     public static Shorts empty() {
@@ -33,8 +33,8 @@ public class Shorts implements Comparable<Shorts>, Array {
         return new Shorts(array, 0, array.length);
     }
 
-    public static Shorts wrap(short[] array, int fromIndex, int toIndex) {
-        return new Shorts(array, fromIndex, toIndex);
+    public static Shorts wrap(short[] array, int offset, int length) {
+        return new Shorts(array, offset, length);
     }
 
     public static Shorts from(ShortBuffer buffer) {
@@ -43,8 +43,8 @@ public class Shorts implements Comparable<Shorts>, Array {
     }
 
     public short get(int index) {
-        Check.index(index, length());
-        return array[fromIndex + index];
+        Check.index(index, length);
+        return array[offset + index];
     }
 
     public int getUnsigned(int offset) {
@@ -57,25 +57,25 @@ public class Shorts implements Comparable<Shorts>, Array {
 
     @Override
     public ShortBuffer asBuffer() {
-        return ShortBuffer.wrap(array, fromIndex, length()).asReadOnlyBuffer();
+        return ShortBuffer.wrap(array, offset, length).asReadOnlyBuffer();
     }
 
     public void copyTo(MutableShorts target, int offset) {
-        System.arraycopy(array, fromIndex, target.array, target.fromIndex + offset, length());
+        System.arraycopy(array, this.offset, target.array, target.offset + offset, length);
     }
 
-    public Shorts slice(int fromIndex) {
-        return slice(fromIndex, length());
+    public Shorts slice(int offset) {
+        return slice(offset, length - offset);
     }
 
-    public Shorts slice(int fromIndex, int toIndex) {
-        Check.fromToIndex(fromIndex, toIndex, length());
-        return new Shorts(array, this.fromIndex + fromIndex, this.fromIndex + toIndex);
+    public Shorts slice(int offset, int length) {
+        Check.fromIndexSize(offset, length, this.length);
+        return new Shorts(array, this.offset + offset, length);
     }
 
     @Override
     public int length() {
-        return toIndex - fromIndex;
+        return length;
     }
 
     public boolean contains(short value) {
@@ -83,18 +83,18 @@ public class Shorts implements Comparable<Shorts>, Array {
     }
 
     public int indexOf(short value) {
-        for (int i = fromIndex; i < toIndex; i++) {
+        for (int i = offset, limit = offset + length; i < limit; i++) {
             if (array[i] == value) {
-                return i - fromIndex;
+                return i - offset;
             }
         }
         return -1;
     }
 
     public int lastIndexOf(short value) {
-        for (int i = toIndex - 1; i >= fromIndex; i--) {
+        for (int i = offset + length - 1; i >= offset; i--) {
             if (array[i] == value) {
-                return i - fromIndex;
+                return i - offset;
             }
         }
         return -1;
@@ -102,18 +102,18 @@ public class Shorts implements Comparable<Shorts>, Array {
 
     @Override
     public int compareTo(Shorts o) {
-        return Arrays.compare(array, fromIndex, toIndex, o.array, o.fromIndex, o.toIndex);
+        return Arrays.compare(array, offset, offset + length, o.array, o.offset, o.offset + o.length);
     }
 
     @Override
     public boolean equals(Object obj) {
-        return obj instanceof Shorts o && Arrays.equals(array, fromIndex, toIndex, o.array, o.fromIndex, o.toIndex);
+        return obj instanceof Shorts o && Arrays.equals(array, offset, offset + length, o.array, o.offset, o.offset + o.length);
     }
 
     @Override
     public int hashCode() {
         int result = 1;
-        for (int i = fromIndex; i < toIndex; i++) {
+        for (int i = offset, limit = offset + length; i < limit; i++) {
             result = 31 * result + Short.hashCode(array[i]);
         }
         return result;
@@ -121,12 +121,12 @@ public class Shorts implements Comparable<Shorts>, Array {
 
     @Override
     public String toString() {
-        if (fromIndex == toIndex) {
+        if (length == 0) {
             return "[]";
         }
         StringBuilder builder = new StringBuilder();
-        builder.append('[').append(array[fromIndex]);
-        for (int i = fromIndex + 1; i < toIndex; i++) {
+        builder.append('[').append(array[offset]);
+        for (int i = offset + 1, limit = offset + length; i < limit; i++) {
             builder.append(", ").append(array[i]);
         }
         return builder.append(']').toString();
