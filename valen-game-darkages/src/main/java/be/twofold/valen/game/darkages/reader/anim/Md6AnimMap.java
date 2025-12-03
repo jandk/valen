@@ -49,7 +49,7 @@ public record Md6AnimMap(
                 throw new UnsupportedOperationException();
             }
 
-            int value = Byte.toUnsignedInt(reader.readByte());
+            int value = reader.readByteUnsigned();
             for (var i = 0; i < count; i++) {
                 result[o++] = value + i;
             }
@@ -65,7 +65,7 @@ public record Md6AnimMap(
                 throw new UnsupportedOperationException();
             }
 
-            int value = Short.toUnsignedInt(reader.readShort());
+            int value = reader.readShortUnsigned();
             for (var i = 0; i < count; i++) {
                 result[o++] = value + i;
             }

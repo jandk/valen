@@ -36,15 +36,39 @@ public interface BinaryReader extends Closeable {
 
     byte readByte() throws IOException;
 
+    default int readByteUnsigned() throws IOException {
+        return Byte.toUnsignedInt(readByte());
+    }
+
+    default long readByteUnsignedAsLong() throws IOException {
+        return Byte.toUnsignedLong(readByte());
+    }
+
     short readShort() throws IOException;
+
+    default int readShortUnsigned() throws IOException {
+        return Short.toUnsignedInt(readShort());
+    }
+
+    default long readShortUnsignedAsLong() throws IOException {
+        return Short.toUnsignedLong(readShort());
+    }
 
     int readInt() throws IOException;
 
+    default long readIntUnsigned() throws IOException {
+        return Integer.toUnsignedLong(readInt());
+    }
+
     long readLong() throws IOException;
 
-    float readFloat() throws IOException;
+    default float readFloat() throws IOException {
+        return Float.intBitsToFloat(readInt());
+    }
 
-    double readDouble() throws IOException;
+    default double readDouble() throws IOException {
+        return Double.longBitsToDouble(readLong());
+    }
 
     default ByteBuffer readBuffer(int len) throws IOException {
         var buffer = ByteBuffer.allocate(len);

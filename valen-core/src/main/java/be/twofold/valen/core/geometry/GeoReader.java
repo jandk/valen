@@ -74,7 +74,7 @@ public interface GeoReader<T> {
     static GeoReader<MutableShorts> readBone1() {
         return (source, target, offset) -> {
             source.skip(3);
-            target.set(offset, (short) Byte.toUnsignedInt(source.readByte()));
+            target.set(offset, (short) source.readByteUnsigned());
         };
     }
 
@@ -94,14 +94,14 @@ public interface GeoReader<T> {
 
     static GeoReader<MutableInts> readShortAsInt() {
         return (source, target, offset) -> {
-            target.set(offset, Short.toUnsignedInt(source.readShort()));
+            target.set(offset, source.readShortUnsigned());
         };
     }
 
     static GeoReader<MutableShorts> copyBytesAsShorts(int n) {
         return (source, target, offset) -> {
             for (int i = 0; i < n; i++) {
-                target.set(offset + i, (short) Byte.toUnsignedInt(source.readByte()));
+                target.set(offset + i, (short) source.readByteUnsigned());
             }
         };
     }

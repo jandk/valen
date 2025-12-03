@@ -63,18 +63,4 @@ final class BytesBinaryReader implements BinaryReader {
         position += Long.BYTES;
         return result;
     }
-
-    @Override
-    public float readFloat() {
-        float result = bytes.getFloat(position);
-        position += Float.BYTES;
-        return result;
-    }
-
-    @Override
-    public double readDouble() {
-        double result = bytes.getDouble(position);
-        position += Double.BYTES;
-        return result;
-    }
 }

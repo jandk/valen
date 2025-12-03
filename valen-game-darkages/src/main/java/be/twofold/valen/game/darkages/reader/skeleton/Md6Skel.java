@@ -1,6 +1,6 @@
 package be.twofold.valen.game.darkages.reader.skeleton;
 
-import be.twofold.valen.core.io.BinaryReader;
+import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.math.*;
 
 import java.io.*;
@@ -50,10 +50,10 @@ public record Md6Skel(
         var inverseBasePoses = reader.readObjects(header.numJoints8(), Md6Skel::readInverseBasePose);
 
         reader.position(base + header.loadedDataSize() + header.jointSetTblOffset());
-        var jointSetTable = reader.readShorts(Short.toUnsignedInt(reader.readShort()));
+        var jointSetTable = reader.readShorts(reader.readShortUnsigned());
 
         reader.position(base + header.loadedDataSize() + header.boundsJointTblOffset());
-        var boundsJointTable = reader.readShorts(Short.toUnsignedInt(reader.readShort()));
+        var boundsJointTable = reader.readShorts(reader.readShortUnsigned());
 
         reader.position(base + header.size());
         var jointNames = reader.readObjects(header.numJoints8(), BinaryReader::readPString);

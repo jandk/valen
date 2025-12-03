@@ -125,7 +125,7 @@ public record Md6Anim(
     }
 
     static Ints decodeRLE(BinaryReader reader, int numJoints) throws IOException {
-        var size = Byte.toUnsignedInt(reader.readByte());
+        var size = reader.readByteUnsigned();
         var length = Math.min(size, numJoints);
 
         var result = MutableInts.allocate(length);
@@ -140,7 +140,7 @@ public record Md6Anim(
                 continue;
             }
 
-            int value = Byte.toUnsignedInt(reader.readByte());
+            int value = reader.readByteUnsigned();
             for (var i = 0; i < count; i++) {
                 result.set(o++, value + i);
             }

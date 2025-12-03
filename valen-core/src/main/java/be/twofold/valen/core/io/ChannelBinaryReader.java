@@ -101,18 +101,6 @@ final class ChannelBinaryReader implements BinaryReader, Closeable {
     }
 
     @Override
-    public float readFloat() throws IOException {
-        refillWhen(Float.BYTES);
-        return buffer.getFloat();
-    }
-
-    @Override
-    public double readDouble() throws IOException {
-        refillWhen(Double.BYTES);
-        return buffer.getDouble();
-    }
-
-    @Override
     public void close() throws IOException {
         channel.close();
     }

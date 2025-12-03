@@ -1,6 +1,6 @@
 package be.twofold.valen.game.darkages.reader.basemodel;
 
-import be.twofold.valen.core.io.BinaryReader;
+import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.math.*;
 
 import java.io.*;
@@ -27,8 +27,8 @@ public record Md6ModelHeader(
         var maxBoundsExpansion = Vector3.read(reader);
         var remapForSkinning = reader.readBoolByte();
         var unknown = reader.readPString();
-        var skinnedJoints = reader.readShorts(Short.toUnsignedInt(reader.readShort()));
-        var extraJoints = reader.readShorts(Short.toUnsignedInt(reader.readShort()));
+        var skinnedJoints = reader.readShorts(reader.readShortUnsigned());
+        var extraJoints = reader.readShorts(reader.readShortUnsigned());
         var defaultBounds = Bounds.read(reader);
         var numLods = reader.readInt();
         var maxLodDeviations = reader.readFloats(5);
