@@ -1,5 +1,6 @@
 package be.twofold.valen.core.util;
 
+import java.util.*;
 import java.util.function.*;
 
 public final class Check {
@@ -38,46 +39,28 @@ public final class Check {
         }
     }
 
-    public static int index(int index, int size) {
-        if (index < 0 || index >= size) {
-            throw new IndexOutOfBoundsException(String.format("Index %s out of bounds for length %s", index, size));
-        }
-        return index;
+    public static int index(int index, int length) {
+        return Objects.checkIndex(index, length);
     }
 
-    public static long index(long index, long size) {
-        if (index < 0 || index >= size) {
-            throw new IndexOutOfBoundsException(String.format("Index %s out of bounds for length %s", index, size));
-        }
-        return index;
+    public static long index(long index, long length) {
+        return Objects.checkIndex(index, length);
     }
 
-    public static int fromToIndex(int fromIndex, int toIndex, int size) {
-        if (fromIndex < 0 || fromIndex > toIndex || toIndex > size) {
-            throw new IndexOutOfBoundsException(String.format("Range [%s, %s) out of bounds for length %s", fromIndex, toIndex, size));
-        }
-        return fromIndex;
+    public static int fromToIndex(int fromIndex, int toIndex, int length) {
+        return Objects.checkFromToIndex(fromIndex, toIndex, length);
     }
 
-    public static long fromToIndex(long fromIndex, long toIndex, long size) {
-        if (fromIndex < 0 || fromIndex > toIndex || toIndex > size) {
-            throw new IndexOutOfBoundsException(String.format("Range [%s, %s) out of bounds for length %s", fromIndex, toIndex, size));
-        }
-        return fromIndex;
+    public static long fromToIndex(long fromIndex, long toIndex, long length) {
+        return Objects.checkFromToIndex(fromIndex, toIndex, length);
     }
 
     public static int fromIndexSize(int fromIndex, int size, int length) {
-        if ((length | fromIndex | size) < 0 || size > length - fromIndex) {
-            throw new IndexOutOfBoundsException(String.format("Range [%s, %<s + %s) out of bounds for length %s", fromIndex, size, length));
-        }
-        return fromIndex;
+        return Objects.checkFromIndexSize(fromIndex, size, length);
     }
 
     public static long fromIndexSize(long fromIndex, long size, long length) {
-        if ((length | fromIndex | size) < 0 || size > length - fromIndex) {
-            throw new IndexOutOfBoundsException(String.format("Range [%s, %<s + %s) out of bounds for length %s", fromIndex, size, length));
-        }
-        return fromIndex;
+        return Objects.checkFromIndexSize(fromIndex, size, length);
     }
 
     public static int positive(int value, String param) {
