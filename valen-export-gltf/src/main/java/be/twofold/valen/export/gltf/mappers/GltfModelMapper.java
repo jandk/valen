@@ -101,7 +101,7 @@ public abstract class GltfModelMapper {
         };
     }
 
-    private BufferViewID createBufferView(WrappedArray array, BufferViewTarget target) {
+    private BufferViewID createBufferView(Array array, BufferViewTarget target) {
         try {
             return context.createBufferView(array.asBuffer(), target);
         } catch (IOException e) {
@@ -197,7 +197,7 @@ public abstract class GltfModelMapper {
         return context.addAccessor(accessor.build());
     }
 
-    private AccessorID buildAccessor(WrappedArray buffer, AccessorComponentType componentType, AccessorType type, boolean withBounds) {
+    private AccessorID buildAccessor(Array buffer, AccessorComponentType componentType, AccessorType type, boolean withBounds) {
         var bufferView = createBufferView(buffer, BufferViewTarget.ARRAY_BUFFER);
         var builder = ImmutableAccessor.builder()
             .bufferView(bufferView)

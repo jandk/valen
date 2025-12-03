@@ -3,7 +3,7 @@ package be.twofold.valen.core.geometry;
 import be.twofold.valen.core.util.*;
 import be.twofold.valen.core.util.collect.*;
 
-public record VertexBuffer<T extends WrappedArray>(
+public record VertexBuffer<T extends Array>(
     T array,
     int length,
     ElementType elementType,

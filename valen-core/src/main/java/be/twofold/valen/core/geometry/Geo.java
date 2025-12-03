@@ -45,7 +45,7 @@ public final class Geo {
         return new Mesh(indices, positions, normals, tangents, texCoords, colors, joints, weights, 0, custom);
     }
 
-    private <T extends WrappedArray> T readVertexBuffer(BinaryReader reader, GeoBufferInfo<T> accessor, int count) {
+    private <T extends Array> T readVertexBuffer(BinaryReader reader, GeoBufferInfo<T> accessor, int count) {
         int capacity = count * accessor.count();
         T buffer = accessor.allocate(capacity);
 

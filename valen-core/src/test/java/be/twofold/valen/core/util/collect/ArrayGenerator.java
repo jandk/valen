@@ -10,7 +10,7 @@ import java.nio.*;
 import java.nio.file.*;
 import java.util.*;
 
-final class WrapperGenerator {
+final class ArrayGenerator {
     public static final ClassName CHECK_CLASS = ClassName.get("be.twofold.valen.core.util", "Check");
     public static final ClassName BYTE_ARRAYS_CLASS = ClassName.get("be.twofold.valen.core.util", "ByteArrays");
 
@@ -25,7 +25,7 @@ final class WrapperGenerator {
     }
 
     private static void generateInterface() throws IOException {
-        var typeSpec = TypeSpec.interfaceBuilder("WrappedArray")
+        var typeSpec = TypeSpec.interfaceBuilder("Array")
             .addModifiers(Modifier.PUBLIC)
             .addMethod(MethodSpec.methodBuilder("size")
                 .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
@@ -64,7 +64,7 @@ final class WrapperGenerator {
         var builder = TypeSpec.classBuilder(className)
             .addModifiers(Modifier.PUBLIC)
             .addSuperinterface(ParameterizedTypeName.get(ClassName.get(Comparable.class), thisType))
-            .addSuperinterface(ClassName.get("", "WrappedArray"))
+            .addSuperinterface(ClassName.get("", "Array"))
             .addAnnotation(AnnotationSpec.builder(Debug.Renderer.class)
                 .addMember("childrenArray", "$S", "java.util.Arrays.copyOfRange(array, fromIndex, toIndex)")
                 .build());

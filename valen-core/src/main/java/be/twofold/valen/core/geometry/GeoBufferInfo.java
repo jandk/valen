@@ -3,7 +3,7 @@ package be.twofold.valen.core.geometry;
 import be.twofold.valen.core.util.*;
 import be.twofold.valen.core.util.collect.*;
 
-public record GeoBufferInfo<T extends WrappedArray>(
+public record GeoBufferInfo<T extends Array>(
     int offset,
     int stride,
     int length,

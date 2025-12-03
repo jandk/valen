@@ -9,7 +9,7 @@ import java.util.*;
 @Debug.Renderer(
     childrenArray = "java.util.Arrays.copyOfRange(array, fromIndex, toIndex)"
 )
-public class Shorts implements Comparable<Shorts>, WrappedArray {
+public class Shorts implements Comparable<Shorts>, Array {
     private static final Shorts EMPTY = wrap(new short[0]);
 
     final short[] array;

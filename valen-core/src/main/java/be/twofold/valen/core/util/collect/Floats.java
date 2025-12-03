@@ -9,7 +9,7 @@ import java.util.*;
 @Debug.Renderer(
     childrenArray = "java.util.Arrays.copyOfRange(array, fromIndex, toIndex)"
 )
-public class Floats implements Comparable<Floats>, WrappedArray {
+public class Floats implements Comparable<Floats>, Array {
     private static final Floats EMPTY = wrap(new float[0]);
 
     final float[] array;

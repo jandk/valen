@@ -151,7 +151,7 @@ public final class GeoMeshInfo {
             return this;
         }
 
-        public <T extends WrappedArray> Builder custom(String name, int offset, int stride, int length, GeoReader<T> reader, ComponentType<T> componentType, ElementType elementType) {
+        public <T extends Array> Builder custom(String name, int offset, int stride, int length, GeoReader<T> reader, ComponentType<T> componentType, ElementType elementType) {
             this.custom.put(name, new GeoBufferInfo<>(offset, stride, length, reader, elementType, componentType));
             return this;
         }

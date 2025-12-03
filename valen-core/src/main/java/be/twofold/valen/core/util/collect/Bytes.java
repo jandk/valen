@@ -10,7 +10,7 @@ import java.util.*;
 @Debug.Renderer(
     childrenArray = "java.util.Arrays.copyOfRange(array, fromIndex, toIndex)"
 )
-public class Bytes implements Comparable<Bytes>, WrappedArray {
+public class Bytes implements Comparable<Bytes>, Array {
     private static final Bytes EMPTY = wrap(new byte[0]);
 
     static final VarHandle VH_SHORT_LE = MethodHandles.byteArrayViewVarHandle(short[].class, ByteOrder.LITTLE_ENDIAN).withInvokeExactBehavior();
