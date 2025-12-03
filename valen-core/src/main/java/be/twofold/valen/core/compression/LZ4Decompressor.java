@@ -29,7 +29,7 @@ final class LZ4Decompressor extends LZDecompressor {
                 if (literalLength == 15) {
                     int temp;
                     do {
-                        temp = src.getUnsignedByte(srcOff++);
+                        temp = src.getUnsigned(srcOff++);
                         literalLength += temp;
                     } while (temp == 255);
                 }
@@ -54,7 +54,7 @@ final class LZ4Decompressor extends LZDecompressor {
             if (matchLength == 15) {
                 int temp;
                 do {
-                    temp = src.getUnsignedByte(srcOff++);
+                    temp = src.getUnsigned(srcOff++);
                     matchLength += temp;
                 } while (temp == 255);
             }

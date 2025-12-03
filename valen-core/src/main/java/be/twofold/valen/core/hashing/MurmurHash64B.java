@@ -27,11 +27,11 @@ record MurmurHash64B(long seed) implements HashFunction {
 
         switch (length - offset) {
             case 3:
-                h2 ^= src.getUnsignedByte(offset + 2) << 16;
+                h2 ^= src.getUnsigned(offset + 2) << 16;
             case 2:
-                h2 ^= src.getUnsignedByte(offset + 1) << 8;
+                h2 ^= src.getUnsigned(offset + 1) << 8;
             case 1:
-                h2 ^= src.getUnsignedByte(offset);
+                h2 ^= src.getUnsigned(offset);
                 h2 *= M32;
         }
 

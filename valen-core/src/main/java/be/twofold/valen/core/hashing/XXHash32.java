@@ -53,7 +53,7 @@ record XXHash32(int seed) implements HashFunction {
         }
 
         while (offset + 1 <= length) {
-            int lane = src.getUnsignedByte(offset);
+            int lane = src.getUnsigned(offset);
             acc = acc + (lane * PRIME32_5);
             acc = Integer.rotateLeft(acc, 11) * PRIME32_1;
             offset++;

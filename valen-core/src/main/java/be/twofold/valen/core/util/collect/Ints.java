@@ -47,6 +47,10 @@ public class Ints implements Comparable<Ints>, Array {
         return array[fromIndex + index];
     }
 
+    public long getUnsigned(int offset) {
+        return Integer.toUnsignedLong(get(offset));
+    }
+
     @Override
     public IntBuffer asBuffer() {
         return IntBuffer.wrap(array, fromIndex, length()).asReadOnlyBuffer();

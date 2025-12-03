@@ -67,7 +67,7 @@ record XXHash64(long seed) implements HashFunction {
         }
 
         while (offset + 1 <= length) {
-            long lane = src.getUnsignedByte(offset);
+            long lane = src.getUnsigned(offset);
             acc = acc ^ (lane * PRIME64_5);
             acc = Long.rotateLeft(acc, 11) * PRIME64_1;
             offset++;

@@ -79,9 +79,9 @@ final class FarmHashFingerprint64 implements HashFunction {
             return hashLength16(length + (a << 3), b, mul);
         }
         if (length > 0) {
-            int a = s.getUnsignedByte(0);
-            int b = s.getUnsignedByte(length >>> 1);
-            int c = s.getUnsignedByte(length - 1);
+            int a = s.getUnsigned(0);
+            int b = s.getUnsigned(length >>> 1);
+            int c = s.getUnsigned(length - 1);
 
             int y = a + (b << 8);
             int z = length + (c << 2);

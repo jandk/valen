@@ -27,7 +27,7 @@ public final class Bits {
     public int cardinality() {
         int count = 0;
         for (int i = 0; i < bytes.length(); i++) {
-            count += Integer.bitCount(Byte.toUnsignedInt(bytes.get(i)));
+            count += Integer.bitCount(bytes.getUnsigned(i));
         }
         return count;
     }

@@ -28,11 +28,11 @@ final class FastLZDecompressor extends LZDecompressor {
                 if ((opcode & 0xE0) == 0xE0) {
                     // If all upper bits are set, we have a long match
                     switch (level) {
-                        case One -> matchLength += src.getUnsignedByte(srcOff++);
+                        case One -> matchLength += src.getUnsigned(srcOff++);
                         case Two -> {
                             int temp;
                             do {
-                                temp = src.getUnsignedByte(srcOff++);
+                                temp = src.getUnsigned(srcOff++);
                                 matchLength += temp;
                             } while (temp == 0xFF);
                         }
@@ -42,14 +42,14 @@ final class FastLZDecompressor extends LZDecompressor {
                 // Then we handle the offset
                 int offset = ((opcode & 0x1F) << 8) + 1;
                 switch (level) {
-                    case One -> offset += src.getUnsignedByte(srcOff++);
+                    case One -> offset += src.getUnsigned(srcOff++);
                     case Two -> {
-                        int temp = src.getUnsignedByte(srcOff++);
+                        int temp = src.getUnsigned(srcOff++);
                         offset += temp;
 
                         if (temp == 0xFF && (opcode & 0x1F) == 0x1F) {
-                            offset += src.getUnsignedByte(srcOff++) << 8;
-                            offset += src.getUnsignedByte(srcOff++);
+                            offset += src.getUnsigned(srcOff++) << 8;
+                            offset += src.getUnsigned(srcOff++);
                         }
                     }
                 }
@@ -61,7 +61,7 @@ final class FastLZDecompressor extends LZDecompressor {
             if (srcOff >= src.length()) {
                 break;
             }
-            opcode = src.getUnsignedByte(srcOff++);
+            opcode = src.getUnsigned(srcOff++);
         }
 
         // return dstPos - targetOffset;

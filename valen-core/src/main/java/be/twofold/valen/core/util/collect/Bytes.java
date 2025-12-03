@@ -83,11 +83,19 @@ public class Bytes implements Comparable<Bytes>, Array {
         return (double) VH_DOUBLE_LE.get(array, fromIndex + offset);
     }
 
-    public int getUnsignedByte(int offset) {
+    public int getUnsigned(int offset) {
         return Byte.toUnsignedInt(get(offset));
     }
 
+    public long getUnsignedAsLong(int offset) {
+        return Byte.toUnsignedLong(get(offset));
+    }
+
     public int getUnsignedShort(int offset) {
+        return Short.toUnsignedInt(get(offset));
+    }
+
+    public long getUnsignedShortAsLong(int offset) {
         return Short.toUnsignedInt(get(offset));
     }
 

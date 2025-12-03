@@ -60,7 +60,7 @@ final class HexDump {
                 builder.append(' ');
             }
             if (i < binary.length()) {
-                int value = binary.getUnsignedByte(i);
+                int value = binary.getUnsigned(i);
                 var color = value != 0 ? primary : secondary;
                 toHex(value, 2, color);
             } else {
@@ -76,7 +76,7 @@ final class HexDump {
         builder.append('|', primary);
         for (int i = offset; i < offset + 16; i++) {
             if (i < binary.length()) {
-                int value = binary.getUnsignedByte(i);
+                int value = binary.getUnsigned(i);
                 var color = value != 0 ? primary : secondary;
                 builder.append(ALPHABET[value], color);
             } else {

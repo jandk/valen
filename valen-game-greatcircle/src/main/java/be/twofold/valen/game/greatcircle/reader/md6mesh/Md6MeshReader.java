@@ -100,7 +100,7 @@ public final class Md6MeshReader implements AssetReader<Model, GreatCircleAsset>
             // Just assume it's a byte buffer, because we read it as such
             var joints = meshes.get(i).joints().map(MutableShorts.class::cast).orElseThrow();
             for (var j = 0; j < joints.length(); j++) {
-                joints.set(j, lookup[Short.toUnsignedInt(joints.get(j)) + meshInfo.unknown2()]);
+                joints.set(j, lookup[joints.getUnsigned(j) + meshInfo.unknown2()]);
             }
         }
     }

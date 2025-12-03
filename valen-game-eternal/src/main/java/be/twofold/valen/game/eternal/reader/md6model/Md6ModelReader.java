@@ -74,7 +74,7 @@ public final class Md6ModelReader implements AssetReader<Model, EternalAsset> {
         // This lookup table is in reverse... Nice
         var lookup = new byte[jointRemap.length()];
         for (var i = 0; i < jointRemap.length(); i++) {
-            lookup[jointRemap.getUnsignedByte(i)] = (byte) i;
+            lookup[jointRemap.getUnsigned(i)] = (byte) i;
         }
 
         for (var i = 0; i < meshes.size(); i++) {
@@ -83,7 +83,7 @@ public final class Md6ModelReader implements AssetReader<Model, EternalAsset> {
             // Just assume it's a mutable buffer, because we read it as such
             var joints = meshes.get(i).joints().map(MutableShorts.class::cast).orElseThrow();
             for (var j = 0; j < joints.length(); j++) {
-                joints.set(j, lookup[Short.toUnsignedInt(joints.get(j)) + meshInfo.unknown2()]);
+                joints.set(j, lookup[joints.getUnsigned(j) + meshInfo.unknown2()]);
             }
         }
     }

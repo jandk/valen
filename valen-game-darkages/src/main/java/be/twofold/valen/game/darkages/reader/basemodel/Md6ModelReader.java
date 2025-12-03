@@ -147,7 +147,7 @@ public final class Md6ModelReader implements AssetReader<Model, DarkAgesAsset> {
             var shorts = meshes.get(i).joints().map(MutableShorts.class::cast).orElseThrow();
 
             for (var j = 0; j < shorts.length(); j++) {
-                var index0 = Short.toUnsignedInt(shorts.get(j));
+                var index0 = shorts.getUnsigned(j);
                 var index1 = index0 + offset;
                 short index2;
                 if (index1 < skinnedJointsLen8) {

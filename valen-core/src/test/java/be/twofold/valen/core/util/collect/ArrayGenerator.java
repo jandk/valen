@@ -138,9 +138,9 @@ final class ArrayGenerator {
             .addStatement("return array[fromIndex + index]")
             .build());
 
-        // Add extra methods for Bytes
-        if (primitiveClass == byte.class) {
-            addExtraBytesMethods(builder);
+        // Add extra methods for Primitives
+        if (primitiveClass == byte.class || primitiveClass == short.class || primitiveClass == int.class) {
+            addExtraPrimitivesMethods(builder, primitiveClass);
         }
 
         // asBuffer method
@@ -274,15 +274,26 @@ final class ArrayGenerator {
         };
     }
 
-    private static void addExtraBytesMethods(TypeSpec.Builder classBuilder) {
-        generateGet(classBuilder, short.class, "Short", "Short.BYTES");
-        generateGet(classBuilder, int.class, "Int", "Integer.BYTES");
-        generateGet(classBuilder, long.class, "Long", "Long.BYTES");
-        generateGet(classBuilder, float.class, "Float", "Float.BYTES");
-        generateGet(classBuilder, double.class, "Double", "Double.BYTES");
-        generateGetUnsigned(classBuilder, int.class, "Byte", "Byte.toUnsignedInt");
-        generateGetUnsigned(classBuilder, int.class, "Short", "Short.toUnsignedInt");
-        generateGetUnsigned(classBuilder, long.class, "Int", "Integer.toUnsignedLong");
+    private static void addExtraPrimitivesMethods(TypeSpec.Builder classBuilder, Class<?> primitiveClass) {
+        if (primitiveClass == byte.class) {
+            generateGet(classBuilder, short.class, "Short", "Short.BYTES");
+            generateGet(classBuilder, int.class, "Int", "Integer.BYTES");
+            generateGet(classBuilder, long.class, "Long", "Long.BYTES");
+            generateGet(classBuilder, float.class, "Float", "Float.BYTES");
+            generateGet(classBuilder, double.class, "Double", "Double.BYTES");
+            generateGetUnsigned(classBuilder, int.class, "getUnsigned", "Byte.toUnsignedInt");
+            generateGetUnsigned(classBuilder, long.class, "getUnsignedAsLong", "Byte.toUnsignedLong");
+            generateGetUnsigned(classBuilder, int.class, "getUnsignedShort", "Short.toUnsignedInt");
+            generateGetUnsigned(classBuilder, long.class, "getUnsignedShortAsLong", "Short.toUnsignedLong");
+            generateGetUnsigned(classBuilder, long.class, "getUnsignedInt", "Integer.toUnsignedLong");
+        }
+        if (primitiveClass == short.class) {
+            generateGetUnsigned(classBuilder, int.class, "getUnsigned", "Short.toUnsignedInt");
+            generateGetUnsigned(classBuilder, long.class, "getUnsignedAsLong", "Short.toUnsignedLong");
+        }
+        if (primitiveClass == int.class) {
+            generateGetUnsigned(classBuilder, long.class, "getUnsigned", "Integer.toUnsignedLong");
+        }
     }
 
     private static void generateGet(TypeSpec.Builder classBuilder, Class<?> primitive, String upper, String length) {
@@ -295,8 +306,8 @@ final class ArrayGenerator {
             .build());
     }
 
-    private static void generateGetUnsigned(TypeSpec.Builder classBuilder, Class<?> primitive, String upper, String conv) {
-        classBuilder.addMethod(MethodSpec.methodBuilder("getUnsigned" + upper)
+    private static void generateGetUnsigned(TypeSpec.Builder classBuilder, Class<?> primitive, String name, String conv) {
+        classBuilder.addMethod(MethodSpec.methodBuilder(name)
             .addModifiers(Modifier.PUBLIC)
             .returns(primitive)
             .addParameter(int.class, "offset")

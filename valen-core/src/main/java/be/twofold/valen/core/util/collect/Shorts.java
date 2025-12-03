@@ -47,6 +47,14 @@ public class Shorts implements Comparable<Shorts>, Array {
         return array[fromIndex + index];
     }
 
+    public int getUnsigned(int offset) {
+        return Short.toUnsignedInt(get(offset));
+    }
+
+    public long getUnsignedAsLong(int offset) {
+        return Short.toUnsignedLong(get(offset));
+    }
+
     @Override
     public ShortBuffer asBuffer() {
         return ShortBuffer.wrap(array, fromIndex, length()).asReadOnlyBuffer();
