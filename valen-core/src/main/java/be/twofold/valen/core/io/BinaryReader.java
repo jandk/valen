@@ -40,18 +40,10 @@ public interface BinaryReader extends Closeable {
         return Byte.toUnsignedInt(readByte());
     }
 
-    default long readByteUnsignedAsLong() throws IOException {
-        return Byte.toUnsignedLong(readByte());
-    }
-
     short readShort() throws IOException;
 
     default int readShortUnsigned() throws IOException {
         return Short.toUnsignedInt(readShort());
-    }
-
-    default long readShortUnsignedAsLong() throws IOException {
-        return Short.toUnsignedLong(readShort());
     }
 
     int readInt() throws IOException;
