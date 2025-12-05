@@ -1,13 +1,14 @@
 package be.twofold.valen.game.greatcircle.reader.streamdb;
 
 import be.twofold.valen.core.io.*;
+import be.twofold.valen.core.util.collect.*;
 
 import java.io.*;
 import java.util.*;
 
 public record StreamDb(
     StreamDbHeader header,
-    long[] identities,
+    Longs identities,
     List<StreamDbEntry> entries
 ) {
     public static StreamDb read(BinaryReader reader) throws IOException {

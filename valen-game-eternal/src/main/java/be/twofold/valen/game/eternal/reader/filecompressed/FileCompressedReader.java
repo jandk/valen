@@ -27,10 +27,10 @@ public final class FileCompressedReader implements AssetReader<Bytes, EternalAss
     public Bytes read(BinaryReader reader, EternalAsset resource) throws IOException {
         var header = FileCompressedHeader.read(reader);
         if (header.compressedSize() == -1) {
-            return reader.readBytesStruct(header.uncompressedSize());
+            return reader.readBytes(header.uncompressedSize());
         }
 
-        var compressed = reader.readBytesStruct(header.compressedSize());
+        var compressed = reader.readBytes(header.compressedSize());
         return decompressor.decompress(compressed, header.uncompressedSize());
     }
 }

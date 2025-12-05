@@ -29,8 +29,8 @@ public record LightDb(
         var indexEntries = reader.readObjects(header.hashLength(), LightDbIndexEntry::read);
 
         reader.expectPosition(header.hashOffset());
-        var hashes = reader.readLongsStruct(header.hashLength());
-        var hashIds = reader.readIntsStruct(header.hashLength());
+        var hashes = reader.readLongs(header.hashLength());
+        var hashIds = reader.readInts(header.hashLength());
 
         reader.expectPosition(header.imageOffset());
         var imageHeaders = new ArrayList<LightDbImageHeader>();
@@ -45,7 +45,7 @@ public record LightDb(
         Check.state(nameGroupMagic == 0x758ac962 || nameGroupMagic == 0x758ac961, "Invalid name group magic");
         var nameGroups = reader.readObjects(reader.readInt(), LightDbNameGroup::read);
 
-        var unknownInts = reader.readIntsStruct(6);
+        var unknownInts = reader.readInts(6);
         var numParts1 = reader.readInt();
         var numParts2 = reader.readInt();
         reader.expectInt(0);

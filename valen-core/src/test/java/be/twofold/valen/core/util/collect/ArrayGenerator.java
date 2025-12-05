@@ -9,10 +9,20 @@ import java.lang.invoke.*;
 import java.nio.*;
 import java.nio.file.*;
 import java.util.*;
+import java.util.stream.*;
 
 final class ArrayGenerator {
     private static final ClassName CHECK_CLASS = ClassName.get("be.twofold.valen.core.util", "Check");
     private static final String PARENT_CLASS_NAME = "Array";
+
+    private static final Map<Class<?>, Class<?>> STREAM_CLASSES = Map.of(
+        byte.class, IntStream.class,
+        short.class, IntStream.class,
+        int.class, IntStream.class,
+        long.class, LongStream.class,
+        float.class, DoubleStream.class,
+        double.class, DoubleStream.class
+    );
 
     public static void main(String[] args) throws IOException {
         generateInterface();
@@ -162,6 +172,24 @@ final class ArrayGenerator {
 
         // slice methods
         addSliceMethods(builder, thisType);
+
+        // stream method
+        var returnType = STREAM_CLASSES.get(primitiveClass);
+        var statement = primitiveClass == int.class || primitiveClass == long.class || primitiveClass == double.class
+            ? CodeBlock.of("return $T.stream(array, offset, offset + length)", Arrays.class)
+            : CodeBlock.of("return $T.range(offset, offset + length).map$L(i -> array[i])", IntStream.class, primitiveClass == float.class ? "ToDouble" : "");
+        builder.addMethod(MethodSpec.methodBuilder("stream")
+            .addModifiers(Modifier.PUBLIC)
+            .returns(returnType)
+            .addStatement(statement)
+            .build());
+
+        // toArray method
+        builder.addMethod(MethodSpec.methodBuilder("toArray")
+            .addModifiers(Modifier.PUBLIC)
+            .returns(arrayType)
+            .addStatement("return $T.copyOfRange(array, offset, offset + length)", Arrays.class)
+            .build());
 
         // Override methods
         addOverrideMethods(builder, className, wrapperType, primitiveClass, thisType);

@@ -1,7 +1,6 @@
 package be.twofold.valen.game.greatcircle.reader.image;
 
 import be.twofold.valen.core.texture.*;
-import be.twofold.valen.core.util.*;
 import be.twofold.valen.game.idtech.defines.*;
 import be.twofold.valen.game.idtech.defines.TextureFormat;
 
@@ -36,7 +35,7 @@ public final class ImageMapper {
                     image.sliceInfos().get(mipIndex).width(),
                     image.sliceInfos().get(mipIndex).height(),
                     format,
-                    Buffers.toArray(image.slices()[mipIndex].asBuffer())
+                    image.slices()[mipIndex].toArray()
                 ));
             }
         }

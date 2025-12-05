@@ -1,9 +1,9 @@
 package be.twofold.valen.game.greatcircle.reader.resources;
 
 import be.twofold.valen.core.io.*;
+import be.twofold.valen.core.util.collect.*;
 
 import java.io.*;
-import java.nio.*;
 import java.nio.charset.*;
 import java.util.*;
 
@@ -11,9 +11,9 @@ public record Resources(
     ResourcesHeader header,
     List<ResourcesEntry> entries,
     List<String> pathStrings,
-    int[] pathStringIndex,
+    Ints pathStringIndex,
     List<ResourcesDependency> dependencies,
-    int[] dependencyIndex,
+    Ints dependencyIndex,
     List<ResourceSpecialHash> specialHashes
 ) {
     private static final CharsetDecoder DECODER = StandardCharsets.US_ASCII.newDecoder();
@@ -32,8 +32,8 @@ public record Resources(
         var offsets = reader.readLongsAsInts(numStrings);
         var stringBufferLength = header.addrDependencyEntries() - header.addrPathStringOffsets() - (numStrings + 1) * Long.BYTES;
         var stringBufferRaw = reader.readBytes(stringBufferLength);
-        var stringBuffer = DECODER.decode(ByteBuffer.wrap(stringBufferRaw)).toString();
-        var pathStrings = Arrays.stream(offsets)
+        var stringBuffer = DECODER.decode(stringBufferRaw.asBuffer()).toString();
+        var pathStrings = offsets.stream()
             .mapToObj(i -> stringBuffer.substring(i, stringBuffer.indexOf('\0', i)))
             .toList();
 
@@ -57,9 +57,9 @@ public record Resources(
             "header=" + header + ", " +
             "entries=(" + entries.size() + " entries), " +
             "pathStrings=(" + pathStrings.size() + " strings), " +
-            "pathStringIndex=(" + pathStringIndex.length + " indices), " +
+            "pathStringIndex=(" + pathStringIndex.length() + " indices), " +
             "dependencies=(" + dependencies.size() + " entries), " +
-            "dependencyIndex=(" + dependencyIndex.length + " indices)" +
+            "dependencyIndex=(" + dependencyIndex.length() + " indices)" +
             "]";
     }
 }

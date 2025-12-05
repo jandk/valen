@@ -39,7 +39,7 @@ public final class GeometryReader {
             GeoMemoryLayout::combinedVertexMask,
             layout -> new Offsets(
                 layout.indexOffset(),
-                Arrays.copyOf(layout.vertexOffsets(), layout.numVertexStreams())
+                layout.vertexOffsets().stream().limit(layout.numVertexStreams()).toArray()
             )));
 
         var meshes = new ArrayList<Mesh>();
@@ -52,7 +52,7 @@ public final class GeometryReader {
                 var offsets = offsetsByLayout.get(layout.combinedVertexMask());
                 var builder = GeoMeshInfo.builder(lodInfo.numFaces() * 3, lodInfo.numVertices());
                 for (var v = 0; v < layout.numVertexStreams(); v++) {
-                    var mask = GeometryVertexMask.from(layout.vertexMasks()[v]);
+                    var mask = GeometryVertexMask.from(layout.vertexMasks().get(v));
                     var skinningMode = animated ? SkinningMode.Fixed4 : SkinningMode.None;
                     buildAccessors(offsets.vertexOffsets[v], mask.size(), mask, lodInfo, skinningMode, builder);
                     offsets.vertexOffsets[v] += lodInfo.numVertices() * mask.size();

@@ -18,7 +18,7 @@ public record Image(
         var mipData = new Bytes[mipInfos.size()];
 
         for (int i = header.startMip(); i < header.totalMipCount(); i++) {
-            mipData[i] = reader.readBytesStruct(mipInfos.get(i).decompressedSize());
+            mipData[i] = reader.readBytes(mipInfos.get(i).decompressedSize());
         }
         return new Image(header, mipInfos, mipData);
     }

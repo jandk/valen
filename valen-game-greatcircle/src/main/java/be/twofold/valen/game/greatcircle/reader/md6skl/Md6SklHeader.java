@@ -1,6 +1,7 @@
 package be.twofold.valen.game.greatcircle.reader.md6skl;
 
-import be.twofold.valen.core.io.BinaryReader;
+import be.twofold.valen.core.io.*;
+import be.twofold.valen.core.util.collect.*;
 
 import java.io.*;
 
@@ -20,9 +21,9 @@ public record Md6SklHeader(
     short jointHandleTblOffset,
     short userChannelHandleTblOffset,
     short rigControlHandleTblOffset,
-    short[] jointWeightOffsets,
-    short[] userWeightOffsets,
-    byte[] pad
+    Shorts jointWeightOffsets,
+    Shorts userWeightOffsets,
+    Bytes pad
 ) {
     public static Md6SklHeader read(BinaryReader reader) throws IOException {
         int size = reader.readInt();
@@ -40,9 +41,9 @@ public record Md6SklHeader(
         short jointHandleTblOffset = reader.readShort();
         short userChannelHandleTblOffset = reader.readShort();
         short rigControlHandleTblOffset = reader.readShort();
-        short[] jointWeightOffsets = reader.readShorts(8);
-        short[] userWeightOffsets = reader.readShorts(8);
-        byte[] pad = reader.readBytes(6);
+        Shorts jointWeightOffsets = reader.readShorts(8);
+        Shorts userWeightOffsets = reader.readShorts(8);
+        Bytes pad = reader.readBytes(6);
 
         return new Md6SklHeader(
             size,

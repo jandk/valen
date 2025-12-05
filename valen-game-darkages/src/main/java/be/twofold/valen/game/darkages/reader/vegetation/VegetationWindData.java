@@ -2,33 +2,34 @@ package be.twofold.valen.game.darkages.reader.vegetation;
 
 import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.math.*;
+import be.twofold.valen.core.util.collect.*;
 
 import java.io.*;
 
 public record VegetationWindData(
-    float[] sharedBend,
-    float[] sharedOscillation,
-    float[] sharedSpeed,
-    float[] sharedTurbulence,
-    float[] sharedFlexibility,
-    float sharedIndependence,
-    float[] branch1Bend,
-    float[] branch1Oscillation,
-    float[] branch1Speed,
-    float[] branch1Turbulence,
-    float[] branch1Flexibility,
-    float branch1Independence,
-    float[] branch2Bend,
-    float[] branch2Oscillation,
-    float[] branch2Speed,
-    float[] branch2Turbulence,
-    float[] branch2Flexibility,
-    float branch2Independence,
-    float[] ripplePlanar,
-    float[] rippleDirectional,
-    float[] rippleSpeed,
-    float[] rippleFlexibility,
-    float rippleIndependence,
+    Floats sharedBend,
+    Floats sharedOscillationStruct,
+    Floats sharedSpeedStruct,
+    Floats sharedTurbulenceStruct,
+    Floats sharedFlexibilityStruct,
+    float sharedIndependenceStruct,
+    Floats branch1Bend,
+    Floats branch1OscillationStruct,
+    Floats branch1SpeedStruct,
+    Floats branch1TurbulenceStruct,
+    Floats branch1FlexibilityStruct,
+    float branch1IndependenceStruct,
+    Floats branch2Bend,
+    Floats branch2OscillationStruct,
+    Floats branch2SpeedStruct,
+    Floats branch2TurbulenceStruct,
+    Floats branch2FlexibilityStruct,
+    float branch2IndependenceStruct,
+    Floats ripplePlanar,
+    Floats rippleDirectionalStruct,
+    Floats rippleSpeedStruct,
+    Floats rippleFlexibilityStruct,
+    float rippleIndependenceStruct,
     float rippleShimmer,
     float branch1StretchLimit,
     float branch2StretchLimit,
@@ -44,28 +45,28 @@ public record VegetationWindData(
 ) {
     public static VegetationWindData read(BinaryReader reader) throws IOException {
         int count = reader.readInt();
-        float[] sharedBend = reader.readFloats(count);
-        float[] sharedOscillation = reader.readFloats(count);
-        float[] sharedSpeed = reader.readFloats(count);
-        float[] sharedTurbulence = reader.readFloats(count);
-        float[] sharedFlexibility = reader.readFloats(count);
+        Floats sharedBend = reader.readFloats(count);
+        Floats sharedOscillation = reader.readFloats(count);
+        Floats sharedSpeed = reader.readFloats(count);
+        Floats sharedTurbulence = reader.readFloats(count);
+        Floats sharedFlexibility = reader.readFloats(count);
         float sharedIndependence = reader.readFloat();
-        float[] branch1Bend = reader.readFloats(count);
-        float[] branch1Oscillation = reader.readFloats(count);
-        float[] branch1Speed = reader.readFloats(count);
-        float[] branch1Turbulence = reader.readFloats(count);
-        float[] branch1Flexibility = reader.readFloats(count);
+        Floats branch1Bend = reader.readFloats(count);
+        Floats branch1Oscillation = reader.readFloats(count);
+        Floats branch1Speed = reader.readFloats(count);
+        Floats branch1Turbulence = reader.readFloats(count);
+        Floats branch1Flexibility = reader.readFloats(count);
         float branch1Independence = reader.readFloat();
-        float[] branch2Bend = reader.readFloats(count);
-        float[] branch2Oscillation = reader.readFloats(count);
-        float[] branch2Speed = reader.readFloats(count);
-        float[] branch2Turbulence = reader.readFloats(count);
-        float[] branch2Flexibility = reader.readFloats(count);
+        Floats branch2Bend = reader.readFloats(count);
+        Floats branch2Oscillation = reader.readFloats(count);
+        Floats branch2Speed = reader.readFloats(count);
+        Floats branch2Turbulence = reader.readFloats(count);
+        Floats branch2Flexibility = reader.readFloats(count);
         float branch2Independence = reader.readFloat();
-        float[] ripplePlanar = reader.readFloats(count);
-        float[] rippleDirectional = reader.readFloats(count);
-        float[] rippleSpeed = reader.readFloats(count);
-        float[] rippleFlexibility = reader.readFloats(count);
+        Floats ripplePlanar = reader.readFloats(count);
+        Floats rippleDirectional = reader.readFloats(count);
+        Floats rippleSpeed = reader.readFloats(count);
+        Floats rippleFlexibility = reader.readFloats(count);
         float rippleIndependence = reader.readFloat();
         float rippleShimmer = reader.readFloat();
         float branch1StretchLimit = reader.readFloat();

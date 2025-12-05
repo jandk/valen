@@ -24,7 +24,7 @@ public record Image(
         var slices = new Bytes[numSlices];
         var sliceInfos = reader.readObjects(numSlices, ImageSlice::read);
         for (int i = header.startMip(); i < sliceInfos.size(); i++) {
-            slices[i] = reader.readBytesStruct(sliceInfos.get(i).size());
+            slices[i] = reader.readBytes(sliceInfos.get(i).size());
         }
 
         reader.expectEnd();

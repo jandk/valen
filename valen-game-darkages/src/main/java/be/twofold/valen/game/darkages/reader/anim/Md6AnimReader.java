@@ -51,11 +51,11 @@ public final class Md6AnimReader implements AssetReader<Animation, DarkAgesAsset
         return new Animation(skeleton, anim.data().frameRate(), tracks);
     }
 
-    private List<FrameSet> readUnstreamed(BinaryReader reader, int[] frameSetOffsetTable, Md6AnimMap animMap) throws IOException {
+    private List<FrameSet> readUnstreamed(BinaryReader reader, Ints frameSetOffsetTable, Md6AnimMap animMap) throws IOException {
         var start = reader.position();
         var frameSets = new ArrayList<FrameSet>();
-        for (var i = 0; i < frameSetOffsetTable.length - 1; i++) {
-            var frameSetOffset = start + frameSetOffsetTable[i] * 16L;
+        for (var i = 0; i < frameSetOffsetTable.length() - 1; i++) {
+            var frameSetOffset = start + frameSetOffsetTable.get(i) * 16L;
             var frameSet = reader.position(frameSetOffset).readObject(s -> FrameSet.read(s, frameSetOffset, animMap));
             frameSets.add(frameSet);
         }
@@ -65,15 +65,15 @@ public final class Md6AnimReader implements AssetReader<Animation, DarkAgesAsset
     private List<FrameSet> readStreamed(Md6AnimStreamInfo streamInfo, Md6AnimMap animMap, long hash) throws IOException {
         var sources = new BinaryReader[streamInfo.layouts().size()];
         var frameSets = new ArrayList<FrameSet>();
-        for (int i = 0; i < streamInfo.framsetToStreamLayout().length; i++) {
-            var layoutIndex = streamInfo.framsetToStreamLayout()[i];
+        for (int i = 0; i < streamInfo.framsetToStreamLayout().length(); i++) {
+            var layoutIndex = streamInfo.framsetToStreamLayout().get(i);
             if (sources[layoutIndex] == null) {
                 var streamHash = Hash.hash(hash, 0, layoutIndex);
                 var bytes = archive.readStream(streamHash, streamInfo.layouts().get(layoutIndex).uncompressedSize());
                 sources[layoutIndex] = BinaryReader.fromBytes(bytes);
             }
 
-            var frameSetOffset = Short.toUnsignedInt(streamInfo.streamFrameSetOffsets()[i]);
+            var frameSetOffset = Short.toUnsignedInt(streamInfo.streamFrameSetOffsets().get(i));
             var frameSet = FrameSet.read(sources[layoutIndex], frameSetOffset, animMap);
             frameSets.add(frameSet);
         }

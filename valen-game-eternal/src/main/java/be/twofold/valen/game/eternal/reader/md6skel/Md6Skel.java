@@ -25,7 +25,7 @@ public record Md6Skel(
         var translations = reader.readObjects(header.numJoints8(), Vector3::read);
 
         reader.position(header.parentTblOffset() + 4);
-        var parents = reader.readShortsStruct(header.numJoints8());
+        var parents = reader.readShorts(header.numJoints8());
 
         reader.position(header.inverseBasePoseOffset() + 4);
         var inverseBasePoses = reader.readObjects(header.numJoints8(), Md6Skel::readInverseBasePose);
@@ -37,8 +37,9 @@ public record Md6Skel(
     }
 
     private static Matrix4 readInverseBasePose(BinaryReader reader) throws IOException {
-        var floats = Arrays.copyOf(reader.readFloats(12), 16);
-        floats[15] = 1.0f;
-        return Matrix4.fromArray(floats).transpose();
+        var floats = MutableFloats.allocate(16);
+        reader.readFloats(12).copyTo(floats, 0);
+        floats.set(15, 1.0f);
+        return Matrix4.fromFloats(floats).transpose();
     }
 }

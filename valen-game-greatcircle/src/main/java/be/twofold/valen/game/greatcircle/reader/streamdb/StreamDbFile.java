@@ -27,8 +27,8 @@ public final class StreamDbFile implements Container<Long, StreamDbEntry> {
         var streamDb = StreamDb.read(reader);
 
         var entries = new HashMap<Long, StreamDbEntry>();
-        for (var i = 0; i < streamDb.identities().length; i++) {
-            var identity = streamDb.identities()[i];
+        for (var i = 0; i < streamDb.identities().length(); i++) {
+            var identity = streamDb.identities().get(i);
             var entry = streamDb.entries().get(i);
             entries.put(identity, entry);
         }
@@ -57,7 +57,7 @@ public final class StreamDbFile implements Container<Long, StreamDbEntry> {
         };
 
         reader.position(entry.offset());
-        var compressed = reader.readBytesStruct(entry.length());
+        var compressed = reader.readBytes(entry.length());
         return decompressor.decompress(compressed, size);
     }
 

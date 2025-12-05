@@ -1,19 +1,20 @@
 package be.twofold.valen.game.greatcircle.reader.md6mesh;
 
 import be.twofold.valen.core.io.*;
+import be.twofold.valen.core.util.collect.*;
 import be.twofold.valen.game.idtech.geometry.*;
 
 import java.io.*;
 import java.util.*;
 
 record GeometryMemoryLayout(
-        int combinedVertexMask,
-        int size,
-        int numVertexStreams,
-        int[] vertexMasks,
-        int[] vertexOffsets,
-        int indexOffset,
-        List<GeometryBlendShapeLayout> blendShapeLayouts
+    int combinedVertexMask,
+    int size,
+    int numVertexStreams,
+    Ints vertexMasks,
+    Ints vertexOffsets,
+    int indexOffset,
+    List<GeometryBlendShapeLayout> blendShapeLayouts
 ) implements GeoMemoryLayout {
     static GeometryMemoryLayout read(BinaryReader reader) throws IOException {
         var combinedVertexMask = reader.readInt();
@@ -23,19 +24,19 @@ record GeometryMemoryLayout(
         var vertexOffsets = reader.readInts(numVertexStreams);
         var indexOffset = reader.readInt();
 
-        int blendSize = reader.readInt();
+        var blendSize = reader.readInt();
         var blendShapeLayouts = blendSize != 0
             ? reader.readObjects(reader.readInt(), GeometryBlendShapeLayout::read)
-                : List.<GeometryBlendShapeLayout>of();
+            : List.<GeometryBlendShapeLayout>of();
 
         return new GeometryMemoryLayout(
-                combinedVertexMask,
-                size,
-                numVertexStreams,
-                vertexMasks,
-                vertexOffsets,
-                indexOffset,
-                blendShapeLayouts
+            combinedVertexMask,
+            size,
+            numVertexStreams,
+            vertexMasks,
+            vertexOffsets,
+            indexOffset,
+            blendShapeLayouts
         );
     }
 }

@@ -46,8 +46,8 @@ public final class ResourcesFile implements Container<DarkAgesAssetID, DarkAgesA
     }
 
     private DarkAgesAsset mapResourceEntry(Resources resources, ResourcesEntry entry) {
-        var type = resources.pathStrings().get(resources.pathStringIndex()[entry.strings()]);
-        var name = resources.pathStrings().get(resources.pathStringIndex()[entry.strings() + 1]);
+        var type = resources.pathStrings().get(resources.pathStringIndex().get(entry.strings()));
+        var name = resources.pathStrings().get(resources.pathStringIndex().get(entry.strings() + 1));
 
         var resourceName = new ResourceName(name);
         var resourceType = ResourcesType.fromName(type);
@@ -90,7 +90,7 @@ public final class ResourcesFile implements Container<DarkAgesAssetID, DarkAgesA
         // Read the chunk
         reader.position(resource.offset());
         var compressed = reader
-            .readBytesStruct(resource.compressedSize())
+            .readBytes(resource.compressedSize())
             .slice(resource.compression() == ResourcesCompressionMode.RES_COMP_MODE_KRAKEN_CHUNKED ? 12 : 0);
         var decompressed = decompressor.decompress(compressed, resource.size());
 

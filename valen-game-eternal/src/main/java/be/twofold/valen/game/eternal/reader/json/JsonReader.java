@@ -17,6 +17,6 @@ public final class JsonReader implements AssetReader<Bytes, EternalAsset> {
     @Override
     public Bytes read(BinaryReader reader, EternalAsset asset) throws IOException {
         int size = Math.toIntExact(reader.readLongBE());
-        return reader.readBytesStruct(size);
+        return reader.readBytes(size);
     }
 }

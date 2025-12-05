@@ -1,6 +1,7 @@
 package be.twofold.valen.game.darkages.reader.resources;
 
 import be.twofold.valen.core.io.*;
+import be.twofold.valen.core.util.collect.*;
 
 import java.io.*;
 import java.nio.charset.*;
@@ -10,9 +11,9 @@ public record Resources(
     ResourcesHeader header,
     List<ResourcesEntry> entries,
     List<String> pathStrings,
-    int[] pathStringIndex,
+    Ints pathStringIndex,
     List<ResourcesDependency> dependencies,
-    int[] dependencyIndex
+    Ints dependencyIndex
 ) {
     private static final CharsetDecoder DECODER = StandardCharsets.US_ASCII.newDecoder();
 
@@ -29,9 +30,9 @@ public record Resources(
         var numStrings = reader.readLongAsInt();
         var offsets = reader.readLongsAsInts(numStrings);
         var stringBufferLength = header.addrDependencyEntries() - header.addrPathStringOffsets() - (numStrings + 1) * Long.BYTES;
-        var stringBufferRaw = reader.readBytesStruct(stringBufferLength);
+        var stringBufferRaw = reader.readBytes(stringBufferLength);
         var stringBuffer = DECODER.decode(stringBufferRaw.asBuffer()).toString();
-        var pathStrings = Arrays.stream(offsets)
+        var pathStrings = offsets.stream()
             .mapToObj(i -> stringBuffer.substring(i, stringBuffer.indexOf('\0', i)))
             .toList();
 
@@ -54,9 +55,9 @@ public record Resources(
             "header=" + header + ", " +
             "entries=(" + entries.size() + " entries), " +
             "pathStrings=(" + pathStrings.size() + " strings), " +
-            "pathStringIndex=(" + pathStringIndex.length + " indices), " +
+            "pathStringIndex=(" + pathStringIndex.length() + " indices), " +
             "dependencies=(" + dependencies.size() + " entries), " +
-            "dependencyIndex=(" + dependencyIndex.length + " indices)" +
+            "dependencyIndex=(" + dependencyIndex.length() + " indices)" +
             "]";
     }
 }

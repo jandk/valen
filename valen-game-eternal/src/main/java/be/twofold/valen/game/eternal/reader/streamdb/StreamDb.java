@@ -26,7 +26,7 @@ public record StreamDb(
         var numPrefetchIDs = prefetchBlocks.stream()
             .mapToInt(StreamDbPrefetchBlock::numItems)
             .sum();
-        var prefetchIDs = reader.readLongsStruct(numPrefetchIDs);
+        var prefetchIDs = reader.readLongs(numPrefetchIDs);
         return new StreamDb(header, entries, prefetchHeader, prefetchBlocks, prefetchIDs);
     }
 

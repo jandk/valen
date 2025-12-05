@@ -353,8 +353,8 @@ public abstract class AbstractRenderParmReader<V extends Asset> implements Asset
     }
 
     protected RenderParm read(BinaryReader reader) throws IOException {
-        var bytes = reader.readBytes(Math.toIntExact(reader.size()));
-        var parser = new DeclParser(new String(bytes), true);
+        var source = reader.readString(Math.toIntExact(reader.size()));
+        var parser = new DeclParser(source, true);
 
         var result = new RenderParm();
         parser.expect(DeclTokenType.OpenBrace);

@@ -2,7 +2,7 @@ package be.twofold.valen.game.greatcircle.reader.md6skl;
 
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.geometry.*;
-import be.twofold.valen.core.io.BinaryReader;
+import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.math.*;
 import be.twofold.valen.game.greatcircle.*;
 import be.twofold.valen.game.greatcircle.resource.*;
@@ -46,7 +46,7 @@ public final class Md6SklReader implements AssetReader<Skeleton, GreatCircleAsse
     private Bone mapBone(Md6Skl md6Skl, int index) {
         return new Bone(
             md6Skl.jointNames().get(index),
-            md6Skl.parentTbl()[index],
+            md6Skl.parentTbl().get(index),
             md6Skl.rotations().get(index),
             md6Skl.scales().get(index),
             md6Skl.translations().get(index),

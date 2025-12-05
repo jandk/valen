@@ -46,7 +46,7 @@ public record Md6AnimFrameSet(
         short totalSize = reader.readShort();
         short frameStart = reader.readShort();
         short frameRange = reader.readShort();
-        String pad = new String(reader.readBytes(10));
+        String pad = reader.readString(10);
 
         return new Md6AnimFrameSet(
             firstROffset,

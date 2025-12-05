@@ -1,21 +1,22 @@
 package be.twofold.valen.game.greatcircle.reader.hair;
 
 import be.twofold.valen.core.io.*;
+import be.twofold.valen.core.util.collect.*;
 
 import java.io.*;
 import java.util.*;
 
 public record HairMesh(
     HairHeader header,
-    int[] particleSumPerStrand,
+    Ints particleSumPerStrand,
     List<String> materials,
-    short[] sourcePositions,
-    int[] particleInfo,
-    int[] segments,
-    short[] unknown1,
+    Shorts sourcePositions,
+    Ints particleInfo,
+    Ints segments,
+    Shorts unknown1,
     List<HairStrandInfoGPU> gpuStrands,
-    float[] particleStrandDistances,
-    short[] strandRootUVs,
+    Floats particleStrandDistances,
+    Shorts strandRootUVs,
     List<HairStrandBlendShape> strandBlendShapeInfo
 ) {
     public static HairMesh read(BinaryReader reader) throws IOException {
@@ -28,8 +29,8 @@ public record HairMesh(
         var unknown1 = reader.readShorts(header.numParticles());
 
         var gpuStrands = (List<HairStrandInfoGPU>) null;
-        var particleStrandDistances = (float[]) null;
-        var strandRootUVs = (short[]) null;
+        var particleStrandDistances = (Floats) null;
+        var strandRootUVs = (Shorts) null;
         if (header.allowSimulation()) {
             gpuStrands = reader.readObjects(header.numStrands(), HairStrandInfoGPU::read);
             particleStrandDistances = reader.readFloats(header.numStrands());

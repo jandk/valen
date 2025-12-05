@@ -12,7 +12,7 @@ public record File(
 ) {
     public static File read(BinaryReader reader) throws IOException {
         var creationTime = Instant.ofEpochSecond(reader.readInt());
-        var data = reader.readBytesStruct(Math.toIntExact(reader.size() - 4));
+        var data = reader.readBytes(Math.toIntExact(reader.size() - 4));
 
         return new File(creationTime, data);
     }

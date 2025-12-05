@@ -17,7 +17,7 @@ public record StaticModelHeader(
         Vector3 referencePosition = Vector3.read(reader);
         var numLods = reader.readInt();
         var numSurfaces = reader.readInt();
-        var maxLodDeviations = reader.readFloatsStruct(numLods);
+        var maxLodDeviations = reader.readFloats(numLods);
         var streamable = reader.readBoolInt();
 
         return new StaticModelHeader(

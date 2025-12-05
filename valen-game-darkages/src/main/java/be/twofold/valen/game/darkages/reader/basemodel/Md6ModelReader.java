@@ -139,7 +139,7 @@ public final class Md6ModelReader implements AssetReader<Model, DarkAgesAsset> {
     private void fixJointIndices(Md6Model md6, List<Mesh> meshes) {
         var skinnedJoints = md6.header().skinnedJoints();
         var extraJoints = md6.header().extraJoints();
-        var skinnedJointsLen8 = (skinnedJoints.length + 7) & ~7;
+        var skinnedJointsLen8 = (skinnedJoints.length() + 7) & ~7;
 
         for (var i = 0; i < meshes.size(); i++) {
             var meshInfo = md6.meshInfos().get(i);
@@ -151,13 +151,13 @@ public final class Md6ModelReader implements AssetReader<Model, DarkAgesAsset> {
                 var index1 = index0 + offset;
                 short index2;
                 if (index1 < skinnedJointsLen8) {
-                    index2 = skinnedJoints[index1];
+                    index2 = skinnedJoints.get(index1);
                 } else {
-                    var index11 = extraJoints[index1 - skinnedJointsLen8];
+                    var index11 = extraJoints.get(index1 - skinnedJointsLen8);
                     if (index11 < skinnedJointsLen8) {
-                        index2 = skinnedJoints[index11];
+                        index2 = skinnedJoints.get(index11);
                     } else {
-                        index2 = skinnedJoints[extraJoints[index11 - skinnedJointsLen8]];
+                        index2 = skinnedJoints.get(extraJoints.get(index11 - skinnedJointsLen8));
                     }
                 }
                 shorts.set(j, index2);

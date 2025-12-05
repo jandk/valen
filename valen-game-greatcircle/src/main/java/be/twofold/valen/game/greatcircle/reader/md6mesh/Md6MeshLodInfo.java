@@ -1,7 +1,8 @@
 package be.twofold.valen.game.greatcircle.reader.md6mesh;
 
-import be.twofold.valen.core.io.BinaryReader;
+import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.math.*;
+import be.twofold.valen.core.util.collect.*;
 import be.twofold.valen.game.idtech.geometry.*;
 
 import java.io.*;
@@ -18,7 +19,7 @@ record Md6MeshLodInfo(
     int vertexMask,
     float unkFloat2,
     float unkFloat3,
-    short[] blendShapeReferences,
+    Shorts blendShapeReferences,
     List<Md6MeshBlendShape> blendShapes
 ) implements LodInfo {
     static Md6MeshLodInfo read(BinaryReader reader) throws IOException {
@@ -34,12 +35,9 @@ record Md6MeshLodInfo(
         var unkFloat2 = reader.readFloat();
 
         var numBlendShapes = reader.readInt();
-        short[] blendShapeReferences;
-        List<Md6MeshBlendShape> blendShapes;
-        if (numBlendShapes == 0) {
-            blendShapeReferences = new short[0];
-            blendShapes = List.of();
-        } else {
+        var blendShapeReferences = Shorts.empty();
+        var blendShapes = List.<Md6MeshBlendShape>of();
+        if (numBlendShapes != 0) {
             blendShapeReferences = reader.readShorts(reader.readInt());
             blendShapes = reader.readObjects(numBlendShapes, Md6MeshBlendShape::read);
         }

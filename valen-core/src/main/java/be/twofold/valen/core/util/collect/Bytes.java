@@ -6,6 +6,7 @@ import org.jetbrains.annotations.*;
 import java.lang.invoke.*;
 import java.nio.*;
 import java.util.*;
+import java.util.stream.*;
 
 @Debug.Renderer(
     childrenArray = "java.util.Arrays.copyOfRange(array, offset, offset + length)"
@@ -111,6 +112,14 @@ public class Bytes implements Comparable<Bytes>, Array {
     public Bytes slice(int offset, int length) {
         Check.fromIndexSize(offset, length, this.length);
         return new Bytes(array, this.offset + offset, length);
+    }
+
+    public IntStream stream() {
+        return IntStream.range(offset, offset + length).map(i -> array[i]);
+    }
+
+    public byte[] toArray() {
+        return Arrays.copyOfRange(array, offset, offset + length);
     }
 
     @Override

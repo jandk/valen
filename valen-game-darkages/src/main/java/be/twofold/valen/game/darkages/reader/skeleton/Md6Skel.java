@@ -2,23 +2,24 @@ package be.twofold.valen.game.darkages.reader.skeleton;
 
 import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.math.*;
+import be.twofold.valen.core.util.collect.*;
 
 import java.io.*;
 import java.util.*;
 
 public record Md6Skel(
     Md6SkelHeader header,
-    short[] parentTable,
-    short[] lastChildTable,
-    short[] jointNameHandleTblOffset,
-    short[] jointIndexTblOffset,
-    short[] userChannelHandleTable,
+    Shorts parentTable,
+    Shorts lastChildTable,
+    Shorts jointNameHandleTblOffset,
+    Shorts jointIndexTblOffset,
+    Shorts userChannelHandleTable,
     List<Quaternion> rotations,
     List<Vector3> scales,
     List<Vector3> translations,
     List<Matrix4> inverseBasePoses,
-    short[] jointSetTable,
-    short[] boundsJointTable,
+    Shorts jointSetTable,
+    Shorts boundsJointTable,
     List<String> jointNames,
     List<String> userChannelNames
 ) {
@@ -78,8 +79,9 @@ public record Md6Skel(
     }
 
     private static Matrix4 readInverseBasePose(BinaryReader reader) throws IOException {
-        var floats = Arrays.copyOf(reader.readFloats(12), 16);
-        floats[15] = 1.0f;
-        return Matrix4.fromArray(floats).transpose();
+        var floats = MutableFloats.allocate(16);
+        reader.readFloats(12).copyTo(floats, 0);
+        floats.set(15, 1.0f);
+        return Matrix4.fromFloats(floats).transpose();
     }
 }

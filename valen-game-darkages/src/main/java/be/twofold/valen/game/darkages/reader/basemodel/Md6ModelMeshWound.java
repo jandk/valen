@@ -1,13 +1,14 @@
 package be.twofold.valen.game.darkages.reader.basemodel;
 
-import be.twofold.valen.core.io.BinaryReader;
+import be.twofold.valen.core.io.*;
+import be.twofold.valen.core.util.collect.*;
 
 import java.io.*;
 
 public record Md6ModelMeshWound(
     String name,
     int meshIndex,
-    int[] offsets
+    Ints offsets
 ) {
     public static Md6ModelMeshWound read(BinaryReader reader) throws IOException {
         var name = reader.readPString();

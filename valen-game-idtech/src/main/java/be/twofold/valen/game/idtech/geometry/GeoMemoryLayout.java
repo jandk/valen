@@ -1,5 +1,7 @@
 package be.twofold.valen.game.idtech.geometry;
 
+import be.twofold.valen.core.util.collect.*;
+
 public interface GeoMemoryLayout {
 
     int combinedVertexMask();
@@ -8,9 +10,9 @@ public interface GeoMemoryLayout {
 
     int numVertexStreams();
 
-    int[] vertexMasks();
+    Ints vertexMasks();
 
-    int[] vertexOffsets();
+    Ints vertexOffsets();
 
     int indexOffset();
 

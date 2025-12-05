@@ -59,7 +59,7 @@ public final class ImageReader implements AssetReader<Texture, DarkAgesAsset> {
         var bytes = archive.readStream(Hash.hash(hash, 0, 0), uncompressedSize);
         try (var mipSource = BinaryReader.fromBytes(bytes)) {
             for (var i = 0; i < image.header().totalMipCount(); i++) {
-                image.mipData()[i] = mipSource.readBytesStruct(image.mipInfos().get(i).decompressedSize());
+                image.mipData()[i] = mipSource.readBytes(image.mipInfos().get(i).decompressedSize());
             }
         }
     }

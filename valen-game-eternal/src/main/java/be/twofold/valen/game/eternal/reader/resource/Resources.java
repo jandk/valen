@@ -30,9 +30,9 @@ public record Resources(
         var numStrings = reader.readLongAsInt();
         var offsets = reader.readLongsAsInts(numStrings);
         var stringBufferLength = header.addrDependencyEntries() - header.addrPathStringOffsets() - (numStrings + 1) * Long.BYTES;
-        var stringBufferRaw = reader.readBytesStruct(stringBufferLength);
+        var stringBufferRaw = reader.readBytes(stringBufferLength);
         var stringBuffer = DECODER.decode(stringBufferRaw.asBuffer()).toString();
-        var pathStrings = Arrays.stream(offsets)
+        var pathStrings = offsets.stream()
             .mapToObj(i -> stringBuffer.substring(i, stringBuffer.indexOf('\0', i)))
             .toList();
 
@@ -42,8 +42,8 @@ public record Resources(
         // which files to load. The filenames are only used for debugging purposes.
         // assert channel.position() == header.addrDependencyEntries();
         var dependencies = reader.readObjects(header.numDependencyEntries(), ResourcesDependency::read);
-        var dependencyIndex = reader.readIntsStruct(header.numDependencyIndexes());
-        var pathStringIndex = reader.readLongsAsIntsStruct(header.numPathStringIndexes());
+        var dependencyIndex = reader.readInts(header.numDependencyIndexes());
+        var pathStringIndex = reader.readLongsAsInts(header.numPathStringIndexes());
 
         // assert channel.position() == header.addrEndMarker();
         return new Resources(header, entries, pathStrings, pathStringIndex, dependencies, dependencyIndex);

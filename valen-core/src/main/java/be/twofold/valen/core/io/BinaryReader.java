@@ -1,6 +1,5 @@
 package be.twofold.valen.core.io;
 
-import be.twofold.valen.core.util.*;
 import be.twofold.valen.core.util.collect.*;
 
 import java.io.*;
@@ -61,18 +60,20 @@ public interface BinaryReader extends Closeable {
         return Double.longBitsToDouble(readLong());
     }
 
-    default byte[] readBytes(int len) throws IOException {
-        return Buffers.toArray(readBytesStruct(len).asBuffer());
+    default Bytes readBytes(int len) throws IOException {
+        var result = MutableBytes.allocate(len);
+        read(result);
+        return result;
     }
 
     default short readShortBE() throws IOException {
         return Short.reverseBytes(readShort());
     }
 
-    default short[] readShorts(int count) throws IOException {
-        var result = new short[count];
-        for (var i = 0; i < result.length; i++) {
-            result[i] = readShort();
+    default Shorts readShorts(int count) throws IOException {
+        var result = MutableShorts.allocate(count);
+        for (var i = 0; i < result.length(); i++) {
+            result.set(i, readShort());
         }
         return result;
     }
@@ -81,10 +82,10 @@ public interface BinaryReader extends Closeable {
         return Integer.reverseBytes(readInt());
     }
 
-    default int[] readInts(int count) throws IOException {
-        var result = new int[count];
-        for (var i = 0; i < result.length; i++) {
-            result[i] = readInt();
+    default Ints readInts(int count) throws IOException {
+        var result = MutableInts.allocate(count);
+        for (var i = 0; i < result.length(); i++) {
+            result.set(i, readInt());
         }
         return result;
     }
@@ -93,26 +94,26 @@ public interface BinaryReader extends Closeable {
         return Long.reverseBytes(readLong());
     }
 
-    default long[] readLongs(int count) throws IOException {
-        var result = new long[count];
-        for (var i = 0; i < result.length; i++) {
-            result[i] = readLong();
+    default Longs readLongs(int count) throws IOException {
+        var result = MutableLongs.allocate(count);
+        for (var i = 0; i < result.length(); i++) {
+            result.set(i, readLong());
         }
         return result;
     }
 
-    default float[] readFloats(int count) throws IOException {
-        var result = new float[count];
-        for (var i = 0; i < result.length; i++) {
-            result[i] = readFloat();
+    default Floats readFloats(int count) throws IOException {
+        var result = MutableFloats.allocate(count);
+        for (var i = 0; i < result.length(); i++) {
+            result.set(i, readFloat());
         }
         return result;
     }
 
-    default double[] readDoubles(int count) throws IOException {
-        var result = new double[count];
-        for (var i = 0; i < result.length; i++) {
-            result[i] = readDouble();
+    default Doubles readDoubles(int count) throws IOException {
+        var result = MutableDoubles.allocate(count);
+        for (var i = 0; i < result.length(); i++) {
+            result.set(i, readDouble());
         }
         return result;
     }
@@ -139,60 +140,28 @@ public interface BinaryReader extends Closeable {
         return Math.toIntExact(readLong());
     }
 
-    default int[] readLongsAsInts(int count) throws IOException {
-        var result = new int[count];
-        for (var i = 0; i < count; i++) {
-            result[i] = readLongAsInt();
+    default Ints readLongsAsInts(int len) throws IOException {
+        var result = MutableInts.allocate(len);
+        for (var i = 0; i < result.length(); i++) {
+            result.set(i, readLongAsInt());
         }
         return result;
     }
 
-
-    default Bytes readBytesStruct(int len) throws IOException {
-        var result = MutableBytes.allocate(len);
-        read(result);
-        return result;
-    }
-
-    default Shorts readShortsStruct(int len) throws IOException {
-        return Shorts.wrap(readShorts(len));
-    }
-
-    default Ints readIntsStruct(int len) throws IOException {
-        return Ints.wrap(readInts(len));
-    }
-
-    default Longs readLongsStruct(int len) throws IOException {
-        return Longs.wrap(readLongs(len));
-    }
-
-    default Ints readLongsAsIntsStruct(int len) throws IOException {
-        return Ints.wrap(readLongsAsInts(len));
-    }
-
-    default Floats readFloatsStruct(int len) throws IOException {
-        return Floats.wrap(readFloats(len));
-    }
-
-    default Doubles readDoublesStruct(int len) throws IOException {
-        return Doubles.wrap(readDoubles(len));
-    }
-
-
     default String readString(int length) throws IOException {
-        return StandardCharsets.UTF_8.decode(readBytesStruct(length).asBuffer()).toString();
+        return StandardCharsets.UTF_8.decode(this.readBytes(length).asBuffer()).toString();
     }
 
     default String readCString() throws IOException {
-        var result = new StringBuilder();
+        var result = new ByteArrayOutputStream();
         while (true) {
             var b = readByte();
             if (b == 0) {
                 break;
             }
-            result.append((char) b);
+            result.write(b);
         }
-        return result.toString();
+        return result.toString(StandardCharsets.UTF_8);
     }
 
     default String readPString() throws IOException {

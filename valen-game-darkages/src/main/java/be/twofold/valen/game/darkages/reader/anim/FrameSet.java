@@ -35,9 +35,9 @@ public record FrameSet(
         var firstT = reader.position(frameSetOffset + Short.toUnsignedInt(animFrameSet.firstTOffset())).readObjects(tLength, Vector3::read);
 
         var bytesPerBone = (animFrameSet.frameRange() + 7) >> 3;
-        var bitsR = reader.position(frameSetOffset + Short.toUnsignedInt(animFrameSet.RBitsOffset())).readBytesStruct(bytesPerBone * rLength);
-        var bitsS = reader.position(frameSetOffset + Short.toUnsignedInt(animFrameSet.SBitsOffset())).readBytesStruct(bytesPerBone * sLength);
-        var bitsT = reader.position(frameSetOffset + Short.toUnsignedInt(animFrameSet.TBitsOffset())).readBytesStruct(bytesPerBone * tLength);
+        var bitsR = reader.position(frameSetOffset + Short.toUnsignedInt(animFrameSet.RBitsOffset())).readBytes(bytesPerBone * rLength);
+        var bitsS = reader.position(frameSetOffset + Short.toUnsignedInt(animFrameSet.SBitsOffset())).readBytes(bytesPerBone * sLength);
+        var bitsT = reader.position(frameSetOffset + Short.toUnsignedInt(animFrameSet.TBitsOffset())).readBytes(bytesPerBone * tLength);
 
         var rangeR = reader.position(frameSetOffset + Short.toUnsignedInt(animFrameSet.rangeROffset())).readObjects(cardinality(bitsR), Md6Anim::decodeQuat);
         var rangeS = reader.position(frameSetOffset + Short.toUnsignedInt(animFrameSet.rangeSOffset())).readObjects(cardinality(bitsS), Vector3::read);

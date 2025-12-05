@@ -1,7 +1,6 @@
 package be.twofold.valen.game.eternal.reader.image;
 
 import be.twofold.valen.core.texture.*;
-import be.twofold.valen.core.util.*;
 import be.twofold.valen.game.idtech.defines.*;
 import be.twofold.valen.game.idtech.defines.TextureFormat;
 
@@ -34,7 +33,7 @@ public final class ImageMapper {
                     image.mipInfos().get(mipIndex).mipPixelWidth(),
                     image.mipInfos().get(mipIndex).mipPixelHeight(),
                     format,
-                    Buffers.toArray(image.mipData()[mipIndex].asBuffer())
+                    image.mipData()[mipIndex].toArray()
                 ));
             }
         }

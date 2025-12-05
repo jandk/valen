@@ -1,6 +1,7 @@
 package be.twofold.valen.game.greatcircle.reader.deformmodel;
 
 import be.twofold.valen.core.io.*;
+import be.twofold.valen.core.util.collect.*;
 import be.twofold.valen.game.idtech.geometry.*;
 
 import java.io.*;
@@ -10,8 +11,8 @@ record GeometryMemoryLayout(
     int combinedVertexMask,
     int size,
     int numVertexStreams,
-    int[] vertexMasks,
-    int[] vertexOffsets,
+    Ints vertexMasks,
+    Ints vertexOffsets,
     int indexOffset,
     int unknown1,
     int unknown2,

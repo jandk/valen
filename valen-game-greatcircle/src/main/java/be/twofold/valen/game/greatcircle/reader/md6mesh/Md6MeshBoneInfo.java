@@ -1,14 +1,15 @@
 package be.twofold.valen.game.greatcircle.reader.md6mesh;
 
-import be.twofold.valen.core.io.BinaryReader;
+import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.math.*;
+import be.twofold.valen.core.util.collect.*;
 
 import java.io.*;
 
 record Md6MeshBoneInfo(
-    short[] jointRemap,
+    Shorts jointRemap,
     Bounds defaultBounds,
-    float[] maxLodDeviations
+    Floats maxLodDeviations
 ) {
     static Md6MeshBoneInfo read(BinaryReader reader) throws IOException {
         var jointRemap = reader.readShorts(reader.readShort());

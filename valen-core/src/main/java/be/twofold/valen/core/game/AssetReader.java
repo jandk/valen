@@ -27,7 +27,7 @@ public interface AssetReader<R, A extends Asset> {
 
             @Override
             public Bytes read(BinaryReader reader, A asset) throws IOException {
-                return reader.readBytesStruct(Math.toIntExact(reader.size()));
+                return reader.readBytes(Math.toIntExact(reader.size()));
             }
         };
     }

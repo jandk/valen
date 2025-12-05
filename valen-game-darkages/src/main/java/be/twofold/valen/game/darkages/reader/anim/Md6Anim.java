@@ -2,6 +2,7 @@ package be.twofold.valen.game.darkages.reader.anim;
 
 import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.math.*;
+import be.twofold.valen.core.util.collect.*;
 
 import java.io.*;
 import java.util.*;
@@ -13,8 +14,8 @@ public record Md6Anim(
     List<Quaternion> constR,
     List<Vector3> constS,
     List<Vector3> constT,
-    byte[] frameSetTable,
-    int[] frameSetOffsetTable,
+    Bytes frameSetTable,
+    Ints frameSetOffsetTable,
     Md6AnimStreamInfo streamInfo
 ) {
     public static Md6Anim read(BinaryReader reader) throws IOException {
@@ -28,7 +29,7 @@ public record Md6Anim(
         var constT = reader.position(start + animData.constTOffset()).readObjects(animMap.constT().length, Vector3::read);
 
         // TODO: Figure out what index 1 does
-        var frameSetTable0 = reader.position(start + animData.frameSetTblOffset()[0]).readBytes(animData.numFrames());
+        var frameSetTable0 = reader.position(start + animData.frameSetTblOffset().get(0)).readBytes(animData.numFrames());
         // var frameSetTable1 = source.position(start + animData.frameSetTblOffset()[1]).readBytes(animData.numFrames());
         var frameSetOffsetTable = reader.position(start + animData.frameSetOffsetTblOffset()).readInts(animData.numFrameSets() + 1);
 

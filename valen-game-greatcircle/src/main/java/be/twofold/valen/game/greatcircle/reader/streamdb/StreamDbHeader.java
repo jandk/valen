@@ -1,6 +1,7 @@
 package be.twofold.valen.game.greatcircle.reader.streamdb;
 
 import be.twofold.valen.core.io.*;
+import be.twofold.valen.core.util.collect.*;
 
 import java.io.*;
 
@@ -16,9 +17,9 @@ public record StreamDbHeader(
     // streamDatabaseHeaderHashes_t
     int hashTypeOrPad,
     int entryHashesListOffset,
-    byte[] entriesTablesHash,
-    byte[] entryHashesHash,
-    byte[] headerHash
+    Bytes entriesTablesHash,
+    Bytes entryHashesHash,
+    Bytes headerHash
 ) {
     public static StreamDbHeader read(BinaryReader reader) throws IOException {
         reader.expectLong(0x61C7F32E29C2A551L);
@@ -31,9 +32,9 @@ public record StreamDbHeader(
 
         int hashTypeOrPad = reader.readInt();
         int entryHashesListOffset = reader.readInt();
-        byte[] entriesTablesHash = reader.readBytes(32);
-        byte[] entryHashesHash = reader.readBytes(32);
-        byte[] headerHash = reader.readBytes(32);
+        Bytes entriesTablesHash = reader.readBytes(32);
+        Bytes entryHashesHash = reader.readBytes(32);
+        Bytes headerHash = reader.readBytes(32);
 
         return new StreamDbHeader(
             headerLengthOrPad,

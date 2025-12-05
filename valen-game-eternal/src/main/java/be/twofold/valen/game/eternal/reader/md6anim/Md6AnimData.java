@@ -40,8 +40,8 @@ public record Md6AnimData(
         short nextSize = reader.readShort();
         short jointWeightsOffset = reader.readShort();
         reader.expectShort((short) 0);
-        Floats startDelta = reader.readFloatsStruct(12);
-        Floats endDelta = reader.readFloatsStruct(12);
+        Floats startDelta = reader.readFloats(12);
+        Floats endDelta = reader.readFloats(12);
         reader.expectLong(0);
 
         return new Md6AnimData(

@@ -5,6 +5,7 @@ import org.jetbrains.annotations.*;
 
 import java.nio.*;
 import java.util.*;
+import java.util.stream.*;
 
 @Debug.Renderer(
     childrenArray = "java.util.Arrays.copyOfRange(array, offset, offset + length)"
@@ -67,6 +68,14 @@ public class Ints implements Comparable<Ints>, Array {
     public Ints slice(int offset, int length) {
         Check.fromIndexSize(offset, length, this.length);
         return new Ints(array, this.offset + offset, length);
+    }
+
+    public IntStream stream() {
+        return Arrays.stream(array, offset, offset + length);
+    }
+
+    public int[] toArray() {
+        return Arrays.copyOfRange(array, offset, offset + length);
     }
 
     @Override

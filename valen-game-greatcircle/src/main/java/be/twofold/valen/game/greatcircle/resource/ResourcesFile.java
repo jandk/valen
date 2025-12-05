@@ -45,8 +45,8 @@ public final class ResourcesFile implements Container<GreatCircleAssetID, GreatC
     }
 
     private GreatCircleAsset mapResourceEntry(Resources resources, ResourcesEntry entry) {
-        var type = resources.pathStrings().get(resources.pathStringIndex()[entry.strings() + entry.resourceTypeString()]);
-        var name = resources.pathStrings().get(resources.pathStringIndex()[entry.strings() + entry.nameString()]);
+        var type = resources.pathStrings().get(resources.pathStringIndex().get(entry.strings() + entry.resourceTypeString()));
+        var name = resources.pathStrings().get(resources.pathStringIndex().get(entry.strings() + entry.nameString()));
 
         var resourceName = new ResourceName(name);
         var resourceType = ResourceType.fromValue(type);
@@ -88,7 +88,7 @@ public final class ResourcesFile implements Container<GreatCircleAssetID, GreatC
 
         reader.position(resource.offset());
         var compressed = reader
-            .readBytesStruct(resource.compressedSize())
+            .readBytes(resource.compressedSize())
             .slice(resource.compression() == ResourceCompressionMode.RES_COMP_MODE_KRAKEN_CHUNKED ? 12 : 0);
         return decompressor.decompress(compressed, resource.uncompressedSize());
     }

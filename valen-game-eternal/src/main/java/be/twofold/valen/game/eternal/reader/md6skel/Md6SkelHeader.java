@@ -34,12 +34,12 @@ public record Md6SkelHeader(
         var lastChildTblOffset = reader.readShort();
         var jointHandleTblOffset = reader.readShort();
         var userChannelHandleTblOffset = reader.readShort();
-        var jointWeightOffsets = reader.readShortsStruct(8);
-        var userWeightOffsets = reader.readShortsStruct(8);
+        var jointWeightOffsets = reader.readShorts(8);
+        var userWeightOffsets = reader.readShorts(8);
         var extraJointTblOffset = reader.readShort();
         reader.expectShort((short) 0); // skelRemapTblOffset
         var loadedDataSize = reader.readShort();
-        var pad = reader.readBytesStruct(6);
+        var pad = reader.readBytes(6);
 
         return new Md6SkelHeader(
             size,

@@ -5,6 +5,7 @@ import org.jetbrains.annotations.*;
 
 import java.nio.*;
 import java.util.*;
+import java.util.stream.*;
 
 @Debug.Renderer(
     childrenArray = "java.util.Arrays.copyOfRange(array, offset, offset + length)"
@@ -63,6 +64,14 @@ public class Doubles implements Comparable<Doubles>, Array {
     public Doubles slice(int offset, int length) {
         Check.fromIndexSize(offset, length, this.length);
         return new Doubles(array, this.offset + offset, length);
+    }
+
+    public DoubleStream stream() {
+        return Arrays.stream(array, offset, offset + length);
+    }
+
+    public double[] toArray() {
+        return Arrays.copyOfRange(array, offset, offset + length);
     }
 
     @Override

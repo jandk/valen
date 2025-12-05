@@ -89,7 +89,7 @@ public final class ResourcesFile implements Container<EternalAssetID, EternalAss
         // Read the chunk
         reader.position(resource.offset());
         var compressed = reader
-            .readBytesStruct(resource.compressedSize())
+                .readBytes(resource.compressedSize())
             .slice(resource.compression() == ResourceCompressionMode.RES_COMP_MODE_KRAKEN_CHUNKED ? 12 : 0);
         var decompressed = decompressor.decompress(compressed, resource.size());
 

@@ -1,6 +1,7 @@
 package be.twofold.valen.core.math;
 
 import be.twofold.valen.core.io.*;
+import be.twofold.valen.core.util.collect.*;
 
 import java.io.*;
 
@@ -95,6 +96,15 @@ public record Matrix4(
             array[+4], array[+5], array[+6], array[+7],
             array[+8], array[+9], array[10], array[11],
             array[12], array[13], array[14], array[15]
+        );
+    }
+
+    public static Matrix4 fromFloats(Floats floats) {
+        return new Matrix4(
+            floats.get(+0), floats.get(+1), floats.get(+2), floats.get(+3),
+            floats.get(+4), floats.get(+5), floats.get(+6), floats.get(+7),
+            floats.get(+8), floats.get(+9), floats.get(10), floats.get(11),
+            floats.get(12), floats.get(13), floats.get(14), floats.get(15)
         );
     }
 

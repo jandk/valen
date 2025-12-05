@@ -39,7 +39,7 @@ public record Md6Anim(
 
         var frameSets = new ArrayList<FrameSet>();
         for (var i = 0; i < data.numFrameSets(); i++) {
-            var frameSetOffset = start + frameSetOffsetTable[i] * 16;
+            var frameSetOffset = start + frameSetOffsetTable.get(i) * 16;
             var frameSet = reader.position(frameSetOffset).readObject(s -> readFrameSet(s, frameSetOffset, animMap));
             frameSets.add(frameSet);
         }
@@ -71,7 +71,7 @@ public record Md6Anim(
             var animT = reader.position(start + offset.animTRLEOffset()).readObject(s -> decodeRLE(s, 0xff));
             var animU = reader.position(start + offset.animURLEOffset()).readObject(s -> decodeRLE(s, 0xff));
 
-            animMaps.add(new Md6AnimMap(tableCRCs[i], constR, constS, constT, constU, animR, animS, animT, animU));
+            animMaps.add(new Md6AnimMap(tableCRCs.get(i), constR, constS, constT, constU, animR, animS, animT, animU));
         }
         return animMaps;
     }
@@ -84,9 +84,9 @@ public record Md6Anim(
         var firstT = reader.position(frameSetOffset + animFrameSet.firstTOffset()).readObjects(animMap.animT().length(), Vector3::read);
 
         var bytesPerBone = (animFrameSet.frameRange() + 7) >> 3;
-        var bitsR = reader.position(frameSetOffset + animFrameSet.RBitsOffset()).readObject(s -> new Bits(s.readBytesStruct(bytesPerBone * animMap.animR().length())));
-        var bitsS = reader.position(frameSetOffset + animFrameSet.SBitsOffset()).readObject(s -> new Bits(s.readBytesStruct(bytesPerBone * animMap.animS().length())));
-        var bitsT = reader.position(frameSetOffset + animFrameSet.TBitsOffset()).readObject(s -> new Bits(s.readBytesStruct(bytesPerBone * animMap.animT().length())));
+        var bitsR = reader.position(frameSetOffset + animFrameSet.RBitsOffset()).readObject(s -> new Bits(s.readBytes(bytesPerBone * animMap.animR().length())));
+        var bitsS = reader.position(frameSetOffset + animFrameSet.SBitsOffset()).readObject(s -> new Bits(s.readBytes(bytesPerBone * animMap.animS().length())));
+        var bitsT = reader.position(frameSetOffset + animFrameSet.TBitsOffset()).readObject(s -> new Bits(s.readBytes(bytesPerBone * animMap.animT().length())));
 
         var rangeR = reader.position(frameSetOffset + animFrameSet.rangeROffset()).readObjects(bitsR.cardinality(), Md6Anim::decodeQuat);
         var rangeS = reader.position(frameSetOffset + animFrameSet.rangeSOffset()).readObjects(bitsS.cardinality(), Vector3::read);

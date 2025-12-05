@@ -1,18 +1,19 @@
 package be.twofold.valen.game.darkages.reader.strandshair;
 
 import be.twofold.valen.core.io.*;
+import be.twofold.valen.core.util.collect.*;
 
 import java.io.*;
 import java.util.*;
 
 record StrandsHair(
     StrandsHairHeader header,
-    int[] strands,
-    short[] particles,
-    float[] distances,
-    int[] infos,
-    int[] segments,
-    short[] visibility,
+    Ints strands,
+    Shorts particles,
+    Floats distances,
+    Ints infos,
+    Ints segments,
+    Shorts visibility,
     List<StrandsHairInfo> strandsInfo,
     List<StrandsHairLocationInfo> locationInfo,
     boolean hasCollisionGrid,

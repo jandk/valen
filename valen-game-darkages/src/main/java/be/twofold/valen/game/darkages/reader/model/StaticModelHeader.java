@@ -2,6 +2,7 @@ package be.twofold.valen.game.darkages.reader.model;
 
 import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.math.*;
+import be.twofold.valen.core.util.collect.*;
 
 import java.io.*;
 
@@ -9,7 +10,7 @@ public record StaticModelHeader(
     Vector3 referencePosition,
     int numLods,
     int numSurfaces,
-    float[] maxLodDeviations,
+    Floats maxLodDeviations,
     boolean streamable
 ) {
     public static StaticModelHeader read(BinaryReader reader) throws IOException {

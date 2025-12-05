@@ -24,7 +24,7 @@ public final class HairReader implements AssetReader<Model, GreatCircleAsset> {
 
         var hair = map(hairMesh, asset);
         return new Model(List.of(), Axis.Z)
-                .withHair(Optional.of(hair));
+            .withHair(Optional.of(hair));
     }
 
     private Hair map(HairMesh hairMesh, GreatCircleAsset asset) {
@@ -39,21 +39,21 @@ public final class HairReader implements AssetReader<Model, GreatCircleAsset> {
         return new Hair(asset.id().fullName(), segments, positions);
     }
 
-    private Ints getSegments(int[] particleSumPerStrand) {
-        var segments = new int[particleSumPerStrand.length];
-        segments[0] = particleSumPerStrand[0] - 1;
+    private Ints getSegments(Ints particleSumPerStrand) {
+        var segments = new int[particleSumPerStrand.length()];
+        segments[0] = particleSumPerStrand.get(0) - 1;
         for (var i = 1; i < segments.length - 1; i++) {
-            segments[i] = particleSumPerStrand[i] - particleSumPerStrand[i - 1] - 1;
+            segments[i] = particleSumPerStrand.get(i) - particleSumPerStrand.get(i - 1) - 1;
         }
         return Ints.wrap(segments);
     }
 
-    private Floats getPositions(short[] sourcePositions, float scale, Vector3 bias) {
-        var positions = new float[sourcePositions.length * 3 / 4];
-        for (int i = 0, o = 0; i < sourcePositions.length; i += 4, o += 3) {
-            positions[o/**/] = Math.fma(MathF.unpackUNorm16(sourcePositions[i/**/]), scale, bias.x());
-            positions[o + 1] = Math.fma(MathF.unpackUNorm16(sourcePositions[i + 1]), scale, bias.y());
-            positions[o + 2] = Math.fma(MathF.unpackUNorm16(sourcePositions[i + 2]), scale, bias.z());
+    private Floats getPositions(Shorts sourcePositions, float scale, Vector3 bias) {
+        var positions = new float[sourcePositions.length() * 3 / 4];
+        for (int i = 0, o = 0; i < sourcePositions.length(); i += 4, o += 3) {
+            positions[o/**/] = Math.fma(MathF.unpackUNorm16(sourcePositions.get(i/**/)), scale, bias.x());
+            positions[o + 1] = Math.fma(MathF.unpackUNorm16(sourcePositions.get(i + 1)), scale, bias.y());
+            positions[o + 2] = Math.fma(MathF.unpackUNorm16(sourcePositions.get(i + 2)), scale, bias.z());
         }
         return Floats.wrap(positions);
     }

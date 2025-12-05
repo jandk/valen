@@ -2,7 +2,7 @@ package be.twofold.valen.game.darkages.reader.skeleton;
 
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.geometry.*;
-import be.twofold.valen.core.io.BinaryReader;
+import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.math.*;
 import be.twofold.valen.game.darkages.*;
 import be.twofold.valen.game.darkages.reader.resources.*;
@@ -38,7 +38,7 @@ public final class Md6SkelReader implements AssetReader<Skeleton, DarkAgesAsset>
     private Bone mapBone(Md6Skel skeleton, int index) {
         return new Bone(
             skeleton.jointNames().get(index),
-            skeleton.parentTable()[index],
+            skeleton.parentTable().get(index),
             skeleton.rotations().get(index),
             skeleton.scales().get(index),
             skeleton.translations().get(index),

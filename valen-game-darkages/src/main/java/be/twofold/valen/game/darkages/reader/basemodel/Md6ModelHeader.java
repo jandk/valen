@@ -2,6 +2,7 @@ package be.twofold.valen.game.darkages.reader.basemodel;
 
 import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.math.*;
+import be.twofold.valen.core.util.collect.*;
 
 import java.io.*;
 import java.util.*;
@@ -11,16 +12,16 @@ public record Md6ModelHeader(
     Vector3 maxBoundsExpansion,
     boolean remapForSkinning,
     String unknown,
-    short[] skinnedJoints,
-    short[] extraJoints,
+    Shorts skinnedJoints,
+    Shorts extraJoints,
     Bounds defaultBounds,
     int numLods,
-    float[] maxLodDeviations,
+    Floats maxLodDeviations,
     List<String> blendShapeNames,
     Vector3 unknown1,
     Vector3 unknown2,
     Vector3 unknown3,
-    float[] jointBoundRadius
+    Floats jointBoundRadius
 ) {
     public static Md6ModelHeader read(BinaryReader reader, int numJoints8) throws IOException {
         var minBoundsExpansion = Vector3.read(reader);

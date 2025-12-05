@@ -14,11 +14,11 @@ public record Md6ModelGeoDecals(
     public static Md6ModelGeoDecals read(BinaryReader reader) throws IOException {
         var materialName = reader.readPString();
         var numStreams = reader.readInt();
-        var geoDecalCounts = reader.readIntsStruct(numStreams);
+        var geoDecalCounts = reader.readInts(numStreams);
 
         var geoDecalIndices = new ArrayList<Ints>();
         for (var stream = 0; stream < numStreams; stream++) {
-            geoDecalIndices.add(reader.readIntsStruct(geoDecalCounts.get(stream)));
+            geoDecalIndices.add(reader.readInts(geoDecalCounts.get(stream)));
         }
 
         return new Md6ModelGeoDecals(

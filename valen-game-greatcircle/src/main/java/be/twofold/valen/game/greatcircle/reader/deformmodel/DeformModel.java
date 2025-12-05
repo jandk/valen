@@ -2,6 +2,7 @@ package be.twofold.valen.game.greatcircle.reader.deformmodel;
 
 import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.math.*;
+import be.twofold.valen.core.util.collect.*;
 import be.twofold.valen.game.greatcircle.reader.md6skl.*;
 
 import java.io.*;
@@ -15,7 +16,7 @@ public record DeformModel(
     List<GeometryDiskLayout> diskLayouts,
     Md6Skl skeleton1,
     Md6Skl skeleton2,
-    short[] unknown2,
+    Shorts unknown2,
     List<DeformModelEntry> entryList1,
     List<DeformModelEntry> entryList2,
     Bounds bounds
@@ -34,7 +35,7 @@ public record DeformModel(
 
         var skeleton1 = (Md6Skl) null;
         var skeleton2 = (Md6Skl) null;
-        var unknown2 = (short[]) null;
+        var unknown2 = (Shorts) null;
         var skeletonSize = reader.readInt();
         if (skeletonSize != 0) {
             var skeleton1Length = reader.readInt();

@@ -2,6 +2,7 @@ package be.twofold.valen.game.darkages.reader.anim;
 
 import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.util.*;
+import be.twofold.valen.core.util.collect.*;
 
 import java.io.*;
 
@@ -34,7 +35,7 @@ public record Md6AnimData(
     int srcSkel,
     int baseSkel,
     short numFrameSets,
-    short[] frameSetTblOffset,
+    Shorts frameSetTblOffset,
     short frameSetOffsetTblOffset,
     short constROffset,
     short constSOffset,
@@ -45,8 +46,8 @@ public record Md6AnimData(
     short numStreamedFrameSets,
     Md6AnimCompressionStreamMethod streamMethod,
     float assetScale,
-    float[] startDelta,
-    float[] endDelta
+    Floats startDelta,
+    Floats endDelta
 ) {
     public Md6AnimData {
         if (numStreamedFrameSets != 0 && streamMethod != Md6AnimCompressionStreamMethod.LODS) {

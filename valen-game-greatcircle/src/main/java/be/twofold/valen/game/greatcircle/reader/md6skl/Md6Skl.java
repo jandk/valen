@@ -1,67 +1,68 @@
 package be.twofold.valen.game.greatcircle.reader.md6skl;
 
-import be.twofold.valen.core.io.BinaryReader;
+import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.math.*;
+import be.twofold.valen.core.util.collect.*;
 
 import java.io.*;
 import java.util.*;
 
 public record Md6Skl(
     Md6SklHeader header,
-    byte[] animationMask,
-    short[] parentTbl,
-    short[] lastChildTbl,
-    short[] jointHandleTbl,
-    short[] userChannelHandleTbl,
-    short[] rigControlHandleTbl,
+    Bytes animationMask,
+    Shorts parentTbl,
+    Shorts lastChildTbl,
+    Shorts jointHandleTbl,
+    Shorts userChannelHandleTbl,
+    Shorts rigControlHandleTbl,
     List<Quaternion> rotations,
     List<Vector3> scales,
     List<Vector3> translations,
     List<Matrix4> inverseBasePoses,
-    int[] unknownInts,
+    Ints unknownInts,
     List<String> jointNames,
     List<String> userChannelNames,
     List<String> rigControlNames
 ) {
     public static Md6Skl read(BinaryReader reader) throws IOException {
-        long base = reader.position();
+        var base = reader.position();
 
-        Md6SklHeader header = Md6SklHeader.read(reader);
-        int numJoints8 = (header.numJoints() + 7) & ~7;
-        int numUserChannels8 = (header.numUserChannels() + 7) & ~7;
-        int numRigControls8 = (header.numRigControls() + 7) & ~7;
+        var header = Md6SklHeader.read(reader);
+        var numJoints8 = (header.numJoints() + 7) & ~7;
+        var numUserChannels8 = (header.numUserChannels() + 7) & ~7;
+        var numRigControls8 = (header.numRigControls() + 7) & ~7;
 
         reader.position(base + header.animationMaskOffset());
-        byte[] animationMask = reader.readBytes(numJoints8);
+        var animationMask = reader.readBytes(numJoints8);
 
         reader.position(base + header.parentTblOffset());
-        short[] parentTbl = reader.readShorts(numJoints8);
+        var parentTbl = reader.readShorts(numJoints8);
 
         reader.position(base + header.lastChildTblOffset());
-        short[] lastChildTbl = reader.readShorts(numJoints8);
+        var lastChildTbl = reader.readShorts(numJoints8);
 
         reader.position(base + header.jointHandleTblOffset());
-        short[] jointHandleTbl = reader.readShorts(numJoints8);
+        var jointHandleTbl = reader.readShorts(numJoints8);
 
         reader.position(base + header.userChannelHandleTblOffset());
-        short[] userChannelHandleTbl = reader.readShorts(numUserChannels8);
+        var userChannelHandleTbl = reader.readShorts(numUserChannels8);
 
         reader.position(base + header.rigControlHandleTblOffset());
-        short[] rigControlHandleTbl = reader.readShorts(numRigControls8);
+        var rigControlHandleTbl = reader.readShorts(numRigControls8);
 
         reader.position(base + header.basePoseOffset());
-        List<Quaternion> rotations = reader.readObjects(numJoints8, Quaternion::read);
-        List<Vector3> scales = reader.readObjects(numJoints8, Vector3::read);
-        List<Vector3> translations = reader.readObjects(numJoints8, Vector3::read);
+        var rotations = reader.readObjects(numJoints8, Quaternion::read);
+        var scales = reader.readObjects(numJoints8, Vector3::read);
+        var translations = reader.readObjects(numJoints8, Vector3::read);
 
         reader.position(base + header.inverseBasePoseOffset());
-        List<Matrix4> inverseBasePoses = reader.readObjects(numJoints8, Md6Skl::readInverseBasePose);
+        var inverseBasePoses = reader.readObjects(numJoints8, Md6Skl::readInverseBasePose);
 
         reader.position(base + header.size());
-        int[] unknownInts = reader.readInts(numUserChannels8);
-        List<String> jointNames = reader.readObjects(numJoints8, BinaryReader::readPString);
-        List<String> userChannelNames = reader.readObjects(numUserChannels8, BinaryReader::readPString);
-        List<String> rigControlNames = reader.readObjects(numRigControls8, BinaryReader::readPString);
+        var unknownInts = reader.readInts(numUserChannels8);
+        var jointNames = reader.readObjects(numJoints8, BinaryReader::readPString);
+        var userChannelNames = reader.readObjects(numUserChannels8, BinaryReader::readPString);
+        var rigControlNames = reader.readObjects(numRigControls8, BinaryReader::readPString);
 
         return new Md6Skl(
             header,
@@ -83,8 +84,9 @@ public record Md6Skl(
     }
 
     private static Matrix4 readInverseBasePose(BinaryReader reader) throws IOException {
-        float[] floats = Arrays.copyOf(reader.readFloats(12), 16);
-        floats[15] = 1.0f;
-        return Matrix4.fromArray(floats).transpose();
+        var floats = MutableFloats.allocate(16);
+        reader.readFloats(12).copyTo(floats, 0);
+        floats.set(15, 1.0f);
+        return Matrix4.fromFloats(floats).transpose();
     }
 }
