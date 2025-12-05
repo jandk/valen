@@ -1,15 +1,17 @@
 package be.twofold.valen.core.io;
 
 import be.twofold.valen.core.util.*;
+import be.twofold.valen.core.util.collect.*;
 
 import java.io.*;
 import java.nio.*;
 import java.nio.channels.*;
 
 final class ChannelBinaryReader implements BinaryReader, Closeable {
-    private final ByteBuffer buffer = Buffers
-        .allocate(8192)
-        .limit(0);
+    private static final int BUFFER_CAPACITY = 8192;
+    private final MutableBytes buffer = MutableBytes.allocate(BUFFER_CAPACITY);
+    private int buffPos;
+    private int buffLim;
 
     private final SeekableByteChannel channel;
     private final long size;
@@ -22,34 +24,40 @@ final class ChannelBinaryReader implements BinaryReader, Closeable {
 
     @Override
     public void read(ByteBuffer dst) throws IOException {
-        int remaining = buffer.remaining();
+        int remaining = remaining();
         if (dst.remaining() <= remaining) {
-            Buffers.copy(buffer, dst);
+            int length = dst.remaining();
+            dst.put(buffer.slice(buffPos, length).asBuffer());
+            buffPos += length;
             return;
         }
 
         if (remaining > 0) {
-            Buffers.copy(buffer, dst, remaining);
+            dst.put(buffer.slice(buffPos, remaining).asBuffer());
+            buffPos += remaining;
         }
 
         // If we can fit the remaining bytes in the buffer, do a normal refill and read
-        if (dst.remaining() < buffer.capacity()) {
+        if (dst.remaining() < BUFFER_CAPACITY) {
             refill();
-            if (dst.remaining() > buffer.remaining()) {
+            if (dst.remaining() > remaining()) {
                 throw new EOFException();
             }
-            Buffers.copy(buffer, dst);
+            int length = dst.remaining();
+            dst.put(buffer.slice(buffPos, length).asBuffer());
+            buffPos += length;
             return;
         }
 
         // If we can't fit the remaining bytes in the buffer, read directly into the destination
-        long end = position + buffer.position() + dst.remaining();
+        long end = position + buffPos + dst.remaining();
         if (end > size) {
             throw new EOFException();
         }
         readInternal(dst);
         position = end;
-        buffer.limit(0);
+        buffPos = 0;
+        buffLim = 0;
     }
 
     @Override
@@ -59,18 +67,19 @@ final class ChannelBinaryReader implements BinaryReader, Closeable {
 
     @Override
     public long position() {
-        return position + buffer.position();
+        return position + buffPos;
     }
 
     @Override
     public BinaryReader position(long pos) throws IOException {
         Check.index(pos, size + 1);
 
-        if (pos >= position && pos < position + buffer.limit()) {
-            buffer.position((int) (pos - position));
+        if (pos >= position && pos < position + buffLim) {
+            buffPos = (int) (pos - position);
         } else {
             position = pos;
-            buffer.limit(0);
+            buffPos = 0;
+            buffLim = 0;
             channel.position(pos);
         }
         return this;
@@ -79,25 +88,33 @@ final class ChannelBinaryReader implements BinaryReader, Closeable {
     @Override
     public byte readByte() throws IOException {
         refillWhen(Byte.BYTES);
-        return buffer.get();
+        byte result = buffer.get(buffPos);
+        buffPos += Byte.BYTES;
+        return result;
     }
 
     @Override
     public short readShort() throws IOException {
         refillWhen(Short.BYTES);
-        return buffer.getShort();
+        short result = buffer.getShort(buffPos);
+        buffPos += Short.BYTES;
+        return result;
     }
 
     @Override
     public int readInt() throws IOException {
         refillWhen(Integer.BYTES);
-        return buffer.getInt();
+        int result = buffer.getInt(buffPos);
+        buffPos += Integer.BYTES;
+        return result;
     }
 
     @Override
     public long readLong() throws IOException {
         refillWhen(Long.BYTES);
-        return buffer.getLong();
+        long result = buffer.getLong(buffPos);
+        buffPos += Long.BYTES;
+        return result;
     }
 
     @Override
@@ -110,23 +127,26 @@ final class ChannelBinaryReader implements BinaryReader, Closeable {
     //
 
     private void refillWhen(int n) throws IOException {
-        if (buffer.remaining() < n) {
+        if (remaining() < n) {
             refill();
-            if (buffer.remaining() < n) {
-                throw new EOFException("Expected to read " + n + " bytes, but only " + buffer.remaining() + " bytes are available");
+            if (remaining() < n) {
+                throw new EOFException("Expected to read " + n + " bytes, but only " + remaining() + " bytes are available");
             }
         }
     }
 
     private void refill() throws IOException {
-        long start = position + buffer.position();
-        long end = Math.min(start + buffer.capacity(), size);
+        long start = position + buffPos;
+        long end = Math.min(start + BUFFER_CAPACITY, size);
+        int length = remaining();
 
         position = start;
-        buffer.compact();
-        buffer.limit(Math.toIntExact(end - start));
-        readInternal(buffer);
-        buffer.flip();
+        buffer.slice(buffPos, length).copyTo(buffer, 0);
+        buffLim = Math.toIntExact(end - start);
+        buffPos = length;
+        readInternal();
+        buffLim = buffPos;
+        buffPos = 0;
     }
 
     private void readInternal(ByteBuffer buffer) throws IOException {
@@ -135,5 +155,20 @@ final class ChannelBinaryReader implements BinaryReader, Closeable {
                 throw new EOFException();
             }
         }
+    }
+
+    private void readInternal() throws IOException {
+        while (remaining() > 0) {
+            var buffer = this.buffer.slice(buffPos, remaining()).asMutableBuffer();
+            var read = channel.read(buffer);
+            if (read == -1) {
+                throw new EOFException();
+            }
+            buffPos += read;
+        }
+    }
+
+    private int remaining() {
+        return buffLim - buffPos;
     }
 }
