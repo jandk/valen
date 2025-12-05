@@ -30,8 +30,8 @@ public record Resources(
         var numStrings = reader.readLongAsInt();
         var offsets = reader.readLongsAsInts(numStrings);
         var stringBufferLength = header.addrDependencyEntries() - header.addrPathStringOffsets() - (numStrings + 1) * Long.BYTES;
-        var stringBufferRaw = reader.readBuffer(stringBufferLength);
-        var stringBuffer = DECODER.decode(stringBufferRaw).toString();
+        var stringBufferRaw = reader.readBytesStruct(stringBufferLength);
+        var stringBuffer = DECODER.decode(stringBufferRaw.asBuffer()).toString();
         var pathStrings = Arrays.stream(offsets)
             .mapToObj(i -> stringBuffer.substring(i, stringBuffer.indexOf('\0', i)))
             .toList();

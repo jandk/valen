@@ -4,10 +4,9 @@ import be.twofold.valen.core.util.*;
 import be.twofold.valen.core.util.collect.*;
 
 import java.io.*;
-import java.nio.*;
 import java.nio.channels.*;
 
-final class ChannelBinaryReader implements BinaryReader, Closeable {
+final class ChannelBinaryReader implements BinaryReader {
     private static final int BUFFER_CAPACITY = 8192;
     private final MutableBytes buffer = MutableBytes.allocate(BUFFER_CAPACITY);
     private int buffPos;
@@ -23,38 +22,38 @@ final class ChannelBinaryReader implements BinaryReader, Closeable {
     }
 
     @Override
-    public void read(ByteBuffer dst) throws IOException {
-        int remaining = remaining();
-        if (dst.remaining() <= remaining) {
-            int length = dst.remaining();
-            dst.put(buffer.slice(buffPos, length).asBuffer());
-            buffPos += length;
+    public void read(MutableBytes dst) throws IOException {
+        int buffRem = buffRem();
+        int destRem = dst.length();
+        if (buffRem >= destRem) {
+            buffer.slice(buffPos, destRem).copyTo(dst, 0);
+            buffPos += destRem;
             return;
         }
 
-        if (remaining > 0) {
-            dst.put(buffer.slice(buffPos, remaining).asBuffer());
-            buffPos += remaining;
+        if (buffRem > 0) {
+            buffer.slice(buffPos, buffRem).copyTo(dst, 0);
+            buffPos += buffRem;
+            destRem -= buffRem;
         }
 
         // If we can fit the remaining bytes in the buffer, do a normal refill and read
-        if (dst.remaining() < BUFFER_CAPACITY) {
+        if (destRem < BUFFER_CAPACITY) {
             refill();
-            if (dst.remaining() > remaining()) {
+            if (destRem > buffRem()) {
                 throw new EOFException();
             }
-            int length = dst.remaining();
-            dst.put(buffer.slice(buffPos, length).asBuffer());
-            buffPos += length;
+            buffer.slice(buffPos, destRem).copyTo(dst, dst.length() - destRem);
+            buffPos += destRem;
             return;
         }
 
         // If we can't fit the remaining bytes in the buffer, read directly into the destination
-        long end = position + buffPos + dst.remaining();
+        long end = position + buffPos + destRem;
         if (end > size) {
             throw new EOFException();
         }
-        readInternal(dst);
+        readInternal(dst, dst.length() - destRem);
         position = end;
         buffPos = 0;
         buffLim = 0;
@@ -127,10 +126,10 @@ final class ChannelBinaryReader implements BinaryReader, Closeable {
     //
 
     private void refillWhen(int n) throws IOException {
-        if (remaining() < n) {
+        if (buffRem() < n) {
             refill();
-            if (remaining() < n) {
-                throw new EOFException("Expected to read " + n + " bytes, but only " + remaining() + " bytes are available");
+            if (buffRem() < n) {
+                throw new EOFException("Expected to read " + n + " bytes, but only " + buffRem() + " bytes are available");
             }
         }
     }
@@ -138,37 +137,28 @@ final class ChannelBinaryReader implements BinaryReader, Closeable {
     private void refill() throws IOException {
         long start = position + buffPos;
         long end = Math.min(start + BUFFER_CAPACITY, size);
-        int length = remaining();
+        int length = buffRem();
 
         position = start;
         buffer.slice(buffPos, length).copyTo(buffer, 0);
         buffLim = Math.toIntExact(end - start);
-        buffPos = length;
-        readInternal();
-        buffLim = buffPos;
+        buffLim = readInternal(buffer, length);
         buffPos = 0;
     }
 
-    private void readInternal(ByteBuffer buffer) throws IOException {
-        while (buffer.hasRemaining()) {
-            if (channel.read(buffer) == -1) {
-                throw new EOFException();
-            }
-        }
-    }
-
-    private void readInternal() throws IOException {
-        while (remaining() > 0) {
-            var buffer = this.buffer.slice(buffPos, remaining()).asMutableBuffer();
+    private int readInternal(MutableBytes dst, int dstPos) throws IOException {
+        while (dstPos < dst.length()) {
+            var buffer = dst.slice(dstPos).asMutableBuffer();
             var read = channel.read(buffer);
             if (read == -1) {
                 throw new EOFException();
             }
-            buffPos += read;
+            dstPos += read;
         }
+        return dstPos;
     }
 
-    private int remaining() {
+    private int buffRem() {
         return buffLim - buffPos;
     }
 }

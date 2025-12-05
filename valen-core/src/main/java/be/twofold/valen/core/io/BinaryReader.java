@@ -4,7 +4,6 @@ import be.twofold.valen.core.util.*;
 import be.twofold.valen.core.util.collect.*;
 
 import java.io.*;
-import java.nio.*;
 import java.nio.charset.*;
 import java.nio.file.*;
 import java.util.*;
@@ -18,7 +17,7 @@ public interface BinaryReader extends Closeable {
         return new ChannelBinaryReader(Files.newByteChannel(path, StandardOpenOption.READ));
     }
 
-    void read(ByteBuffer dst) throws IOException;
+    void read(MutableBytes dst) throws IOException;
 
     long size();
 
@@ -62,15 +61,8 @@ public interface BinaryReader extends Closeable {
         return Double.longBitsToDouble(readLong());
     }
 
-    default ByteBuffer readBuffer(int len) throws IOException {
-        var buffer = ByteBuffer.allocate(len);
-        read(buffer);
-        buffer.flip();
-        return buffer;
-    }
-
     default byte[] readBytes(int len) throws IOException {
-        return Buffers.toArray(readBuffer(len));
+        return Buffers.toArray(readBytesStruct(len).asBuffer());
     }
 
     default short readShortBE() throws IOException {
@@ -157,7 +149,9 @@ public interface BinaryReader extends Closeable {
 
 
     default Bytes readBytesStruct(int len) throws IOException {
-        return Bytes.from(readBuffer(len));
+        var result = MutableBytes.allocate(len);
+        read(result);
+        return result;
     }
 
     default Shorts readShortsStruct(int len) throws IOException {
@@ -186,7 +180,7 @@ public interface BinaryReader extends Closeable {
 
 
     default String readString(int length) throws IOException {
-        return StandardCharsets.UTF_8.decode(readBuffer(length)).toString();
+        return StandardCharsets.UTF_8.decode(readBytesStruct(length).asBuffer()).toString();
     }
 
     default String readCString() throws IOException {

@@ -1,9 +1,8 @@
 package be.twofold.valen.core.io;
 
-import be.twofold.valen.core.util.*;
 import be.twofold.valen.core.util.collect.*;
 
-import java.nio.*;
+import java.io.*;
 
 final class BytesBinaryReader implements BinaryReader {
     private final Bytes bytes;
@@ -14,10 +13,12 @@ final class BytesBinaryReader implements BinaryReader {
     }
 
     @Override
-    public void read(ByteBuffer dst) {
-        int length = dst.remaining();
-        Buffers.copy(bytes.slice(position).asBuffer(), dst);
-        position += length;
+    public void read(MutableBytes dst) throws IOException {
+        if (dst.length() > bytes.length() - position) {
+            throw new EOFException();
+        }
+        bytes.slice(position, dst.length()).copyTo(dst, 0);
+        position += dst.length();
     }
 
     @Override

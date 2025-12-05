@@ -90,9 +90,9 @@ public final class ResourcesFile implements Container<DarkAgesAssetID, DarkAgesA
         // Read the chunk
         reader.position(resource.offset());
         var compressed = reader
-            .readBuffer(resource.compressedSize())
-            .position(resource.compression() == ResourcesCompressionMode.RES_COMP_MODE_KRAKEN_CHUNKED ? 12 : 0);
-        var decompressed = decompressor.decompress(Bytes.from(compressed), resource.size());
+            .readBytesStruct(resource.compressedSize())
+            .slice(resource.compression() == ResourcesCompressionMode.RES_COMP_MODE_KRAKEN_CHUNKED ? 12 : 0);
+        var decompressed = decompressor.decompress(compressed, resource.size());
 
         // Check hash
         long checksum = HashFunction.murmurHash64B(0xDEADBEEFL).hash(decompressed).asLong();
