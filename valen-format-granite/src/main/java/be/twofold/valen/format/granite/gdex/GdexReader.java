@@ -31,7 +31,7 @@ final class GdexReader {
     private Gdex read(GdexItemType type, GdexItemTag tag, int size) throws IOException {
         return switch (type) {
             case RAW -> {
-                var value = reader.readBytesStruct(Math.toIntExact(size));
+                var value = reader.readBytes(Math.toIntExact(size));
                 yield new GdexRaw(tag, value);
             }
             case STRUCT -> {
@@ -93,12 +93,12 @@ final class GdexReader {
             }
             case GUID -> {
                 verifySize(size, 16, "guid");
-                var value = DotNetUtils.guidBytesToUUID(reader.readBytesStruct(16));
+                var value = DotNetUtils.guidBytesToUUID(reader.readBytes(16));
                 yield new GdexGuid(tag, value);
             }
             case GUID_ARRAY -> {
                 var count = verifyArraySize(size, 16, "guid_array");
-                var values = reader.readObjects(count, r -> DotNetUtils.guidBytesToUUID(r.readBytesStruct(16)));
+                var values = reader.readObjects(count, r -> DotNetUtils.guidBytesToUUID(r.readBytes(16)));
                 yield new GdexGuidArray(tag, values);
             }
         };

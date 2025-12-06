@@ -20,7 +20,7 @@ public record PakHeader(
         var fileListLength = reader.readInt();
         var flags = reader.readByte();
         var priority = reader.readByte();
-        var md5 = reader.readBytesStruct(16);
+        var md5 = reader.readBytes(16);
         var numParts = reader.readShort();
 
         return new PakHeader(

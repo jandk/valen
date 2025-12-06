@@ -25,8 +25,8 @@ public final class DdsImporter implements AssetReader<Texture, Asset> {
     @Override
     public Texture read(BinaryReader reader, Asset asset) throws IOException {
         var headerBuffer = reader
-            .readBuffer(4 + DdsHeader.SIZE + DdsHeaderDxt10.SIZE) // for magic
-            .order(ByteOrder.LITTLE_ENDIAN);
+            .readBytes(4 + DdsHeader.SIZE + DdsHeaderDxt10.SIZE) // for magic
+            .asBuffer().order(ByteOrder.LITTLE_ENDIAN);
         var header = DdsHeader.fromBuffer(headerBuffer);
         reader.position(4 + DdsHeader.SIZE + (header.header10().isPresent() ? DdsHeaderDxt10.SIZE : 0));
 
@@ -51,7 +51,7 @@ public final class DdsImporter implements AssetReader<Texture, Asset> {
         var surfaces = new ArrayList<Surface>();
         for (int i = 0; i < header.mipMapCount(); i++) {
             var data = reader.readBytes(format.surfaceSize(w, h));
-            surfaces.add(new Surface(w, h, format, data));
+            surfaces.add(new Surface(w, h, format, data.toArray()));
             w = Math.max(w / 2, 1);
             h = Math.max(h / 2, 1);
         }

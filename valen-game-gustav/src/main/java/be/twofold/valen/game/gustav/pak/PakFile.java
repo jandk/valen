@@ -63,7 +63,7 @@ public final class PakFile implements Container<GustavAssetID, GustavAsset> {
         var decompressor = getDecompressor(asset.entry().flags());
         var reader = readers.get(asset.entry().archivePart());
         reader.position(asset.entry().offset());
-        var compressed = reader.readBytesStruct(asset.entry().compressedSize());
+        var compressed = reader.readBytes(asset.entry().compressedSize());
         if (decompressor.equals(Decompressor.none())) {
             return compressed;
         }

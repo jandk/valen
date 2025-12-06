@@ -46,23 +46,23 @@ final class Unpack extends Conversion {
     private static void unpackR10G10B10A2UnormToR8G8B8A8Unorm(byte[] src, byte[] dst) {
         var srcBytes = Bytes.wrap(src);
         var dstBytes = MutableBytes.wrap(dst);
-        for (int i = 0, o = 0; i < srcBytes.size(); i += 4, o += 4) {
+        for (int i = 0, o = 0; i < srcBytes.length(); i += 4, o += 4) {
             int pixel = srcBytes.getInt(i);
             int r = (pixel/*  */) & 0x3FF;
             int g = (pixel >> 10) & 0x3FF;
             int b = (pixel >> 20) & 0x3FF;
             int a = (pixel >> 30) & 0x003;
-            dstBytes.setByte(o/**/, (byte) (r >> 2));
-            dstBytes.setByte(o + 1, (byte) (g >> 2));
-            dstBytes.setByte(o + 2, (byte) (b >> 2));
-            dstBytes.setByte(o + 3, (byte) (a * 0x55));
+            dstBytes.set(o/**/, (byte) (r >> 2));
+            dstBytes.set(o + 1, (byte) (g >> 2));
+            dstBytes.set(o + 2, (byte) (b >> 2));
+            dstBytes.set(o + 3, (byte) (a * 0x55));
         }
     }
 
     private static void unpackR10G10B10A2UnormToR16G16B16A16Unorm(byte[] src, byte[] dst) {
         var srcBytes = Bytes.wrap(src);
         var dstBytes = MutableBytes.wrap(dst);
-        for (int i = 0, o = 0; i < srcBytes.size(); i += 4, o += 8) {
+        for (int i = 0, o = 0; i < srcBytes.length(); i += 4, o += 8) {
             int pixel = srcBytes.getInt(i);
             int r = (pixel/*  */) & 0x3FF;
             int g = (pixel >> 10) & 0x3FF;

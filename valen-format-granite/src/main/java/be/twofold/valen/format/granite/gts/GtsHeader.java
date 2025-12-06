@@ -37,7 +37,7 @@ public record GtsHeader(
             throw new UnsupportedOperationException("Unsupported version: " + version);
         }
         reader.expectInt(0);
-        var guid = DotNetUtils.guidBytesToUUID(reader.readBytesStruct(16));
+        var guid = DotNetUtils.guidBytesToUUID(reader.readBytes(16));
         var layerCount = reader.readInt();
         var layerOffset = reader.readLongAsInt();
         var levelCount = reader.readInt();

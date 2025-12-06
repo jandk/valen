@@ -37,7 +37,7 @@ final class Stringifier {
     }
 
     private void appendRaw(Bytes bytes) {
-        builder.append('[').append(bytes.size()).append("bytes ]");
+        builder.append('[').append(bytes.length()).append("bytes ]");
     }
 
     private void appendString(String value) {

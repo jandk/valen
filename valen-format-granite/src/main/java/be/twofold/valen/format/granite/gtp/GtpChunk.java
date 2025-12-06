@@ -15,7 +15,7 @@ public record GtpChunk(
         var codec = Codec.fromValue(reader.readInt());
         var param = reader.readInt();
         var size = reader.readInt();
-        var data = reader.readBytesStruct(size);
+        var data = reader.readBytes(size);
 
         return new GtpChunk(codec, param, size, data);
     }

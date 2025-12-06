@@ -16,7 +16,7 @@ public record GtsPageFile(
     public static GtsPageFile read(BinaryReader reader, int version) throws IOException {
         var filename = reader.readString(0x200, StandardCharsets.UTF_16LE).trim();
         var pageCount = reader.readInt();
-        var checksum = reader.readBytesStruct(16);
+        var checksum = reader.readBytes(16);
         var type = reader.readInt();
         int size = version > 5 ? reader.readLongAsInt() : 0;
 

@@ -24,7 +24,7 @@ public record Pak(
     private static List<PakEntry> readEntries(BinaryReader reader) throws IOException {
         var numFiles = reader.readInt();
         var compressedSize = reader.readInt();
-        var compressed = reader.readBytesStruct(compressedSize);
+        var compressed = reader.readBytes(compressedSize);
         var decompressed = Decompressor.lz4().decompress(compressed, numFiles * 272);
 
         try (var entryReader = BinaryReader.fromBytes(decompressed)) {

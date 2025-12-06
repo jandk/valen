@@ -18,7 +18,7 @@ public record GtsLevel(
 
         // Step out
         var position = reader.position();
-        var indices = reader.position(offset).readIntsStruct(width * height * layerCount);
+        var indices = reader.position(offset).readInts(width * height * layerCount);
         reader.position(position);
 
         return new GtsLevel(

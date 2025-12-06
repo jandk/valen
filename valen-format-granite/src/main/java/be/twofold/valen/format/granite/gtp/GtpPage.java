@@ -12,9 +12,9 @@ public record GtpPage(
         reader.position(position == 0 ? GtpHeader.BYTES : position);
         var offsets = reader.readInts(reader.readInt());
 
-        var chunks = new ArrayList<GtpChunk>(offsets.length);
-        for (int offset : offsets) {
-            reader.position(position + offset);
+        var chunks = new ArrayList<GtpChunk>(offsets.length());
+        for (int i = 0; i < offsets.length(); i++) {
+            reader.position(position + offsets.get(i));
             chunks.add(GtpChunk.read(reader));
         }
         return new GtpPage(List.copyOf(chunks));

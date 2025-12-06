@@ -15,7 +15,7 @@ public record GtsThumbnail(
     short height
 ) {
     public static GtsThumbnail read(BinaryReader reader) throws IOException {
-        var guid = DotNetUtils.guidBytesToUUID(reader.readBytesStruct(16));
+        var guid = DotNetUtils.guidBytesToUUID(reader.readBytes(16));
         var offset = reader.readLongAsInt();
         var rawSize = reader.readInt();
         var codedSize = reader.readInt();

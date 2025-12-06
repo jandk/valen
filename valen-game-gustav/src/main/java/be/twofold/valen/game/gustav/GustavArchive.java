@@ -1,7 +1,7 @@
 package be.twofold.valen.game.gustav;
 
 import be.twofold.valen.core.game.*;
-import be.twofold.valen.core.io.*;
+import be.twofold.valen.core.util.collect.*;
 import be.twofold.valen.export.dds.*;
 import be.twofold.valen.game.gustav.pak.*;
 
@@ -10,25 +10,18 @@ import java.nio.file.*;
 import java.util.*;
 import java.util.stream.*;
 
-public final class GustavArchive implements Archive<GustavAssetID, GustavAsset> {
-    private final AssetReaders<GustavAsset> readers;
+public final class GustavArchive extends Archive<GustavAssetID, GustavAsset> {
     private final PakFile pakFile;
 
     public GustavArchive(Path path) throws IOException {
         this.pakFile = new PakFile(path);
-        this.readers = new AssetReaders<>(List.of(
-            DdsImporter.create()
-        ));
     }
 
     @Override
-    public <T> T loadAsset(GustavAssetID identifier, Class<T> clazz) throws IOException {
-        var asset = get(identifier).orElseThrow(FileNotFoundException::new);
-
-        var bytes = pakFile.read(identifier, null);
-        try (var reader = BinaryReader.fromBytes(bytes)) {
-            return readers.read(asset, reader, clazz);
-        }
+    public List<AssetReader<?, GustavAsset>> createReaders() {
+        return List.of(
+            DdsImporter.create()
+        );
     }
 
     @Override
@@ -39,6 +32,11 @@ public final class GustavArchive implements Archive<GustavAssetID, GustavAsset> 
     @Override
     public Stream<GustavAsset> getAll() {
         return pakFile.getAll();
+    }
+
+    @Override
+    public Bytes read(GustavAssetID identifier, Integer size) throws IOException {
+        return pakFile.read(identifier, null);
     }
 
     @Override

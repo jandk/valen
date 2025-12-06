@@ -1,6 +1,7 @@
 package be.twofold.valen.format.granite.gts;
 
 import be.twofold.valen.core.io.*;
+import be.twofold.valen.core.util.collect.*;
 import be.twofold.valen.format.granite.gdex.*;
 
 import java.io.*;
@@ -13,7 +14,7 @@ public record Gts(
     List<GtsLayer> layers,
     List<GtsLevel> levels,
     List<GtsTile> tiles,
-    int[] tileIndex,
+    Ints tileIndex,
     List<GtsPageFile> pageFiles,
     GdexStruct metadata,
     List<GtsParamBlock> paramBlocks,
