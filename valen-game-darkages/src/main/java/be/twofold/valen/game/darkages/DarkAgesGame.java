@@ -67,6 +67,6 @@ public final class DarkAgesGame implements Game {
             name = "common";
         }
         var resourcesCollection = loadResources(base, spec, decompressor, name);
-        return new DarkAgesArchive(streamDbCollection, commonCollection, resourcesCollection, decompressor);
+        return new DarkAgesArchive(streamDbCollection, commonCollection, resourcesCollection);
     }
 }

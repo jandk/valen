@@ -2,7 +2,6 @@ package be.twofold.valen.game.eternal;
 
 import be.twofold.valen.core.compression.*;
 import be.twofold.valen.core.game.*;
-import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.util.*;
 import be.twofold.valen.core.util.collect.*;
 import be.twofold.valen.game.eternal.reader.binaryfile.*;
@@ -24,11 +23,11 @@ import java.io.*;
 import java.util.*;
 import java.util.stream.*;
 
-public final class EternalArchive implements Archive<EternalAssetID, EternalAsset> {
+public final class EternalArchive extends Archive<EternalAssetID, EternalAsset> {
     private final Container<Long, StreamDbEntry> streams;
     private final Container<EternalAssetID, EternalAsset> common;
     private final Container<EternalAssetID, EternalAsset> resources;
-    private final AssetReaders<EternalAsset> readers;
+    private final Decompressor decompressor;
 
     EternalArchive(
         Container<Long, StreamDbEntry> streams,
@@ -39,11 +38,14 @@ public final class EternalArchive implements Archive<EternalAssetID, EternalAsse
         this.streams = Check.notNull(streams, "streams");
         this.common = Check.notNull(common, "common");
         this.resources = Check.notNull(resources, "resources");
-        Check.notNull(decompressor, "decompressor");
+        this.decompressor = Check.notNull(decompressor, "decompressor");
+    }
 
+    @Override
+    public List<AssetReader<?, EternalAsset>> createReaders() {
         var declReader = new DeclReader(this);
 
-        this.readers = new AssetReaders<>(List.of(
+        return List.of(
             declReader,
             // Binary converters
             new BinaryFileReader(),
@@ -60,7 +62,13 @@ public final class EternalArchive implements Archive<EternalAssetID, EternalAsse
             new Md6SkelReader(),
             new RenderParmReader(),
             new StaticModelReader(this)
-        ));
+        );
+    }
+
+    @Override
+    public Optional<EternalAsset> get(EternalAssetID key) {
+        return resources.get(key)
+            .or(() -> common.get(key));
     }
 
     @Override
@@ -71,22 +79,10 @@ public final class EternalArchive implements Archive<EternalAssetID, EternalAsse
     }
 
     @Override
-    public Optional<EternalAsset> get(EternalAssetID key) {
-        return resources.get(key)
-            .or(() -> common.get(key));
-    }
-
-    @Override
-    public <T> T loadAsset(EternalAssetID identifier, Class<T> clazz) throws IOException {
-        var asset = get(identifier).orElseThrow(FileNotFoundException::new);
-
-        var bytes = resources.exists(asset.id())
-            ? resources.read(asset.id(), null)
-            : common.read(asset.id(), null);
-
-        try (var source = BinaryReader.fromBytes(bytes)) {
-            return readers.read(asset, source, clazz);
-        }
+    public Bytes read(EternalAssetID identifier, Integer size) throws IOException {
+        return resources.exists(identifier)
+            ? resources.read(identifier, null)
+            : common.read(identifier, null);
     }
 
     public boolean containsStream(long identifier) {
