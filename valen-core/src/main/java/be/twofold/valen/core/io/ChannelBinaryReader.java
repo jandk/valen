@@ -151,7 +151,7 @@ final class ChannelBinaryReader implements BinaryReader {
             var buffer = dst.slice(dstPos).asMutableBuffer();
             var read = channel.read(buffer);
             if (read == -1) {
-                throw new EOFException();
+                break;
             }
             dstPos += read;
         }

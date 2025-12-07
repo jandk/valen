@@ -1,5 +1,6 @@
 package be.twofold.valen.core.io;
 
+import be.twofold.valen.core.util.*;
 import be.twofold.valen.core.util.collect.*;
 
 import java.io.*;
@@ -209,6 +210,13 @@ public interface BinaryReader extends Closeable {
         var actual = readLong();
         if (actual != expected) {
             throw new IOException("Expected long " + expected + ", but got " + actual);
+        }
+    }
+
+    default void expectPadding(int length) throws IOException {
+        Check.positive(length, "length");
+        for (int i = 0; i < length; i++) {
+            expectByte((byte) 0);
         }
     }
 

@@ -2,6 +2,7 @@ package be.twofold.valen.format.granite.gtp;
 
 import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.util.collect.*;
+import be.twofold.valen.format.granite.enums.*;
 
 import java.io.*;
 

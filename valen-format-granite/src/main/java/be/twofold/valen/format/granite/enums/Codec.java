@@ -1,4 +1,4 @@
-package be.twofold.valen.format.granite.gtp;
+package be.twofold.valen.format.granite.enums;
 
 import be.twofold.valen.core.util.*;
 
