@@ -6,10 +6,10 @@ import be.twofold.valen.core.texture.*;
 import be.twofold.valen.core.util.*;
 import be.twofold.valen.core.util.collect.*;
 import be.twofold.valen.export.dds.*;
-import be.twofold.valen.format.granite.enums.*;
 import be.twofold.valen.format.granite.gdex.*;
 import be.twofold.valen.format.granite.gtp.*;
 import be.twofold.valen.format.granite.gts.*;
+import be.twofold.valen.format.granite.util.*;
 import be.twofold.valen.format.granite.xml.*;
 import org.slf4j.*;
 
@@ -21,6 +21,8 @@ import java.util.stream.*;
 
 public final class GraniteReader {
     private static final Logger log = LoggerFactory.getLogger(GraniteReader.class);
+
+    private final Map<Path, Gtp> gtpCache = new HashMap<>();
 
     private final Gts gts;
     private final Function<String, BinaryReader> gtpSupplier;
@@ -44,17 +46,16 @@ public final class GraniteReader {
         var tileBorder = gts.header().tileBorder();
         var tileWidth = gts.header().tileWidth() - tileBorder * 2;
         var tileHeight = gts.header().tileHeight() - tileBorder * 2;
-        int layerWidth = texture.layers().get(layer).width();
-        int layerHeight = texture.layers().get(layer).height();
+        var layerWidth = texture.layers().get(layer).width();
+        var layerHeight = texture.layers().get(layer).height();
 
         int level = -1, tileX = 0, tileY = 0, tileW = 0, tileH = 0;
-        for (int i = 0; i < gts.header().levelCount(); i++) {
+        for (var i = 0; i < gts.header().levelCount(); i++) {
             tileX = (texture.x() / tileWidth) >>> i;
             tileY = (texture.y() / tileHeight) >>> i;
             tileW = Math.ceilDiv(layerWidth, tileWidth);
             tileH = Math.ceilDiv(layerHeight, tileHeight);
-            if (!checkForMissing(tileX, tileW, tileY, tileH, layer, i)) {
-                System.out.println("Found all tiles on level " + i);
+            if (allTilesPresent(tileX, tileW, tileY, tileH, layer, i)) {
                 level = i;
                 break;
             }
@@ -63,7 +64,7 @@ public final class GraniteReader {
             throw new IOException("Missing tiles on every level");
         }
 
-        var format = fromLayer(gts.metadata());
+        var format = fromLayer(gts.metadata(), layer);
         var tgt = Surface.create(layerWidth, layerHeight, format);
 
         for (var y = 0; y < tileH; y++) {
@@ -86,19 +87,22 @@ public final class GraniteReader {
         exporter.export(Texture.fromSurface(tgt, format), path);
     }
 
-    private boolean checkForMissing(int tileX, int numTilesX, int tileY, int numTilesY, int layer, int level) {
-        for (int y = 0; y < numTilesY; y++) {
-            for (int x = 0; x < numTilesX; x++) {
+    private boolean allTilesPresent(int tileX, int numTilesX, int tileY, int numTilesY, int layer, int level) {
+        var found = false;
+        for (var y = 0; y < numTilesY; y++) {
+            for (var x = 0; x < numTilesX; x++) {
                 var index = getIndex(tileX + x, tileY + y, layer, level);
                 if (index < 0) {
-                    return true;
+                    if (found) {
+                        throw new UnsupportedOperationException("Only some tiles are missing? Wtf?");
+                    }
+                    return false;
                 }
+                found = true;
             }
         }
-        return false;
+        return true;
     }
-
-    private final Map<Path, Gtp> GTP_CACHE = new HashMap<>();
 
     private Surface readTile(int x, int y, int layer, int level, TextureFormat format) throws IOException {
         return readTile(getIndex(x, y, layer, level), format);
@@ -113,6 +117,7 @@ public final class GraniteReader {
 
     private Surface readTile(int index, TextureFormat format) throws IOException {
         var tile = gts.tiles().get(index & 0xFFFFFF);
+        // var reverseTile = gts.tileIndex().get(tile.tileOffset());
         var page = gts.pageFiles().get(tile.fileIndex());
         var pagePath = gts.path().getParent().resolve(page.filename());
         var surfaceSize = format.surfaceSize(
@@ -120,8 +125,8 @@ public final class GraniteReader {
             gts.header().tileHeight()
         );
 
-        var gtp = GTP_CACHE.computeIfAbsent(pagePath, path -> {
-            try (var reader = BinaryReader.fromPath(path)) {
+        var gtp = gtpCache.computeIfAbsent(pagePath, path -> {
+            try (var reader = gtpSupplier.apply(path.toString())) {
                 return Gtp.read(reader, gts.header().pageSize());
             } catch (IOException e) {
                 throw new UncheckedIOException(e);
@@ -133,41 +138,54 @@ public final class GraniteReader {
             .chunks().get(tile.chunkIndex());
 
         var bytes = switch (chunk.codec()) {
-            case UNIFORM -> createUniformTile(chunk.data());
-            case BC -> createBCTile(chunk);
+            case UNIFORM -> createUniformTile(chunk, surfaceSize, format);
+            case BC -> createBCTile(chunk, surfaceSize);
             default -> throw new UnsupportedOperationException("Unsupported codec: " + chunk.codec());
         };
-        if (chunk.codec() == Codec.UNIFORM) {
-            // Called UniformCodec, guessing it just fills the image with the specified pixels
+        return new Surface(gts.header().tileWidth(), gts.header().tileHeight(), format, bytes);
+    }
 
-            Check.state(chunk.data().length() == 4);
-            var pixel = chunk.data().getInt(0);
-            var result = new byte[surfaceSize];
-//            var bytes = MutableBytes.wrap(result);
-//            for (int i = 0; i < bytes.size(); i += 4) {
-//                bytes.setInt(i, pixel);
-//            }
-            return new Surface(gts.header().tileWidth(), gts.header().tileHeight(), format, result);
+    private byte[] createUniformTile(GtpChunk data, int surfaceSize, TextureFormat format) {
+        var r = data.data().get(0);
+        var g = data.data().length() > 1 ? data.data().get(1) : 0;
+        var b = data.data().length() > 2 ? data.data().get(2) : 0;
+        var a = data.data().length() > 3 ? data.data().get(3) : 0;
+        var block = switch (format) {
+            case BC1_UNORM, BC1_SRGB -> BCConstant.bc1(r, g, b);
+            case BC3_UNORM, BC3_SRGB -> BCConstant.bc3(r, g, b, a);
+            case BC4_UNORM, BC4_SNORM -> BCConstant.bc4(r);
+            case BC5_UNORM, BC5_SNORM -> BCConstant.bc5(r, g);
+            case BC7_UNORM, BC7_SRGB -> throw new UnsupportedOperationException("Todo");
+            default -> throw new UnsupportedOperationException("Can't create a block for " + format);
+        };
+
+        var result = new byte[surfaceSize];
+        var bytes = MutableBytes.wrap(result);
+        for (var i = 0; i < bytes.length(); i += block.length()) {
+            block.copyTo(bytes, i);
         }
-
-        var result = new byte[0x10000];
-        Decompressor.fastLZ().decompress(chunk.data(), MutableBytes.wrap(result));
-        return new Surface(gts.header().tileWidth(), gts.header().tileHeight(), format, result);
+        return result;
     }
 
-    private Bytes createUniformTile(Bytes data) {
-        return null;
+    private byte[] createBCTile(GtpChunk chunk, int surfaceSize) throws IOException {
+        var header = (CodecHeader.BC) gts.codecHeaders().get(chunk.param());
+        var decompressor = switch (header.getCompression()) {
+            case FAST_LZ -> Decompressor.fastLZ();
+            case LZ4 -> Decompressor.lz4();
+            case RAW -> Decompressor.none();
+        };
+
+        // The original code seems to allocate the surface plus an extra mip
+        // TODO: Figure out when the mip is present and when it isn't
+        return decompressor
+            .decompress(chunk.data(), surfaceSize + surfaceSize / 4)
+            .slice(0, surfaceSize)
+            .toArray();
     }
 
-    private Bytes createBCTile(GtpChunk chunk) {
-        // I swear, some of this stuff... We know, from the codec and the tile dimensions, how big the
-        var decompressed = new byte[0x10000];
-        return Bytes.empty();
-    }
-
-    private TextureFormat fromLayer(GdexStruct meta) {
+    private TextureFormat fromLayer(GdexStruct meta, int layer) {
         var type = meta.findOne(GdexItemTag.LINF).asStruct()
-            .find(GdexItemTag.LAYR)
+            .find(GdexItemTag.LAYR).skip(layer)
             .findFirst().orElseThrow().asStruct()
             .findOne(GdexItemTag.TYPE).asString();
 

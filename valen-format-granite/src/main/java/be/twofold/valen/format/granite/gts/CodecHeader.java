@@ -15,16 +15,15 @@ public sealed interface CodecHeader {
     }
 
     record BC(
-        short magic,
         String algorithm,
         String algorithmVersion,
         byte always0,
         DataType dataType,
         int textureFormat,
-        byte always1
+        byte saveMip
     ) implements CodecHeader {
         private static BC read(BinaryReader reader) throws IOException {
-            var magic = reader.readShort();
+            reader.expectShort((short) 9102);
             var algorithm = reader.readString(16).trim();
             var algorithmVersion = reader.readString(16).trim();
             reader.expectPadding(6);
@@ -33,17 +32,16 @@ public sealed interface CodecHeader {
             reader.expectPadding(2);
             var textureFormat = reader.readInt();
             reader.expectPadding(1);
-            var always1 = reader.readByte();
+            var saveMip = reader.readByte();
             reader.expectPadding(6);
 
             return new BC(
-                magic,
                 algorithm,
                 algorithmVersion,
                 always0,
                 dataType,
                 textureFormat,
-                always1
+                saveMip
             );
         }
 

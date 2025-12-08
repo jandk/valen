@@ -14,29 +14,29 @@ public final class BCConstant {
             .toArray(EndpointPair[]::new);
     }
 
-    public static Bytes bc1(int r, int g, int b) {
+    public static Bytes bc1(byte r, byte g, byte b) {
         MutableBytes bytes = MutableBytes.allocate(8);
-        bc1(bytes, 0, (byte) r, (byte) g, (byte) b);
+        bc1(bytes, 0, r, g, b);
         return bytes;
     }
 
-    public static Bytes bc3(int r, int g, int b, int a) {
+    public static Bytes bc3(byte r, byte g, byte b, byte a) {
         MutableBytes bytes = MutableBytes.allocate(16);
-        bc4(bytes, 0, (byte) a);
-        bc1(bytes, 8, (byte) r, (byte) g, (byte) b);
+        bc4(bytes, 0, a);
+        bc1(bytes, 8, r, g, b);
         return bytes;
     }
 
-    public static Bytes bc4(int a) {
+    public static Bytes bc4(byte a) {
         MutableBytes bytes = MutableBytes.allocate(8);
-        bc4(bytes, 0, (byte) a);
+        bc4(bytes, 0, a);
         return bytes;
     }
 
-    public static Bytes bc5(int r, int g) {
+    public static Bytes bc5(byte r, byte g) {
         MutableBytes bytes = MutableBytes.allocate(16);
-        bc4(bytes, 0, (byte) r);
-        bc4(bytes, 8, (byte) g);
+        bc4(bytes, 0, r);
+        bc4(bytes, 8, g);
         return bytes;
     }
 
