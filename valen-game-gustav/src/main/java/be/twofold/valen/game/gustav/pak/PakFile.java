@@ -23,10 +23,6 @@ public final class PakFile implements Container<GustavAssetID, GustavAsset> {
         var reader = BinaryReader.fromPath(path);
         var pak = Pak.read(reader);
 
-        OptionalLong minOffset = pak.entries().stream().mapToLong(PakEntry::offset).min();
-        OptionalLong maxOffset = pak.entries().stream().mapToLong(e -> e.offset() + e.compressedSize()).max();
-        System.out.println(minOffset + "\t" + maxOffset);
-
         var basename = Filenames.getBaseName(path.getFileName().toString());
         var readers = new ArrayList<BinaryReader>();
         readers.add(reader);
@@ -34,11 +30,6 @@ public final class PakFile implements Container<GustavAssetID, GustavAsset> {
             readers.add(BinaryReader.fromPath(path.getParent().resolve(basename + "_" + i + ".pak")));
         }
         this.readers = List.copyOf(readers);
-
-        pak.entries().stream()
-            .map(PakEntry::flags)
-            .distinct()
-            .forEach(System.out::println);
 
         index = pak.entries().stream()
             .map(entry -> new GustavAsset(new GustavAssetID(entry.name()), entry))

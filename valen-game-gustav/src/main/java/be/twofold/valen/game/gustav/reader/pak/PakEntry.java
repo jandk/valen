@@ -15,7 +15,7 @@ public record PakEntry(
 ) {
     public static PakEntry read(BinaryReader reader) throws IOException {
         var name = reader.readString(256).trim();
-        var offset = Integer.toUnsignedLong(reader.readInt()) | Short.toUnsignedLong(reader.readShort());
+        var offset = Integer.toUnsignedLong(reader.readInt()) | Short.toUnsignedLong(reader.readShort()) << 32;
         var archivePart = reader.readByte();
         var flags = Compression.fromValue(reader.readByte());
         var compressedSize = reader.readInt();

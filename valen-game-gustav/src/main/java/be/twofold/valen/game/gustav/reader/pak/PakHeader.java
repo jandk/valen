@@ -4,11 +4,12 @@ import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.util.collect.*;
 
 import java.io.*;
+import java.util.*;
 
 public record PakHeader(
     long fileListOffset,
     int fileListLength,
-    byte flags,
+    Set<PakFlag> flags,
     byte priority,
     Bytes md5,
     short numParts
@@ -18,7 +19,7 @@ public record PakHeader(
         reader.expectInt(18); // version
         var fileListOffset = reader.readLong();
         var fileListLength = reader.readInt();
-        var flags = reader.readByte();
+        var flags = PakFlag.fromValue(reader.readByte());
         var priority = reader.readByte();
         var md5 = reader.readBytes(16);
         var numParts = reader.readShort();
