@@ -3,7 +3,7 @@ package be.twofold.valen.core.compression;
 import be.twofold.valen.core.util.*;
 import be.twofold.valen.core.util.collect.*;
 
-abstract class LZDecompressor implements Decompressor {
+public abstract class LZDecompressor implements Decompressor {
     LZDecompressor() {
     }
 
@@ -25,8 +25,12 @@ abstract class LZDecompressor implements Decompressor {
         } else if (offset >= length) {
             dst.slice(srcPos, length).copyTo(dst, dstOff);
         } else {
-            for (int i = 0; i < length; i++) {
-                dst.set(dstOff + i, dst.get(srcPos + i));
+            dst.slice(srcPos, offset).copyTo(dst, dstOff);
+            int copied = offset;
+            while (copied < length) {
+                int chunk = Math.min(copied, length - copied);
+                dst.slice(dstOff, chunk).copyTo(dst, dstOff + copied);
+                copied += chunk;
             }
         }
     }
