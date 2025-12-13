@@ -14,7 +14,7 @@ class LZ4DecompressorTest {
     private static final int LENGTH = 138216;
 
     private final MessageDigest sha256 = MessageDigest.getInstance("SHA256");
-    private final LZ4Decompressor decompressor = new LZ4Decompressor();
+    private final LZ4Decompressor decompressor = LZ4Decompressor.INSTANCE;
 
     LZ4DecompressorTest() throws NoSuchAlgorithmException {
     }
