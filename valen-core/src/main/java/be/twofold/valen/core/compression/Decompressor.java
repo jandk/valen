@@ -8,11 +8,11 @@ import java.nio.file.*;
 @FunctionalInterface
 public interface Decompressor {
     static Decompressor none() {
-        return new NoneDecompressor();
+        return NoneDecompressor.INSTANCE;
     }
 
     static Decompressor fastLZ() {
-        return new FastLZDecompressor();
+        return FastLZDecompressor.INSTANCE;
     }
 
     static Decompressor inflate(boolean raw) {
@@ -20,9 +20,10 @@ public interface Decompressor {
     }
 
     static Decompressor lz4() {
-        return new LZ4Decompressor();
+        return LZ4Decompressor.INSTANCE;
     }
 
+    // TODO: Move this shit somewhere else...
     static Decompressor oodle() {
         return OodleDecompressor.download();
     }
