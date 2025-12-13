@@ -23,6 +23,7 @@ public interface Decompressor {
         return LZ4Decompressor.INSTANCE;
     }
 
+    // TODO: Move this shit somewhere else...
     static Decompressor oodle() {
         return OodleDecompressor.download();
     }

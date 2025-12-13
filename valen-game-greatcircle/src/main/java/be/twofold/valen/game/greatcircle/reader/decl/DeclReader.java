@@ -7,7 +7,7 @@ import be.twofold.valen.game.idtech.decl.*;
 import java.util.*;
 
 public final class DeclReader extends AbstractDeclReader<GreatCircleAssetID, GreatCircleAsset, GreatCircleArchive> {
-    private static final Set<ResourceType> ValidDeclTypes = EnumSet.of(
+    private static final Set<ResourceType> ValidDeclTypes = Set.of(
         ResourceType.material2
     );
 

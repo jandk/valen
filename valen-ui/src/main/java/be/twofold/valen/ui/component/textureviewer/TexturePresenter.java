@@ -16,7 +16,7 @@ import java.util.function.*;
 
 public final class TexturePresenter extends AbstractFXPresenter<TextureView> implements Viewer {
     private static final Logger log = LoggerFactory.getLogger(TexturePresenter.class);
-    private static final Set<TextureFormat> GRAY = EnumSet.of(
+    private static final Set<TextureFormat> GRAY = Set.of(
         TextureFormat.R8_UNORM,
         TextureFormat.R16_UNORM,
         TextureFormat.R16_SFLOAT,

@@ -16,19 +16,19 @@ public record EternalAssetID(
         .thenComparing(EternalAssetID::type)
         .thenComparing(EternalAssetID::variation);
 
-    private static final Map<ResourceType, Set<ResourceVariation>> Variations = new EnumMap<>(Map.of(
-        ResourceType.HavokShape, EnumSet.of(ResourceVariation.HkMsvc64),
-        ResourceType.HkNavMesh, EnumSet.of(ResourceVariation.HkMsvc64),
-        ResourceType.HkNavMeshMediator, EnumSet.of(ResourceVariation.HkMsvc64),
-        ResourceType.HkNavVolume, EnumSet.of(ResourceVariation.HkMsvc64),
-        ResourceType.HkNavVolumeMediator, EnumSet.of(ResourceVariation.HkMsvc64),
-        ResourceType.RenderProgResource, EnumSet.of(
+    private static final Map<ResourceType, Set<ResourceVariation>> Variations = Map.of(
+        ResourceType.HavokShape, Set.of(ResourceVariation.HkMsvc64),
+        ResourceType.HkNavMesh, Set.of(ResourceVariation.HkMsvc64),
+        ResourceType.HkNavMeshMediator, Set.of(ResourceVariation.HkMsvc64),
+        ResourceType.HkNavVolume, Set.of(ResourceVariation.HkMsvc64),
+        ResourceType.HkNavVolumeMediator, Set.of(ResourceVariation.HkMsvc64),
+        ResourceType.RenderProgResource, Set.of(
             ResourceVariation.RenderProgVulkanPcAmd,
             ResourceVariation.RenderProgVulkanPcAmdRetail,
             ResourceVariation.RenderProgVulkanPcBase,
             ResourceVariation.RenderProgVulkanPcBaseRetail
         )
-    ));
+    );
 
     public static EternalAssetID from(String name, ResourceType type) {
         var resourceName = new ResourceName(name);
