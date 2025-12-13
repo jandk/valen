@@ -1,8 +1,10 @@
 package be.twofold.valen.export.dds;
 
+import be.twofold.valen.core.util.*;
+
 import java.util.*;
 
-public enum DdsPixelFormatFlags {
+public enum DdsPixelFormatFlags implements FlagEnum {
     DDPF_ALPHAPIXELS(0x1),
     DDPF_ALPHA(0x2),
     DDPF_FOURCC(0x4),
@@ -11,28 +13,18 @@ public enum DdsPixelFormatFlags {
     DDPF_LUMINANCE(0x20000),
     ;
 
-    private static final DdsPixelFormatFlags[] VALUES = values();
     private final int value;
 
     DdsPixelFormatFlags(int value) {
         this.value = value;
     }
 
-    public int getValue() {
-        return value;
+    public static Set<DdsPixelFormatFlags> fromValue(int value) {
+        return FlagEnum.fromValue(DdsPixelFormatFlags.class, value);
     }
 
-    public static Set<DdsPixelFormatFlags> fromValue(int value) {
-        var result = EnumSet.noneOf(DdsPixelFormatFlags.class);
-        for (var flag : VALUES) {
-            if ((value & flag.value) == flag.value) {
-                result.add(flag);
-                value &= ~flag.value;
-            }
-        }
-        if (value != 0) {
-            throw new IllegalArgumentException("Unknown DdsPixelFormatFlags value: " + value);
-        }
-        return result;
+    @Override
+    public int value() {
+        return value;
     }
 }

@@ -20,7 +20,7 @@ public interface FlagEnum {
         return result;
     }
 
-    static <E extends Enum<E> & FlagEnum> int toValue(EnumSet<E> flags) {
+    static <E extends Enum<E> & FlagEnum> int toValue(Set<E> flags) {
         return flags.stream()
             .mapToInt(FlagEnum::value)
             .reduce(0, (a, b) -> a | b);
@@ -28,6 +28,9 @@ public interface FlagEnum {
 
     final class Lookup {
         private static final Map<Class<?>, Enum<?>[]> LOOKUP = new HashMap<>();
+
+        private Lookup() {
+        }
 
         @SuppressWarnings("unchecked")
         private static <E extends Enum<E>> E[] lookup(Class<E> enumClass) {

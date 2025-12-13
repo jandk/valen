@@ -1,8 +1,10 @@
 package be.twofold.valen.export.dds;
 
+import be.twofold.valen.core.util.*;
+
 import java.util.*;
 
-public enum DdsHeaderFlags {
+public enum DdsHeaderFlags implements FlagEnum {
     DDSD_CAPS(0x1),
     DDSD_HEIGHT(0x2),
     DDSD_WIDTH(0x4),
@@ -13,28 +15,18 @@ public enum DdsHeaderFlags {
     DDSD_DEPTH(0x800000),
     ;
 
-    private static final DdsHeaderFlags[] VALUES = values();
     private final int value;
 
     DdsHeaderFlags(int value) {
         this.value = value;
     }
 
-    public int getValue() {
-        return value;
+    public static Set<DdsHeaderFlags> fromValue(int value) {
+        return FlagEnum.fromValue(DdsHeaderFlags.class, value);
     }
 
-    public static Set<DdsHeaderFlags> fromValue(int value) {
-        var result = EnumSet.noneOf(DdsHeaderFlags.class);
-        for (var flag : VALUES) {
-            if ((value & flag.value) == flag.value) {
-                result.add(flag);
-                value &= ~flag.value;
-            }
-        }
-        if (value != 0) {
-            throw new IllegalArgumentException("Unknown DdsHeaderFlag value: " + value);
-        }
-        return result;
+    @Override
+    public int value() {
+        return value;
     }
 }

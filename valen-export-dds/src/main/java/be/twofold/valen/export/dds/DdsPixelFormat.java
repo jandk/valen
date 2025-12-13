@@ -1,5 +1,7 @@
 package be.twofold.valen.export.dds;
 
+import be.twofold.valen.core.util.*;
+
 import java.nio.*;
 import java.util.*;
 
@@ -15,7 +17,7 @@ record DdsPixelFormat(
     public static final int SIZE = 32;
 
     DdsPixelFormat {
-        flags = EnumSet.copyOf(flags);
+        flags = Set.copyOf(flags);
         Objects.requireNonNull(fourCC);
     }
 
@@ -47,7 +49,7 @@ record DdsPixelFormat(
         return ByteBuffer.allocate(SIZE)
             .order(ByteOrder.LITTLE_ENDIAN)
             .putInt(SIZE)
-            .putInt(flags.stream().mapToInt(DdsPixelFormatFlags::getValue).reduce(0, Integer::sum))
+            .putInt(FlagEnum.toValue(flags))
             .putInt(fourCC.getValue())
             .putInt(rgbBitCount)
             .putInt(rBitMask)

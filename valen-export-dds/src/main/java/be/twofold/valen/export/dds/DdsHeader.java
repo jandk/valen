@@ -1,5 +1,7 @@
 package be.twofold.valen.export.dds;
 
+import be.twofold.valen.core.util.*;
+
 import java.nio.*;
 import java.util.*;
 
@@ -19,10 +21,10 @@ public record DdsHeader(
     public static final int MAGIC = 0x20534444;
 
     public DdsHeader {
-        flags = EnumSet.copyOf(flags);
+        flags = Set.copyOf(flags);
         Objects.requireNonNull(pixelFormat);
-        caps1 = EnumSet.copyOf(caps1);
-        caps2 = EnumSet.copyOf(caps2);
+        caps1 = Set.copyOf(caps1);
+        caps2 = Set.copyOf(caps2);
     }
 
     public static DdsHeader fromBuffer(ByteBuffer buffer) throws DdsException {
@@ -68,7 +70,7 @@ public record DdsHeader(
             .order(ByteOrder.LITTLE_ENDIAN)
             .putInt(MAGIC) // "DDS "
             .putInt(SIZE) // size
-            .putInt(flags.stream().mapToInt(DdsHeaderFlags::getValue).reduce(0, Integer::sum))
+            .putInt(FlagEnum.toValue(flags))
             .putInt(height)
             .putInt(width)
             .putInt(pitchOrLinearSize)
@@ -76,8 +78,8 @@ public record DdsHeader(
             .putInt(mipMapCount)
             .position(0x4c) // skip 11 ints
             .put(pixelFormat.toBuffer())
-            .putInt(caps1.stream().mapToInt(DdsHeaderCaps1::getValue).reduce(0, Integer::sum))
-            .putInt(caps2.stream().mapToInt(DdsHeaderCaps2::getValue).reduce(0, Integer::sum))
+            .putInt(FlagEnum.toValue(caps1))
+            .putInt(FlagEnum.toValue(caps2))
             .putInt(0) // caps3
             .putInt(0) // caps4
             .putInt(0) // reserved
