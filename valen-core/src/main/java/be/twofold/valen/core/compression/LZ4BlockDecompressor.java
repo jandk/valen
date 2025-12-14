@@ -12,16 +12,20 @@ final class LZ4BlockDecompressor extends LZDecompressor {
 
     @Override
     public void decompress(Bytes src, MutableBytes dst) throws IOException {
+        decompress(src, dst, 0);
+    }
+
+    int decompress(Bytes src, MutableBytes dst, int dstOffset) throws IOException {
         // Special case
         if (dst.length() == 0) {
             if (src.length() != 1 || src.get(0) != 0) {
                 throw new IOException("Invalid empty block");
             }
-            return /*0*/;
+            return 0;
         }
 
+        int dstOff = dstOffset;
         int srcOff = 0;
-        int dstOff = 0;
         while (true) {
             int token = src.get(srcOff++);
 
@@ -44,7 +48,7 @@ final class LZ4BlockDecompressor extends LZDecompressor {
 
             // End of input check
             if (srcOff >= src.length()) {
-                return /*dstPos - targetOffset*/;
+                return dstOff - dstOffset;
             }
 
             // Get the match position, can't start before the output start
