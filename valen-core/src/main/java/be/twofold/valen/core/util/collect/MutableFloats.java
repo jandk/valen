@@ -28,15 +28,6 @@ public final class MutableFloats extends Floats {
         return this;
     }
 
-    public MutableFloats fill(float value) {
-        Arrays.fill(array, offset, offset + length, value);
-        return this;
-    }
-
-    public FloatBuffer asMutableBuffer() {
-        return FloatBuffer.wrap(array, offset, length);
-    }
-
     public MutableFloats slice(int offset) {
         return slice(offset, length - offset);
     }
@@ -44,5 +35,14 @@ public final class MutableFloats extends Floats {
     public MutableFloats slice(int offset, int length) {
         Check.fromIndexSize(offset, length, this.length);
         return new MutableFloats(array, this.offset + offset, length);
+    }
+
+    public MutableFloats fill(float value) {
+        Arrays.fill(array, offset, offset + length, value);
+        return this;
+    }
+
+    public FloatBuffer asMutableBuffer() {
+        return FloatBuffer.wrap(array, offset, length);
     }
 }

@@ -28,15 +28,6 @@ public final class MutableInts extends Ints {
         return this;
     }
 
-    public MutableInts fill(int value) {
-        Arrays.fill(array, offset, offset + length, value);
-        return this;
-    }
-
-    public IntBuffer asMutableBuffer() {
-        return IntBuffer.wrap(array, offset, length);
-    }
-
     public MutableInts slice(int offset) {
         return slice(offset, length - offset);
     }
@@ -44,5 +35,14 @@ public final class MutableInts extends Ints {
     public MutableInts slice(int offset, int length) {
         Check.fromIndexSize(offset, length, this.length);
         return new MutableInts(array, this.offset + offset, length);
+    }
+
+    public MutableInts fill(int value) {
+        Arrays.fill(array, offset, offset + length, value);
+        return this;
+    }
+
+    public IntBuffer asMutableBuffer() {
+        return IntBuffer.wrap(array, offset, length);
     }
 }

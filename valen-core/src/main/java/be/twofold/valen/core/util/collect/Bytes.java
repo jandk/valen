@@ -3,15 +3,17 @@ package be.twofold.valen.core.util.collect;
 import be.twofold.valen.core.util.*;
 import org.jetbrains.annotations.*;
 
+import java.io.*;
 import java.lang.invoke.*;
 import java.nio.*;
+import java.nio.charset.*;
 import java.util.*;
 import java.util.stream.*;
 
 @Debug.Renderer(
     childrenArray = "java.util.Arrays.copyOfRange(array, offset, offset + length)"
 )
-public class Bytes implements Comparable<Bytes>, Array {
+public class Bytes implements Array, Comparable<Bytes> {
     private static final Bytes EMPTY = wrap(new byte[0]);
 
     static final VarHandle VH_SHORT_LE = MethodHandles.byteArrayViewVarHandle(short[].class, ByteOrder.LITTLE_ENDIAN).withInvokeExactBehavior();
@@ -97,32 +99,6 @@ public class Bytes implements Comparable<Bytes>, Array {
     }
 
     @Override
-    public ByteBuffer asBuffer() {
-        return ByteBuffer.wrap(array, offset, length).asReadOnlyBuffer();
-    }
-
-    public void copyTo(MutableBytes target, int offset) {
-        System.arraycopy(array, this.offset, target.array, target.offset + offset, length);
-    }
-
-    public Bytes slice(int offset) {
-        return slice(offset, length - offset);
-    }
-
-    public Bytes slice(int offset, int length) {
-        Check.fromIndexSize(offset, length, this.length);
-        return new Bytes(array, this.offset + offset, length);
-    }
-
-    public IntStream stream() {
-        return IntStream.range(offset, offset + length).map(i -> array[i]);
-    }
-
-    public byte[] toArray() {
-        return Arrays.copyOfRange(array, offset, offset + length);
-    }
-
-    @Override
     public int length() {
         return length;
     }
@@ -149,6 +125,44 @@ public class Bytes implements Comparable<Bytes>, Array {
         return -1;
     }
 
+    public Bytes slice(int offset) {
+        return slice(offset, length - offset);
+    }
+
+    public Bytes slice(int offset, int length) {
+        Check.fromIndexSize(offset, length, this.length);
+        return new Bytes(array, this.offset + offset, length);
+    }
+
+    public void copyTo(MutableBytes target, int offset) {
+        System.arraycopy(array, this.offset, target.array, target.offset + offset, length);
+    }
+
+    @Override
+    public ByteBuffer asBuffer() {
+        return ByteBuffer.wrap(array, offset, length).asReadOnlyBuffer();
+    }
+
+    public InputStream asInputStream() {
+        return new ByteArrayInputStream(array, offset, length);
+    }
+
+    public byte[] toArray() {
+        return Arrays.copyOfRange(array, offset, offset + length);
+    }
+
+    public String toHexString(HexFormat format) {
+        return format.formatHex(array, offset, offset + length);
+    }
+
+    public String toString(Charset charset) {
+        return new String(array, offset, length, charset);
+    }
+
+    public IntStream stream() {
+        return IntStream.range(offset, offset + length).map(i -> array[i]);
+    }
+
     @Override
     public int compareTo(Bytes o) {
         return Arrays.compare(array, offset, offset + length, o.array, o.offset, o.offset + o.length);
@@ -170,14 +184,6 @@ public class Bytes implements Comparable<Bytes>, Array {
 
     @Override
     public String toString() {
-        if (length == 0) {
-            return "[]";
-        }
-        StringBuilder builder = new StringBuilder();
-        builder.append('[').append(array[offset]);
-        for (int i = offset + 1, limit = offset + length; i < limit; i++) {
-            builder.append(", ").append(array[i]);
-        }
-        return builder.append(']').toString();
+        return "[" + length + " bytes]";
     }
 }

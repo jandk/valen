@@ -28,15 +28,6 @@ public final class MutableLongs extends Longs {
         return this;
     }
 
-    public MutableLongs fill(long value) {
-        Arrays.fill(array, offset, offset + length, value);
-        return this;
-    }
-
-    public LongBuffer asMutableBuffer() {
-        return LongBuffer.wrap(array, offset, length);
-    }
-
     public MutableLongs slice(int offset) {
         return slice(offset, length - offset);
     }
@@ -44,5 +35,14 @@ public final class MutableLongs extends Longs {
     public MutableLongs slice(int offset, int length) {
         Check.fromIndexSize(offset, length, this.length);
         return new MutableLongs(array, this.offset + offset, length);
+    }
+
+    public MutableLongs fill(long value) {
+        Arrays.fill(array, offset, offset + length, value);
+        return this;
+    }
+
+    public LongBuffer asMutableBuffer() {
+        return LongBuffer.wrap(array, offset, length);
     }
 }

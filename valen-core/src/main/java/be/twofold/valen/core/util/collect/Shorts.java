@@ -10,7 +10,7 @@ import java.util.stream.*;
 @Debug.Renderer(
     childrenArray = "java.util.Arrays.copyOfRange(array, offset, offset + length)"
 )
-public class Shorts implements Comparable<Shorts>, Array {
+public class Shorts implements Array, Comparable<Shorts> {
     private static final Shorts EMPTY = wrap(new short[0]);
 
     final short[] array;
@@ -53,32 +53,6 @@ public class Shorts implements Comparable<Shorts>, Array {
     }
 
     @Override
-    public ShortBuffer asBuffer() {
-        return ShortBuffer.wrap(array, offset, length).asReadOnlyBuffer();
-    }
-
-    public void copyTo(MutableShorts target, int offset) {
-        System.arraycopy(array, this.offset, target.array, target.offset + offset, length);
-    }
-
-    public Shorts slice(int offset) {
-        return slice(offset, length - offset);
-    }
-
-    public Shorts slice(int offset, int length) {
-        Check.fromIndexSize(offset, length, this.length);
-        return new Shorts(array, this.offset + offset, length);
-    }
-
-    public IntStream stream() {
-        return IntStream.range(offset, offset + length).map(i -> array[i]);
-    }
-
-    public short[] toArray() {
-        return Arrays.copyOfRange(array, offset, offset + length);
-    }
-
-    @Override
     public int length() {
         return length;
     }
@@ -105,6 +79,32 @@ public class Shorts implements Comparable<Shorts>, Array {
         return -1;
     }
 
+    public Shorts slice(int offset) {
+        return slice(offset, length - offset);
+    }
+
+    public Shorts slice(int offset, int length) {
+        Check.fromIndexSize(offset, length, this.length);
+        return new Shorts(array, this.offset + offset, length);
+    }
+
+    public void copyTo(MutableShorts target, int offset) {
+        System.arraycopy(array, this.offset, target.array, target.offset + offset, length);
+    }
+
+    @Override
+    public ShortBuffer asBuffer() {
+        return ShortBuffer.wrap(array, offset, length).asReadOnlyBuffer();
+    }
+
+    public short[] toArray() {
+        return Arrays.copyOfRange(array, offset, offset + length);
+    }
+
+    public IntStream stream() {
+        return IntStream.range(offset, offset + length).map(i -> array[i]);
+    }
+
     @Override
     public int compareTo(Shorts o) {
         return Arrays.compare(array, offset, offset + length, o.array, o.offset, o.offset + o.length);
@@ -126,14 +126,6 @@ public class Shorts implements Comparable<Shorts>, Array {
 
     @Override
     public String toString() {
-        if (length == 0) {
-            return "[]";
-        }
-        StringBuilder builder = new StringBuilder();
-        builder.append('[').append(array[offset]);
-        for (int i = offset + 1, limit = offset + length; i < limit; i++) {
-            builder.append(", ").append(array[i]);
-        }
-        return builder.append(']').toString();
+        return "[" + length + " shorts]";
     }
 }

@@ -10,7 +10,7 @@ import java.util.stream.*;
 @Debug.Renderer(
     childrenArray = "java.util.Arrays.copyOfRange(array, offset, offset + length)"
 )
-public class Longs implements Comparable<Longs>, Array {
+public class Longs implements Array, Comparable<Longs> {
     private static final Longs EMPTY = wrap(new long[0]);
 
     final long[] array;
@@ -49,32 +49,6 @@ public class Longs implements Comparable<Longs>, Array {
     }
 
     @Override
-    public LongBuffer asBuffer() {
-        return LongBuffer.wrap(array, offset, length).asReadOnlyBuffer();
-    }
-
-    public void copyTo(MutableLongs target, int offset) {
-        System.arraycopy(array, this.offset, target.array, target.offset + offset, length);
-    }
-
-    public Longs slice(int offset) {
-        return slice(offset, length - offset);
-    }
-
-    public Longs slice(int offset, int length) {
-        Check.fromIndexSize(offset, length, this.length);
-        return new Longs(array, this.offset + offset, length);
-    }
-
-    public LongStream stream() {
-        return Arrays.stream(array, offset, offset + length);
-    }
-
-    public long[] toArray() {
-        return Arrays.copyOfRange(array, offset, offset + length);
-    }
-
-    @Override
     public int length() {
         return length;
     }
@@ -101,6 +75,32 @@ public class Longs implements Comparable<Longs>, Array {
         return -1;
     }
 
+    public Longs slice(int offset) {
+        return slice(offset, length - offset);
+    }
+
+    public Longs slice(int offset, int length) {
+        Check.fromIndexSize(offset, length, this.length);
+        return new Longs(array, this.offset + offset, length);
+    }
+
+    public void copyTo(MutableLongs target, int offset) {
+        System.arraycopy(array, this.offset, target.array, target.offset + offset, length);
+    }
+
+    @Override
+    public LongBuffer asBuffer() {
+        return LongBuffer.wrap(array, offset, length).asReadOnlyBuffer();
+    }
+
+    public long[] toArray() {
+        return Arrays.copyOfRange(array, offset, offset + length);
+    }
+
+    public LongStream stream() {
+        return Arrays.stream(array, offset, offset + length);
+    }
+
     @Override
     public int compareTo(Longs o) {
         return Arrays.compare(array, offset, offset + length, o.array, o.offset, o.offset + o.length);
@@ -122,14 +122,6 @@ public class Longs implements Comparable<Longs>, Array {
 
     @Override
     public String toString() {
-        if (length == 0) {
-            return "[]";
-        }
-        StringBuilder builder = new StringBuilder();
-        builder.append('[').append(array[offset]);
-        for (int i = offset + 1, limit = offset + length; i < limit; i++) {
-            builder.append(", ").append(array[i]);
-        }
-        return builder.append(']').toString();
+        return "[" + length + " longs]";
     }
 }

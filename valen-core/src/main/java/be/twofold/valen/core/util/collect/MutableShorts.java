@@ -28,15 +28,6 @@ public final class MutableShorts extends Shorts {
         return this;
     }
 
-    public MutableShorts fill(short value) {
-        Arrays.fill(array, offset, offset + length, value);
-        return this;
-    }
-
-    public ShortBuffer asMutableBuffer() {
-        return ShortBuffer.wrap(array, offset, length);
-    }
-
     public MutableShorts slice(int offset) {
         return slice(offset, length - offset);
     }
@@ -44,5 +35,14 @@ public final class MutableShorts extends Shorts {
     public MutableShorts slice(int offset, int length) {
         Check.fromIndexSize(offset, length, this.length);
         return new MutableShorts(array, this.offset + offset, length);
+    }
+
+    public MutableShorts fill(short value) {
+        Arrays.fill(array, offset, offset + length, value);
+        return this;
+    }
+
+    public ShortBuffer asMutableBuffer() {
+        return ShortBuffer.wrap(array, offset, length);
     }
 }

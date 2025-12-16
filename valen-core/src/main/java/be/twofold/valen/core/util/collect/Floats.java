@@ -10,7 +10,7 @@ import java.util.stream.*;
 @Debug.Renderer(
     childrenArray = "java.util.Arrays.copyOfRange(array, offset, offset + length)"
 )
-public class Floats implements Comparable<Floats>, Array {
+public class Floats implements Array, Comparable<Floats> {
     private static final Floats EMPTY = wrap(new float[0]);
 
     final float[] array;
@@ -49,12 +49,30 @@ public class Floats implements Comparable<Floats>, Array {
     }
 
     @Override
-    public FloatBuffer asBuffer() {
-        return FloatBuffer.wrap(array, offset, length).asReadOnlyBuffer();
+    public int length() {
+        return length;
     }
 
-    public void copyTo(MutableFloats target, int offset) {
-        System.arraycopy(array, this.offset, target.array, target.offset + offset, length);
+    public boolean contains(float value) {
+        return indexOf(value) >= 0;
+    }
+
+    public int indexOf(float value) {
+        for (int i = offset, limit = offset + length; i < limit; i++) {
+            if (java.lang.Float.compare(array[i], value) == 0) {
+                return i - offset;
+            }
+        }
+        return -1;
+    }
+
+    public int lastIndexOf(float value) {
+        for (int i = offset + length - 1; i >= offset; i--) {
+            if (java.lang.Float.compare(array[i], value) == 0) {
+                return i - offset;
+            }
+        }
+        return -1;
     }
 
     public Floats slice(int offset) {
@@ -66,39 +84,21 @@ public class Floats implements Comparable<Floats>, Array {
         return new Floats(array, this.offset + offset, length);
     }
 
-    public DoubleStream stream() {
-        return IntStream.range(offset, offset + length).mapToDouble(i -> array[i]);
+    public void copyTo(MutableFloats target, int offset) {
+        System.arraycopy(array, this.offset, target.array, target.offset + offset, length);
+    }
+
+    @Override
+    public FloatBuffer asBuffer() {
+        return FloatBuffer.wrap(array, offset, length).asReadOnlyBuffer();
     }
 
     public float[] toArray() {
         return Arrays.copyOfRange(array, offset, offset + length);
     }
 
-    @Override
-    public int length() {
-        return length;
-    }
-
-    public boolean contains(float value) {
-        return indexOf(value) >= 0;
-    }
-
-    public int indexOf(float value) {
-        for (int i = offset, limit = offset + length; i < limit; i++) {
-            if (Float.compare(array[i], value) == 0) {
-                return i - offset;
-            }
-        }
-        return -1;
-    }
-
-    public int lastIndexOf(float value) {
-        for (int i = offset + length - 1; i >= offset; i--) {
-            if (Float.compare(array[i], value) == 0) {
-                return i - offset;
-            }
-        }
-        return -1;
+    public DoubleStream stream() {
+        return IntStream.range(offset, offset + length).mapToDouble(i -> array[i]);
     }
 
     @Override
@@ -122,14 +122,6 @@ public class Floats implements Comparable<Floats>, Array {
 
     @Override
     public String toString() {
-        if (length == 0) {
-            return "[]";
-        }
-        StringBuilder builder = new StringBuilder();
-        builder.append('[').append(array[offset]);
-        for (int i = offset + 1, limit = offset + length; i < limit; i++) {
-            builder.append(", ").append(array[i]);
-        }
-        return builder.append(']').toString();
+        return "[" + length + " floats]";
     }
 }

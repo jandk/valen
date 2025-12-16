@@ -10,7 +10,7 @@ import java.util.stream.*;
 @Debug.Renderer(
     childrenArray = "java.util.Arrays.copyOfRange(array, offset, offset + length)"
 )
-public class Doubles implements Comparable<Doubles>, Array {
+public class Doubles implements Array, Comparable<Doubles> {
     private static final Doubles EMPTY = wrap(new double[0]);
 
     final double[] array;
@@ -49,12 +49,30 @@ public class Doubles implements Comparable<Doubles>, Array {
     }
 
     @Override
-    public DoubleBuffer asBuffer() {
-        return DoubleBuffer.wrap(array, offset, length).asReadOnlyBuffer();
+    public int length() {
+        return length;
     }
 
-    public void copyTo(MutableDoubles target, int offset) {
-        System.arraycopy(array, this.offset, target.array, target.offset + offset, length);
+    public boolean contains(double value) {
+        return indexOf(value) >= 0;
+    }
+
+    public int indexOf(double value) {
+        for (int i = offset, limit = offset + length; i < limit; i++) {
+            if (java.lang.Double.compare(array[i], value) == 0) {
+                return i - offset;
+            }
+        }
+        return -1;
+    }
+
+    public int lastIndexOf(double value) {
+        for (int i = offset + length - 1; i >= offset; i--) {
+            if (java.lang.Double.compare(array[i], value) == 0) {
+                return i - offset;
+            }
+        }
+        return -1;
     }
 
     public Doubles slice(int offset) {
@@ -66,39 +84,21 @@ public class Doubles implements Comparable<Doubles>, Array {
         return new Doubles(array, this.offset + offset, length);
     }
 
-    public DoubleStream stream() {
-        return Arrays.stream(array, offset, offset + length);
+    public void copyTo(MutableDoubles target, int offset) {
+        System.arraycopy(array, this.offset, target.array, target.offset + offset, length);
+    }
+
+    @Override
+    public DoubleBuffer asBuffer() {
+        return DoubleBuffer.wrap(array, offset, length).asReadOnlyBuffer();
     }
 
     public double[] toArray() {
         return Arrays.copyOfRange(array, offset, offset + length);
     }
 
-    @Override
-    public int length() {
-        return length;
-    }
-
-    public boolean contains(double value) {
-        return indexOf(value) >= 0;
-    }
-
-    public int indexOf(double value) {
-        for (int i = offset, limit = offset + length; i < limit; i++) {
-            if (Double.compare(array[i], value) == 0) {
-                return i - offset;
-            }
-        }
-        return -1;
-    }
-
-    public int lastIndexOf(double value) {
-        for (int i = offset + length - 1; i >= offset; i--) {
-            if (Double.compare(array[i], value) == 0) {
-                return i - offset;
-            }
-        }
-        return -1;
+    public DoubleStream stream() {
+        return Arrays.stream(array, offset, offset + length);
     }
 
     @Override
@@ -122,14 +122,6 @@ public class Doubles implements Comparable<Doubles>, Array {
 
     @Override
     public String toString() {
-        if (length == 0) {
-            return "[]";
-        }
-        StringBuilder builder = new StringBuilder();
-        builder.append('[').append(array[offset]);
-        for (int i = offset + 1, limit = offset + length; i < limit; i++) {
-            builder.append(", ").append(array[i]);
-        }
-        return builder.append(']').toString();
+        return "[" + length + " doubles]";
     }
 }

@@ -28,15 +28,6 @@ public final class MutableDoubles extends Doubles {
         return this;
     }
 
-    public MutableDoubles fill(double value) {
-        Arrays.fill(array, offset, offset + length, value);
-        return this;
-    }
-
-    public DoubleBuffer asMutableBuffer() {
-        return DoubleBuffer.wrap(array, offset, length);
-    }
-
     public MutableDoubles slice(int offset) {
         return slice(offset, length - offset);
     }
@@ -44,5 +35,14 @@ public final class MutableDoubles extends Doubles {
     public MutableDoubles slice(int offset, int length) {
         Check.fromIndexSize(offset, length, this.length);
         return new MutableDoubles(array, this.offset + offset, length);
+    }
+
+    public MutableDoubles fill(double value) {
+        Arrays.fill(array, offset, offset + length, value);
+        return this;
+    }
+
+    public DoubleBuffer asMutableBuffer() {
+        return DoubleBuffer.wrap(array, offset, length);
     }
 }

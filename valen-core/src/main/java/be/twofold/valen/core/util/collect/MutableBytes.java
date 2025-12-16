@@ -58,15 +58,6 @@ public final class MutableBytes extends Bytes {
         return this;
     }
 
-    public MutableBytes fill(byte value) {
-        Arrays.fill(array, offset, offset + length, value);
-        return this;
-    }
-
-    public ByteBuffer asMutableBuffer() {
-        return ByteBuffer.wrap(array, offset, length);
-    }
-
     public MutableBytes slice(int offset) {
         return slice(offset, length - offset);
     }
@@ -74,5 +65,14 @@ public final class MutableBytes extends Bytes {
     public MutableBytes slice(int offset, int length) {
         Check.fromIndexSize(offset, length, this.length);
         return new MutableBytes(array, this.offset + offset, length);
+    }
+
+    public MutableBytes fill(byte value) {
+        Arrays.fill(array, offset, offset + length, value);
+        return this;
+    }
+
+    public ByteBuffer asMutableBuffer() {
+        return ByteBuffer.wrap(array, offset, length);
     }
 }

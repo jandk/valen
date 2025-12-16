@@ -10,7 +10,7 @@ import java.util.stream.*;
 @Debug.Renderer(
     childrenArray = "java.util.Arrays.copyOfRange(array, offset, offset + length)"
 )
-public class Ints implements Comparable<Ints>, Array {
+public class Ints implements Array, Comparable<Ints> {
     private static final Ints EMPTY = wrap(new int[0]);
 
     final int[] array;
@@ -53,32 +53,6 @@ public class Ints implements Comparable<Ints>, Array {
     }
 
     @Override
-    public IntBuffer asBuffer() {
-        return IntBuffer.wrap(array, offset, length).asReadOnlyBuffer();
-    }
-
-    public void copyTo(MutableInts target, int offset) {
-        System.arraycopy(array, this.offset, target.array, target.offset + offset, length);
-    }
-
-    public Ints slice(int offset) {
-        return slice(offset, length - offset);
-    }
-
-    public Ints slice(int offset, int length) {
-        Check.fromIndexSize(offset, length, this.length);
-        return new Ints(array, this.offset + offset, length);
-    }
-
-    public IntStream stream() {
-        return Arrays.stream(array, offset, offset + length);
-    }
-
-    public int[] toArray() {
-        return Arrays.copyOfRange(array, offset, offset + length);
-    }
-
-    @Override
     public int length() {
         return length;
     }
@@ -105,6 +79,32 @@ public class Ints implements Comparable<Ints>, Array {
         return -1;
     }
 
+    public Ints slice(int offset) {
+        return slice(offset, length - offset);
+    }
+
+    public Ints slice(int offset, int length) {
+        Check.fromIndexSize(offset, length, this.length);
+        return new Ints(array, this.offset + offset, length);
+    }
+
+    public void copyTo(MutableInts target, int offset) {
+        System.arraycopy(array, this.offset, target.array, target.offset + offset, length);
+    }
+
+    @Override
+    public IntBuffer asBuffer() {
+        return IntBuffer.wrap(array, offset, length).asReadOnlyBuffer();
+    }
+
+    public int[] toArray() {
+        return Arrays.copyOfRange(array, offset, offset + length);
+    }
+
+    public IntStream stream() {
+        return Arrays.stream(array, offset, offset + length);
+    }
+
     @Override
     public int compareTo(Ints o) {
         return Arrays.compare(array, offset, offset + length, o.array, o.offset, o.offset + o.length);
@@ -126,14 +126,6 @@ public class Ints implements Comparable<Ints>, Array {
 
     @Override
     public String toString() {
-        if (length == 0) {
-            return "[]";
-        }
-        StringBuilder builder = new StringBuilder();
-        builder.append('[').append(array[offset]);
-        for (int i = offset + 1, limit = offset + length; i < limit; i++) {
-            builder.append(", ").append(array[i]);
-        }
-        return builder.append(']').toString();
+        return "[" + length + " ints]";
     }
 }
