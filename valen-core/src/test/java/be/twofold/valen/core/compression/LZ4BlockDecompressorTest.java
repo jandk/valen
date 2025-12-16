@@ -9,19 +9,19 @@ import java.util.*;
 
 import static org.assertj.core.api.Assertions.*;
 
-class LZ4DecompressorTest {
+class LZ4BlockDecompressorTest {
     private static final String HASH = "12a6d908a68ccf6f9f3d799705577c28763f5deef6eddcff7643d6d8a6de543d";
     private static final int LENGTH = 138216;
 
     private final MessageDigest sha256 = MessageDigest.getInstance("SHA256");
-    private final LZ4Decompressor decompressor = LZ4Decompressor.INSTANCE;
+    private final LZ4BlockDecompressor decompressor = LZ4BlockDecompressor.INSTANCE;
 
-    LZ4DecompressorTest() throws NoSuchAlgorithmException {
+    LZ4BlockDecompressorTest() throws NoSuchAlgorithmException {
     }
 
     @ParameterizedTest
     @ValueSource(ints = {0, 100})
-    void testLZ4(int offset) throws Exception {
+    void testLZ4Block(int offset) throws Exception {
         byte[] temp;
         try (var input = getClass().getResourceAsStream("ls.lz4b")) {
             temp = input.readAllBytes();

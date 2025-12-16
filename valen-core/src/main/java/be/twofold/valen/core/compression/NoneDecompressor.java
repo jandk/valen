@@ -17,7 +17,7 @@ final class NoneDecompressor implements Decompressor {
         }
 
         if (src.length() != dst.length()) {
-            throw new IOException("src.size() (" + src.length() + ") and dst.size() (" + dst.length() + ") do not match");
+            throw new IOException("src.length() (" + src.length() + ") and dst.length() (" + dst.length() + ") do not match");
         }
 
         src.copyTo(dst, 0);

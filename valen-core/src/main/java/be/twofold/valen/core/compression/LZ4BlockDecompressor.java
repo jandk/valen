@@ -4,10 +4,10 @@ import be.twofold.valen.core.util.collect.*;
 
 import java.io.*;
 
-final class LZ4Decompressor extends LZDecompressor {
-    static final LZ4Decompressor INSTANCE = new LZ4Decompressor();
+final class LZ4BlockDecompressor extends LZDecompressor {
+    static final LZ4BlockDecompressor INSTANCE = new LZ4BlockDecompressor();
 
-    private LZ4Decompressor() {
+    private LZ4BlockDecompressor() {
     }
 
     @Override

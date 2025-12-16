@@ -11,11 +11,10 @@ import java.nio.file.*;
 final class OozDecompressor implements Decompressor {
     private static final Logger log = LoggerFactory.getLogger(OozDecompressor.class);
 
-    private final Arena arena = Arena.ofAuto();
     private final OozFFM oozFFM;
 
     OozDecompressor(Path path) {
-        oozFFM = new OozFFM(path, arena);
+        oozFFM = new OozFFM(path, Arena.ofAuto());
         log.info("Loaded OOZ");
     }
 

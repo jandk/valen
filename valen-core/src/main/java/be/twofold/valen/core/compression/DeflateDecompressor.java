@@ -5,21 +5,24 @@ import be.twofold.valen.core.util.collect.*;
 import java.io.*;
 import java.util.zip.*;
 
-final class InflateDecompressor implements Decompressor {
-    private final boolean raw;
+final class DeflateDecompressor implements Decompressor {
+    private final boolean nowrap;
 
-    InflateDecompressor(boolean raw) {
-        this.raw = raw;
+    DeflateDecompressor(boolean nowrap) {
+        this.nowrap = nowrap;
     }
 
     @Override
     public void decompress(Bytes src, MutableBytes dst) throws IOException {
-        try (var inflater = new Inflater(raw)) {
-            inflater.setInput(src.asBuffer());
+        var srcBuffer = src.asBuffer();
+        var dstBuffer = dst.asMutableBuffer();
+
+        try (var inflater = new Inflater(nowrap)) {
+            inflater.setInput(srcBuffer);
 
             while (!inflater.finished()) {
                 try {
-                    int count = inflater.inflate(dst.asMutableBuffer());
+                    int count = inflater.inflate(dstBuffer);
                     if (count == 0) {
                         break;
                     }

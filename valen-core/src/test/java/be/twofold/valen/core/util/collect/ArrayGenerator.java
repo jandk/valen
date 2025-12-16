@@ -21,16 +21,16 @@ final class ArrayGenerator {
     private final ClassName mutableType;
     private final Class<?> primitiveType;
     private final TypeName arrayType;
-    private final ClassName boxedType;
+    private final ClassName wrapperType;
     private final ClassName bufferType;
     private TypeSpec.Builder builder;
 
-    ArrayGenerator(String className, Class<?> primitiveType, Class<?> boxedType, Class<?> bufferType) {
+    ArrayGenerator(String className, Class<?> primitiveType, Class<?> wrapperType, Class<?> bufferType) {
         this.thisType = ClassName.get("", className);
         this.mutableType = ClassName.get("", "Mutable" + className);
         this.primitiveType = primitiveType;
         this.arrayType = ArrayTypeName.of(TypeName.get(primitiveType));
-        this.boxedType = ClassName.get(boxedType);
+        this.wrapperType = ClassName.get(wrapperType);
         this.bufferType = ClassName.get(bufferType);
     }
 
@@ -278,7 +278,7 @@ final class ArrayGenerator {
         builder.addMethod(JavaPoetUtils.hashCodeBuilder()
             .addStatement("int result = 1")
             .beginControlFlow("for (int i = offset, limit = offset + length; i < limit; i++)")
-            .addStatement("result = 31 * result + $T.hashCode(array[i])", boxedType)
+            .addStatement("result = 31 * result + $T.hashCode(array[i])", wrapperType)
             .endControlFlow()
             .addStatement("return result")
             .build());

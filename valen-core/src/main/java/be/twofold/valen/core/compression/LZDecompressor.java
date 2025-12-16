@@ -3,7 +3,8 @@ package be.twofold.valen.core.compression;
 import be.twofold.valen.core.util.*;
 import be.twofold.valen.core.util.collect.*;
 
-public abstract class LZDecompressor implements Decompressor {
+abstract sealed class LZDecompressor implements Decompressor
+    permits FastLZDecompressor, LZ4BlockDecompressor {
     LZDecompressor() {
     }
 

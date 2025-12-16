@@ -5,22 +5,23 @@ import be.twofold.valen.core.util.collect.*;
 import java.io.*;
 import java.nio.file.*;
 
-@FunctionalInterface
-public interface Decompressor {
-    static Decompressor none() {
-        return NoneDecompressor.INSTANCE;
+public sealed interface Decompressor
+    permits DeflateDecompressor, LZDecompressor, NoneDecompressor, OodleDecompressor, OozDecompressor {
+
+    static Decompressor deflate(boolean nowrap) {
+        return new DeflateDecompressor(nowrap);
     }
 
     static Decompressor fastLZ() {
         return FastLZDecompressor.INSTANCE;
     }
 
-    static Decompressor inflate(boolean raw) {
-        return new InflateDecompressor(raw);
+    static Decompressor lz4Block() {
+        return LZ4BlockDecompressor.INSTANCE;
     }
 
-    static Decompressor lz4() {
-        return LZ4Decompressor.INSTANCE;
+    static Decompressor none() {
+        return NoneDecompressor.INSTANCE;
     }
 
     // TODO: Move this shit somewhere else...
@@ -36,11 +37,12 @@ public interface Decompressor {
         return new OozDecompressor(path);
     }
 
+    void decompress(Bytes src, MutableBytes dst) throws IOException;
+
     default Bytes decompress(Bytes src, int size) throws IOException {
         var dst = MutableBytes.allocate(size);
         decompress(src, dst);
         return dst;
     }
 
-    void decompress(Bytes src, MutableBytes dst) throws IOException;
 }
