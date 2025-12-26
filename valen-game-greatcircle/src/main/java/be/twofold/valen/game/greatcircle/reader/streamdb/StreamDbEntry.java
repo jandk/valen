@@ -1,6 +1,6 @@
 package be.twofold.valen.game.greatcircle.reader.streamdb;
 
-import be.twofold.valen.core.io.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 

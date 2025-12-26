@@ -8,6 +8,7 @@ module valen.ui {
     requires org.jetbrains.annotations;
     requires org.slf4j;
     requires valen.core;
+    requires wtf.reversed.toolbox;
 
     exports be.twofold.valen.ui;
 

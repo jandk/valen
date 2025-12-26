@@ -2,13 +2,13 @@ package be.twofold.valen.export.gltf.mappers;
 
 import be.twofold.valen.core.geometry.*;
 import be.twofold.valen.core.math.*;
-import be.twofold.valen.core.util.collect.*;
 import be.twofold.valen.format.gltf.*;
 import be.twofold.valen.format.gltf.model.accessor.*;
 import be.twofold.valen.format.gltf.model.bufferview.*;
 import be.twofold.valen.format.gltf.model.material.*;
 import be.twofold.valen.format.gltf.model.mesh.*;
 import org.slf4j.*;
+import wtf.reversed.toolbox.collect.*;
 
 import java.io.*;
 import java.util.*;

@@ -1,7 +1,7 @@
 package be.twofold.valen.game.idtech.geometry;
 
 import be.twofold.valen.core.geometry.*;
-import be.twofold.valen.core.io.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.util.*;
 import java.util.stream.*;

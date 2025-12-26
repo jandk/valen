@@ -1,8 +1,8 @@
 package be.twofold.valen.game.eternal;
 
 import be.twofold.valen.core.game.*;
-import be.twofold.valen.core.util.*;
 import be.twofold.valen.game.eternal.resource.*;
+import wtf.reversed.toolbox.util.*;
 
 import java.util.*;
 

@@ -1,6 +1,6 @@
 package be.twofold.valen.core.game;
 
-import be.twofold.valen.core.util.collect.*;
+import wtf.reversed.toolbox.collect.*;
 
 import java.io.*;
 import java.util.*;

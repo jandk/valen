@@ -1,6 +1,6 @@
 package be.twofold.valen.core.texture;
 
-import be.twofold.valen.core.util.*;
+import wtf.reversed.toolbox.util.*;
 
 public record Surface(
     int width,

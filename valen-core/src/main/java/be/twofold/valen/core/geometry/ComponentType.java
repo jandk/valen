@@ -1,7 +1,7 @@
 package be.twofold.valen.core.geometry;
 
-import be.twofold.valen.core.util.*;
-import be.twofold.valen.core.util.collect.*;
+import wtf.reversed.toolbox.collect.*;
+import wtf.reversed.toolbox.util.*;
 
 import java.util.function.*;
 

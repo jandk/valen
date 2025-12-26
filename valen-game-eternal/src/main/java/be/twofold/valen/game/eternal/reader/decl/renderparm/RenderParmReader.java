@@ -1,9 +1,9 @@
 package be.twofold.valen.game.eternal.reader.decl.renderparm;
 
-import be.twofold.valen.core.io.*;
 import be.twofold.valen.game.eternal.*;
 import be.twofold.valen.game.eternal.resource.*;
 import be.twofold.valen.game.idtech.renderparm.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 

@@ -1,16 +1,20 @@
 package be.twofold.valen.game.darkages;
 
-import be.twofold.valen.core.compression.*;
 import be.twofold.valen.core.game.*;
+import be.twofold.valen.core.util.*;
 import be.twofold.valen.game.darkages.reader.packagemapspec.*;
 import be.twofold.valen.game.darkages.reader.resources.*;
 import be.twofold.valen.game.darkages.reader.streamdb.*;
+import wtf.reversed.toolbox.compress.*;
 
 import java.io.*;
+import java.net.*;
 import java.nio.file.*;
 import java.util.*;
 
 public final class DarkAgesGame implements Game {
+    private static final String OODLE_URL = "https://github.com/WorkingRobot/OodleUE/raw/refs/heads/main/Engine/Source/Programs/Shared/EpicGames.Oodle/Sdk/2.9.10/win/redist/oo2core_9_win64.dll";
+
     private final Path base;
     private final PackageMapSpec spec;
     private final Decompressor decompressor;
@@ -20,17 +24,17 @@ public final class DarkAgesGame implements Game {
     DarkAgesGame(Path path) throws IOException {
         this.base = path.resolve("base");
         this.spec = PackageMapSpecReader.read(base.resolve("packagemapspec.json"));
-        this.decompressor = Decompressor.oodle();
+        this.decompressor = Decompressor.oodle(downloadOodle());
         this.streamDbCollection = loadStreams(base, spec, decompressor);
         this.commonCollection = loadResources(base, spec, decompressor, "common", "warehouse", "init");
     }
 
     static Container<DarkAgesAssetID, DarkAgesAsset> loadResources(Path base, PackageMapSpec spec, Decompressor decompressor, String... names) throws IOException {
         var paths = Arrays.stream(names)
-                .flatMap(map -> spec.mapFiles().get(map).stream())
-                .filter(file -> file.endsWith(".resources"))
-                .map(base::resolve)
-                .toList();
+            .flatMap(map -> spec.mapFiles().get(map).stream())
+            .filter(file -> file.endsWith(".resources"))
+            .map(base::resolve)
+            .toList();
 
         var files = new ArrayList<Container<DarkAgesAssetID, DarkAgesAsset>>();
         for (var path : paths) {
@@ -41,9 +45,9 @@ public final class DarkAgesGame implements Game {
 
     static Container<Long, StreamDbEntry> loadStreams(Path base, PackageMapSpec spec, Decompressor decompressor) throws IOException {
         var paths = spec.files().stream()
-                .filter(s -> s.endsWith(".streamdb"))
-                .map(base::resolve)
-                .toList();
+            .filter(s -> s.endsWith(".streamdb"))
+            .map(base::resolve)
+            .toList();
 
         var files = new ArrayList<Container<Long, StreamDbEntry>>();
         for (var path : paths) {
@@ -55,10 +59,10 @@ public final class DarkAgesGame implements Game {
     @Override
     public List<String> archiveNames() {
         return spec.maps().stream()
-                .filter(map -> spec.mapFiles().get(map).stream()
-                        .anyMatch(file -> file.endsWith(".resources")))
-                .map(s -> s.equals("common") ? "gameresources" : s)
-                .toList();
+            .filter(map -> spec.mapFiles().get(map).stream()
+                .anyMatch(file -> file.endsWith(".resources")))
+            .map(s -> s.equals("common") ? "gameresources" : s)
+            .toList();
     }
 
     @Override
@@ -68,5 +72,14 @@ public final class DarkAgesGame implements Game {
         }
         var resourcesCollection = loadResources(base, spec, decompressor, name);
         return new DarkAgesArchive(streamDbCollection, commonCollection, resourcesCollection);
+    }
+
+    private Path downloadOodle() {
+        var uri = URI.create(OODLE_URL);
+        var fileName = Path.of(uri.getPath()).getFileName();
+        if (!Files.exists(fileName)) {
+            HttpUtils.downloadFile(uri, fileName);
+        }
+        return fileName;
     }
 }

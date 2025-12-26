@@ -1,9 +1,9 @@
 package be.twofold.valen.game.greatcircle.reader.decl.renderparm;
 
-import be.twofold.valen.core.io.*;
 import be.twofold.valen.game.greatcircle.*;
 import be.twofold.valen.game.greatcircle.resource.*;
 import be.twofold.valen.game.idtech.renderparm.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 

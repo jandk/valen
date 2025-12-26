@@ -1,7 +1,7 @@
 package be.twofold.valen.game.eternal.reader.image;
 
-import be.twofold.valen.core.io.*;
 import be.twofold.valen.game.idtech.defines.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 

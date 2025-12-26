@@ -1,7 +1,7 @@
 package be.twofold.valen.core.material;
 
 import be.twofold.valen.core.math.*;
-import be.twofold.valen.core.util.*;
+import wtf.reversed.toolbox.util.*;
 
 public record MaterialProperty(
     MaterialPropertyType type,

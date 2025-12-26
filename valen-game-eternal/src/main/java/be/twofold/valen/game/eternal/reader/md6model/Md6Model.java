@@ -1,7 +1,7 @@
 package be.twofold.valen.game.eternal.reader.md6model;
 
-import be.twofold.valen.core.io.*;
 import be.twofold.valen.game.eternal.reader.geometry.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 import java.util.*;

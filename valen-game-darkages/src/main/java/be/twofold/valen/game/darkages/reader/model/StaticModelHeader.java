@@ -1,8 +1,8 @@
 package be.twofold.valen.game.darkages.reader.model;
 
-import be.twofold.valen.core.io.*;
+import wtf.reversed.toolbox.io.*;
 import be.twofold.valen.core.math.*;
-import be.twofold.valen.core.util.collect.*;
+import wtf.reversed.toolbox.collect.*;
 
 import java.io.*;
 

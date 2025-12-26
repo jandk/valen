@@ -1,6 +1,6 @@
 package be.twofold.valen.game.eternal.reader.havokshape;
 
-import be.twofold.valen.core.util.*;
+import wtf.reversed.toolbox.util.*;
 
 import java.util.*;
 

@@ -1,6 +1,6 @@
 package be.twofold.valen.game.idtech.geometry;
 
-import be.twofold.valen.core.util.collect.*;
+import wtf.reversed.toolbox.collect.*;
 
 public interface GeoMemoryLayout {
 

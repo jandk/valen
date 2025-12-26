@@ -1,9 +1,9 @@
 package be.twofold.valen.ui.component.utils;
 
-import be.twofold.valen.core.util.*;
 import javafx.scene.control.*;
 import javafx.util.*;
 import javafx.util.converter.*;
+import wtf.reversed.toolbox.util.*;
 
 public final class TooltippedTableCell<S, T> extends TableCell<S, T> {
     private final StringConverter<T> converter;

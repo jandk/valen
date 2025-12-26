@@ -1,7 +1,7 @@
 package be.twofold.valen.ui.component.utils;
 
-import be.twofold.valen.core.util.*;
 import javafx.scene.control.*;
+import wtf.reversed.toolbox.util.*;
 
 import java.util.*;
 import java.util.function.*;

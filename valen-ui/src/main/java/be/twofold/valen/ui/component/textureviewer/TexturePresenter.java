@@ -3,13 +3,13 @@ package be.twofold.valen.ui.component.textureviewer;
 import backbonefx.event.*;
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.texture.*;
-import be.twofold.valen.core.util.collect.*;
 import be.twofold.valen.ui.common.*;
 import be.twofold.valen.ui.common.settings.*;
 import be.twofold.valen.ui.component.*;
 import jakarta.inject.*;
 import javafx.scene.image.*;
 import org.slf4j.*;
+import wtf.reversed.toolbox.collect.*;
 
 import java.util.*;
 import java.util.function.*;

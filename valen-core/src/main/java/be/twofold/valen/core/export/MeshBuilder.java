@@ -2,10 +2,11 @@ package be.twofold.valen.core.export;
 
 import be.twofold.valen.core.geometry.*;
 import be.twofold.valen.core.math.*;
-import be.twofold.valen.core.util.*;
-import be.twofold.valen.core.util.collect.*;
+import wtf.reversed.toolbox.collect.*;
+import wtf.reversed.toolbox.util.*;
 
 import java.util.*;
+import java.util.Arrays;
 
 final class MeshBuilder {
     private static final int INITIAL_CAPACITY = 16;

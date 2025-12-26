@@ -1,6 +1,7 @@
 package be.twofold.valen.ui.component.filelist;
 
 import be.twofold.valen.core.util.*;
+import wtf.reversed.toolbox.util.*;
 
 record PathCombo(
     String full,

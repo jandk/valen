@@ -1,11 +1,11 @@
 package be.twofold.valen.game.idtech.decl;
 
 import be.twofold.valen.core.game.*;
-import be.twofold.valen.core.io.*;
-import be.twofold.valen.core.util.*;
-import be.twofold.valen.core.util.collect.*;
 import be.twofold.valen.game.idtech.decl.parser.*;
 import com.google.gson.*;
+import wtf.reversed.toolbox.collect.*;
+import wtf.reversed.toolbox.io.*;
+import wtf.reversed.toolbox.util.*;
 
 import java.io.*;
 import java.nio.charset.*;

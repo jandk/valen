@@ -1,6 +1,6 @@
 package be.twofold.valen.game.idtech.decl.parser;
 
-import be.twofold.valen.core.util.*;
+import wtf.reversed.toolbox.util.*;
 
 public record DeclToken(
     DeclTokenType type,

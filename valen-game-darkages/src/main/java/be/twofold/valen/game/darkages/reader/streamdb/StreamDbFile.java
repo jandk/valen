@@ -1,11 +1,11 @@
 package be.twofold.valen.game.darkages.reader.streamdb;
 
-import be.twofold.valen.core.compression.*;
 import be.twofold.valen.core.game.*;
-import be.twofold.valen.core.io.*;
-import be.twofold.valen.core.util.*;
-import be.twofold.valen.core.util.collect.*;
 import org.slf4j.*;
+import wtf.reversed.toolbox.collect.*;
+import wtf.reversed.toolbox.compress.*;
+import wtf.reversed.toolbox.io.*;
+import wtf.reversed.toolbox.util.*;
 
 import java.io.*;
 import java.nio.file.*;

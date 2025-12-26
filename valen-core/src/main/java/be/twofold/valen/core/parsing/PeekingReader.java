@@ -1,6 +1,6 @@
 package be.twofold.valen.core.parsing;
 
-import be.twofold.valen.core.util.*;
+import wtf.reversed.toolbox.util.*;
 
 import java.io.*;
 

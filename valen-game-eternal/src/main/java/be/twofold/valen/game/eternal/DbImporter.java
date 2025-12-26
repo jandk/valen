@@ -1,10 +1,10 @@
 package be.twofold.valen.game.eternal;
 
-import be.twofold.valen.core.io.*;
 import be.twofold.valen.game.eternal.reader.packagemapspec.*;
 import be.twofold.valen.game.eternal.reader.resource.*;
 import be.twofold.valen.game.eternal.reader.streamdb.*;
 import be.twofold.valen.game.eternal.resource.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 import java.nio.file.*;

@@ -1,8 +1,8 @@
 package be.twofold.valen.core.math;
 
-import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.util.*;
-import be.twofold.valen.core.util.collect.*;
+import wtf.reversed.toolbox.collect.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 import java.nio.*;

@@ -6,7 +6,6 @@ import be.twofold.valen.core.geometry.Mesh;
 import be.twofold.valen.core.material.*;
 import be.twofold.valen.core.material.Material;
 import be.twofold.valen.core.texture.*;
-import be.twofold.valen.core.util.collect.*;
 import be.twofold.valen.ui.common.*;
 import be.twofold.valen.ui.component.*;
 import jakarta.inject.*;
@@ -14,6 +13,7 @@ import javafx.collections.*;
 import javafx.scene.image.*;
 import javafx.scene.paint.*;
 import javafx.scene.shape.*;
+import wtf.reversed.toolbox.collect.*;
 
 import java.io.*;
 import java.nio.*;

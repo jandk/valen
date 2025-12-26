@@ -1,7 +1,7 @@
 package be.twofold.valen.game.eternal.reader.file;
 
-import be.twofold.valen.core.io.*;
-import be.twofold.valen.core.util.collect.*;
+import wtf.reversed.toolbox.collect.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 import java.time.*;

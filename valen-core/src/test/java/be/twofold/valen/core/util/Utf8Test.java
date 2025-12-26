@@ -1,7 +1,7 @@
 package be.twofold.valen.core.util;
 
-import be.twofold.valen.core.util.collect.*;
 import org.junit.jupiter.api.*;
+import wtf.reversed.toolbox.collect.*;
 
 import java.nio.charset.*;
 import java.util.*;

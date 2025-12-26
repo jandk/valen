@@ -1,8 +1,6 @@
 package be.twofold.valen.game.darkages;
 
 import be.twofold.valen.core.game.*;
-import be.twofold.valen.core.util.*;
-import be.twofold.valen.core.util.collect.*;
 import be.twofold.valen.game.darkages.reader.anim.*;
 import be.twofold.valen.game.darkages.reader.basemodel.*;
 import be.twofold.valen.game.darkages.reader.binaryfile.*;
@@ -16,6 +14,8 @@ import be.twofold.valen.game.darkages.reader.skeleton.*;
 import be.twofold.valen.game.darkages.reader.strandshair.*;
 import be.twofold.valen.game.darkages.reader.streamdb.*;
 import be.twofold.valen.game.darkages.reader.vegetation.*;
+import wtf.reversed.toolbox.collect.*;
+import wtf.reversed.toolbox.util.*;
 
 import java.io.*;
 import java.util.*;

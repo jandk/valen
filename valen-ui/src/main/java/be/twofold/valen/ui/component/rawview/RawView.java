@@ -1,6 +1,6 @@
 package be.twofold.valen.ui.component.rawview;
 
-import be.twofold.valen.core.util.collect.*;
+import wtf.reversed.toolbox.collect.*;
 
 // TODO: Turn this into a single union type
 public interface RawView {

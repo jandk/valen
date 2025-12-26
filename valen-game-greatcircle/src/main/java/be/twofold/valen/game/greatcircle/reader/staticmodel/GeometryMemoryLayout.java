@@ -1,8 +1,8 @@
 package be.twofold.valen.game.greatcircle.reader.staticmodel;
 
-import be.twofold.valen.core.io.*;
-import be.twofold.valen.core.util.collect.*;
 import be.twofold.valen.game.idtech.geometry.*;
+import wtf.reversed.toolbox.collect.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 

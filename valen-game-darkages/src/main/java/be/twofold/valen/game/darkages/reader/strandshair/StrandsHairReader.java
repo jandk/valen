@@ -2,11 +2,11 @@ package be.twofold.valen.game.darkages.reader.strandshair;
 
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.geometry.*;
-import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.math.*;
-import be.twofold.valen.core.util.collect.*;
 import be.twofold.valen.game.darkages.*;
 import be.twofold.valen.game.darkages.reader.resources.*;
+import wtf.reversed.toolbox.collect.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 import java.util.*;

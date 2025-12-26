@@ -1,7 +1,6 @@
 package be.twofold.valen.game.idtech.material;
 
 import be.twofold.valen.core.game.*;
-import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.material.*;
 import be.twofold.valen.core.math.*;
 import be.twofold.valen.core.texture.*;
@@ -12,6 +11,8 @@ import be.twofold.valen.game.idtech.defines.TextureFormat;
 import be.twofold.valen.game.idtech.renderparm.*;
 import com.google.gson.*;
 import org.slf4j.*;
+import wtf.reversed.toolbox.io.*;
+import wtf.reversed.toolbox.util.*;
 
 import java.io.*;
 import java.util.*;

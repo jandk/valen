@@ -9,6 +9,7 @@
     <packaging>pom</packaging>
 
     <modules>
+        <module>lib/reversed-toolbox</module>
         <module>valen-app</module>
         <module>valen-core</module>
         <module>valen-export-cast</module>
@@ -108,6 +109,11 @@
     <dependencyManagement>
         <dependencies>
             <!-- Project -->
+            <dependency>
+                <groupId>wtf.reversed</groupId>
+                <artifactId>reversed-toolbox</artifactId>
+                <version>1.0-SNAPSHOT</version>
+            </dependency>
             <dependency>
                 <groupId>be.twofold</groupId>
                 <artifactId>valen-core</artifactId>

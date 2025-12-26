@@ -1,10 +1,10 @@
 package be.twofold.valen.game.eternal.reader.lightdb;
 
-import be.twofold.valen.core.io.*;
-import be.twofold.valen.core.util.*;
-import be.twofold.valen.core.util.collect.*;
 import be.twofold.valen.game.eternal.reader.image.*;
 import be.twofold.valen.game.eternal.reader.streamdb.*;
+import wtf.reversed.toolbox.collect.*;
+import wtf.reversed.toolbox.io.*;
+import wtf.reversed.toolbox.util.*;
 
 import java.io.*;
 import java.util.*;

@@ -1,6 +1,6 @@
 package be.twofold.valen.game.idtech.decl.parser;
 
-import be.twofold.valen.core.util.*;
+import wtf.reversed.toolbox.util.*;
 
 public final class DeclLexer {
     private static final char Eof = '\0';

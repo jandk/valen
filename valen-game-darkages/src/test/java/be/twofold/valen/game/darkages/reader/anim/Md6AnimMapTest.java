@@ -1,8 +1,8 @@
 package be.twofold.valen.game.darkages.reader.anim;
 
-import be.twofold.valen.core.io.*;
-import be.twofold.valen.core.util.collect.*;
 import org.junit.jupiter.api.*;
+import wtf.reversed.toolbox.collect.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 import java.util.*;

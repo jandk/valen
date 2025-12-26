@@ -2,7 +2,7 @@ package be.twofold.valen.export.cast.mappers;
 
 import be.twofold.tinycast.*;
 import be.twofold.valen.core.geometry.*;
-import be.twofold.valen.core.util.*;
+import wtf.reversed.toolbox.util.*;
 
 import java.io.*;
 import java.nio.*;

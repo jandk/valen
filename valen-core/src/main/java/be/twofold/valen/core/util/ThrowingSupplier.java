@@ -1,5 +1,7 @@
 package be.twofold.valen.core.util;
 
+import wtf.reversed.toolbox.util.*;
+
 @FunctionalInterface
 public interface ThrowingSupplier<T, X extends Exception> {
     T get() throws X;

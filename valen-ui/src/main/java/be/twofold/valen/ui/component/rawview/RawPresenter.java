@@ -1,10 +1,10 @@
 package be.twofold.valen.ui.component.rawview;
 
 import be.twofold.valen.core.game.*;
-import be.twofold.valen.core.util.collect.*;
 import be.twofold.valen.ui.common.*;
 import be.twofold.valen.ui.component.*;
 import jakarta.inject.*;
+import wtf.reversed.toolbox.collect.*;
 
 public final class RawPresenter extends AbstractFXPresenter<RawView> implements Viewer {
     private final BinaryToText binaryToText = new BinaryToText();

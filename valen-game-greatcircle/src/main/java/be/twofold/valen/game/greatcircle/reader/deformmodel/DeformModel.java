@@ -1,9 +1,9 @@
 package be.twofold.valen.game.greatcircle.reader.deformmodel;
 
-import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.math.*;
-import be.twofold.valen.core.util.collect.*;
 import be.twofold.valen.game.greatcircle.reader.md6skl.*;
+import wtf.reversed.toolbox.collect.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 import java.util.*;

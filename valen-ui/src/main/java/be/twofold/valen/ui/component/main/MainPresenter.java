@@ -2,7 +2,6 @@ package be.twofold.valen.ui.component.main;
 
 import backbonefx.event.*;
 import be.twofold.valen.core.game.*;
-import be.twofold.valen.core.util.collect.*;
 import be.twofold.valen.ui.*;
 import be.twofold.valen.ui.common.*;
 import be.twofold.valen.ui.common.settings.*;
@@ -14,6 +13,7 @@ import javafx.application.*;
 import javafx.concurrent.*;
 import org.jetbrains.annotations.*;
 import org.slf4j.*;
+import wtf.reversed.toolbox.collect.*;
 
 import java.io.*;
 import java.util.*;

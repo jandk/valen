@@ -1,10 +1,10 @@
 package be.twofold.valen.ui.common.settings.gson;
 
-import be.twofold.valen.core.util.*;
 import be.twofold.valen.ui.common.settings.*;
 import com.google.gson.*;
 import com.google.gson.reflect.*;
 import com.google.gson.stream.*;
+import wtf.reversed.toolbox.util.*;
 
 import java.io.*;
 import java.lang.reflect.*;

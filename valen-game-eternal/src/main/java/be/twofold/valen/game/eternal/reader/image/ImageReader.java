@@ -1,10 +1,10 @@
 package be.twofold.valen.game.eternal.reader.image;
 
 import be.twofold.valen.core.game.*;
-import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.texture.*;
 import be.twofold.valen.game.eternal.*;
 import be.twofold.valen.game.eternal.resource.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 
