@@ -10,10 +10,10 @@ public record MapFileStaticInstancesPlayerStart(
     Vector3 spawnPosition,
     boolean initial
 ) {
-    public static MapFileStaticInstancesPlayerStart read(BinaryReader reader) throws IOException {
-        var entityName = reader.readPString();
-        var spawnPosition = Vector3.read(reader);
-        var initial = reader.readBoolByte();
+    public static MapFileStaticInstancesPlayerStart read(BinarySource source) throws IOException {
+        var entityName = source.readString(StringFormat.INT_LENGTH);
+        var spawnPosition = Vector3.read(source);
+        var initial = source.readBool(BoolFormat.BYTE);
         return new MapFileStaticInstancesPlayerStart(
             entityName,
             spawnPosition,

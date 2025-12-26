@@ -29,8 +29,8 @@ public final class Md6AnimReader implements AssetReader<Animation, EternalAsset>
     }
 
     @Override
-    public Animation read(BinaryReader reader, EternalAsset resource) throws IOException {
-        var anim = Md6Anim.read(reader);
+    public Animation read(BinarySource source, EternalAsset resource) throws IOException {
+        var anim = Md6Anim.read(source);
 
         var skeletonKey = EternalAssetID.from(anim.header().skelName(), ResourceType.Skeleton);
         if (archive.get(skeletonKey).isEmpty()) {

@@ -17,8 +17,8 @@ public final class Md6SkelReader implements AssetReader<Skeleton, EternalAsset> 
     }
 
     @Override
-    public Skeleton read(BinaryReader reader, EternalAsset resource) throws IOException {
-        Md6Skel skeleton = Md6Skel.read(reader);
+    public Skeleton read(BinarySource source, EternalAsset resource) throws IOException {
+        Md6Skel skeleton = Md6Skel.read(source);
         return map(skeleton);
     }
 

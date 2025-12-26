@@ -17,13 +17,13 @@ public final class Md6SkelReader implements AssetReader<Skeleton, DarkAgesAsset>
     }
 
     @Override
-    public Skeleton read(BinaryReader reader, DarkAgesAsset asset) throws IOException {
-        int size = reader.readInt();
+    public Skeleton read(BinarySource source, DarkAgesAsset asset) throws IOException {
+        int size = source.readInt();
         if (size == 0) {
             throw new UnsupportedOperationException();
         }
 
-        Md6Skel skeleton = Md6Skel.read(reader);
+        Md6Skel skeleton = Md6Skel.read(source);
         return map(skeleton);
     }
 

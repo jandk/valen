@@ -13,14 +13,14 @@ public record LightDbImageHeader(
     int unk5,
     int unk6
 ) {
-    public static LightDbImageHeader read(BinaryReader reader) throws IOException {
-        var hash = reader.readLong();
-        var unk1 = reader.readInt();
-        var unk2 = reader.readInt();
-        var unk3 = reader.readInt();
-        var unk4 = reader.readInt();
-        var unk5 = reader.readInt();
-        var unk6 = reader.readInt();
+    public static LightDbImageHeader read(BinarySource source) throws IOException {
+        var hash = source.readLong();
+        var unk1 = source.readInt();
+        var unk2 = source.readInt();
+        var unk3 = source.readInt();
+        var unk4 = source.readInt();
+        var unk5 = source.readInt();
+        var unk6 = source.readInt();
 
         return new LightDbImageHeader(
             hash,

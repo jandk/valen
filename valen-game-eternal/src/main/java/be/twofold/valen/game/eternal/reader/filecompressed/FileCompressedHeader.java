@@ -8,9 +8,9 @@ public record FileCompressedHeader(
     int uncompressedSize,
     int compressedSize
 ) {
-    public static FileCompressedHeader read(BinaryReader reader) throws IOException {
-        int uncompressedSize = reader.readLongAsInt();
-        int compressedSize = reader.readLongAsInt();
+    public static FileCompressedHeader read(BinarySource source) throws IOException {
+        int uncompressedSize = source.readLongAsInt();
+        int compressedSize = source.readLongAsInt();
         return new FileCompressedHeader(uncompressedSize, compressedSize);
     }
 }

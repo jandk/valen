@@ -16,13 +16,13 @@ public record StaticModel(
 ) {
     public static final int LodCount = 5;
 
-    public static StaticModel read(BinaryReader reader) throws IOException {
-        var header = StaticModelHeader.read(reader);
-        var meshInfos = reader.readObjects(header.numSurfaces(), StaticModelMeshInfo::read);
-        var settings = StaticModelSettings.read(reader);
-        var geoDecals = StaticModelGeoDecals.read(reader);
-        var streamedLods = reader.readObjects(header.numSurfaces() * LodCount, BinaryReader::readBoolByte);
-        var layouts = header.streamable() ? readLayouts(reader) : List.<GeometryDiskLayout>of();
+    public static StaticModel read(BinarySource source) throws IOException {
+        var header = StaticModelHeader.read(source);
+        var meshInfos = source.readObjects(header.numSurfaces(), StaticModelMeshInfo::read);
+        var settings = StaticModelSettings.read(source);
+        var geoDecals = StaticModelGeoDecals.read(source);
+        var streamedLods = source.readObjects(header.numSurfaces() * LodCount, s -> s.readBool(BoolFormat.BYTE));
+        var layouts = header.streamable() ? readLayouts(source) : List.<GeometryDiskLayout>of();
 
         return new StaticModel(
             header,
@@ -34,10 +34,10 @@ public record StaticModel(
         );
     }
 
-    private static List<GeometryDiskLayout> readLayouts(BinaryReader reader) throws IOException {
+    private static List<GeometryDiskLayout> readLayouts(BinarySource source) throws IOException {
         var layouts = new ArrayList<GeometryDiskLayout>();
         for (var lod = 0; lod < LodCount; lod++) {
-            layouts.add(GeometryDiskLayout.read(reader));
+            layouts.add(GeometryDiskLayout.read(source));
         }
         return layouts;
     }

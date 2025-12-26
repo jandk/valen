@@ -10,7 +10,7 @@ public final class TooltippedTableCell<S, T> extends TableCell<S, T> {
     private final Tooltip tooltip = new Tooltip();
 
     private TooltippedTableCell(StringConverter<T> converter) {
-        this.converter = Check.notNull(converter, "converter");
+        this.converter = Check.nonNull(converter, "converter");
 
         textTruncatedProperty().addListener((_, _, newValue) -> {
             setTooltip(newValue ? tooltip : null);

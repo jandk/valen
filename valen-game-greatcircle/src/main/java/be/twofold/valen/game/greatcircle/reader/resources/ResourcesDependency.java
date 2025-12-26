@@ -1,6 +1,6 @@
 package be.twofold.valen.game.greatcircle.reader.resources;
 
-import be.twofold.valen.core.io.BinaryReader;
+import be.twofold.valen.core.io.*;
 
 import java.io.*;
 
@@ -10,12 +10,12 @@ public record ResourcesDependency(
     int depType,
     long hashOrTimestamp
 ) {
-    public static ResourcesDependency read(BinaryReader reader) throws IOException {
-        var type = reader.readLongAsInt();
-        var name = reader.readLongAsInt();
-        var depType = reader.readInt();
-        reader.expectInt(1); // depSubType
-        var hashOrTimestamp = reader.readLong();
+    public static ResourcesDependency read(BinarySource source) throws IOException {
+        var type = source.readLongAsInt();
+        var name = source.readLongAsInt();
+        var depType = source.readInt();
+        source.expectInt(1); // depSubType
+        var hashOrTimestamp = source.readLong();
 
         return new ResourcesDependency(
             type,

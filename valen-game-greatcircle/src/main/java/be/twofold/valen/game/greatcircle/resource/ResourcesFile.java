@@ -22,15 +22,15 @@ public final class ResourcesFile implements Container<GreatCircleAssetID, GreatC
     private final Decompressor decompressor;
     private final Path path;
 
-    private BinaryReader reader;
+    private BinarySource source;
 
     public ResourcesFile(Path path, Decompressor decompressor) throws IOException {
         log.info("Loading resources: {}", path);
         this.decompressor = decompressor;
-        this.path = Check.notNull(path, "path");
-        this.reader = BinaryReader.fromPath(path);
+        this.path = Check.nonNull(path, "path");
+        this.source = BinarySource.open(path);
 
-        var resources = mapResources(Resources.read(reader));
+        var resources = mapResources(Resources.read(source));
         this.index = resources.stream()
             .collect(Collectors.toUnmodifiableMap(
                 GreatCircleAsset::id,
@@ -86,8 +86,8 @@ public final class ResourcesFile implements Container<GreatCircleAssetID, GreatC
             default -> throw new UnsupportedOperationException("Unsupported compression: " + resource.compression());
         };
 
-        reader.position(resource.offset());
-        var compressed = reader
+        var compressed = source
+            .position(resource.offset())
             .readBytes(resource.compressedSize())
             .slice(resource.compression() == ResourceCompressionMode.RES_COMP_MODE_KRAKEN_CHUNKED ? 12 : 0);
         return decompressor.decompress(compressed, resource.uncompressedSize());
@@ -95,9 +95,9 @@ public final class ResourcesFile implements Container<GreatCircleAssetID, GreatC
 
     @Override
     public void close() throws IOException {
-        if (reader != null) {
-            reader.close();
-            reader = null;
+        if (source != null) {
+            source.close();
+            source = null;
         }
     }
 

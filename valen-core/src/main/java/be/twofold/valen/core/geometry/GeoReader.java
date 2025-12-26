@@ -8,7 +8,7 @@ import java.io.*;
 
 @FunctionalInterface
 public interface GeoReader<T> {
-    void read(BinaryReader source, T target, int offset) throws IOException;
+    void read(BinarySource source, T target, int offset) throws IOException;
 
     static GeoReader<Floats.Mutable> readPosition(float scale, Vector3 bias) {
         return (source, target, offset) -> Vector3.read(source).fma(scale, bias).toFloats(target, offset);
@@ -74,7 +74,7 @@ public interface GeoReader<T> {
     static GeoReader<Shorts.Mutable> readBone1() {
         return (source, target, offset) -> {
             source.skip(3);
-            target.set(offset, (short) source.readByteUnsigned());
+            target.set(offset, (short) Byte.toUnsignedInt(source.readByte()));
         };
     }
 
@@ -94,14 +94,14 @@ public interface GeoReader<T> {
 
     static GeoReader<Ints.Mutable> readShortAsInt() {
         return (source, target, offset) -> {
-            target.set(offset, source.readShortUnsigned());
+            target.set(offset, Short.toUnsignedInt(source.readShort()));
         };
     }
 
     static GeoReader<Shorts.Mutable> copyBytesAsShorts(int n) {
         return (source, target, offset) -> {
             for (int i = 0; i < n; i++) {
-                target.set(offset + i, (short) source.readByteUnsigned());
+                target.set(offset + i, (short) Byte.toUnsignedInt(source.readByte()));
             }
         };
     }
@@ -122,10 +122,10 @@ public interface GeoReader<T> {
         };
     }
 
-    private static Vector3 readVector3UNorm8Normal(BinaryReader reader) throws IOException {
-        float x = MathF.unpackUNorm8Normal(reader.readByte());
-        float y = MathF.unpackUNorm8Normal(reader.readByte());
-        float z = MathF.unpackUNorm8Normal(reader.readByte());
+    private static Vector3 readVector3UNorm8Normal(BinarySource source) throws IOException {
+        float x = MathF.unpackUNorm8Normal(source.readByte());
+        float y = MathF.unpackUNorm8Normal(source.readByte());
+        float z = MathF.unpackUNorm8Normal(source.readByte());
         return new Vector3(x, y, z);
     }
 }

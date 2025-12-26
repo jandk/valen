@@ -12,13 +12,13 @@ public record Image(
     List<ImageMipInfo> mipInfos,
     Bytes[] mipData
 ) {
-    public static Image read(BinaryReader reader) throws IOException {
-        var header = ImageHeader.read(reader);
-        var mipInfos = reader.readObjects(header.totalMipCount(), ImageMipInfo::read);
+    public static Image read(BinarySource source) throws IOException {
+        var header = ImageHeader.read(source);
+        var mipInfos = source.readObjects(header.totalMipCount(), ImageMipInfo::read);
         var mipData = new Bytes[mipInfos.size()];
 
         for (int i = header.startMip(); i < header.totalMipCount(); i++) {
-            mipData[i] = reader.readBytes(mipInfos.get(i).decompressedSize());
+            mipData[i] = source.readBytes(mipInfos.get(i).decompressedSize());
         }
         return new Image(header, mipInfos, mipData);
     }

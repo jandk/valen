@@ -12,9 +12,9 @@ public record Instance(
     String name
 ) {
     public Instance {
-        Check.notNull(modelReference, "modelReference");
-        Check.notNull(translation, "translation");
-        Check.notNull(rotation, "rotation");
-        Check.notNull(scale, "scale");
+        Check.nonNull(modelReference, "modelReference");
+        Check.nonNull(translation, "translation");
+        Check.nonNull(rotation, "rotation");
+        Check.nonNull(scale, "scale");
     }
 }

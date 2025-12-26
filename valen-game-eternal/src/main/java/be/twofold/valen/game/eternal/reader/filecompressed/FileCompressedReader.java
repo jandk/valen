@@ -14,7 +14,7 @@ public final class FileCompressedReader implements AssetReader<Bytes, EternalAss
     private final Decompressor decompressor;
 
     public FileCompressedReader(Decompressor decompressor) {
-        this.decompressor = Check.notNull(decompressor, "decompressor");
+        this.decompressor = Check.nonNull(decompressor, "decompressor");
     }
 
     @Override
@@ -24,13 +24,13 @@ public final class FileCompressedReader implements AssetReader<Bytes, EternalAss
     }
 
     @Override
-    public Bytes read(BinaryReader reader, EternalAsset resource) throws IOException {
-        var header = FileCompressedHeader.read(reader);
+    public Bytes read(BinarySource source, EternalAsset resource) throws IOException {
+        var header = FileCompressedHeader.read(source);
         if (header.compressedSize() == -1) {
-            return reader.readBytes(header.uncompressedSize());
+            return source.readBytes(header.uncompressedSize());
         }
 
-        var compressed = reader.readBytes(header.compressedSize());
+        var compressed = source.readBytes(header.compressedSize());
         return decompressor.decompress(compressed, header.uncompressedSize());
     }
 }

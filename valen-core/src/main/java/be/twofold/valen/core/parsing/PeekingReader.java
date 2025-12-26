@@ -13,7 +13,7 @@ public final class PeekingReader {
     private int column = 1;
 
     public PeekingReader(Reader reader) {
-        this.reader = Check.notNull(reader, "reader");
+        this.reader = Check.nonNull(reader, "reader");
     }
 
     public int line() {

@@ -10,10 +10,10 @@ public record VegetationCollisionData(
     Vector3 from,
     float radius
 ) {
-    public static VegetationCollisionData read(BinaryReader reader) throws IOException {
-        var to = Vector3.read(reader);
-        var from = Vector3.read(reader);
-        var radius = reader.readFloat();
+    public static VegetationCollisionData read(BinarySource source) throws IOException {
+        var to = Vector3.read(source);
+        var from = Vector3.read(source);
+        var radius = source.readFloat();
 
         return new VegetationCollisionData(
             to,

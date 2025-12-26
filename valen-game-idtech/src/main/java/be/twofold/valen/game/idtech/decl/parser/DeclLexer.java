@@ -15,7 +15,7 @@ public final class DeclLexer {
     }
 
     public DeclLexer(String source, boolean lenient) {
-        this.source = Check.notNull(source, "source");
+        this.source = Check.nonNull(source, "source");
         this.lenient = lenient;
     }
 

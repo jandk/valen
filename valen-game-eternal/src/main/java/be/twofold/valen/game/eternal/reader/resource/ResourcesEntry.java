@@ -1,6 +1,6 @@
 package be.twofold.valen.game.eternal.reader.resource;
 
-import be.twofold.valen.core.io.BinaryReader;
+import be.twofold.valen.core.io.*;
 
 import java.io.*;
 
@@ -19,34 +19,34 @@ public record ResourcesEntry(
     short variation,
     short numDependencies
 ) {
-    public static ResourcesEntry read(BinaryReader reader) throws IOException {
-        reader.expectLong(0); // resourceTypeString
-        reader.expectLong(1); // nameString
-        reader.expectLong(-1); // descString
-        var depIndices = reader.readLongAsInt();
-        var strings = reader.readLongAsInt();
-        reader.expectLong(0); // specialHashes
-        reader.expectLong(0); // metaEntries
-        var dataOffset = reader.readLongAsInt();
-        var dataSize = reader.readLongAsInt();
-        var uncompressedSize = reader.readLongAsInt();
-        var dataCheckSum = reader.readLong();
-        var generationTimeStamp = reader.readLong();
-        var defaultHash = reader.readLong();
-        var version = reader.readInt();
-        var flags = reader.readInt();
-        var compMode = ResourceCompressionMode.fromValue((int) reader.readByte());
-        reader.expectByte((byte) 0); // reserved0
-        var variation = reader.readShort();
-        reader.expectInt(0); // reserved2
-        reader.expectLong(0); // reservedForVariations
-        reader.expectShort((short) 2); // numStrings
+    public static ResourcesEntry read(BinarySource source) throws IOException {
+        source.expectLong(0); // resourceTypeString
+        source.expectLong(1); // nameString
+        source.expectLong(-1); // descString
+        var depIndices = source.readLongAsInt();
+        var strings = source.readLongAsInt();
+        source.expectLong(0); // specialHashes
+        source.expectLong(0); // metaEntries
+        var dataOffset = source.readLongAsInt();
+        var dataSize = source.readLongAsInt();
+        var uncompressedSize = source.readLongAsInt();
+        var dataCheckSum = source.readLong();
+        var generationTimeStamp = source.readLong();
+        var defaultHash = source.readLong();
+        var version = source.readInt();
+        var flags = source.readInt();
+        var compMode = ResourceCompressionMode.fromValue((int) source.readByte());
+        source.expectByte((byte) 0); // reserved0
+        var variation = source.readShort();
+        source.expectInt(0); // reserved2
+        source.expectLong(0); // reservedForVariations
+        source.expectShort((short) 2); // numStrings
         // source.expectShort((short) 0); // numSources
-        reader.readShort(); // numSources
-        var numDependencies = reader.readShort();
-        reader.expectShort((short) 0); // numSpecialHashes
-        reader.expectShort((short) 0); // numMetaEntries
-        reader.skip(6); // padding
+        source.readShort(); // numSources
+        var numDependencies = source.readShort();
+        source.expectShort((short) 0); // numSpecialHashes
+        source.expectShort((short) 0); // numMetaEntries
+        source.skip(6); // padding
 
         return new ResourcesEntry(
             depIndices,

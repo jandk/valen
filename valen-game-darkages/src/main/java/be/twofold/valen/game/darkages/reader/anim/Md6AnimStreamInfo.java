@@ -12,18 +12,18 @@ public record Md6AnimStreamInfo(
     Shorts framsetToStreamLayout
 ) {
 
-    public static Md6AnimStreamInfo read(BinaryReader reader) throws IOException {
-        var numLayouts = reader.readShort();
+    public static Md6AnimStreamInfo read(BinarySource source) throws IOException {
+        var numLayouts = source.readShort();
 
         List<Md6AnimStreamDiskLayout> layouts = List.of();
         Shorts streamFrameSetOffsets = Shorts.empty();
         Shorts framsetToStreamLayout = Shorts.empty();
 
         if (numLayouts > 0) {
-            var numOffsets = reader.readShort();
-            layouts = reader.readObjects(numLayouts, Md6AnimStreamDiskLayout::read);
-            streamFrameSetOffsets = reader.readShorts(numOffsets);
-            framsetToStreamLayout = reader.readShorts(numOffsets);
+            var numOffsets = source.readShort();
+            layouts = source.readObjects(numLayouts, Md6AnimStreamDiskLayout::read);
+            streamFrameSetOffsets = source.readShorts(numOffsets);
+            framsetToStreamLayout = source.readShorts(numOffsets);
         }
 
         return new Md6AnimStreamInfo(

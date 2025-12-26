@@ -8,9 +8,9 @@ public record MapFileStaticInstancesGroup3(
     int unknown1,
     int unknown2
 ) {
-    public static MapFileStaticInstancesGroup3 read(BinaryReader reader) throws IOException {
-        var unknown1 = reader.readInt();
-        var unknown2 = reader.readInt();
+    public static MapFileStaticInstancesGroup3 read(BinarySource source) throws IOException {
+        var unknown1 = source.readInt();
+        var unknown2 = source.readInt();
         return new MapFileStaticInstancesGroup3(unknown1, unknown2);
     }
 }

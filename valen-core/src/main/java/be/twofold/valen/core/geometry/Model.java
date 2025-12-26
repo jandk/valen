@@ -15,7 +15,7 @@ public record Model(
 ) {
     public Model {
         meshes = List.copyOf(meshes);
-        Check.notNull(upAxis, "upAxis");
+        Check.nonNull(upAxis, "upAxis");
     }
 
     public Model(List<Mesh> meshes, Axis upAxis) {

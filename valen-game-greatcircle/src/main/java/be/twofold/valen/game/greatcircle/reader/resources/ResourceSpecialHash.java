@@ -8,9 +8,9 @@ public record ResourceSpecialHash(
     long unknownHash1,
     long unknownHash2
 ) {
-    public static ResourceSpecialHash read(BinaryReader reader) throws IOException {
-        long unknownHash1 = reader.readLong();
-        long unknownHash2 = reader.readLong();
+    public static ResourceSpecialHash read(BinarySource source) throws IOException {
+        long unknownHash1 = source.readLong();
+        long unknownHash2 = source.readLong();
 
         return new ResourceSpecialHash(
             unknownHash1,

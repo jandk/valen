@@ -21,20 +21,20 @@ public record StreamDbHeader(
     Bytes entryHashesHash,
     Bytes headerHash
 ) {
-    public static StreamDbHeader read(BinaryReader reader) throws IOException {
-        reader.expectLong(0x61C7F32E29C2A551L);
-        int headerLengthOrPad = reader.readInt();
-        int version = reader.readInt();
-        int pad0 = reader.readInt();
-        int subBlockTableSize = reader.readInt();
-        int numEntries = reader.readInt();
-        int flags = reader.readInt();
+    public static StreamDbHeader read(BinarySource source) throws IOException {
+        source.expectLong(0x61C7F32E29C2A551L);
+        int headerLengthOrPad = source.readInt();
+        int version = source.readInt();
+        int pad0 = source.readInt();
+        int subBlockTableSize = source.readInt();
+        int numEntries = source.readInt();
+        int flags = source.readInt();
 
-        int hashTypeOrPad = reader.readInt();
-        int entryHashesListOffset = reader.readInt();
-        Bytes entriesTablesHash = reader.readBytes(32);
-        Bytes entryHashesHash = reader.readBytes(32);
-        Bytes headerHash = reader.readBytes(32);
+        int hashTypeOrPad = source.readInt();
+        int entryHashesListOffset = source.readInt();
+        Bytes entriesTablesHash = source.readBytes(32);
+        Bytes entryHashesHash = source.readBytes(32);
+        Bytes headerHash = source.readBytes(32);
 
         return new StreamDbHeader(
             headerLengthOrPad,

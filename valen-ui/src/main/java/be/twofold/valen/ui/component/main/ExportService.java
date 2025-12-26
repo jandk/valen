@@ -64,8 +64,8 @@ final class ExportService extends Service<Void> {
 
     @Override
     protected Task<Void> createTask() {
-        Check.notNull(this.archive, "archive");
-        Check.notNull(this.assets, "assets");
+        Check.nonNull(this.archive, "archive");
+        Check.nonNull(this.assets, "assets");
 
         ExportTask exportTask = new ExportTask();
         exportTask.setOnFailed(event -> Platform.runLater(() -> {

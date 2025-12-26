@@ -18,9 +18,9 @@ public final class HairReader implements AssetReader<Model, GreatCircleAsset> {
     }
 
     @Override
-    public Model read(BinaryReader reader, GreatCircleAsset asset) throws IOException {
-        var hairMesh = HairMesh.read(reader);
-        reader.expectEnd();
+    public Model read(BinarySource source, GreatCircleAsset asset) throws IOException {
+        var hairMesh = HairMesh.read(source);
+        source.expectEnd();
 
         var hair = map(hairMesh, asset);
         return new Model(List.of(), Axis.Z)

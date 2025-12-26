@@ -34,8 +34,8 @@ public final class Md6MeshReader implements AssetReader<Model, GreatCircleAsset>
     }
 
     @Override
-    public Model read(BinaryReader reader, GreatCircleAsset asset) throws IOException {
-        var model = Md6Mesh.read(reader);
+    public Model read(BinarySource source, GreatCircleAsset asset) throws IOException {
+        var model = Md6Mesh.read(source);
         if (model.header().skeletonName().equals("models/characters/abgal/abgal_wear_base.md6skl")) {
             System.out.println("Fount it!");
         }
@@ -68,7 +68,7 @@ public final class Md6MeshReader implements AssetReader<Model, GreatCircleAsset>
 
         var identity = (hash << 4) | lod;
         var bytes = archive.readStream(identity, uncompressedSize);
-        try (var source = BinaryReader.fromBytes(bytes)) {
+        try (var source = BinarySource.wrap(bytes)) {
             var meshes = GeometryReader.readStreamedMesh(source, lodInfos, layouts, true);
             var allBlendShapes = BlendShapeReader.readBlendShapes(source, lodInfos, layouts);
 

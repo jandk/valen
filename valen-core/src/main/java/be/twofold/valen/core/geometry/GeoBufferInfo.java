@@ -15,9 +15,9 @@ public record GeoBufferInfo<T extends Slice>(
         Check.positiveOrZero(offset, "offset");
         Check.positiveOrZero(stride, "stride");
         Check.positive(length, "length");
-        Check.notNull(reader, "reader");
-        Check.notNull(elementType, "elementType");
-        Check.notNull(componentType, "componentType");
+        Check.nonNull(reader, "reader");
+        Check.nonNull(elementType, "elementType");
+        Check.nonNull(componentType, "componentType");
     }
 
     public int count() {

@@ -28,9 +28,9 @@ public final class GreatCircleArchive extends Archive<GreatCircleAssetID, GreatC
         Container<GreatCircleAssetID, GreatCircleAsset> common,
         Container<GreatCircleAssetID, GreatCircleAsset> resources
     ) {
-        this.streams = Check.notNull(streams, "streams");
-        this.common = Check.notNull(common, "common");
-        this.resources = Check.notNull(resources, "resources");
+        this.streams = Check.nonNull(streams, "streams");
+        this.common = Check.nonNull(common, "common");
+        this.resources = Check.nonNull(resources, "resources");
     }
 
     @Override

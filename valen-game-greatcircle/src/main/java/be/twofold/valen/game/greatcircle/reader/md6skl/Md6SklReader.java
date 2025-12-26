@@ -17,17 +17,17 @@ public final class Md6SklReader implements AssetReader<Skeleton, GreatCircleAsse
     }
 
     @Override
-    public Skeleton read(BinaryReader reader, GreatCircleAsset asset) throws IOException {
+    public Skeleton read(BinarySource source, GreatCircleAsset asset) throws IOException {
         Md6Skl md6Skl1 = null;
-        int skeleton1Length = reader.readInt();
+        int skeleton1Length = source.readInt();
         if (skeleton1Length != 0) {
-            md6Skl1 = Md6Skl.read(reader);
+            md6Skl1 = Md6Skl.read(source);
         }
 
         Md6Skl md6Skl2 = null;
-        int skeleton2Length = reader.readInt();
+        int skeleton2Length = source.readInt();
         if (skeleton2Length != 0) {
-            md6Skl2 = Md6Skl.read(reader);
+            md6Skl2 = Md6Skl.read(source);
         }
         if (md6Skl1 == null) {
             throw new IOException("No skeleton found");

@@ -16,29 +16,29 @@ public record Md6Skel(
     List<Matrix4> inverseBasePoses,
     List<String> names
 ) {
-    public static Md6Skel read(BinaryReader reader) throws IOException {
-        var header = Md6SkelHeader.read(reader);
+    public static Md6Skel read(BinarySource source) throws IOException {
+        var header = Md6SkelHeader.read(source);
 
-        reader.expectPosition(header.basePoseOffset() + 4);
-        var rotations = reader.readObjects(header.numJoints8(), Quaternion::read);
-        var scales = reader.readObjects(header.numJoints8(), Vector3::read);
-        var translations = reader.readObjects(header.numJoints8(), Vector3::read);
+        // source.expectPosition(header.basePoseOffset() + 4);
+        var rotations = source.readObjects(header.numJoints8(), Quaternion::read);
+        var scales = source.readObjects(header.numJoints8(), Vector3::read);
+        var translations = source.readObjects(header.numJoints8(), Vector3::read);
 
-        reader.position(header.parentTblOffset() + 4);
-        var parents = reader.readShorts(header.numJoints8());
+        source.position(header.parentTblOffset() + 4);
+        var parents = source.readShorts(header.numJoints8());
 
-        reader.position(header.inverseBasePoseOffset() + 4);
-        var inverseBasePoses = reader.readObjects(header.numJoints8(), Md6Skel::readInverseBasePose);
+        source.position(header.inverseBasePoseOffset() + 4);
+        var inverseBasePoses = source.readObjects(header.numJoints8(), Md6Skel::readInverseBasePose);
 
-        reader.expectPosition(header.size() + 4); // names are tacked on the end
-        var names = reader.readObjects(header.numJoints8(), BinaryReader::readPString);
+        // source.expectPosition(header.size() + 4); // names are tacked on the end
+        var names = source.readStrings(header.numJoints8(), StringFormat.INT_LENGTH);
 
         return new Md6Skel(header, rotations, scales, translations, parents, inverseBasePoses, names);
     }
 
-    private static Matrix4 readInverseBasePose(BinaryReader reader) throws IOException {
+    private static Matrix4 readInverseBasePose(BinarySource source) throws IOException {
         var floats = Floats.Mutable.allocate(16);
-        reader.readFloats(12).copyTo(floats, 0);
+        source.readFloats(12).copyTo(floats, 0);
         floats.set(15, 1.0f);
         return Matrix4.fromFloats(floats).transpose();
     }

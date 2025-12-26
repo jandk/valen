@@ -19,7 +19,7 @@ public final class VegetationReader implements AssetReader<Model, DarkAgesAsset>
     private final boolean readMaterials;
 
     public VegetationReader(DarkAgesArchive archive, boolean readMaterials) {
-        this.archive = Check.notNull(archive, "archive");
+        this.archive = Check.nonNull(archive, "archive");
         this.readMaterials = readMaterials;
     }
 
@@ -29,9 +29,9 @@ public final class VegetationReader implements AssetReader<Model, DarkAgesAsset>
     }
 
     @Override
-    public Model read(BinaryReader reader, DarkAgesAsset asset) throws IOException {
-        Vegetation vegetation = Vegetation.read(reader);
-        reader.expectEnd();
+    public Model read(BinarySource source, DarkAgesAsset asset) throws IOException {
+        Vegetation vegetation = Vegetation.read(source);
+        source.expectEnd();
 
         var meshes = readMeshes(vegetation, 0, asset.hash());
         if (readMaterials) {
@@ -51,7 +51,7 @@ public final class VegetationReader implements AssetReader<Model, DarkAgesAsset>
         var identity = Hash.hash(hash, 4 - lod, 0);
         var bytes = archive.readStream(identity, uncompressedSize);
 
-        try (var source = BinaryReader.fromBytes(bytes)) {
+        try (var source = BinarySource.wrap(bytes)) {
             return GeometryReader.readStreamedMesh(source, lodInfos, false);
         }
     }

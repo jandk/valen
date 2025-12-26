@@ -15,29 +15,29 @@ public final class Geo {
     }
 
     public Mesh readMesh(
-        BinaryReader reader,
+        BinarySource source,
         GeoMeshInfo meshInfo
     ) {
-        var indices = readVertexBuffer(reader, meshInfo.indices(), meshInfo.indexCount());
+        var indices = readVertexBuffer(source, meshInfo.indices(), meshInfo.indexCount());
         if (flipWindingOrder) {
             invertIndices(indices);
         }
 
-        Floats positions = readVertexBuffer(reader, meshInfo.positions(), meshInfo.vertexCount());
-        Optional<Floats> normals = meshInfo.normals().map(info -> readVertexBuffer(reader, info, meshInfo.vertexCount()));
-        Optional<Floats> tangents = meshInfo.tangents().map(info -> readVertexBuffer(reader, info, meshInfo.vertexCount()));
+        Floats positions = readVertexBuffer(source, meshInfo.positions(), meshInfo.vertexCount());
+        Optional<Floats> normals = meshInfo.normals().map(info -> readVertexBuffer(source, info, meshInfo.vertexCount()));
+        Optional<Floats> tangents = meshInfo.tangents().map(info -> readVertexBuffer(source, info, meshInfo.vertexCount()));
         List<Floats> texCoords = meshInfo.texCoords().stream()
-            .map(info -> readVertexBuffer(reader, info, meshInfo.vertexCount()))
+            .map(info -> readVertexBuffer(source, info, meshInfo.vertexCount()))
             .collect(Collectors.toUnmodifiableList());
         List<Bytes> colors = meshInfo.colors().stream()
-            .map(info -> readVertexBuffer(reader, info, meshInfo.vertexCount()))
+            .map(info -> readVertexBuffer(source, info, meshInfo.vertexCount()))
             .collect(Collectors.toUnmodifiableList());
-        Optional<Shorts> joints = meshInfo.joints().map(info -> readVertexBuffer(reader, info, meshInfo.vertexCount()));
-        Optional<Floats> weights = meshInfo.weights().map(info -> readVertexBuffer(reader, info, meshInfo.vertexCount()));
+        Optional<Shorts> joints = meshInfo.joints().map(info -> readVertexBuffer(source, info, meshInfo.vertexCount()));
+        Optional<Floats> weights = meshInfo.weights().map(info -> readVertexBuffer(source, info, meshInfo.vertexCount()));
         Map<String, VertexBuffer<?>> custom = new HashMap<>();
         for (var entry : meshInfo.custom().entrySet()) {
             var bufferInfo = entry.getValue();
-            var buffer = readVertexBuffer(reader, bufferInfo, meshInfo.vertexCount());
+            var buffer = readVertexBuffer(source, bufferInfo, meshInfo.vertexCount());
             var vertexBuffer = new VertexBuffer<>(buffer, bufferInfo);
             custom.put(entry.getKey(), vertexBuffer);
         }
@@ -45,7 +45,7 @@ public final class Geo {
         return new Mesh(indices, positions, normals, tangents, texCoords, colors, joints, weights, 0, custom);
     }
 
-    private <T extends Slice> T readVertexBuffer(BinaryReader reader, GeoBufferInfo<T> accessor, int count) {
+    private <T extends Slice> T readVertexBuffer(BinarySource source, GeoBufferInfo<T> accessor, int count) {
         int capacity = count * accessor.count();
         T buffer = accessor.allocate(capacity);
 
@@ -53,8 +53,8 @@ public final class Geo {
             long start = accessor.offset();
             int offset = 0;
             for (long i = 0L; i < count; i++) {
-                reader.position(start + i * accessor.stride());
-                accessor.reader().read(reader, buffer, offset);
+                source.position(start + i * accessor.stride());
+                accessor.reader().read(source, buffer, offset);
                 offset += accessor.count();
             }
         } catch (IOException e) {

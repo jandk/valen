@@ -29,12 +29,12 @@ public final class Md6ModelReader implements AssetReader<Model, DarkAgesAsset> {
     }
 
     @Override
-    public Model read(BinaryReader reader, DarkAgesAsset asset) throws IOException {
-        var skelName = reader.readPString();
+    public Model read(BinarySource source, DarkAgesAsset asset) throws IOException {
+        var skelName = source.readString(StringFormat.INT_LENGTH);
         var skeletonKey = DarkAgesAssetID.from(skelName, ResourcesType.Skeleton);
         var skeleton = archive.loadAsset(skeletonKey, Skeleton.class);
-        var md6Model = Md6Model.read(reader, skeleton.bones().size() + 7 & ~7);
-        reader.expectEnd();
+        var md6Model = Md6Model.read(source, skeleton.bones().size() + 7 & ~7);
+        source.expectEnd();
 
         var meshes = readMeshes(md6Model, 0, asset.hash());
         if (readMaterials) {
@@ -61,7 +61,7 @@ public final class Md6ModelReader implements AssetReader<Model, DarkAgesAsset> {
         var identity = Hash.hash(hash, 4 - lod, 0);
         var bytes = archive.readStream(identity, uncompressedSize);
 
-        try (var source = BinaryReader.fromBytes(bytes)) {
+        try (var source = BinarySource.wrap(bytes)) {
             List<Mesh> meshes = GeometryReader.readStreamedMesh(source, lodInfos, true);
             meshes = mergeJointsAndWeights(md6Model, meshes);
             fixJointIndices(md6Model, meshes);

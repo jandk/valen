@@ -18,18 +18,18 @@ record StrandsHairHeader(
     Bounds bounds,
     Bounds tightBounds
 ) {
-    static StrandsHairHeader read(BinaryReader reader) throws IOException {
-        var version = reader.readInt();
-        var numStrands = reader.readInt();
-        var numParticles = reader.readInt();
-        var numSegments = reader.readInt();
-        var numBlendShapeLODs = reader.readInt();
-        var compressionPosBias = Vector3.read(reader);
-        var compressionPosScale = reader.readFloat();
-        var strandThickness = reader.readFloat();
-        var unknown = reader.readInt();
-        var bounds = Bounds.read(reader);
-        var tightBounds = Bounds.read(reader);
+    static StrandsHairHeader read(BinarySource source) throws IOException {
+        var version = source.readInt();
+        var numStrands = source.readInt();
+        var numParticles = source.readInt();
+        var numSegments = source.readInt();
+        var numBlendShapeLODs = source.readInt();
+        var compressionPosBias = Vector3.read(source);
+        var compressionPosScale = source.readFloat();
+        var strandThickness = source.readFloat();
+        var unknown = source.readInt();
+        var bounds = Bounds.read(source);
+        var tightBounds = Bounds.read(source);
 
         return new StrandsHairHeader(
             version,

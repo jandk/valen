@@ -10,10 +10,10 @@ public record Md6ModelMeshWound(
     int meshIndex,
     Ints offsets
 ) {
-    public static Md6ModelMeshWound read(BinaryReader reader) throws IOException {
-        var name = reader.readPString();
-        var meshIndex = reader.readInt();
-        var offsets = reader.readInts(5);
+    public static Md6ModelMeshWound read(BinarySource source) throws IOException {
+        var name = source.readString(StringFormat.INT_LENGTH);
+        var meshIndex = source.readInt();
+        var offsets = source.readInts(5);
 
         return new Md6ModelMeshWound(
             name,

@@ -7,7 +7,7 @@ public record DeclToken(
     String value
 ) {
     public DeclToken {
-        Check.notNull(type, "type");
+        Check.nonNull(type, "type");
     }
 
     @Override

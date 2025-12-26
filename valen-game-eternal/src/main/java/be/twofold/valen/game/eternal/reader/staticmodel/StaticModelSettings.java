@@ -11,11 +11,11 @@ public record StaticModelSettings(
     int lighmapHeight,
     List<StaticModelTextureAxis> textureAxes
 ) {
-    public static StaticModelSettings read(BinaryReader reader) throws IOException {
-        var lightmapSurfaceAreaSqrt = reader.readFloat();
-        var lighmapWidth = reader.readInt();
-        var lighmapHeight = reader.readInt();
-        var textureAxes = reader.readObjects(reader.readInt(), StaticModelTextureAxis::read);
+    public static StaticModelSettings read(BinarySource source) throws IOException {
+        var lightmapSurfaceAreaSqrt = source.readFloat();
+        var lighmapWidth = source.readInt();
+        var lighmapHeight = source.readInt();
+        var textureAxes = source.readObjects(source.readInt(), StaticModelTextureAxis::read);
 
         return new StaticModelSettings(
             lightmapSurfaceAreaSqrt,

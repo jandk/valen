@@ -9,10 +9,10 @@ public record StreamDbPrefetchBlock(
     int firstItemIndex,
     int numItems
 ) {
-    public static StreamDbPrefetchBlock read(BinaryReader reader) throws IOException {
-        var name = reader.readLong();
-        var firstItemIndex = reader.readInt();
-        var numItems = reader.readInt();
+    public static StreamDbPrefetchBlock read(BinarySource source) throws IOException {
+        var name = source.readLong();
+        var firstItemIndex = source.readInt();
+        var numItems = source.readInt();
         return new StreamDbPrefetchBlock(name, firstItemIndex, numItems);
     }
 }

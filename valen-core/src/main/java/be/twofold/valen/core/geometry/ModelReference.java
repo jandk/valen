@@ -10,9 +10,9 @@ public record ModelReference(
     ThrowingSupplier<Model, IOException> supplier
 ) {
     public ModelReference {
-        Check.notNull(name, "name");
-        Check.notNull(filename, "filename");
-        Check.notNull(supplier, "supplier");
+        Check.nonNull(name, "name");
+        Check.nonNull(filename, "filename");
+        Check.nonNull(supplier, "supplier");
     }
 
     @Override

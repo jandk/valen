@@ -9,8 +9,8 @@ public record Hair(
     Floats positions
 ) {
     public Hair {
-        Check.notNull(name, "name");
-        Check.notNull(segments, "segments");
-        Check.notNull(positions, "positions");
+        Check.nonNull(name, "name");
+        Check.nonNull(segments, "segments");
+        Check.nonNull(positions, "positions");
     }
 }

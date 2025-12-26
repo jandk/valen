@@ -9,7 +9,7 @@ public record MaterialProperty(
     Vector4 factor
 ) {
     public MaterialProperty {
-        Check.notNull(type, "type");
+        Check.nonNull(type, "type");
         if (factor == null && reference == null) {
             throw new NullPointerException("At least one of factor, reference should be provided");
         }

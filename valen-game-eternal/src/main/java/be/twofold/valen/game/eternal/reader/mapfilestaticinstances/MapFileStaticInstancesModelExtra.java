@@ -39,46 +39,46 @@ public record MapFileStaticInstancesModelExtra(
     float unknown144,
     short unknown148
 ) {
-    public static MapFileStaticInstancesModelExtra read(BinaryReader reader) throws IOException {
-        reader.expectInt(0);
-        reader.expectInt(0);
-        float unknown008 = reader.readFloat();
-        float unknown012 = reader.readFloat();
-        float unknown016 = reader.readFloat();
-        float unknown020 = reader.readFloat();
-        float unknown024 = reader.readFloat();
-        float unknown028 = reader.readFloat();
-        float unknown032 = reader.readFloat();
-        int unknown036 = reader.readInt();
-        int materialGroupOffset = reader.readInt();
-        int materialGroupCount = reader.readInt();
-        int group2Offset = reader.readInt();
-        int group2Count = reader.readInt();
-        int unknown056 = reader.readInt();
-        int unknown060 = reader.readInt();
-        float unknown064 = reader.readFloat();
-        float unknown068 = reader.readFloat();
-        float unknown072 = reader.readFloat();
-        float unknown076 = reader.readFloat();
-        float unknown080 = reader.readFloat();
-        float unknown084 = reader.readFloat();
-        float unknown088 = reader.readFloat();
-        float unknown092 = reader.readFloat();
-        float unknown096 = reader.readFloat();
-        float unknown100 = reader.readFloat();
-        float unknown104 = reader.readFloat();
-        float unknown108 = reader.readFloat();
-        float unknown112 = reader.readFloat();
-        float unknown116 = reader.readFloat();
-        int unknown120 = reader.readInt();
-        int unknown124 = reader.readInt();
-        reader.expectInt(0);
-        reader.expectInt(0);
-        float unknown136 = reader.readFloat();
-        reader.expectInt(-1);
-        float unknown144 = reader.readFloat();
-        short unknown148 = reader.readShort();
-        reader.expectShort((short) 0);
+    public static MapFileStaticInstancesModelExtra read(BinarySource source) throws IOException {
+        source.expectInt(0);
+        source.expectInt(0);
+        float unknown008 = source.readFloat();
+        float unknown012 = source.readFloat();
+        float unknown016 = source.readFloat();
+        float unknown020 = source.readFloat();
+        float unknown024 = source.readFloat();
+        float unknown028 = source.readFloat();
+        float unknown032 = source.readFloat();
+        int unknown036 = source.readInt();
+        int materialGroupOffset = source.readInt();
+        int materialGroupCount = source.readInt();
+        int group2Offset = source.readInt();
+        int group2Count = source.readInt();
+        int unknown056 = source.readInt();
+        int unknown060 = source.readInt();
+        float unknown064 = source.readFloat();
+        float unknown068 = source.readFloat();
+        float unknown072 = source.readFloat();
+        float unknown076 = source.readFloat();
+        float unknown080 = source.readFloat();
+        float unknown084 = source.readFloat();
+        float unknown088 = source.readFloat();
+        float unknown092 = source.readFloat();
+        float unknown096 = source.readFloat();
+        float unknown100 = source.readFloat();
+        float unknown104 = source.readFloat();
+        float unknown108 = source.readFloat();
+        float unknown112 = source.readFloat();
+        float unknown116 = source.readFloat();
+        int unknown120 = source.readInt();
+        int unknown124 = source.readInt();
+        source.expectInt(0);
+        source.expectInt(0);
+        float unknown136 = source.readFloat();
+        source.expectInt(-1);
+        float unknown144 = source.readFloat();
+        short unknown148 = source.readShort();
+        source.expectShort((short) 0);
 
         return new MapFileStaticInstancesModelExtra(
             unknown008,

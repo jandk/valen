@@ -9,10 +9,10 @@ public record LightDbPart2(
     float unk1,
     float unk2
 ) {
-    public static LightDbPart2 read(BinaryReader reader) throws IOException {
-        var id = reader.readInt();
-        var unk1 = reader.readFloat();
-        var unk2 = reader.readFloat();
+    public static LightDbPart2 read(BinarySource source) throws IOException {
+        var id = source.readInt();
+        var unk1 = source.readFloat();
+        var unk2 = source.readFloat();
 
         return new LightDbPart2(
             id,

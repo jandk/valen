@@ -22,24 +22,24 @@ record Md6MeshLodInfo(
     Shorts blendShapeReferences,
     List<Md6MeshBlendShape> blendShapes
 ) implements LodInfo {
-    static Md6MeshLodInfo read(BinaryReader reader) throws IOException {
-        var numVertices = reader.readInt();
-        var numFaces = reader.readInt();
-        var bounds = Bounds.read(reader);
-        var vertexOffset = Vector3.read(reader);
-        var vertexScale = reader.readFloat();
-        var uvOffset = Vector2.read(reader);
-        var uvScale = reader.readFloat();
-        var flags = reader.readInt();
-        var unkFloat1 = reader.readFloat();
-        var unkFloat2 = reader.readFloat();
+    static Md6MeshLodInfo read(BinarySource source) throws IOException {
+        var numVertices = source.readInt();
+        var numFaces = source.readInt();
+        var bounds = Bounds.read(source);
+        var vertexOffset = Vector3.read(source);
+        var vertexScale = source.readFloat();
+        var uvOffset = Vector2.read(source);
+        var uvScale = source.readFloat();
+        var flags = source.readInt();
+        var unkFloat1 = source.readFloat();
+        var unkFloat2 = source.readFloat();
 
-        var numBlendShapes = reader.readInt();
+        var numBlendShapes = source.readInt();
         var blendShapeReferences = Shorts.empty();
         var blendShapes = List.<Md6MeshBlendShape>of();
         if (numBlendShapes != 0) {
-            blendShapeReferences = reader.readShorts(reader.readInt());
-            blendShapes = reader.readObjects(numBlendShapes, Md6MeshBlendShape::read);
+            blendShapeReferences = source.readShorts(source.readInt());
+            blendShapes = source.readObjects(numBlendShapes, Md6MeshBlendShape::read);
         }
 
         return new Md6MeshLodInfo(

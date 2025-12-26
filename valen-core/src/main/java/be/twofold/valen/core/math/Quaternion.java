@@ -1,6 +1,6 @@
 package be.twofold.valen.core.math;
 
-import be.twofold.valen.core.io.BinaryReader;
+import be.twofold.valen.core.io.*;
 
 import java.io.*;
 import java.nio.*;
@@ -18,11 +18,11 @@ public record Quaternion(float x, float y, float z, float w) {
         return new Quaternion(x, y, z, cos);
     }
 
-    public static Quaternion read(BinaryReader reader) throws IOException {
-        float x = reader.readFloat();
-        float y = reader.readFloat();
-        float z = reader.readFloat();
-        float w = reader.readFloat();
+    public static Quaternion read(BinarySource source) throws IOException {
+        float x = source.readFloat();
+        float y = source.readFloat();
+        float z = source.readFloat();
+        float w = source.readFloat();
         return new Quaternion(x, y, z, w);
     }
 

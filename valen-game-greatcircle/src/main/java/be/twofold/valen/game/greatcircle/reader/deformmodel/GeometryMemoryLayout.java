@@ -18,19 +18,19 @@ record GeometryMemoryLayout(
     int unknown2,
     List<MoreOffset> moreOffsets
 ) implements GeoMemoryLayout {
-    static GeometryMemoryLayout read(BinaryReader reader) throws IOException {
-        var combinedVertexMask = reader.readInt();
-        var size = reader.readInt();
-        var numVertexStreams = reader.readInt();
-        var vertexMasks = reader.readInts(numVertexStreams);
-        var vertexOffsets = reader.readInts(numVertexStreams);
-        var indexOffset = reader.readInt();
-        var unknown1 = reader.readInt();
+    static GeometryMemoryLayout read(BinarySource source) throws IOException {
+        var combinedVertexMask = source.readInt();
+        var size = source.readInt();
+        var numVertexStreams = source.readInt();
+        var vertexMasks = source.readInts(numVertexStreams);
+        var vertexOffsets = source.readInts(numVertexStreams);
+        var indexOffset = source.readInt();
+        var unknown1 = source.readInt();
         var unknown2 = 0;
         var moreOffsets = (List<MoreOffset>) null;
         if (unknown1 != 0) {
-            unknown2 = reader.readInt();
-            reader.readObjects(reader.readInt(), MoreOffset::read);
+            unknown2 = source.readInt();
+            source.readObjects(source.readInt(), MoreOffset::read);
         }
 
         return new GeometryMemoryLayout(
@@ -53,12 +53,12 @@ record GeometryMemoryLayout(
         int i4,
         int i5
     ) {
-        public static MoreOffset read(BinaryReader reader) throws IOException {
-            var i1 = reader.readInt();
-            var i2 = reader.readInt();
-            var i3 = reader.readInt();
-            var i4 = reader.readInt();
-            var i5 = reader.readInt();
+        public static MoreOffset read(BinarySource source) throws IOException {
+            var i1 = source.readInt();
+            var i2 = source.readInt();
+            var i3 = source.readInt();
+            var i4 = source.readInt();
+            var i5 = source.readInt();
             return new MoreOffset(i1, i2, i3, i4, i5);
         }
     }

@@ -17,23 +17,23 @@ final class LZ4FrameDecompressor implements Decompressor {
 
     @Override
     public void decompress(Bytes src, Bytes.Mutable dst) throws IOException {
-        try (var reader = BinaryReader.fromBytes(src)) {
+        try (var reader = BinarySource.wrap(src)) {
             decompress(reader, dst);
         }
     }
 
-    private void decompress(BinaryReader reader, Bytes.Mutable dst) throws IOException {
-        var frameHeader = Lz4FrameHeader.read(reader);
+    private void decompress(BinarySource source, Bytes.Mutable dst) throws IOException {
+        var frameHeader = Lz4FrameHeader.read(source);
 
         int dstOffset = 0;
-        while (reader.position() < reader.size()) {
-            var blockHeader = Lz4BlockHeader.read(reader, frameHeader.blockMaximumSize());
+        while (source.position() < source.size()) {
+            var blockHeader = Lz4BlockHeader.read(source, frameHeader.blockMaximumSize());
             if (blockHeader.blockSize() == 0 && !blockHeader.uncompressed()) {
                 break;
             }
-            var blockData = reader.readBytes(blockHeader.blockSize());
+            var blockData = source.readBytes(blockHeader.blockSize());
             if (frameHeader.flags().contains(Lz4FrameFlag.BLOCK_CHECKSUM)) {
-                var blockChecksum = reader.readInt();
+                var blockChecksum = source.readInt();
                 if (HASH.hash(blockData).asInt() != blockChecksum) {
                     throw new IOException("Invalid block checksum");
                 }
@@ -49,7 +49,7 @@ final class LZ4FrameDecompressor implements Decompressor {
             throw new IOException("Error while decompressing: expected " + dst.length() + " bytes, but only have " + dstOffset);
         }
         if (frameHeader.flags().contains(Lz4FrameFlag.CONTENT_CHECKSUM)) {
-            int contentChecksum = reader.readInt();
+            int contentChecksum = source.readInt();
             if (HASH.hash(dst).asInt() != contentChecksum) {
                 throw new IOException("Invalid content checksum");
             }
@@ -63,16 +63,16 @@ final class LZ4FrameDecompressor implements Decompressor {
         OptionalInt dictionaryId,
         byte headerChecksum
     ) {
-        public static Lz4FrameHeader read(BinaryReader reader) throws IOException {
-            reader.expectInt(0x184D2204); // magic
+        public static Lz4FrameHeader read(BinarySource source) throws IOException {
+            source.expectInt(0x184D2204); // magic
 
-            var flg = reader.readByte();
+            var flg = source.readByte();
             if ((flg & 0xC2) != 0x40) {
                 throw new IOException("Invalid FLG byte");
             }
             var flags = Lz4FrameFlag.fromValue(flg & 0x3D);
 
-            var bd = reader.readByte();
+            var bd = source.readByte();
             if ((bd & 0x8F) != 0x00) {
                 throw new IOException("Invalid BD byte");
             }
@@ -85,10 +85,10 @@ final class LZ4FrameDecompressor implements Decompressor {
             };
 
             var contentSize = flags.contains(Lz4FrameFlag.CONTENT_SIZE)
-                ? OptionalLong.of(reader.readLong())
+                    ? OptionalLong.of(source.readLong())
                 : OptionalLong.empty();
             var dictionaryId = flags.contains(Lz4FrameFlag.DICTIONARY_ID)
-                ? OptionalInt.of(reader.readInt())
+                    ? OptionalInt.of(source.readInt())
                 : OptionalInt.empty();
 
             var header = Bytes.Mutable
@@ -100,7 +100,7 @@ final class LZ4FrameDecompressor implements Decompressor {
             var checkSum = (byte) (HASH.hash(header).asInt() >> 8);
 
             // TODO: Validate this
-            var headerChecksum = reader.readByte();
+            var headerChecksum = source.readByte();
             if (checkSum != headerChecksum) {
                 throw new IOException("Invalid checksum");
             }
@@ -143,8 +143,8 @@ final class LZ4FrameDecompressor implements Decompressor {
         int blockSize,
         boolean uncompressed
     ) {
-        public static Lz4BlockHeader read(BinaryReader reader, int blockMaximumSize) throws IOException {
-            var value = reader.readInt();
+        public static Lz4BlockHeader read(BinarySource source, int blockMaximumSize) throws IOException {
+            var value = source.readInt();
             var blockSize = value & 0x7FFF_FFFF;
             var uncompressed = value < 0;
             if (!uncompressed && blockSize > blockMaximumSize) {

@@ -9,7 +9,7 @@ final class Lines extends AbstractList<String> {
     private final int[] indices;
 
     private Lines(String source, List<Integer> indices) {
-        this.source = Check.notNull(source, "source");
+        this.source = Check.nonNull(source, "source");
         this.indices = indices.stream()
             .mapToInt(Integer::intValue)
             .toArray();

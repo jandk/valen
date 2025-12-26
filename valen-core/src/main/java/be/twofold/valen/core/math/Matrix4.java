@@ -108,23 +108,23 @@ public record Matrix4(
         );
     }
 
-    public static Matrix4 read(BinaryReader reader) throws IOException {
-        float m00 = reader.readFloat();
-        float m01 = reader.readFloat();
-        float m02 = reader.readFloat();
-        float m03 = reader.readFloat();
-        float m10 = reader.readFloat();
-        float m11 = reader.readFloat();
-        float m12 = reader.readFloat();
-        float m13 = reader.readFloat();
-        float m20 = reader.readFloat();
-        float m21 = reader.readFloat();
-        float m22 = reader.readFloat();
-        float m23 = reader.readFloat();
-        float m30 = reader.readFloat();
-        float m31 = reader.readFloat();
-        float m32 = reader.readFloat();
-        float m33 = reader.readFloat();
+    public static Matrix4 read(BinarySource source) throws IOException {
+        float m00 = source.readFloat();
+        float m01 = source.readFloat();
+        float m02 = source.readFloat();
+        float m03 = source.readFloat();
+        float m10 = source.readFloat();
+        float m11 = source.readFloat();
+        float m12 = source.readFloat();
+        float m13 = source.readFloat();
+        float m20 = source.readFloat();
+        float m21 = source.readFloat();
+        float m22 = source.readFloat();
+        float m23 = source.readFloat();
+        float m30 = source.readFloat();
+        float m31 = source.readFloat();
+        float m32 = source.readFloat();
+        float m33 = source.readFloat();
 
         return new Matrix4(
             m00, m01, m02, m03,

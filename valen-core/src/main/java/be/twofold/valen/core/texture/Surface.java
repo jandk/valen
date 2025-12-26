@@ -11,8 +11,8 @@ public record Surface(
     public Surface {
         Check.positive(width, "width");
         Check.positive(height, "height");
-        Check.notNull(format, "format");
-        Check.notNull(data, "data");
+        Check.nonNull(format, "format");
+        Check.nonNull(data, "data");
     }
 
     public static Surface create(int width, int height, TextureFormat format) {

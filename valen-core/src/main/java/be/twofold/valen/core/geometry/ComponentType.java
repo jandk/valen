@@ -17,7 +17,7 @@ public final class ComponentType<T> {
     private final IntFunction<T> allocator;
 
     private ComponentType(IntFunction<T> allocator) {
-        this.allocator = Check.notNull(allocator, "allocator");
+        this.allocator = Check.nonNull(allocator, "allocator");
     }
 
     public T allocate(int capacity) {

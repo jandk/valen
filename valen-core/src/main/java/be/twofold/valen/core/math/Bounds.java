@@ -10,9 +10,9 @@ public record Bounds(
     Vector3 min,
     Vector3 max
 ) {
-    public static Bounds read(BinaryReader reader) throws IOException {
-        Vector3 min = Vector3.read(reader);
-        Vector3 max = Vector3.read(reader);
+    public static Bounds read(BinarySource source) throws IOException {
+        Vector3 min = Vector3.read(source);
+        Vector3 max = Vector3.read(source);
         return new Bounds(min, max);
     }
 

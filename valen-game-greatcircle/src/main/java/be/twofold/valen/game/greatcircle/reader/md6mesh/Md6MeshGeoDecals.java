@@ -11,14 +11,14 @@ record Md6MeshGeoDecals(
     Ints geoDecalCounts,
     List<Ints> geoDecalIndices
 ) {
-    static Md6MeshGeoDecals read(BinaryReader reader) throws IOException {
-        var materialName = reader.readPString();
-        var numStreams = reader.readInt();
-        var geoDecalCounts = reader.readInts(numStreams);
+    static Md6MeshGeoDecals read(BinarySource source) throws IOException {
+        var materialName = source.readString(StringFormat.INT_LENGTH);
+        var numStreams = source.readInt();
+        var geoDecalCounts = source.readInts(numStreams);
 
         var geoDecalIndices = new ArrayList<Ints>();
         for (var stream = 0; stream < numStreams; stream++) {
-            geoDecalIndices.add(reader.readInts(geoDecalCounts.get(stream)));
+            geoDecalIndices.add(source.readInts(geoDecalCounts.get(stream)));
         }
 
         return new Md6MeshGeoDecals(

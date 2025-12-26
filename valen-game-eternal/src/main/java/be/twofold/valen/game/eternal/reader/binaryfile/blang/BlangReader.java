@@ -22,8 +22,8 @@ public final class BlangReader implements AssetReader<Blang, EternalAsset> {
     }
 
     @Override
-    public Blang read(BinaryReader reader, EternalAsset resource) throws IOException {
-        var bytes = binaryFileReader.read(reader, resource);
-        return Blang.read(BinaryReader.fromBytes(bytes));
+    public Blang read(BinarySource source, EternalAsset resource) throws IOException {
+        var bytes = binaryFileReader.read(source, resource);
+        return Blang.read(BinarySource.wrap(bytes));
     }
 }

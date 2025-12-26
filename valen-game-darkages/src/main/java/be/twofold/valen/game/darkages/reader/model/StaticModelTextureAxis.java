@@ -10,10 +10,10 @@ public record StaticModelTextureAxis(
     Vector3 origin,
     Vector2 scale
 ) {
-    public static StaticModelTextureAxis read(BinaryReader reader) throws IOException {
-        var axis = Matrix3.read(reader);
-        var origin = Vector3.read(reader);
-        var scale = Vector2.read(reader);
+    public static StaticModelTextureAxis read(BinarySource source) throws IOException {
+        var axis = Matrix3.read(source);
+        var origin = Vector3.read(source);
+        var scale = Vector2.read(source);
 
         return new StaticModelTextureAxis(
             axis,

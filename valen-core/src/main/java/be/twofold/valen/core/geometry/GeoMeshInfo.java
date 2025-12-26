@@ -33,8 +33,8 @@ public final class GeoMeshInfo {
     ) {
         this.indexCount = indexCount;
         this.vertexCount = vertexCount;
-        this.indices = Check.notNull(indices, "indices");
-        this.positions = Check.notNull(positions, "positions");
+        this.indices = Check.nonNull(indices, "indices");
+        this.positions = Check.nonNull(positions, "positions");
         this.normals = normals;
         this.tangents = tangents;
         this.texCoords = List.copyOf(texCoords);

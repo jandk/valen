@@ -31,9 +31,9 @@ public final class DarkAgesArchive extends Archive<DarkAgesAssetID, DarkAgesAsse
         Container<DarkAgesAssetID, DarkAgesAsset> common,
         Container<DarkAgesAssetID, DarkAgesAsset> resources
     ) {
-        this.streams = Check.notNull(streams, "streams");
-        this.common = Check.notNull(common, "common");
-        this.resources = Check.notNull(resources, "resources");
+        this.streams = Check.nonNull(streams, "streams");
+        this.common = Check.nonNull(common, "common");
+        this.resources = Check.nonNull(resources, "resources");
     }
 
     @Override

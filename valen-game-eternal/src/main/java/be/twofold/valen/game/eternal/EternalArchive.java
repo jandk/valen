@@ -35,10 +35,10 @@ public final class EternalArchive extends Archive<EternalAssetID, EternalAsset> 
         Container<EternalAssetID, EternalAsset> resources,
         Decompressor decompressor
     ) {
-        this.streams = Check.notNull(streams, "streams");
-        this.common = Check.notNull(common, "common");
-        this.resources = Check.notNull(resources, "resources");
-        this.decompressor = Check.notNull(decompressor, "decompressor");
+        this.streams = Check.nonNull(streams, "streams");
+        this.common = Check.nonNull(common, "common");
+        this.resources = Check.nonNull(resources, "resources");
+        this.decompressor = Check.nonNull(decompressor, "decompressor");
     }
 
     @Override

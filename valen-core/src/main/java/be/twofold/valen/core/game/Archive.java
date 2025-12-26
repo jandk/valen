@@ -14,12 +14,12 @@ public abstract class Archive<TID extends AssetID, TAsset extends Asset> impleme
         var asset = get(identifier).orElseThrow(FileNotFoundException::new);
         var bytes = read(identifier, null);
 
-        try (var source = BinaryReader.fromBytes(bytes)) {
+        try (var source = BinarySource.wrap(bytes)) {
             return read(asset, source, clazz);
         }
     }
 
-    public <R> R read(TAsset asset, BinaryReader reader, Class<R> clazz) throws IOException {
+    public <R> R read(TAsset asset, BinarySource source, Class<R> clazz) throws IOException {
         if (readers == null) {
             var readersCopy = new ArrayList<>(createReaders());
             readersCopy.add(AssetReader.raw());
@@ -29,6 +29,6 @@ public abstract class Archive<TID extends AssetID, TAsset extends Asset> impleme
             .filter(ar -> ar.canRead(asset) && clazz.isAssignableFrom(ar.getReturnType()))
             .findFirst().orElseThrow(() -> new IOException("No reader found with type " + clazz + " for " + asset));
 
-        return clazz.cast(assetReader.read(reader, asset));
+        return clazz.cast(assetReader.read(source, asset));
     }
 }

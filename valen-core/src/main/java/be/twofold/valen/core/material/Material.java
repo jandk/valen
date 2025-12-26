@@ -9,7 +9,7 @@ public record Material(
     List<MaterialProperty> properties
 ) {
     public Material {
-        Check.notNull(name, "name");
+        Check.nonNull(name, "name");
         properties = List.copyOf(properties);
     }
 }

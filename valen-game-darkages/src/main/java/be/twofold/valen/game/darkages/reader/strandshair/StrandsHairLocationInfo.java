@@ -10,11 +10,11 @@ record StrandsHairLocationInfo(
     int triangleNormal,
     int triangleSide
 ) {
-    static StrandsHairLocationInfo read(BinaryReader reader) throws IOException {
-        var barycentric1 = reader.readShort();
-        var barycentric2 = reader.readShort();
-        var triangleNormal = reader.readInt();
-        var triangleSide = reader.readInt();
+    static StrandsHairLocationInfo read(BinarySource source) throws IOException {
+        var barycentric1 = source.readShort();
+        var barycentric2 = source.readShort();
+        var triangleNormal = source.readInt();
+        var triangleSide = source.readInt();
 
         return new StrandsHairLocationInfo(
             barycentric1,

@@ -12,10 +12,10 @@ public record Bone(
     Matrix4 inverseBasePose
 ) {
     public Bone {
-        Check.notNull(name, "name");
-        Check.notNull(rotation, "rotation");
-        Check.notNull(scale, "scale");
-        Check.notNull(translation, "translation");
-        Check.notNull(inverseBasePose, "inverseBasePose");
+        Check.nonNull(name, "name");
+        Check.nonNull(rotation, "rotation");
+        Check.nonNull(scale, "scale");
+        Check.nonNull(translation, "translation");
+        Check.nonNull(inverseBasePose, "inverseBasePose");
     }
 }

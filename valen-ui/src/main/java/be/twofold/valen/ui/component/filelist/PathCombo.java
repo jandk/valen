@@ -7,8 +7,8 @@ record PathCombo(
     String name
 ) implements Comparable<PathCombo> {
     public PathCombo {
-        Check.notNull(full, "full");
-        Check.notNull(name, "name");
+        Check.nonNull(full, "full");
+        Check.nonNull(name, "name");
     }
 
     @Override

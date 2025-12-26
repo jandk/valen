@@ -10,7 +10,7 @@ public interface AssetReader<R, A extends Asset> {
 
     boolean canRead(A asset);
 
-    R read(BinaryReader reader, A asset) throws IOException;
+    R read(BinarySource source, A asset) throws IOException;
 
     default Class<?> getReturnType() {
         return Reflections.getParameterizedType(getClass(), AssetReader.class)
@@ -26,8 +26,8 @@ public interface AssetReader<R, A extends Asset> {
             }
 
             @Override
-            public Bytes read(BinaryReader reader, A asset) throws IOException {
-                return reader.readBytes(Math.toIntExact(reader.size()));
+            public Bytes read(BinarySource source, A asset) throws IOException {
+                return source.readBytes(Math.toIntExact(source.size()));
             }
         };
     }

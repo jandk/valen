@@ -15,7 +15,7 @@ public final class MapFileStaticInstancesReader implements AssetReader<Scene, Et
     private final EternalArchive archive;
 
     public MapFileStaticInstancesReader(EternalArchive archive) {
-        this.archive = Check.notNull(archive, "archive");
+        this.archive = Check.nonNull(archive, "archive");
     }
 
     @Override
@@ -24,8 +24,8 @@ public final class MapFileStaticInstancesReader implements AssetReader<Scene, Et
     }
 
     @Override
-    public Scene read(BinaryReader reader, EternalAsset resource) throws IOException {
-        var staticInstances = MapFileStaticInstances.read(reader);
+    public Scene read(BinarySource source, EternalAsset resource) throws IOException {
+        var staticInstances = MapFileStaticInstances.read(source);
 
         var instances = new ArrayList<Instance>();
         for (int i = 0; i < staticInstances.modelInstanceNames().size(); i++) {

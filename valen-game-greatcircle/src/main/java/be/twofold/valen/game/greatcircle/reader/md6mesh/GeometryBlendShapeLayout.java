@@ -16,17 +16,17 @@ record GeometryBlendShapeLayout(
     int unknown3,
     int numMetaTrisPerUnreliableVertex
 ) {
-    static GeometryBlendShapeLayout read(BinaryReader reader) throws IOException {
-        int meshIndex = reader.readInt();
-        int deltaIndexesBufferOffset = reader.readInt();
-        int deltaBufferOffset = reader.readInt();
-        int unreliableVerticesOffsetMaybe = reader.readInt();
-        int unreliableIndicesOffsetMaybe = reader.readInt();
-        int trisPerUnreliableVertexOffsetMaybe = reader.readInt();
-        int metaTrisPerUnreliableVertexOffset = reader.readInt();
-        int unknown2 = reader.readInt();
-        int unknown3 = reader.readInt();
-        int numMetaTrisPerUnreliableVertex = reader.readInt();
+    static GeometryBlendShapeLayout read(BinarySource source) throws IOException {
+        int meshIndex = source.readInt();
+        int deltaIndexesBufferOffset = source.readInt();
+        int deltaBufferOffset = source.readInt();
+        int unreliableVerticesOffsetMaybe = source.readInt();
+        int unreliableIndicesOffsetMaybe = source.readInt();
+        int trisPerUnreliableVertexOffsetMaybe = source.readInt();
+        int metaTrisPerUnreliableVertexOffset = source.readInt();
+        int unknown2 = source.readInt();
+        int unknown3 = source.readInt();
+        int numMetaTrisPerUnreliableVertex = source.readInt();
 
         return new GeometryBlendShapeLayout(
             meshIndex,

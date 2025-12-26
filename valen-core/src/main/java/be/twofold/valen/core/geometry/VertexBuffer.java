@@ -10,9 +10,9 @@ public record VertexBuffer<T extends Slice>(
     ComponentType<T> componentType
 ) {
     public VertexBuffer {
-        Check.notNull(componentType, "componentType");
-        Check.notNull(elementType, "elementType");
-        Check.notNull(array, "array");
+        Check.nonNull(componentType, "componentType");
+        Check.nonNull(elementType, "elementType");
+        Check.nonNull(array, "array");
     }
 
     @SuppressWarnings("unchecked")

@@ -14,16 +14,16 @@ public record ImageMipInfo(
     int compressedSize,
     int cumulativeSizeStreamDB
 ) {
-    public static ImageMipInfo read(BinaryReader reader) throws IOException {
-        var mipLevel = reader.readInt();
-        var mipSlice = reader.readInt();
-        var mipPixelWidth = reader.readInt();
-        var mipPixelHeight = reader.readInt();
-        reader.expectInt(1);
-        var decompressedSize = reader.readInt();
-        var flagIsCompressed = reader.readBoolInt();
-        var compressedSize = reader.readInt();
-        var cumulativeSizeStreamDB = reader.readInt();
+    public static ImageMipInfo read(BinarySource source) throws IOException {
+        var mipLevel = source.readInt();
+        var mipSlice = source.readInt();
+        var mipPixelWidth = source.readInt();
+        var mipPixelHeight = source.readInt();
+        source.expectInt(1);
+        var decompressedSize = source.readInt();
+        var flagIsCompressed = source.readBool(BoolFormat.INT);
+        var compressedSize = source.readInt();
+        var cumulativeSizeStreamDB = source.readInt();
 
         return new ImageMipInfo(
             mipLevel,

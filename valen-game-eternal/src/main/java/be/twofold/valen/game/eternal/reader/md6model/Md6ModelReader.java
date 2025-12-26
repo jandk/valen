@@ -32,8 +32,8 @@ public final class Md6ModelReader implements AssetReader<Model, EternalAsset> {
     }
 
     @Override
-    public Model read(BinaryReader reader, EternalAsset resource) throws IOException {
-        var model = Md6Model.read(reader);
+    public Model read(BinarySource source, EternalAsset resource) throws IOException {
+        var model = Md6Model.read(source);
         var meshes = new ArrayList<>(readMeshes(model, resource.hash()));
         var skeletonKey = EternalAssetID.from(model.header().md6SkelName(), ResourceType.Skeleton);
         var skeleton = archive.loadAsset(skeletonKey, Skeleton.class);
@@ -63,7 +63,7 @@ public final class Md6ModelReader implements AssetReader<Model, EternalAsset> {
 
         var identity = (hash << 4) | lod;
         var bytes = archive.readStream(identity, uncompressedSize);
-        try (var source = BinaryReader.fromBytes(bytes)) {
+        try (var source = BinarySource.wrap(bytes)) {
             return GeometryReader.readStreamedMesh(source, lodInfos, layouts, true);
         }
     }

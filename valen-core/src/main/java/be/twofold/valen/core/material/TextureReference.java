@@ -11,9 +11,9 @@ public record TextureReference(
     ThrowingSupplier<Texture, IOException> supplier
 ) {
     public TextureReference {
-        Check.notNull(name, "name");
-        Check.notNull(filename, "filename");
-        Check.notNull(supplier, "supplier");
+        Check.nonNull(name, "name");
+        Check.nonNull(filename, "filename");
+        Check.nonNull(supplier, "supplier");
     }
 
     @Override

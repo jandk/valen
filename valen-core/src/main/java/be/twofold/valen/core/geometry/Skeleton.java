@@ -11,6 +11,6 @@ public record Skeleton(
 ) {
     public Skeleton {
         bones = List.copyOf(bones);
-        Check.notNull(upAxis, "upAxis");
+        Check.nonNull(upAxis, "upAxis");
     }
 }

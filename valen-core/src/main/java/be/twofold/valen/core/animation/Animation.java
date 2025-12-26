@@ -11,7 +11,7 @@ public record Animation(
     List<Track<?>> tracks
 ) {
     public Animation {
-        Check.notNull(skeleton, "skeleton");
+        Check.nonNull(skeleton, "skeleton");
         tracks = List.copyOf(tracks);
     }
 }
