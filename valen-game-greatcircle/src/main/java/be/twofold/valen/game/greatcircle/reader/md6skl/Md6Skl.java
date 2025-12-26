@@ -84,7 +84,7 @@ public record Md6Skl(
     }
 
     private static Matrix4 readInverseBasePose(BinaryReader reader) throws IOException {
-        var floats = MutableFloats.allocate(16);
+        var floats = Floats.Mutable.allocate(16);
         reader.readFloats(12).copyTo(floats, 0);
         floats.set(15, 1.0f);
         return Matrix4.fromFloats(floats).transpose();

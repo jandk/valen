@@ -8,7 +8,7 @@ import java.nio.channels.*;
 
 final class ChannelBinaryReader implements BinaryReader {
     private static final int BUFFER_CAPACITY = 8192;
-    private final MutableBytes buffer = MutableBytes.allocate(BUFFER_CAPACITY);
+    private final Bytes.Mutable buffer = Bytes.Mutable.allocate(BUFFER_CAPACITY);
     private int buffPos;
     private int buffLim;
 
@@ -22,7 +22,7 @@ final class ChannelBinaryReader implements BinaryReader {
     }
 
     @Override
-    public void read(MutableBytes dst) throws IOException {
+    public void read(Bytes.Mutable dst) throws IOException {
         int buffRem = buffRem();
         int destRem = dst.length();
         if (buffRem >= destRem) {
@@ -146,7 +146,7 @@ final class ChannelBinaryReader implements BinaryReader {
         buffPos = 0;
     }
 
-    private int readInternal(MutableBytes dst, int dstPos) throws IOException {
+    private int readInternal(Bytes.Mutable dst, int dstPos) throws IOException {
         while (dstPos < dst.length()) {
             var buffer = dst.slice(dstPos).asMutableBuffer();
             var read = channel.read(buffer);

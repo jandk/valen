@@ -26,7 +26,7 @@ public final class TexturePresenter extends AbstractFXPresenter<TextureView> imp
 
     private final Settings settings;
 
-    private MutableBytes imagePixels;
+    private Bytes.Mutable imagePixels;
     private Texture decoded;
     private boolean premultiplied;
     private WritableImage image;
@@ -98,7 +98,7 @@ public final class TexturePresenter extends AbstractFXPresenter<TextureView> imp
     }
 
     private void splatGray() {
-        var data = MutableBytes.wrap(decoded.surfaces().getFirst().data());
+        var data = Bytes.Mutable.wrap(decoded.surfaces().getFirst().data());
         for (int i = 0; i < data.length(); i += 4) {
             int bgra = data.getInt(i);
             bgra = ((bgra >> 16) & 0xFF) * 0x010101 | (bgra & 0xFF000000);
@@ -125,7 +125,7 @@ public final class TexturePresenter extends AbstractFXPresenter<TextureView> imp
         this.channel = channel;
 
         if (imagePixels == null) {
-            imagePixels = MutableBytes.allocate(decoded.width() * decoded.height() * 4);
+            imagePixels = Bytes.Mutable.allocate(decoded.width() * decoded.height() * 4);
         }
 
         // B8G8R8A8

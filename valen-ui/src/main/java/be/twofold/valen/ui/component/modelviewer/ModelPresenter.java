@@ -118,13 +118,13 @@ public final class ModelPresenter extends AbstractFXPresenter<ModelView> impleme
 
     private void copy(Floats floats, ObservableFloatArray floatArray) {
         var array = new float[floats.length()];
-        floats.copyTo(MutableFloats.wrap(array), 0);
+        floats.copyTo(Floats.Mutable.wrap(array), 0);
         floatArray.setAll(array);
     }
 
     private void copyPoints(Floats floats, ObservableFloatArray floatArray) {
         var array = new float[floats.length()];
-        floats.copyTo(MutableFloats.wrap(array), 0);
+        floats.copyTo(Floats.Mutable.wrap(array), 0);
 
         for (var i = 0; i < array.length; i++) {
             array[i] *= 100;

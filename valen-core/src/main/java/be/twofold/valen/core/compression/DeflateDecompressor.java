@@ -13,7 +13,7 @@ final class DeflateDecompressor implements Decompressor {
     }
 
     @Override
-    public void decompress(Bytes src, MutableBytes dst) throws IOException {
+    public void decompress(Bytes src, Bytes.Mutable dst) throws IOException {
         var srcBuffer = src.asBuffer();
         var dstBuffer = dst.asMutableBuffer();
 

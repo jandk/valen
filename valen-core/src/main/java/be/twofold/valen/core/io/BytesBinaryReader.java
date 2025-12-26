@@ -13,7 +13,7 @@ final class BytesBinaryReader implements BinaryReader {
     }
 
     @Override
-    public void read(MutableBytes dst) throws IOException {
+    public void read(Bytes.Mutable dst) throws IOException {
         if (dst.length() > bytes.length() - position) {
             throw new EOFException();
         }

@@ -54,7 +54,7 @@ public abstract class HashCode {
 
         @Override
         public Bytes asBytes() {
-            return MutableBytes
+            return Bytes.Mutable
                 .allocate(Integer.BYTES)
                 .setInt(0, hashCode);
         }
@@ -95,7 +95,7 @@ public abstract class HashCode {
 
         @Override
         public Bytes asBytes() {
-            return MutableBytes
+            return Bytes.Mutable
                 .allocate(Long.BYTES)
                 .setLong(0, hashCode);
         }

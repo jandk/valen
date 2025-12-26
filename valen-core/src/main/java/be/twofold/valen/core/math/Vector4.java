@@ -103,7 +103,7 @@ public record Vector4(
         dst.put(w);
     }
 
-    public void toFloats(MutableFloats floats, int offset) {
+    public void toFloats(Floats.Mutable floats, int offset) {
         floats.set(offset/**/, x);
         floats.set(offset + 1, y);
         floats.set(offset + 2, z);

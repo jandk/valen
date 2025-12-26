@@ -128,7 +128,7 @@ public record Md6Anim(
         var size = reader.readByteUnsigned();
         var length = Math.min(size, numJoints);
 
-        var result = MutableInts.allocate(length);
+        var result = Ints.Mutable.allocate(length);
         for (var o = 0; o < length; ) {
             int count = reader.readByte();
             if ((count & 0x80) != 0) {

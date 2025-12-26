@@ -1,16 +1,12 @@
 package be.twofold.valen.core.util.collect;
 
 import be.twofold.valen.core.util.*;
-import org.jetbrains.annotations.*;
 
 import java.nio.*;
 import java.util.*;
 import java.util.stream.*;
 
-@Debug.Renderer(
-    childrenArray = "java.util.Arrays.copyOfRange(array, offset, offset + length)"
-)
-public class Shorts implements Array, Comparable<Shorts> {
+public class Shorts implements Slice, Comparable<Shorts> {
     private static final Shorts EMPTY = wrap(new short[0]);
 
     final short[] array;
@@ -88,7 +84,7 @@ public class Shorts implements Array, Comparable<Shorts> {
         return new Shorts(array, this.offset + offset, length);
     }
 
-    public void copyTo(MutableShorts target, int offset) {
+    public void copyTo(Mutable target, int offset) {
         System.arraycopy(array, this.offset, target.array, target.offset + offset, length);
     }
 
@@ -127,5 +123,47 @@ public class Shorts implements Array, Comparable<Shorts> {
     @Override
     public String toString() {
         return "[" + length + " shorts]";
+    }
+
+    public static final class Mutable extends Shorts {
+        private Mutable(short[] array, int offset, int length) {
+            super(array, offset, length);
+        }
+
+        public static Mutable wrap(short[] array) {
+            return new Mutable(array, 0, array.length);
+        }
+
+        public static Mutable wrap(short[] array, int offset, int length) {
+            return new Mutable(array, offset, length);
+        }
+
+        public static Mutable allocate(int length) {
+            return new Mutable(new short[length], 0, length);
+        }
+
+        public Mutable set(int index, short value) {
+            Check.index(index, length);
+            array[offset + index] = value;
+            return this;
+        }
+
+        public Mutable slice(int offset) {
+            return slice(offset, length - offset);
+        }
+
+        public Mutable slice(int offset, int length) {
+            Check.fromIndexSize(offset, length, this.length);
+            return new Mutable(array, this.offset + offset, length);
+        }
+
+        public Mutable fill(short value) {
+            Arrays.fill(array, offset, offset + length, value);
+            return this;
+        }
+
+        public ShortBuffer asMutableBuffer() {
+            return ShortBuffer.wrap(array, offset, length);
+        }
     }
 }

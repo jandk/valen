@@ -32,7 +32,7 @@ class LZ4BlockDecompressorTest {
         var target = new byte[LENGTH + 2 * offset];
 
         var src = Bytes.wrap(source, offset, source.length - 2 * offset);
-        var dst = MutableBytes.wrap(target, offset, target.length - 2 * offset);
+        var dst = Bytes.Mutable.wrap(target, offset, target.length - 2 * offset);
         decompressor.decompress(src, dst);
 
         sha256.update(target, offset, LENGTH);

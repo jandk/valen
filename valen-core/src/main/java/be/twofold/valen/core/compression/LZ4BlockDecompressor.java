@@ -11,11 +11,11 @@ final class LZ4BlockDecompressor extends LZDecompressor {
     }
 
     @Override
-    public void decompress(Bytes src, MutableBytes dst) throws IOException {
+    public void decompress(Bytes src, Bytes.Mutable dst) throws IOException {
         decompress(src, dst, 0);
     }
 
-    int decompress(Bytes src, MutableBytes dst, int dstOffset) throws IOException {
+    int decompress(Bytes src, Bytes.Mutable dst, int dstOffset) throws IOException {
         // Special case
         if (dst.length() == 0) {
             if (src.length() != 1 || src.get(0) != 0) {

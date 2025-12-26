@@ -85,7 +85,7 @@ public record Vector2(
         buffer.put(y);
     }
 
-    public void toFloats(MutableFloats floats, int offset) {
+    public void toFloats(Floats.Mutable floats, int offset) {
         floats.set(offset/**/, x);
         floats.set(offset + 1, y);
     }

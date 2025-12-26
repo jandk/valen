@@ -27,7 +27,7 @@ class FastLZDecompressorTest {
         var expected = new byte[]{0x41, 0x42, 0x43};
         var target = new byte[expected.length];
 
-        decompressor.decompress(Bytes.wrap(source), MutableBytes.wrap(target));
+        decompressor.decompress(Bytes.wrap(source), Bytes.Mutable.wrap(target));
 
         assertThat(target).isEqualTo(expected);
     }
@@ -38,7 +38,7 @@ class FastLZDecompressorTest {
         var expected = new byte[]{0x41, 0x42, 0x43, 0x44, 0x42, 0x43, 0x44};
         var target = new byte[expected.length];
 
-        decompressor.decompress(Bytes.wrap(source), MutableBytes.wrap(target));
+        decompressor.decompress(Bytes.wrap(source), Bytes.Mutable.wrap(target));
 
         assertThat(target).isEqualTo(expected);
     }
@@ -49,7 +49,7 @@ class FastLZDecompressorTest {
         var expected = new byte[]{0x61, 0x61, 0x61, 0x61, 0x61};
         var target = new byte[expected.length];
 
-        decompressor.decompress(Bytes.wrap(source), MutableBytes.wrap(target));
+        decompressor.decompress(Bytes.wrap(source), Bytes.Mutable.wrap(target));
 
         assertThat(target).isEqualTo(expected);
     }
@@ -60,7 +60,7 @@ class FastLZDecompressorTest {
         var expected = new byte[]{0x44, 0x45, 0x44, 0x45, 0x44, 0x45, 0x44, 0x45, 0x44, 0x45, 0x44, 0x45};
         var target = new byte[expected.length];
 
-        decompressor.decompress(Bytes.wrap(source), MutableBytes.wrap(target));
+        decompressor.decompress(Bytes.wrap(source), Bytes.Mutable.wrap(target));
 
         assertThat(target).isEqualTo(expected);
     }
@@ -77,7 +77,7 @@ class FastLZDecompressorTest {
         System.arraycopy(temp, 0, source, offset, temp.length);
         var target = new byte[LENGTH + 2 * offset];
         var src = Bytes.wrap(source, offset, source.length - 2 * offset);
-        var dst = MutableBytes.wrap(target, offset, target.length - 2 * offset);
+        var dst = Bytes.Mutable.wrap(target, offset, target.length - 2 * offset);
         decompressor.decompress(src, dst);
 
         sha256.update(target, offset, LENGTH);
@@ -97,7 +97,7 @@ class FastLZDecompressorTest {
         System.arraycopy(temp, 0, source, offset, temp.length);
         var target = new byte[LENGTH + 2 * offset];
         var src = Bytes.wrap(source, offset, source.length - 2 * offset);
-        var dst = MutableBytes.wrap(target, offset, target.length - 2 * offset);
+        var dst = Bytes.Mutable.wrap(target, offset, target.length - 2 * offset);
         decompressor.decompress(src, dst);
 
         sha256.update(target, offset, LENGTH);

@@ -14,7 +14,7 @@ public record DeformModelMesh(
 ) {
     public static DeformModelMesh read(BinaryReader reader) throws IOException {
         var unknown1 = reader.readInt();
-        var unknown2 = MutableBytes.allocate(5);
+        var unknown2 = Bytes.Mutable.allocate(5);
         var lods = new ArrayList<DeformModelLod>();
         for (int i = 0; i < 5; i++) {
             unknown2.set(i, reader.readByte());

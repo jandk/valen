@@ -99,7 +99,7 @@ public final class Md6ModelReader implements AssetReader<Model, DarkAgesAsset> {
     }
 
     private static Floats mergeWeights(Mesh mesh, int influence, int realInfluence, Floats buffer1, Floats buffer2) {
-        var weights = MutableFloats.allocate(mesh.vertexCount() * realInfluence);
+        var weights = Floats.Mutable.allocate(mesh.vertexCount() * realInfluence);
 
         var localInfluence = new float[realInfluence];
         for (int c = 0, i1 = 0, i2 = 0, o = 0; c < mesh.vertexCount(); c++) {
@@ -122,8 +122,8 @@ public final class Md6ModelReader implements AssetReader<Model, DarkAgesAsset> {
         return weights;
     }
 
-    private static MutableShorts compactJoints(Mesh mesh, int influence, int realInfluence) {
-        var joints = (MutableShorts) mesh.joints().orElseThrow();
+    private static Shorts.Mutable compactJoints(Mesh mesh, int influence, int realInfluence) {
+        var joints = (Shorts.Mutable) mesh.joints().orElseThrow();
         if (influence == realInfluence) {
             return joints;
         }
@@ -144,7 +144,7 @@ public final class Md6ModelReader implements AssetReader<Model, DarkAgesAsset> {
         for (var i = 0; i < meshes.size(); i++) {
             var meshInfo = md6.meshInfos().get(i);
             var offset = meshInfo.lodInfos().getFirst().unknown4();
-            var shorts = meshes.get(i).joints().map(MutableShorts.class::cast).orElseThrow();
+            var shorts = meshes.get(i).joints().map(Shorts.Mutable.class::cast).orElseThrow();
 
             for (var j = 0; j < shorts.length(); j++) {
                 var index0 = shorts.getUnsigned(j);

@@ -16,7 +16,7 @@ public interface BinaryReader extends Closeable {
         return new ChannelBinaryReader(Files.newByteChannel(path, StandardOpenOption.READ));
     }
 
-    void read(MutableBytes dst) throws IOException;
+    void read(Bytes.Mutable dst) throws IOException;
 
     long size();
 
@@ -61,7 +61,7 @@ public interface BinaryReader extends Closeable {
     }
 
     default Bytes readBytes(int len) throws IOException {
-        var result = MutableBytes.allocate(len);
+        var result = Bytes.Mutable.allocate(len);
         read(result);
         return result;
     }
@@ -71,7 +71,7 @@ public interface BinaryReader extends Closeable {
     }
 
     default Shorts readShorts(int count) throws IOException {
-        var result = MutableShorts.allocate(count);
+        var result = Shorts.Mutable.allocate(count);
         for (var i = 0; i < result.length(); i++) {
             result.set(i, readShort());
         }
@@ -83,7 +83,7 @@ public interface BinaryReader extends Closeable {
     }
 
     default Ints readInts(int count) throws IOException {
-        var result = MutableInts.allocate(count);
+        var result = Ints.Mutable.allocate(count);
         for (var i = 0; i < result.length(); i++) {
             result.set(i, readInt());
         }
@@ -95,7 +95,7 @@ public interface BinaryReader extends Closeable {
     }
 
     default Longs readLongs(int count) throws IOException {
-        var result = MutableLongs.allocate(count);
+        var result = Longs.Mutable.allocate(count);
         for (var i = 0; i < result.length(); i++) {
             result.set(i, readLong());
         }
@@ -103,7 +103,7 @@ public interface BinaryReader extends Closeable {
     }
 
     default Floats readFloats(int count) throws IOException {
-        var result = MutableFloats.allocate(count);
+        var result = Floats.Mutable.allocate(count);
         for (var i = 0; i < result.length(); i++) {
             result.set(i, readFloat());
         }
@@ -111,7 +111,7 @@ public interface BinaryReader extends Closeable {
     }
 
     default Doubles readDoubles(int count) throws IOException {
-        var result = MutableDoubles.allocate(count);
+        var result = Doubles.Mutable.allocate(count);
         for (var i = 0; i < result.length(); i++) {
             result.set(i, readDouble());
         }
@@ -141,7 +141,7 @@ public interface BinaryReader extends Closeable {
     }
 
     default Ints readLongsAsInts(int len) throws IOException {
-        var result = MutableInts.allocate(len);
+        var result = Ints.Mutable.allocate(len);
         for (var i = 0; i < result.length(); i++) {
             result.set(i, readLongAsInt());
         }

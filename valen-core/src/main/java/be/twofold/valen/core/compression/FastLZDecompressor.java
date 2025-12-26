@@ -11,7 +11,7 @@ final class FastLZDecompressor extends LZDecompressor {
     }
 
     @Override
-    public void decompress(Bytes src, MutableBytes dst) throws IOException {
+    public void decompress(Bytes src, Bytes.Mutable dst) throws IOException {
         Level level = Level.from(src.get(0));
 
         int srcOff = 0;

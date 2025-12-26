@@ -2,7 +2,7 @@ package be.twofold.valen.core.util.collect;
 
 import java.nio.*;
 
-public interface Array {
+public interface Slice {
     int length();
 
     Buffer asBuffer();

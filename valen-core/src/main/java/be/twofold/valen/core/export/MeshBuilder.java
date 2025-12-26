@@ -66,11 +66,11 @@ final class MeshBuilder {
 
     Mesh build() {
         return new Mesh(
-            MutableInts.wrap(indices, 0, indexSize),
-            MutableFloats.wrap(positions),
-            Optional.of(MutableFloats.wrap(normals)),
+            Ints.Mutable.wrap(indices, 0, indexSize),
+            Floats.Mutable.wrap(positions),
+            Optional.of(Floats.Mutable.wrap(normals)),
             Optional.empty(),
-            List.of(MutableFloats.wrap(texCoords)),
+            List.of(Floats.Mutable.wrap(texCoords)),
             List.of(),
             Optional.empty(),
             Optional.empty(),

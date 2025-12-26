@@ -41,10 +41,10 @@ public sealed interface Decompressor
         return new OozDecompressor(path);
     }
 
-    void decompress(Bytes src, MutableBytes dst) throws IOException;
+    void decompress(Bytes src, Bytes.Mutable dst) throws IOException;
 
     default Bytes decompress(Bytes src, int size) throws IOException {
-        var dst = MutableBytes.allocate(size);
+        var dst = Bytes.Mutable.allocate(size);
         decompress(src, dst);
         return dst;
     }

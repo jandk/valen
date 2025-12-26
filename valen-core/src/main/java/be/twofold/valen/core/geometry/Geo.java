@@ -45,7 +45,7 @@ public final class Geo {
         return new Mesh(indices, positions, normals, tangents, texCoords, colors, joints, weights, 0, custom);
     }
 
-    private <T extends Array> T readVertexBuffer(BinaryReader reader, GeoBufferInfo<T> accessor, int count) {
+    private <T extends Slice> T readVertexBuffer(BinaryReader reader, GeoBufferInfo<T> accessor, int count) {
         int capacity = count * accessor.count();
         T buffer = accessor.allocate(capacity);
 
@@ -64,7 +64,7 @@ public final class Geo {
         return buffer;
     }
 
-    private void invertIndices(MutableInts ints) {
+    private void invertIndices(Ints.Mutable ints) {
         for (int i = 0, lim = ints.length(); i < lim; i += 3) {
             int temp = ints.get(i);
             ints.set(i, ints.get(i + 2));
