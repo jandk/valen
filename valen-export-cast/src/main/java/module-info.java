@@ -2,6 +2,7 @@ module valen.export.cast {
     requires be.twofold.tinycast;
     requires org.slf4j;
     requires valen.core;
+    requires wtf.reversed.toolbox;
 
     provides be.twofold.valen.core.export.Exporter with
         be.twofold.valen.export.cast.CastAnimationExporter,

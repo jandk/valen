@@ -1,8 +1,8 @@
 package be.twofold.valen.game.darkages.reader.model;
 
-import be.twofold.valen.core.io.*;
+import wtf.reversed.toolbox.io.*;
 import be.twofold.valen.core.math.*;
-import be.twofold.valen.core.util.collect.*;
+import wtf.reversed.toolbox.collect.*;
 
 import java.io.*;
 
@@ -13,12 +13,12 @@ public record StaticModelHeader(
     Floats maxLodDeviations,
     boolean streamable
 ) {
-    public static StaticModelHeader read(BinaryReader reader) throws IOException {
-        Vector3 referencePosition = Vector3.read(reader);
-        var numLods = reader.readInt();
-        var numSurfaces = reader.readInt();
-        var maxLodDeviations = reader.readFloats(numLods);
-        var streamable = reader.readBoolInt();
+    public static StaticModelHeader read(BinarySource source) throws IOException {
+        Vector3 referencePosition = Vector3.read(source);
+        var numLods = source.readInt();
+        var numSurfaces = source.readInt();
+        var maxLodDeviations = source.readFloats(numLods);
+        var streamable = source.readBool(BoolFormat.INT);
 
         return new StaticModelHeader(
             referencePosition,

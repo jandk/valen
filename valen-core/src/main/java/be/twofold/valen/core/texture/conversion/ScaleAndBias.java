@@ -2,7 +2,7 @@ package be.twofold.valen.core.texture.conversion;
 
 import be.twofold.valen.core.math.*;
 import be.twofold.valen.core.texture.*;
-import be.twofold.valen.core.util.*;
+import wtf.reversed.toolbox.util.*;
 
 final class ScaleAndBias extends Conversion {
     private final float scale;

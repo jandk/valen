@@ -1,7 +1,7 @@
 package be.twofold.valen.ui.component.utils;
 
-import be.twofold.valen.core.util.*;
 import javafx.scene.control.*;
+import wtf.reversed.toolbox.util.*;
 
 import java.util.*;
 import java.util.function.*;
@@ -12,7 +12,7 @@ final class ContextMenuTreeCell<T> extends TreeCell<T> {
 
     ContextMenuTreeCell(List<MenuItem> menuItems, BiConsumer<MenuItem, T> consumer) {
         this.contextMenu = new ContextMenu(menuItems.toArray(MenuItem[]::new));
-        this.consumer = Check.notNull(consumer, "consumer");
+        this.consumer = Check.nonNull(consumer, "consumer");
         setContextMenu(contextMenu);
 
         for (var menuItem : this.contextMenu.getItems()) {

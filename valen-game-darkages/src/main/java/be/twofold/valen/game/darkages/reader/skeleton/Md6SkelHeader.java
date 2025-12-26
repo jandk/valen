@@ -1,6 +1,6 @@
 package be.twofold.valen.game.darkages.reader.skeleton;
 
-import be.twofold.valen.core.io.BinaryReader;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 
@@ -40,24 +40,24 @@ public record Md6SkelHeader(
     short boundsJointTblOffset,
     float assetScale
 ) {
-    public static Md6SkelHeader read(BinaryReader reader) throws IOException {
-        int size = reader.readInt();
-        int loadedDataSize = reader.readInt();
-        int basePoseOffset = reader.readInt();
-        int inverseBasePoseOffset = reader.readInt();
-        int nameHash = reader.readInt();
-        int parentTblHash = reader.readInt();
-        short numJoints = reader.readShort();
-        short numJointHandles = reader.readShort();
-        short parentTblOffset = reader.readShort();
-        short lastChildTblOffset = reader.readShort();
-        short jointNameHandleTblOffset = reader.readShort();
-        short jointIndexTblOffset = reader.readShort();
-        short numUserChannels = reader.readShort();
-        short userChannelHandleTblOffset = reader.readShort();
-        short jointSetTblOffset = reader.readShort();
-        short boundsJointTblOffset = reader.readShort();
-        float assetScale = reader.readFloat();
+    public static Md6SkelHeader read(BinarySource source) throws IOException {
+        int size = source.readInt();
+        int loadedDataSize = source.readInt();
+        int basePoseOffset = source.readInt();
+        int inverseBasePoseOffset = source.readInt();
+        int nameHash = source.readInt();
+        int parentTblHash = source.readInt();
+        short numJoints = source.readShort();
+        short numJointHandles = source.readShort();
+        short parentTblOffset = source.readShort();
+        short lastChildTblOffset = source.readShort();
+        short jointNameHandleTblOffset = source.readShort();
+        short jointIndexTblOffset = source.readShort();
+        short numUserChannels = source.readShort();
+        short userChannelHandleTblOffset = source.readShort();
+        short jointSetTblOffset = source.readShort();
+        short boundsJointTblOffset = source.readShort();
+        float assetScale = source.readFloat();
 
         return new Md6SkelHeader(
             size,

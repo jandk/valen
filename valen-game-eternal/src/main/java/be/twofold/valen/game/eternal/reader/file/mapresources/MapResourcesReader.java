@@ -1,10 +1,10 @@
 package be.twofold.valen.game.eternal.reader.file.mapresources;
 
 import be.twofold.valen.core.game.*;
-import be.twofold.valen.core.io.*;
 import be.twofold.valen.game.eternal.*;
 import be.twofold.valen.game.eternal.reader.file.FileReader;
 import be.twofold.valen.game.eternal.resource.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 
@@ -22,8 +22,8 @@ public final class MapResourcesReader implements AssetReader<MapResources, Etern
     }
 
     @Override
-    public MapResources read(BinaryReader reader, EternalAsset resource) throws IOException {
-        var bytes = fileReader.read(reader, resource);
-        return MapResources.read(BinaryReader.fromBytes(bytes));
+    public MapResources read(BinarySource source, EternalAsset resource) throws IOException {
+        var bytes = fileReader.read(source, resource);
+        return MapResources.read(BinarySource.wrap(bytes));
     }
 }

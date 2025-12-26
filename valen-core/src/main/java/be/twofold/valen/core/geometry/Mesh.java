@@ -1,8 +1,8 @@
 package be.twofold.valen.core.geometry;
 
 import be.twofold.valen.core.material.*;
-import be.twofold.valen.core.util.*;
-import be.twofold.valen.core.util.collect.*;
+import wtf.reversed.toolbox.collect.*;
+import wtf.reversed.toolbox.util.*;
 
 import java.util.*;
 
@@ -23,7 +23,7 @@ public record Mesh(
     List<BlendShape> blendShapes
 ) {
     public Mesh {
-        Check.notNull(indices, "indices");
+        Check.nonNull(indices, "indices");
         Check.argument(positions.length() % 3 == 0, "positions.size() % 3 != 0");
 
         int vertexCount = positions.length() / 3;

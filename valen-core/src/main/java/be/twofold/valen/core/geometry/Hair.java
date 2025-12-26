@@ -1,7 +1,7 @@
 package be.twofold.valen.core.geometry;
 
-import be.twofold.valen.core.util.*;
-import be.twofold.valen.core.util.collect.*;
+import wtf.reversed.toolbox.collect.*;
+import wtf.reversed.toolbox.util.*;
 
 public record Hair(
     String name,
@@ -9,8 +9,8 @@ public record Hair(
     Floats positions
 ) {
     public Hair {
-        Check.notNull(name, "name");
-        Check.notNull(segments, "segments");
-        Check.notNull(positions, "positions");
+        Check.nonNull(name, "name");
+        Check.nonNull(segments, "segments");
+        Check.nonNull(positions, "positions");
     }
 }

@@ -1,6 +1,6 @@
 package be.twofold.valen.game.greatcircle.reader.staticmodel;
 
-import be.twofold.valen.core.io.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 import java.util.*;
@@ -10,19 +10,19 @@ public record StaticModelMeshInfo(
     int unkHash,
     List<StaticModelLodInfo> lodInfos
 ) {
-    public static StaticModelMeshInfo read(BinaryReader reader, int version) throws IOException {
-        var mtlDecl = reader.readPString();
-        var unkHash = version < 80 ? reader.readInt() : 0;
-        var unknown = reader.readInt();
+    public static StaticModelMeshInfo read(BinarySource source, int version) throws IOException {
+        var mtlDecl = source.readString(StringFormat.INT_LENGTH);
+        var unkHash = version < 80 ? source.readInt() : 0;
+        var unknown = source.readInt();
         if (unknown != 0 && unknown != -1 && unknown != 1) {
             throw new IOException("Unknown value: " + unknown);
         }
-        reader.expectInt(0);
+        source.expectInt(0);
 
         var lodInfos = new ArrayList<StaticModelLodInfo>();
         for (var lod = 0; lod < StaticModel.LodCount; lod++) {
-            if (!reader.readBoolInt()) {
-                lodInfos.add(StaticModelLodInfo.read(reader));
+            if (!source.readBool(BoolFormat.INT)) {
+                lodInfos.add(StaticModelLodInfo.read(source));
             }
         }
 

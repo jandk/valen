@@ -1,10 +1,10 @@
 package be.twofold.valen.game.eternal.reader.binaryfile.blang;
 
 import be.twofold.valen.core.game.*;
-import be.twofold.valen.core.io.*;
 import be.twofold.valen.game.eternal.*;
 import be.twofold.valen.game.eternal.reader.binaryfile.*;
 import be.twofold.valen.game.eternal.resource.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 
@@ -22,8 +22,8 @@ public final class BlangReader implements AssetReader<Blang, EternalAsset> {
     }
 
     @Override
-    public Blang read(BinaryReader reader, EternalAsset resource) throws IOException {
-        var bytes = binaryFileReader.read(reader, resource);
-        return Blang.read(BinaryReader.fromBytes(bytes));
+    public Blang read(BinarySource source, EternalAsset resource) throws IOException {
+        var bytes = binaryFileReader.read(source, resource);
+        return Blang.read(BinarySource.wrap(bytes));
     }
 }

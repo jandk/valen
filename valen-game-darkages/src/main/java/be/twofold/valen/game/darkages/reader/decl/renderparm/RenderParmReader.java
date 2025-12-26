@@ -1,9 +1,9 @@
 package be.twofold.valen.game.darkages.reader.decl.renderparm;
 
-import be.twofold.valen.core.io.BinaryReader;
 import be.twofold.valen.game.darkages.*;
 import be.twofold.valen.game.darkages.reader.resources.*;
 import be.twofold.valen.game.idtech.renderparm.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 
@@ -15,7 +15,7 @@ public final class RenderParmReader extends AbstractRenderParmReader<DarkAgesAss
     }
 
     @Override
-    public RenderParm read(BinaryReader reader, DarkAgesAsset asset) throws IOException {
-        return read(reader);
+    public RenderParm read(BinarySource source, DarkAgesAsset asset) throws IOException {
+        return read(source);
     }
 }

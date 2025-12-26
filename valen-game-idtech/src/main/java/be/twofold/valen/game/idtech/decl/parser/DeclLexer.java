@@ -1,6 +1,6 @@
 package be.twofold.valen.game.idtech.decl.parser;
 
-import be.twofold.valen.core.util.*;
+import wtf.reversed.toolbox.util.*;
 
 public final class DeclLexer {
     private static final char Eof = '\0';
@@ -15,7 +15,7 @@ public final class DeclLexer {
     }
 
     public DeclLexer(String source, boolean lenient) {
-        this.source = Check.notNull(source, "source");
+        this.source = Check.nonNull(source, "source");
         this.lenient = lenient;
     }
 

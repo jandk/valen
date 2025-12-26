@@ -1,7 +1,7 @@
 package be.twofold.valen.core.math;
 
-import be.twofold.valen.core.io.*;
-import be.twofold.valen.core.util.collect.*;
+import wtf.reversed.toolbox.collect.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 import java.nio.*;
@@ -10,9 +10,9 @@ public record Bounds(
     Vector3 min,
     Vector3 max
 ) {
-    public static Bounds read(BinaryReader reader) throws IOException {
-        Vector3 min = Vector3.read(reader);
-        Vector3 max = Vector3.read(reader);
+    public static Bounds read(BinarySource source) throws IOException {
+        Vector3 min = Vector3.read(source);
+        Vector3 max = Vector3.read(source);
         return new Bounds(min, max);
     }
 

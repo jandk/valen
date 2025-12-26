@@ -1,10 +1,10 @@
 package be.twofold.valen.game.greatcircle.reader.image;
 
 import be.twofold.valen.core.game.*;
-import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.texture.*;
 import be.twofold.valen.game.greatcircle.*;
 import be.twofold.valen.game.greatcircle.resource.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 
@@ -28,9 +28,9 @@ public final class ImageReader implements AssetReader<Texture, GreatCircleAsset>
     }
 
     @Override
-    public Texture read(BinaryReader reader, GreatCircleAsset asset) throws IOException {
-        var image = Image.read(reader);
-        reader.expectEnd();
+    public Texture read(BinarySource source, GreatCircleAsset asset) throws IOException {
+        var image = Image.read(source);
+        source.expectEnd();
 
         if (readStreams) {
             /*

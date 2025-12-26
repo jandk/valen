@@ -1,10 +1,10 @@
 package be.twofold.valen.game.eternal.reader.lightdb;
 
-import be.twofold.valen.core.io.*;
-import be.twofold.valen.core.util.*;
-import be.twofold.valen.core.util.collect.*;
 import be.twofold.valen.game.eternal.reader.image.*;
 import be.twofold.valen.game.eternal.reader.streamdb.*;
+import wtf.reversed.toolbox.collect.*;
+import wtf.reversed.toolbox.io.*;
+import wtf.reversed.toolbox.util.*;
 
 import java.io.*;
 import java.util.*;
@@ -22,38 +22,38 @@ public record LightDb(
     List<LightDbPart2> parts2,
     StreamDb streamDb
 ) {
-    public static LightDb read(BinaryReader reader) throws IOException {
-        var header = LightDbHeader.read(reader);
+    public static LightDb read(BinarySource source) throws IOException {
+        var header = LightDbHeader.read(source);
 
-        reader.expectPosition(header.indexOffset());
-        var indexEntries = reader.readObjects(header.hashLength(), LightDbIndexEntry::read);
+        // source.expectPosition(header.indexOffset());
+        var indexEntries = source.readObjects(header.hashLength(), LightDbIndexEntry::read);
 
-        reader.expectPosition(header.hashOffset());
-        var hashes = reader.readLongs(header.hashLength());
-        var hashIds = reader.readInts(header.hashLength());
+        // source.expectPosition(header.hashOffset());
+        var hashes = source.readLongs(header.hashLength());
+        var hashIds = source.readInts(header.hashLength());
 
-        reader.expectPosition(header.imageOffset());
+        // source.expectPosition(header.imageOffset());
         var imageHeaders = new ArrayList<LightDbImageHeader>();
         var images = new ArrayList<Image>();
         for (var i = 0; i < header.imageCount(); i++) {
-            imageHeaders.add(LightDbImageHeader.read(reader));
-            images.add(Image.read(reader));
+            imageHeaders.add(LightDbImageHeader.read(source));
+            images.add(Image.read(source));
         }
 
-        reader.expectPosition(header.nameOffset());
-        var nameGroupMagic = reader.readInt();
+        // source.expectPosition(header.nameOffset());
+        var nameGroupMagic = source.readInt();
         Check.state(nameGroupMagic == 0x758ac962 || nameGroupMagic == 0x758ac961, "Invalid name group magic");
-        var nameGroups = reader.readObjects(reader.readInt(), LightDbNameGroup::read);
+        var nameGroups = source.readObjects(source.readInt(), LightDbNameGroup::read);
 
-        var unknownInts = reader.readInts(6);
-        var numParts1 = reader.readInt();
-        var numParts2 = reader.readInt();
-        reader.expectInt(0);
+        var unknownInts = source.readInts(6);
+        var numParts1 = source.readInt();
+        var numParts2 = source.readInt();
+        source.expectInt(0);
 
-        List<LightDbPart1> parts1 = reader.readObjects(numParts1, LightDbPart1::read);
-        List<LightDbPart2> parts2 = reader.readObjects(numParts2, LightDbPart2::read);
+        List<LightDbPart1> parts1 = source.readObjects(numParts1, LightDbPart1::read);
+        List<LightDbPart2> parts2 = source.readObjects(numParts2, LightDbPart2::read);
 
-        StreamDb streamDb = StreamDb.read(reader);
+        StreamDb streamDb = StreamDb.read(source);
 
         return new LightDb(
             header,

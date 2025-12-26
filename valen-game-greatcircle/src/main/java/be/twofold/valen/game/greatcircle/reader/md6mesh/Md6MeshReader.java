@@ -2,14 +2,14 @@ package be.twofold.valen.game.greatcircle.reader.md6mesh;
 
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.geometry.*;
-import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.math.*;
-import be.twofold.valen.core.util.collect.*;
 import be.twofold.valen.game.greatcircle.*;
 import be.twofold.valen.game.greatcircle.reader.geometry.*;
 import be.twofold.valen.game.greatcircle.resource.*;
 import be.twofold.valen.game.idtech.geometry.*;
 import org.slf4j.*;
+import wtf.reversed.toolbox.collect.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 import java.util.*;
@@ -34,8 +34,8 @@ public final class Md6MeshReader implements AssetReader<Model, GreatCircleAsset>
     }
 
     @Override
-    public Model read(BinaryReader reader, GreatCircleAsset asset) throws IOException {
-        var model = Md6Mesh.read(reader);
+    public Model read(BinarySource source, GreatCircleAsset asset) throws IOException {
+        var model = Md6Mesh.read(source);
         if (model.header().skeletonName().equals("models/characters/abgal/abgal_wear_base.md6skl")) {
             System.out.println("Fount it!");
         }
@@ -68,7 +68,7 @@ public final class Md6MeshReader implements AssetReader<Model, GreatCircleAsset>
 
         var identity = (hash << 4) | lod;
         var bytes = archive.readStream(identity, uncompressedSize);
-        try (var source = BinaryReader.fromBytes(bytes)) {
+        try (var source = BinarySource.wrap(bytes)) {
             var meshes = GeometryReader.readStreamedMesh(source, lodInfos, layouts, true);
             var allBlendShapes = BlendShapeReader.readBlendShapes(source, lodInfos, layouts);
 
@@ -98,7 +98,7 @@ public final class Md6MeshReader implements AssetReader<Model, GreatCircleAsset>
             var meshInfo = md6.meshInfos().get(i);
 
             // Just assume it's a byte buffer, because we read it as such
-            var joints = meshes.get(i).joints().map(MutableShorts.class::cast).orElseThrow();
+            var joints = meshes.get(i).joints().map(Shorts.Mutable.class::cast).orElseThrow();
             for (var j = 0; j < joints.length(); j++) {
                 joints.set(j, lookup[joints.getUnsigned(j) + meshInfo.unknown2()]);
             }

@@ -1,6 +1,6 @@
 package be.twofold.valen.game.eternal.reader.lightdb;
 
-import be.twofold.valen.core.io.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 
@@ -13,21 +13,21 @@ public record LightDbHeader(
     int hashOffset,
     int dbOffset16
 ) {
-    public static LightDbHeader read(BinaryReader reader) throws IOException {
-        reader.expectInt(0x4c444202);
-        reader.expectInt(2);
-        reader.expectInt(2);
-        reader.expectInt(1);
-        reader.expectInt(28);
-        reader.expectInt(2);
-        var nameOffset = reader.readInt();
-        var hashLength = reader.readInt();
-        var imageCount = reader.readInt();
-        reader.expectInt(21);
-        var imageOffset = reader.readInt();
-        var indexOffset = reader.readInt();
-        var hashOffset = reader.readInt();
-        var dbOffset16 = reader.readInt();
+    public static LightDbHeader read(BinarySource source) throws IOException {
+        source.expectInt(0x4c444202);
+        source.expectInt(2);
+        source.expectInt(2);
+        source.expectInt(1);
+        source.expectInt(28);
+        source.expectInt(2);
+        var nameOffset = source.readInt();
+        var hashLength = source.readInt();
+        var imageCount = source.readInt();
+        source.expectInt(21);
+        var imageOffset = source.readInt();
+        var indexOffset = source.readInt();
+        var hashOffset = source.readInt();
+        var dbOffset16 = source.readInt();
 
         return new LightDbHeader(
             nameOffset,

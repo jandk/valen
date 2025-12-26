@@ -2,7 +2,7 @@ package be.twofold.valen.core.texture.conversion;
 
 import be.twofold.valen.core.math.*;
 import be.twofold.valen.core.texture.*;
-import be.twofold.valen.core.util.collect.*;
+import wtf.reversed.toolbox.collect.*;
 
 import java.util.function.*;
 

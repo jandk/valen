@@ -1,6 +1,6 @@
 package be.twofold.valen.game.greatcircle.reader.md6mesh;
 
-import be.twofold.valen.core.io.BinaryReader;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 
@@ -9,10 +9,10 @@ record Md6MeshBlendShape(
     short rigControlIndex,
     int deltaIndexStart
 ) {
-    static Md6MeshBlendShape read(BinaryReader reader) throws IOException {
-        var name = reader.readPString();
-        var rigControlIndex = reader.readShort();
-        var deltaIndexStart = reader.readInt();
+    static Md6MeshBlendShape read(BinarySource source) throws IOException {
+        var name = source.readString(StringFormat.INT_LENGTH);
+        var rigControlIndex = source.readShort();
+        var deltaIndexStart = source.readInt();
         return new Md6MeshBlendShape(name, rigControlIndex, deltaIndexStart);
     }
 }

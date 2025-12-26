@@ -1,10 +1,10 @@
 package be.twofold.valen.game.eternal;
 
-import be.twofold.valen.core.io.*;
 import be.twofold.valen.game.eternal.reader.packagemapspec.*;
 import be.twofold.valen.game.eternal.reader.resource.*;
 import be.twofold.valen.game.eternal.reader.streamdb.*;
 import be.twofold.valen.game.eternal.resource.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 import java.nio.file.*;
@@ -129,7 +129,7 @@ final class DbImporter {
         var sql = "insert into resource(file_id, name, type, variation, start, size, uncompressedSize, dataCheckSum, defaultHash, timestamp, version, flags, compMode) " +
             "values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
 
-        try (var source = BinaryReader.fromPath(BASE.resolve(path));
+        try (var source = BinarySource.open(BASE.resolve(path));
              var statement = connection.prepareStatement(sql)
         ) {
             var resources = mapResources(Resources.read(source));
@@ -196,7 +196,7 @@ final class DbImporter {
     // region .streamdb
 
     private static StreamDb readStreamDb(String relativePath) {
-        try (var source = BinaryReader.fromPath(BASE.resolve(relativePath))) {
+        try (var source = BinarySource.open(BASE.resolve(relativePath))) {
             return StreamDb.read(source);
         } catch (IOException e) {
             throw new UncheckedIOException(e);

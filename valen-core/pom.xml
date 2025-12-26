@@ -19,6 +19,10 @@
             <groupId>org.jetbrains</groupId>
             <artifactId>annotations</artifactId>
         </dependency>
+        <dependency>
+            <groupId>wtf.reversed</groupId>
+            <artifactId>reversed-toolbox</artifactId>
+        </dependency>
 
         <dependency>
             <groupId>com.squareup</groupId>

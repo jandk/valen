@@ -1,10 +1,10 @@
 package be.twofold.valen.game.eternal.reader.binaryfile;
 
 import be.twofold.valen.core.game.*;
-import be.twofold.valen.core.io.*;
-import be.twofold.valen.core.util.collect.*;
 import be.twofold.valen.game.eternal.*;
 import be.twofold.valen.game.eternal.resource.*;
+import wtf.reversed.toolbox.collect.*;
+import wtf.reversed.toolbox.io.*;
 
 import javax.crypto.*;
 import javax.crypto.spec.*;
@@ -19,12 +19,12 @@ public final class BinaryFileReader implements AssetReader<Bytes, EternalAsset> 
     }
 
     @Override
-    public Bytes read(BinaryReader reader, EternalAsset asset) throws IOException {
+    public Bytes read(BinarySource source, EternalAsset asset) throws IOException {
         try {
-            var salt = reader.readBytes(12);
-            var iVec = reader.readBytes(16);
-            var text = reader.readBytes(Math.toIntExact(reader.size() - (12 + 16 + 32)));
-            var hmac = reader.readBytes(32);
+            var salt = source.readBytes(12);
+            var iVec = source.readBytes(16);
+            var text = source.readBytes(Math.toIntExact(source.size() - (12 + 16 + 32)));
+            var hmac = source.readBytes(32);
 
             var digest = MessageDigest.getInstance("SHA-256");
             digest.update(salt.asBuffer());
@@ -48,7 +48,7 @@ public final class BinaryFileReader implements AssetReader<Bytes, EternalAsset> 
             var parameterSpec = new IvParameterSpec(iVec.toArray());
             cipher.init(Cipher.DECRYPT_MODE, keySpec, parameterSpec);
 
-            var result = MutableBytes.allocate(cipher.getOutputSize(text.length()));
+            var result = Bytes.Mutable.allocate(cipher.getOutputSize(text.length()));
             cipher.doFinal(text.asBuffer(), result.asMutableBuffer());
             return result;
         } catch (GeneralSecurityException e) {

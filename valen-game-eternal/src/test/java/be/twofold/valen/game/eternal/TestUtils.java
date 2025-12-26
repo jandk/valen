@@ -1,8 +1,8 @@
 package be.twofold.valen.game.eternal;
 
 import be.twofold.valen.core.game.*;
-import be.twofold.valen.core.io.*;
-import be.twofold.valen.core.util.collect.*;
+import wtf.reversed.toolbox.collect.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 import java.nio.file.*;
@@ -32,7 +32,7 @@ public abstract class TestUtils {
         for (EternalAsset asset : entries) {
             try {
                 var bytes = archive.loadAsset(asset.id(), Bytes.class);
-                reader.read(BinaryReader.fromBytes(bytes), asset);
+                reader.read(BinarySource.wrap(bytes), asset);
             } catch (FileNotFoundException e) {
                 System.err.println("File not found" + asset.id().fullName());
             } catch (Exception e) {

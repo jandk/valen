@@ -1,7 +1,7 @@
 package be.twofold.valen.game.eternal.reader.md6model;
 
-import be.twofold.valen.core.io.BinaryReader;
 import be.twofold.valen.game.eternal.reader.geometry.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 import java.util.*;
@@ -14,21 +14,21 @@ public record Md6Model(
     Md6ModelGeoDecals geoDecals,
     List<GeometryDiskLayout> layouts
 ) {
-    public static Md6Model read(BinaryReader reader) throws IOException {
-        var header = Md6ModelHeader.read(reader);
-        var boneInfo = Md6ModelBoneInfo.read(reader);
-        var meshInfos = reader.readObjects(reader.readInt(), Md6ModelInfo::read);
-        var materialInfos = reader.readObjects(reader.readInt(), Md6ModelMaterialInfo::read);
-        var geoDecals = Md6ModelGeoDecals.read(reader);
-        var memoryLayouts = reader.readObjects(reader.readInt(), GeometryMemoryLayout::read);
+    public static Md6Model read(BinarySource source) throws IOException {
+        var header = Md6ModelHeader.read(source);
+        var boneInfo = Md6ModelBoneInfo.read(source);
+        var meshInfos = source.readObjects(source.readInt(), Md6ModelInfo::read);
+        var materialInfos = source.readObjects(source.readInt(), Md6ModelMaterialInfo::read);
+        var geoDecals = Md6ModelGeoDecals.read(source);
+        var memoryLayouts = source.readObjects(source.readInt(), GeometryMemoryLayout::read);
 
         var layouts = new ArrayList<GeometryDiskLayout>();
         for (var i = 0; i < 5; i++) {
             var subMemoryLayouts = List.copyOf(memoryLayouts.subList(i, i + 1));
-            layouts.add(GeometryDiskLayout.read(reader, subMemoryLayouts));
+            layouts.add(GeometryDiskLayout.read(source, subMemoryLayouts));
         }
 
-        reader.expectEnd();
+        source.expectEnd();
         return new Md6Model(header, boneInfo, meshInfos, materialInfos, geoDecals, layouts);
     }
 }

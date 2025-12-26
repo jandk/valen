@@ -3,6 +3,7 @@ module valen.export.gltf {
     requires valen.core;
     requires valen.export.png;
     requires valen.format.gltf;
+    requires wtf.reversed.toolbox;
 
     provides be.twofold.valen.core.export.Exporter with
         be.twofold.valen.export.gltf.GltfAnimationExporter,

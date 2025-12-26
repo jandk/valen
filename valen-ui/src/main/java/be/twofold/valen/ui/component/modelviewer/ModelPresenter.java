@@ -6,7 +6,6 @@ import be.twofold.valen.core.geometry.Mesh;
 import be.twofold.valen.core.material.*;
 import be.twofold.valen.core.material.Material;
 import be.twofold.valen.core.texture.*;
-import be.twofold.valen.core.util.collect.*;
 import be.twofold.valen.ui.common.*;
 import be.twofold.valen.ui.component.*;
 import jakarta.inject.*;
@@ -14,6 +13,7 @@ import javafx.collections.*;
 import javafx.scene.image.*;
 import javafx.scene.paint.*;
 import javafx.scene.shape.*;
+import wtf.reversed.toolbox.collect.*;
 
 import java.io.*;
 import java.nio.*;
@@ -118,13 +118,13 @@ public final class ModelPresenter extends AbstractFXPresenter<ModelView> impleme
 
     private void copy(Floats floats, ObservableFloatArray floatArray) {
         var array = new float[floats.length()];
-        floats.copyTo(MutableFloats.wrap(array), 0);
+        floats.copyTo(Floats.Mutable.wrap(array), 0);
         floatArray.setAll(array);
     }
 
     private void copyPoints(Floats floats, ObservableFloatArray floatArray) {
         var array = new float[floats.length()];
-        floats.copyTo(MutableFloats.wrap(array), 0);
+        floats.copyTo(Floats.Mutable.wrap(array), 0);
 
         for (var i = 0; i < array.length; i++) {
             array[i] *= 100;

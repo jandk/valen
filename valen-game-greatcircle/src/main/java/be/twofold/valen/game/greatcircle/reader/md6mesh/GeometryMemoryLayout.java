@@ -1,8 +1,8 @@
 package be.twofold.valen.game.greatcircle.reader.md6mesh;
 
-import be.twofold.valen.core.io.*;
-import be.twofold.valen.core.util.collect.*;
 import be.twofold.valen.game.idtech.geometry.*;
+import wtf.reversed.toolbox.collect.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 import java.util.*;
@@ -16,17 +16,17 @@ record GeometryMemoryLayout(
     int indexOffset,
     List<GeometryBlendShapeLayout> blendShapeLayouts
 ) implements GeoMemoryLayout {
-    static GeometryMemoryLayout read(BinaryReader reader) throws IOException {
-        var combinedVertexMask = reader.readInt();
-        var size = reader.readInt();
-        var numVertexStreams = reader.readInt();
-        var vertexMasks = reader.readInts(numVertexStreams);
-        var vertexOffsets = reader.readInts(numVertexStreams);
-        var indexOffset = reader.readInt();
+    static GeometryMemoryLayout read(BinarySource source) throws IOException {
+        var combinedVertexMask = source.readInt();
+        var size = source.readInt();
+        var numVertexStreams = source.readInt();
+        var vertexMasks = source.readInts(numVertexStreams);
+        var vertexOffsets = source.readInts(numVertexStreams);
+        var indexOffset = source.readInt();
 
-        var blendSize = reader.readInt();
+        var blendSize = source.readInt();
         var blendShapeLayouts = blendSize != 0
-            ? reader.readObjects(reader.readInt(), GeometryBlendShapeLayout::read)
+            ? source.readObjects(source.readInt(), GeometryBlendShapeLayout::read)
             : List.<GeometryBlendShapeLayout>of();
 
         return new GeometryMemoryLayout(

@@ -1,7 +1,7 @@
 package be.twofold.valen.game.darkages.reader.vegetation;
 
-import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.math.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 
@@ -10,10 +10,10 @@ public record VegetationCollisionData(
     Vector3 from,
     float radius
 ) {
-    public static VegetationCollisionData read(BinaryReader reader) throws IOException {
-        var to = Vector3.read(reader);
-        var from = Vector3.read(reader);
-        var radius = reader.readFloat();
+    public static VegetationCollisionData read(BinarySource source) throws IOException {
+        var to = Vector3.read(source);
+        var from = Vector3.read(source);
+        var radius = source.readFloat();
 
         return new VegetationCollisionData(
             to,

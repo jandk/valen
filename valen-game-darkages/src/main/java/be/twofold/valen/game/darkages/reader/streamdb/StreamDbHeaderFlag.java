@@ -1,6 +1,6 @@
 package be.twofold.valen.game.darkages.reader.streamdb;
 
-import be.twofold.valen.core.util.*;
+import wtf.reversed.toolbox.util.*;
 
 import java.util.*;
 

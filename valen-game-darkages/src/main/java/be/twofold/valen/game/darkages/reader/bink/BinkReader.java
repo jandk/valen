@@ -1,12 +1,12 @@
 package be.twofold.valen.game.darkages.reader.bink;
 
 import be.twofold.valen.core.game.*;
-import be.twofold.valen.core.io.*;
-import be.twofold.valen.core.util.*;
-import be.twofold.valen.core.util.collect.*;
 import be.twofold.valen.game.darkages.*;
 import be.twofold.valen.game.darkages.reader.*;
 import be.twofold.valen.game.darkages.reader.resources.*;
+import wtf.reversed.toolbox.collect.*;
+import wtf.reversed.toolbox.io.*;
+import wtf.reversed.toolbox.util.*;
 
 import java.io.*;
 
@@ -14,7 +14,7 @@ public final class BinkReader implements AssetReader<Bytes, DarkAgesAsset> {
     private final DarkAgesArchive archive;
 
     public BinkReader(DarkAgesArchive archive) {
-        this.archive = Check.notNull(archive, "archive");
+        this.archive = Check.nonNull(archive, "archive");
     }
 
     @Override
@@ -23,7 +23,7 @@ public final class BinkReader implements AssetReader<Bytes, DarkAgesAsset> {
     }
 
     @Override
-    public Bytes read(BinaryReader reader, DarkAgesAsset asset) throws IOException {
+    public Bytes read(BinarySource source, DarkAgesAsset asset) throws IOException {
         long hash = Hash.hash(asset.hash(), 0, 0);
         return archive.readStream(hash, -1);
     }

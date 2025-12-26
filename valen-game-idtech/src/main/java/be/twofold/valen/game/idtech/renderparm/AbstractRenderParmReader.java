@@ -1,10 +1,10 @@
 package be.twofold.valen.game.idtech.renderparm;
 
 import be.twofold.valen.core.game.*;
-import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.math.*;
 import be.twofold.valen.game.idtech.decl.parser.*;
 import be.twofold.valen.game.idtech.defines.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 import java.util.*;
@@ -352,9 +352,9 @@ public abstract class AbstractRenderParmReader<V extends Asset> implements Asset
         }
     }
 
-    protected RenderParm read(BinaryReader reader) throws IOException {
-        var source = reader.readString(Math.toIntExact(reader.size()));
-        var parser = new DeclParser(source, true);
+    protected RenderParm read(BinarySource source) throws IOException {
+        var string = source.readString(Math.toIntExact(source.size()));
+        var parser = new DeclParser(string, true);
 
         var result = new RenderParm();
         parser.expect(DeclTokenType.OpenBrace);

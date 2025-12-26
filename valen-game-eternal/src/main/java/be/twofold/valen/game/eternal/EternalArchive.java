@@ -1,9 +1,6 @@
 package be.twofold.valen.game.eternal;
 
-import be.twofold.valen.core.compression.*;
 import be.twofold.valen.core.game.*;
-import be.twofold.valen.core.util.*;
-import be.twofold.valen.core.util.collect.*;
 import be.twofold.valen.game.eternal.reader.binaryfile.*;
 import be.twofold.valen.game.eternal.reader.decl.*;
 import be.twofold.valen.game.eternal.reader.decl.material2.*;
@@ -18,6 +15,9 @@ import be.twofold.valen.game.eternal.reader.md6model.*;
 import be.twofold.valen.game.eternal.reader.md6skel.*;
 import be.twofold.valen.game.eternal.reader.staticmodel.*;
 import be.twofold.valen.game.eternal.reader.streamdb.*;
+import wtf.reversed.toolbox.collect.*;
+import wtf.reversed.toolbox.compress.*;
+import wtf.reversed.toolbox.util.*;
 
 import java.io.*;
 import java.util.*;
@@ -35,10 +35,10 @@ public final class EternalArchive extends Archive<EternalAssetID, EternalAsset> 
         Container<EternalAssetID, EternalAsset> resources,
         Decompressor decompressor
     ) {
-        this.streams = Check.notNull(streams, "streams");
-        this.common = Check.notNull(common, "common");
-        this.resources = Check.notNull(resources, "resources");
-        this.decompressor = Check.notNull(decompressor, "decompressor");
+        this.streams = Check.nonNull(streams, "streams");
+        this.common = Check.nonNull(common, "common");
+        this.resources = Check.nonNull(resources, "resources");
+        this.decompressor = Check.nonNull(decompressor, "decompressor");
     }
 
     @Override

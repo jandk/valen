@@ -1,7 +1,7 @@
 package be.twofold.valen.game.greatcircle.reader.image;
 
-import be.twofold.valen.core.io.*;
 import be.twofold.valen.game.idtech.defines.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 
@@ -26,34 +26,34 @@ public record ImageHeader(
     int streamedSize,
     boolean unknown
 ) {
-    public static ImageHeader read(BinaryReader reader) throws IOException {
-        var magic = reader.readInt();
+    public static ImageHeader read(BinarySource source) throws IOException {
+        var magic = source.readInt();
         if (magic != 0x1F4D4942 && magic != 0x1E4D4942 && magic != 0x1D4D4942) {
             throw new IOException("Invalid magic number: " + magic);
         }
         var version = magic >>> 24;
 
-        var type = TextureType.fromValue(reader.readInt());
-        var kind = toMaterialKind(reader.readInt());
-        var width = reader.readInt();
-        var height = reader.readInt();
-        var depth = reader.readInt();
-        var count = version < 31 ? 1 : reader.readInt();
-        var mipCount = reader.readInt();
-        var unknown1 = reader.readInt();
-        var bias = reader.readFloat();
-        var scale = reader.readFloat();
-        reader.expectByte((byte) 0);
-        var textureFormat = toTextureFormat(reader.readInt());
-        reader.expectShort((short) 0);
-        var streamed = reader.readBoolByte();
-        var singleStream = reader.readBoolByte();
-        var noMips = reader.readBoolByte();
-        var fftBloom = reader.readBoolByte();
-        reader.expectInt(0);
-        var startMip = reader.readInt();
-        var streamedSize = reader.readInt();
-        var unknown = reader.readBoolByte();
+        var type = TextureType.fromValue(source.readInt());
+        var kind = toMaterialKind(source.readInt());
+        var width = source.readInt();
+        var height = source.readInt();
+        var depth = source.readInt();
+        var count = version < 31 ? 1 : source.readInt();
+        var mipCount = source.readInt();
+        var unknown1 = source.readInt();
+        var bias = source.readFloat();
+        var scale = source.readFloat();
+        source.expectByte((byte) 0);
+        var textureFormat = toTextureFormat(source.readInt());
+        source.expectShort((short) 0);
+        var streamed = source.readBool(BoolFormat.BYTE);
+        var singleStream = source.readBool(BoolFormat.BYTE);
+        var noMips = source.readBool(BoolFormat.BYTE);
+        var fftBloom = source.readBool(BoolFormat.BYTE);
+        source.expectInt(0);
+        var startMip = source.readInt();
+        var streamedSize = source.readInt();
+        var unknown = source.readBool(BoolFormat.BYTE);
 
         return new ImageHeader(
             magic,

@@ -3,6 +3,7 @@ module valen.game.darkages {
     requires org.slf4j;
     requires valen.core;
     requires valen.game.idtech;
+    requires wtf.reversed.toolbox;
 
     requires static java.sql;
     requires org.jetbrains.annotations; // For import only

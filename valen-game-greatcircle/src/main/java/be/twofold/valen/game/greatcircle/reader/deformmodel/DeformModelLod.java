@@ -1,9 +1,9 @@
 package be.twofold.valen.game.greatcircle.reader.deformmodel;
 
-import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.math.*;
-import be.twofold.valen.core.util.*;
 import be.twofold.valen.game.idtech.geometry.*;
+import wtf.reversed.toolbox.io.*;
+import wtf.reversed.toolbox.util.*;
 
 import java.io.*;
 import java.util.*;
@@ -29,12 +29,12 @@ public record DeformModelLod(
         Check.argument(numIndices % 3 == 0, "numIndices must be a multiple of 3");
     }
 
-    public static DeformModelLod read(BinaryReader reader) throws IOException {
-        byte unknown1 = reader.readByte();
-        int version = reader.readInt();
+    public static DeformModelLod read(BinarySource source) throws IOException {
+        byte unknown1 = source.readByte();
+        int version = source.readInt();
         int numVertices;
         if (version < 0) {
-            numVertices = reader.readInt();
+            numVertices = source.readInt();
             version = -version;
         } else {
             numVertices = version;
@@ -43,19 +43,19 @@ public record DeformModelLod(
             throw new IOException("Unsupported version: " + version);
         }
 
-        int numIndices = reader.readInt();
-        float unknown2 = reader.readFloat();
-        int vertexMask = reader.readInt();
-        Bounds bounds = Bounds.read(reader);
-        Vector3 vertexOffset = Vector3.read(reader);
-        float vertexScale = reader.readFloat();
-        Vector2 uvOffset = Vector2.read(reader);
-        float uvScale = reader.readFloat();
-        int unknown3 = reader.readInt();
-        float unknown4 = reader.readFloat();
-        float unknown5 = reader.readFloat();
-        String materialName = reader.readPString();
-        List<Entry> entries = reader.readObjects(reader.readInt(), Entry::read);
+        int numIndices = source.readInt();
+        float unknown2 = source.readFloat();
+        int vertexMask = source.readInt();
+        Bounds bounds = Bounds.read(source);
+        Vector3 vertexOffset = Vector3.read(source);
+        float vertexScale = source.readFloat();
+        Vector2 uvOffset = Vector2.read(source);
+        float uvScale = source.readFloat();
+        int unknown3 = source.readInt();
+        float unknown4 = source.readFloat();
+        float unknown5 = source.readFloat();
+        String materialName = source.readString(StringFormat.INT_LENGTH);
+        List<Entry> entries = source.readObjects(source.readInt(), Entry::read);
 
         return new DeformModelLod(
             unknown1,
@@ -86,10 +86,10 @@ public record DeformModelLod(
         int unknown1,
         int unknown2
     ) {
-        public static Entry read(BinaryReader reader) throws IOException {
-            var name = reader.readPString();
-            var unknown1 = reader.readInt();
-            var unknown2 = reader.readInt();
+        public static Entry read(BinarySource source) throws IOException {
+            var name = source.readString(StringFormat.INT_LENGTH);
+            var unknown1 = source.readInt();
+            var unknown2 = source.readInt();
             return new Entry(name, unknown1, unknown2);
         }
     }

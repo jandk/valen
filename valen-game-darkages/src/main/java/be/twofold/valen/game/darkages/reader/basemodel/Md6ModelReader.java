@@ -2,14 +2,14 @@ package be.twofold.valen.game.darkages.reader.basemodel;
 
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.geometry.*;
-import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.math.*;
-import be.twofold.valen.core.util.collect.*;
 import be.twofold.valen.game.darkages.*;
 import be.twofold.valen.game.darkages.reader.*;
 import be.twofold.valen.game.darkages.reader.geometry.*;
 import be.twofold.valen.game.darkages.reader.resources.*;
 import be.twofold.valen.game.idtech.geometry.*;
+import wtf.reversed.toolbox.collect.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 import java.util.*;
@@ -29,12 +29,12 @@ public final class Md6ModelReader implements AssetReader<Model, DarkAgesAsset> {
     }
 
     @Override
-    public Model read(BinaryReader reader, DarkAgesAsset asset) throws IOException {
-        var skelName = reader.readPString();
+    public Model read(BinarySource source, DarkAgesAsset asset) throws IOException {
+        var skelName = source.readString(StringFormat.INT_LENGTH);
         var skeletonKey = DarkAgesAssetID.from(skelName, ResourcesType.Skeleton);
         var skeleton = archive.loadAsset(skeletonKey, Skeleton.class);
-        var md6Model = Md6Model.read(reader, skeleton.bones().size() + 7 & ~7);
-        reader.expectEnd();
+        var md6Model = Md6Model.read(source, skeleton.bones().size() + 7 & ~7);
+        source.expectEnd();
 
         var meshes = readMeshes(md6Model, 0, asset.hash());
         if (readMaterials) {
@@ -61,7 +61,7 @@ public final class Md6ModelReader implements AssetReader<Model, DarkAgesAsset> {
         var identity = Hash.hash(hash, 4 - lod, 0);
         var bytes = archive.readStream(identity, uncompressedSize);
 
-        try (var source = BinaryReader.fromBytes(bytes)) {
+        try (var source = BinarySource.wrap(bytes)) {
             List<Mesh> meshes = GeometryReader.readStreamedMesh(source, lodInfos, true);
             meshes = mergeJointsAndWeights(md6Model, meshes);
             fixJointIndices(md6Model, meshes);
@@ -99,7 +99,7 @@ public final class Md6ModelReader implements AssetReader<Model, DarkAgesAsset> {
     }
 
     private static Floats mergeWeights(Mesh mesh, int influence, int realInfluence, Floats buffer1, Floats buffer2) {
-        var weights = MutableFloats.allocate(mesh.vertexCount() * realInfluence);
+        var weights = Floats.Mutable.allocate(mesh.vertexCount() * realInfluence);
 
         var localInfluence = new float[realInfluence];
         for (int c = 0, i1 = 0, i2 = 0, o = 0; c < mesh.vertexCount(); c++) {
@@ -122,8 +122,8 @@ public final class Md6ModelReader implements AssetReader<Model, DarkAgesAsset> {
         return weights;
     }
 
-    private static MutableShorts compactJoints(Mesh mesh, int influence, int realInfluence) {
-        var joints = (MutableShorts) mesh.joints().orElseThrow();
+    private static Shorts.Mutable compactJoints(Mesh mesh, int influence, int realInfluence) {
+        var joints = (Shorts.Mutable) mesh.joints().orElseThrow();
         if (influence == realInfluence) {
             return joints;
         }
@@ -144,7 +144,7 @@ public final class Md6ModelReader implements AssetReader<Model, DarkAgesAsset> {
         for (var i = 0; i < meshes.size(); i++) {
             var meshInfo = md6.meshInfos().get(i);
             var offset = meshInfo.lodInfos().getFirst().unknown4();
-            var shorts = meshes.get(i).joints().map(MutableShorts.class::cast).orElseThrow();
+            var shorts = meshes.get(i).joints().map(Shorts.Mutable.class::cast).orElseThrow();
 
             for (var j = 0; j < shorts.length(); j++) {
                 var index0 = shorts.getUnsigned(j);

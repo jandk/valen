@@ -1,8 +1,8 @@
 package be.twofold.valen.game.darkages.reader.vegetation;
 
-import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.math.*;
-import be.twofold.valen.core.util.collect.*;
+import wtf.reversed.toolbox.collect.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 
@@ -43,43 +43,43 @@ public record VegetationWindData(
     Vector3 boundsMin,
     Vector3 boundsMax
 ) {
-    public static VegetationWindData read(BinaryReader reader) throws IOException {
-        int count = reader.readInt();
-        Floats sharedBend = reader.readFloats(count);
-        Floats sharedOscillation = reader.readFloats(count);
-        Floats sharedSpeed = reader.readFloats(count);
-        Floats sharedTurbulence = reader.readFloats(count);
-        Floats sharedFlexibility = reader.readFloats(count);
-        float sharedIndependence = reader.readFloat();
-        Floats branch1Bend = reader.readFloats(count);
-        Floats branch1Oscillation = reader.readFloats(count);
-        Floats branch1Speed = reader.readFloats(count);
-        Floats branch1Turbulence = reader.readFloats(count);
-        Floats branch1Flexibility = reader.readFloats(count);
-        float branch1Independence = reader.readFloat();
-        Floats branch2Bend = reader.readFloats(count);
-        Floats branch2Oscillation = reader.readFloats(count);
-        Floats branch2Speed = reader.readFloats(count);
-        Floats branch2Turbulence = reader.readFloats(count);
-        Floats branch2Flexibility = reader.readFloats(count);
-        float branch2Independence = reader.readFloat();
-        Floats ripplePlanar = reader.readFloats(count);
-        Floats rippleDirectional = reader.readFloats(count);
-        Floats rippleSpeed = reader.readFloats(count);
-        Floats rippleFlexibility = reader.readFloats(count);
-        float rippleIndependence = reader.readFloat();
-        float rippleShimmer = reader.readFloat();
-        float branch1StretchLimit = reader.readFloat();
-        float branch2StretchLimit = reader.readFloat();
-        float sharedHeightStart = reader.readFloat();
-        int doShared = reader.readInt();
-        int doBranch1 = reader.readInt();
-        int doBranch2 = reader.readInt();
-        int doRipple = reader.readInt();
-        int doShimmer = reader.readInt();
-        float windIndependence = reader.readFloat();
-        Vector3 boundsMin = Vector3.read(reader);
-        Vector3 boundsMax = Vector3.read(reader);
+    public static VegetationWindData read(BinarySource source) throws IOException {
+        int count = source.readInt();
+        Floats sharedBend = source.readFloats(count);
+        Floats sharedOscillation = source.readFloats(count);
+        Floats sharedSpeed = source.readFloats(count);
+        Floats sharedTurbulence = source.readFloats(count);
+        Floats sharedFlexibility = source.readFloats(count);
+        float sharedIndependence = source.readFloat();
+        Floats branch1Bend = source.readFloats(count);
+        Floats branch1Oscillation = source.readFloats(count);
+        Floats branch1Speed = source.readFloats(count);
+        Floats branch1Turbulence = source.readFloats(count);
+        Floats branch1Flexibility = source.readFloats(count);
+        float branch1Independence = source.readFloat();
+        Floats branch2Bend = source.readFloats(count);
+        Floats branch2Oscillation = source.readFloats(count);
+        Floats branch2Speed = source.readFloats(count);
+        Floats branch2Turbulence = source.readFloats(count);
+        Floats branch2Flexibility = source.readFloats(count);
+        float branch2Independence = source.readFloat();
+        Floats ripplePlanar = source.readFloats(count);
+        Floats rippleDirectional = source.readFloats(count);
+        Floats rippleSpeed = source.readFloats(count);
+        Floats rippleFlexibility = source.readFloats(count);
+        float rippleIndependence = source.readFloat();
+        float rippleShimmer = source.readFloat();
+        float branch1StretchLimit = source.readFloat();
+        float branch2StretchLimit = source.readFloat();
+        float sharedHeightStart = source.readFloat();
+        int doShared = source.readInt();
+        int doBranch1 = source.readInt();
+        int doBranch2 = source.readInt();
+        int doRipple = source.readInt();
+        int doShimmer = source.readInt();
+        float windIndependence = source.readFloat();
+        Vector3 boundsMin = Vector3.read(source);
+        Vector3 boundsMax = Vector3.read(source);
 
         return new VegetationWindData(
             sharedBend,

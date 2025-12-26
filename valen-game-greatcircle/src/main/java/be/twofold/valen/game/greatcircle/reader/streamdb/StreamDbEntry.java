@@ -1,6 +1,6 @@
 package be.twofold.valen.game.greatcircle.reader.streamdb;
 
-import be.twofold.valen.core.io.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 
@@ -9,10 +9,10 @@ public record StreamDbEntry(
     int length,
     StreamerCompression compressionMode
 ) {
-    public static StreamDbEntry read(BinaryReader reader) throws IOException {
-        int offset16 = reader.readInt();
-        int length = reader.readInt();
-        StreamerCompression compressionMode = StreamerCompression.fromValue(reader.readInt());
+    public static StreamDbEntry read(BinarySource source) throws IOException {
+        int offset16 = source.readInt();
+        int length = source.readInt();
+        StreamerCompression compressionMode = StreamerCompression.fromValue(source.readInt());
 
         return new StreamDbEntry(
             offset16,

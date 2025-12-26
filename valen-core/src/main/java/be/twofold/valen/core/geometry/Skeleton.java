@@ -1,7 +1,7 @@
 package be.twofold.valen.core.geometry;
 
 import be.twofold.valen.core.math.*;
-import be.twofold.valen.core.util.*;
+import wtf.reversed.toolbox.util.*;
 
 import java.util.*;
 
@@ -11,6 +11,6 @@ public record Skeleton(
 ) {
     public Skeleton {
         bones = List.copyOf(bones);
-        Check.notNull(upAxis, "upAxis");
+        Check.nonNull(upAxis, "upAxis");
     }
 }

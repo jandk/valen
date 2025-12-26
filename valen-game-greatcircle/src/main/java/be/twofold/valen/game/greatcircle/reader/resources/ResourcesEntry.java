@@ -1,6 +1,6 @@
 package be.twofold.valen.game.greatcircle.reader.resources;
 
-import be.twofold.valen.core.io.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 
@@ -24,33 +24,33 @@ public record ResourcesEntry(
     short numDependencies,
     short numSpecialHashes
 ) {
-    public static ResourcesEntry read(BinaryReader reader) throws IOException {
-        var resourceTypeString = reader.readLongAsInt();
-        var nameString = reader.readLongAsInt();
-        reader.expectLong(-1); // descString
-        var depIndices = reader.readLongAsInt();
-        var strings = reader.readLongAsInt();
-        long specialHashes = reader.readLong(); // specialHashes
-        reader.expectLong(0); // metaEntries
-        var dataOffset = reader.readLong();
-        var dataSize = reader.readLongAsInt();
-        var uncompressedSize = reader.readLongAsInt();
-        var dataCheckSum = reader.readLong();
-        var generationTimeStamp = reader.readLong();
-        var defaultHash = reader.readLong();
-        var version = reader.readInt();
-        var flags = reader.readInt();
-        var compMode = ResourceCompressionMode.fromValue((int) reader.readByte());
-        reader.expectByte((byte) 0); // reserved0
-        var variation = reader.readShort();
-        reader.expectInt(0); // reserved2
-        reader.expectLong(0); // reservedForVariations
-        var numStrings = reader.readShort();
-        reader.expectShort((short) 0); // numSources
-        var numDependencies = reader.readShort();
-        var numSpecialHashes = reader.readShort();
-        reader.expectShort((short) 0); // numMetaEntries
-        reader.skip(6); // padding
+    public static ResourcesEntry read(BinarySource source) throws IOException {
+        var resourceTypeString = source.readLongAsInt();
+        var nameString = source.readLongAsInt();
+        source.expectLong(-1); // descString
+        var depIndices = source.readLongAsInt();
+        var strings = source.readLongAsInt();
+        long specialHashes = source.readLong(); // specialHashes
+        source.expectLong(0); // metaEntries
+        var dataOffset = source.readLong();
+        var dataSize = source.readLongAsInt();
+        var uncompressedSize = source.readLongAsInt();
+        var dataCheckSum = source.readLong();
+        var generationTimeStamp = source.readLong();
+        var defaultHash = source.readLong();
+        var version = source.readInt();
+        var flags = source.readInt();
+        var compMode = ResourceCompressionMode.fromValue((int) source.readByte());
+        source.expectByte((byte) 0); // reserved0
+        var variation = source.readShort();
+        source.expectInt(0); // reserved2
+        source.expectLong(0); // reservedForVariations
+        var numStrings = source.readShort();
+        source.expectShort((short) 0); // numSources
+        var numDependencies = source.readShort();
+        var numSpecialHashes = source.readShort();
+        source.expectShort((short) 0); // numMetaEntries
+        source.skip(6); // padding
 
         return new ResourcesEntry(
             resourceTypeString,

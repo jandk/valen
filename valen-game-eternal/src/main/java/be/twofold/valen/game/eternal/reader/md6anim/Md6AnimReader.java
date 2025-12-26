@@ -3,11 +3,11 @@ package be.twofold.valen.game.eternal.reader.md6anim;
 import be.twofold.valen.core.animation.*;
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.geometry.*;
-import be.twofold.valen.core.io.*;
-import be.twofold.valen.core.util.collect.*;
 import be.twofold.valen.game.eternal.*;
 import be.twofold.valen.game.eternal.resource.*;
 import org.slf4j.*;
+import wtf.reversed.toolbox.collect.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 import java.util.*;
@@ -29,8 +29,8 @@ public final class Md6AnimReader implements AssetReader<Animation, EternalAsset>
     }
 
     @Override
-    public Animation read(BinaryReader reader, EternalAsset resource) throws IOException {
-        var anim = Md6Anim.read(reader);
+    public Animation read(BinarySource source, EternalAsset resource) throws IOException {
+        var anim = Md6Anim.read(source);
 
         var skeletonKey = EternalAssetID.from(anim.header().skelName(), ResourceType.Skeleton);
         if (archive.get(skeletonKey).isEmpty()) {

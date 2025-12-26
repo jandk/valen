@@ -1,7 +1,7 @@
 package be.twofold.valen.core.geometry;
 
 import be.twofold.valen.core.math.*;
-import be.twofold.valen.core.util.*;
+import wtf.reversed.toolbox.util.*;
 
 import java.util.*;
 
@@ -15,7 +15,7 @@ public record Model(
 ) {
     public Model {
         meshes = List.copyOf(meshes);
-        Check.notNull(upAxis, "upAxis");
+        Check.nonNull(upAxis, "upAxis");
     }
 
     public Model(List<Mesh> meshes, Axis upAxis) {

@@ -2,13 +2,13 @@ package be.twofold.valen.export.gltf.mappers;
 
 import be.twofold.valen.core.geometry.*;
 import be.twofold.valen.core.math.*;
-import be.twofold.valen.core.util.collect.*;
 import be.twofold.valen.format.gltf.*;
 import be.twofold.valen.format.gltf.model.accessor.*;
 import be.twofold.valen.format.gltf.model.bufferview.*;
 import be.twofold.valen.format.gltf.model.material.*;
 import be.twofold.valen.format.gltf.model.mesh.*;
 import org.slf4j.*;
+import wtf.reversed.toolbox.collect.*;
 
 import java.io.*;
 import java.util.*;
@@ -101,9 +101,9 @@ public abstract class GltfModelMapper {
         };
     }
 
-    private BufferViewID createBufferView(Array array, BufferViewTarget target) {
+    private BufferViewID createBufferView(Slice slice, BufferViewTarget target) {
         try {
-            return context.createBufferView(array.asBuffer(), target);
+            return context.createBufferView(slice.asBuffer(), target);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
@@ -116,7 +116,7 @@ public abstract class GltfModelMapper {
         for (int b = 0; b < numBuffers; b++) {
             var offset = b * 4;
             var values = Math.min(4, maxInfluence - offset);
-            var joints = MutableShorts.allocate(numVertices * 4);
+            var joints = Shorts.Mutable.allocate(numVertices * 4);
             for (int i = offset, o = 0; i < shorts.length(); i += maxInfluence, o += 4) {
                 for (int j = 0; j < values; j++) {
                     joints.set(o + j, shorts.get(i + j));
@@ -136,7 +136,7 @@ public abstract class GltfModelMapper {
         for (int b = 0; b < numBuffers; b++) {
             var offset = b * 4;
             var values = Math.min(4, maxInfluence - offset);
-            var weights = MutableFloats.allocate(numVertices * 4);
+            var weights = Floats.Mutable.allocate(numVertices * 4);
             for (int i = offset, o = 0; i < floats.length(); i += maxInfluence, o += 4) {
                 for (int j = 0; j < values; j++) {
                     weights.set(o + j, floats.get(i + j));
@@ -197,16 +197,16 @@ public abstract class GltfModelMapper {
         return context.addAccessor(accessor.build());
     }
 
-    private AccessorID buildAccessor(Array buffer, AccessorComponentType componentType, AccessorType type, boolean withBounds) {
-        var bufferView = createBufferView(buffer, BufferViewTarget.ARRAY_BUFFER);
+    private AccessorID buildAccessor(Slice slice, AccessorComponentType componentType, AccessorType type, boolean withBounds) {
+        var bufferView = createBufferView(slice, BufferViewTarget.ARRAY_BUFFER);
         var builder = ImmutableAccessor.builder()
             .bufferView(bufferView)
             .componentType(componentType)
-            .count(buffer.length() / type.size())
+            .count(slice.length() / type.size())
             .type(type);
 
         if (withBounds) {
-            Bounds bounds = Bounds.calculate((Floats) buffer);
+            Bounds bounds = Bounds.calculate((Floats) slice);
             builder
                 .min(GltfUtils.mapVector3(bounds.min()))
                 .max(GltfUtils.mapVector3(bounds.max()));
@@ -216,8 +216,8 @@ public abstract class GltfModelMapper {
     }
 
     private void fixJointsAndWeights(Mesh mesh) {
-        mesh.joints().map(MutableShorts.class::cast).ifPresent(joints ->
-            mesh.weights().map(MutableFloats.class::cast).ifPresent(weights -> {
+        mesh.joints().map(Shorts.Mutable.class::cast).ifPresent(joints ->
+            mesh.weights().map(Floats.Mutable.class::cast).ifPresent(weights -> {
                 for (var i = 0; i < joints.length(); i++) {
                     if (weights.get(i) == 0) {
                         joints.set(i, (short) 0);

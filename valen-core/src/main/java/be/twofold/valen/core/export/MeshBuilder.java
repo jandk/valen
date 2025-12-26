@@ -2,10 +2,11 @@ package be.twofold.valen.core.export;
 
 import be.twofold.valen.core.geometry.*;
 import be.twofold.valen.core.math.*;
-import be.twofold.valen.core.util.*;
-import be.twofold.valen.core.util.collect.*;
+import wtf.reversed.toolbox.collect.*;
+import wtf.reversed.toolbox.util.*;
 
 import java.util.*;
+import java.util.Arrays;
 
 final class MeshBuilder {
     private static final int INITIAL_CAPACITY = 16;
@@ -66,11 +67,11 @@ final class MeshBuilder {
 
     Mesh build() {
         return new Mesh(
-            MutableInts.wrap(indices, 0, indexSize),
-            MutableFloats.wrap(positions),
-            Optional.of(MutableFloats.wrap(normals)),
+            Ints.Mutable.wrap(indices, 0, indexSize),
+            Floats.Mutable.wrap(positions),
+            Optional.of(Floats.Mutable.wrap(normals)),
             Optional.empty(),
-            List.of(MutableFloats.wrap(texCoords)),
+            List.of(Floats.Mutable.wrap(texCoords)),
             List.of(),
             Optional.empty(),
             Optional.empty(),

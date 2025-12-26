@@ -2,13 +2,13 @@ package be.twofold.valen.game.eternal.reader.md6model;
 
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.geometry.*;
-import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.math.*;
-import be.twofold.valen.core.util.collect.*;
 import be.twofold.valen.game.eternal.*;
 import be.twofold.valen.game.eternal.reader.geometry.*;
 import be.twofold.valen.game.eternal.resource.*;
 import be.twofold.valen.game.idtech.geometry.*;
+import wtf.reversed.toolbox.collect.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 import java.util.*;
@@ -32,8 +32,8 @@ public final class Md6ModelReader implements AssetReader<Model, EternalAsset> {
     }
 
     @Override
-    public Model read(BinaryReader reader, EternalAsset resource) throws IOException {
-        var model = Md6Model.read(reader);
+    public Model read(BinarySource source, EternalAsset resource) throws IOException {
+        var model = Md6Model.read(source);
         var meshes = new ArrayList<>(readMeshes(model, resource.hash()));
         var skeletonKey = EternalAssetID.from(model.header().md6SkelName(), ResourceType.Skeleton);
         var skeleton = archive.loadAsset(skeletonKey, Skeleton.class);
@@ -63,7 +63,7 @@ public final class Md6ModelReader implements AssetReader<Model, EternalAsset> {
 
         var identity = (hash << 4) | lod;
         var bytes = archive.readStream(identity, uncompressedSize);
-        try (var source = BinaryReader.fromBytes(bytes)) {
+        try (var source = BinarySource.wrap(bytes)) {
             return GeometryReader.readStreamedMesh(source, lodInfos, layouts, true);
         }
     }
@@ -81,7 +81,7 @@ public final class Md6ModelReader implements AssetReader<Model, EternalAsset> {
             var meshInfo = md6.meshInfos().get(i);
 
             // Just assume it's a mutable buffer, because we read it as such
-            var joints = meshes.get(i).joints().map(MutableShorts.class::cast).orElseThrow();
+            var joints = meshes.get(i).joints().map(Shorts.Mutable.class::cast).orElseThrow();
             for (var j = 0; j < joints.length(); j++) {
                 joints.set(j, lookup[joints.getUnsigned(j) + meshInfo.unknown2()]);
             }

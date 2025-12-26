@@ -2,6 +2,7 @@ package be.twofold.valen.core.material;
 
 import be.twofold.valen.core.texture.*;
 import be.twofold.valen.core.util.*;
+import wtf.reversed.toolbox.util.*;
 
 import java.io.*;
 
@@ -11,9 +12,9 @@ public record TextureReference(
     ThrowingSupplier<Texture, IOException> supplier
 ) {
     public TextureReference {
-        Check.notNull(name, "name");
-        Check.notNull(filename, "filename");
-        Check.notNull(supplier, "supplier");
+        Check.nonNull(name, "name");
+        Check.nonNull(filename, "filename");
+        Check.nonNull(supplier, "supplier");
     }
 
     @Override

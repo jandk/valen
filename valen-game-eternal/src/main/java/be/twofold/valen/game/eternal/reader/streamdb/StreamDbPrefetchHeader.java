@@ -1,6 +1,6 @@
 package be.twofold.valen.game.eternal.reader.streamdb;
 
-import be.twofold.valen.core.io.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 
@@ -8,9 +8,9 @@ public record StreamDbPrefetchHeader(
     int numPrefetchBlocks,
     int totalLength
 ) {
-    public static StreamDbPrefetchHeader read(BinaryReader reader) throws IOException {
-        var numPrefetchBlocks = reader.readInt();
-        var totalLength = reader.readInt();
+    public static StreamDbPrefetchHeader read(BinarySource source) throws IOException {
+        var numPrefetchBlocks = source.readInt();
+        var totalLength = source.readInt();
         return new StreamDbPrefetchHeader(numPrefetchBlocks, totalLength);
     }
 }

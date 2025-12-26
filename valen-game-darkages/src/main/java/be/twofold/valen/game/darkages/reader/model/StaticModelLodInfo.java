@@ -1,6 +1,6 @@
 package be.twofold.valen.game.darkages.reader.model;
 
-import be.twofold.valen.core.io.*;
+import wtf.reversed.toolbox.io.*;
 import be.twofold.valen.core.math.*;
 import be.twofold.valen.game.idtech.geometry.*;
 
@@ -22,24 +22,24 @@ public record StaticModelLodInfo(
     float unkFloat1,
     float unkFloat2
 ) implements LodInfo {
-    public static StaticModelLodInfo read(BinaryReader reader) throws IOException {
-        reader.expectInt(-5);
-        var numVertices = reader.readInt();
-        var numEdges = reader.readInt();
-        var unknown1 = reader.readInt();
-        var unknown2 = reader.readInt();
-        var unknown3 = reader.readInt();
-        var vertexMask = reader.readInt();
-        var negBounds = Vector3.read(reader);
-        var posBounds = Vector3.read(reader);
-        var vertexOffset = Vector3.read(reader);
-        var vertexScale = reader.readFloat();
-        var uvOffset = Vector2.read(reader);
-        var uvScale = reader.readFloat();
-        reader.expectInt(0);
-        var unkFloat1 = reader.readFloat();
-        var unkFloat2 = reader.readFloat();
-        reader.expectInt(0x724c4d42);
+    public static StaticModelLodInfo read(BinarySource source) throws IOException {
+        source.expectInt(-5);
+        var numVertices = source.readInt();
+        var numEdges = source.readInt();
+        var unknown1 = source.readInt();
+        var unknown2 = source.readInt();
+        var unknown3 = source.readInt();
+        var vertexMask = source.readInt();
+        var negBounds = Vector3.read(source);
+        var posBounds = Vector3.read(source);
+        var vertexOffset = Vector3.read(source);
+        var vertexScale = source.readFloat();
+        var uvOffset = Vector2.read(source);
+        var uvScale = source.readFloat();
+        source.expectInt(0);
+        var unkFloat1 = source.readFloat();
+        var unkFloat2 = source.readFloat();
+        source.expectInt(0x724c4d42);
 
         return new StaticModelLodInfo(
             numVertices,

@@ -1,6 +1,6 @@
 package be.twofold.valen.core.export;
 
-import be.twofold.valen.core.util.collect.*;
+import wtf.reversed.toolbox.collect.*;
 
 import java.io.*;
 import java.nio.channels.*;

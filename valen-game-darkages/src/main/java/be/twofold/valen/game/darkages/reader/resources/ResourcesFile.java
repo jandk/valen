@@ -1,13 +1,13 @@
 package be.twofold.valen.game.darkages.reader.resources;
 
-import be.twofold.valen.core.compression.*;
 import be.twofold.valen.core.game.*;
-import be.twofold.valen.core.hashing.*;
-import be.twofold.valen.core.io.*;
-import be.twofold.valen.core.util.*;
-import be.twofold.valen.core.util.collect.*;
 import be.twofold.valen.game.darkages.*;
 import org.slf4j.*;
+import wtf.reversed.toolbox.collect.*;
+import wtf.reversed.toolbox.compress.*;
+import wtf.reversed.toolbox.hash.*;
+import wtf.reversed.toolbox.io.*;
+import wtf.reversed.toolbox.util.*;
 
 import java.io.*;
 import java.nio.file.*;
@@ -22,15 +22,15 @@ public final class ResourcesFile implements Container<DarkAgesAssetID, DarkAgesA
     private final Decompressor decompressor;
     private final Path path;
 
-    private BinaryReader reader;
+    private BinarySource source;
 
     public ResourcesFile(Path path, Decompressor decompressor) throws IOException {
         log.info("Loading resources: {}", path);
-        this.decompressor = Check.notNull(decompressor, "decompressor");
-        this.path = Check.notNull(path, "path");
-        this.reader = BinaryReader.fromPath(path);
+        this.decompressor = Check.nonNull(decompressor, "decompressor");
+        this.path = Check.nonNull(path, "path");
+        this.source = BinarySource.open(path);
 
-        var resources = mapResources(Resources.read(reader));
+        var resources = mapResources(Resources.read(source));
         this.index = resources.stream()
             .filter(asset -> asset.size() > 0)
             .collect(Collectors.toUnmodifiableMap(
@@ -88,14 +88,14 @@ public final class ResourcesFile implements Container<DarkAgesAssetID, DarkAgesA
         };
 
         // Read the chunk
-        reader.position(resource.offset());
-        var compressed = reader
+        source.position(resource.offset());
+        var compressed = source
             .readBytes(resource.compressedSize())
             .slice(resource.compression() == ResourcesCompressionMode.RES_COMP_MODE_KRAKEN_CHUNKED ? 12 : 0);
         var decompressed = decompressor.decompress(compressed, resource.size());
 
         // Check hash
-        long checksum = HashFunction.murmurHash64B(0xDEADBEEFL).hash(decompressed).asLong();
+        long checksum = HashFunction.murmur64B(0xDEADBEEFL).hash(decompressed).asLong();
         if (checksum != resource.checksum()) {
             System.err.println("Checksum mismatch! (" + checksum + " != " + resource.checksum() + ")");
         }
@@ -105,9 +105,9 @@ public final class ResourcesFile implements Container<DarkAgesAssetID, DarkAgesA
 
     @Override
     public void close() throws IOException {
-        if (reader != null) {
-            reader.close();
-            reader = null;
+        if (source != null) {
+            source.close();
+            source = null;
         }
     }
 

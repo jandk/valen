@@ -1,18 +1,18 @@
 package be.twofold.valen.core.geometry;
 
-import be.twofold.valen.core.util.*;
-import be.twofold.valen.core.util.collect.*;
+import wtf.reversed.toolbox.collect.*;
+import wtf.reversed.toolbox.util.*;
 
-public record VertexBuffer<T extends Array>(
+public record VertexBuffer<T extends Slice>(
     T array,
     int length,
     ElementType elementType,
     ComponentType<T> componentType
 ) {
     public VertexBuffer {
-        Check.notNull(componentType, "componentType");
-        Check.notNull(elementType, "elementType");
-        Check.notNull(array, "array");
+        Check.nonNull(componentType, "componentType");
+        Check.nonNull(elementType, "elementType");
+        Check.nonNull(array, "array");
     }
 
     @SuppressWarnings("unchecked")

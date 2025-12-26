@@ -2,11 +2,11 @@ package be.twofold.valen.game.darkages.reader.strandshair;
 
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.geometry.*;
-import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.math.*;
-import be.twofold.valen.core.util.collect.*;
 import be.twofold.valen.game.darkages.*;
 import be.twofold.valen.game.darkages.reader.resources.*;
+import wtf.reversed.toolbox.collect.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 import java.util.*;
@@ -18,8 +18,8 @@ public final class StrandsHairReader implements AssetReader<Model, DarkAgesAsset
     }
 
     @Override
-    public Model read(BinaryReader reader, DarkAgesAsset asset) throws IOException {
-        var strandsHair = StrandsHair.read(reader);
+    public Model read(BinarySource source, DarkAgesAsset asset) throws IOException {
+        var strandsHair = StrandsHair.read(source);
 
         var segments = getSegments(strandsHair.strands());
         var positions = getPositions(

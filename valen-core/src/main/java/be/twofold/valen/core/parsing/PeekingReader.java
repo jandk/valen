@@ -1,6 +1,6 @@
 package be.twofold.valen.core.parsing;
 
-import be.twofold.valen.core.util.*;
+import wtf.reversed.toolbox.util.*;
 
 import java.io.*;
 
@@ -13,7 +13,7 @@ public final class PeekingReader {
     private int column = 1;
 
     public PeekingReader(Reader reader) {
-        this.reader = Check.notNull(reader, "reader");
+        this.reader = Check.nonNull(reader, "reader");
     }
 
     public int line() {

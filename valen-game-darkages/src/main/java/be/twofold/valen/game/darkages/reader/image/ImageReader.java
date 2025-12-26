@@ -1,11 +1,11 @@
 package be.twofold.valen.game.darkages.reader.image;
 
 import be.twofold.valen.core.game.*;
-import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.texture.*;
 import be.twofold.valen.game.darkages.*;
 import be.twofold.valen.game.darkages.reader.*;
 import be.twofold.valen.game.darkages.reader.resources.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 
@@ -28,14 +28,14 @@ public final class ImageReader implements AssetReader<Texture, DarkAgesAsset> {
     }
 
     @Override
-    public Texture read(BinaryReader reader, DarkAgesAsset asset) throws IOException {
-        var image = read(reader, asset.hash());
+    public Texture read(BinarySource source, DarkAgesAsset asset) throws IOException {
+        var image = read(source, asset.hash());
         return new ImageMapper().map(image);
     }
 
-    public Image read(BinaryReader reader, long hash) throws IOException {
-        var image = Image.read(reader);
-        reader.expectEnd();
+    public Image read(BinarySource source, long hash) throws IOException {
+        var image = Image.read(source);
+        source.expectEnd();
 
         if (readStreams) {
             /*
@@ -57,7 +57,7 @@ public final class ImageReader implements AssetReader<Texture, DarkAgesAsset> {
         var lastMip = image.mipInfos().getLast();
         var uncompressedSize = lastMip.cumulativeSizeStreamDB() + lastMip.decompressedSize();
         var bytes = archive.readStream(Hash.hash(hash, 0, 0), uncompressedSize);
-        try (var mipSource = BinaryReader.fromBytes(bytes)) {
+        try (var mipSource = BinarySource.wrap(bytes)) {
             for (var i = 0; i < image.header().totalMipCount(); i++) {
                 image.mipData()[i] = mipSource.readBytes(image.mipInfos().get(i).decompressedSize());
             }

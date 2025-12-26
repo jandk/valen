@@ -1,6 +1,6 @@
 package be.twofold.valen.game.greatcircle.reader.staticmodel;
 
-import be.twofold.valen.core.io.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 import java.util.*;
@@ -13,12 +13,12 @@ public record GeometryDiskLayout(
     long hash,
     List<GeometryMemoryLayout> memoryLayouts
 ) {
-    public static GeometryDiskLayout read(BinaryReader reader, List<GeometryMemoryLayout> memoryLayouts, int version) throws IOException {
-        var compression = reader.readInt();
-        var uncompressedSize = reader.readInt();
-        var compressedSize = reader.readInt();
-        var offset = reader.readInt();
-        var hash = version > 78 ? reader.readLong() : 0;
+    public static GeometryDiskLayout read(BinarySource source, List<GeometryMemoryLayout> memoryLayouts, int version) throws IOException {
+        var compression = source.readInt();
+        var uncompressedSize = source.readInt();
+        var compressedSize = source.readInt();
+        var offset = source.readInt();
+        var hash = version > 78 ? source.readLong() : 0;
 
         return new GeometryDiskLayout(
             compression,

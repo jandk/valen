@@ -1,11 +1,11 @@
 package be.twofold.valen.game.eternal;
 
-import be.twofold.valen.core.compression.*;
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.game.eternal.reader.packagemapspec.*;
 import be.twofold.valen.game.eternal.reader.streamdb.*;
 import be.twofold.valen.game.eternal.resource.*;
 import be.twofold.valen.game.eternal.stream.*;
+import wtf.reversed.toolbox.compress.*;
 
 import java.io.*;
 import java.nio.file.*;

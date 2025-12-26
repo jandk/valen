@@ -1,6 +1,6 @@
 package be.twofold.valen.core.math;
 
-import be.twofold.valen.core.io.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 
@@ -77,16 +77,16 @@ public record Matrix3(
         );
     }
 
-    public static Matrix3 read(BinaryReader reader) throws IOException {
-        float m00 = reader.readFloat();
-        float m01 = reader.readFloat();
-        float m02 = reader.readFloat();
-        float m10 = reader.readFloat();
-        float m11 = reader.readFloat();
-        float m12 = reader.readFloat();
-        float m20 = reader.readFloat();
-        float m21 = reader.readFloat();
-        float m22 = reader.readFloat();
+    public static Matrix3 read(BinarySource source) throws IOException {
+        float m00 = source.readFloat();
+        float m01 = source.readFloat();
+        float m02 = source.readFloat();
+        float m10 = source.readFloat();
+        float m11 = source.readFloat();
+        float m12 = source.readFloat();
+        float m20 = source.readFloat();
+        float m21 = source.readFloat();
+        float m22 = source.readFloat();
         return new Matrix3(
             m00, m01, m02,
             m10, m11, m12,

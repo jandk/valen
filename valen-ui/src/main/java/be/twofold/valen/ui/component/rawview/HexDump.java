@@ -1,9 +1,9 @@
 package be.twofold.valen.ui.component.rawview;
 
-import be.twofold.valen.core.util.*;
-import be.twofold.valen.core.util.collect.*;
 import javafx.scene.paint.*;
 import javafx.scene.text.*;
+import wtf.reversed.toolbox.collect.*;
+import wtf.reversed.toolbox.util.*;
 
 import java.nio.charset.*;
 import java.util.*;
@@ -21,7 +21,7 @@ final class HexDump {
 
     public HexDump(Bytes binary, Font font, Color primary, Color secondary) {
         this.builder = new TextFlowBuilder(font);
-        this.binary = Check.notNull(binary, "binary");
+        this.binary = Check.nonNull(binary, "binary");
         this.primary = primary;
         this.secondary = secondary;
     }

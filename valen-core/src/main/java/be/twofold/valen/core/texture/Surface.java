@@ -1,6 +1,6 @@
 package be.twofold.valen.core.texture;
 
-import be.twofold.valen.core.util.*;
+import wtf.reversed.toolbox.util.*;
 
 public record Surface(
     int width,
@@ -11,8 +11,8 @@ public record Surface(
     public Surface {
         Check.positive(width, "width");
         Check.positive(height, "height");
-        Check.notNull(format, "format");
-        Check.notNull(data, "data");
+        Check.nonNull(format, "format");
+        Check.nonNull(data, "data");
     }
 
     public static Surface create(int width, int height, TextureFormat format) {

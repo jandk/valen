@@ -1,6 +1,6 @@
 package be.twofold.valen.game.darkages.reader.model;
 
-import be.twofold.valen.core.io.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 import java.util.*;
@@ -11,11 +11,11 @@ public record StaticModelSettings(
     int lightmapHeight,
     List<StaticModelTextureAxis> textureAxes
 ) {
-    public static StaticModelSettings read(BinaryReader reader) throws IOException {
-        var lightmapSurfaceAreaSqrt = reader.readFloat();
-        var lightmapWidth = reader.readInt();
-        var lightmapHeight = reader.readInt();
-        var textureAxes = reader.readObjects(reader.readInt(), StaticModelTextureAxis::read);
+    public static StaticModelSettings read(BinarySource source) throws IOException {
+        var lightmapSurfaceAreaSqrt = source.readFloat();
+        var lightmapWidth = source.readInt();
+        var lightmapHeight = source.readInt();
+        var textureAxes = source.readObjects(source.readInt(), StaticModelTextureAxis::read);
 
         return new StaticModelSettings(
             lightmapSurfaceAreaSqrt,

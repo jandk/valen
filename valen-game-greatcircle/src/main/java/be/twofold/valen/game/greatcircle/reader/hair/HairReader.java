@@ -2,11 +2,11 @@ package be.twofold.valen.game.greatcircle.reader.hair;
 
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.geometry.*;
-import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.math.*;
-import be.twofold.valen.core.util.collect.*;
 import be.twofold.valen.game.greatcircle.*;
 import be.twofold.valen.game.greatcircle.resource.*;
+import wtf.reversed.toolbox.collect.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 import java.util.*;
@@ -18,9 +18,9 @@ public final class HairReader implements AssetReader<Model, GreatCircleAsset> {
     }
 
     @Override
-    public Model read(BinaryReader reader, GreatCircleAsset asset) throws IOException {
-        var hairMesh = HairMesh.read(reader);
-        reader.expectEnd();
+    public Model read(BinarySource source, GreatCircleAsset asset) throws IOException {
+        var hairMesh = HairMesh.read(source);
+        source.expectEnd();
 
         var hair = map(hairMesh, asset);
         return new Model(List.of(), Axis.Z)

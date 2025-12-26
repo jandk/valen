@@ -1,9 +1,9 @@
 package be.twofold.valen.core.geometry;
 
-import be.twofold.valen.core.util.*;
-import be.twofold.valen.core.util.collect.*;
+import wtf.reversed.toolbox.collect.*;
+import wtf.reversed.toolbox.util.*;
 
-public record GeoBufferInfo<T extends Array>(
+public record GeoBufferInfo<T extends Slice>(
     int offset,
     int stride,
     int length,
@@ -15,9 +15,9 @@ public record GeoBufferInfo<T extends Array>(
         Check.positiveOrZero(offset, "offset");
         Check.positiveOrZero(stride, "stride");
         Check.positive(length, "length");
-        Check.notNull(reader, "reader");
-        Check.notNull(elementType, "elementType");
-        Check.notNull(componentType, "componentType");
+        Check.nonNull(reader, "reader");
+        Check.nonNull(elementType, "elementType");
+        Check.nonNull(componentType, "componentType");
     }
 
     public int count() {

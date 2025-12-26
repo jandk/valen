@@ -1,6 +1,5 @@
 package be.twofold.valen.game.greatcircle;
 
-import be.twofold.valen.core.compression.*;
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.game.Container;
 import be.twofold.valen.game.greatcircle.reader.packagemapspec.*;
@@ -8,6 +7,7 @@ import be.twofold.valen.game.greatcircle.reader.packagemapspec.File;
 import be.twofold.valen.game.greatcircle.reader.packagemapspec.Map;
 import be.twofold.valen.game.greatcircle.reader.streamdb.*;
 import be.twofold.valen.game.greatcircle.resource.*;
+import wtf.reversed.toolbox.compress.*;
 
 import java.io.*;
 import java.nio.file.*;

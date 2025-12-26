@@ -1,8 +1,8 @@
 package be.twofold.valen.core.math;
 
-import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.util.*;
-import be.twofold.valen.core.util.collect.*;
+import wtf.reversed.toolbox.collect.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 import java.nio.*;
@@ -22,10 +22,10 @@ public record Vector3(
         return new Vector3(value, value, value);
     }
 
-    public static Vector3 read(BinaryReader reader) throws IOException {
-        float x = reader.readFloat();
-        float y = reader.readFloat();
-        float z = reader.readFloat();
+    public static Vector3 read(BinarySource source) throws IOException {
+        float x = source.readFloat();
+        float y = source.readFloat();
+        float z = source.readFloat();
         return new Vector3(x, y, z);
     }
 
@@ -100,7 +100,7 @@ public record Vector3(
         buffer.put(z);
     }
 
-    public void toFloats(MutableFloats floats, int offset) {
+    public void toFloats(Floats.Mutable floats, int offset) {
         floats.set(offset/**/, x);
         floats.set(offset + 1, y);
         floats.set(offset + 2, z);

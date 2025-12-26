@@ -1,13 +1,13 @@
 package be.twofold.valen.game.idtech.geometry;
 
 import be.twofold.valen.core.geometry.*;
-import be.twofold.valen.core.io.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.util.*;
 import java.util.stream.*;
 
 public final class GeometryReader {
-    public static Mesh readEmbeddedMesh(BinaryReader reader, LodInfo lodInfo) {
+    public static Mesh readEmbeddedMesh(BinarySource source, LodInfo lodInfo) {
         var masks = GeometryVertexMask.FixedOrder.stream()
             .filter(mask -> (lodInfo.vertexMask() & mask.mask()) == mask.mask())
             .toList();
@@ -26,11 +26,11 @@ public final class GeometryReader {
         offset += stride * (lodInfo.numVertices() - 1);
         builder.indices(offset, Short.BYTES, GeoReader.readShortAsInt());
 
-        return new Geo(true).readMesh(reader, builder.build());
+        return new Geo(true).readMesh(source, builder.build());
     }
 
     public static List<Mesh> readStreamedMesh(
-        BinaryReader reader,
+            BinarySource source,
         List<LodInfo> lods,
         List<? extends GeoMemoryLayout> layouts,
         boolean animated
@@ -61,14 +61,14 @@ public final class GeometryReader {
                 builder.indices(offsets.indexOffset, Short.BYTES, GeoReader.readShortAsInt());
                 offsets.indexOffset += lodInfo.numFaces() * 3 * Short.BYTES;
 
-                meshes.add(new Geo(true).readMesh(reader, builder.build()));
+                meshes.add(new Geo(true).readMesh(source, builder.build()));
             }
         }
         return meshes;
     }
 
     public static List<Mesh> readStreamedMesh(
-        BinaryReader reader,
+            BinarySource source,
         List<LodInfo> lods,
         boolean animated
     ) {
@@ -92,7 +92,7 @@ public final class GeometryReader {
             offset = (offset + lodOffset + 7) & ~7;
 
             meshes.add(new Geo(true)
-                .readMesh(reader, builder.build()));
+                    .readMesh(source, builder.build()));
         }
 
         return meshes;

@@ -1,6 +1,6 @@
 package be.twofold.valen.game.greatcircle.reader.staticmodel;
 
-import be.twofold.valen.core.io.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 import java.util.*;
@@ -15,21 +15,21 @@ public record StaticModel(
 ) {
     public static final int LodCount = 5;
 
-    public static StaticModel read(BinaryReader reader, int version) throws IOException {
-        var header = StaticModelHeader.read(reader);
-        var meshInfos = reader.readObjects(header.numSurfaces(), source1 -> StaticModelMeshInfo.read(source1, version));
+    public static StaticModel read(BinarySource source, int version) throws IOException {
+        var header = StaticModelHeader.read(source);
+        var meshInfos = source.readObjects(header.numSurfaces(), source1 -> StaticModelMeshInfo.read(source1, version));
         if (version < 81) {
-            reader.readInts(3);
+            source.readInts(3);
         }
-        var textureAxis = reader.readObjects(reader.readInt(), s -> StaticModelTextureAxis.read(s, version));
-        var geoDecals = StaticModelGeoDecals.read(reader);
-        var streamedLods = reader.readObjects(header.numSurfaces() * header.numLods(), BinaryReader::readBoolByte);
-        var layouts = header.streamable() ? readLayouts(reader, version) : List.<GeometryDiskLayout>of();
+        var textureAxis = source.readObjects(source.readInt(), s -> StaticModelTextureAxis.read(s, version));
+        var geoDecals = StaticModelGeoDecals.read(source);
+        var streamedLods = source.readObjects(header.numSurfaces() * header.numLods(), s -> s.readBool(BoolFormat.BYTE));
+        var layouts = header.streamable() ? readLayouts(source, version) : List.<GeometryDiskLayout>of();
 
         if (header.streamable()) {
-            var vegetationDataPresent = reader.readBoolInt();
+            var vegetationDataPresent = source.readBool(BoolFormat.INT);
             if (!vegetationDataPresent) {
-                reader.expectEnd();
+                source.expectEnd();
             }
         }
 
@@ -43,11 +43,11 @@ public record StaticModel(
         );
     }
 
-    private static List<GeometryDiskLayout> readLayouts(BinaryReader reader, int version) throws IOException {
+    private static List<GeometryDiskLayout> readLayouts(BinarySource source, int version) throws IOException {
         var layouts = new ArrayList<GeometryDiskLayout>();
         for (var lod = 0; lod < LodCount; lod++) {
-            var memoryLayouts = reader.readObjects(reader.readInt(), GeometryMemoryLayout::read);
-            layouts.add(GeometryDiskLayout.read(reader, memoryLayouts, version));
+            var memoryLayouts = source.readObjects(source.readInt(), GeometryMemoryLayout::read);
+            layouts.add(GeometryDiskLayout.read(source, memoryLayouts, version));
         }
         return layouts;
     }

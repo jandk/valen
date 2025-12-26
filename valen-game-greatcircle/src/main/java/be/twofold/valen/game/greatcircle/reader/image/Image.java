@@ -1,8 +1,8 @@
 package be.twofold.valen.game.greatcircle.reader.image;
 
-import be.twofold.valen.core.io.*;
-import be.twofold.valen.core.util.collect.*;
 import be.twofold.valen.game.idtech.defines.*;
+import wtf.reversed.toolbox.collect.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 import java.util.*;
@@ -13,8 +13,8 @@ public record Image(
     List<ImageSlice> sliceInfos,
     Bytes[] slices
 ) {
-    public static Image read(BinaryReader reader) throws IOException {
-        var header = ImageHeader.read(reader);
+    public static Image read(BinarySource source) throws IOException {
+        var header = ImageHeader.read(source);
 
         var numSlices = header.mipCount() * Math.max(header.count(), 1);
         if (header.type() == TextureType.TT_CUBIC) {
@@ -22,12 +22,12 @@ public record Image(
         }
 
         var slices = new Bytes[numSlices];
-        var sliceInfos = reader.readObjects(numSlices, ImageSlice::read);
+        var sliceInfos = source.readObjects(numSlices, ImageSlice::read);
         for (int i = header.startMip(); i < sliceInfos.size(); i++) {
-            slices[i] = reader.readBytes(sliceInfos.get(i).size());
+            slices[i] = source.readBytes(sliceInfos.get(i).size());
         }
 
-        reader.expectEnd();
+        source.expectEnd();
 
         return new Image(
             header,

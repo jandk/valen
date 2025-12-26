@@ -1,7 +1,6 @@
 package be.twofold.valen.game.idtech.material;
 
 import be.twofold.valen.core.game.*;
-import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.material.*;
 import be.twofold.valen.core.math.*;
 import be.twofold.valen.core.texture.*;
@@ -12,6 +11,8 @@ import be.twofold.valen.game.idtech.defines.TextureFormat;
 import be.twofold.valen.game.idtech.renderparm.*;
 import com.google.gson.*;
 import org.slf4j.*;
+import wtf.reversed.toolbox.io.*;
+import wtf.reversed.toolbox.util.*;
 
 import java.io.*;
 import java.util.*;
@@ -83,8 +84,8 @@ public abstract class AbstractMaterialReader<K extends AssetID, V extends Asset,
 
     protected AbstractMaterialReader(A archive, AbstractDeclReader<K, V, A> declReader, boolean idTech8) {
         this.log = LoggerFactory.getLogger(getClass());
-        this.archive = Check.notNull(archive, "archive");
-        this.declReader = Check.notNull(declReader, "declReader");
+        this.archive = Check.nonNull(archive, "archive");
+        this.declReader = Check.nonNull(declReader, "declReader");
         this.idTech8 = idTech8;
     }
 
@@ -92,8 +93,8 @@ public abstract class AbstractMaterialReader<K extends AssetID, V extends Asset,
     public abstract boolean canRead(V asset);
 
     @Override
-    public final Material read(BinaryReader reader, V asset) throws IOException {
-        var object = declReader.read(reader, asset);
+    public final Material read(BinarySource source, V asset) throws IOException {
+        var object = declReader.read(source, asset);
         return parseMaterial(object, asset);
     }
 

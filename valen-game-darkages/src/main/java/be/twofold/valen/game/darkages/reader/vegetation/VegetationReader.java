@@ -2,14 +2,14 @@ package be.twofold.valen.game.darkages.reader.vegetation;
 
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.geometry.*;
-import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.math.*;
-import be.twofold.valen.core.util.*;
 import be.twofold.valen.game.darkages.*;
 import be.twofold.valen.game.darkages.reader.*;
 import be.twofold.valen.game.darkages.reader.geometry.*;
 import be.twofold.valen.game.darkages.reader.resources.*;
 import be.twofold.valen.game.idtech.geometry.*;
+import wtf.reversed.toolbox.io.*;
+import wtf.reversed.toolbox.util.*;
 
 import java.io.*;
 import java.util.*;
@@ -19,7 +19,7 @@ public final class VegetationReader implements AssetReader<Model, DarkAgesAsset>
     private final boolean readMaterials;
 
     public VegetationReader(DarkAgesArchive archive, boolean readMaterials) {
-        this.archive = Check.notNull(archive, "archive");
+        this.archive = Check.nonNull(archive, "archive");
         this.readMaterials = readMaterials;
     }
 
@@ -29,9 +29,9 @@ public final class VegetationReader implements AssetReader<Model, DarkAgesAsset>
     }
 
     @Override
-    public Model read(BinaryReader reader, DarkAgesAsset asset) throws IOException {
-        Vegetation vegetation = Vegetation.read(reader);
-        reader.expectEnd();
+    public Model read(BinarySource source, DarkAgesAsset asset) throws IOException {
+        Vegetation vegetation = Vegetation.read(source);
+        source.expectEnd();
 
         var meshes = readMeshes(vegetation, 0, asset.hash());
         if (readMaterials) {
@@ -51,7 +51,7 @@ public final class VegetationReader implements AssetReader<Model, DarkAgesAsset>
         var identity = Hash.hash(hash, 4 - lod, 0);
         var bytes = archive.readStream(identity, uncompressedSize);
 
-        try (var source = BinaryReader.fromBytes(bytes)) {
+        try (var source = BinarySource.wrap(bytes)) {
             return GeometryReader.readStreamedMesh(source, lodInfos, false);
         }
     }

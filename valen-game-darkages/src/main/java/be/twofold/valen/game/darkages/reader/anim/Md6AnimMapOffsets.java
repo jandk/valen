@@ -1,6 +1,6 @@
 package be.twofold.valen.game.darkages.reader.anim;
 
-import be.twofold.valen.core.io.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 
@@ -24,15 +24,15 @@ public record Md6AnimMapOffsets(
     short animTRLEOffset,
     short animURLEOffset
 ) {
-    public static Md6AnimMapOffsets read(BinaryReader reader) throws IOException {
-        var constRRLEOffset = reader.readShort();
-        var constSRLEOffset = reader.readShort();
-        var constTRLEOffset = reader.readShort();
-        var constURLEOffset = reader.readShort();
-        var animRRLEOffset = reader.readShort();
-        var animSRLEOffset = reader.readShort();
-        var animTRLEOffset = reader.readShort();
-        var animURLEOffset = reader.readShort();
+    public static Md6AnimMapOffsets read(BinarySource source) throws IOException {
+        var constRRLEOffset = source.readShort();
+        var constSRLEOffset = source.readShort();
+        var constTRLEOffset = source.readShort();
+        var constURLEOffset = source.readShort();
+        var animRRLEOffset = source.readShort();
+        var animSRLEOffset = source.readShort();
+        var animTRLEOffset = source.readShort();
+        var animURLEOffset = source.readShort();
 
         return new Md6AnimMapOffsets(
             constRRLEOffset,

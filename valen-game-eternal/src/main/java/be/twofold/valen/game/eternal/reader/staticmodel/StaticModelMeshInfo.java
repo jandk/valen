@@ -1,6 +1,6 @@
 package be.twofold.valen.game.eternal.reader.staticmodel;
 
-import be.twofold.valen.core.io.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 import java.util.*;
@@ -11,16 +11,16 @@ public record StaticModelMeshInfo(
     int unknown,
     List<StaticModelLodInfo> lodInfos
 ) {
-    public static StaticModelMeshInfo read(BinaryReader reader) throws IOException {
-        var mtlDecl = reader.readPString();
-        var unkHash = reader.readInt();
-        var unknown = reader.readInt();
-        reader.expectInt(0);
+    public static StaticModelMeshInfo read(BinarySource source) throws IOException {
+        var mtlDecl = source.readString(StringFormat.INT_LENGTH);
+        var unkHash = source.readInt();
+        var unknown = source.readInt();
+        source.expectInt(0);
 
         var lodInfos = new ArrayList<StaticModelLodInfo>();
         for (var lod = 0; lod < StaticModel.LodCount; lod++) {
-            if (!reader.readBoolInt()) {
-                lodInfos.add(StaticModelLodInfo.read(reader));
+            if (!source.readBool(BoolFormat.INT)) {
+                lodInfos.add(StaticModelLodInfo.read(source));
             }
         }
 

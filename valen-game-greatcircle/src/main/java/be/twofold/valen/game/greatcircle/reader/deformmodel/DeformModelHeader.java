@@ -1,6 +1,6 @@
 package be.twofold.valen.game.greatcircle.reader.deformmodel;
 
-import be.twofold.valen.core.io.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 import java.util.*;
@@ -13,15 +13,15 @@ public record DeformModelHeader(
     float unknown,
     List<String> bones2
 ) {
-    public static DeformModelHeader read(BinaryReader reader) throws IOException {
-        var modelAsset = reader.readPString();
-        var psdRig = reader.readPString();
-        var hcRig = reader.readPString();
-        var bones1 = reader.readObjects(reader.readInt(), BinaryReader::readPString);
-        float unknown = reader.readFloat();
-        var bones2 = reader.readObjects(reader.readInt(), BinaryReader::readPString);
+    public static DeformModelHeader read(BinarySource source) throws IOException {
+        var modelAsset = source.readString(StringFormat.INT_LENGTH);
+        var psdRig = source.readString(StringFormat.INT_LENGTH);
+        var hcRig = source.readString(StringFormat.INT_LENGTH);
+        var bones1 = source.readStrings(source.readInt(), StringFormat.INT_LENGTH);
+        float unknown = source.readFloat();
+        var bones2 = source.readStrings(source.readInt(), StringFormat.INT_LENGTH);
         for (int i = 0; i < 5; i++) {
-            reader.expectInt(0);
+            source.expectInt(0);
         }
 
         return new DeformModelHeader(

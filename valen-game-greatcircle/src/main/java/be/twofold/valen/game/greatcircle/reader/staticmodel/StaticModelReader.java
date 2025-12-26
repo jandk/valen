@@ -2,13 +2,13 @@ package be.twofold.valen.game.greatcircle.reader.staticmodel;
 
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.geometry.*;
-import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.math.*;
-import be.twofold.valen.core.util.*;
 import be.twofold.valen.game.greatcircle.*;
 import be.twofold.valen.game.greatcircle.reader.geometry.*;
 import be.twofold.valen.game.greatcircle.resource.*;
 import be.twofold.valen.game.idtech.geometry.*;
+import wtf.reversed.toolbox.io.*;
+import wtf.reversed.toolbox.util.*;
 
 import java.io.*;
 import java.util.*;
@@ -32,9 +32,9 @@ public final class StaticModelReader implements AssetReader<Model, GreatCircleAs
     }
 
     @Override
-    public Model read(BinaryReader reader, GreatCircleAsset asset) throws IOException {
-        var model = StaticModel.read(reader, (Integer) asset.properties().get("version"));
-        var meshes = new ArrayList<>(readMeshes(model, reader));
+    public Model read(BinarySource source, GreatCircleAsset asset) throws IOException {
+        var model = StaticModel.read(source, (Integer) asset.properties().get("version"));
+        var meshes = new ArrayList<>(readMeshes(model, source));
 
         if (readMaterials) {
             Materials.apply(archive, meshes, model.meshInfos(), StaticModelMeshInfo::mtlDecl, _ -> null);
@@ -42,18 +42,18 @@ public final class StaticModelReader implements AssetReader<Model, GreatCircleAs
         return new Model(meshes, Optional.empty(), Optional.of(asset.id().fullName()), Optional.empty(), Axis.Z);
     }
 
-    private List<Mesh> readMeshes(StaticModel model, BinaryReader reader) throws IOException {
+    private List<Mesh> readMeshes(StaticModel model, BinarySource source) throws IOException {
         if (!model.header().streamable()) {
-            return readEmbeddedGeometry(model, reader);
+            return readEmbeddedGeometry(model, source);
         }
         return readStreamedGeometry(model, 0);
     }
 
-    private List<Mesh> readEmbeddedGeometry(StaticModel model, BinaryReader reader) throws IOException {
+    private List<Mesh> readEmbeddedGeometry(StaticModel model, BinarySource source) throws IOException {
         List<Mesh> meshes = new ArrayList<>();
         for (var meshInfo : model.meshInfos()) {
-            Check.state(meshInfo.lodInfos().size() == 1);
-            meshes.add(GeometryReader.readEmbeddedMesh(reader, meshInfo.lodInfos().getFirst()));
+            Check.state(meshInfo.lodInfos().size() == 1, "Expected single LOD");
+            meshes.add(GeometryReader.readEmbeddedMesh(source, meshInfo.lodInfos().getFirst()));
         }
         return meshes;
     }
@@ -66,7 +66,7 @@ public final class StaticModelReader implements AssetReader<Model, GreatCircleAs
         var diskLayout = model.streamDiskLayouts().get(lod);
         var uncompressedSize = diskLayout.uncompressedSize();
         var bytes = archive.readStream(diskLayout.hash(), uncompressedSize);
-        var source = BinaryReader.fromBytes(bytes);
+        var source = BinarySource.wrap(bytes);
         return GeometryReader.readStreamedMesh(source, lods, diskLayout.memoryLayouts(), false);
     }
 }

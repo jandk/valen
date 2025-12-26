@@ -2,6 +2,7 @@ module valen.game.idtech {
     requires com.google.gson;
     requires org.slf4j;
     requires valen.core;
+    requires wtf.reversed.toolbox;
 
     exports be.twofold.valen.game.idtech.decl.parser;
     exports be.twofold.valen.game.idtech.decl;

@@ -1,7 +1,7 @@
 package be.twofold.valen.game.greatcircle.reader.staticmodel;
 
-import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.math.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 
@@ -10,13 +10,13 @@ public record StaticModelTextureAxis(
     Vector3 origin,
     Vector2 scale
 ) {
-    public static StaticModelTextureAxis read(BinaryReader reader, int version) throws IOException {
+    public static StaticModelTextureAxis read(BinarySource source, int version) throws IOException {
         var axis = version < 82
-            ? Matrix3.read(reader).toRotation()
-            : Quaternion.read(reader);
+            ? Matrix3.read(source).toRotation()
+            : Quaternion.read(source);
 
-        var origin = Vector3.read(reader);
-        var scale = Vector2.read(reader);
+        var origin = Vector3.read(source);
+        var scale = Vector2.read(source);
 
         return new StaticModelTextureAxis(
             axis,

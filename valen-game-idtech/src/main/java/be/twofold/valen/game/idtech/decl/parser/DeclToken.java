@@ -1,13 +1,13 @@
 package be.twofold.valen.game.idtech.decl.parser;
 
-import be.twofold.valen.core.util.*;
+import wtf.reversed.toolbox.util.*;
 
 public record DeclToken(
     DeclTokenType type,
     String value
 ) {
     public DeclToken {
-        Check.notNull(type, "type");
+        Check.nonNull(type, "type");
     }
 
     @Override

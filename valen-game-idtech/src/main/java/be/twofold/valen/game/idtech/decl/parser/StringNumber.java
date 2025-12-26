@@ -1,6 +1,6 @@
 package be.twofold.valen.game.idtech.decl.parser;
 
-import be.twofold.valen.core.util.*;
+import wtf.reversed.toolbox.util.*;
 
 import java.math.*;
 
@@ -9,7 +9,7 @@ final class StringNumber extends Number {
     private final String value;
 
     StringNumber(String value) {
-        this.value = Check.notNull(value, "value");
+        this.value = Check.nonNull(value, "value");
     }
 
     @Override

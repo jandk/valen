@@ -2,12 +2,12 @@ package be.twofold.valen.game.greatcircle.reader.deformmodel;
 
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.geometry.*;
-import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.math.*;
 import be.twofold.valen.game.greatcircle.*;
 import be.twofold.valen.game.greatcircle.reader.geometry.*;
 import be.twofold.valen.game.greatcircle.resource.*;
 import be.twofold.valen.game.idtech.geometry.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 import java.util.*;
@@ -27,8 +27,8 @@ public final class DeformModelReader implements AssetReader<Model, GreatCircleAs
     }
 
     @Override
-    public Model read(BinaryReader reader, GreatCircleAsset asset) throws IOException {
-        var deformModel = DeformModel.read(reader);
+    public Model read(BinarySource source, GreatCircleAsset asset) throws IOException {
+        var deformModel = DeformModel.read(source);
         var meshes = new ArrayList<>(readMeshes(deformModel, asset.hash()));
 
         if (readMaterials) {
@@ -60,7 +60,7 @@ public final class DeformModelReader implements AssetReader<Model, GreatCircleAs
 
         var identity = (hash << 4) | lod;
         var bytes = archive.readStream(identity, uncompressedSize);
-        try (var source = BinaryReader.fromBytes(bytes)) {
+        try (var source = BinarySource.wrap(bytes)) {
             return GeometryReader.readStreamedMesh(source, lodInfos, layouts, true);
         }
     }

@@ -2,7 +2,6 @@ package be.twofold.valen.ui.component.main;
 
 import be.twofold.valen.core.export.*;
 import be.twofold.valen.core.game.*;
-import be.twofold.valen.core.util.*;
 import be.twofold.valen.ui.common.settings.*;
 import be.twofold.valen.ui.component.*;
 import be.twofold.valen.ui.component.progress.*;
@@ -12,6 +11,7 @@ import javafx.concurrent.*;
 import javafx.scene.*;
 import javafx.stage.*;
 import org.slf4j.*;
+import wtf.reversed.toolbox.util.*;
 
 import java.nio.file.*;
 import java.util.*;
@@ -64,8 +64,8 @@ final class ExportService extends Service<Void> {
 
     @Override
     protected Task<Void> createTask() {
-        Check.notNull(this.archive, "archive");
-        Check.notNull(this.assets, "assets");
+        Check.nonNull(this.archive, "archive");
+        Check.nonNull(this.assets, "assets");
 
         ExportTask exportTask = new ExportTask();
         exportTask.setOnFailed(event -> Platform.runLater(() -> {

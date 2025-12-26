@@ -1,8 +1,8 @@
 package be.twofold.valen.game.darkages.reader.vegetation;
 
-import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.math.*;
 import be.twofold.valen.game.idtech.geometry.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 
@@ -23,23 +23,23 @@ public record VegetationLod(
     float unkFloat1,
     float unkFloat2
 ) implements LodInfo {
-    public static VegetationLod read(BinaryReader reader) throws IOException {
-        var unknown0 = reader.readInt();
-        var numVertices = reader.readInt();
-        var numIndices = reader.readInt();
-        var unknown1 = reader.readInt();
-        var unknown2 = reader.readInt();
-        var unknown3 = reader.readInt();
-        var vertexMask = reader.readInt();
-        var bounds = Bounds.read(reader);
-        var vertexOffset = Vector3.read(reader);
-        var vertexScale = reader.readFloat();
-        var uvOffset = Vector2.read(reader);
-        var uvScale = reader.readFloat();
-        var always0 = reader.readInt();
-        var unkFloat1 = reader.readFloat();
-        var unkFloat2 = reader.readFloat();
-        reader.expectInt(0x65474556); // VEGe
+    public static VegetationLod read(BinarySource source) throws IOException {
+        var unknown0 = source.readInt();
+        var numVertices = source.readInt();
+        var numIndices = source.readInt();
+        var unknown1 = source.readInt();
+        var unknown2 = source.readInt();
+        var unknown3 = source.readInt();
+        var vertexMask = source.readInt();
+        var bounds = Bounds.read(source);
+        var vertexOffset = Vector3.read(source);
+        var vertexScale = source.readFloat();
+        var uvOffset = Vector2.read(source);
+        var uvScale = source.readFloat();
+        var always0 = source.readInt();
+        var unkFloat1 = source.readFloat();
+        var unkFloat2 = source.readFloat();
+        source.expectInt(0x65474556); // VEGe
 
         return new VegetationLod(
             unknown0,

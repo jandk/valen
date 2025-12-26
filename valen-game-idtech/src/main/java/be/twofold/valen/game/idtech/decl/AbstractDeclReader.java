@@ -1,11 +1,11 @@
 package be.twofold.valen.game.idtech.decl;
 
 import be.twofold.valen.core.game.*;
-import be.twofold.valen.core.io.*;
-import be.twofold.valen.core.util.*;
-import be.twofold.valen.core.util.collect.*;
 import be.twofold.valen.game.idtech.decl.parser.*;
 import com.google.gson.*;
+import wtf.reversed.toolbox.collect.*;
+import wtf.reversed.toolbox.io.*;
+import wtf.reversed.toolbox.util.*;
 
 import java.io.*;
 import java.nio.charset.*;
@@ -30,8 +30,8 @@ public abstract class AbstractDeclReader<K extends AssetID, V extends Asset, A e
     public abstract K getAssetID(String name, K baseAssetID);
 
     @Override
-    public JsonObject read(BinaryReader reader, V asset) throws IOException {
-        var bytes = reader.readBytes(Math.toIntExact(reader.size()));
+    public JsonObject read(BinarySource source, V asset) throws IOException {
+        var bytes = source.readBytes(Math.toIntExact(source.size()));
         var object = DeclParser.parse(decode(bytes));
 
         @SuppressWarnings("unchecked")

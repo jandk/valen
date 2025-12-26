@@ -1,8 +1,6 @@
 package be.twofold.valen.game.greatcircle;
 
 import be.twofold.valen.core.game.*;
-import be.twofold.valen.core.util.*;
-import be.twofold.valen.core.util.collect.*;
 import be.twofold.valen.game.greatcircle.reader.decl.*;
 import be.twofold.valen.game.greatcircle.reader.decl.material2.*;
 import be.twofold.valen.game.greatcircle.reader.decl.renderparm.*;
@@ -13,6 +11,8 @@ import be.twofold.valen.game.greatcircle.reader.md6mesh.*;
 import be.twofold.valen.game.greatcircle.reader.md6skl.*;
 import be.twofold.valen.game.greatcircle.reader.staticmodel.*;
 import be.twofold.valen.game.greatcircle.reader.streamdb.*;
+import wtf.reversed.toolbox.collect.*;
+import wtf.reversed.toolbox.util.*;
 
 import java.io.*;
 import java.util.*;
@@ -28,9 +28,9 @@ public final class GreatCircleArchive extends Archive<GreatCircleAssetID, GreatC
         Container<GreatCircleAssetID, GreatCircleAsset> common,
         Container<GreatCircleAssetID, GreatCircleAsset> resources
     ) {
-        this.streams = Check.notNull(streams, "streams");
-        this.common = Check.notNull(common, "common");
-        this.resources = Check.notNull(resources, "resources");
+        this.streams = Check.nonNull(streams, "streams");
+        this.common = Check.nonNull(common, "common");
+        this.resources = Check.nonNull(resources, "resources");
     }
 
     @Override

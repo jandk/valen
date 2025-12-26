@@ -1,6 +1,6 @@
 package be.twofold.valen.game.greatcircle.reader.image;
 
-import be.twofold.valen.core.io.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 
@@ -16,17 +16,17 @@ public record ImageSlice(
     int size,
     int cumulativeSize
 ) {
-    public static ImageSlice read(BinaryReader reader) throws IOException {
-        var level = reader.readInt();
-        var slice = reader.readInt();
-        var width = reader.readInt();
-        var height = reader.readInt();
-        var unknown1 = reader.readInt();
-        var decompressedSize = reader.readInt();
-        var hash = reader.readLong();
-        var streamed = reader.readBoolInt();
-        var size = reader.readInt();
-        var cumulativeSize = reader.readInt();
+    public static ImageSlice read(BinarySource source) throws IOException {
+        var level = source.readInt();
+        var slice = source.readInt();
+        var width = source.readInt();
+        var height = source.readInt();
+        var unknown1 = source.readInt();
+        var decompressedSize = source.readInt();
+        var hash = source.readLong();
+        var streamed = source.readBool(BoolFormat.INT);
+        var size = source.readInt();
+        var cumulativeSize = source.readInt();
 
         return new ImageSlice(
             level,
