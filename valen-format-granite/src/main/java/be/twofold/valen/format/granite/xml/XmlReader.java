@@ -1,15 +1,10 @@
 package be.twofold.valen.format.granite.xml;
 
-import org.w3c.dom.*;
-import org.w3c.dom.Node;
-import org.xml.sax.*;
-
-import javax.xml.parsers.*;
+import javax.xml.stream.*;
 import java.io.*;
 import java.time.*;
 import java.time.format.*;
 import java.util.*;
-import java.util.stream.*;
 
 final class XmlReader {
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("dd-MM-yyyy hh:mm:ss.SSSSSSS a XXX");
@@ -19,59 +14,86 @@ final class XmlReader {
 
     static XmlProject load(String rawXml) throws IOException {
         try {
-            var document = DocumentBuilderFactory.newInstance()
-                .newDocumentBuilder()
-                .parse(new InputSource(new StringReader(rawXml)));
-            return new XmlReader().parseProject(document.getDocumentElement());
-        } catch (IOException e) {
-            throw e;
-        } catch (Exception e) {
+            var reader = XMLInputFactory.newInstance()
+                .createXMLStreamReader(new StringReader(rawXml));
+            return new XmlReader().parseProject(reader);
+        } catch (XMLStreamException e) {
             throw new IOException("Could not load xml project", e);
         }
     }
 
-    private XmlProject parseProject(Element element) {
-        var attrs = element.getAttributes();
-        var name = attrs.getNamedItem("Name").getNodeValue();
-        var guid = UUID.fromString(attrs.getNamedItem("Guid").getNodeValue());
-        var grBuildVersion = attrs.getNamedItem("GrBuildVersion").getNodeValue();
-        var buildProfile = attrs.getNamedItem("BuildProfile").getNodeValue();
-        var buildConfig = parseBuildConfig(findChild(element, "BuildConfig"));
-        var layerConfigElement = findChild(element, "LayerConfig");
-        var layerConfig = findChildren(layerConfigElement, "LayerDescription")
-            .map(this::parseLayerDescription)
-            .toList();
-        var importedAssetsElement = findChild(element, "ImportedAssets");
-        var importedAssets = findChildren(importedAssetsElement, "Asset")
-            .map(this::parseAsset)
-            .toList();
+    private XmlProject parseProject(XMLStreamReader reader) throws XMLStreamException {
+        while (reader.hasNext()) {
+            if (reader.next() == XMLStreamConstants.START_ELEMENT && reader.getLocalName().equals("Project")) {
+                var name = reader.getAttributeValue(null, "Name");
+                var guid = UUID.fromString(reader.getAttributeValue(null, "Guid"));
+                var grBuildVersion = reader.getAttributeValue(null, "GrBuildVersion");
+                var buildProfile = reader.getAttributeValue(null, "BuildProfile");
 
-        return new XmlProject(
-            name,
-            guid,
-            grBuildVersion,
-            buildProfile,
-            buildConfig,
-            layerConfig,
-            importedAssets
-        );
+                var buildConfig = (XmlBuildConfig) null;
+                var layerConfig = (List<XmlLayerDescription>) null;
+                var importedAssets = (List<XmlAsset>) null;
+
+                while (reader.hasNext()) {
+                    var event = reader.next();
+                    if (event == XMLStreamConstants.START_ELEMENT) {
+                        var elementName = reader.getLocalName();
+                        switch (elementName) {
+                            case "BuildConfig" -> buildConfig = parseBuildConfig(reader);
+                            case "LayerConfig" -> layerConfig = parseLayerConfig(reader);
+                            case "ImportedAssets" -> importedAssets = parseImportedAssets(reader);
+                        }
+                    } else if (event == XMLStreamConstants.END_ELEMENT && reader.getLocalName().equals("Project")) {
+                        break;
+                    }
+                }
+
+                return new XmlProject(name, guid, grBuildVersion, buildProfile, buildConfig, layerConfig, importedAssets);
+            }
+        }
+        throw new XMLStreamException("No Project element found");
     }
 
-    private XmlBuildConfig parseBuildConfig(Element element) {
-        var outputDirectory = findChild(element, "OutputDirectory").getTextContent();
-        var soupOutputDirectory = findChild(element, "SoupOutputDirectory").getTextContent();
-        var outputType = findChild(element, "OutputType").getTextContent();
-        var outputName = findChild(element, "OutputName").getTextContent();
-        var warningLevel = Integer.parseInt(findChild(element, "WarningLevel").getTextContent());
-        var logFile = findChild(element, "LogFile").getTextContent();
-        var tilingMode = findChild(element, "TilingMode").getTextContent();
-        var maximumAnisotropy = Integer.parseInt(findChild(element, "MaximumAnisotropy").getTextContent());
-        var customPageSize = Integer.parseInt(findChild(element, "CustomPageSize").getTextContent());
-        var customTargetDisk = findChild(element, "CustomTargetDisk").getTextContent();
-        var customBlockSize = Integer.parseInt(findChild(element, "CustomBlockSize").getTextContent());
-        var customTileWidth = Integer.parseInt(findChild(element, "CustomTileWidth").getTextContent());
-        var customTileHeight = Integer.parseInt(findChild(element, "CustomTileHeight").getTextContent());
-        var pagingStrategy = findChild(element, "PagingStrategy").getTextContent();
+    private XmlBuildConfig parseBuildConfig(XMLStreamReader reader) throws XMLStreamException {
+        var outputDirectory = (String) null;
+        var soupOutputDirectory = (String) null;
+        var outputType = (String) null;
+        var outputName = (String) null;
+        var warningLevel = 0;
+        var logFile = (String) null;
+        var tilingMode = (String) null;
+        var maximumAnisotropy = 0;
+        var customPageSize = 0;
+        var customTargetDisk = (String) null;
+        var customBlockSize = 0;
+        var customTileWidth = 0;
+        var customTileHeight = 0;
+        var pagingStrategy = (String) null;
+
+        while (reader.hasNext()) {
+            var event = reader.next();
+            if (event == XMLStreamConstants.START_ELEMENT) {
+                var text = reader.getElementText();
+                switch (reader.getLocalName()) {
+                    case "OutputDirectory" -> outputDirectory = text;
+                    case "SoupOutputDirectory" -> soupOutputDirectory = text;
+                    case "OutputType" -> outputType = text;
+                    case "OutputName" -> outputName = text;
+                    case "WarningLevel" -> warningLevel = Integer.parseInt(text);
+                    case "LogFile" -> logFile = text;
+                    case "TilingMode" -> tilingMode = text;
+                    case "MaximumAnisotropy" -> maximumAnisotropy = Integer.parseInt(text);
+                    case "CustomPageSize" -> customPageSize = Integer.parseInt(text);
+                    case "CustomTargetDisk" -> customTargetDisk = text;
+                    case "CustomBlockSize" -> customBlockSize = Integer.parseInt(text);
+                    case "CustomTileWidth" -> customTileWidth = Integer.parseInt(text);
+                    case "CustomTileHeight" -> customTileHeight = Integer.parseInt(text);
+                    case "PagingStrategy" -> pagingStrategy = text;
+                }
+            } else if (event == XMLStreamConstants.END_ELEMENT && reader.getLocalName().equals("BuildConfig")) {
+                break;
+            }
+        }
 
         return new XmlBuildConfig(
             outputDirectory,
@@ -91,127 +113,108 @@ final class XmlReader {
         );
     }
 
-    private XmlLayerDescription parseLayerDescription(Element element) {
-        var attrs = element.getAttributes();
-        var name = attrs.getNamedItem("Name") == null ? null : attrs.getNamedItem("Name").getNodeValue();
-        var compressionFormat = attrs.getNamedItem("CompressionFormat").getNodeValue();
-        var qualityProfile = attrs.getNamedItem("QualityProfile").getNodeValue();
-        var dataType = attrs.getNamedItem("DataType").getNodeValue();
-        var defaultColor = attrs.getNamedItem("DefaultColor").getNodeValue();
+    private List<XmlLayerDescription> parseLayerConfig(XMLStreamReader reader) throws XMLStreamException {
+        var layerDescriptions = new ArrayList<XmlLayerDescription>();
 
-        return new XmlLayerDescription(
-            name,
-            compressionFormat,
-            qualityProfile,
-            dataType,
-            defaultColor
-        );
-    }
-
-    private XmlAsset parseAsset(Element element) {
-        var attrs = element.getAttributes();
-        var name = attrs.getNamedItem("Name").getNodeValue();
-        var guid = UUID.fromString(attrs.getNamedItem("GUID").getNodeValue().substring(1, 37));
-        var width = Integer.parseInt(attrs.getNamedItem("Width").getNodeValue());
-        var height = Integer.parseInt(attrs.getNamedItem("Height").getNodeValue());
-        var targetWidth = Integer.parseInt(attrs.getNamedItem("TargetWidth").getNodeValue());
-        var targetHeight = Integer.parseInt(attrs.getNamedItem("TargetHeight").getNodeValue());
-        var autoScalingMode = attrs.getNamedItem("AutoScalingMode").getNodeValue();
-        var tilingMethod = attrs.getNamedItem("TilingMethod").getNodeValue();
-        var type = attrs.getNamedItem("Type").getNodeValue();
-
-        var layersNode = findChild(element, "Layers");
-        var layers = findChildren(layersNode)
-            .map(this::parseLayer)
-            .toList();
-
-        return new XmlAsset(
-            name,
-            guid,
-            width,
-            height,
-            targetWidth,
-            targetHeight,
-            autoScalingMode,
-            tilingMethod,
-            type,
-            layers
-        );
-    }
-
-    private XmlLayer parseLayer(Element element) {
-        var attrs = element.getAttributes();
-        var qualityProfile = attrs.getNamedItem("QualityProfile").getNodeValue();
-        var flip = attrs.getNamedItem("Flip").getNodeValue();
-        var targetWidth = Integer.parseInt(attrs.getNamedItem("TargetWidth").getNodeValue());
-        var targetHeight = Integer.parseInt(attrs.getNamedItem("TargetHeight").getNodeValue());
-        var resizeMode = attrs.getNamedItem("ResizeMode").getNodeValue();
-        var mipSource = attrs.getNamedItem("MipSource").getNodeValue();
-        var textureType = attrs.getNamedItem("TextureType").getNodeValue();
-        var assetPackingMode = attrs.getNamedItem("AssetPackingMode").getNodeValue();
-
-        var texturesNode = findChild(element, "Textures");
-        var textures = findChildren(texturesNode)
-            .map(this::parseTexture)
-            .toList();
-
-        return new XmlLayer(
-            qualityProfile,
-            flip,
-            targetWidth,
-            targetHeight,
-            resizeMode,
-            mipSource,
-            textureType,
-            assetPackingMode,
-            textures
-        );
-    }
-
-    private XmlTexture parseTexture(Element element) {
-        var attrs = element.getAttributes();
-        var src = attrs.getNamedItem("Src").getNodeValue();
-        var row = Optional.ofNullable(attrs.getNamedItem("Row")).map(node -> Integer.parseInt(node.getNodeValue()));
-        var column = Optional.ofNullable(attrs.getNamedItem("Column")).map(node -> Integer.parseInt(node.getNodeValue()));
-        var subIndex = Integer.parseInt(attrs.getNamedItem("SubIndex").getNodeValue());
-        var width = Integer.parseInt(attrs.getNamedItem("Width").getNodeValue());
-        var height = Integer.parseInt(attrs.getNamedItem("Height").getNodeValue());
-        var arrayIndex = Integer.parseInt(attrs.getNamedItem("ArrayIndex").getNodeValue());
-        var lastChangeDate = OffsetDateTime.parse(attrs.getNamedItem("LastChangeDate").getNodeValue(), FORMATTER).toInstant();
-        var numChannels = Integer.parseInt(attrs.getNamedItem("NumChannels").getNodeValue());
-
-        return new XmlTexture(
-            src,
-            row,
-            column,
-            subIndex,
-            width,
-            height,
-            arrayIndex,
-            lastChangeDate,
-            numChannels
-        );
-    }
-
-    private Stream<Element> findChildren(Node node) {
-        var childNodes = node.getChildNodes();
-        return IntStream.range(0, childNodes.getLength())
-            .mapToObj(childNodes::item)
-            .filter(n -> n.getNodeType() == Node.ELEMENT_NODE)
-            .map(n -> (Element) n);
-    }
-
-    private Stream<Element> findChildren(Node node, String name) {
-        return findChildren(node)
-            .filter(n -> n.getNodeName().equals(name));
-    }
-
-    private Element findChild(Node node, String name) {
-        var iterator = findChildren(node, name).iterator();
-        var result = iterator.next();
-        if (iterator.hasNext()) {
-            throw new IllegalStateException("Expected one of " + name);
+        while (reader.hasNext()) {
+            var event = reader.next();
+            if (event == XMLStreamConstants.START_ELEMENT && reader.getLocalName().equals("LayerDescription")) {
+                layerDescriptions.add(parseLayerDescription(reader));
+            } else if (event == XMLStreamConstants.END_ELEMENT && reader.getLocalName().equals("LayerConfig")) {
+                break;
+            }
         }
-        return result;
+
+        return layerDescriptions;
+    }
+
+    private static XmlLayerDescription parseLayerDescription(XMLStreamReader reader) {
+        var name = reader.getAttributeValue(null, "Name");
+        var compressionFormat = reader.getAttributeValue(null, "CompressionFormat");
+        var qualityProfile = reader.getAttributeValue(null, "QualityProfile");
+        var dataType = reader.getAttributeValue(null, "DataType");
+        var defaultColor = reader.getAttributeValue(null, "DefaultColor");
+        return new XmlLayerDescription(name, compressionFormat, qualityProfile, dataType, defaultColor);
+    }
+
+    private List<XmlAsset> parseImportedAssets(XMLStreamReader reader) throws XMLStreamException {
+        var assets = new ArrayList<XmlAsset>();
+        while (reader.hasNext()) {
+            var event = reader.next();
+            if (event == XMLStreamConstants.START_ELEMENT && reader.getLocalName().equals("Asset")) {
+                assets.add(parseAsset(reader));
+            } else if (event == XMLStreamConstants.END_ELEMENT && reader.getLocalName().equals("ImportedAssets")) {
+                break;
+            }
+        }
+        return assets;
+    }
+
+    private XmlAsset parseAsset(XMLStreamReader reader) throws XMLStreamException {
+        var name = reader.getAttributeValue(null, "Name");
+        var guid = UUID.fromString(reader.getAttributeValue(null, "GUID").substring(1, 37));
+        var width = Integer.parseInt(reader.getAttributeValue(null, "Width"));
+        var height = Integer.parseInt(reader.getAttributeValue(null, "Height"));
+        var targetWidth = Integer.parseInt(reader.getAttributeValue(null, "TargetWidth"));
+        var targetHeight = Integer.parseInt(reader.getAttributeValue(null, "TargetHeight"));
+        var autoScalingMode = reader.getAttributeValue(null, "AutoScalingMode");
+        var tilingMethod = reader.getAttributeValue(null, "TilingMethod");
+        var type = reader.getAttributeValue(null, "Type");
+
+        var layers = new ArrayList<XmlLayer>();
+        while (reader.hasNext()) {
+            var event = reader.next();
+            if (event == XMLStreamConstants.START_ELEMENT && reader.getLocalName().equals("Layer")) {
+                layers.add(parseLayer(reader));
+            } else if (event == XMLStreamConstants.END_ELEMENT && reader.getLocalName().equals("Asset")) {
+                break;
+            }
+        }
+
+        return new XmlAsset(name, guid, width, height, targetWidth, targetHeight, autoScalingMode, tilingMethod, type, layers);
+    }
+
+    private XmlLayer parseLayer(XMLStreamReader reader) throws XMLStreamException {
+        var qualityProfile = reader.getAttributeValue(null, "QualityProfile");
+        var flip = reader.getAttributeValue(null, "Flip");
+        var targetWidth = Integer.parseInt(reader.getAttributeValue(null, "TargetWidth"));
+        var targetHeight = Integer.parseInt(reader.getAttributeValue(null, "TargetHeight"));
+        var resizeMode = reader.getAttributeValue(null, "ResizeMode");
+        var mipSource = reader.getAttributeValue(null, "MipSource");
+        var textureType = reader.getAttributeValue(null, "TextureType");
+        var assetPackingMode = reader.getAttributeValue(null, "AssetPackingMode");
+
+        var textures = new ArrayList<XmlTexture>();
+        while (reader.hasNext()) {
+            var event = reader.next();
+            if (event == XMLStreamConstants.START_ELEMENT && reader.getLocalName().equals("Texture")) {
+                textures.add(parseTexture(reader));
+            } else if (event == XMLStreamConstants.END_ELEMENT && reader.getLocalName().equals("Layer")) {
+                break;
+            }
+        }
+
+        return new XmlLayer(qualityProfile, flip, targetWidth, targetHeight, resizeMode, mipSource, textureType, assetPackingMode, textures);
+    }
+
+    private XmlTexture parseTexture(XMLStreamReader reader) throws XMLStreamException {
+        var src = reader.getAttributeValue(null, "Src");
+        var row = Optional.ofNullable(reader.getAttributeValue(null, "Row")).map(Integer::parseInt);
+        var column = Optional.ofNullable(reader.getAttributeValue(null, "Column")).map(Integer::parseInt);
+        var subIndex = Integer.parseInt(reader.getAttributeValue(null, "SubIndex"));
+        var width = Integer.parseInt(reader.getAttributeValue(null, "Width"));
+        var height = Integer.parseInt(reader.getAttributeValue(null, "Height"));
+        var arrayIndex = Integer.parseInt(reader.getAttributeValue(null, "ArrayIndex"));
+        var lastChangeDate = OffsetDateTime.parse(reader.getAttributeValue(null, "LastChangeDate"), FORMATTER).toInstant();
+        var numChannels = Integer.parseInt(reader.getAttributeValue(null, "NumChannels"));
+
+        while (reader.hasNext()) {
+            var event = reader.next();
+            if (event == XMLStreamConstants.END_ELEMENT && reader.getLocalName().equals("Texture")) {
+                break;
+            }
+        }
+
+        return new XmlTexture(src, row, column, subIndex, width, height, arrayIndex, lastChangeDate, numChannels);
     }
 }
