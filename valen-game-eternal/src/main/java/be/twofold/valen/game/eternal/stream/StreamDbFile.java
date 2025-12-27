@@ -1,14 +1,14 @@
 package be.twofold.valen.game.eternal.stream;
 
-import be.twofold.valen.core.compression.*;
 import be.twofold.valen.core.game.*;
-import be.twofold.valen.core.io.*;
-import be.twofold.valen.core.util.*;
 import be.twofold.valen.game.eternal.reader.streamdb.*;
 import org.slf4j.*;
+import wtf.reversed.toolbox.collect.*;
+import wtf.reversed.toolbox.compress.*;
+import wtf.reversed.toolbox.io.*;
+import wtf.reversed.toolbox.util.*;
 
 import java.io.*;
-import java.nio.*;
 import java.nio.file.*;
 import java.util.*;
 import java.util.function.*;
@@ -20,13 +20,13 @@ public final class StreamDbFile implements Container<Long, StreamDbEntry> {
     private final Map<Long, StreamDbEntry> index;
     private final Decompressor decompressor;
     private final Path path;
-    private DataSource source;
+    private BinarySource source;
 
     public StreamDbFile(Path path, Decompressor decompressor) throws IOException {
         log.info("Loading streamdb: {}", path);
-        this.decompressor = Check.notNull(decompressor);
-        this.path = Check.notNull(path);
-        this.source = DataSource.fromPath(path);
+        this.decompressor = Check.nonNull(decompressor, "decompressor");
+        this.path = Check.nonNull(path, "path");
+        this.source = BinarySource.open(path);
 
         var entries = StreamDb.read(source).entries();
         this.index = entries.stream()
@@ -47,14 +47,14 @@ public final class StreamDbFile implements Container<Long, StreamDbEntry> {
     }
 
     @Override
-    public ByteBuffer read(Long key, Integer size) throws IOException {
+    public Bytes read(Long key, Integer size) throws IOException {
         var entry = index.get(key);
         Check.state(entry != null, () -> "Stream not found: " + key);
 
         log.debug("Reading stream: {}", String.format("%016X", entry.identity()));
         source.position(entry.offset());
-        var compressed = source.readBuffer(entry.length());
-        if (compressed.remaining() == size) {
+        var compressed = source.readBytes(entry.length());
+        if (compressed.length() == size) {
             return compressed;
         }
 

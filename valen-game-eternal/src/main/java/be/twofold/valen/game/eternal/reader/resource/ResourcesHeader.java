@@ -1,6 +1,6 @@
 package be.twofold.valen.game.eternal.reader.resource;
 
-import be.twofold.valen.core.io.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 
@@ -18,7 +18,7 @@ public record ResourcesHeader(
     int addrData,
     int addrEndMarker
 ) {
-    public static ResourcesHeader read(DataSource source) throws IOException {
+    public static ResourcesHeader read(BinarySource source) throws IOException {
         source.expectInt(0x4c434449);
         source.expectInt(12);
         source.expectInt(0);

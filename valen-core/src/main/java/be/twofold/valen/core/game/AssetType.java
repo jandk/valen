@@ -4,15 +4,14 @@ import be.twofold.valen.core.animation.*;
 import be.twofold.valen.core.geometry.*;
 import be.twofold.valen.core.material.*;
 import be.twofold.valen.core.texture.*;
-
-import java.nio.*;
+import wtf.reversed.toolbox.collect.*;
 
 public enum AssetType {
     ANIMATION(Animation.class, "Animation"),
     MATERIAL(Material.class, "Material"),
     MODEL(Model.class, "Model"),
     TEXTURE(Texture.class, "Texture"),
-    RAW(ByteBuffer.class, "Raw"),
+    RAW(Bytes.class, "Raw"),
     ;
 
     private final Class<?> type;

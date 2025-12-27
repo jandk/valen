@@ -1,12 +1,12 @@
 package be.twofold.valen.ui.component.settings;
 
+import backbonefx.event.*;
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.ui.common.*;
-import be.twofold.valen.ui.common.event.*;
 import jakarta.inject.*;
 import javafx.geometry.*;
-import javafx.scene.Node;
 import javafx.scene.*;
+import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 
@@ -18,7 +18,7 @@ public final class SettingsFXView implements SettingsView, FXView {
 
     private final VBox view = new VBox();
     private final VBox assetTypesVbox = new VBox(10);
-    private final SendChannel<SettingsViewEvent> channel;
+    private final EventBus eventBus;
 
     private final Map<AssetType, CheckBox> assetTypes = new LinkedHashMap<>();
     private final ComboBox<Map.Entry<String, String>> textureFormat = createFormatComboBox();
@@ -27,7 +27,7 @@ public final class SettingsFXView implements SettingsView, FXView {
 
     @Inject
     SettingsFXView(EventBus eventBus) {
-        this.channel = eventBus.senderFor(SettingsViewEvent.class);
+        this.eventBus = eventBus;
 
         buildUI();
     }
@@ -133,7 +133,7 @@ public final class SettingsFXView implements SettingsView, FXView {
 
     private Node buildButtonBox() {
         var applyButton = new Button("Apply");
-        applyButton.setOnAction(event -> channel.send(new SettingsViewEvent.Applied()));
+        applyButton.setOnAction(event -> eventBus.publish(new SettingsViewEvent.Applied()));
         VBox.setMargin(applyButton, new Insets(10));
         return applyButton;
     }

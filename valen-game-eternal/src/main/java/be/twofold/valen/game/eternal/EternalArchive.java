@@ -1,14 +1,10 @@
 package be.twofold.valen.game.eternal;
 
-import be.twofold.valen.core.compression.*;
 import be.twofold.valen.core.game.*;
-import be.twofold.valen.core.io.*;
-import be.twofold.valen.core.util.*;
 import be.twofold.valen.game.eternal.reader.binaryfile.*;
 import be.twofold.valen.game.eternal.reader.decl.*;
 import be.twofold.valen.game.eternal.reader.decl.material2.*;
 import be.twofold.valen.game.eternal.reader.decl.renderparm.*;
-import be.twofold.valen.game.eternal.reader.file.*;
 import be.twofold.valen.game.eternal.reader.file.FileReader;
 import be.twofold.valen.game.eternal.reader.filecompressed.*;
 import be.twofold.valen.game.eternal.reader.image.*;
@@ -19,17 +15,19 @@ import be.twofold.valen.game.eternal.reader.md6model.*;
 import be.twofold.valen.game.eternal.reader.md6skel.*;
 import be.twofold.valen.game.eternal.reader.staticmodel.*;
 import be.twofold.valen.game.eternal.reader.streamdb.*;
+import wtf.reversed.toolbox.collect.*;
+import wtf.reversed.toolbox.compress.*;
+import wtf.reversed.toolbox.util.*;
 
 import java.io.*;
-import java.nio.*;
 import java.util.*;
 import java.util.stream.*;
 
-public final class EternalArchive implements Archive<EternalAssetID, EternalAsset> {
+public final class EternalArchive extends Archive<EternalAssetID, EternalAsset> {
     private final Container<Long, StreamDbEntry> streams;
     private final Container<EternalAssetID, EternalAsset> common;
     private final Container<EternalAssetID, EternalAsset> resources;
-    private final AssetReaders<EternalAsset> readers;
+    private final Decompressor decompressor;
 
     EternalArchive(
         Container<Long, StreamDbEntry> streams,
@@ -37,14 +35,17 @@ public final class EternalArchive implements Archive<EternalAssetID, EternalAsse
         Container<EternalAssetID, EternalAsset> resources,
         Decompressor decompressor
     ) {
-        this.streams = Check.notNull(streams, "streams");
-        this.common = Check.notNull(common, "common");
-        this.resources = Check.notNull(resources, "resources");
-        Check.notNull(decompressor, "decompressor");
+        this.streams = Check.nonNull(streams, "streams");
+        this.common = Check.nonNull(common, "common");
+        this.resources = Check.nonNull(resources, "resources");
+        this.decompressor = Check.nonNull(decompressor, "decompressor");
+    }
 
+    @Override
+    public List<AssetReader<?, EternalAsset>> createReaders() {
         var declReader = new DeclReader(this);
 
-        this.readers = new AssetReaders<>(List.of(
+        return List.of(
             declReader,
             // Binary converters
             new BinaryFileReader(),
@@ -61,7 +62,13 @@ public final class EternalArchive implements Archive<EternalAssetID, EternalAsse
             new Md6SkelReader(),
             new RenderParmReader(),
             new StaticModelReader(this)
-        ));
+        );
+    }
+
+    @Override
+    public Optional<EternalAsset> get(EternalAssetID key) {
+        return resources.get(key)
+            .or(() -> common.get(key));
     }
 
     @Override
@@ -72,30 +79,17 @@ public final class EternalArchive implements Archive<EternalAssetID, EternalAsse
     }
 
     @Override
-    public Optional<EternalAsset> get(EternalAssetID key) {
-        return resources.get(key)
-            .or(() -> common.get(key));
-    }
-
-    @Override
-    public <T> T loadAsset(EternalAssetID identifier, Class<T> clazz) throws IOException {
-        var asset = get(identifier)
-            .orElseThrow(FileNotFoundException::new);
-
-        var buffer = resources.exists(asset.id())
-            ? resources.read(asset.id(), null)
-            : common.read(asset.id(), null);
-
-        try (var source = DataSource.fromBuffer(buffer)) {
-            return readers.read(asset, source, clazz);
-        }
+    public Bytes read(EternalAssetID identifier, Integer size) throws IOException {
+        return resources.exists(identifier)
+            ? resources.read(identifier, null)
+            : common.read(identifier, null);
     }
 
     public boolean containsStream(long identifier) {
         return streams.exists(identifier);
     }
 
-    public ByteBuffer readStream(long identifier, int size) throws IOException {
+    public Bytes readStream(long identifier, int size) throws IOException {
         return streams.read(identifier, size);
     }
 

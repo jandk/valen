@@ -1,5 +1,7 @@
 package be.twofold.valen.core.texture;
 
+import wtf.reversed.toolbox.util.*;
+
 import java.util.*;
 import java.util.stream.*;
 
@@ -10,12 +12,8 @@ public record Channels(
     Surface alpha
 ) {
     public Channels {
-        if (red == null && green == null && blue == null && alpha == null) {
-            throw new IllegalArgumentException("Need at least one surface");
-        }
-        if (!matches(red, green) || !matches(green, blue) || !matches(blue, alpha)) {
-            throw new IllegalArgumentException("Not all surfaces match");
-        }
+        Check.argument(red != null || green != null || blue != null || alpha != null, "Need at least one surface");
+        Check.argument(matches(red, green) && matches(green, blue) && matches(blue, alpha), "Not all surfaces match");
     }
 
     private static boolean matches(Surface first, Surface second) {

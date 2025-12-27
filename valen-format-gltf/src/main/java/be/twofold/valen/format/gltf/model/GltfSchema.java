@@ -21,7 +21,7 @@ import java.util.*;
 /**
  * The root object for a glTF asset.
  */
-@Schema2Style
+@SchemaStyle
 @Value.Immutable
 public interface GltfSchema extends GltfProperty {
 

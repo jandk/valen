@@ -1,0 +1,69 @@
+//------------------------------------------------
+//--- 010 Editor v15.0.2 Binary Template
+//
+//      File: 
+//   Authors: 
+//   Version: 
+//   Purpose: 
+//  Category: 
+// File Mask: 
+//  ID Bytes: 
+//   History: 
+//------------------------------------------------
+#include "common.bt"
+
+typedef struct {
+    u16 x;
+    u16 y;
+} Vec2u16 <read=Str("(%d, %d)", x, y)>;
+
+typedef struct {
+    u16 x;
+    u16 y;
+    u16 z;
+    u16 w;
+} Vec4u16 <read=Str("(%d, %d, %d, %d)", x, y, z, w)>;
+
+struct HairHeader {
+    u32 numStrands;
+    u32 numParticles;
+    u32 numSegments;
+    u32 numBlendShapeLODs;
+    Vec3 compressionPosBias;
+    f32 compressionPosScale;
+    PString32 blendShapeMatchMeshName;
+    f32 strandThickness;
+    f32 averageSegmentLength;
+    u8  allowSimulation;
+    Bounds bounds;
+    Bounds tightBounds;
+} header <style=sHeading1>;
+
+uint particleSumPerStrand[header.numStrands] <style=sSection1>;
+
+uint numMaterials;
+PString32 materials[numMaterials] <optimize=false>;
+
+Vec4u16 sourcePositions[header.numParticles] <style=sSection2>;
+u32     particleInfo[header.numParticles] <style=sSection3>;
+
+u32 segments[header.numSegments] <style=sSection4>;
+u16 unknown1[header.numParticles] <style=sSection1>;
+
+if (header.allowSimulation != 0) {
+    struct hairStrandInfoGPU_t {
+        u32 idxFirstPoint;
+        u32 numPointsAndStrandIdx;
+    } strands[header.numStrands] <style=sSection2>;
+    
+    float   particleStrandDistances[header.numStrands] <style=sSection3>;
+    Vec2u16 strandRootUVs[header.numStrands] <style=sSection3>;
+}
+
+// Size: 16 (0x10)
+struct hairStrandBlendShape_t {
+    i32 idxTriangle;
+    i32 barycentrics;
+    i32 triangleNormal;
+    i32 triangleSide;
+} strandBlendShapeInfo[header.numStrands * header.numBlendShapeLODs] <style=sSection4>;

@@ -1,6 +1,7 @@
 package be.twofold.valen.core.math;
 
-import be.twofold.valen.core.io.*;
+import wtf.reversed.toolbox.collect.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 
@@ -13,14 +14,14 @@ public record Matrix4(
 
     // region Constants and Factories
 
-    public static Matrix4 Zero = new Matrix4(
+    public static final Matrix4 Zero = new Matrix4(
         0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f
     );
 
-    public static Matrix4 Identity = new Matrix4(
+    public static final Matrix4 Identity = new Matrix4(
         1.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 1.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 1.0f, 0.0f,
@@ -98,7 +99,16 @@ public record Matrix4(
         );
     }
 
-    public static Matrix4 read(DataSource source) throws IOException {
+    public static Matrix4 fromFloats(Floats floats) {
+        return new Matrix4(
+            floats.get(+0), floats.get(+1), floats.get(+2), floats.get(+3),
+            floats.get(+4), floats.get(+5), floats.get(+6), floats.get(+7),
+            floats.get(+8), floats.get(+9), floats.get(10), floats.get(11),
+            floats.get(12), floats.get(13), floats.get(14), floats.get(15)
+        );
+    }
+
+    public static Matrix4 read(BinarySource source) throws IOException {
         float m00 = source.readFloat();
         float m01 = source.readFloat();
         float m02 = source.readFloat();

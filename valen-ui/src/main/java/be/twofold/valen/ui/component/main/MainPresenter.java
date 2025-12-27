@@ -1,26 +1,29 @@
 package be.twofold.valen.ui.component.main;
 
+import backbonefx.event.*;
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.ui.*;
 import be.twofold.valen.ui.common.*;
-import be.twofold.valen.ui.common.event.*;
 import be.twofold.valen.ui.common.settings.*;
+import be.twofold.valen.ui.component.*;
 import be.twofold.valen.ui.component.filelist.*;
 import be.twofold.valen.ui.events.*;
 import jakarta.inject.*;
 import javafx.application.*;
 import javafx.concurrent.*;
 import org.jetbrains.annotations.*;
+import org.slf4j.*;
+import wtf.reversed.toolbox.collect.*;
 
 import java.io.*;
-import java.nio.*;
 import java.util.*;
 import java.util.function.*;
 import java.util.stream.*;
 
 public final class MainPresenter extends AbstractFXPresenter<MainView> {
+    private final Logger log = LoggerFactory.getLogger(MainPresenter.class);
+
     private final ExportService exportService;
-    private final SendChannel<MainEvent> channel;
     private final FileListPresenter fileList;
     private final Settings settings;
 
@@ -39,45 +42,28 @@ public final class MainPresenter extends AbstractFXPresenter<MainView> {
     ) {
         super(view);
 
-        this.channel = eventBus.senderFor(MainEvent.class);
         this.fileList = fileList;
         this.settings = settings;
         this.exportService = exportService;
 
-        eventBus
-            .receiverFor(MainViewEvent.class)
-            .consume(event -> {
-                switch (event) {
-                    case MainViewEvent.ArchiveSelected(var name) -> selectArchive(name);
-                    case MainViewEvent.PreviewVisibilityChanged(var visible) -> showPreview(visible);
-                    case MainViewEvent.SettingVisibilityChanged(var visible) -> showSettings(visible);
-                    case MainViewEvent.LoadGameClicked _ -> channel.send(new MainEvent.GameLoadRequested());
-                    case MainViewEvent.ExportClicked() -> exportSelectedAssets();
-                    case MainViewEvent.SearchChanged(var query) -> {
-                        this.query = query;
-                        updateFileList();
-                    }
+        eventBus.subscribe(MainViewEvent.class, event -> {
+            switch (event) {
+                case MainViewEvent.ArchiveSelected(var name) -> selectArchive(name);
+                case MainViewEvent.PreviewVisibilityChanged(var visible) -> showPreview(visible);
+                case MainViewEvent.SettingVisibilityChanged(var visible) -> showSettings(visible);
+                case MainViewEvent.LoadGameClicked _ -> eventBus.publish(new MainEvent.GameLoadRequested());
+                case MainViewEvent.ExportClicked() -> exportSelectedAssets();
+                case MainViewEvent.SearchChanged(var query) -> {
+                    this.query = query;
+                    updateFileList();
                 }
-            });
-
-        eventBus
-            .receiverFor(AssetSelected.class)
-            .consume(event -> selectAsset(event.asset()));
-
-        eventBus
-            .receiverFor(SettingsApplied.class)
-            .consume(_ -> updateFileList());
-
-        eventBus
-            .receiverFor(ExportRequested.class)
-            .consume(event -> exportPath(event.path(), event.recursive()));
-
-        exportService.progressProperty().addListener((_, _, newValue) -> {
-            getView().setProgress(newValue.doubleValue());
+            }
         });
-        exportService.messageProperty().addListener((_, _, newValue) -> {
-            getView().setProgressMessage(newValue);
-        });
+
+        eventBus.subscribe(AssetSelected.class, event -> selectAsset(event.asset(), event.forced()));
+        eventBus.subscribe(SettingsApplied.class, _ -> updateFileList());
+        eventBus.subscribe(ExportRequested.class, event -> exportPath(event.path(), event.recursive()));
+
         exportService.stateProperty().addListener((_, _, newValue) -> {
             getView().setExporting(newValue == Worker.State.RUNNING);
         });
@@ -93,21 +79,26 @@ public final class MainPresenter extends AbstractFXPresenter<MainView> {
             archive = (Archive<AssetID, Asset>) game.loadArchive(archiveName);
             updateFileList();
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            log.error("Could not load archive {}", archiveName, e);
+            FxUtils.showExceptionDialog(e, "Could not load archive " + archiveName);
         }
     }
 
-    private void selectAsset(Asset asset) {
+    private void selectAsset(Asset asset, boolean forced) {
+        if (forced) {
+            Platform.runLater(() -> getView().showPreview(true));
+        }
         if (getView().isSidePaneVisible() && archive != null) {
             try {
                 var type = switch (asset.type()) {
                     case MODEL, TEXTURE -> asset.type().getType();
-                    default -> ByteBuffer.class;
+                    default -> Bytes.class;
                 };
                 var assetData = archive.loadAsset(asset.id(), type);
                 Platform.runLater(() -> getView().setupPreview(asset, assetData));
             } catch (IOException e) {
-                throw new UncheckedIOException(e);
+                log.error("Could not load asset {}", asset.id().fileName(), e);
+                FxUtils.showExceptionDialog(e, "Could not load asset " + asset.id().fileName());
             }
         }
         lastAsset = asset;
@@ -115,7 +106,7 @@ public final class MainPresenter extends AbstractFXPresenter<MainView> {
 
     private void showPreview(boolean visible) {
         if (visible && lastAsset != null) {
-            selectAsset(lastAsset);
+            selectAsset(lastAsset, false);
         }
     }
 

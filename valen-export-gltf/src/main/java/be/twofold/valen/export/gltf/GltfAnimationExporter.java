@@ -6,7 +6,7 @@ import be.twofold.valen.format.gltf.*;
 
 import java.io.*;
 
-public final class GltfAnimationExporter extends AbstractGltfExporter<Animation> {
+public final class GltfAnimationExporter extends GltfExporter<Animation> {
     @Override
     public String getID() {
         return "animation.gltf";

@@ -1,10 +1,10 @@
 package be.twofold.valen.game.eternal.reader.image;
 
 import be.twofold.valen.core.game.*;
-import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.texture.*;
 import be.twofold.valen.game.eternal.*;
 import be.twofold.valen.game.eternal.resource.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 
@@ -27,12 +27,12 @@ public final class ImageReader implements AssetReader<Texture, EternalAsset> {
     }
 
     @Override
-    public Texture read(DataSource source, EternalAsset resource) throws IOException {
+    public Texture read(BinarySource source, EternalAsset resource) throws IOException {
         var image = read(source, resource.hash());
         return new ImageMapper().map(image);
     }
 
-    public Image read(DataSource source, long hash) throws IOException {
+    public Image read(BinarySource source, long hash) throws IOException {
         var image = Image.read(source);
         source.expectEnd();
 
@@ -56,9 +56,9 @@ public final class ImageReader implements AssetReader<Texture, EternalAsset> {
         var lastMip = image.mipInfos().getLast();
         var uncompressedSize = lastMip.cumulativeSizeStreamDB() + lastMip.decompressedSize();
         var bytes = archive.readStream(hash, uncompressedSize);
-        try (var mipSource = DataSource.fromBuffer(bytes)) {
+        try (var mipSource = BinarySource.wrap(bytes)) {
             for (var i = 0; i < image.header().totalMipCount(); i++) {
-                image.mipData()[i] = mipSource.readBuffer(image.mipInfos().get(i).decompressedSize());
+                image.mipData()[i] = mipSource.readBytes(image.mipInfos().get(i).decompressedSize());
             }
         }
     }

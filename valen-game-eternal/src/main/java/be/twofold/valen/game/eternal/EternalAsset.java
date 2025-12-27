@@ -40,6 +40,15 @@ public record EternalAsset(
     }
 
     @Override
+    public String exportName() {
+        if (id.type() == ResourceType.Image) {
+            var hashString = HexFormat.of().toHexDigits(hash);
+            return id.fileNameWithoutExtension() + "@" + hashString;
+        }
+        return id.fileNameWithoutExtension();
+    }
+
+    @Override
     public boolean equals(Object obj) {
         return obj instanceof EternalAsset other
             && id.equals(other.id);

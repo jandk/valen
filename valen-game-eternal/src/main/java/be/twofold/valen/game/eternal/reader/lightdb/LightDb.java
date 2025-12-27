@@ -1,9 +1,10 @@
 package be.twofold.valen.game.eternal.reader.lightdb;
 
-import be.twofold.valen.core.io.*;
-import be.twofold.valen.core.util.*;
 import be.twofold.valen.game.eternal.reader.image.*;
 import be.twofold.valen.game.eternal.reader.streamdb.*;
+import wtf.reversed.toolbox.collect.*;
+import wtf.reversed.toolbox.io.*;
+import wtf.reversed.toolbox.util.*;
 
 import java.io.*;
 import java.util.*;
@@ -11,27 +12,27 @@ import java.util.*;
 public record LightDb(
     LightDbHeader header,
     List<LightDbIndexEntry> indexEntries,
-    long[] hashes,
-    int[] hashIds,
+    Longs hashes,
+    Ints hashIds,
     List<LightDbImageHeader> imageHeaders,
     List<Image> images,
     List<LightDbNameGroup> nameGroups,
-    int[] unknownInts,
+    Ints unknownInts,
     List<LightDbPart1> parts1,
     List<LightDbPart2> parts2,
     StreamDb streamDb
 ) {
-    public static LightDb read(DataSource source) throws IOException {
+    public static LightDb read(BinarySource source) throws IOException {
         var header = LightDbHeader.read(source);
 
-        source.expectPosition(header.indexOffset());
+        // source.expectPosition(header.indexOffset());
         var indexEntries = source.readObjects(header.hashLength(), LightDbIndexEntry::read);
 
-        source.expectPosition(header.hashOffset());
+        // source.expectPosition(header.hashOffset());
         var hashes = source.readLongs(header.hashLength());
         var hashIds = source.readInts(header.hashLength());
 
-        source.expectPosition(header.imageOffset());
+        // source.expectPosition(header.imageOffset());
         var imageHeaders = new ArrayList<LightDbImageHeader>();
         var images = new ArrayList<Image>();
         for (var i = 0; i < header.imageCount(); i++) {
@@ -39,7 +40,7 @@ public record LightDb(
             images.add(Image.read(source));
         }
 
-        source.expectPosition(header.nameOffset());
+        // source.expectPosition(header.nameOffset());
         var nameGroupMagic = source.readInt();
         Check.state(nameGroupMagic == 0x758ac962 || nameGroupMagic == 0x758ac961, "Invalid name group magic");
         var nameGroups = source.readObjects(source.readInt(), LightDbNameGroup::read);

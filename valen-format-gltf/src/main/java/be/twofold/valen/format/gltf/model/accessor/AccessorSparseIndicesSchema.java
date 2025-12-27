@@ -10,7 +10,7 @@ import java.util.*;
  * An object pointing to a buffer view containing the indices of deviating accessor values. The number of indices is
  * equal to {@code accessor.sparse.count}. Indices <b>MUST</b> strictly increase.
  */
-@Schema2Style
+@SchemaStyle
 @Value.Immutable
 public interface AccessorSparseIndicesSchema extends GltfProperty {
 

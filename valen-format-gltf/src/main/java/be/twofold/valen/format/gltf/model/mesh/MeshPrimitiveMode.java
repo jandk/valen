@@ -19,6 +19,6 @@ public enum MeshPrimitiveMode implements SerializableEnum<Integer> {
 
     @Override
     public Integer value() {
-        return 0;
+        return value;
     }
 }

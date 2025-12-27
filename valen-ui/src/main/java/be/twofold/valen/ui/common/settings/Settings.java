@@ -9,6 +9,7 @@ public final class Settings {
     private final Setting<Set<AssetType>> assetTypes = new Setting<>();
     private final Setting<Path> gameExecutable = new Setting<>();
     private final Setting<String> textureExporter = new Setting<>();
+    private final Setting<String> modelExporter = new Setting<>();
     private final Setting<Boolean> reconstructZ = new Setting<>();
     private final Setting<Path> exportPath = new Setting<>();
 
@@ -25,6 +26,10 @@ public final class Settings {
 
     public Setting<String> textureExporter() {
         return textureExporter;
+    }
+
+    public Setting<String> modelExporter() {
+        return modelExporter;
     }
 
     public Setting<Boolean> reconstructZ() {

@@ -1,7 +1,7 @@
 package be.twofold.valen.core.texture;
 
 import be.twofold.valen.core.texture.conversion.*;
-import be.twofold.valen.core.util.*;
+import wtf.reversed.toolbox.util.*;
 
 import java.util.*;
 
@@ -17,7 +17,7 @@ public record Texture(
     public Texture {
         Check.argument(width > 0, "width must be greater than 0");
         Check.argument(height > 0, "height must be greater than 0");
-        Check.notNull(format, "format");
+        Check.nonNull(format, "format");
         Check.argument(!surfaces.isEmpty(), "surfaces must not be empty");
         surfaces = List.copyOf(surfaces);
     }
@@ -34,12 +34,16 @@ public record Texture(
         return new Texture(width, height, format, isCubeMap, surfaces, scale, bias);
     }
 
+    public Texture withScaleAndBias(float scale, float bias) {
+        return new Texture(width, height, format, isCubeMap, surfaces, scale, bias);
+    }
+
     public Texture firstOnly() {
         return fromSurface(surfaces.getFirst(), format, scale, bias);
     }
 
-    public Texture convert(TextureFormat format) {
-        return Conversion.convert(this, format);
+    public Texture convert(TextureFormat format, boolean reconstructZ) {
+        return Conversion.convert(this, format, reconstructZ);
     }
 
     public static Texture fromSurface(Surface surface, TextureFormat format) {

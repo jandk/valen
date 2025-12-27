@@ -1,7 +1,7 @@
 package be.twofold.valen.ui.common;
 
-import be.twofold.valen.core.util.*;
 import javafx.util.*;
+import wtf.reversed.toolbox.util.*;
 
 import java.util.function.*;
 
@@ -9,7 +9,7 @@ public final class FunctionalStringConverter<T> extends StringConverter<T> {
     private final Function<? super T, String> converter;
 
     public FunctionalStringConverter(Function<? super T, String> converter) {
-        this.converter = Check.notNull(converter);
+        this.converter = Check.nonNull(converter, "converter");
     }
 
     @Override

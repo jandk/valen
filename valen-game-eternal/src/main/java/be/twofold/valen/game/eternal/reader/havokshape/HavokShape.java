@@ -1,19 +1,18 @@
 package be.twofold.valen.game.eternal.reader.havokshape;
 
-import be.twofold.valen.core.io.*;
+import wtf.reversed.toolbox.collect.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
-import java.nio.*;
-import java.nio.charset.*;
 import java.nio.file.*;
 import java.util.*;
 
 public record HavokShape(
     List<HavokShapeInfo> infos,
     List<String> names,
-    byte[] data
+    Bytes data
 ) {
-    public static HavokShape read(DataSource source) throws IOException {
+    public static HavokShape read(BinarySource source) throws IOException {
         var infos = source.readObjects(source.readInt(), HavokShapeInfo::read);
         var names = source.readObjects(source.readInt(), bb -> readFixedString(bb, 1024));
         var data = source.readBytes(source.readInt());
@@ -23,19 +22,14 @@ public record HavokShape(
         return new HavokShape(infos, names, data);
     }
 
-    private static String readFixedString(DataSource source, int length) throws IOException {
-        var bytes = source.readBytes(length);
-        var index = 0;
-        while (index < bytes.length && bytes[index] != 0) {
-            index++;
-        }
-        return new String(bytes, 0, index, StandardCharsets.UTF_8);
+    private static String readFixedString(BinarySource source, int length) throws IOException {
+        return source.readString(length).trim();
     }
 
     public static void main(String[] args) throws IOException {
         var bytes = Files.readAllBytes(Path.of("D:\\Eternal\\DOOMExtracted\\maps\\game\\hub\\hub\\_combo\\world.hkshape"));
 
-        var shape = HavokShape.read(DataSource.fromArray(bytes));
-        HkTagFile.read(ByteBuffer.wrap(shape.data()));
+        var shape = HavokShape.read(BinarySource.wrap(Bytes.wrap(bytes)));
+        HkTagFile.read(shape.data().asBuffer());
     }
 }

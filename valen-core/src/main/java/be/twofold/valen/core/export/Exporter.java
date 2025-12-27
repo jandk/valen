@@ -6,7 +6,6 @@ import java.util.*;
 import java.util.stream.*;
 
 public interface Exporter<T> {
-
     String getID();
 
     String getName();
@@ -14,6 +13,9 @@ public interface Exporter<T> {
     String getExtension();
 
     Class<T> getSupportedType();
+
+    default void setProperty(String key, Object value) {
+    }
 
     void export(T value, OutputStream out) throws IOException;
 

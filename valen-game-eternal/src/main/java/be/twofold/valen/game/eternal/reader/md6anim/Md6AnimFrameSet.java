@@ -1,6 +1,6 @@
 package be.twofold.valen.game.eternal.reader.md6anim;
 
-import be.twofold.valen.core.io.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 
@@ -26,7 +26,7 @@ public record Md6AnimFrameSet(
     short frameRange,
     String pad
 ) {
-    public static Md6AnimFrameSet read(DataSource source) throws IOException {
+    public static Md6AnimFrameSet read(BinarySource source) throws IOException {
         short firstROffset = source.readShort();
         short firstSOffset = source.readShort();
         short firstTOffset = source.readShort();
@@ -46,7 +46,7 @@ public record Md6AnimFrameSet(
         short totalSize = source.readShort();
         short frameStart = source.readShort();
         short frameRange = source.readShort();
-        String pad = new String(source.readBytes(10));
+        String pad = source.readString(10);
 
         return new Md6AnimFrameSet(
             firstROffset,

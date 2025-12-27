@@ -5,7 +5,7 @@
     <parent>
         <groupId>be.twofold</groupId>
         <artifactId>valen</artifactId>
-        <version>1.0-SNAPSHOT</version>
+        <version>0.3.1-SNAPSHOT</version>
     </parent>
 
     <artifactId>valen-app</artifactId>
@@ -22,6 +22,10 @@
         </dependency>
         <dependency>
             <groupId>be.twofold</groupId>
+            <artifactId>valen-export-cast</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>be.twofold</groupId>
             <artifactId>valen-export-dds</artifactId>
         </dependency>
         <dependency>
@@ -34,7 +38,15 @@
         </dependency>
         <dependency>
             <groupId>be.twofold</groupId>
+            <artifactId>valen-game-darkages</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>be.twofold</groupId>
             <artifactId>valen-game-eternal</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>be.twofold</groupId>
+            <artifactId>valen-game-greatcircle</artifactId>
         </dependency>
         <dependency>
             <groupId>be.twofold</groupId>
@@ -48,7 +60,8 @@
         <!-- External -->
         <dependency>
             <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-simple</artifactId>
+            <artifactId>slf4j-jdk14</artifactId>
+            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.postgresql</groupId>
@@ -107,6 +120,8 @@
                     </modulePaths>
                     <jLinkOptions>
                         <jLinkOption>--compress=1</jLinkOption>
+                        <jLinkOption>--no-header-files</jLinkOption>
+                        <jLinkOption>--no-man-pages</jLinkOption>
                     </jLinkOptions>
 
                     <!-- Options for creating the application launcher -->

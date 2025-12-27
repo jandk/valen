@@ -1,6 +1,7 @@
 package be.twofold.valen.game.eternal.reader.resource;
 
-import be.twofold.valen.core.io.*;
+import wtf.reversed.toolbox.collect.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 import java.nio.charset.*;
@@ -10,13 +11,13 @@ public record Resources(
     ResourcesHeader header,
     List<ResourcesEntry> entries,
     List<String> pathStrings,
-    int[] pathStringIndex,
+    Ints pathStringIndex,
     List<ResourcesDependency> dependencies,
-    int[] dependencyIndex
+    Ints dependencyIndex
 ) {
     private static final CharsetDecoder DECODER = StandardCharsets.US_ASCII.newDecoder();
 
-    public static Resources read(DataSource source) throws IOException {
+    public static Resources read(BinarySource source) throws IOException {
         // Header
         var header = ResourcesHeader.read(source);
 
@@ -28,10 +29,10 @@ public record Resources(
         // assert channel.position() == header.addrPathStringOffsets();
         var numStrings = source.readLongAsInt();
         var offsets = source.readLongsAsInts(numStrings);
-        var stringBufferLength = Math.toIntExact(header.addrDependencyEntries() - header.addrPathStringOffsets() - (numStrings + 1) * (long) Long.BYTES);
-        var stringBufferRaw = source.readBuffer(stringBufferLength);
-        var stringBuffer = DECODER.decode(stringBufferRaw).toString();
-        var pathStrings = Arrays.stream(offsets)
+        var stringBufferLength = header.addrDependencyEntries() - header.addrPathStringOffsets() - (numStrings + 1) * Long.BYTES;
+        var stringBufferRaw = source.readBytes(stringBufferLength);
+        var stringBuffer = DECODER.decode(stringBufferRaw.asBuffer()).toString();
+        var pathStrings = offsets.stream()
             .mapToObj(i -> stringBuffer.substring(i, stringBuffer.indexOf('\0', i)))
             .toList();
 
@@ -54,9 +55,9 @@ public record Resources(
             "header=" + header + ", " +
             "entries=(" + entries.size() + " entries), " +
             "pathStrings=(" + pathStrings.size() + " strings), " +
-            "pathStringIndex=(" + pathStringIndex.length + " indices), " +
+            "pathStringIndex=(" + pathStringIndex.length() + " indices), " +
             "dependencies=(" + dependencies.size() + " entries), " +
-            "dependencyIndex=(" + dependencyIndex.length + " indices)" +
+            "dependencyIndex=(" + dependencyIndex.length() + " indices)" +
             "]";
     }
 }

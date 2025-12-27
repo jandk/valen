@@ -2,6 +2,7 @@ package be.twofold.valen.game.eternal;
 
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.game.eternal.resource.*;
+import wtf.reversed.toolbox.util.*;
 
 import java.util.*;
 
@@ -15,43 +16,36 @@ public record EternalAssetID(
         .thenComparing(EternalAssetID::type)
         .thenComparing(EternalAssetID::variation);
 
-    private static final Map<ResourceType, Set<ResourceVariation>> Variations = new EnumMap<>(Map.of(
-        ResourceType.HavokShape, EnumSet.of(ResourceVariation.HkMsvc64),
-        ResourceType.HkNavMesh, EnumSet.of(ResourceVariation.HkMsvc64),
-        ResourceType.HkNavMeshMediator, EnumSet.of(ResourceVariation.HkMsvc64),
-        ResourceType.HkNavVolume, EnumSet.of(ResourceVariation.HkMsvc64),
-        ResourceType.HkNavVolumeMediator, EnumSet.of(ResourceVariation.HkMsvc64),
-        ResourceType.RenderProgResource, EnumSet.of(
+    private static final Map<ResourceType, Set<ResourceVariation>> Variations = Map.of(
+        ResourceType.HavokShape, Set.of(ResourceVariation.HkMsvc64),
+        ResourceType.HkNavMesh, Set.of(ResourceVariation.HkMsvc64),
+        ResourceType.HkNavMeshMediator, Set.of(ResourceVariation.HkMsvc64),
+        ResourceType.HkNavVolume, Set.of(ResourceVariation.HkMsvc64),
+        ResourceType.HkNavVolumeMediator, Set.of(ResourceVariation.HkMsvc64),
+        ResourceType.RenderProgResource, Set.of(
             ResourceVariation.RenderProgVulkanPcAmd,
             ResourceVariation.RenderProgVulkanPcAmdRetail,
             ResourceVariation.RenderProgVulkanPcBase,
             ResourceVariation.RenderProgVulkanPcBaseRetail
         )
-    ));
+    );
 
     public static EternalAssetID from(String name, ResourceType type) {
-        return from(new ResourceName(name), type);
-    }
-
-    public static EternalAssetID from(ResourceName name, ResourceType type) {
+        var resourceName = new ResourceName(name);
         var variations = Variations
             .getOrDefault(type, Set.of(ResourceVariation.None));
 
-        if (variations.size() > 1) {
-            throw new IllegalArgumentException("Multiple variations found for type: " + type + " (" + variations + ")");
-        }
+        Check.state(variations.size() == 1, "Multiple variations found");
 
         return new EternalAssetID(
-            name,
+            resourceName,
             type,
             variations.iterator().next()
         );
     }
 
     public static EternalAssetID from(String name, ResourceType type, ResourceVariation variation) {
-        if (!Variations.getOrDefault(type, Set.of(ResourceVariation.None)).contains(variation)) {
-            throw new IllegalArgumentException("Invalid variation for type: " + type + " (" + variation + ")");
-        }
+        Check.argument(Variations.getOrDefault(type, Set.of(ResourceVariation.None)).contains(variation), "Invalid variation for type: " + type + " (" + variation + ")");
         return new EternalAssetID(
             new ResourceName(name),
             type,

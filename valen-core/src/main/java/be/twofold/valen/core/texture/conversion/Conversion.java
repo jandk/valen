@@ -2,13 +2,15 @@ package be.twofold.valen.core.texture.conversion;
 
 import be.twofold.valen.core.texture.*;
 
-import java.util.function.*;
-
 public abstract class Conversion {
     Conversion() {
     }
 
-    public static Texture convert(Texture source, TextureFormat targetFormat) {
+    public static Texture convert(Texture source, TextureFormat targetFormat, boolean reconstructZ) {
+        return convert(source, targetFormat, reconstructZ, 1.0f, 0.0f);
+    }
+
+    public static Texture convert(Texture source, TextureFormat targetFormat, boolean reconstructZ, float scale, float bias) {
         var sourceFormat = source.format();
         if (sourceFormat == targetFormat) {
             return source;
@@ -18,36 +20,35 @@ public abstract class Conversion {
             throw new UnsupportedOperationException("Compressing textures is not supported");
         }
 
-        source = new Decompress().apply(source, targetFormat);
-        source = new Tonemap().apply(source, targetFormat);
-        source = new Unpack().apply(source, targetFormat);
-        source = new Swizzle().apply(source, targetFormat);
-        if (source.format() != targetFormat) {
-            throw new UnsupportedOperationException("Could not convert texture from " + source.format() + " to " + targetFormat);
-        }
+        var decompress = new Decompress();
+        var tonemap = new Tonemap();
+        var unpack = new Unpack();
+        var swizzle = new Swizzle();
+        var scaleAndBias = new ScaleAndBias(scale, bias);
 
-        return source;
-    }
-
-    abstract Texture apply(Texture texture, TextureFormat dstFormat);
-
-    Texture map(Texture source, TextureFormat format, Function<Surface, Surface> surfaceMapper) {
         var surfaces = source.surfaces().stream()
-            .map(surfaceMapper)
+            .map(surface -> {
+                surface = decompress.apply(surface, targetFormat);
+                surface = tonemap.apply(surface, targetFormat);
+                surface = unpack.apply(surface, targetFormat);
+                surface = swizzle.apply(surface, targetFormat);
+                surface = scaleAndBias.apply(surface, targetFormat);
+                if (surface.format() != targetFormat) {
+                    throw new UnsupportedOperationException("Could not convert texture from " + source.format() + " to " + targetFormat);
+                }
+
+                return surface;
+            })
             .toList();
 
         return source
-            .withFormat(format)
+            .withFormat(targetFormat)
             .withSurfaces(surfaces);
     }
 
+    abstract Surface apply(Surface surface, TextureFormat dstFormat);
+
     RuntimeException uoe(TextureFormat format) {
         return new UnsupportedOperationException("Unsupported texture format: " + format);
-    }
-
-    record OperatorFormat(
-        UnaryOperator<Surface> operator,
-        TextureFormat format
-    ) {
     }
 }

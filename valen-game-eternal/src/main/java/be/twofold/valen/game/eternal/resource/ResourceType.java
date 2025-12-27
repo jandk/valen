@@ -2,8 +2,6 @@ package be.twofold.valen.game.eternal.resource;
 
 import be.twofold.valen.core.util.*;
 
-import java.util.*;
-
 public enum ResourceType implements ValueEnum<String> {
     AmbientSh("ambientsh"),
     Anim("anim"),
@@ -50,21 +48,18 @@ public enum ResourceType implements ValueEnum<String> {
     UmbraTome("umbratome"),
     UmbraViewVolume("umbraviewvolume");
 
-    private static final Map<String, ResourceType> MAP = ValueEnum.valueMap(ResourceType.class);
+    private final String value;
 
-    private final String name;
+    ResourceType(String value) {
+        this.value = value;
+    }
 
-    ResourceType(String name) {
-        this.name = name;
+    public static ResourceType fromName(String name) {
+        return ValueEnum.fromValue(ResourceType.class, name);
     }
 
     @Override
     public String value() {
-        return name;
-    }
-
-    public static ResourceType fromName(String name) {
-        return ValueEnum.fromValue(MAP, name)
-            .orElseThrow(() -> new IllegalArgumentException("Unknown resource type: " + name));
+        return value;
     }
 }

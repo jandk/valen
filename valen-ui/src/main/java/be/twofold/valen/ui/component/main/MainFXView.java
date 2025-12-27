@@ -1,8 +1,8 @@
 package be.twofold.valen.ui.component.main;
 
+import backbonefx.event.*;
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.ui.common.*;
-import be.twofold.valen.ui.common.event.*;
 import be.twofold.valen.ui.component.*;
 import be.twofold.valen.ui.component.filelist.*;
 import be.twofold.valen.ui.component.preview.*;
@@ -25,20 +25,21 @@ public final class MainFXView implements MainView, FXView {
     private final BorderPane view = new BorderPane();
     private final SplitPane splitPane = new SplitPane();
 
+    private final ToggleButton previewButton = new ToggleButton("Preview");
+    private final ToggleButton settingsButton = new ToggleButton("Settings");
+
     private final ComboBox<String> archiveChooser = new ComboBox<>();
     private final TextField searchTextField = new TextField();
-    private final Label progressLabel = new Label();
-    private final ProgressBar progressBar = new ProgressBar();
 
     private final PreviewTabPane tabPane;
     private final Parent settingsView;
-    private final SendChannel<MainViewEvent> channel;
+    private final EventBus eventBus;
 
     @Inject
-    MainFXView(FileListFXView fileListView, PreviewTabPane tabPane, EventBus eventBus) {
+    MainFXView(FileListFXView fileListView, PreviewTabPane tabPane, ViewLoader viewLoader, EventBus eventBus) {
         this.tabPane = tabPane;
-        this.settingsView = ViewLoader.INSTANCE.load("/fxml/Settings.fxml");
-        this.channel = eventBus.senderFor(MainViewEvent.class);
+        this.settingsView = viewLoader.load("/fxml/Settings.fxml");
+        this.eventBus = eventBus;
 
         buildUI();
 
@@ -58,7 +59,7 @@ public final class MainFXView implements MainView, FXView {
     @Override
     public void setArchives(List<String> archives) {
         archiveChooser.getItems().setAll(archives);
-        archiveChooser.getSelectionModel().select(0);
+        // archiveChooser.getSelectionModel().select(0);
     }
 
     @Override
@@ -74,34 +75,25 @@ public final class MainFXView implements MainView, FXView {
     @Override
     public void setExporting(boolean exporting) {
         Platform.runLater(() -> {
-            log.info("Exporting: {}", exporting);
+            log.info("Exporting: {} at {}", exporting, System.currentTimeMillis());
             view.setDisable(exporting);
-            progressLabel.setText("");
-            progressLabel.setVisible(exporting);
-            progressBar.setVisible(exporting);
         });
     }
 
     @Override
-    public void setProgress(double percentage) {
-        progressBar.setProgress(percentage);
+    public void showPreview(boolean enabled) {
+        setSidePanelEnabled(enabled, tabPane, MainViewEvent.PreviewVisibilityChanged::new);
+        previewButton.setSelected(enabled);
     }
 
     @Override
-    public void setProgressMessage(String progressMessage) {
-        progressLabel.setText(progressMessage);
+    public void showSettings(boolean enabled) {
+        setSidePanelEnabled(enabled, settingsView, MainViewEvent.SettingVisibilityChanged::new);
+        settingsButton.setSelected(enabled);
     }
 
     private void selectArchive(String archiveName) {
-        channel.send(new MainViewEvent.ArchiveSelected(archiveName));
-    }
-
-    private void setPreviewEnabled(boolean enabled) {
-        setSidePanelEnabled(enabled, tabPane, MainViewEvent.PreviewVisibilityChanged::new);
-    }
-
-    private void setSettingsEnabled(boolean enabled) {
-        setSidePanelEnabled(enabled, settingsView, MainViewEvent.SettingVisibilityChanged::new);
+        eventBus.publish(new MainViewEvent.ArchiveSelected(archiveName));
     }
 
     private void setSidePanelEnabled(boolean enabled, Node node, Function<Boolean, MainViewEvent> eventFunction) {
@@ -111,14 +103,14 @@ public final class MainFXView implements MainView, FXView {
             }
             splitPane.getItems().add(node);
             splitPane.setDividerPositions(0.60);
-            channel.send(eventFunction.apply(true));
+            eventBus.publish(eventFunction.apply(true));
         } else {
             if (!isSidePaneVisible()) {
                 return;
             }
             splitPane.getItems().remove(1);
             splitPane.setDividerPositions();
-            channel.send(eventFunction.apply(false));
+            eventBus.publish(eventFunction.apply(false));
         }
     }
 
@@ -141,7 +133,7 @@ public final class MainFXView implements MainView, FXView {
         searchTextField.setId("searchTextField");
         searchTextField.setPromptText("Search");
         searchTextField.textProperty().addListener((_, _, newValue) -> {
-            pause.setOnFinished(_ -> channel.send(new MainViewEvent.SearchChanged(newValue)));
+            pause.setOnFinished(_ -> eventBus.publish(new MainViewEvent.SearchChanged(newValue)));
             pause.playFromStart();
         });
         searchTextField.setMinWidth(160);
@@ -156,15 +148,9 @@ public final class MainFXView implements MainView, FXView {
         var pane = new Pane();
         HBox.setHgrow(pane, Priority.ALWAYS);
 
-        progressBar.setVisible(false);
-        progressBar.setMinWidth(160);
-        progressBar.setPrefWidth(160);
-
         var hBox = new HBox(
             searchTextField, searchClearButton,
-            progressLabel,
-            pane,
-            progressBar
+            pane
         );
         hBox.setAlignment(Pos.CENTER_LEFT);
         hBox.setSpacing(5.0);
@@ -174,8 +160,9 @@ public final class MainFXView implements MainView, FXView {
 
     private Control buildToolBar() {
         var loadGame = new Button("Load Game");
-        loadGame.setOnAction(_ -> channel.send(new MainViewEvent.LoadGameClicked()));
+        loadGame.setOnAction(_ -> eventBus.publish(new MainViewEvent.LoadGameClicked()));
 
+        archiveChooser.setPromptText("Select archive to load");
         archiveChooser.getSelectionModel().selectedItemProperty().addListener((_, _, newValue) -> selectArchive(newValue));
 
         var pane = new Pane();
@@ -183,18 +170,16 @@ public final class MainFXView implements MainView, FXView {
 
         var exportButton = new Button("Export");
         exportButton.setOnAction(_ -> {
-            channel.send(new MainViewEvent.ExportClicked());
+            eventBus.publish(new MainViewEvent.ExportClicked());
         });
 
         var sidePane = new ToggleGroup();
 
-        var previewButton = new ToggleButton("Preview");
         previewButton.setToggleGroup(sidePane);
-        previewButton.selectedProperty().addListener((_, _, newValue) -> setPreviewEnabled(newValue));
+        previewButton.selectedProperty().addListener((_, _, newValue) -> showPreview(newValue));
 
-        var settingsButton = new ToggleButton("Settings");
         settingsButton.setToggleGroup(sidePane);
-        settingsButton.selectedProperty().addListener((_, _, newValue) -> setSettingsEnabled(newValue));
+        settingsButton.selectedProperty().addListener((_, _, newValue) -> showSettings(newValue));
 
         return new ToolBar(
             loadGame, archiveChooser,

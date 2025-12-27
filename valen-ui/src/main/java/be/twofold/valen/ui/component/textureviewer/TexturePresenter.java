@@ -1,21 +1,22 @@
 package be.twofold.valen.ui.component.textureviewer;
 
+import backbonefx.event.*;
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.texture.*;
-import be.twofold.valen.core.util.*;
 import be.twofold.valen.ui.common.*;
-import be.twofold.valen.ui.common.event.*;
+import be.twofold.valen.ui.common.settings.*;
 import be.twofold.valen.ui.component.*;
 import jakarta.inject.*;
 import javafx.scene.image.*;
 import org.slf4j.*;
+import wtf.reversed.toolbox.collect.*;
 
 import java.util.*;
 import java.util.function.*;
 
 public final class TexturePresenter extends AbstractFXPresenter<TextureView> implements Viewer {
     private static final Logger log = LoggerFactory.getLogger(TexturePresenter.class);
-    private static final Set<TextureFormat> GRAY = EnumSet.of(
+    private static final Set<TextureFormat> GRAY = Set.of(
         TextureFormat.R8_UNORM,
         TextureFormat.R16_UNORM,
         TextureFormat.R16_SFLOAT,
@@ -23,7 +24,9 @@ public final class TexturePresenter extends AbstractFXPresenter<TextureView> imp
         TextureFormat.BC4_SNORM
     );
 
-    private byte[] imagePixels;
+    private final Settings settings;
+
+    private Bytes.Mutable imagePixels;
     private Texture decoded;
     private boolean premultiplied;
     private WritableImage image;
@@ -31,17 +34,16 @@ public final class TexturePresenter extends AbstractFXPresenter<TextureView> imp
     private Channel channel = Channel.ALL;
 
     @Inject
-    public TexturePresenter(TextureView view, EventBus eventBus) {
+    public TexturePresenter(TextureView view, EventBus backboneEventBus, Settings settings) {
         // TODO: Make package-private
         super(view);
+        this.settings = settings;
 
-        eventBus
-            .receiverFor(TextureViewEvent.class)
-            .consume(event -> {
-                switch (event) {
-                    case TextureViewEvent.ChannelSelected(var selectedChannel) -> filterImage(selectedChannel);
-                }
-            });
+        backboneEventBus.subscribe(TextureViewEvent.class, event -> {
+            switch (event) {
+                case TextureViewEvent.ChannelSelected(var selectedChannel) -> filterImage(selectedChannel);
+            }
+        });
     }
 
     @Override
@@ -67,7 +69,7 @@ public final class TexturePresenter extends AbstractFXPresenter<TextureView> imp
         // Let's try our new ops
         long t0 = System.nanoTime();
         Texture texture = ((Texture) data).firstOnly();
-        decoded = texture.convert(TextureFormat.B8G8R8A8_UNORM);
+        decoded = texture.convert(TextureFormat.B8G8R8A8_UNORM, settings.reconstructZ().get().orElse(false));
         if (GRAY.contains(texture.format())) {
             splatGray();
         }
@@ -96,11 +98,11 @@ public final class TexturePresenter extends AbstractFXPresenter<TextureView> imp
     }
 
     private void splatGray() {
-        var data = decoded.surfaces().getFirst().data();
-        for (int i = 0; i < data.length; i += 4) {
-            int bgra = ByteArrays.getInt(data, i);
+        var data = Bytes.Mutable.wrap(decoded.surfaces().getFirst().data());
+        for (int i = 0; i < data.length(); i += 4) {
+            int bgra = data.getInt(i);
             bgra = ((bgra >> 16) & 0xFF) * 0x010101 | (bgra & 0xFF000000);
-            ByteArrays.setInt(data, i, bgra);
+            data.setInt(i, bgra);
         }
     }
 
@@ -123,7 +125,7 @@ public final class TexturePresenter extends AbstractFXPresenter<TextureView> imp
         this.channel = channel;
 
         if (imagePixels == null) {
-            imagePixels = new byte[decoded.width() * decoded.height() * 4];
+            imagePixels = Bytes.Mutable.allocate(decoded.width() * decoded.height() * 4);
         }
 
         // B8G8R8A8
@@ -136,11 +138,11 @@ public final class TexturePresenter extends AbstractFXPresenter<TextureView> imp
             case ALL -> premultiplied ? IntUnaryOperator.identity() : this::premultiply;
         };
 
-        var data = decoded.surfaces().getFirst().data();
-        for (int i = 0; i < data.length; i += 4) {
-            int bgra = ByteArrays.getInt(data, i);
+        var data = Bytes.wrap(decoded.surfaces().getFirst().data());
+        for (int i = 0; i < data.length(); i += 4) {
+            int bgra = data.getInt(i);
             bgra = operator.applyAsInt(bgra);
-            ByteArrays.setInt(imagePixels, i, bgra);
+            imagePixels.setInt(i, bgra);
         }
 
         var width = (int) image.getWidth();
@@ -148,7 +150,7 @@ public final class TexturePresenter extends AbstractFXPresenter<TextureView> imp
         image.getPixelWriter().setPixels(
             0, 0, width, height,
             PixelFormat.getByteBgraPreInstance(),
-            imagePixels, 0, width * 4
+            imagePixels.asMutableBuffer(), width * 4
         );
     }
 

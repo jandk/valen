@@ -5,29 +5,33 @@
 
     <groupId>be.twofold</groupId>
     <artifactId>valen</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>0.3.1-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <modules>
+        <module>lib/reversed-toolbox</module>
         <module>valen-app</module>
         <module>valen-core</module>
+        <module>valen-export-cast</module>
         <module>valen-export-dds</module>
         <module>valen-export-gltf</module>
         <module>valen-export-png</module>
         <module>valen-format-gltf</module>
         <module>valen-format-png</module>
+        <module>valen-game-darkages</module>
         <module>valen-game-eternal</module>
+        <module>valen-game-greatcircle</module>
+        <module>valen-game-idtech</module>
         <module>valen-game-source</module>
         <module>valen-ui</module>
     </modules>
 
     <properties>
-        <maven.compiler.source>23</maven.compiler.source>
-        <maven.compiler.target>23</maven.compiler.target>
+        <maven.compiler.source>25</maven.compiler.source>
+        <maven.compiler.target>25</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-        <dapper.version>2.41.2</dapper.version>
-        <javafx.version>23.0.1</javafx.version>
+        <javafx.version>25</javafx.version>
         <immutables.version>2.10.1</immutables.version>
         <slf4j.version>2.0.16</slf4j.version>
     </properties>
@@ -39,11 +43,6 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
                     <annotationProcessorPaths>
-                        <path>
-                            <groupId>io.github.jbock-java</groupId>
-                            <artifactId>dapper-compiler</artifactId>
-                            <version>${dapper.version}</version>
-                        </path>
                         <dependency>
                             <groupId>org.immutables</groupId>
                             <artifactId>value</artifactId>
@@ -89,6 +88,11 @@
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-jdk14</artifactId>
+            <scope>test</scope>
+        </dependency>
 
         <!-- Testing for all -->
         <dependency>
@@ -107,8 +111,18 @@
         <dependencies>
             <!-- Project -->
             <dependency>
+                <groupId>wtf.reversed</groupId>
+                <artifactId>reversed-toolbox</artifactId>
+                <version>1.0-SNAPSHOT</version>
+            </dependency>
+            <dependency>
                 <groupId>be.twofold</groupId>
                 <artifactId>valen-core</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>be.twofold</groupId>
+                <artifactId>valen-export-cast</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -138,6 +152,11 @@
             </dependency>
             <dependency>
                 <groupId>be.twofold</groupId>
+                <artifactId>valen-game-darkages</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>be.twofold</groupId>
                 <artifactId>valen-game-eternal</artifactId>
                 <version>${project.version}</version>
             </dependency>
@@ -153,6 +172,16 @@
             </dependency>
             <dependency>
                 <groupId>be.twofold</groupId>
+                <artifactId>valen-game-greatcircle</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>be.twofold</groupId>
+                <artifactId>valen-game-idtech</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>be.twofold</groupId>
                 <artifactId>valen-ui</artifactId>
                 <version>${project.version}</version>
             </dependency>
@@ -161,7 +190,12 @@
             <dependency>
                 <groupId>be.twofold</groupId>
                 <artifactId>tinybcdec</artifactId>
-                <version>0.3</version>
+                <version>1.0</version>
+            </dependency>
+            <dependency>
+                <groupId>be.twofold</groupId>
+                <artifactId>tinycast</artifactId>
+                <version>0.1</version>
             </dependency>
             <dependency>
                 <groupId>com.google.code.gson</groupId>
@@ -175,9 +209,19 @@
                 </exclusions>
             </dependency>
             <dependency>
-                <groupId>io.github.jbock-java</groupId>
-                <artifactId>dapper</artifactId>
-                <version>${dapper.version}</version>
+                <groupId>com.squareup</groupId>
+                <artifactId>javapoet</artifactId>
+                <version>1.13.0</version>
+            </dependency>
+            <dependency>
+                <groupId>io.github.mkpaz</groupId>
+                <artifactId>backbonefx</artifactId>
+                <version>1.0.1</version>
+            </dependency>
+            <dependency>
+                <groupId>org.openjfx</groupId>
+                <artifactId>javafx-base</artifactId>
+                <version>${javafx.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.openjfx</groupId>
@@ -201,11 +245,16 @@
             </dependency>
             <dependency>
                 <groupId>org.slf4j</groupId>
-                <artifactId>slf4j-simple</artifactId>
+                <artifactId>slf4j-jdk14</artifactId>
                 <version>${slf4j.version}</version>
             </dependency>
 
             <!-- Annotations -->
+            <dependency>
+                <groupId>jakarta.inject</groupId>
+                <artifactId>jakarta.inject-api</artifactId>
+                <version>2.0.1</version>
+            </dependency>
             <dependency>
                 <groupId>org.immutables</groupId>
                 <artifactId>value</artifactId>

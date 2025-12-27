@@ -1,10 +1,10 @@
 package be.twofold.valen.ui.component.settings;
 
+import backbonefx.event.*;
 import be.twofold.valen.core.export.*;
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.texture.*;
 import be.twofold.valen.ui.common.*;
-import be.twofold.valen.ui.common.event.*;
 import be.twofold.valen.ui.common.settings.*;
 import be.twofold.valen.ui.component.*;
 import be.twofold.valen.ui.events.*;
@@ -19,6 +19,12 @@ import java.util.*;
 import java.util.stream.*;
 
 public final class SettingsController implements Controller {
+    private static final List<Map.Entry<String, String>> MODEL_FORMATS = List.of(
+        Map.entry("gltf", "GLTF, BIN and images"),
+        Map.entry("glb", "GLB (single file)"),
+        Map.entry("cast", "Cast (by Porter)")
+    );
+
     private @FXML CheckBox typeTexture;
     private @FXML CheckBox typeModel;
     private @FXML CheckBox typeMaterial;
@@ -27,18 +33,18 @@ public final class SettingsController implements Controller {
     private @FXML VBox assetTypes;
     private @FXML ComboBox<Map.Entry<String, String>> textureFormat;
     private @FXML CheckBox textureReconstructZ;
-    private @FXML ComboBox<String> modelFormat;
+    private @FXML ComboBox<Map.Entry<String, String>> modelFormat;
     private @FXML TextField modelImageDirectory;
     private @FXML TextField exportPath;
     private @FXML Button chooseExportPath;
 
-    private final SendChannel<SettingsApplied> channel;
+    private final EventBus eventBus;
     private final Settings settings;
 
     @Inject
-    public SettingsController(EventBus eventBus) {
-        this.settings = SettingsManager.get();
-        this.channel = eventBus.senderFor(SettingsApplied.class);
+    public SettingsController(EventBus eventBus, Settings settings) {
+        this.eventBus = eventBus;
+        this.settings = settings;
     }
 
     public void initialize() {
@@ -49,7 +55,9 @@ public final class SettingsController implements Controller {
 
         textureFormat.getItems().setAll(textureFormats);
         textureFormat.setConverter(new FunctionalStringConverter<>(Map.Entry::getValue));
-        // modelFormat.getItems().addAll("GLB", "GLTF, BIN and images");
+
+        modelFormat.getItems().setAll(MODEL_FORMATS);
+        modelFormat.setConverter(new FunctionalStringConverter<>(Map.Entry::getValue));
 
         var assetTypes = settings.assetTypes().whenEmpty(() ->
             Arrays.stream(AssetType.values())
@@ -70,6 +78,14 @@ public final class SettingsController implements Controller {
             .filter(e -> e.getKey().equals(textureExporter))
             .findFirst()
             .ifPresent(e -> textureFormat.getSelectionModel().select(e));
+
+        var modelExporter = settings.modelExporter().whenEmpty(() -> "gltf");
+        settings.modelExporter().set(modelExporter);
+
+        modelFormat.getItems().stream()
+            .filter(e -> e.getKey().equals(modelExporter))
+            .findFirst()
+            .ifPresent(e -> modelFormat.getSelectionModel().select(e));
 
         var reconstructZ = settings.reconstructZ().whenEmpty(() -> false);
         settings.reconstructZ().set(reconstructZ);
@@ -112,7 +128,8 @@ public final class SettingsController implements Controller {
         settings.textureExporter().set(textureFormat.getValue().getKey());
         settings.reconstructZ().set(textureReconstructZ.isSelected());
         settings.exportPath().set(Path.of(exportPath.getText()));
+        settings.modelExporter().set(modelFormat.getValue().getKey());
 
-        channel.send(new SettingsApplied(settings));
+        eventBus.publish(new SettingsApplied(settings));
     }
 }

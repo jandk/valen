@@ -1,16 +1,16 @@
 package be.twofold.valen.game.eternal.resource;
 
-import be.twofold.valen.core.compression.*;
 import be.twofold.valen.core.game.*;
-import be.twofold.valen.core.hashing.*;
-import be.twofold.valen.core.io.*;
-import be.twofold.valen.core.util.*;
 import be.twofold.valen.game.eternal.*;
 import be.twofold.valen.game.eternal.reader.resource.*;
 import org.slf4j.*;
+import wtf.reversed.toolbox.collect.*;
+import wtf.reversed.toolbox.compress.*;
+import wtf.reversed.toolbox.hash.*;
+import wtf.reversed.toolbox.io.*;
+import wtf.reversed.toolbox.util.*;
 
 import java.io.*;
-import java.nio.*;
 import java.nio.file.*;
 import java.util.*;
 import java.util.function.*;
@@ -23,13 +23,13 @@ public final class ResourcesFile implements Container<EternalAssetID, EternalAss
     private final Decompressor decompressor;
     private final Path path;
 
-    private DataSource source;
+    private BinarySource source;
 
     public ResourcesFile(Path path, Decompressor decompressor) throws IOException {
         log.info("Loading resources: {}", path);
-        this.decompressor = Check.notNull(decompressor);
-        this.path = Check.notNull(path);
-        this.source = DataSource.fromPath(path);
+        this.decompressor = Check.nonNull(decompressor, "decompressor");
+        this.path = Check.nonNull(path, "path");
+        this.source = BinarySource.open(path);
 
         var resources = mapResources(Resources.read(source));
         this.index = resources.stream()
@@ -46,8 +46,8 @@ public final class ResourcesFile implements Container<EternalAssetID, EternalAss
     }
 
     private EternalAsset mapResourceEntry(Resources resources, ResourcesEntry entry) {
-        var type = resources.pathStrings().get(resources.pathStringIndex()[entry.strings()]);
-        var name = resources.pathStrings().get(resources.pathStringIndex()[entry.strings() + 1]);
+        var type = resources.pathStrings().get(resources.pathStringIndex().get(entry.strings()));
+        var name = resources.pathStrings().get(resources.pathStringIndex().get(entry.strings() + 1));
 
         var resourceName = new ResourceName(name);
         var resourceType = ResourceType.fromName(type);
@@ -75,7 +75,7 @@ public final class ResourcesFile implements Container<EternalAssetID, EternalAss
     }
 
     @Override
-    public ByteBuffer read(EternalAssetID key, Integer size) throws IOException {
+    public Bytes read(EternalAssetID key, Integer size) throws IOException {
         var resource = index.get(key);
         Check.state(resource != null, () -> "Resource not found: " + key.name());
 
@@ -89,16 +89,15 @@ public final class ResourcesFile implements Container<EternalAssetID, EternalAss
         // Read the chunk
         source.position(resource.offset());
         var compressed = source
-            .readBuffer(resource.compressedSize())
-            .position(resource.compression() == ResourceCompressionMode.RES_COMP_MODE_KRAKEN_CHUNKED ? 12 : 0);
+                .readBytes(resource.compressedSize())
+            .slice(resource.compression() == ResourceCompressionMode.RES_COMP_MODE_KRAKEN_CHUNKED ? 12 : 0);
         var decompressed = decompressor.decompress(compressed, resource.size());
 
         // Check hash
-        long checksum = HashFunction.murmurHash64B(0xDEADBEEFL).hash(decompressed).asLong();
+        long checksum = HashFunction.murmur64B(0xDEADBEEFL).hash(decompressed).asLong();
         if (checksum != resource.checksum()) {
             System.err.println("Checksum mismatch! (" + checksum + " != " + resource.checksum() + ")");
         }
-        decompressed.rewind();
 
         return decompressed;
     }

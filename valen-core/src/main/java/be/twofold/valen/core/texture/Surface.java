@@ -1,28 +1,34 @@
 package be.twofold.valen.core.texture;
 
-import be.twofold.valen.core.util.*;
+import wtf.reversed.toolbox.util.*;
 
 public record Surface(
     int width,
     int height,
+    TextureFormat format,
     byte[] data
 ) {
     public Surface {
-        Check.argument(width > 0, "width must be greater than 0");
-        Check.argument(height > 0, "height must be greater than 0");
-        Check.notNull(data, "data is null");
+        Check.positive(width, "width");
+        Check.positive(height, "height");
+        Check.nonNull(format, "format");
+        Check.nonNull(data, "data");
     }
 
     public static Surface create(int width, int height, TextureFormat format) {
-        Check.argument(width > 0, "width must be greater than 0");
-        Check.argument(height > 0, "height must be greater than 0");
+        Check.positive(width, "width");
+        Check.positive(height, "height");
 
-        var data = new byte[format.block().surfaceSize(width, height)];
-        return new Surface(width, height, data);
+        var data = new byte[format.surfaceSize(width, height)];
+        return new Surface(width, height, format, data);
+    }
+
+    public Surface withFormat(TextureFormat format) {
+        return new Surface(width, height, format, data);
     }
 
     public Surface withData(byte[] data) {
-        return new Surface(width, height, data);
+        return new Surface(width, height, format, data);
     }
 
 
@@ -57,6 +63,7 @@ public record Surface(
         return "Surface(" +
             "width=" + width + ", " +
             "height=" + height + ", " +
+            "format=" + format + ", " +
             "data=[" + data.length + " bytes]" +
             ")";
     }

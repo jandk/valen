@@ -1,10 +1,10 @@
 package be.twofold.valen.game.eternal;
 
 import be.twofold.valen.core.game.*;
-import be.twofold.valen.core.io.*;
+import wtf.reversed.toolbox.collect.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
-import java.nio.*;
 import java.nio.file.*;
 import java.util.function.*;
 
@@ -24,16 +24,20 @@ public abstract class TestUtils {
 
     private static void readAllInMap(EternalArchive archive, AssetReader<?, EternalAsset> reader) {
         var entries = archive.getAll()
-            .filter(asset -> asset.size() != 0 && reader.canRead((EternalAsset) asset))
+            .filter(asset -> asset.size() != 0 && reader.canRead(asset))
             .toList();
 
         System.out.println("Trying to read " + entries.size() + " entries");
 
-        entries.forEach(asset -> assertThatNoException()
-            .isThrownBy(() -> {
-                var buffer = archive.loadAsset(asset.id(), ByteBuffer.class);
-                reader.read(DataSource.fromBuffer(buffer), (EternalAsset) asset);
-            }));
+        for (EternalAsset asset : entries) {
+            try {
+                var bytes = archive.loadAsset(asset.id(), Bytes.class);
+                reader.read(BinarySource.wrap(bytes), asset);
+            } catch (FileNotFoundException e) {
+                System.err.println("File not found" + asset.id().fullName());
+            } catch (Exception e) {
+                fail(asset.id().fullName(), e);
+            }
+        }
     }
-
 }

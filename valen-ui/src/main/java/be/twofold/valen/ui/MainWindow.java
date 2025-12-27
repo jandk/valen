@@ -1,5 +1,7 @@
 package be.twofold.valen.ui;
 
+import backbonefx.di.*;
+import backbonefx.event.*;
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.ui.common.settings.*;
 import be.twofold.valen.ui.component.*;
@@ -26,19 +28,23 @@ public final class MainWindow extends Application {
     public void start(Stage primaryStage) {
         this.primaryStage = primaryStage;
 
-        var factory = DaggerMainFactory.create();
+        Feather feather = Feather.with(
+            new ControllerModule(),
+            new EventBusModule(),
+            new SettingsModule(),
+            new ViewModule()
+        );
 
-        factory.eventBus()
-            .receiverFor(MainEvent.class)
-            .consume(event -> {
+        feather.instance(EventBus.class)
+            .subscribe(MainEvent.class, event -> {
                 switch (event) {
                     case MainEvent.GameLoadRequested() -> selectAndLoadGame();
                     case MainEvent.SaveFileRequested(var filename, var consumer) -> saveFile(filename, consumer);
                 }
             });
 
-        presenter = factory.presenter();
-        settings = factory.settings();
+        presenter = feather.instance(MainPresenter.class);
+        settings = feather.instance(Settings.class);
 
         var icons = Stream.of(16, 24, 32, 48, 64, 96, 128)
             .map(i -> new Image(getClass().getResourceAsStream("/appicon/valen-" + i + ".png")))
@@ -55,17 +61,14 @@ public final class MainWindow extends Application {
 
         settings.gameExecutable().get()
             .ifPresentOrElse(
-                this::loadGame,
+                this::tryLoadGame,
                 this::selectAndLoadGame
             );
     }
 
     private void selectAndLoadGame() {
         Platform.runLater(() -> chooseGame()
-            .ifPresent(path -> {
-                settings.gameExecutable().set(path);
-                loadGame(path);
-            }));
+            .ifPresent(this::tryLoadGame));
     }
 
     private void saveFile(String initialFilename, Consumer<Path> consumer) {
@@ -89,20 +92,27 @@ public final class MainWindow extends Application {
             new FileChooser.ExtensionFilter("Game executable", "*.exe")
         );
 
-        return Optional.ofNullable(fileChooser.showOpenDialog(primaryStage))
-            .map(File::toPath)
-            .filter(path -> GameFactory.resolve(path).isPresent());
+        return Optional
+            .ofNullable(fileChooser.showOpenDialog(primaryStage))
+            .map(File::toPath);
     }
 
-    private void loadGame(Path path) {
+    private void tryLoadGame(Path path) {
         try {
             if (!Files.exists(path)) {
                 selectAndLoadGame();
                 return;
             }
-            var game = GameFactory.resolve(path).orElseThrow().load(path);
-            presenter.setGame(game);
-        } catch (IOException e) {
+
+            var gameFactory = GameFactory.resolve(path);
+            if (gameFactory.isEmpty()) {
+                selectAndLoadGame();
+                return;
+            }
+
+            settings.gameExecutable().set(path);
+            presenter.setGame(gameFactory.get().load(path));
+        } catch (Exception e) {
             FxUtils.showExceptionDialog(e, "Could not load game");
         }
     }

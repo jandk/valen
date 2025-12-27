@@ -1,8 +1,8 @@
 package be.twofold.valen.game.eternal.reader.md6model;
 
-import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.math.*;
-import be.twofold.valen.game.eternal.reader.geometry.*;
+import be.twofold.valen.game.idtech.geometry.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 
@@ -18,7 +18,7 @@ public record Md6ModelLodInfo(
     float unkFloat2,
     float unkFloat3
 ) implements LodInfo {
-    public static Md6ModelLodInfo read(DataSource source) throws IOException {
+    public static Md6ModelLodInfo read(BinarySource source) throws IOException {
         var numVertices = source.readInt();
         var numFaces = source.readInt();
         var bounds = Bounds.read(source);

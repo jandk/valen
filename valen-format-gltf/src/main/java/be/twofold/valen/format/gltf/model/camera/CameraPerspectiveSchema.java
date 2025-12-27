@@ -8,7 +8,7 @@ import java.util.*;
 /**
  * A perspective camera containing properties to create a perspective projection matrix.
  */
-@Schema2Style
+@SchemaStyle
 @Value.Immutable
 public interface CameraPerspectiveSchema extends GltfProperty {
 

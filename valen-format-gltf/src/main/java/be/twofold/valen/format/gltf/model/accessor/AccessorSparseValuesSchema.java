@@ -12,7 +12,7 @@ import java.util.*;
  * accessor. The elements are tightly packed. Data <b>MUST</b> be aligned following the same rules as the base
  * accessor.
  */
-@Schema2Style
+@SchemaStyle
 @Value.Immutable
 public interface AccessorSparseValuesSchema extends GltfProperty {
 

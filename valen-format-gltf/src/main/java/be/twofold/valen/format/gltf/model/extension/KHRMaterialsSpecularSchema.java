@@ -10,7 +10,7 @@ import java.util.*;
 /**
  * glTF extension that defines the strength of the specular reflection.
  */
-@Schema2Style
+@SchemaStyle
 @Value.Immutable
 public interface KHRMaterialsSpecularSchema extends GltfProperty, Extension {
     @Override

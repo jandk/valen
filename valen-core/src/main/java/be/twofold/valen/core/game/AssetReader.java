@@ -1,28 +1,24 @@
 package be.twofold.valen.core.game;
 
-import be.twofold.valen.core.io.*;
+import be.twofold.valen.core.util.*;
+import wtf.reversed.toolbox.collect.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
-import java.lang.reflect.*;
-import java.nio.*;
-import java.util.*;
 
 public interface AssetReader<R, A extends Asset> {
 
     boolean canRead(A asset);
 
-    R read(DataSource source, A asset) throws IOException;
+    R read(BinarySource source, A asset) throws IOException;
 
     default Class<?> getReturnType() {
-        return Arrays.stream(getClass().getGenericInterfaces())
-            .filter(ParameterizedType.class::isInstance)
-            .map(ParameterizedType.class::cast)
-            .filter(type -> type.getRawType() == AssetReader.class)
+        return Reflections.getParameterizedType(getClass(), AssetReader.class)
             .map(type -> (Class<?>) type.getActualTypeArguments()[0])
-            .findFirst().orElseThrow();
+            .orElseThrow();
     }
 
-    static <A extends Asset> AssetReader<ByteBuffer, A> raw() {
+    static <A extends Asset> AssetReader<Bytes, A> raw() {
         return new AssetReader<>() {
             @Override
             public boolean canRead(A asset) {
@@ -30,8 +26,8 @@ public interface AssetReader<R, A extends Asset> {
             }
 
             @Override
-            public ByteBuffer read(DataSource source, A asset) throws IOException {
-                return source.readBuffer(Math.toIntExact(source.size()));
+            public Bytes read(BinarySource source, A asset) throws IOException {
+                return source.readBytes(Math.toIntExact(source.size()));
             }
         };
     }

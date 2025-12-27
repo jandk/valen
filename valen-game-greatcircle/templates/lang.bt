@@ -1,0 +1,20 @@
+typedef struct {
+    uint size;
+    char value[size];
+} SString<read=Str("%s", size > 0 ? this.value : "")>;
+
+struct Entry {
+    BigEndian();
+    uint fnv1aHashOfKey;
+    LittleEndian();
+    SString key;
+    byte nullByte;
+    SString value;
+    byte nullByte;
+};
+
+LittleEndian();
+uint size;
+BigEndian();
+uint count;
+Entry entries[count] <optimize=false>;

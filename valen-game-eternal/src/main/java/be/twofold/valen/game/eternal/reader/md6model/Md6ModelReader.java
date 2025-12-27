@@ -2,14 +2,15 @@ package be.twofold.valen.game.eternal.reader.md6model;
 
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.geometry.*;
-import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.math.*;
 import be.twofold.valen.game.eternal.*;
 import be.twofold.valen.game.eternal.reader.geometry.*;
 import be.twofold.valen.game.eternal.resource.*;
+import be.twofold.valen.game.idtech.geometry.*;
+import wtf.reversed.toolbox.collect.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
-import java.nio.*;
 import java.util.*;
 
 public final class Md6ModelReader implements AssetReader<Model, EternalAsset> {
@@ -31,7 +32,7 @@ public final class Md6ModelReader implements AssetReader<Model, EternalAsset> {
     }
 
     @Override
-    public Model read(DataSource source, EternalAsset resource) throws IOException {
+    public Model read(BinarySource source, EternalAsset resource) throws IOException {
         var model = Md6Model.read(source);
         var meshes = new ArrayList<>(readMeshes(model, resource.hash()));
         var skeletonKey = EternalAssetID.from(model.header().md6SkelName(), ResourceType.Skeleton);
@@ -40,7 +41,7 @@ public final class Md6ModelReader implements AssetReader<Model, EternalAsset> {
         if (readMaterials) {
             Materials.apply(archive, meshes, model.meshInfos(), Md6ModelInfo::materialName, Md6ModelInfo::meshName);
         }
-        return new Model(meshes, Optional.of(skeleton), Optional.of(resource.id().fullName()), Axis.Z);
+        return new Model(meshes, Optional.of(skeleton), Optional.of(resource.id().fullName()), Optional.empty(), Axis.Z);
     }
 
     private List<Mesh> readMeshes(Md6Model md6, long hash) throws IOException {
@@ -61,8 +62,8 @@ public final class Md6ModelReader implements AssetReader<Model, EternalAsset> {
         var layouts = md6.layouts().get(lod).memoryLayouts();
 
         var identity = (hash << 4) | lod;
-        var buffer = archive.readStream(identity, uncompressedSize);
-        try (var source = DataSource.fromBuffer(buffer)) {
+        var bytes = archive.readStream(identity, uncompressedSize);
+        try (var source = BinarySource.wrap(bytes)) {
             return GeometryReader.readStreamedMesh(source, lodInfos, layouts, true);
         }
     }
@@ -71,21 +72,18 @@ public final class Md6ModelReader implements AssetReader<Model, EternalAsset> {
         var jointRemap = md6.boneInfo().jointRemap();
 
         // This lookup table is in reverse... Nice
-        var lookup = new byte[jointRemap.length];
-        for (var i = 0; i < jointRemap.length; i++) {
-            lookup[Byte.toUnsignedInt(jointRemap[i])] = (byte) i;
+        var lookup = new byte[jointRemap.length()];
+        for (var i = 0; i < jointRemap.length(); i++) {
+            lookup[jointRemap.getUnsigned(i)] = (byte) i;
         }
 
         for (var i = 0; i < meshes.size(); i++) {
             var meshInfo = md6.meshInfos().get(i);
-            var joints = meshes.get(i)
-                .getBuffer(Semantic.JOINTS0)
-                .orElseThrow();
 
-            // Just assume it's a byte buffer, because we read it as such
-            var array = ((ByteBuffer) joints.buffer()).array();
-            for (var j = 0; j < array.length; j++) {
-                array[j] = lookup[Byte.toUnsignedInt(array[j]) + meshInfo.unknown2()];
+            // Just assume it's a mutable buffer, because we read it as such
+            var joints = meshes.get(i).joints().map(Shorts.Mutable.class::cast).orElseThrow();
+            for (var j = 0; j < joints.length(); j++) {
+                joints.set(j, lookup[joints.getUnsigned(j) + meshInfo.unknown2()]);
             }
         }
     }

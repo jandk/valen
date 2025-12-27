@@ -1,6 +1,8 @@
 package be.twofold.valen.ui.component.settings;
 
-sealed interface SettingsViewEvent {
+import backbonefx.event.*;
+
+sealed interface SettingsViewEvent extends Event {
     record Applied() implements SettingsViewEvent {
     }
 }

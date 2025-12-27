@@ -10,7 +10,7 @@ import java.util.*;
 /**
  * Geometry to be rendered with the given material.
  */
-@Schema2Style
+@SchemaStyle
 @Value.Immutable
 public interface MeshPrimitiveSchema extends GltfProperty {
 
@@ -38,7 +38,6 @@ public interface MeshPrimitiveSchema extends GltfProperty {
     /**
      * An array of morph targets.
      */
-    // TODO: Figure this one out
-    Optional<List<MeshPrimitiveTarget>> getTargets();
+    Optional<List<Map<String, AccessorID>>> getTargets();
 
 }

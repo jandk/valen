@@ -1,6 +1,6 @@
 package be.twofold.valen.game.eternal.reader.image;
 
-import be.twofold.valen.core.io.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 
@@ -14,14 +14,14 @@ public record ImageMipInfo(
     int compressedSize,
     int cumulativeSizeStreamDB
 ) {
-    public static ImageMipInfo read(DataSource source) throws IOException {
+    public static ImageMipInfo read(BinarySource source) throws IOException {
         var mipLevel = source.readInt();
         var mipSlice = source.readInt();
         var mipPixelWidth = source.readInt();
         var mipPixelHeight = source.readInt();
         source.expectInt(1);
         var decompressedSize = source.readInt();
-        var flagIsCompressed = source.readBoolInt();
+        var flagIsCompressed = source.readBool(BoolFormat.INT);
         var compressedSize = source.readInt();
         var cumulativeSizeStreamDB = source.readInt();
 

@@ -1,6 +1,7 @@
 package be.twofold.valen.game.eternal.reader.md6anim;
 
-import be.twofold.valen.core.io.*;
+import wtf.reversed.toolbox.collect.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 
@@ -19,10 +20,10 @@ public record Md6AnimData(
     short constUOffset,
     short nextSize,
     short jointWeightsOffset,
-    float[] startDelta,
-    float[] endDelta
+    Floats startDelta,
+    Floats endDelta
 ) {
-    public static Md6AnimData read(DataSource source) throws IOException {
+    public static Md6AnimData read(BinarySource source) throws IOException {
         source.expectLong(0);
         int totalSize = source.readInt();
         short size = source.readShort();
@@ -39,8 +40,8 @@ public record Md6AnimData(
         short nextSize = source.readShort();
         short jointWeightsOffset = source.readShort();
         source.expectShort((short) 0);
-        float[] startDelta = source.readFloats(12);
-        float[] endDelta = source.readFloats(12);
+        Floats startDelta = source.readFloats(12);
+        Floats endDelta = source.readFloats(12);
         source.expectLong(0);
 
         return new Md6AnimData(

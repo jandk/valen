@@ -1,24 +1,24 @@
 package be.twofold.valen.game.eternal.reader.image;
 
-import be.twofold.valen.core.io.*;
+import wtf.reversed.toolbox.collect.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
-import java.nio.*;
 import java.util.*;
 import java.util.stream.*;
 
 public record Image(
     ImageHeader header,
     List<ImageMipInfo> mipInfos,
-    ByteBuffer[] mipData
+    Bytes[] mipData
 ) {
-    public static Image read(DataSource source) throws IOException {
+    public static Image read(BinarySource source) throws IOException {
         var header = ImageHeader.read(source);
         var mipInfos = source.readObjects(header.totalMipCount(), ImageMipInfo::read);
-        var mipData = new ByteBuffer[mipInfos.size()];
+        var mipData = new Bytes[mipInfos.size()];
 
         for (int i = header.startMip(); i < header.totalMipCount(); i++) {
-            mipData[i] = source.readBuffer(mipInfos.get(i).decompressedSize());
+            mipData[i] = source.readBytes(mipInfos.get(i).decompressedSize());
         }
         return new Image(header, mipInfos, mipData);
     }

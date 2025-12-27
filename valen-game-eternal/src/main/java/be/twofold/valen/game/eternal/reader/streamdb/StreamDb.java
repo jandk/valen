@@ -1,6 +1,7 @@
 package be.twofold.valen.game.eternal.reader.streamdb;
 
-import be.twofold.valen.core.io.*;
+import wtf.reversed.toolbox.collect.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 import java.util.*;
@@ -10,13 +11,13 @@ public record StreamDb(
     List<StreamDbEntry> entries,
     StreamDbPrefetchHeader prefetchHeader,
     List<StreamDbPrefetchBlock> prefetchBlocks,
-    long[] prefetchIDs
+    Longs prefetchIDs
 ) {
-    public static StreamDb read(DataSource source) throws IOException {
+    public static StreamDb read(BinarySource source) throws IOException {
         var header = StreamDbHeader.read(source);
         var entries = source.readObjects(header.numEntries(), StreamDbEntry::read);
         if (!header.flags().contains(StreamDbHeaderFlag.SDHF_HAS_PREFETCH_BLOCKS)) {
-            return new StreamDb(header, entries, null, List.of(), new long[0]);
+            return new StreamDb(header, entries, null, List.of(), Longs.empty());
         }
 
         var prefetchHeader = StreamDbPrefetchHeader.read(source);
@@ -36,7 +37,7 @@ public record StreamDb(
             "entries=(" + entries.size() + " entries), " +
             "prefetchHeader=" + prefetchHeader + ", " +
             "prefetchBlocks=(" + prefetchBlocks.size() + " blocks), " +
-            "prefetchIDs=(" + prefetchIDs.length + " IDs)" +
+            "prefetchIDs=(" + prefetchIDs.length() + " IDs)" +
             "]";
     }
 }

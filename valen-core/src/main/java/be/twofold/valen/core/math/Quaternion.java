@@ -1,6 +1,6 @@
 package be.twofold.valen.core.math;
 
-import be.twofold.valen.core.io.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 import java.nio.*;
@@ -18,7 +18,7 @@ public record Quaternion(float x, float y, float z, float w) {
         return new Quaternion(x, y, z, cos);
     }
 
-    public static Quaternion read(DataSource source) throws IOException {
+    public static Quaternion read(BinarySource source) throws IOException {
         float x = source.readFloat();
         float y = source.readFloat();
         float z = source.readFloat();

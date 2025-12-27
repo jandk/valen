@@ -1,14 +1,15 @@
 package be.twofold.valen.ui.component.filelist;
 
 import be.twofold.valen.core.util.*;
+import wtf.reversed.toolbox.util.*;
 
 record PathCombo(
     String full,
     String name
 ) implements Comparable<PathCombo> {
     public PathCombo {
-        Check.notNull(full, "full");
-        Check.notNull(name, "name");
+        Check.nonNull(full, "full");
+        Check.nonNull(name, "name");
     }
 
     @Override

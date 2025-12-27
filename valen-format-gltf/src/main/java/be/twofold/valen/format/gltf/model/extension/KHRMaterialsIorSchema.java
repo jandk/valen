@@ -8,7 +8,7 @@ import java.util.*;
 /**
  * glTF extension that defines the index of refraction of a material.
  */
-@Schema2Style
+@SchemaStyle
 @Value.Immutable
 public interface KHRMaterialsIorSchema extends GltfProperty, Extension {
 

@@ -1,11 +1,11 @@
 package be.twofold.valen.game.eternal.reader.decl.entitydef;
 
 import be.twofold.valen.core.game.*;
-import be.twofold.valen.core.io.*;
 import be.twofold.valen.game.eternal.*;
-import be.twofold.valen.game.eternal.reader.decl.parser.*;
 import be.twofold.valen.game.eternal.resource.*;
+import be.twofold.valen.game.idtech.decl.parser.*;
 import com.google.gson.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 
@@ -17,9 +17,9 @@ public final class EntityDefReader implements AssetReader<JsonObject, EternalAss
     }
 
     @Override
-    public JsonObject read(DataSource source, EternalAsset resource) throws IOException {
-        var bytes = source.readBytes(Math.toIntExact(source.size()));
-        var parser = new DeclParser(new String(bytes), true);
+    public JsonObject read(BinarySource source, EternalAsset resource) throws IOException {
+        var string = source.readString(Math.toIntExact(source.size()));
+        var parser = new DeclParser(string, true);
         return parser.parse();
     }
 }

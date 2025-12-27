@@ -1,7 +1,7 @@
 package be.twofold.valen.game.eternal.reader.mapfilestaticinstances;
 
-import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.math.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 
@@ -10,10 +10,10 @@ public record MapFileStaticInstancesPlayerStart(
     Vector3 spawnPosition,
     boolean initial
 ) {
-    public static MapFileStaticInstancesPlayerStart read(DataSource source) throws IOException {
-        var entityName = source.readPString();
+    public static MapFileStaticInstancesPlayerStart read(BinarySource source) throws IOException {
+        var entityName = source.readString(StringFormat.INT_LENGTH);
         var spawnPosition = Vector3.read(source);
-        var initial = source.readBoolByte();
+        var initial = source.readBool(BoolFormat.BYTE);
         return new MapFileStaticInstancesPlayerStart(
             entityName,
             spawnPosition,
