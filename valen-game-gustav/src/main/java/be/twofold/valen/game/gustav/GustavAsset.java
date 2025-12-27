@@ -1,7 +1,7 @@
 package be.twofold.valen.game.gustav;
 
 import be.twofold.valen.core.game.*;
-import be.twofold.valen.format.granite.texture.*;
+import be.twofold.valen.format.granite.*;
 import be.twofold.valen.game.gustav.reader.pak.*;
 
 import java.util.*;
@@ -35,7 +35,7 @@ public sealed interface GustavAsset extends Asset {
 
     record Gts(
         GustavAssetID id,
-        TextureInfo info,
+        GraniteTexture info,
         int layer
     ) implements GustavAsset {
         @Override

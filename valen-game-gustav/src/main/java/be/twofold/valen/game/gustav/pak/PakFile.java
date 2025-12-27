@@ -12,7 +12,7 @@ import java.util.function.*;
 import java.util.stream.*;
 
 public abstract class PakFile implements Container<GustavAssetID, GustavAsset> {
-    final Map<GustavAssetID, GustavAsset> index;
+    final Map<GustavAssetID, GustavAsset.Pak> index;
 
     public PakFile(List<PakEntry> entries) {
         this.index = entries.stream()
@@ -37,7 +37,8 @@ public abstract class PakFile implements Container<GustavAssetID, GustavAsset> {
     }
 
     @Override
+    @SuppressWarnings({"rawtypes", "unchecked"})
     public Stream<GustavAsset> getAll() {
-        return index.values().stream();
+        return (Stream) index.values().stream();
     }
 }

@@ -5,15 +5,18 @@ import be.twofold.valen.core.util.*;
 import be.twofold.valen.format.granite.gdex.*;
 import be.twofold.valen.format.granite.gtp.*;
 import be.twofold.valen.format.granite.gts.*;
-import be.twofold.valen.format.granite.texture.*;
 import be.twofold.valen.format.granite.util.*;
+import be.twofold.valen.format.granite.xml.*;
 import org.slf4j.*;
 import wtf.reversed.toolbox.collect.*;
 import wtf.reversed.toolbox.compress.*;
 import wtf.reversed.toolbox.io.*;
+import wtf.reversed.toolbox.util.*;
 
 import java.io.*;
 import java.util.*;
+import java.util.function.*;
+import java.util.stream.*;
 
 public final class GraniteContainer {
     private static final Logger log = LoggerFactory.getLogger(GraniteContainer.class);
@@ -22,12 +25,12 @@ public final class GraniteContainer {
 
     private final Gts gts;
     private final ThrowingFunction<String, BinarySource, IOException> gtpSupplier;
-    private final List<TextureInfo> textures;
+    private final List<GraniteTexture> textures;
 
     private GraniteContainer(Gts gts, ThrowingFunction<String, BinarySource, IOException> gtpSupplier) throws IOException {
         this.gts = Objects.requireNonNull(gts);
         this.gtpSupplier = Objects.requireNonNull(gtpSupplier);
-        this.textures = new TextureMapper().mapTextures(gts.metadata());
+        this.textures = mapTextures(gts.metadata());
         log.info("Loaded {} textures from {}", textures.size(), gts.path());
     }
 
@@ -39,13 +42,13 @@ public final class GraniteContainer {
         return new GraniteContainer(Gts.read(source, path), gtpSupplier);
     }
 
-    public List<TextureInfo> getTextures() {
+    public List<GraniteTexture> getTextures() {
         return textures;
     }
 
     // region Exporting
 
-    public Texture read(TextureInfo texture, int layer) throws IOException {
+    public Texture read(GraniteTexture texture, int layer) throws IOException {
         var tileBorder = gts.header().tileBorder();
         var tileWidth = gts.header().tileWidth() - tileBorder * 2;
         var tileHeight = gts.header().tileHeight() - tileBorder * 2;
@@ -72,7 +75,7 @@ public final class GraniteContainer {
 
         for (var y = 0; y < tileH; y++) {
             for (var x = 0; x < tileW; x++) {
-                var src = readTile(tileX + x, tileY + y, layer, level, format);
+                var src = readTile(getIndex(tileX + x, tileY + y, layer, level), format);
                 var width = Math.min(tileWidth, layerWidth - x * tileWidth);
                 var height = Math.min(tileHeight, layerHeight - y * tileHeight);
                 Surface.copy(
@@ -103,10 +106,6 @@ public final class GraniteContainer {
         return true;
     }
 
-    private Surface readTile(int x, int y, int layer, int level, TextureFormat format) throws IOException {
-        return readTile(getIndex(x, y, layer, level), format);
-    }
-
     private int getIndex(int x, int y, int layer, int level) {
         var numLayers = gts.layers().size();
         var levelInfo = gts.levels().get(level);
@@ -124,7 +123,11 @@ public final class GraniteContainer {
             gts.header().tileHeight()
         );
 
+        if (gtpCache.size() > 5) {
+            gtpCache.keySet().removeIf(path -> !path.endsWith("_mips.gtp"));
+        }
         var gtp = gtpCache.computeIfAbsent(pagePath, path -> {
+            System.out.println("Loading gtp cache " + path);
             try (var source = gtpSupplier.apply(path)) {
                 return Gtp.read(source, gts.header().pageSize());
             } catch (IOException e) {
@@ -192,6 +195,77 @@ public final class GraniteContainer {
             case "BC3" -> TextureFormat.BC3_SRGB; // TODO: Switch between this and UNORM
             default -> throw new UnsupportedOperationException();
         };
+    }
+
+    // endregion
+
+    // region Mapping
+
+
+    public List<GraniteTexture> mapTextures(GdexStruct metadata) throws IOException {
+        var metaTextures = metadata
+            .findOne(GdexItemTag.ATLS).asStruct()
+            .findOne(GdexItemTag.TXTS).asStruct()
+            .find(GdexItemTag.TXTR)
+            .map(Gdex::asStruct)
+            .toList();
+
+        var rawXml = metadata
+            .findOne(GdexItemTag.PROJ).asString();
+        var xmlTextureIndex = XmlProject.load(rawXml)
+            .importedAssets().stream()
+            .collect(Collectors.toUnmodifiableMap(XmlAsset::name, Function.identity()));
+
+        return metaTextures.stream()
+            .map(metaTexture -> mapTexture(metaTexture, xmlTextureIndex.get(metaTexture.findOne(GdexItemTag.NAME).asString())))
+            .toList();
+    }
+
+    private GraniteTexture mapTexture(GdexStruct metaTexture, XmlAsset xmlAsset) {
+        var name = metaTexture.findOne(GdexItemTag.NAME).asString();
+        var width = metaTexture.findOne(GdexItemTag.WDTH).asNumber().intValue();
+        var height = metaTexture.findOne(GdexItemTag.HGHT).asNumber().intValue();
+        var x = metaTexture.findOne(GdexItemTag.XXXX).asNumber().intValue();
+        var y = metaTexture.findOne(GdexItemTag.YYYY).asNumber().intValue();
+        var srgb = metaTexture.findOne(GdexItemTag.SRGB).asArray().stream()
+            .map(obj -> (int) obj != 0)
+            .toList();
+
+        var layers = IntStream.range(0, xmlAsset.layers().size())
+            .mapToObj(i -> mapLayer(xmlAsset.layers().get(i), srgb.get(i)))
+            .toList();
+
+        return new GraniteTexture(name, width, height, x, y, layers);
+    }
+
+    private GraniteTextureLayer mapLayer(XmlLayer layer, boolean srgb) {
+        return layer.textures().size() > 1
+            ? mapLayerWithMultipleTextures(layer, srgb)
+            : mapLayerWithSingleTexture(layer, srgb);
+    }
+
+    private GraniteTextureLayer mapLayerWithSingleTexture(XmlLayer layer, boolean srgb) {
+        var texture = layer.textures().getFirst();
+        var name = texture.src().substring(texture.src().lastIndexOf('\\') + 1);
+        var width = texture.width();
+        var height = texture.height();
+        return new GraniteTextureLayer(name, width, height, srgb);
+    }
+
+    private GraniteTextureLayer mapLayerWithMultipleTextures(XmlLayer layer, boolean srgb) {
+        var widths = new HashMap<Integer, Integer>();
+        var heights = new HashMap<Integer, Integer>();
+        for (var texture : layer.textures()) {
+            Check.state(texture.subIndex() == 0, "Can only deal with one subIndex");
+            Check.state(texture.arrayIndex() == 0, "Can only deal with one arrayIndex");
+            widths.merge(texture.column().orElseThrow(), texture.width(), Math::max);
+            heights.merge(texture.row().orElseThrow(), texture.height(), Math::max);
+        }
+        var texture = layer.textures().getFirst();
+        var name = texture.src().substring(texture.src().lastIndexOf('\\') + 1);
+        var width = widths.values().stream().mapToInt(Integer::intValue).sum();
+        var height = heights.values().stream().mapToInt(Integer::intValue).sum();
+        return new GraniteTextureLayer(name, width, height, srgb);
     }
 
     // endregion
