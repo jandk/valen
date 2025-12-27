@@ -5,9 +5,10 @@ import wtf.reversed.toolbox.util.*;
 import java.util.*;
 
 public enum PakFlag implements FlagEnum {
-    AllowMemoryMapping(2),
-    Solid(4),
-    Preload(8),
+    AllowMemoryMapping(1 << 1),
+    Solid(1 << 2),
+    Preload(1 << 3),
+    Unknown(1 << 4),
     ;
     private final int value;
 

@@ -14,7 +14,7 @@ public final class GustavArchive extends Archive<GustavAssetID, GustavAsset> {
     private final PakFile pakFile;
 
     public GustavArchive(Path path) throws IOException {
-        this.pakFile = new PakFile(path);
+        this.pakFile = PakFile.open(path);
     }
 
     @Override
