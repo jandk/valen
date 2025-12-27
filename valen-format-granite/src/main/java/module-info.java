@@ -8,4 +8,5 @@ module valen.format.granite {
     requires wtf.reversed.toolbox;
 
     exports be.twofold.valen.format.granite;
+    exports be.twofold.valen.format.granite.texture;
 }

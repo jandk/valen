@@ -39,17 +39,20 @@ final class PakFileNormal extends PakFile {
     public Bytes read(GustavAssetID key, Integer size) throws IOException {
         var asset = index.get(key);
         Check.state(asset != null, () -> "Resource not found: " + key.fullName());
+        if (!(asset instanceof GustavAsset.Pak pakAsset)) {
+            throw new IOException("Not a pak asset: " + key.fullName());
+        }
 
-        var reader = readers.get(asset.entry().archivePart());
-        reader.position(asset.entry().offset());
-        var compressed = reader.readBytes(asset.entry().compressedSize());
+        var reader = readers.get(pakAsset.entry().archivePart());
+        reader.position(pakAsset.entry().offset());
+        var compressed = reader.readBytes(pakAsset.entry().compressedSize());
 
-        var decompressor = getDecompressor(asset.entry().flags());
+        var decompressor = getDecompressor(pakAsset.entry().flags());
         if (decompressor == Decompressor.none()) {
             return compressed;
         }
         return decompressor
-            .decompress(compressed, asset.entry().size());
+            .decompress(compressed, pakAsset.entry().size());
     }
 
     private Decompressor getDecompressor(Set<Compression> flags) {

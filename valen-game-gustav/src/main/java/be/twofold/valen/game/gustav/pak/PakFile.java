@@ -16,7 +16,7 @@ public abstract class PakFile implements Container<GustavAssetID, GustavAsset> {
 
     public PakFile(List<PakEntry> entries) {
         this.index = entries.stream()
-            .map(entry -> new GustavAsset(new GustavAssetID(entry.name()), entry))
+            .map(entry -> new GustavAsset.Pak(new GustavAssetID(entry.name()), entry))
             .collect(Collectors.toUnmodifiableMap(GustavAsset::id, Function.identity()));
     }
 

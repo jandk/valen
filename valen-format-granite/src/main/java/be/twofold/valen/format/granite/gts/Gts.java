@@ -6,12 +6,11 @@ import wtf.reversed.toolbox.io.*;
 import wtf.reversed.toolbox.util.*;
 
 import java.io.*;
-import java.nio.file.*;
 import java.util.*;
 import java.util.function.*;
 
 public record Gts(
-    Path path,
+    String path,
     GtsHeader header,
     List<GtsLayer> layers,
     List<GtsLevel> levels,
@@ -37,13 +36,7 @@ public record Gts(
         thumbnails = List.copyOf(thumbnails);
     }
 
-    public static Gts load(Path path) throws IOException {
-        try (var reader = BinarySource.open(path)) {
-            return read(reader, path);
-        }
-    }
-
-    public static Gts read(BinarySource source, Path path) throws IOException {
+    public static Gts read(BinarySource source, String path) throws IOException {
         var header = GtsHeader.read(source);
         var layers = source.position(header.layerOffset()).readObjects(header.layerCount(), GtsLayer::read);
         var levels = source.position(header.levelOffset()).readObjects(header.levelCount(), r -> GtsLevel.read(r, header.layerCount()));

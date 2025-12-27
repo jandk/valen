@@ -19,5 +19,9 @@
             <groupId>be.twofold</groupId>
             <artifactId>valen-export-dds</artifactId>
         </dependency>
+        <dependency>
+            <groupId>be.twofold</groupId>
+            <artifactId>valen-format-granite</artifactId>
+        </dependency>
     </dependencies>
 </project>
