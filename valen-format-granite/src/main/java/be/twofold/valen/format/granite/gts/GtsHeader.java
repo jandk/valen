@@ -1,7 +1,7 @@
 package be.twofold.valen.format.granite.gts;
 
-import be.twofold.valen.core.io.*;
 import be.twofold.valen.format.granite.util.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 import java.util.*;
@@ -30,40 +30,40 @@ public record GtsHeader(
     int paramBlockOffset,
     int thumbnailOffset
 ) {
-    public static GtsHeader read(BinaryReader reader) throws IOException {
-        reader.expectInt(0x47505247);
-        var version = reader.readInt();
+    public static GtsHeader read(BinarySource source) throws IOException {
+        source.expectInt(0x47505247);
+        var version = source.readInt();
         if (version != 5 && version != 6) {
             throw new UnsupportedOperationException("Unsupported version: " + version);
         }
-        reader.expectInt(0);
-        var guid = DotNetUtils.guidBytesToUUID(reader.readBytes(16));
-        var layerCount = reader.readInt();
-        var layerOffset = reader.readLongAsInt();
-        var levelCount = reader.readInt();
-        var levelOffset = reader.readLongAsInt();
-        var tileWidth = reader.readInt();
-        var tileHeight = reader.readInt();
-        var tileBorder = reader.readInt();
-        var maxTileSize = reader.readInt();
-        var tileCount = reader.readInt();
-        var tileOffset = reader.readLongAsInt();
-        reader.expectLong(0);
-        var tileIndexCount = reader.readInt();
-        var tileIndexOffset = reader.readLongAsInt();
+        source.expectInt(0);
+        var guid = DotNetUtils.guidBytesToUUID(source.readBytes(16));
+        var layerCount = source.readInt();
+        var layerOffset = source.readLongAsInt();
+        var levelCount = source.readInt();
+        var levelOffset = source.readLongAsInt();
+        var tileWidth = source.readInt();
+        var tileHeight = source.readInt();
+        var tileBorder = source.readInt();
+        var maxTileSize = source.readInt();
+        var tileCount = source.readInt();
+        var tileOffset = source.readLongAsInt();
+        source.expectLong(0);
+        var tileIndexCount = source.readInt();
+        var tileIndexOffset = source.readLongAsInt();
         for (int i = 0; i < 7; i++) {
-            reader.expectInt(0);
+            source.expectInt(0);
         }
-        var pageSize = reader.readInt();
-        var pageFileCount = reader.readInt();
-        var pageFileOffset = reader.readLongAsInt();
-        var metaSize = reader.readInt();
-        var metaOffset = reader.readLongAsInt();
-        var paramBlockCount = reader.readInt();
-        var paramBlockOffset = reader.readLongAsInt();
-        var thumbnailOffset = reader.readLongAsInt();
+        var pageSize = source.readInt();
+        var pageFileCount = source.readInt();
+        var pageFileOffset = source.readLongAsInt();
+        var metaSize = source.readInt();
+        var metaOffset = source.readLongAsInt();
+        var paramBlockCount = source.readInt();
+        var paramBlockOffset = source.readLongAsInt();
+        var thumbnailOffset = source.readLongAsInt();
         for (int i = 0; i < 4; i++) {
-            reader.expectInt(0);
+            source.expectInt(0);
         }
 
         return new GtsHeader(

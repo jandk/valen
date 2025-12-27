@@ -1,8 +1,9 @@
 package be.twofold.valen.core.compression;
 
-import be.twofold.valen.core.util.collect.*;
 import org.junit.jupiter.params.*;
 import org.junit.jupiter.params.provider.*;
+import wtf.reversed.toolbox.collect.*;
+import wtf.reversed.toolbox.compress.*;
 
 import java.security.*;
 import java.util.*;
@@ -14,7 +15,7 @@ class LZ4FrameDecompressorTest {
     private static final int LENGTH = 138216;
 
     private final MessageDigest sha256 = MessageDigest.getInstance("SHA256");
-    private final LZ4FrameDecompressor decompressor = LZ4FrameDecompressor.INSTANCE;
+    private final Decompressor decompressor = Decompressor.lz4Frame();
 
     LZ4FrameDecompressorTest() throws NoSuchAlgorithmException {
     }
@@ -32,7 +33,7 @@ class LZ4FrameDecompressorTest {
         var target = new byte[LENGTH + 2 * offset];
 
         var src = Bytes.wrap(source, offset, source.length - 2 * offset);
-        var dst = MutableBytes.wrap(target, offset, target.length - 2 * offset);
+        var dst = Bytes.Mutable.wrap(target, offset, target.length - 2 * offset);
         decompressor.decompress(src, dst);
 
         sha256.update(target, offset, LENGTH);

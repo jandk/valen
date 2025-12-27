@@ -1,8 +1,8 @@
 package be.twofold.valen.export.dds;
 
 import be.twofold.valen.core.game.*;
-import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.texture.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 import java.nio.*;
@@ -23,12 +23,12 @@ public final class DdsImporter implements AssetReader<Texture, Asset> {
     }
 
     @Override
-    public Texture read(BinaryReader reader, Asset asset) throws IOException {
-        var headerBuffer = reader
+    public Texture read(BinarySource source, Asset asset) throws IOException {
+        var headerBuffer = source
             .readBytes(4 + DdsHeader.SIZE + DdsHeaderDxt10.SIZE) // for magic
             .asBuffer().order(ByteOrder.LITTLE_ENDIAN);
         var header = DdsHeader.fromBuffer(headerBuffer);
-        reader.position(4 + DdsHeader.SIZE + (header.header10().isPresent() ? DdsHeaderDxt10.SIZE : 0));
+        source.position(4 + DdsHeader.SIZE + (header.header10().isPresent() ? DdsHeaderDxt10.SIZE : 0));
 
         if (!header.pixelFormat().flags().contains(DdsPixelFormatFlags.DDPF_FOURCC)) {
             throw new DdsException("Only supports DDPF_FOURCC");
@@ -50,7 +50,7 @@ public final class DdsImporter implements AssetReader<Texture, Asset> {
         var h = header.height();
         var surfaces = new ArrayList<Surface>();
         for (int i = 0; i < header.mipMapCount(); i++) {
-            var data = reader.readBytes(format.surfaceSize(w, h));
+            var data = source.readBytes(format.surfaceSize(w, h));
             surfaces.add(new Surface(w, h, format, data.toArray()));
             w = Math.max(w / 2, 1);
             h = Math.max(h / 2, 1);

@@ -1,9 +1,9 @@
 package be.twofold.valen.format.granite.gts;
 
-import be.twofold.valen.core.io.*;
-import be.twofold.valen.core.util.*;
-import be.twofold.valen.core.util.collect.*;
 import be.twofold.valen.format.granite.gdex.*;
+import wtf.reversed.toolbox.collect.*;
+import wtf.reversed.toolbox.io.*;
+import wtf.reversed.toolbox.util.*;
 
 import java.io.*;
 import java.nio.file.*;
@@ -24,49 +24,49 @@ public record Gts(
     List<GtsThumbnail> thumbnails
 ) {
     public Gts {
-        Check.notNull(path, "path");
-        Check.notNull(header, "header");
+        Check.nonNull(path, "path");
+        Check.nonNull(header, "header");
         layers = List.copyOf(layers);
         levels = List.copyOf(levels);
         tiles = List.copyOf(tiles);
-        Check.notNull(tileIndex, "tileIndex");
+        Check.nonNull(tileIndex, "tileIndex");
         pageFiles = List.copyOf(pageFiles);
-        Check.notNull(metadata, "metadata");
+        Check.nonNull(metadata, "metadata");
         paramBlocks = List.copyOf(paramBlocks);
         codecHeaders = Map.copyOf(codecHeaders);
         thumbnails = List.copyOf(thumbnails);
     }
 
     public static Gts load(Path path) throws IOException {
-        try (var reader = BinaryReader.fromPath(path)) {
+        try (var reader = BinarySource.open(path)) {
             return read(reader, path);
         }
     }
 
-    public static Gts read(BinaryReader reader, Path path) throws IOException {
-        var header = GtsHeader.read(reader);
-        var layers = reader.position(header.layerOffset()).readObjects(header.layerCount(), GtsLayer::read);
-        var levels = reader.position(header.levelOffset()).readObjects(header.levelCount(), r -> GtsLevel.read(r, header.layerCount()));
-        var tiles = reader.position(header.tileOffset()).readObjects(header.tileCount(), GtsTile::read);
-        var tileIndex = reader.position(header.tileIndexOffset()).readInts(header.tileIndexCount());
-        var pageFiles = reader.position(header.pageFileOffset()).readObjects(header.pageFileCount(), r -> GtsPageFile.read(r, header.version()));
-        var metadata = reader.position(header.metaOffset()).readObject(Gdex::read).asStruct();
-        var paramBlocks = reader.position(header.paramBlockOffset()).readObjects(header.paramBlockCount(), GtsParamBlock::read);
+    public static Gts read(BinarySource source, Path path) throws IOException {
+        var header = GtsHeader.read(source);
+        var layers = source.position(header.layerOffset()).readObjects(header.layerCount(), GtsLayer::read);
+        var levels = source.position(header.levelOffset()).readObjects(header.levelCount(), r -> GtsLevel.read(r, header.layerCount()));
+        var tiles = source.position(header.tileOffset()).readObjects(header.tileCount(), GtsTile::read);
+        var tileIndex = source.position(header.tileIndexOffset()).readInts(header.tileIndexCount());
+        var pageFiles = source.position(header.pageFileOffset()).readObjects(header.pageFileCount(), r -> GtsPageFile.read(r, header.version()));
+        var metadata = source.position(header.metaOffset()).readObject(Gdex::read).asStruct();
+        var paramBlocks = source.position(header.paramBlockOffset()).readObjects(header.paramBlockCount(), GtsParamBlock::read);
 
         var codecHeaderDedup = new HashMap<CodecHeader, CodecHeader>();
         var codecHeaders = new HashMap<Integer, CodecHeader>();
         for (var paramBlock : paramBlocks) {
-            reader.position(paramBlock.offset());
-            var codecHeader = codecHeaderDedup.computeIfAbsent(CodecHeader.read(reader, paramBlock.codec()), Function.identity());
+            source.position(paramBlock.offset());
+            var codecHeader = codecHeaderDedup.computeIfAbsent(CodecHeader.read(source, paramBlock.codec()), Function.identity());
             codecHeaders.put(paramBlock.id(), codecHeader);
         }
 
         List<GtsThumbnail> thumbnails = List.of();
         if (header.thumbnailOffset() != 0) {
-            reader.position(header.thumbnailOffset());
-            var thumbnailCount = reader.readInt();
-            reader.expectLong(0);
-            thumbnails = reader.readObjects(thumbnailCount, GtsThumbnail::read);
+            source.position(header.thumbnailOffset());
+            var thumbnailCount = source.readInt();
+            source.expectLong(0);
+            thumbnails = source.readObjects(thumbnailCount, GtsThumbnail::read);
         }
 
         return new Gts(

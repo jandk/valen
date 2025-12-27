@@ -1,7 +1,7 @@
 package be.twofold.valen.format.granite.gdex;
 
-import be.twofold.valen.core.io.*;
-import be.twofold.valen.core.util.collect.*;
+import wtf.reversed.toolbox.collect.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 import java.time.*;
@@ -16,8 +16,8 @@ public sealed abstract class Gdex
         this.tag = Objects.requireNonNull(tag);
     }
 
-    public static Gdex read(BinaryReader reader) throws IOException {
-        return new GdexReader(reader).read();
+    public static Gdex read(BinarySource source) throws IOException {
+        return new GdexReader(source).read();
     }
 
     public GdexItemTag tag() {

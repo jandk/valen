@@ -1,7 +1,7 @@
 package be.twofold.valen.game.gustav.reader.pak;
 
-import be.twofold.valen.core.compression.*;
-import be.twofold.valen.core.io.*;
+import wtf.reversed.toolbox.compress.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 import java.util.*;
@@ -10,10 +10,10 @@ public record Pak(
     PakHeader header,
     List<PakEntry> entries
 ) {
-    public static Pak read(BinaryReader reader) throws IOException {
-        var header = PakHeader.read(reader);
-        reader.position(header.fileListOffset());
-        var entries = readEntries(reader);
+    public static Pak read(BinarySource source) throws IOException {
+        var header = PakHeader.read(source);
+        source.position(header.fileListOffset());
+        var entries = readEntries(source);
 
         return new Pak(
             header,
@@ -21,14 +21,14 @@ public record Pak(
         );
     }
 
-    private static List<PakEntry> readEntries(BinaryReader reader) throws IOException {
-        var numFiles = reader.readInt();
-        var compressedSize = reader.readInt();
-        var compressed = reader.readBytes(compressedSize);
-        var decompressed = Decompressor.lz4().decompress(compressed, numFiles * 272);
+    private static List<PakEntry> readEntries(BinarySource source) throws IOException {
+        var numFiles = source.readInt();
+        var compressedSize = source.readInt();
+        var compressed = source.readBytes(compressedSize);
+        var decompressed = Decompressor.lz4Block().decompress(compressed, numFiles * 272);
 
-        try (var entryReader = BinaryReader.fromBytes(decompressed)) {
-            return entryReader.readObjects(numFiles, PakEntry::read);
+        try (var entrySource = BinarySource.wrap(decompressed)) {
+            return entrySource.readObjects(numFiles, PakEntry::read);
         }
     }
 }

@@ -2,6 +2,7 @@ module valen.game.gustav {
     requires org.slf4j;
     requires valen.core;
     requires valen.export.dds;
+    requires wtf.reversed.toolbox;
 
     exports be.twofold.valen.game.gustav.reader.pak to valen.core;
 

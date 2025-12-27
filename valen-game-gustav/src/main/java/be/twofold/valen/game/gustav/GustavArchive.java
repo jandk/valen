@@ -1,9 +1,9 @@
 package be.twofold.valen.game.gustav;
 
 import be.twofold.valen.core.game.*;
-import be.twofold.valen.core.util.collect.*;
 import be.twofold.valen.export.dds.*;
 import be.twofold.valen.game.gustav.pak.*;
+import wtf.reversed.toolbox.collect.*;
 
 import java.io.*;
 import java.nio.file.*;

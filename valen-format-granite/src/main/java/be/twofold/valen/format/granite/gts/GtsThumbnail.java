@@ -1,7 +1,7 @@
 package be.twofold.valen.format.granite.gts;
 
-import be.twofold.valen.core.io.*;
 import be.twofold.valen.format.granite.util.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 import java.util.*;
@@ -14,13 +14,13 @@ public record GtsThumbnail(
     short width,
     short height
 ) {
-    public static GtsThumbnail read(BinaryReader reader) throws IOException {
-        var guid = DotNetUtils.guidBytesToUUID(reader.readBytes(16));
-        var offset = reader.readLongAsInt();
-        var rawSize = reader.readInt();
-        var codedSize = reader.readInt();
-        var width = reader.readShort();
-        var height = reader.readShort();
+    public static GtsThumbnail read(BinarySource source) throws IOException {
+        var guid = DotNetUtils.guidBytesToUUID(source.readBytes(16));
+        var offset = source.readLongAsInt();
+        var rawSize = source.readInt();
+        var codedSize = source.readInt();
+        var width = source.readShort();
+        var height = source.readShort();
 
         return new GtsThumbnail(
             guid,

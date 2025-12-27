@@ -1,7 +1,7 @@
 package be.twofold.valen.core.texture.conversion;
 
 import be.twofold.valen.core.texture.*;
-import be.twofold.valen.core.util.collect.*;
+import wtf.reversed.toolbox.collect.*;
 
 import java.util.function.*;
 
@@ -45,7 +45,7 @@ final class Unpack extends Conversion {
 
     private static void unpackR10G10B10A2UnormToR8G8B8A8Unorm(byte[] src, byte[] dst) {
         var srcBytes = Bytes.wrap(src);
-        var dstBytes = MutableBytes.wrap(dst);
+        var dstBytes = Bytes.Mutable.wrap(dst);
         for (int i = 0, o = 0; i < srcBytes.length(); i += 4, o += 4) {
             int pixel = srcBytes.getInt(i);
             int r = (pixel/*  */) & 0x3FF;
@@ -61,7 +61,7 @@ final class Unpack extends Conversion {
 
     private static void unpackR10G10B10A2UnormToR16G16B16A16Unorm(byte[] src, byte[] dst) {
         var srcBytes = Bytes.wrap(src);
-        var dstBytes = MutableBytes.wrap(dst);
+        var dstBytes = Bytes.Mutable.wrap(dst);
         for (int i = 0, o = 0; i < srcBytes.length(); i += 4, o += 8) {
             int pixel = srcBytes.getInt(i);
             int r = (pixel/*  */) & 0x3FF;

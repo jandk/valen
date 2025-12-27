@@ -1,6 +1,6 @@
 package be.twofold.valen.game.gustav.reader.pak;
 
-import be.twofold.valen.core.util.*;
+import wtf.reversed.toolbox.util.*;
 
 import java.util.*;
 

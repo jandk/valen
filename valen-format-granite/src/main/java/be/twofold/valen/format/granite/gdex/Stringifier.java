@@ -1,6 +1,6 @@
 package be.twofold.valen.format.granite.gdex;
 
-import be.twofold.valen.core.util.collect.*;
+import wtf.reversed.toolbox.collect.*;
 
 import java.util.*;
 

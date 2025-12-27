@@ -1,8 +1,8 @@
 package be.twofold.valen.format.granite.gtp;
 
-import be.twofold.valen.core.io.*;
-import be.twofold.valen.core.util.collect.*;
 import be.twofold.valen.format.granite.enums.*;
+import wtf.reversed.toolbox.collect.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 
@@ -12,11 +12,11 @@ public record GtpChunk(
     int size,
     Bytes data
 ) {
-    static GtpChunk read(BinaryReader reader) throws IOException {
-        var codec = Codec.fromValue(reader.readInt());
-        var param = reader.readInt();
-        var size = reader.readInt();
-        var data = reader.readBytes(size);
+    static GtpChunk read(BinarySource source) throws IOException {
+        var codec = Codec.fromValue(source.readInt());
+        var param = source.readInt();
+        var size = source.readInt();
+        var data = source.readBytes(size);
 
         return new GtpChunk(codec, param, size, data);
     }

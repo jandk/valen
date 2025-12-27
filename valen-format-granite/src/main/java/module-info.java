@@ -5,6 +5,7 @@ module valen.format.granite {
     requires org.slf4j;
     requires valen.core;
     requires valen.export.dds;
+    requires wtf.reversed.toolbox;
 
     exports be.twofold.valen.format.granite;
 }

@@ -1,12 +1,13 @@
 package be.twofold.valen.game.gustav.pak;
 
-import be.twofold.valen.core.compression.*;
 import be.twofold.valen.core.game.*;
-import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.util.*;
-import be.twofold.valen.core.util.collect.*;
 import be.twofold.valen.game.gustav.*;
 import be.twofold.valen.game.gustav.reader.pak.*;
+import wtf.reversed.toolbox.collect.*;
+import wtf.reversed.toolbox.compress.*;
+import wtf.reversed.toolbox.io.*;
+import wtf.reversed.toolbox.util.*;
 
 import java.io.*;
 import java.nio.file.*;
@@ -17,16 +18,16 @@ import java.util.stream.*;
 public final class PakFile implements Container<GustavAssetID, GustavAsset> {
     private final Map<GustavAssetID, GustavAsset> index;
     private final Map<GustavAssetID, Integer> offsets;
-    private final List<BinaryReader> readers;
+    private final List<BinarySource> readers;
 
     public PakFile(Path path) throws IOException {
-        var reader = BinaryReader.fromPath(path);
+        var reader = BinarySource.open(path);
         var pak = Pak.read(reader);
 
         if (pak.header().flags().contains(PakFlag.Solid)) {
             var content = decompressSolid(reader, pak.entries());
             reader.close();
-            reader = BinaryReader.fromBytes(content);
+            reader = BinarySource.wrap(content);
 
             var sortedEntries = pak.entries().stream()
                 .sorted(Comparator.comparing(PakEntry::offset))
@@ -43,12 +44,12 @@ public final class PakFile implements Container<GustavAssetID, GustavAsset> {
             this.offsets = Map.of();
         }
 
-        var readers = new ArrayList<BinaryReader>();
+        var readers = new ArrayList<BinarySource>();
         readers.add(reader);
         if (pak.header().numParts() > 1) {
             var basename = Filenames.getBaseName(path.getFileName().toString());
             for (var i = 1; i < pak.header().numParts(); i++) {
-                readers.add(BinaryReader.fromPath(path.getParent().resolve(basename + "_" + i + ".pak")));
+                readers.add(BinarySource.open(path.getParent().resolve(basename + "_" + i + ".pak")));
             }
         }
         this.readers = List.copyOf(readers);
@@ -58,7 +59,7 @@ public final class PakFile implements Container<GustavAssetID, GustavAsset> {
             .collect(Collectors.toUnmodifiableMap(GustavAsset::id, Function.identity()));
     }
 
-    private Bytes decompressSolid(BinaryReader reader, List<PakEntry> entries) throws IOException {
+    private Bytes decompressSolid(BinarySource source, List<PakEntry> entries) throws IOException {
         long totalSize = 0;
         var firstOffset = Long.MAX_VALUE;
         var lastOffset = Long.MIN_VALUE;
@@ -68,7 +69,7 @@ public final class PakFile implements Container<GustavAssetID, GustavAsset> {
             lastOffset = Math.max(lastOffset, entry.offset() + entry.compressedSize());
         }
 
-        var compressed = reader
+        var compressed = source
             .position(40) // TODO: Not hardcode
             .readBytes(Math.toIntExact(lastOffset - 40));
 
@@ -110,9 +111,9 @@ public final class PakFile implements Container<GustavAssetID, GustavAsset> {
 
     private static Decompressor getDecompressor(Set<Compression> flags) {
         if (flags.contains(Compression.METHOD_ZLIB)) {
-            return Decompressor.inflate(false);
+            return Decompressor.deflate(false);
         } else if (flags.contains(Compression.METHOD_LZ4)) {
-            return Decompressor.lz4();
+            return Decompressor.lz4Block();
         } else if (flags.contains(Compression.METHOD_ZSTD)) {
             throw new UnsupportedOperationException("ZSTD is currently not supported");
         } else {

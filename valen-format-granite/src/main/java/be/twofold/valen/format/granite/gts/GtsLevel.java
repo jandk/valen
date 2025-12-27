@@ -1,7 +1,7 @@
 package be.twofold.valen.format.granite.gts;
 
-import be.twofold.valen.core.io.*;
-import be.twofold.valen.core.util.collect.*;
+import wtf.reversed.toolbox.collect.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 
@@ -11,15 +11,15 @@ public record GtsLevel(
     int offset,
     Ints indices
 ) {
-    public static GtsLevel read(BinaryReader reader, int layerCount) throws IOException {
-        var width = reader.readInt();
-        var height = reader.readInt();
-        var offset = reader.readLongAsInt();
+    public static GtsLevel read(BinarySource source, int layerCount) throws IOException {
+        var width = source.readInt();
+        var height = source.readInt();
+        var offset = source.readLongAsInt();
 
         // Step out
-        var position = reader.position();
-        var indices = reader.position(offset).readInts(width * height * layerCount);
-        reader.position(position);
+        var position = source.position();
+        var indices = source.position(offset).readInts(width * height * layerCount);
+        source.position(position);
 
         return new GtsLevel(
             width,

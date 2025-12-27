@@ -1,104 +1,104 @@
 package be.twofold.valen.format.granite.gdex;
 
-import be.twofold.valen.core.io.*;
 import be.twofold.valen.format.granite.util.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 import java.nio.charset.*;
 import java.util.*;
 
 final class GdexReader {
-    private final BinaryReader reader;
+    private final BinarySource source;
 
-    GdexReader(BinaryReader reader) {
-        this.reader = Objects.requireNonNull(reader);
+    GdexReader(BinarySource source) {
+        this.source = Objects.requireNonNull(source);
     }
 
     Gdex read() throws IOException {
-        var tag = GdexItemTag.read(reader);
-        var type = GdexItemType.read(reader);
-        var flags = GdexItemFlags.read(reader);
-        var size = Short.toUnsignedInt(reader.readShort());
+        var tag = GdexItemTag.read(source);
+        var type = GdexItemType.read(source);
+        var flags = GdexItemFlags.read(source);
+        var size = Short.toUnsignedInt(source.readShort());
         if (flags == GdexItemFlags.LONG_HEADER) {
-            size = Math.toIntExact(size | Integer.toUnsignedLong(reader.readInt()) << 16);
+            size = Math.toIntExact(size | Integer.toUnsignedLong(source.readInt()) << 16);
         }
 
         var result = read(type, tag, size);
-        reader.position((reader.position() + 3) & ~3);
+        source.position((source.position() + 3) & ~3);
         return result;
     }
 
     private Gdex read(GdexItemType type, GdexItemTag tag, int size) throws IOException {
         return switch (type) {
             case RAW -> {
-                var value = reader.readBytes(Math.toIntExact(size));
+                var value = source.readBytes(Math.toIntExact(size));
                 yield new GdexRaw(tag, value);
             }
             case STRUCT -> {
-                var position = reader.position();
+                var position = source.position();
                 var values = new ArrayList<Gdex>();
-                while (reader.position() < position + size) {
+                while (source.position() < position + size) {
                     values.add(read());
                 }
-                if (reader.position() > position + size) {
+                if (source.position() > position + size) {
                     throw new IOException("Read past end of struct");
                 }
                 yield new GdexStruct(tag, values);
             }
             case STRING -> {
-                var value = reader.readString(size - 2, StandardCharsets.UTF_16LE);
-                reader.skip(2);
+                var value = source.readString(size - 2, StandardCharsets.UTF_16LE);
+                source.skip(2);
                 yield new GdexString(tag, value);
             }
             case INT32 -> {
                 verifySize(size, Integer.BYTES, "int32");
-                yield new GdexInt32(tag, reader.readInt());
+                yield new GdexInt32(tag, source.readInt());
             }
             case INT64 -> {
                 verifySize(size, Long.BYTES, "int64");
-                yield new GdexInt64(tag, reader.readLong());
+                yield new GdexInt64(tag, source.readLong());
             }
             case FLOAT -> {
                 verifySize(size, Float.BYTES, "float");
-                yield new GdexFloat(tag, reader.readFloat());
+                yield new GdexFloat(tag, source.readFloat());
             }
             case DOUBLE -> {
                 verifySize(size, Double.BYTES, "double");
-                yield new GdexDouble(tag, reader.readDouble());
+                yield new GdexDouble(tag, source.readDouble());
             }
             case DATE -> {
                 var epoch = 630822816000000000L; // 2000-01-01
-                var value = DotNetUtils.ticksToInstant(epoch + reader.readLong());
+                var value = DotNetUtils.ticksToInstant(epoch + source.readLong());
                 yield new GdexDate(tag, value);
             }
             case INT32_ARRAY -> {
                 var count = verifyArraySize(size, Integer.BYTES, "int32_array");
-                var values = reader.readObjects(count, BinaryReader::readInt);
+                var values = source.readObjects(count, BinarySource::readInt);
                 yield new GdexInt32Array(tag, values);
             }
             case FLOAT_ARRAY -> {
                 var count = verifyArraySize(size, Float.BYTES, "float_array");
-                var values = reader.readObjects(count, BinaryReader::readFloat);
+                var values = source.readObjects(count, BinarySource::readFloat);
                 yield new GdexFloatArray(tag, values);
             }
             case INT64_ARRAY -> {
                 var count = verifyArraySize(size, Long.BYTES, "int64_array");
-                var values = reader.readObjects(count, BinaryReader::readLong);
+                var values = source.readObjects(count, BinarySource::readLong);
                 yield new GdexInt64Array(tag, values);
             }
             case DOUBLE_ARRAY -> {
                 var count = verifyArraySize(size, Double.BYTES, "double_array");
-                var values = reader.readObjects(count, BinaryReader::readDouble);
+                var values = source.readObjects(count, BinarySource::readDouble);
                 yield new GdexDoubleArray(tag, values);
             }
             case GUID -> {
                 verifySize(size, 16, "guid");
-                var value = DotNetUtils.guidBytesToUUID(reader.readBytes(16));
+                var value = DotNetUtils.guidBytesToUUID(source.readBytes(16));
                 yield new GdexGuid(tag, value);
             }
             case GUID_ARRAY -> {
                 var count = verifyArraySize(size, 16, "guid_array");
-                var values = reader.readObjects(count, r -> DotNetUtils.guidBytesToUUID(r.readBytes(16)));
+                var values = source.readObjects(count, r -> DotNetUtils.guidBytesToUUID(r.readBytes(16)));
                 yield new GdexGuidArray(tag, values);
             }
         };

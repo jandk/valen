@@ -1,7 +1,7 @@
 package be.twofold.valen.format.granite.gdex;
 
-import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.util.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 
@@ -28,8 +28,8 @@ public enum GdexItemType implements ValueEnum<Integer> {
         this.value = value;
     }
 
-    public static GdexItemType read(BinaryReader reader) throws IOException {
-        return ValueEnum.fromValue(GdexItemType.class, (int) reader.readByte());
+    public static GdexItemType read(BinarySource source) throws IOException {
+        return ValueEnum.fromValue(GdexItemType.class, (int) source.readByte());
     }
 
     @Override

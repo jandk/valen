@@ -1,6 +1,6 @@
 package be.twofold.valen.format.granite.gts;
 
-import be.twofold.valen.core.io.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 
@@ -11,12 +11,12 @@ public record GtsTile(
     short tileCount,
     int tileOffset
 ) {
-    public static GtsTile read(BinaryReader reader) throws IOException {
-        var fileIndex = reader.readShort();
-        var pageIndex = reader.readShort();
-        var chunkIndex = reader.readShort();
-        var tileCount = reader.readShort();
-        var tileOffset = reader.readInt();
+    public static GtsTile read(BinarySource source) throws IOException {
+        var fileIndex = source.readShort();
+        var pageIndex = source.readShort();
+        var chunkIndex = source.readShort();
+        var tileCount = source.readShort();
+        var tileOffset = source.readInt();
 
         return new GtsTile(
             fileIndex,

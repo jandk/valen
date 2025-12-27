@@ -1,6 +1,6 @@
 package be.twofold.valen.format.granite.util;
 
-import be.twofold.valen.core.util.collect.*;
+import wtf.reversed.toolbox.collect.*;
 
 import java.util.stream.*;
 
@@ -15,33 +15,33 @@ public final class BCConstant {
     }
 
     public static Bytes bc1(byte r, byte g, byte b) {
-        MutableBytes bytes = MutableBytes.allocate(8);
+        Bytes.Mutable bytes = Bytes.Mutable.allocate(8);
         bc1(bytes, 0, r, g, b);
         return bytes;
     }
 
     public static Bytes bc3(byte r, byte g, byte b, byte a) {
-        MutableBytes bytes = MutableBytes.allocate(16);
+        Bytes.Mutable bytes = Bytes.Mutable.allocate(16);
         bc4(bytes, 0, a);
         bc1(bytes, 8, r, g, b);
         return bytes;
     }
 
     public static Bytes bc4(byte a) {
-        MutableBytes bytes = MutableBytes.allocate(8);
+        Bytes.Mutable bytes = Bytes.Mutable.allocate(8);
         bc4(bytes, 0, a);
         return bytes;
     }
 
     public static Bytes bc5(byte r, byte g) {
-        MutableBytes bytes = MutableBytes.allocate(16);
+        Bytes.Mutable bytes = Bytes.Mutable.allocate(16);
         bc4(bytes, 0, r);
         bc4(bytes, 8, g);
         return bytes;
     }
 
 
-    private static void bc1(MutableBytes bytes, int offset, byte r, byte g, byte b) {
+    private static void bc1(Bytes.Mutable bytes, int offset, byte r, byte g, byte b) {
         int ri = Byte.toUnsignedInt(r);
         int gi = Byte.toUnsignedInt(g);
         int bi = Byte.toUnsignedInt(b);
@@ -65,7 +65,7 @@ public final class BCConstant {
             .setInt(offset + 4, bits);
     }
 
-    private static void bc4(MutableBytes bytes, int offset, byte a) {
+    private static void bc4(Bytes.Mutable bytes, int offset, byte a) {
         bytes
             .set(offset/**/, a)
             .set(offset + 1, a)

@@ -1,6 +1,6 @@
 package be.twofold.valen.format.granite.util;
 
-import be.twofold.valen.core.util.collect.*;
+import wtf.reversed.toolbox.collect.*;
 
 import java.time.*;
 import java.util.*;
@@ -36,7 +36,7 @@ public final class DotNetUtils {
         var high = uuid.getMostSignificantBits();
         var low = uuid.getLeastSignificantBits();
 
-        return MutableBytes.allocate(16)
+        return Bytes.Mutable.allocate(16)
             .setInt(0, (int) (high >> 32))
             .setShort(4, (short) (high >> 16))
             .setShort(6, (short) high)

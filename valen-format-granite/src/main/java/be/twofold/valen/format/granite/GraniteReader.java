@@ -1,10 +1,6 @@
 package be.twofold.valen.format.granite;
 
-import be.twofold.valen.core.compression.*;
-import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.texture.*;
-import be.twofold.valen.core.util.*;
-import be.twofold.valen.core.util.collect.*;
 import be.twofold.valen.export.dds.*;
 import be.twofold.valen.format.granite.gdex.*;
 import be.twofold.valen.format.granite.gtp.*;
@@ -12,6 +8,10 @@ import be.twofold.valen.format.granite.gts.*;
 import be.twofold.valen.format.granite.util.*;
 import be.twofold.valen.format.granite.xml.*;
 import org.slf4j.*;
+import wtf.reversed.toolbox.collect.*;
+import wtf.reversed.toolbox.compress.*;
+import wtf.reversed.toolbox.io.*;
+import wtf.reversed.toolbox.util.*;
 
 import java.io.*;
 import java.nio.file.*;
@@ -25,10 +25,10 @@ public final class GraniteReader {
     private final Map<Path, Gtp> gtpCache = new HashMap<>();
 
     private final Gts gts;
-    private final Function<String, BinaryReader> gtpSupplier;
+    private final Function<String, BinarySource> gtpSupplier;
     private final List<TextureInfo> textures;
 
-    public GraniteReader(Gts gts, Function<String, BinaryReader> gtpSupplier) throws IOException {
+    public GraniteReader(Gts gts, Function<String, BinarySource> gtpSupplier) throws IOException {
         this.gts = Objects.requireNonNull(gts);
         this.gtpSupplier = Objects.requireNonNull(gtpSupplier);
         this.textures = mapTextures(gts);
@@ -126,8 +126,8 @@ public final class GraniteReader {
         );
 
         var gtp = gtpCache.computeIfAbsent(pagePath, path -> {
-            try (var reader = gtpSupplier.apply(path.toString())) {
-                return Gtp.read(reader, gts.header().pageSize());
+            try (var source = gtpSupplier.apply(path.toString())) {
+                return Gtp.read(source, gts.header().pageSize());
             } catch (IOException e) {
                 throw new UncheckedIOException(e);
             }
@@ -150,7 +150,7 @@ public final class GraniteReader {
         var g = data.data().length() > 1 ? data.data().get(1) : 0;
         var b = data.data().length() > 2 ? data.data().get(2) : 0;
         var a = data.data().length() > 3 ? data.data().get(3) : 0;
-        var block = switch (format) {
+        Bytes block = switch (format) {
             case BC1_UNORM, BC1_SRGB -> BCConstant.bc1(r, g, b);
             case BC3_UNORM, BC3_SRGB -> BCConstant.bc3(r, g, b, a);
             case BC4_UNORM, BC4_SNORM -> BCConstant.bc4(r);
@@ -160,7 +160,7 @@ public final class GraniteReader {
         };
 
         var result = new byte[surfaceSize];
-        var bytes = MutableBytes.wrap(result);
+        var bytes = Bytes.Mutable.wrap(result);
         for (var i = 0; i < bytes.length(); i += block.length()) {
             block.copyTo(bytes, i);
         }
@@ -171,7 +171,7 @@ public final class GraniteReader {
         var header = (CodecHeader.BC) gts.codecHeaders().get(chunk.param());
         var decompressor = switch (header.getCompression()) {
             case FAST_LZ -> Decompressor.fastLZ();
-            case LZ4 -> Decompressor.lz4();
+            case LZ4 -> Decompressor.lz4Block();
             case RAW -> Decompressor.none();
         };
 

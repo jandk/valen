@@ -1,15 +1,15 @@
 package be.twofold.valen.format.granite.gts;
 
-import be.twofold.valen.core.io.*;
 import be.twofold.valen.format.granite.enums.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 
 public sealed interface CodecHeader {
-    static CodecHeader read(BinaryReader reader, Codec codec) throws IOException {
+    static CodecHeader read(BinarySource source, Codec codec) throws IOException {
         return switch (codec) {
-            case UNIFORM -> Uniform.read(reader);
-            case BC -> BC.read(reader);
+            case UNIFORM -> Uniform.read(source);
+            case BC -> BC.read(source);
             default -> throw new UnsupportedOperationException(codec.toString());
         };
     }
@@ -22,18 +22,20 @@ public sealed interface CodecHeader {
         int textureFormat,
         byte saveMip
     ) implements CodecHeader {
-        private static BC read(BinaryReader reader) throws IOException {
-            reader.expectShort((short) 9102);
-            var algorithm = reader.readString(16).trim();
-            var algorithmVersion = reader.readString(16).trim();
-            reader.expectPadding(6);
-            var always0 = reader.readByte();
-            var dataType = DataType.fromValue(reader.readByte());
-            reader.expectPadding(2);
-            var textureFormat = reader.readInt();
-            reader.expectPadding(1);
-            var saveMip = reader.readByte();
-            reader.expectPadding(6);
+        private static BC read(BinarySource source) throws IOException {
+            source.expectShort((short) 9102);
+            var algorithm = source.readString(16).trim();
+            var algorithmVersion = source.readString(16).trim();
+            source.expectInt(0);
+            source.expectShort((short) 0);
+            var always0 = source.readByte();
+            var dataType = DataType.fromValue(source.readByte());
+            source.expectShort((short) 0);
+            var textureFormat = source.readInt();
+            source.expectByte((byte) 0);
+            var saveMip = source.readByte();
+            source.expectInt(0);
+            source.expectShort((short) 0);
 
             return new BC(
                 algorithm,
@@ -70,7 +72,7 @@ public sealed interface CodecHeader {
         int count,
         DataType type
     ) implements CodecHeader {
-        private static Uniform read(BinaryReader reader) throws IOException {
+        private static Uniform read(BinarySource reader) throws IOException {
             reader.expectInt(66);
             var size = reader.readInt();
             var count = reader.readInt();
