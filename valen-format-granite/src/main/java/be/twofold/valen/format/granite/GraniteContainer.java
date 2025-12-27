@@ -21,7 +21,7 @@ import java.util.stream.*;
 public final class GraniteContainer {
     private static final Logger log = LoggerFactory.getLogger(GraniteContainer.class);
 
-    private final Map<String, Gtp> gtpCache = new HashMap<>();
+    private final LRUCache<String, Gtp> gtpCache = new LRUCache<>(5);
 
     private final Gts gts;
     private final ThrowingFunction<String, BinarySource, IOException> gtpSupplier;
@@ -123,17 +123,17 @@ public final class GraniteContainer {
             gts.header().tileHeight()
         );
 
-        if (gtpCache.size() > 5) {
-            gtpCache.keySet().removeIf(path -> !path.endsWith("_mips.gtp"));
-        }
         var gtp = gtpCache.computeIfAbsent(pagePath, path -> {
-            System.out.println("Loading gtp cache " + path);
+            log.info("Reading {}", path);
             try (var source = gtpSupplier.apply(path)) {
                 return Gtp.read(source, gts.header().pageSize());
             } catch (IOException e) {
                 throw new UncheckedIOException(e);
             }
         });
+        if (pagePath.endsWith("_mips.gtp")) {
+            gtpCache.pin(pagePath);
+        }
 
         var chunk = gtp.pages()
             .get(tile.pageIndex())
@@ -270,4 +270,29 @@ public final class GraniteContainer {
 
     // endregion
 
+    private static final class LRUCache<K, V> extends LinkedHashMap<K, V> {
+        private final int capacity;
+        private final Set<K> pinned = new HashSet<>();
+
+        public LRUCache(int capacity) {
+            super(capacity, 0.75f, true);
+            this.capacity = capacity;
+        }
+
+        public void pin(K key) {
+            pinned.add(key);
+        }
+
+        public void unpin(K key) {
+            pinned.remove(key);
+        }
+
+        @Override
+        protected boolean removeEldestEntry(Map.Entry<K, V> eldest) {
+            if (size() <= capacity) {
+                return false;
+            }
+            return !pinned.contains(eldest.getKey());
+        }
+    }
 }
