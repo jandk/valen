@@ -1,0 +1,60 @@
+//------------------------------------------------
+//--- 010 Editor v15.0.2 Binary Template
+//
+//      File: GTP.bt
+//   Authors: Jan DK
+//   Version: 1.0
+//   Purpose: Parse Graphene GTP files
+//  Category: Archive
+// File Mask: *.gtp
+//  ID Bytes: 47 52 41 50
+//------------------------------------------------
+typedef int8   i8;
+typedef uint8  u8;
+typedef int16  i16;
+typedef uint16 u16;
+typedef int32  i32;
+typedef uint32 u32;
+typedef int64  i64;
+typedef uint64 u64;
+typedef hfloat f16;
+typedef float  f32;
+typedef double f64;
+
+// ADJUST THIS BASED ON THE customPageSize IN THE GTS FILE
+const u32 blockSize = 0x80000;
+
+struct GtpHeader {
+    u32 magic;
+    u32 version;
+    u8  md5Checksum[16];
+} header <style=sHeading1>;
+
+local u32 numBlocks = (FileSize() + blockSize - 1) / blockSize;
+Printf("%d\n", numBlocks);
+
+typedef struct {
+    u32 codec;
+    u32 parameterId;
+    u32 size;
+    u8  data[size] <style=sSection1>;
+} GtpChunk <style=sHeading3>;
+
+
+local u32 i, pageOffset;
+for (i = 0; i < numBlocks; i++) {
+    pageOffset = i == 0 ? 0x18 : i * blockSize;
+    FSeek(pageOffset);
+    struct GtpPage {
+        SetStyle(sHeading2);
+        u32 numOffsets;
+        u32 offsets[numOffsets];
+        SetStyle(sNone);
+        
+        local u32 j;
+        for (j = 0; j < numOffsets; j++) {
+            FSeek(i * blockSize + offsets[j]);
+            GtpChunk chunk;
+        }
+    } gtpPage;
+}

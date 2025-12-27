@@ -1,0 +1,298 @@
+//------------------------------------------------
+//--- 010 Editor v15.0.2 Binary Template
+//
+//      File: GTS.bt
+//   Authors: Jan DK
+//   Version: 1.0
+//   Purpose: Parse Graphene GTS files
+//  Category: Archive
+// File Mask: *.gts
+//  ID Bytes: 47 52 50 47
+//------------------------------------------------
+typedef int8   i8;
+typedef uint8  u8;
+typedef int16  i16;
+typedef uint16 u16;
+typedef int32  i32;
+typedef uint32 u32;
+typedef int64  i64;
+typedef uint64 u64;
+typedef hfloat f16;
+typedef float  f32;
+typedef double f64;
+
+enum <u32> Codec {
+    UNIFORM,
+    COLOR_420,
+    NORMAL,
+    RAW_COLOR,
+    BINARY,
+    COLOR_420_15,
+    NORMAL_15,
+    RAW_NORMAL,
+    HALF,
+    BC,
+    MULTI_CHANNEL,
+    ASTC,
+};
+
+enum <u8> DataType {
+    R8G8B8_SRGB,
+    R8G8B8A8_SRGB,
+    X8Y8Z0_TANGENT,
+    R8G8B8_LINEAR,
+    R8G8B8A8_LINEAR,
+    X8,
+    X8Y8,
+    X8Y8Z8,
+    X8Y8Z8W8,
+    X16,
+    X16Y16,
+    X16Y16Z16,
+    X16Y16Z16W16,
+    X32,
+    X32_FLOAT,
+    X32Y32,
+    X32Y32_FLOAT,
+    X32Y32Z32,
+    X32Y32Z32_FLOAT,
+    R32G32B32,
+    R32G32B32_FLOAT,
+    X32Y32Z32W32,
+    X32Y32Z32W32_FLOAT,
+    R32G32B32A32,
+    R32G32B32A32_FLOAT,
+    R16G16B16_FLOAT,
+    R16G16B16A16_FLOAT,
+};
+
+enum <u32> GdexType {
+    ADDR = 0x52444441,
+    ATLS = 0x534c5441,
+    BDPR = 0x52504442,
+    BINF = 0x464e4942,
+    BLDV = 0x56444c42,
+    BLKS = 0x534b4c42,
+    CMPW = 0x57504d43,
+    COMP = 0x504d4f43,
+    DATE = 0x45544144,
+    HGHT = 0x54484748,
+    INDX = 0x58444e49,
+    INFO = 0x4f464e49,
+    LAYR = 0x5259414c,
+    LINF = 0x464e494c,
+    LTMP = 0x504d544c,
+    MAJR = 0x524a414d,
+    META = 0x4154454d,
+    MINR = 0x524e494d,
+    NAME = 0x454d414e,
+    PROJ = 0x4a4f5250,
+    SRGB = 0x42475253,
+    THMB = 0x424d4854,
+    TILE = 0x454c4954,
+    TXTR = 0x52545854,
+    TXTS = 0x53545854,
+    TYPE = 0x45505954,
+    WDTH = 0x48544457,
+    XXXX = 0x58585858,
+    YYYY = 0x59595959,
+};
+
+enum <u8> GdexTagType {
+    Struct    = 1,
+    String    = 2,
+    Int32     = 3,
+    IntArray  = 8,
+    GUIDArray = 13,
+};
+
+struct GdexTag;
+
+typedef struct {
+    SetStyle(sHeading1);
+    GdexType    type;
+    GdexTagType tagType;
+    u8          extendedHeader : 1;
+    u8          unknown        : 7;
+    u16         size;
+    
+    local u64 totalSize = size;
+    if (extendedHeader) {
+        u32 extraSize;
+        totalSize |= extraSize << 16;
+    }
+    SetStyle(sNone);
+    
+    switch (tagType) {
+        case Struct:
+            local u64 end = FTell() + totalSize;
+            while (FTell() != end) {
+                GdexTag child;
+            }
+            break;
+        case String:
+            wchar_t value[totalSize / 2] <style=sSection1>;
+            break;
+        case Int32:
+            i32 value <style=sSection2>;
+            break;
+        case IntArray:
+            i32 values[totalSize / 4] <style=sSection3>;
+            break;
+        case GUIDArray:
+            struct GuidStruct {
+                GUID guid;
+            } values[totalSize / 16] <style=sSection4>;
+            break;
+        default:
+            Fail();
+    };
+    FSeek((FTell() + 3) & ~3);
+} GdexTag <read=EnumToString(this.type)>;
+
+struct GtsHeader {
+    u32  magic;
+    u32  version;
+    FSkip(4);
+    GUID guid;
+    u32  numLayers;
+    u64  layersOffset;
+    u32  numLevels;
+    u64  levelsOffset;
+    u32  tileWidth;
+    u32  tileHeight;
+    u32  tileBorder;
+    u32  maxTileSize;
+    u32  numFlatTiles;
+    u64  flatTilesOffset;
+    FSkip(8);
+    u32  numReverseTiles;
+    u64  reverseTilesOffset;
+    FSkip(28);
+    u32  customPageSize;
+    u32  numPageFiles;
+    u64  pageFilesOffset;
+    u32  metaSize;
+    u64  metaOffset;
+    u32  numParameterBlocks;
+    u64  parameterBlocksOffset;
+    u64  thumbnailOffset;
+    FSkip(16);
+} header <style=sHeading1>;
+
+FSeek(header.layersOffset);
+struct GtsLayer {
+    u32 dataType;
+    struct Color { 
+        u8 r;
+        u8 g;
+        u8 b; 
+        u8 a; 
+    } color <edit=color,
+                  read=Str("#%02X%02X%02X", r, g, b),
+                  write=SScanf(value, "#%02X%02X%02X", r, g, b)>;
+} layers[header.numLayers] <style=sHeading2>;
+
+FSeek(header.levelsOffset);
+struct GtsLevel {
+    u32 numTilesX;
+    u32 numTilesY;
+    u32 indicesOffset;
+    FSkip(4);
+    
+    // Just step out for a sec to grab the indices
+    FSeek(indicesOffset);
+    u32 indices[numTilesX * numTilesY * header.numLayers] <style=sSection1>;
+    FSeek(startof(this) + 16);
+} levels[header.numLevels] <style=sHeading3, optimize=false>;
+
+FSeek(header.flatTilesOffset);
+struct GtsFlatTile {
+    u16 pageFileIndex;
+    u16 pageIndex;
+    u16 tileIndex;
+    u16 numTiles;
+    u32 tileListOffset;
+} flatTiles[header.numFlatTiles] <style=sSection2>;
+
+FSeek(header.reverseTilesOffset);
+struct GtsReverseTile {
+    u32 layer  : 4;
+    u32 mipmap : 4;
+    u32 tileY  : 12;
+    u32 tileX  : 12;
+} reverseTiles[header.numReverseTiles] <style=sSection3>;
+
+FSeek(header.pageFilesOffset);
+struct GtsPageFile {
+    wchar_t filename[0x100];
+    u32     numPages;
+    u8      checksum[0x10];
+    u32     type;
+    if (header.version >= 6) {
+        u32     size;
+        FSkip(4);
+    }
+} pageFiles[header.numPageFiles] <style=sSection4, optimize=false>;
+
+FSeek(header.metaOffset);
+GdexTag meta;
+
+FSeek(header.parameterBlocksOffset);
+struct GtsParameterBlock {
+    u32 id;
+    Codec codec;
+    u32 headerSize;
+    u32 headerOffset;
+    FSkip(4);
+    
+    // Just step out for a sec to grab the data
+    FSeek(headerOffset);
+    switch(codec) {
+        case UNIFORM:
+            struct UniformHeader {
+                u8  magic;
+                u32 size;
+                u32 count;
+                FSkip(3);
+                DataType dataType;
+            } header;
+            break;
+        case BC:
+            struct BCHeader {
+                u16  magic;
+                char algorithm[16];
+                char algorithmVersion[16];
+                FSkip(6);
+                u8   unknown;
+                DataType dataType;
+                FSkip(2);
+                char textureFormat[4];
+                FSkip(1);
+                u8   saveMip;
+                FSkip(6);
+            } header;
+            break;
+    };
+    FSeek(startof(this) + 20);
+} parameterBlocks[header.numParameterBlocks] <style=sSection2, optimize=false>;
+
+if (header.thumbnailOffset) {
+    FSeek(header.thumbnailOffset);
+    u32 numThumbnails;
+    FSkip(8);
+    struct GtsThumbnail {
+        GUID id;
+        u64 offset;
+        u32 rawSize;
+        u32 codedSize;
+        u16 width;
+        u16 height;
+        
+        // Just step out for a sec to grab the data
+        FSeek(offset);
+        u8 raw  [rawSize]   <style=sSection1>;
+        u8 coded[codedSize] <style=sSection2>;
+        FSeek(startof(this) + 36);
+    } thumbnails[numThumbnails] <style=sSection4, optimize=false>;
+}
