@@ -1,8 +1,8 @@
 package be.twofold.valen.game.source.readers.keyvalue;
 
 import be.twofold.valen.core.game.*;
-import be.twofold.valen.core.io.*;
 import be.twofold.valen.game.source.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 import java.util.*;
@@ -16,7 +16,7 @@ public final class KeyValueReader implements AssetReader<KeyValue, SourceAsset> 
     }
 
     @Override
-    public KeyValue read(DataSource source, SourceAsset asset) throws IOException {
+    public KeyValue read(BinarySource source, SourceAsset asset) throws IOException {
         var string = source.readString(Math.toIntExact(source.size()));
         return KeyValue.parse(string);
     }

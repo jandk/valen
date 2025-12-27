@@ -1,6 +1,6 @@
 package be.twofold.valen.game.source.readers.vpk;
 
-import be.twofold.valen.core.io.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 
@@ -12,7 +12,7 @@ public record VpkHeader(
     int otherMD5Size,
     int signatureSize
 ) {
-    public static VpkHeader read(DataSource source) throws IOException {
+    public static VpkHeader read(BinarySource source) throws IOException {
         source.expectInt(0x55AA1234);
         var version = VpkVersion.fromValue(source.readInt());
         var treeSize = source.readInt();

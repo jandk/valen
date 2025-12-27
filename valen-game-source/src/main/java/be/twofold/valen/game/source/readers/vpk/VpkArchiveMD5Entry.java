@@ -1,6 +1,7 @@
 package be.twofold.valen.game.source.readers.vpk;
 
-import be.twofold.valen.core.io.*;
+import wtf.reversed.toolbox.collect.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 
@@ -8,9 +9,9 @@ public record VpkArchiveMD5Entry(
     int archiveIndex,
     int startingOffset,
     int count,
-    byte[] md5Checksum
+    Bytes md5Checksum
 ) {
-    public static VpkArchiveMD5Entry read(DataSource source) throws IOException {
+    public static VpkArchiveMD5Entry read(BinarySource source) throws IOException {
         var archiveIndex = source.readInt();
         var startingOffset = source.readInt();
         var count = source.readInt();

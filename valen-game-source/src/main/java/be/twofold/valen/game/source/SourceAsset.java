@@ -1,8 +1,8 @@
 package be.twofold.valen.game.source;
 
 import be.twofold.valen.core.game.*;
-import be.twofold.valen.core.util.*;
 import be.twofold.valen.game.source.readers.vpk.*;
+import wtf.reversed.toolbox.util.*;
 
 import java.util.*;
 
@@ -26,20 +26,20 @@ public sealed interface SourceAsset extends Asset {
 
     record File(SourceAssetID id, int size) implements SourceAsset {
         public File {
-            Check.notNull(id, "id");
+            Check.nonNull(id, "id");
             Check.argument(size >= 0, "size < 0");
         }
     }
 
     record Vpk(SourceAssetID id, VpkEntry entry) implements SourceAsset {
         public Vpk {
-            Check.notNull(id, "id");
-            Check.notNull(entry, "entry");
+            Check.nonNull(id, "id");
+            Check.nonNull(entry, "entry");
         }
 
         @Override
         public int size() {
-            return entry.preloadBytes().length + entry.entryLength();
+            return entry.preloadBytes().length() + entry.entryLength();
         }
     }
 }

@@ -1,27 +1,28 @@
 package be.twofold.valen.game.source.readers.vtf;
 
-import java.util.*;
+import be.twofold.valen.core.util.*;
+import wtf.reversed.toolbox.collect.*;
 
-public enum VtfResourceTag {
-    LOW_RES(new byte[]{0x01, 0, 0}),
-    PARTICLE(new byte[]{0x10, 0, 0}),
-    HIGH_RES(new byte[]{0x30, 0, 0}),
-    CRC(new byte[]{'C', 'R', 'C'}),
-    LOD(new byte[]{'L', 'O', 'D'});
+public enum VtfResourceTag implements ValueEnum<Bytes> {
+    LOW_RES(Bytes.wrap(new byte[]{0x01, 0, 0})),
+    PARTICLE(Bytes.wrap(new byte[]{0x10, 0, 0})),
+    HIGH_RES(Bytes.wrap(new byte[]{0x30, 0, 0})),
+    CRC(Bytes.wrap(new byte[]{'C', 'R', 'C'})),
+    LOD(Bytes.wrap(new byte[]{'L', 'O', 'D'}));
 
     private static final VtfResourceTag[] VALUES = values();
-    private final byte[] value;
+    private final Bytes value;
 
-    VtfResourceTag(byte[] value) {
+    VtfResourceTag(Bytes value) {
         this.value = value;
     }
 
-    public static VtfResourceTag fromValue(byte[] value) {
-        for (var tag : VALUES) {
-            if (Arrays.equals(value, tag.value)) {
-                return tag;
-            }
-        }
-        throw new UnsupportedOperationException("Unknown tag: " + Arrays.toString(value));
+    public static VtfResourceTag fromValue(Bytes value) {
+        return ValueEnum.fromValue(VtfResourceTag.class, value);
+    }
+
+    @Override
+    public Bytes value() {
+        return value;
     }
 }

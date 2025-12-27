@@ -1,6 +1,6 @@
 package be.twofold.valen.game.source.readers.keyvalue;
 
-import be.twofold.valen.core.util.*;
+import wtf.reversed.toolbox.util.*;
 
 import java.util.*;
 
@@ -8,7 +8,7 @@ final class KeyValueParser {
     private final KeyValueLexer lexer;
 
     KeyValueParser(KeyValueLexer lexer) {
-        this.lexer = Check.notNull(lexer, "lexer");
+        this.lexer = Check.nonNull(lexer, "lexer");
     }
 
     KeyValue.Obj parse() {

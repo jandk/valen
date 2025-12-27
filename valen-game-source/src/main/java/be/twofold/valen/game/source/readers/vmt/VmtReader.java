@@ -1,9 +1,9 @@
 package be.twofold.valen.game.source.readers.vmt;
 
 import be.twofold.valen.core.game.*;
-import be.twofold.valen.core.io.*;
 import be.twofold.valen.game.source.*;
 import be.twofold.valen.game.source.readers.keyvalue.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 
@@ -14,7 +14,7 @@ public final class VmtReader implements AssetReader<ValveMaterial, SourceAsset> 
     }
 
     @Override
-    public ValveMaterial read(DataSource source, SourceAsset asset) throws IOException {
+    public ValveMaterial read(BinarySource source, SourceAsset asset) throws IOException {
         var string = source.readString(Math.toIntExact(source.size()));
         var keyValue = KeyValue.parse(string);
         return ValveMaterial.read(keyValue);

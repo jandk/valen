@@ -1,25 +1,19 @@
 package be.twofold.valen.game.source;
 
 import be.twofold.valen.core.game.*;
-import be.twofold.valen.core.io.*;
 import be.twofold.valen.game.source.collection.*;
 import be.twofold.valen.game.source.readers.gameinfo.*;
 import be.twofold.valen.game.source.readers.keyvalue.*;
 import be.twofold.valen.game.source.readers.vmt.*;
 import be.twofold.valen.game.source.readers.vtf.*;
+import wtf.reversed.toolbox.collect.*;
 
 import java.io.*;
 import java.nio.file.*;
 import java.util.*;
 import java.util.stream.*;
 
-public final class SourceArchive implements Archive<SourceAssetID, SourceAsset> {
-    private static final AssetReaders<SourceAsset> READERS = new AssetReaders<>(List.of(
-        new KeyValueReader(),
-        new VmtReader(),
-        new VtfReader()
-    ));
-
+public final class SourceArchive extends Archive<SourceAssetID, SourceAsset> {
     private final String name;
     private final Container<SourceAssetID, SourceAsset> container;
 
@@ -97,6 +91,15 @@ public final class SourceArchive implements Archive<SourceAssetID, SourceAsset> 
     }
 
     @Override
+    public List<AssetReader<?, SourceAsset>> createReaders() {
+        return List.of(
+            new KeyValueReader(),
+            new VmtReader(),
+            new VtfReader()
+        );
+    }
+
+    @Override
     public Optional<SourceAsset> get(SourceAssetID key) {
         return container.get(key);
     }
@@ -107,15 +110,8 @@ public final class SourceArchive implements Archive<SourceAssetID, SourceAsset> 
     }
 
     @Override
-    public <T> T loadAsset(SourceAssetID key, Class<T> clazz) throws IOException {
-        var asset = container.get(key)
-            .orElseThrow(FileNotFoundException::new);
-
-        var buffer = container.read(asset.id(), null);
-
-        try (var source = DataSource.fromBuffer(buffer)) {
-            return READERS.read(asset, source, clazz);
-        }
+    public Bytes read(SourceAssetID key, Integer size) throws IOException {
+        return container.read(key, size);
     }
 
     @Override

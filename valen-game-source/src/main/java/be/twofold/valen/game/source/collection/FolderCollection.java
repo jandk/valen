@@ -2,9 +2,9 @@ package be.twofold.valen.game.source.collection;
 
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.game.source.*;
+import wtf.reversed.toolbox.collect.*;
 
 import java.io.*;
-import java.nio.*;
 import java.nio.file.*;
 import java.util.*;
 import java.util.function.*;
@@ -45,8 +45,8 @@ public final class FolderCollection implements Container<SourceAssetID, SourceAs
     }
 
     @Override
-    public ByteBuffer read(SourceAssetID key, Integer size) throws IOException {
-        return ByteBuffer.wrap(Files.readAllBytes(root.resolve(key.fullName())));
+    public Bytes read(SourceAssetID key, Integer size) throws IOException {
+        return Bytes.wrap(Files.readAllBytes(root.resolve(key.fullName())));
     }
 
     @Override

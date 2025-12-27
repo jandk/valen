@@ -1,15 +1,16 @@
 package be.twofold.valen.game.source.readers.vpk;
 
-import be.twofold.valen.core.io.*;
+import wtf.reversed.toolbox.collect.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 
 public record VpkOtherMD5(
-    byte[] treeChecksum,
-    byte[] archiveMD5Checksum,
-    byte[] wholeFileChecksum
+    Bytes treeChecksum,
+    Bytes archiveMD5Checksum,
+    Bytes wholeFileChecksum
 ) {
-    public static VpkOtherMD5 read(DataSource source) throws IOException {
+    public static VpkOtherMD5 read(BinarySource source) throws IOException {
         var treeChecksum = source.readBytes(16);
         var archiveMD5Checksum = source.readBytes(16);
         var wholeFileChecksum = source.readBytes(16);

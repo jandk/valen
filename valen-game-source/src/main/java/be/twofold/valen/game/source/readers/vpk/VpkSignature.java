@@ -1,14 +1,15 @@
 package be.twofold.valen.game.source.readers.vpk;
 
-import be.twofold.valen.core.io.*;
+import wtf.reversed.toolbox.collect.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 
 public record VpkSignature(
-    byte[] publicKey,
-    byte[] signature
+    Bytes publicKey,
+    Bytes signature
 ) {
-    public static VpkSignature read(DataSource source) throws IOException {
+    public static VpkSignature read(BinarySource source) throws IOException {
         var publicKey = source.readBytes(source.readInt());
         var signature = source.readBytes(source.readInt());
 

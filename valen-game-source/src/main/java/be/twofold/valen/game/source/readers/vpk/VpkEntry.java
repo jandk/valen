@@ -1,20 +1,19 @@
 package be.twofold.valen.game.source.readers.vpk;
 
-import be.twofold.valen.core.io.*;
+import wtf.reversed.toolbox.collect.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 
 public record VpkEntry(
     String name,
     int crc,
-    byte[] preloadBytes,
+    Bytes preloadBytes,
     short archiveIndex,
     int entryOffset,
     int entryLength
 ) {
-    private static final byte[] EMPTY = new byte[0];
-
-    public static VpkEntry read(DataSource source, String extension, String directory, String filename) throws IOException {
+    public static VpkEntry read(BinarySource source, String extension, String directory, String filename) throws IOException {
         var crc = source.readInt();
         var preloadBytesLength = source.readShort();
         var archiveIndex = source.readShort();
@@ -22,10 +21,9 @@ public record VpkEntry(
         var entryLength = source.readInt();
         source.expectShort((short) 0xFFFF);
 
-        byte[] preloadBytes;
-        if (preloadBytesLength != 0) {
-            preloadBytes = source.readBytes(preloadBytesLength);
-        } else preloadBytes = EMPTY;
+        var preloadBytes = preloadBytesLength != 0
+            ? source.readBytes(preloadBytesLength)
+            : Bytes.empty();
 
         var fullName = new StringBuilder();
         if (!directory.isBlank()) {

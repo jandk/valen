@@ -1,6 +1,6 @@
 package be.twofold.valen.game.source.readers.vtf;
 
-import be.twofold.valen.core.io.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 
@@ -9,7 +9,7 @@ public record VtfResourceEntry(
     byte flags,
     int offset
 ) {
-    public static VtfResourceEntry read(DataSource source) throws IOException {
+    public static VtfResourceEntry read(BinarySource source) throws IOException {
         var tag = VtfResourceTag.fromValue(source.readBytes(3));
         var flags = source.readByte();
         var offset = source.readInt();

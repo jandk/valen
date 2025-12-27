@@ -1,7 +1,7 @@
 package be.twofold.valen.game.source;
 
 import be.twofold.valen.core.game.*;
-import be.twofold.valen.core.util.*;
+import wtf.reversed.toolbox.util.*;
 
 import java.io.*;
 import java.nio.file.*;
@@ -12,7 +12,7 @@ public record SourceGame(
     List<String> mods
 ) implements Game {
     public SourceGame {
-        Check.notNull(path, "path");
+        Check.nonNull(path, "path");
         mods = List.copyOf(mods);
     }
 

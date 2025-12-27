@@ -1,7 +1,7 @@
 package be.twofold.valen.game.source.readers.vtf;
 
-import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.math.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 
@@ -24,7 +24,7 @@ public record VtfHeader(
     short depth,
     int numResources
 ) {
-    public static VtfHeader read(DataSource source) throws IOException {
+    public static VtfHeader read(BinarySource source) throws IOException {
         source.expectInt(0x00465456);
         int majorVersion = source.readInt();
         int minorVersion = source.readInt();

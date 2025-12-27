@@ -1,13 +1,13 @@
 package be.twofold.valen.game.source.readers.keyvalue;
 
-import be.twofold.valen.core.util.*;
+import wtf.reversed.toolbox.util.*;
 
 final class KeyValueLexer {
     private final Source source;
     private KeyValueToken current;
 
     KeyValueLexer(Source source) {
-        this.source = Check.notNull(source, "source");
+        this.source = Check.nonNull(source, "source");
     }
 
     KeyValueToken peekToken() {
