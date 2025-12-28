@@ -1,6 +1,6 @@
 package be.twofold.valen.game.colossus.reader.resources;
 
-import be.twofold.valen.core.io.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 
@@ -11,17 +11,17 @@ public record ResourceEntryOptions(
     long defaultHash,
     int version,
     int flags,
-    byte compMode,
+    ResourceCompressionMode compMode,
     short variation
 ) {
-    public static ResourceEntryOptions read(DataSource source) throws IOException {
+    public static ResourceEntryOptions read(BinarySource source) throws IOException {
         var uncompressedSize = source.readLong();
         var dataCheckSum = source.readLong();
         var generationTimeStamp = source.readLong();
         var defaultHash = source.readLong();
         var version = source.readInt();
         var flags = source.readInt();
-        var compMode = source.readByte();
+        var compMode = ResourceCompressionMode.fromValue(source.readByte());
         source.expectByte((byte) 0); // reserved0
         var variation = source.readShort();
         source.expectInt(0); // reserved2

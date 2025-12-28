@@ -1,6 +1,6 @@
 package be.twofold.valen.game.colossus.reader.image;
 
-import be.twofold.valen.core.io.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 
@@ -14,7 +14,7 @@ public record ImageMip(
     int compressedSize,
     int cumulativeSizeStreamDB
 ) {
-    public static ImageMip read(DataSource source) throws IOException {
+    public static ImageMip read(BinarySource source) throws IOException {
         var mipLevel = source.readInt();
         var mipSlice = source.readInt();
         var mipPixelWidth = source.readInt();

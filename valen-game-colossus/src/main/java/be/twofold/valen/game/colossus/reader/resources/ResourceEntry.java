@@ -1,6 +1,6 @@
 package be.twofold.valen.game.colossus.reader.resources;
 
-import be.twofold.valen.core.io.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 
@@ -13,7 +13,7 @@ public record ResourceEntry(
     short numStrings,
     short numDependencies
 ) {
-    public static ResourceEntry read(DataSource source) throws IOException {
+    public static ResourceEntry read(BinarySource source) throws IOException {
         source.expectLong(0); // resourceTypeString
         source.expectLong(1); // nameString
         source.expectLong(-1); // descString

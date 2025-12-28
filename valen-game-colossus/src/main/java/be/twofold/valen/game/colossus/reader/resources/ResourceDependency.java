@@ -1,6 +1,6 @@
 package be.twofold.valen.game.colossus.reader.resources;
 
-import be.twofold.valen.core.io.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 
@@ -11,7 +11,7 @@ public record ResourceDependency(
     int depSubType,
     long hashOrTimestamp
 ) {
-    public static ResourceDependency read(DataSource source) throws IOException {
+    public static ResourceDependency read(BinarySource source) throws IOException {
         var type = source.readLong();
         var name = source.readLong();
         var depType = source.readInt();

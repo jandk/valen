@@ -5,7 +5,7 @@
     <parent>
         <groupId>be.twofold</groupId>
         <artifactId>valen</artifactId>
-        <version>1.0-SNAPSHOT</version>
+        <version>0.3.1-SNAPSHOT</version>
     </parent>
 
     <artifactId>valen-game-colossus</artifactId>
@@ -15,11 +15,6 @@
         <dependency>
             <groupId>be.twofold</groupId>
             <artifactId>valen-core</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>net.java.dev.jna</groupId>
-            <artifactId>jna-jpms</artifactId>
-            <scope>compile</scope>
         </dependency>
 
         <!-- External -->

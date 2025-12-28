@@ -1,8 +1,8 @@
 package be.twofold.valen.game.colossus.reader.image;
 
-import java.util.*;
+import be.twofold.valen.core.util.*;
 
-public enum ImageTextureFormat {
+public enum ImageTextureFormat implements ValueEnum<Integer> {
     FMT_NONE(0x00),
     FMT_RGBA32F(0x01),
     FMT_RGBA16F(0x02),
@@ -60,17 +60,18 @@ public enum ImageTextureFormat {
     FMT_BC1_ZERO_ALPHA(0x36),
     FMT_NEXTAVAILABLE(0x37);
 
-    private static final ImageTextureFormat[] VALUES = values();
-    private final int code;
+    private final int value;
 
-    ImageTextureFormat(int code) {
-        this.code = code;
+    ImageTextureFormat(int value) {
+        this.value = value;
     }
 
-    public static ImageTextureFormat fromCode(int code) {
-        return Arrays.stream(VALUES)
-            .filter(value -> value.code == code)
-            .findFirst()
-            .orElseThrow(() -> new IllegalArgumentException("Unknown texture format: " + code));
+    public static ImageTextureFormat fromCode(int value) {
+        return ValueEnum.fromValue(ImageTextureFormat.class, value);
+    }
+
+    @Override
+    public Integer value() {
+        return value;
     }
 }

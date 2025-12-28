@@ -1,38 +1,34 @@
 package be.twofold.valen.game.colossus.reader.image;
 
-import be.twofold.valen.core.compression.*;
 import be.twofold.valen.core.game.*;
-import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.texture.*;
-import be.twofold.valen.core.util.*;
 import be.twofold.valen.game.colossus.*;
-import be.twofold.valen.game.colossus.reader.*;
 import be.twofold.valen.game.colossus.resource.*;
+import wtf.reversed.toolbox.compress.*;
+import wtf.reversed.toolbox.io.*;
+import wtf.reversed.toolbox.util.*;
 
 import java.io.*;
-import java.nio.*;
 import java.util.*;
 
-public final class ImageReader implements ResourceReader<Texture> {
+public final class ImageReader implements AssetReader<Texture, ColossusAsset> {
     private final ColossusArchive archive;
+    private final Decompressor decompressor;
     private final boolean readStreams;
 
-    public ImageReader(ColossusArchive archive) {
-        this(archive, true);
-    }
-
-    ImageReader(ColossusArchive archive, boolean readStreams) {
-        this.archive = archive;
+    public ImageReader(ColossusArchive archive, Decompressor decompressor, boolean readStreams) {
+        this.archive = Check.nonNull(archive, "archive");
+        this.decompressor = Check.nonNull(decompressor, "decompressor");
         this.readStreams = readStreams;
     }
 
     @Override
-    public boolean canRead(ResourceKey key) {
-        return key.type() == ResourceType.image;
+    public boolean canRead(ColossusAsset asset) {
+        return asset.id().type() == ResourceType.image;
     }
 
     @Override
-    public Texture read(DataSource source, Asset asset) throws IOException {
+    public Texture read(BinarySource source, ColossusAsset asset) throws IOException {
         var image = Image.read(source);
         source.expectEnd();
 
@@ -50,14 +46,13 @@ public final class ImageReader implements ResourceReader<Texture> {
                 mip.mipPixelWidth(),
                 mip.mipPixelHeight(),
                 imageFormat,
-                image.mipData()[i]
+                image.mipData()[i].toArray()
             ));
         }
 
-        long hash = (Long) asset.properties().get("hash");
         for (var i = 0; i < image.header().startMip(); i++) {
             var mip = image.mips().get(i);
-            var mipHash = hash << 4 | (image.header().mipCount() - mip.mipLevel());
+            var mipHash = asset.hash() << 4 | (image.header().mipCount() - mip.mipLevel());
 
             if (archive.containsStream(mipHash)) {
                 var surface = switch (mip.compressionMode()) {
@@ -84,45 +79,45 @@ public final class ImageReader implements ResourceReader<Texture> {
             image.mips().get(minMip).mipPixelWidth(),
             image.mips().get(minMip).mipPixelHeight(),
             imageFormat,
-            surfaces.subList(minMip, image.header().mipCount()),
-            image.header().textureType() == ImageTextureType.TT_CUBIC
+            image.header().textureType() == ImageTextureType.TT_CUBIC,
+            surfaces.subList(minMip, image.header().mipCount())
         );
     }
 
     private Surface readMode1Mip(long mipHash, ImageMip mip, TextureFormat format) throws IOException {
         var bytes = archive.readStream(mipHash, mip.compressedSize(), mip.decompressedSize());
-        return new Surface(mip.mipPixelWidth(), mip.mipPixelHeight(), format, bytes);
+        return new Surface(mip.mipPixelWidth(), mip.mipPixelHeight(), format, bytes.toArray());
     }
 
     private Surface readMode2Mip(long mipHash, ImageMip mip, TextureFormat textureFormat) throws IOException {
         var bytes = archive.readStreamRaw(mipHash, mip.compressedSize());
-        var source = new ByteArrayDataSource(bytes);
+        var source = BinarySource.wrap(bytes);
 
         var surfaceFormat = switch (textureFormat) {
-            case Bc4UNorm -> TextureFormat.R8UNorm;
-            case Bc5UNorm -> TextureFormat.R8G8UNorm;
+            case BC4_UNORM -> TextureFormat.R8_UNORM;
+            case BC5_UNORM -> TextureFormat.R8G8_UNORM;
             default -> throw new UnsupportedOperationException("Unsupported texture format: " + textureFormat);
         };
 
         var tileFormat = switch (textureFormat) {
-            case Bc4UNorm -> 24;
-            case Bc5UNorm -> 25;
+            case BC4_UNORM -> 24;
+            case BC5_UNORM -> 25;
             default -> throw new UnsupportedOperationException("Unsupported texture format: " + textureFormat);
         };
 
         var surface = Surface.create(mip.mipPixelWidth(), mip.mipPixelHeight(), surfaceFormat);
-        while (source.tell() < source.size()) {
+        while (source.position() < source.size()) {
             var tile = ImageTile.read(source);
             Check.state(tile.format() == tileFormat, "Tile format mismatch");
 
-            var tileData = Buffers.toArray(Decompressor
-                .forType(CompressionType.Kraken)
-                .decompress(ByteBuffer.wrap(tile.data()), tile.size()));
-
+            var tileData = decompressor.decompress(tile.data(), tile.size()).toArray();
             byte[] decoded = WbpDecoder.decode(tile, tileData);
             var tileSurface = new Surface(tile.width(), tile.height(), surfaceFormat, decoded);
-            surface.copyFrom(tileSurface, tile.x(), tile.y());
-            System.out.println(tile);
+            Surface.copy(
+                tileSurface, 0, 0,
+                surface, tile.x(), tile.y(),
+                tile.width(), tile.height()
+            );
         }
         return surface;
     }
@@ -130,20 +125,20 @@ public final class ImageReader implements ResourceReader<Texture> {
     private static TextureFormat toImageFormat(ImageTextureFormat format) {
         // I might not be sure about all these mappings, but it's a start
         return switch (format) {
-            case FMT_ALPHA -> TextureFormat.R8UNorm;
-            case FMT_BC1, FMT_BC1_ZERO_ALPHA -> TextureFormat.Bc1UNorm;
-            case FMT_BC1_SRGB -> TextureFormat.Bc1UNormSrgb;
-            case FMT_BC3 -> TextureFormat.Bc3UNorm;
-            case FMT_BC3_SRGB -> TextureFormat.Bc3UNormSrgb;
-            case FMT_BC4 -> TextureFormat.Bc4UNorm;
-            case FMT_BC5 -> TextureFormat.Bc5UNorm;
-            case FMT_BC6H_UF16 -> TextureFormat.Bc6HUFloat16;
-            case FMT_BC7 -> TextureFormat.Bc7UNorm;
-            case FMT_BC7_SRGB -> TextureFormat.Bc7UNormSrgb;
-            case FMT_RG16F -> TextureFormat.R16G16Float;
-            case FMT_RG8 -> TextureFormat.R8G8UNorm;
-            case FMT_RGBA8 -> TextureFormat.R8G8B8A8UNorm;
-            case FMT_X16F -> TextureFormat.R16Float;
+            case FMT_ALPHA -> TextureFormat.R8_UNORM;
+            case FMT_BC1, FMT_BC1_ZERO_ALPHA -> TextureFormat.BC1_UNORM;
+            case FMT_BC1_SRGB -> TextureFormat.BC1_SRGB;
+            case FMT_BC3 -> TextureFormat.BC3_UNORM;
+            case FMT_BC3_SRGB -> TextureFormat.BC3_SRGB;
+            case FMT_BC4 -> TextureFormat.BC4_UNORM;
+            case FMT_BC5 -> TextureFormat.BC5_UNORM;
+            case FMT_BC6H_UF16 -> TextureFormat.BC6H_UFLOAT;
+            case FMT_BC7 -> TextureFormat.BC7_UNORM;
+            case FMT_BC7_SRGB -> TextureFormat.BC7_SRGB;
+            case FMT_RG16F -> TextureFormat.R16G16_SFLOAT;
+            case FMT_RG8 -> TextureFormat.R8G8_UNORM;
+            case FMT_RGBA8 -> TextureFormat.R8G8B8A8_UNORM;
+            case FMT_X16F -> TextureFormat.R16_SFLOAT;
             default -> throw new UnsupportedOperationException("Unsupported format: " + format);
         };
     }

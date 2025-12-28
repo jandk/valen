@@ -1,6 +1,6 @@
 package be.twofold.valen.game.colossus.reader.image;
 
-import be.twofold.valen.core.io.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 
@@ -23,7 +23,7 @@ public record ImageHeader(
     byte unkBool2,
     int streamMipCount
 ) {
-    public static ImageHeader read(DataSource source) throws IOException {
+    public static ImageHeader read(BinarySource source) throws IOException {
         var magic = source.readInt();
         var textureType = source.readInt();
         var textureMaterialKind = source.readInt();

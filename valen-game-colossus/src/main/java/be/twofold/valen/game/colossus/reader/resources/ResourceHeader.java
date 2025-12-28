@@ -1,6 +1,6 @@
 package be.twofold.valen.game.colossus.reader.resources;
 
-import be.twofold.valen.core.io.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 
@@ -24,7 +24,7 @@ public record ResourceHeader(
     long resourceSpecialHashOffset,
     long metaSize
 ) {
-    public static ResourceHeader read(DataSource source) throws IOException {
+    public static ResourceHeader read(BinarySource source) throws IOException {
         var flags = source.readInt();
         var numSegments = source.readInt();
         var segmentSize = source.readLong();

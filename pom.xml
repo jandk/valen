@@ -152,6 +152,11 @@
             </dependency>
             <dependency>
                 <groupId>be.twofold</groupId>
+                <artifactId>valen-game-colossus</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>be.twofold</groupId>
                 <artifactId>valen-game-darkages</artifactId>
                 <version>${project.version}</version>
             </dependency>

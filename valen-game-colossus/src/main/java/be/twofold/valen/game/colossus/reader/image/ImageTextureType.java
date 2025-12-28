@@ -1,23 +1,24 @@
 package be.twofold.valen.game.colossus.reader.image;
 
-import java.util.*;
+import be.twofold.valen.core.util.*;
 
-public enum ImageTextureType {
+public enum ImageTextureType implements ValueEnum<Integer> {
     TT_2D(0x00),
     TT_3D(0x01),
     TT_CUBIC(0x02);
 
-    private static final ImageTextureType[] VALUES = values();
-    private final int code;
+    private final int value;
 
-    ImageTextureType(int code) {
-        this.code = code;
+    ImageTextureType(int value) {
+        this.value = value;
     }
 
-    public static ImageTextureType fromCode(int code) {
-        return Arrays.stream(VALUES)
-            .filter(value -> value.code == code)
-            .findFirst()
-            .orElseThrow(() -> new IllegalArgumentException("Unknown texture type: " + code));
+    public static ImageTextureType fromCode(int value) {
+        return ValueEnum.fromValue(ImageTextureType.class, value);
+    }
+
+    @Override
+    public Integer value() {
+        return value;
     }
 }

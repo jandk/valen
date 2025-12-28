@@ -2,8 +2,6 @@ package be.twofold.valen.game.colossus.resource;
 
 import be.twofold.valen.core.util.*;
 
-import java.util.*;
-
 public enum ResourceVariation implements ValueEnum<Integer> {
     None(0),
     RenderProgOglPc(32),
@@ -37,22 +35,18 @@ public enum ResourceVariation implements ValueEnum<Integer> {
     PlatformXb1Scorpio(231),
     PlatformReservedDoNotUse(299);
 
-    private static final Map<Integer, ResourceVariation> MAP
-        = ValueEnum.valueMap(ResourceVariation.class);
-
     private final int value;
 
     ResourceVariation(int value) {
         this.value = value;
     }
 
+    public static ResourceVariation fromValue(int value) {
+        return ValueEnum.fromValue(ResourceVariation.class, value);
+    }
+
     @Override
     public Integer value() {
         return value;
-    }
-
-    public static ResourceVariation valueOf(int value) {
-        return ValueEnum.fromValue(MAP, value)
-            .orElseThrow(() -> new IllegalArgumentException("Unknown resource variation: " + value));
     }
 }

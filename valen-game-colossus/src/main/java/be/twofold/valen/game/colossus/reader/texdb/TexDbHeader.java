@@ -1,6 +1,6 @@
 package be.twofold.valen.game.colossus.reader.texdb;
 
-import be.twofold.valen.core.io.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 
@@ -10,7 +10,7 @@ public record TexDbHeader(
     long hash2,
     int numEntries
 ) {
-    public static TexDbHeader read(DataSource source) throws IOException {
+    public static TexDbHeader read(BinarySource source) throws IOException {
         var magic = source.readLong();
         var hash1 = source.readLong();
         var hash2 = source.readLong();

@@ -38,11 +38,11 @@
         </dependency>
         <dependency>
             <groupId>be.twofold</groupId>
-            <artifactId>valen-game-darkages</artifactId>
+            <artifactId>valen-game-colossus</artifactId>
         </dependency>
         <dependency>
             <groupId>be.twofold</groupId>
-            <artifactId>valen-game-doom</artifactId>
+            <artifactId>valen-game-darkages</artifactId>
         </dependency>
         <dependency>
             <groupId>be.twofold</groupId>

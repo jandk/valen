@@ -1,6 +1,7 @@
 package be.twofold.valen.game.colossus.reader.image;
 
-import be.twofold.valen.core.io.*;
+import wtf.reversed.toolbox.collect.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 import java.util.*;
@@ -9,13 +10,13 @@ import java.util.stream.*;
 public record Image(
     ImageHeader header,
     List<ImageMip> mips,
-    byte[][] mipData
+    Bytes[] mipData
 ) {
-    public static Image read(DataSource source) throws IOException {
+    public static Image read(BinarySource source) throws IOException {
         var header = ImageHeader.read(source);
-        var mips = source.readStructs(header.mipCount(), ImageMip::read);
+        var mips = source.readObjects(header.mipCount(), ImageMip::read);
 
-        var mipData = new byte[mips.size()][];
+        var mipData = new Bytes[mips.size()];
         for (int i = header.startMip(); i < header.totalMipCount(); i++) {
             mipData[i] = source.readBytes(mips.get(i).decompressedSize());
         }

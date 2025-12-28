@@ -1,16 +1,6 @@
 package be.twofold.valen.game.colossus.reader.image;
 
-import be.twofold.valen.core.compression.*;
-import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.math.*;
-import be.twofold.valen.core.texture.*;
-import be.twofold.valen.core.util.*;
-
-import javax.imageio.*;
-import java.awt.image.*;
-import java.io.*;
-import java.nio.*;
-import java.nio.file.*;
 
 public final class WbpDecoder {
     private static final float H1 = -0.091271763114f;
@@ -31,38 +21,42 @@ public final class WbpDecoder {
     private static final float G7 = +0.016864118443f;
     private static final float G8 = +0.026748757411f;
 
-    public static void main(String[] args) throws IOException {
-        var data = Files.readAllBytes(Path.of("D:\\Jan\\Desktop\\Untitled1"));
-        var source = new ByteArrayDataSource(data);
-
-        var surface = Surface.create(
-            2048,
-            2048,
-            TextureFormat.R8G8UNorm
-        );
-
-        while (source.tell() < source.size()) {
-            var tile = ImageTile.read(source);
-            var tileDecompressed = Buffers.toArray(Decompressor
-                .forType(CompressionType.Kraken)
-                .decompress(ByteBuffer.wrap(tile.data()), tile.size()));
-
-            byte[] decoded = WbpDecoder.decode(tile, tileDecompressed);
-            var tileSurface = new Surface(
-                tile.width(),
-                tile.height(),
-                TextureFormat.R8G8UNorm,
-                decoded
-            );
-            surface.copyFrom(tileSurface, tile.x(), tile.y());
-            System.out.println(tile);
-        }
-    }
+//    static void main(String[] args) throws IOException {
+//        var data = Files.readAllBytes(Path.of("D:\\Jan\\Desktop\\Untitled1"));
+//        var source = BinarySource.wrap(Bytes.wrap(data));
+//
+//        var surface = Surface.create(
+//            2048,
+//            2048,
+//            TextureFormat.R8G8_UNORM
+//        );
+//
+//        while (source.tell() < source.size()) {
+//            var tile = ImageTile.read(source);
+//            var tileDecompressed = Buffers.toArray(Decompressor
+//                .forType(CompressionType.Kraken)
+//                .decompress(ByteBuffer.wrap(tile.data()), tile.size()));
+//
+//            byte[] decoded = WbpDecoder.decode(tile, tileDecompressed);
+//            var tileSurface = new Surface(
+//                tile.width(),
+//                tile.height(),
+//                TextureFormat.R8G8_UNORM,
+//                decoded
+//            );
+//            Surface.copy(
+//                tileSurface, 0, 0,
+//                surface, tile.x(), tile.y(),
+//                tile.width(), tile.height()
+//            );
+//            System.out.println(tile);
+//        }
+//    }
 
     private WbpDecoder() {
     }
 
-    public static byte[] decode(ImageTile tile, byte[] data) throws IOException {
+    public static byte[] decode(ImageTile tile, byte[] data) {
         int w0 = tile.width();
         int w1 = (w0 / 2 + 4);
         int w2 = (w1 / 2 + 4);
@@ -92,21 +86,6 @@ public final class WbpDecoder {
         }
 
         return output;
-    }
-
-    private static void saveImage3(byte[] bytes, int width, int height, String filename) throws IOException {
-        byte[] rgb = new byte[width * height * 3];
-        for (int y = 0; y < height; y++) {
-            for (int x = 0; x < width; x++) {
-                int offset = y * width + x;
-                rgb[offset * 3 + 0] = bytes[offset * 2 + 0];
-                rgb[offset * 3 + 1] = bytes[offset * 2 + 1];
-                rgb[offset * 3 + 2] = 0;
-            }
-        }
-        var image = new BufferedImage(width, height, BufferedImage.TYPE_3BYTE_BGR);
-        image.getRaster().setDataElements(0, 0, width, height, rgb);
-        ImageIO.write(image, "png", new File(filename));
     }
 
     private static void decodeTile(
@@ -139,9 +118,9 @@ public final class WbpDecoder {
         int baseLIndex = 0;
         int baseHIndex = 0 + outBandSize;
 
-        float scale1 = tile.scales()[scaleOffset + 0];
-        float scale2 = tile.scales()[scaleOffset + 1];
-        float scale3 = tile.scales()[scaleOffset + 2];
+        float scale1 = tile.scales().get(scaleOffset + 0);
+        float scale2 = tile.scales().get(scaleOffset + 1);
+        float scale3 = tile.scales().get(scaleOffset + 2);
 
         float[] temp = new float[outBandSize * 2];
         for (int y = 0; y < subBandHeight; y++) {
