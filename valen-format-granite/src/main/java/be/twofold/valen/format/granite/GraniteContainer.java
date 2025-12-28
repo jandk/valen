@@ -21,7 +21,8 @@ import java.util.stream.*;
 public final class GraniteContainer {
     private static final Logger log = LoggerFactory.getLogger(GraniteContainer.class);
 
-    private final LRUCache<String, Gtp> gtpCache = new LRUCache<>(5);
+    private static final int CACHE_SIZE = 5;
+    private final Map<String, Gtp> gtpCache = new HashMap<>(CACHE_SIZE);
 
     private final Gts gts;
     private final ThrowingFunction<String, BinarySource, IOException> gtpSupplier;
@@ -123,19 +124,18 @@ public final class GraniteContainer {
             gts.header().tileHeight()
         );
 
-        var gtp = gtpCache.computeIfAbsent(pagePath, path -> {
-            log.info("Reading {}", path);
-            try (var source = gtpSupplier.apply(path)) {
-                return Gtp.read(source, gts.header().pageSize());
-            } catch (IOException e) {
-                throw new UncheckedIOException(e);
+        if (!gtpCache.containsKey(pagePath)) {
+            if (gtpCache.size() == CACHE_SIZE) {
+                gtpCache.keySet().removeIf(path -> !path.endsWith("_mips.gtp"));
             }
-        });
-        if (pagePath.endsWith("_mips.gtp")) {
-            gtpCache.pin(pagePath);
+            try (var source = gtpSupplier.apply(pagePath)) {
+                log.info("Reading {}", pagePath);
+                var gtp = Gtp.read(source, gts.header().pageSize());
+                gtpCache.put(pagePath, gtp);
+            }
         }
 
-        var chunk = gtp.pages()
+        var chunk = gtpCache.get(pagePath).pages()
             .get(tile.pageIndex())
             .chunks().get(tile.chunkIndex());
 
@@ -157,7 +157,7 @@ public final class GraniteContainer {
             case BC3_UNORM, BC3_SRGB -> BCConstant.bc3(r, g, b, a);
             case BC4_UNORM, BC4_SNORM -> BCConstant.bc4(r);
             case BC5_UNORM, BC5_SNORM -> BCConstant.bc5(r, g);
-            case BC7_UNORM, BC7_SRGB -> throw new UnsupportedOperationException("Todo");
+            case BC7_UNORM, BC7_SRGB -> BCConstant.bc7(r, g, b, a);
             default -> throw new UnsupportedOperationException("Can't create a block for " + format);
         };
 
@@ -193,7 +193,9 @@ public final class GraniteContainer {
 
         return switch (type) {
             case "BC3" -> TextureFormat.BC3_SRGB; // TODO: Switch between this and UNORM
-            default -> throw new UnsupportedOperationException();
+            case "BC5" -> TextureFormat.BC5_UNORM;
+            case "BC7" -> TextureFormat.BC7_SRGB;
+            default -> throw new UnsupportedOperationException(type + " is not supported");
         };
     }
 
@@ -270,29 +272,4 @@ public final class GraniteContainer {
 
     // endregion
 
-    private static final class LRUCache<K, V> extends LinkedHashMap<K, V> {
-        private final int capacity;
-        private final Set<K> pinned = new HashSet<>();
-
-        public LRUCache(int capacity) {
-            super(capacity, 0.75f, true);
-            this.capacity = capacity;
-        }
-
-        public void pin(K key) {
-            pinned.add(key);
-        }
-
-        public void unpin(K key) {
-            pinned.remove(key);
-        }
-
-        @Override
-        protected boolean removeEldestEntry(Map.Entry<K, V> eldest) {
-            if (size() <= capacity) {
-                return false;
-            }
-            return !pinned.contains(eldest.getKey());
-        }
-    }
 }

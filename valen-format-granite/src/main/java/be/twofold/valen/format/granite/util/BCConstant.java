@@ -40,6 +40,33 @@ public final class BCConstant {
         return bytes;
     }
 
+    // https://fgiesen.wordpress.com/2024/11/03/bc7-optimal-solid-color-blocks/
+    public static Bytes bc7(byte r, byte g, byte b, byte a) {
+        long lo = bc7AlphaPair(a) << 50;
+        lo = lo | bc7ColorPair(b) << 36;
+        lo = lo | bc7ColorPair(g) << 22;
+        lo = lo | bc7ColorPair(r) << 8;
+        lo = lo | 0x20; // Mode 5, no rotation
+
+        long hi = (long) 0x2AAAAAAB << 2;
+        hi = hi | (a >>> 6) & 0x03;
+
+        return Bytes.Mutable
+            .allocate(16)
+            .setLong(0, lo)
+            .setLong(8, hi);
+    }
+
+    private static long bc7ColorPair(byte c) {
+        int cc = Byte.toUnsignedInt(c);
+        int c0 = cc >>> 1;
+        int c1 = (cc < 128 ? cc + 1 : cc - 1) >>> 1;
+        return c0 | c1 << 7;
+    }
+
+    private static long bc7AlphaPair(byte a) {
+        return Byte.toUnsignedInt(a) * 0x0101;
+    }
 
     private static void bc1(Bytes.Mutable bytes, int offset, byte r, byte g, byte b) {
         int ri = Byte.toUnsignedInt(r);
