@@ -1,7 +1,7 @@
 package be.twofold.valen.game.eternal.reader.md6model;
 
-import be.twofold.valen.core.io.*;
 import be.twofold.valen.game.eternal.reader.geometry.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 import java.util.*;
@@ -14,13 +14,13 @@ public record Md6Model(
     Md6ModelGeoDecals geoDecals,
     List<GeometryDiskLayout> layouts
 ) {
-    public static Md6Model read(DataSource source) throws IOException {
+    public static Md6Model read(BinarySource source) throws IOException {
         var header = Md6ModelHeader.read(source);
         var boneInfo = Md6ModelBoneInfo.read(source);
-        var meshInfos = source.readStructs(source.readInt(), Md6ModelInfo::read);
-        var materialInfos = source.readStructs(source.readInt(), Md6ModelMaterialInfo::read);
+        var meshInfos = source.readObjects(source.readInt(), Md6ModelInfo::read);
+        var materialInfos = source.readObjects(source.readInt(), Md6ModelMaterialInfo::read);
         var geoDecals = Md6ModelGeoDecals.read(source);
-        var memoryLayouts = source.readStructs(source.readInt(), GeometryMemoryLayout::read);
+        var memoryLayouts = source.readObjects(source.readInt(), GeometryMemoryLayout::read);
 
         var layouts = new ArrayList<GeometryDiskLayout>();
         for (var i = 0; i < 5; i++) {

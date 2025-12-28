@@ -1,6 +1,8 @@
 package be.twofold.valen.core.math;
 
-import be.twofold.valen.core.io.*;
+import be.twofold.valen.core.util.*;
+import wtf.reversed.toolbox.collect.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 import java.nio.*;
@@ -11,23 +13,27 @@ public record Vector4(
     float z,
     float w
 ) {
-    public static Vector4 Zero = new Vector4(0.0f, 0.0f, 0.0f, 0.0f);
-    public static Vector4 One = new Vector4(1.0f, 1.0f, 1.0f, 1.0f);
-    public static Vector4 X = new Vector4(1.0f, 0.0f, 0.0f, 0.0f);
-    public static Vector4 Y = new Vector4(0.0f, 1.0f, 0.0f, 0.0f);
-    public static Vector4 Z = new Vector4(0.0f, 0.0f, 1.0f, 0.0f);
-    public static Vector4 W = new Vector4(0.0f, 0.0f, 0.0f, 1.0f);
+    public static final Vector4 Zero = new Vector4(0.0f, 0.0f, 0.0f, 0.0f);
+    public static final Vector4 One = new Vector4(1.0f, 1.0f, 1.0f, 1.0f);
+    public static final Vector4 X = new Vector4(1.0f, 0.0f, 0.0f, 0.0f);
+    public static final Vector4 Y = new Vector4(0.0f, 1.0f, 0.0f, 0.0f);
+    public static final Vector4 Z = new Vector4(0.0f, 0.0f, 1.0f, 0.0f);
+    public static final Vector4 W = new Vector4(0.0f, 0.0f, 0.0f, 1.0f);
 
     public static Vector4 splat(float value) {
         return new Vector4(value, value, value, value);
     }
 
-    public static Vector4 read(DataSource source) throws IOException {
+    public static Vector4 read(BinarySource source) throws IOException {
         float x = source.readFloat();
         float y = source.readFloat();
         float z = source.readFloat();
         float w = source.readFloat();
         return new Vector4(x, y, z, w);
+    }
+
+    public Vector4(Vector2 v, float z, float w) {
+        this(v.x(), v.y(), z, w);
     }
 
     public Vector4(Vector3 v, float w) {
@@ -96,6 +102,22 @@ public record Vector4(
         dst.put(z);
         dst.put(w);
     }
+
+    public void toFloats(Floats.Mutable floats, int offset) {
+        floats.set(offset/**/, x);
+        floats.set(offset + 1, y);
+        floats.set(offset + 2, z);
+        floats.set(offset + 3, w);
+    }
+
+    public Vector4 map(FloatUnaryOperator operator) {
+        var x = operator.applyAsFloat(this.x);
+        var y = operator.applyAsFloat(this.y);
+        var z = operator.applyAsFloat(this.z);
+        var w = operator.applyAsFloat(this.w);
+        return new Vector4(x, y, z, w);
+    }
+
 
     public Vector3 toVector3() {
         return new Vector3(x, y, z);

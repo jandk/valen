@@ -1,57 +1,26 @@
 package be.twofold.valen.core.geometry;
 
-import be.twofold.valen.core.util.*;
+import wtf.reversed.toolbox.collect.*;
+import wtf.reversed.toolbox.util.*;
 
-import java.nio.*;
-
-public record VertexBuffer(
-    Buffer buffer,
+public record VertexBuffer<T extends Slice>(
+    T array,
+    int length,
     ElementType elementType,
-    ComponentType<?> componentType,
-    boolean normalized
+    ComponentType<T> componentType
 ) {
     public VertexBuffer {
-        Check.notNull(componentType, "componentType must not be null");
-        Check.notNull(elementType, "elementType must not be null");
-        Check.argument(buffer.limit() % elementType.size() == 0, () -> "length must be a multiple of " + elementType.size());
+        Check.nonNull(componentType, "componentType");
+        Check.nonNull(elementType, "elementType");
+        Check.nonNull(array, "array");
     }
 
-    public VertexBuffer(Buffer buffer, VertexBuffer.Info<?> info) {
-        this(buffer, info.elementType(), info.componentType(), info.normalized());
+    @SuppressWarnings("unchecked")
+    public VertexBuffer(T array, GeoBufferInfo<?> bufferInfo) {
+        this(array, bufferInfo.length(), bufferInfo.elementType(), (ComponentType<T>) bufferInfo.componentType());
     }
 
     public int count() {
-        return buffer.limit() / elementType.size();
-    }
-
-    public record Info<T extends Buffer>(
-        Semantic semantic,
-        ElementType elementType,
-        ComponentType<T> componentType,
-        boolean normalized
-    ) {
-        public static final Info<FloatBuffer> POSITION = new Info<>(Semantic.Position, ElementType.Vector3, ComponentType.Float, false);
-        public static final Info<FloatBuffer> NORMAL = new Info<>(Semantic.Normal, ElementType.Vector3, ComponentType.Float, false);
-        public static final Info<FloatBuffer> TANGENT = new Info<>(Semantic.Tangent, ElementType.Vector4, ComponentType.Float, false);
-
-        public static <T extends Buffer> Info<T> colors(int n, ComponentType<T> componentType) {
-            return new Info<>(new Semantic.Color(n), ElementType.Vector4, componentType, true);
-        }
-
-        public static <T extends Buffer> Info<T> joints(int n, ComponentType<T> componentType) {
-            return new Info<>(new Semantic.Joints(n), ElementType.Vector4, componentType, false);
-        }
-
-        public static Info<FloatBuffer> texCoords(int n) {
-            return new Info<>(new Semantic.TexCoord(n), ElementType.Vector2, ComponentType.Float, false);
-        }
-
-        public static <T extends Buffer> Info<T> weights(int n, ComponentType<T> componentType) {
-            return new Info<>(new Semantic.Weights(n), ElementType.Vector4, componentType, true);
-        }
-
-        public static <T extends Buffer> Info<T> faces(ComponentType<T> componentType) {
-            return new Info<>(null, ElementType.Scalar, componentType, false);
-        }
+        return length * elementType().count();
     }
 }

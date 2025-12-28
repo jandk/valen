@@ -132,7 +132,7 @@ public final class HkTagFileReader {
 
         var type = types.get(typeIndex);
         type.setParent(types.get(readPacked(buffer)));
-        var options = HkOption.fromCode(readPacked(buffer));
+        var options = HkOption.fromValue(readPacked(buffer));
         type.setOptions(options);
 
         if (options.contains(HkOption.Format)) {

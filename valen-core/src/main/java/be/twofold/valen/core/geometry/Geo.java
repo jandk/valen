@@ -1,99 +1,74 @@
 package be.twofold.valen.core.geometry;
 
-import be.twofold.valen.core.io.*;
+import wtf.reversed.toolbox.collect.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
-import java.nio.*;
 import java.util.*;
+import java.util.stream.*;
 
 public final class Geo {
-    private final boolean invertFaces;
+    private final boolean flipWindingOrder;
 
-    public Geo(boolean invertFaces) {
-        this.invertFaces = invertFaces;
+    public Geo(boolean flipWindingOrder) {
+        this.flipWindingOrder = flipWindingOrder;
     }
 
     public Mesh readMesh(
-        DataSource source,
-        List<Accessor<?>> vertexAccessors,
-        Accessor<?> faceAccessor
-    ) throws IOException {
-        var startPos = source.tell();
-
-        var vertexBuffers = new HashMap<Semantic, VertexBuffer>();
-        for (var accessor : vertexAccessors) {
-            source.seek(startPos);
-            var vertexBuffer = accessor.read(source);
-            vertexBuffers.put(accessor.info().semantic(), vertexBuffer);
-        }
-
-        source.seek(startPos);
-        var faceBuffer = faceAccessor.read(source);
-        if (invertFaces) {
-            invertFaces(faceBuffer.buffer());
-        }
-
-        source.seek(startPos);
-        return new Mesh(null, faceBuffer, vertexBuffers, null);
-    }
-
-    private void invertFaces(Buffer buffer) {
-        switch (buffer) {
-            case ByteBuffer bb -> invert(bb);
-            case ShortBuffer sb -> invert(sb);
-            case IntBuffer ib -> invert(ib);
-            default -> throw new UnsupportedOperationException("Unsupported buffer type: " + buffer.getClass());
-        }
-    }
-
-    private void invert(ByteBuffer bb) {
-        for (int i = 0, lim = bb.limit(); i < lim; i += 3) {
-            var temp = bb.get(i);
-            bb.put(i, bb.get(i + 2));
-            bb.put(i + 2, temp);
-        }
-    }
-
-    private void invert(ShortBuffer sb) {
-        for (int i = 0, lim = sb.limit(); i < lim; i += 3) {
-            var temp = sb.get(i);
-            sb.put(i, sb.get(i + 2));
-            sb.put(i + 2, temp);
-        }
-    }
-
-    private void invert(IntBuffer ib) {
-        for (int i = 0, lim = ib.limit(); i < lim; i += 3) {
-            var temp = ib.get(i);
-            ib.put(i, ib.get(i + 2));
-            ib.put(i + 2, temp);
-        }
-    }
-
-    @FunctionalInterface
-    public interface Reader<T extends Buffer> {
-        void read(DataSource source, T buffer) throws IOException;
-    }
-
-    public record Accessor<T extends Buffer>(
-        int offset,
-        int count,
-        int stride,
-        VertexBuffer.Info<T> info,
-        Reader<T> reader
+        BinarySource source,
+        GeoMeshInfo meshInfo
     ) {
-        public VertexBuffer read(DataSource source) throws IOException {
-            var numPrimitives = count * info.elementType().size();
-            var buffer = info.componentType().allocate(numPrimitives);
+        var indices = readVertexBuffer(source, meshInfo.indices(), meshInfo.indexCount());
+        if (flipWindingOrder) {
+            invertIndices(indices);
+        }
 
-            var start = source.tell() + offset;
-            for (var i = 0L; i < count; i++) {
-                source.seek(start + i * stride);
-                reader.read(source, buffer);
+        Floats positions = readVertexBuffer(source, meshInfo.positions(), meshInfo.vertexCount());
+        Optional<Floats> normals = meshInfo.normals().map(info -> readVertexBuffer(source, info, meshInfo.vertexCount()));
+        Optional<Floats> tangents = meshInfo.tangents().map(info -> readVertexBuffer(source, info, meshInfo.vertexCount()));
+        List<Floats> texCoords = meshInfo.texCoords().stream()
+            .map(info -> readVertexBuffer(source, info, meshInfo.vertexCount()))
+            .collect(Collectors.toUnmodifiableList());
+        List<Bytes> colors = meshInfo.colors().stream()
+            .map(info -> readVertexBuffer(source, info, meshInfo.vertexCount()))
+            .collect(Collectors.toUnmodifiableList());
+        Optional<Shorts> joints = meshInfo.joints().map(info -> readVertexBuffer(source, info, meshInfo.vertexCount()));
+        Optional<Floats> weights = meshInfo.weights().map(info -> readVertexBuffer(source, info, meshInfo.vertexCount()));
+        Map<String, VertexBuffer<?>> custom = new HashMap<>();
+        for (var entry : meshInfo.custom().entrySet()) {
+            var bufferInfo = entry.getValue();
+            var buffer = readVertexBuffer(source, bufferInfo, meshInfo.vertexCount());
+            var vertexBuffer = new VertexBuffer<>(buffer, bufferInfo);
+            custom.put(entry.getKey(), vertexBuffer);
+        }
+
+        return new Mesh(indices, positions, normals, tangents, texCoords, colors, joints, weights, 0, custom);
+    }
+
+    private <T extends Slice> T readVertexBuffer(BinarySource source, GeoBufferInfo<T> accessor, int count) {
+        int capacity = count * accessor.count();
+        T buffer = accessor.allocate(capacity);
+
+        try {
+            long start = accessor.offset();
+            int offset = 0;
+            for (long i = 0L; i < count; i++) {
+                source.position(start + i * accessor.stride());
+                accessor.reader().read(source, buffer, offset);
+                offset += accessor.count();
             }
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
 
-            buffer.flip();
-            return new VertexBuffer(buffer, info);
+        return buffer;
+    }
+
+    private void invertIndices(Ints.Mutable ints) {
+        for (int i = 0, lim = ints.length(); i < lim; i += 3) {
+            int temp = ints.get(i);
+            ints.set(i, ints.get(i + 2));
+            ints.set(i + 2, temp);
         }
     }
 }

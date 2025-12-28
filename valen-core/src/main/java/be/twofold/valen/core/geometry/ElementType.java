@@ -4,21 +4,21 @@ package be.twofold.valen.core.geometry;
  * Type of data in the buffer, for now the same as the GLTF type.
  */
 public enum ElementType {
-    Scalar(1),
-    Vector2(2),
-    Vector3(3),
-    Vector4(4),
-    Matrix2(4),
-    Matrix3(9),
-    Matrix4(16);
+    SCALAR(1),
+    VECTOR2(2),
+    VECTOR3(3),
+    VECTOR4(4),
+    MATRIX2(4),
+    MATRIX3(9),
+    MATRIX4(16);
 
-    private final int size;
+    private final int count;
 
-    ElementType(int size) {
-        this.size = size;
+    ElementType(int count) {
+        this.count = count;
     }
 
-    public int size() {
-        return size;
+    public int count() {
+        return count;
     }
 }

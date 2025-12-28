@@ -1,14 +1,34 @@
 package be.twofold.valen.core.game;
 
+import wtf.reversed.toolbox.io.*;
+
 import java.io.*;
 import java.util.*;
 
-public interface Archive {
+public abstract class Archive<TID extends AssetID, TAsset extends Asset> implements Container<TID, TAsset> {
+    private List<AssetReader<?, TAsset>> readers;
 
-    List<Asset> assets();
+    public abstract List<AssetReader<?, TAsset>> createReaders();
 
-    boolean exists(AssetID identifier);
+    public final <T> T loadAsset(TID identifier, Class<T> clazz) throws IOException {
+        var asset = get(identifier).orElseThrow(FileNotFoundException::new);
+        var bytes = read(identifier, null);
 
-    <T> T loadAsset(AssetID identifier, Class<T> clazz) throws IOException;
+        try (var source = BinarySource.wrap(bytes)) {
+            return read(asset, source, clazz);
+        }
+    }
 
+    public <R> R read(TAsset asset, BinarySource source, Class<R> clazz) throws IOException {
+        if (readers == null) {
+            var readersCopy = new ArrayList<>(createReaders());
+            readersCopy.add(AssetReader.raw());
+            readers = List.copyOf(readersCopy);
+        }
+        var assetReader = readers.stream()
+            .filter(ar -> ar.canRead(asset) && clazz.isAssignableFrom(ar.getReturnType()))
+            .findFirst().orElseThrow(() -> new IOException("No reader found with type " + clazz + " for " + asset));
+
+        return clazz.cast(assetReader.read(source, asset));
+    }
 }

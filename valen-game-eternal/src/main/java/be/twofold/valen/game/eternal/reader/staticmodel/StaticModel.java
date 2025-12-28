@@ -1,7 +1,7 @@
 package be.twofold.valen.game.eternal.reader.staticmodel;
 
-import be.twofold.valen.core.io.*;
 import be.twofold.valen.game.eternal.reader.geometry.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 import java.util.*;
@@ -16,12 +16,12 @@ public record StaticModel(
 ) {
     public static final int LodCount = 5;
 
-    public static StaticModel read(DataSource source) throws IOException {
+    public static StaticModel read(BinarySource source) throws IOException {
         var header = StaticModelHeader.read(source);
-        var meshInfos = source.readStructs(header.numSurfaces(), StaticModelMeshInfo::read);
+        var meshInfos = source.readObjects(header.numSurfaces(), StaticModelMeshInfo::read);
         var settings = StaticModelSettings.read(source);
         var geoDecals = StaticModelGeoDecals.read(source);
-        var streamedLods = source.readStructs(header.numSurfaces() * LodCount, DataSource::readBoolByte);
+        var streamedLods = source.readObjects(header.numSurfaces() * LodCount, s -> s.readBool(BoolFormat.BYTE));
         var layouts = header.streamable() ? readLayouts(source) : List.<GeometryDiskLayout>of();
 
         return new StaticModel(
@@ -34,10 +34,10 @@ public record StaticModel(
         );
     }
 
-    private static List<GeometryDiskLayout> readLayouts(DataSource source) throws IOException {
+    private static List<GeometryDiskLayout> readLayouts(BinarySource source) throws IOException {
         var layouts = new ArrayList<GeometryDiskLayout>();
         for (var lod = 0; lod < LodCount; lod++) {
-            var memoryLayouts = source.readStructs(source.readInt(), GeometryMemoryLayout::read);
+            var memoryLayouts = source.readObjects(source.readInt(), GeometryMemoryLayout::read);
             layouts.add(GeometryDiskLayout.read(source, memoryLayouts));
         }
         return layouts;

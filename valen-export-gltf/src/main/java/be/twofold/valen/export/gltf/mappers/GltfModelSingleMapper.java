@@ -1,11 +1,12 @@
 package be.twofold.valen.export.gltf.mappers;
 
 import be.twofold.valen.core.geometry.*;
-import be.twofold.valen.gltf.*;
-import be.twofold.valen.gltf.model.mesh.*;
+import be.twofold.valen.format.gltf.*;
+import be.twofold.valen.format.gltf.model.mesh.*;
 import org.slf4j.*;
 
 import java.io.*;
+import java.nio.file.*;
 import java.util.*;
 
 public final class GltfModelSingleMapper extends GltfModelMapper {
@@ -13,7 +14,7 @@ public final class GltfModelSingleMapper extends GltfModelMapper {
 
     private final Map<String, MeshID> models = new HashMap<>();
 
-    public GltfModelSingleMapper(GltfContext context) {
+    public GltfModelSingleMapper(GltfContext context, Path exportPath) {
         super(context);
     }
 
@@ -29,9 +30,9 @@ public final class GltfModelSingleMapper extends GltfModelMapper {
             return Optional.empty();
         }
 
-        if (model.skeleton() != null) {
-            log.warn("Skipping skeleton for scene on {}", model.name());
-            model = new Model(model.name(), model.meshes(), null);
+        if (model.skeleton().isPresent()) {
+            log.warn("Skipping skeleton for scene on {}", model.name().orElse(""));
+            model = model.withSkeleton(Optional.empty());
         }
 
         var meshID = mapModel(model);
@@ -42,12 +43,12 @@ public final class GltfModelSingleMapper extends GltfModelMapper {
     private MeshID mapModel(Model model) throws IOException {
         var primitiveSchemas = new ArrayList<MeshPrimitiveSchema>();
         for (var mesh : model.meshes()) {
-            primitiveSchemas.add(mapMeshPrimitive(mesh));
+            mapMeshPrimitive(mesh).ifPresent(primitiveSchemas::add);
         }
 
-        var meshSchema = MeshSchema.builder()
-            .name(Optional.ofNullable(model.name()))
-            .addAllPrimitives(primitiveSchemas)
+        var meshSchema = ImmutableMesh.builder()
+            .name(model.name())
+            .primitives(primitiveSchemas)
             .build();
         return context.addMesh(meshSchema);
     }

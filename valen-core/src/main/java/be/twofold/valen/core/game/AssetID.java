@@ -6,21 +6,29 @@ public interface AssetID extends Comparable<AssetID> {
 
     String fullName();
 
+    default String displayName() {
+        return fullName();
+    }
+
     default String pathName() {
-        return Filenames.pathName(fullName());
+        return Filenames.getPath(fullName());
     }
 
     default String fileName() {
-        return Filenames.fileName(fullName());
+        return Filenames.getName(fullName());
+    }
+
+    default String fileNameWithoutExtension() {
+        return Filenames.removeExtension(fileName());
+    }
+
+    default String extension() {
+        return Filenames.getExtension(fileName());
     }
 
     @Override
     default int compareTo(AssetID o) {
-        var result = pathName().compareTo(o.pathName());
-        if (result != 0) {
-            return result;
-        }
-        return fileName().compareTo(o.fileName());
+        return fullName().compareTo(o.fullName());
     }
 
 }

@@ -1,9 +1,10 @@
 package be.twofold.valen.game.eternal.reader.binaryfile;
 
 import be.twofold.valen.core.game.*;
-import be.twofold.valen.core.io.*;
-import be.twofold.valen.game.eternal.reader.*;
+import be.twofold.valen.game.eternal.*;
 import be.twofold.valen.game.eternal.resource.*;
+import wtf.reversed.toolbox.collect.*;
+import wtf.reversed.toolbox.io.*;
 
 import javax.crypto.*;
 import javax.crypto.spec.*;
@@ -11,14 +12,14 @@ import java.io.*;
 import java.security.*;
 import java.util.*;
 
-public final class BinaryFileReader implements ResourceReader<byte[]> {
+public final class BinaryFileReader implements AssetReader<Bytes, EternalAsset> {
     @Override
-    public boolean canRead(ResourceKey key) {
-        return key.type() == ResourceType.BinaryFile;
+    public boolean canRead(EternalAsset asset) {
+        return asset.id().type() == ResourceType.BinaryFile;
     }
 
     @Override
-    public byte[] read(DataSource source, Asset asset) throws IOException {
+    public Bytes read(BinarySource source, EternalAsset asset) throws IOException {
         try {
             var salt = source.readBytes(12);
             var iVec = source.readBytes(16);
@@ -26,29 +27,32 @@ public final class BinaryFileReader implements ResourceReader<byte[]> {
             var hmac = source.readBytes(32);
 
             var digest = MessageDigest.getInstance("SHA-256");
-            digest.update(salt);
+            digest.update(salt.asBuffer());
             digest.update("swapTeam\n\0".getBytes());
             digest.update(asset.id().fullName().getBytes());
             var key = digest.digest();
 
             var mac = Mac.getInstance("HmacSHA256");
             mac.init(new SecretKeySpec(key, "HmacSHA256"));
-            mac.update(salt);
-            mac.update(iVec);
-            mac.update(text);
-            var actualHmac = mac.doFinal();
+            mac.update(salt.asBuffer());
+            mac.update(iVec.asBuffer());
+            mac.update(text.asBuffer());
+            var actualHmac = Bytes.wrap(mac.doFinal());
 
-            if (!Arrays.equals(hmac, actualHmac)) {
-                throw new RuntimeException("HMAC mismatch");
+            if (!hmac.equals(actualHmac)) {
+                throw new IOException("HMAC mismatch");
             }
 
             var cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
             var keySpec = new SecretKeySpec(Arrays.copyOfRange(key, 0, 16), "AES");
-            var parameterSpec = new IvParameterSpec(iVec);
+            var parameterSpec = new IvParameterSpec(iVec.toArray());
             cipher.init(Cipher.DECRYPT_MODE, keySpec, parameterSpec);
-            return cipher.doFinal(text);
+
+            var result = Bytes.Mutable.allocate(cipher.getOutputSize(text.length()));
+            cipher.doFinal(text.asBuffer(), result.asMutableBuffer());
+            return result;
         } catch (GeneralSecurityException e) {
-            throw new RuntimeException(e);
+            throw new IOException(e);
         }
     }
 }

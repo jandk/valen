@@ -1,0 +1,86 @@
+#include "common.bt"
+
+struct VegetationHeader {
+    i32 numSurfaces;
+    i32 numLods;
+} header <style=sHeading1>;
+
+typedef struct {
+    i32 unknown0;
+    u32 numVerts;
+    u32 numIndices;
+    u32 unknown1;
+    u32 unknown2;
+    u32 unknown3;
+    u32 vertexMask;
+    Bounds bounds;
+    Vec3 vertexOffset;
+    f32 vertexScale;
+    Vec2 uvOffset;
+    f32 uvScale;
+    uint always0;
+    f32 unkFloat1;
+    f32 unkFloat2;
+    char alwaysVEGe[4];
+} VegetationLod;
+
+typedef struct {
+    StrP32 materialName;
+    f32    unknown;
+    VegetationLod lods[header.numLods];
+} VegetationSurface;
+
+typedef struct {
+    u32 num;
+    f32 sharedBend[num];
+    f32 sharedOscillation[num];
+    f32 sharedSpeed[num];
+    f32 sharedTurbulence[num];
+    f32 sharedFlexibility[num];
+    f32 sharedIndependence;
+    f32 branch1Bend[num];
+    f32 branch1Oscillation[num];
+    f32 branch1Speed[num];
+    f32 branch1Turbulence[num];
+    f32 branch1Flexibility[num];
+    f32 branch1Independence;
+    f32 branch2Bend[num];
+    f32 branch2Oscillation[num];
+    f32 branch2Speed[num];
+    f32 branch2Turbulence[num];
+    f32 branch2Flexibility[num];
+    f32 branch2Independence;
+    f32 ripplePlanar[num];
+    f32 rippleDirectional[num];
+    f32 rippleSpeed[num];
+    f32 rippleFlexibility[num];
+    f32 rippleIndependence;
+    f32 rippleShimmer;
+    f32 branch1StretchLimit;
+    f32 branch2StretchLimit;
+    f32 sharedHeightStart;
+    i32 doShared;
+    i32 doBranch1;
+    i32 doBranch2;
+    i32 doRipple;
+    i32 doShimmer;
+    f32 windIndependence;
+    Vec3 boundsMin;
+    Vec3 boundsMax;
+} VegetationWindData;
+
+typedef struct {
+    Vec3 to;
+    Vec3 from;
+    f32  radius;
+} VegetationCollisionData;
+
+VegetationSurface       surfaces[header.numSurfaces] <optimize=false, style=sSection1>;
+VegetationWindData      windData <style=sSection2>;
+u8                      hasBillBoards;
+f32                     maxLodDistance;
+f32                     unknown;
+u8                      hasCustomNormals;
+GeoDiskLayout           layouts[header.numLods] <style=sSection3>;
+u32                     numCollisionData;
+VegetationCollisionData collisionData[numCollisionData] <style=sSection4>;

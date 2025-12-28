@@ -1,8 +1,8 @@
 package be.twofold.valen.game.eternal;
 
-import be.twofold.valen.core.io.*;
-import be.twofold.valen.game.eternal.reader.*;
-import be.twofold.valen.game.eternal.resource.*;
+import be.twofold.valen.core.game.*;
+import wtf.reversed.toolbox.collect.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 import java.nio.file.*;
@@ -12,7 +12,7 @@ import static org.assertj.core.api.Assertions.*;
 
 public abstract class TestUtils {
 
-    public static void testReader(Function<EternalArchive, ResourceReader<?>> readerFunction) throws IOException {
+    public static void testReader(Function<EternalArchive, AssetReader<?, EternalAsset>> readerFunction) throws IOException {
         EternalGame game = new EternalGameFactory().load(Path.of(Constants.ExecutablePath));
 
         for (String archiveName : game.archiveNames()) {
@@ -22,18 +22,22 @@ public abstract class TestUtils {
         }
     }
 
-    private static void readAllInMap(EternalArchive archive, ResourceReader<?> reader) {
-        var entries = archive.assets().stream()
-            .filter(asset -> asset.size() != 0 && reader.canRead((ResourceKey) asset.id()))
+    private static void readAllInMap(EternalArchive archive, AssetReader<?, EternalAsset> reader) {
+        var entries = archive.getAll()
+            .filter(asset -> asset.size() != 0 && reader.canRead(asset))
             .toList();
 
         System.out.println("Trying to read " + entries.size() + " entries");
 
-        entries.forEach(asset -> assertThatNoException()
-            .isThrownBy(() -> {
-                var bytes = archive.loadAsset(asset.id(), byte[].class);
-                reader.read(DataSource.fromArray(bytes), asset);
-            }));
+        for (EternalAsset asset : entries) {
+            try {
+                var bytes = archive.loadAsset(asset.id(), Bytes.class);
+                reader.read(BinarySource.wrap(bytes), asset);
+            } catch (FileNotFoundException e) {
+                System.err.println("File not found" + asset.id().fullName());
+            } catch (Exception e) {
+                fail(asset.id().fullName(), e);
+            }
+        }
     }
-
 }

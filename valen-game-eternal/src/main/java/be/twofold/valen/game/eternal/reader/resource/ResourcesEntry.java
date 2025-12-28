@@ -1,6 +1,6 @@
 package be.twofold.valen.game.eternal.reader.resource;
 
-import be.twofold.valen.core.io.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 
@@ -19,7 +19,7 @@ public record ResourcesEntry(
     short variation,
     short numDependencies
 ) {
-    public static ResourcesEntry read(DataSource source) throws IOException {
+    public static ResourcesEntry read(BinarySource source) throws IOException {
         source.expectLong(0); // resourceTypeString
         source.expectLong(1); // nameString
         source.expectLong(-1); // descString
@@ -41,7 +41,8 @@ public record ResourcesEntry(
         source.expectInt(0); // reserved2
         source.expectLong(0); // reservedForVariations
         source.expectShort((short) 2); // numStrings
-        source.expectShort((short) 0); // numSources
+        // source.expectShort((short) 0); // numSources
+        source.readShort(); // numSources
         var numDependencies = source.readShort();
         source.expectShort((short) 0); // numSpecialHashes
         source.expectShort((short) 0); // numMetaEntries

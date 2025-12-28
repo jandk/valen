@@ -1,8 +1,10 @@
 package be.twofold.valen.game.eternal.reader.havokshape;
 
+import wtf.reversed.toolbox.util.*;
+
 import java.util.*;
 
-enum HkOption {
+enum HkOption implements FlagEnum {
     Format(0x01),
     SubType(0x02),
     Version(0x04),
@@ -12,19 +14,18 @@ enum HkOption {
     Interfaces(0x40),
     Attribute(0x80);
 
-    private final int code;
+    private final int value;
 
-    HkOption(int code) {
-        this.code = code;
+    HkOption(int value) {
+        this.value = value;
     }
 
-    public static Set<HkOption> fromCode(int code) {
-        Set<HkOption> flags = EnumSet.noneOf(HkOption.class);
-        for (HkOption flag : HkOption.values()) {
-            if ((code & flag.code) != 0) {
-                flags.add(flag);
-            }
-        }
-        return flags;
+    public static Set<HkOption> fromValue(int value) {
+        return FlagEnum.fromValue(HkOption.class, value);
+    }
+
+    @Override
+    public int value() {
+        return value;
     }
 }

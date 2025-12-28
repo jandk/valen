@@ -1,8 +1,9 @@
 package be.twofold.valen.game.eternal.reader.file.mapresources;
 
-import be.twofold.valen.core.io.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
+import java.nio.*;
 import java.util.*;
 
 public record MapResources(
@@ -12,19 +13,19 @@ public record MapResources(
     List<MapResourcesAsset> assets,
     List<String> mapNames
 ) {
-    public static MapResources read(DataSource source) throws IOException {
-        var numLayerNames = source.readIntBE();
-        var layerNames = source.readStructs(numLayerNames, DataSource::readPString);
+    public static MapResources read(BinarySource source) throws IOException {
+        var numLayerNames = source.order(ByteOrder.BIG_ENDIAN).readInt();
+        var layerNames = source.order(ByteOrder.LITTLE_ENDIAN).readStrings(numLayerNames, StringFormat.INT_LENGTH);
         var unknown = source.readInt();
 
-        var numAssetTypes = source.readIntBE();
-        var assetTypes = source.readStructs(numAssetTypes, DataSource::readPString);
+        var numAssetTypes = source.order(ByteOrder.BIG_ENDIAN).readInt();
+        var assetTypes = source.order(ByteOrder.LITTLE_ENDIAN).readStrings(numAssetTypes, StringFormat.INT_LENGTH);
 
-        var numAssets = source.readIntBE();
-        var assets = source.readStructs(numAssets, MapResourcesAsset::read);
+        var numAssets = source.order(ByteOrder.BIG_ENDIAN).readInt();
+        var assets = source.order(ByteOrder.LITTLE_ENDIAN).readObjects(numAssets, MapResourcesAsset::read);
 
-        var numMapNames = source.readIntBE();
-        var mapNames = source.readStructs(numMapNames, DataSource::readPString);
+        var numMapNames = source.order(ByteOrder.BIG_ENDIAN).readInt();
+        var mapNames = source.order(ByteOrder.LITTLE_ENDIAN).readStrings(numMapNames, StringFormat.INT_LENGTH);
 
         return new MapResources(
             layerNames,

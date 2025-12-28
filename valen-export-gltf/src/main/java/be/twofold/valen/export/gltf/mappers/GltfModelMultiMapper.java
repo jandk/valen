@@ -1,23 +1,21 @@
 package be.twofold.valen.export.gltf.mappers;
 
 import be.twofold.valen.core.geometry.*;
-import be.twofold.valen.gltf.*;
-import be.twofold.valen.gltf.model.mesh.*;
-import be.twofold.valen.gltf.model.node.*;
+import be.twofold.valen.core.math.*;
+import be.twofold.valen.format.gltf.*;
+import be.twofold.valen.format.gltf.model.mesh.*;
+import be.twofold.valen.format.gltf.model.node.*;
 
 import java.io.*;
 import java.util.*;
 
 public final class GltfModelMultiMapper extends GltfModelMapper {
     private final Map<String, NodeID> models = new HashMap<>();
-
     private final GltfContext context;
-    private final GltfSkeletonMapper skeletonMapper;
 
     public GltfModelMultiMapper(GltfContext context) {
         super(context);
         this.context = context;
-        this.skeletonMapper = new GltfSkeletonMapper(context);
     }
 
     public NodeID map(ModelReference model) throws IOException {
@@ -36,30 +34,32 @@ public final class GltfModelMultiMapper extends GltfModelMapper {
             .map(context::addMesh)
             .toList();
 
-        var nodeIDs = model.skeleton() == null
-            ? mapStaticModel(meshIDs)
-            : mapAnimatedModel(meshIDs, model.skeleton());
+        var nodeIDs = model.skeleton().isPresent()
+            ? mapAnimatedModel(meshIDs, model.skeleton().get())
+            : mapStaticModel(meshIDs, model.upAxis());
 
         return context.addNode(
-            NodeSchema.builder()
-                .name(Optional.ofNullable(model.name()))
-                .addAllChildren(nodeIDs)
+            ImmutableNode.builder()
+                .name(model.name())
+                .children(nodeIDs)
                 .build());
     }
 
-    private List<NodeID> mapStaticModel(List<MeshID> meshIDs) {
+    private List<NodeID> mapStaticModel(List<MeshID> meshIDs, Axis axis) {
         return meshIDs.stream()
-            .map(meshID -> context.addNode(NodeSchema.builder()
+            .map(meshID -> context.addNode(ImmutableNode.builder()
+                .rotation(GltfUtils.mapQuaternion(axis.rotateTo(Axis.Y)))
                 .mesh(meshID)
                 .build()))
             .toList();
     }
 
-    private List<NodeID> mapAnimatedModel(List<MeshID> meshIDs, Skeleton skeleton) {
+    private List<NodeID> mapAnimatedModel(List<MeshID> meshIDs, Skeleton skeleton) throws IOException {
+        var skeletonMapper = new GltfSkeletonMapper(context);
         var skinID = skeletonMapper.map(skeleton);
 
         return meshIDs.stream()
-            .map(meshID -> context.addNode(NodeSchema.builder()
+            .map(meshID -> context.addNode(ImmutableNode.builder()
                 .mesh(meshID)
                 .skin(skinID)
                 .build()))
@@ -68,18 +68,29 @@ public final class GltfModelMultiMapper extends GltfModelMapper {
 
     private List<MeshSchema> mapModel(Model model) throws IOException {
         var meshSchemas = new ArrayList<MeshSchema>();
-        for (Mesh mesh : model.meshes()) {
-            meshSchemas.add(mapMesh(mesh));
+        for (var mesh : model.meshes()) {
+            mapMesh(mesh).ifPresent(meshSchemas::add);
         }
         return meshSchemas;
     }
 
-    private MeshSchema mapMesh(Mesh mesh) throws IOException {
+    private Optional<MeshSchema> mapMesh(Mesh mesh) throws IOException {
         var primitiveSchema = mapMeshPrimitive(mesh);
+        if (primitiveSchema.isEmpty()) {
+            return Optional.empty();
+        }
 
-        return MeshSchema.builder()
-            .name(Optional.ofNullable(mesh.name()))
-            .addPrimitives(primitiveSchema)
-            .build();
+        var morphTargetNames = mesh.blendShapes().stream()
+            .map(BlendShape::name)
+            .toList();
+
+        var builder = ImmutableMesh.builder()
+            .name(mesh.name())
+            .addPrimitives(primitiveSchema.get());
+
+        if (!morphTargetNames.isEmpty()) {
+            builder.extras(Map.of("targetNames", morphTargetNames));
+        }
+        return Optional.of(builder.build());
     }
 }

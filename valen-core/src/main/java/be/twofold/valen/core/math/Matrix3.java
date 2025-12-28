@@ -1,6 +1,6 @@
 package be.twofold.valen.core.math;
 
-import be.twofold.valen.core.io.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 
@@ -12,13 +12,13 @@ public record Matrix3(
 
     // region Constants and Factories
 
-    public static Matrix3 Zero = new Matrix3(
+    public static final Matrix3 Zero = new Matrix3(
         0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f
     );
 
-    public static Matrix3 Identity = new Matrix3(
+    public static final Matrix3 Identity = new Matrix3(
         1.0f, 0.0f, 0.0f,
         0.0f, 1.0f, 0.0f,
         0.0f, 0.0f, 1.0f
@@ -77,7 +77,7 @@ public record Matrix3(
         );
     }
 
-    public static Matrix3 read(DataSource source) throws IOException {
+    public static Matrix3 read(BinarySource source) throws IOException {
         float m00 = source.readFloat();
         float m01 = source.readFloat();
         float m02 = source.readFloat();

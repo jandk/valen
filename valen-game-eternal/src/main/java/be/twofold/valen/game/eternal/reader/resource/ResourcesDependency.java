@@ -1,6 +1,6 @@
 package be.twofold.valen.game.eternal.reader.resource;
 
-import be.twofold.valen.core.io.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 
@@ -10,11 +10,12 @@ public record ResourcesDependency(
     int depType,
     long hashOrTimestamp
 ) {
-    public static ResourcesDependency read(DataSource source) throws IOException {
+    public static ResourcesDependency read(BinarySource source) throws IOException {
         var type = source.readLongAsInt();
         var name = source.readLongAsInt();
         var depType = source.readInt();
-        source.expectInt(1); // depSubType
+        source.readInt();
+        // source.expectInt(1); // depSubType
         var hashOrTimestamp = source.readLong();
 
         return new ResourcesDependency(

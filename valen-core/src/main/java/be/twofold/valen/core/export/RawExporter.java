@@ -1,20 +1,33 @@
 package be.twofold.valen.core.export;
 
-import java.io.*;
+import wtf.reversed.toolbox.collect.*;
 
-public final class RawExporter implements Exporter<byte[]> {
+import java.io.*;
+import java.nio.channels.*;
+
+public final class RawExporter implements Exporter<Bytes> {
+    @Override
+    public String getID() {
+        return "binary.raw";
+    }
+
+    @Override
+    public String getName() {
+        return "Raw Bytes";
+    }
+
     @Override
     public String getExtension() {
         return "";
     }
 
     @Override
-    public Class<byte[]> getSupportedType() {
-        return byte[].class;
+    public Class<Bytes> getSupportedType() {
+        return Bytes.class;
     }
 
     @Override
-    public void export(byte[] value, OutputStream out) throws IOException {
-        out.write(value);
+    public void export(Bytes value, OutputStream out) throws IOException {
+        Channels.newChannel(out).write(value.asBuffer());
     }
 }
