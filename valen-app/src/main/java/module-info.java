@@ -13,6 +13,7 @@ module valen.app {
     // Games
     requires valen.game.darkages;
     requires valen.game.eternal;
+    requires valen.game.gbfr;
     requires valen.game.greatcircle;
     requires valen.game.gustav;
 
