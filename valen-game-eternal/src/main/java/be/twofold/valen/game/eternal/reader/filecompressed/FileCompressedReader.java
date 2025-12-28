@@ -1,29 +1,36 @@
 package be.twofold.valen.game.eternal.reader.filecompressed;
 
-import be.twofold.valen.core.compression.*;
 import be.twofold.valen.core.game.*;
-import be.twofold.valen.core.io.*;
-import be.twofold.valen.game.eternal.reader.*;
+import be.twofold.valen.game.eternal.*;
 import be.twofold.valen.game.eternal.resource.*;
+import wtf.reversed.toolbox.collect.*;
+import wtf.reversed.toolbox.compress.*;
+import wtf.reversed.toolbox.io.*;
+import wtf.reversed.toolbox.util.*;
 
 import java.io.*;
-import java.nio.*;
 
-public final class FileCompressedReader implements ResourceReader<byte[]> {
-    @Override
-    public boolean canRead(ResourceKey key) {
-        return key.type() == ResourceType.CompFile
-            && !key.name().extension().equals("entities");
+public final class FileCompressedReader implements AssetReader<Bytes, EternalAsset> {
+    private final Decompressor decompressor;
+
+    public FileCompressedReader(Decompressor decompressor) {
+        this.decompressor = Check.nonNull(decompressor, "decompressor");
     }
 
     @Override
-    public byte[] read(DataSource source, Asset asset) throws IOException {
-        var header = FileCompressedHeader.read(source);
-        var compressed = source.readBytes(header.compressedSize());
+    public boolean canRead(EternalAsset resource) {
+        return resource.id().type() == ResourceType.CompFile
+            /*&& !resource.id().extension().equals("entities")*/;
+    }
 
-        return Decompressor
-            .forType(CompressionType.Kraken)
-            .decompress(ByteBuffer.wrap(compressed), header.uncompressedSize())
-            .array();
+    @Override
+    public Bytes read(BinarySource source, EternalAsset resource) throws IOException {
+        var header = FileCompressedHeader.read(source);
+        if (header.compressedSize() == -1) {
+            return source.readBytes(header.uncompressedSize());
+        }
+
+        var compressed = source.readBytes(header.compressedSize());
+        return decompressor.decompress(compressed, header.uncompressedSize());
     }
 }

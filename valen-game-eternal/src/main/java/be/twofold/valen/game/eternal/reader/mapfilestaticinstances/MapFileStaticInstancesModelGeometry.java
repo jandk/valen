@@ -1,7 +1,7 @@
 package be.twofold.valen.game.eternal.reader.mapfilestaticinstances;
 
-import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.math.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 
@@ -15,7 +15,7 @@ public record MapFileStaticInstancesModelGeometry(
     int flagsMaybe,
     int extraIndex
 ) {
-    public static MapFileStaticInstancesModelGeometry read(DataSource source) throws IOException {
+    public static MapFileStaticInstancesModelGeometry read(BinarySource source) throws IOException {
         var declLayerIndex = source.readShort();
         var modelIndex = source.readShort();
         var modelIndexVPaint = source.readShort();

@@ -1,11 +1,21 @@
 package be.twofold.valen.export.dds;
 
+import be.twofold.valen.core.export.*;
 import be.twofold.valen.core.texture.*;
-import be.twofold.valen.export.*;
 
 import java.io.*;
 
-public final class DdsExporter implements Exporter<Texture> {
+public final class DdsExporter extends TextureExporter {
+    @Override
+    public String getID() {
+        return "texture.dds";
+    }
+
+    @Override
+    public String getName() {
+        return "DDS (DirectDraw Surface)";
+    }
+
     @Override
     public String getExtension() {
         return "dds";
@@ -17,7 +27,17 @@ public final class DdsExporter implements Exporter<Texture> {
     }
 
     @Override
-    public void export(Texture texture, OutputStream out) throws IOException {
+    public TextureFormat chooseFormat(TextureFormat format) {
+        return switch (format) {
+            case R8G8B8_UNORM -> TextureFormat.R8G8B8A8_UNORM;
+            case B8G8R8_UNORM -> TextureFormat.B8G8R8A8_UNORM;
+            case R16G16B16_SFLOAT -> TextureFormat.R16G16B16A16_SFLOAT;
+            default -> format;
+        };
+    }
+
+    @Override
+    public void doExport(Texture texture, OutputStream out) throws IOException {
         out.write(createHeader(texture).toBuffer().array());
         for (var surface : texture.surfaces()) {
             out.write(surface.data());
@@ -25,7 +45,7 @@ public final class DdsExporter implements Exporter<Texture> {
     }
 
     private DdsHeader createHeader(Texture texture) {
-        var format = toDxgiFormat(texture.format());
+        var format = mapFormat(texture.format());
 
         var flags = DdsHeader.DDS_HEADER_FLAGS_TEXTURE;
         var height = texture.height();
@@ -62,7 +82,38 @@ public final class DdsExporter implements Exporter<Texture> {
         return new DdsHeader(flags, height, width, pitchOrLinearSize, 0, mipMapCount, pixelFormat, caps1, caps2, header10);
     }
 
-    private static DdsPixelFormat createPixelFormat() {
+    private static DxgiFormat mapFormat(TextureFormat format) {
+        return switch (format) {
+            case R8_UNORM -> DxgiFormat.R8_UNORM;
+            case R8G8_UNORM -> DxgiFormat.R8G8_UNORM;
+            case R8G8B8_UNORM,
+                 R8G8B8A8_UNORM -> DxgiFormat.R8G8B8A8_UNORM;
+            case B8G8R8_UNORM,
+                 B8G8R8A8_UNORM -> DxgiFormat.B8G8R8A8_UNORM;
+            case R16_UNORM -> DxgiFormat.R16_UNORM;
+            case R16G16B16A16_UNORM -> DxgiFormat.R16G16B16A16_UNORM;
+            case R16_SFLOAT -> DxgiFormat.R16_FLOAT;
+            case R16G16_SFLOAT -> DxgiFormat.R16G16_FLOAT;
+            case R16G16B16_SFLOAT,
+                 R16G16B16A16_SFLOAT -> DxgiFormat.R16G16B16A16_FLOAT;
+            case BC1_UNORM -> DxgiFormat.BC1_UNORM;
+            case BC1_SRGB -> DxgiFormat.BC1_UNORM_SRGB;
+            case BC2_UNORM -> DxgiFormat.BC2_UNORM;
+            case BC2_SRGB -> DxgiFormat.BC2_UNORM_SRGB;
+            case BC3_UNORM -> DxgiFormat.BC3_UNORM;
+            case BC3_SRGB -> DxgiFormat.BC3_UNORM_SRGB;
+            case BC4_UNORM -> DxgiFormat.BC4_UNORM;
+            case BC4_SNORM -> DxgiFormat.BC4_SNORM;
+            case BC5_UNORM -> DxgiFormat.BC5_UNORM;
+            case BC5_SNORM -> DxgiFormat.BC5_SNORM;
+            case BC6H_UFLOAT -> DxgiFormat.BC6H_UF16;
+            case BC6H_SFLOAT -> DxgiFormat.BC6H_SF16;
+            case BC7_UNORM -> DxgiFormat.BC7_UNORM;
+            case BC7_SRGB -> DxgiFormat.BC7_UNORM_SRGB;
+        };
+    }
+
+    private DdsPixelFormat createPixelFormat() {
         var flags = DdsPixelFormat.DDPF_FOURCC;
         var fourCC = 'D' | 'X' << 8 | '1' << 16 | '0' << 24;
         return new DdsPixelFormat(flags, fourCC, 0, 0, 0, 0, 0);
@@ -103,35 +154,6 @@ public final class DdsExporter implements Exporter<Texture> {
     }
 
     private int computePitch(int width, DxgiFormat format) {
-        return switch (format) {
-            case A8_UNORM -> width;
-            case R16G16_FLOAT, R8G8B8A8_UNORM -> width * 4;
-            case R16_FLOAT, R8G8_UNORM -> width * 2;
-            default -> throw new UnsupportedOperationException("Unsupported format: " + format);
-        };
-    }
-
-    private DxgiFormat toDxgiFormat(TextureFormat format) {
-        return switch (format) {
-            case TextureFormat.R8G8B8A8UNorm -> DxgiFormat.R8G8B8A8_UNORM;
-            case TextureFormat.R16G16Float -> DxgiFormat.R16G16_FLOAT;
-            case TextureFormat.R8G8UNorm -> DxgiFormat.R8G8_UNORM;
-            case TextureFormat.R16Float -> DxgiFormat.R16_FLOAT;
-            case TextureFormat.R8UNorm -> DxgiFormat.A8_UNORM;
-            case TextureFormat.Bc1UNorm -> DxgiFormat.BC1_UNORM;
-            case TextureFormat.Bc1UNormSrgb -> DxgiFormat.BC1_UNORM_SRGB;
-            case TextureFormat.Bc2UNorm -> DxgiFormat.BC2_UNORM;
-            case TextureFormat.Bc2UNormSrgb -> DxgiFormat.BC2_UNORM_SRGB;
-            case TextureFormat.Bc3UNorm -> DxgiFormat.BC3_UNORM;
-            case TextureFormat.Bc3UNormSrgb -> DxgiFormat.BC3_UNORM_SRGB;
-            case TextureFormat.Bc4UNorm -> DxgiFormat.BC4_UNORM;
-            case TextureFormat.Bc4SNorm -> DxgiFormat.BC4_SNORM;
-            case TextureFormat.Bc5UNorm -> DxgiFormat.BC5_UNORM;
-            case TextureFormat.Bc5SNorm -> DxgiFormat.BC5_SNORM;
-            case TextureFormat.Bc6HUFloat16 -> DxgiFormat.BC6H_UF16;
-            case TextureFormat.Bc6HSFloat16 -> DxgiFormat.BC6H_SF16;
-            case TextureFormat.Bc7UNorm -> DxgiFormat.BC7_UNORM;
-            case TextureFormat.Bc7UNormSrgb -> DxgiFormat.BC7_UNORM_SRGB;
-        };
+        return (width * format.bitsPerPixel() + 7) / 8;
     }
 }

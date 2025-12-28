@@ -1,53 +1,93 @@
 package be.twofold.valen.core.texture;
 
-import be.twofold.valen.core.util.*;
-
 public enum TextureFormat {
-    R8UNorm(1, 1, 1),
-    R8G8UNorm(1, 1, 2),
-    R8G8B8A8UNorm(1, 1, 4),
-    R16Float(1, 1, 2),
-    R16G16Float(1, 1, 4),
-    Bc1UNorm(4, 4, 8),
-    Bc1UNormSrgb(4, 4, 8),
-    Bc2UNorm(4, 4, 16),
-    Bc2UNormSrgb(4, 4, 16),
-    Bc3UNorm(4, 4, 16),
-    Bc3UNormSrgb(4, 4, 16),
-    Bc4UNorm(4, 4, 8),
-    Bc4SNorm(4, 4, 8),
-    Bc5UNorm(4, 4, 16),
-    Bc5SNorm(4, 4, 16),
-    Bc6HUFloat16(4, 4, 16),
-    Bc6HSFloat16(4, 4, 16),
-    Bc7UNorm(4, 4, 16),
-    Bc7UNormSrgb(4, 4, 16);
+    // Uncompressed formats
+    R8_UNORM,
+    R8G8_UNORM,
+    R8G8B8_UNORM,
+    R8G8B8A8_UNORM,
+    B8G8R8_UNORM,
+    B8G8R8A8_UNORM,
+    R16_UNORM,
+    R16G16B16A16_UNORM,
+    R16_SFLOAT,
+    R16G16_SFLOAT,
+    R16G16B16_SFLOAT,
+    R16G16B16A16_SFLOAT,
 
-    private final int tileWidth;
-    private final int tileHeight;
-    private final int tileSizeInBytes;
+    // Compressed formats
+    BC1_UNORM,
+    BC1_SRGB,
+    BC2_UNORM,
+    BC2_SRGB,
+    BC3_UNORM,
+    BC3_SRGB,
+    BC4_UNORM,
+    BC4_SNORM,
+    BC5_UNORM,
+    BC5_SNORM,
+    BC6H_UFLOAT,
+    BC6H_SFLOAT,
+    BC7_UNORM,
+    BC7_SRGB,
+    ;
 
-    TextureFormat(int tileWidth, int tileHeight, int tileSizeInBytes) {
-        this.tileWidth = tileWidth;
-        this.tileHeight = tileHeight;
-        this.tileSizeInBytes = tileSizeInBytes;
+    public int blockWidth() {
+        return isCompressed() ? 4 : 1;
     }
 
-    public int tileWidth() {
-        return tileWidth;
+    public int blockHeight() {
+        return isCompressed() ? 4 : 1;
     }
 
-    public int tileHeight() {
-        return tileHeight;
+    public int blockSize() {
+        return switch (this) {
+            case R8_UNORM -> 1;
+            case R8G8_UNORM,
+                 R16_UNORM, R16_SFLOAT -> 2;
+            case R8G8B8_UNORM, B8G8R8_UNORM -> 3;
+            case R8G8B8A8_UNORM, B8G8R8A8_UNORM,
+                 R16G16_SFLOAT -> 4;
+            case R16G16B16A16_UNORM, R16G16B16A16_SFLOAT,
+                 BC1_UNORM, BC1_SRGB,
+                 BC4_UNORM, BC4_SNORM -> 8;
+            case R16G16B16_SFLOAT -> 6;
+            case BC2_UNORM, BC2_SRGB,
+                 BC3_UNORM, BC3_SRGB,
+                 BC5_UNORM, BC5_SNORM,
+                 BC6H_UFLOAT, BC6H_SFLOAT,
+                 BC7_UNORM, BC7_SRGB -> 16;
+        };
     }
 
-    public int tileSizeInBytes() {
-        return tileSizeInBytes;
+    public boolean hasAlpha() {
+        return switch (this) {
+            case R8G8B8A8_UNORM, B8G8R8A8_UNORM,
+                 R16G16B16A16_UNORM, R16G16B16A16_SFLOAT,
+                 BC1_UNORM, BC1_SRGB,
+                 BC2_UNORM, BC2_SRGB,
+                 BC3_UNORM, BC3_SRGB,
+                 BC7_UNORM, BC7_SRGB -> true;
+            default -> false;
+        };
+    }
+
+    public boolean isCompressed() {
+        return switch (this) {
+            case BC1_SRGB, BC1_UNORM,
+                 BC2_SRGB, BC2_UNORM,
+                 BC3_SRGB, BC3_UNORM,
+                 BC4_SNORM, BC4_UNORM,
+                 BC5_SNORM, BC5_UNORM,
+                 BC6H_SFLOAT, BC6H_UFLOAT,
+                 BC7_SRGB, BC7_UNORM -> true;
+            default -> false;
+        };
     }
 
     public int surfaceSize(int width, int height) {
-        Check.argument(width % tileWidth == 0, "width must be a multiple of " + tileWidth);
-        Check.argument(height % tileHeight == 0, "height must be a multiple of " + tileHeight);
-        return (width / tileWidth) * (height / tileHeight) * tileSizeInBytes;
+        var widthInBlocks = Math.ceilDiv(width, blockWidth());
+        var heightInBlocks = Math.ceilDiv(height, blockHeight());
+        return widthInBlocks * heightInBlocks * blockSize();
     }
 }

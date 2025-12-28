@@ -1,14 +1,26 @@
 package be.twofold.valen.core.math;
 
-import be.twofold.valen.core.io.*;
+import be.twofold.valen.core.util.*;
+import wtf.reversed.toolbox.collect.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 import java.nio.*;
 
-public record Vector2(float x, float y) {
-    public static final int BYTES = 2 * Float.BYTES;
+public record Vector2(
+    float x,
+    float y
+) {
+    public static final Vector2 Zero = new Vector2(0.0f, 0.0f);
+    public static final Vector2 One = new Vector2(1.0f, 1.0f);
+    public static final Vector2 X = new Vector2(1.0f, 0.0f);
+    public static final Vector2 Y = new Vector2(0.0f, 1.0f);
 
-    public static Vector2 read(DataSource source) throws IOException {
+    public static Vector2 splat(float value) {
+        return new Vector2(value, value);
+    }
+
+    public static Vector2 read(BinarySource source) throws IOException {
         float x = source.readFloat();
         float y = source.readFloat();
         return new Vector2(x, y);
@@ -22,8 +34,16 @@ public record Vector2(float x, float y) {
         return add(other.negate());
     }
 
+    public Vector2 multiply(Vector2 other) {
+        return new Vector2(x * other.x, y * other.y);
+    }
+
     public Vector2 multiply(float scalar) {
         return new Vector2(x * scalar, y * scalar);
+    }
+
+    public Vector2 divide(Vector2 other) {
+        return new Vector2(x / other.x, y / other.y);
     }
 
     public Vector2 divide(float scalar) {
@@ -50,10 +70,30 @@ public record Vector2(float x, float y) {
         return divide(length());
     }
 
-    // TODO: Move this method somewhere else
-    public void put(FloatBuffer dst) {
-        dst.put(x);
-        dst.put(y);
+    public Vector2 fma(Vector2 scale, Vector2 offset) {
+        float x = Math.fma(this.x, scale.x, offset.x);
+        float y = Math.fma(this.y, scale.y, offset.y);
+        return new Vector2(x, y);
+    }
+
+    public Vector2 fma(float scale, Vector2 offset) {
+        return fma(splat(scale), offset);
+    }
+
+    public void toBuffer(FloatBuffer buffer) {
+        buffer.put(x);
+        buffer.put(y);
+    }
+
+    public void toFloats(Floats.Mutable floats, int offset) {
+        floats.set(offset/**/, x);
+        floats.set(offset + 1, y);
+    }
+
+    public Vector2 map(FloatUnaryOperator operator) {
+        var x = operator.applyAsFloat(this.x);
+        var y = operator.applyAsFloat(this.y);
+        return new Vector2(x, y);
     }
 
     @Override

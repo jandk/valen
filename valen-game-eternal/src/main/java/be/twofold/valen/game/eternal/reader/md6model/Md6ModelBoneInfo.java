@@ -1,16 +1,17 @@
 package be.twofold.valen.game.eternal.reader.md6model;
 
-import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.math.*;
+import wtf.reversed.toolbox.collect.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 
 public record Md6ModelBoneInfo(
-    byte[] jointRemap,
+    Bytes jointRemap,
     Bounds defaultBounds,
-    float[] maxLodDeviations
+    Floats maxLodDeviations
 ) {
-    public static Md6ModelBoneInfo read(DataSource source) throws IOException {
+    public static Md6ModelBoneInfo read(BinarySource source) throws IOException {
         var jointRemap = source.readBytes(source.readShort());
         var defaultBounds = Bounds.read(source);
         source.expectInt(5); // numLods

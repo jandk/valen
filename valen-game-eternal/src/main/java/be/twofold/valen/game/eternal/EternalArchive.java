@@ -1,35 +1,63 @@
 package be.twofold.valen.game.eternal;
 
 import be.twofold.valen.core.game.*;
-import be.twofold.valen.core.io.*;
-import be.twofold.valen.game.eternal.reader.*;
+import be.twofold.valen.game.eternal.reader.binaryfile.*;
 import be.twofold.valen.game.eternal.reader.decl.*;
 import be.twofold.valen.game.eternal.reader.decl.material2.*;
 import be.twofold.valen.game.eternal.reader.decl.renderparm.*;
+import be.twofold.valen.game.eternal.reader.file.FileReader;
+import be.twofold.valen.game.eternal.reader.filecompressed.*;
 import be.twofold.valen.game.eternal.reader.image.*;
+import be.twofold.valen.game.eternal.reader.json.*;
+import be.twofold.valen.game.eternal.reader.mapfilestaticinstances.*;
+import be.twofold.valen.game.eternal.reader.md6anim.*;
 import be.twofold.valen.game.eternal.reader.md6model.*;
 import be.twofold.valen.game.eternal.reader.md6skel.*;
 import be.twofold.valen.game.eternal.reader.staticmodel.*;
-import be.twofold.valen.game.eternal.resource.*;
+import be.twofold.valen.game.eternal.reader.streamdb.*;
+import wtf.reversed.toolbox.collect.*;
+import wtf.reversed.toolbox.compress.*;
+import wtf.reversed.toolbox.util.*;
 
 import java.io.*;
-import java.nio.*;
 import java.util.*;
+import java.util.stream.*;
 
-public final class EternalArchive implements Archive {
-    private final StreamDbCollection streams;
-    private final ResourcesCollection resources;
-    private final List<ResourceReader<?>> readers;
+public final class EternalArchive extends Archive<EternalAssetID, EternalAsset> {
+    private final Container<Long, StreamDbEntry> streams;
+    private final Container<EternalAssetID, EternalAsset> common;
+    private final Container<EternalAssetID, EternalAsset> resources;
+    private final Decompressor decompressor;
 
-    public EternalArchive(StreamDbCollection streams, ResourcesCollection resources) {
-        this.streams = Objects.requireNonNull(streams);
-        this.resources = Objects.requireNonNull(resources);
+    EternalArchive(
+        Container<Long, StreamDbEntry> streams,
+        Container<EternalAssetID, EternalAsset> common,
+        Container<EternalAssetID, EternalAsset> resources,
+        Decompressor decompressor
+    ) {
+        this.streams = Check.nonNull(streams, "streams");
+        this.common = Check.nonNull(common, "common");
+        this.resources = Check.nonNull(resources, "resources");
+        this.decompressor = Check.nonNull(decompressor, "decompressor");
+    }
 
+    @Override
+    public List<AssetReader<?, EternalAsset>> createReaders() {
         var declReader = new DeclReader(this);
-        this.readers = List.of(
+
+        return List.of(
             declReader,
+            // Binary converters
+            new BinaryFileReader(),
+            new FileCompressedReader(decompressor),
+            new FileReader(),
+            new JsonReader(),
+
+            // Actual readers
             new ImageReader(this),
+            new MapFileStaticInstancesReader(this),
             new MaterialReader(this, declReader),
+            new Md6AnimReader(this),
             new Md6ModelReader(this),
             new Md6SkelReader(),
             new RenderParmReader(),
@@ -38,86 +66,37 @@ public final class EternalArchive implements Archive {
     }
 
     @Override
-    public List<Asset> assets() {
-        return resources.getEntries().stream()
-            .map(this::toAsset)
-            .distinct()
-            .sorted()
-            .toList();
-    }
-
-    private Asset toAsset(Resource resource) {
-        return new Asset(
-            resource.key(),
-            mapType(resource.type()),
-            resource.uncompressedSize(),
-            Map.of("hash", resource.hash())
-        );
+    public Optional<EternalAsset> get(EternalAssetID key) {
+        return resources.get(key)
+            .or(() -> common.get(key));
     }
 
     @Override
-    public boolean exists(AssetID id) {
-        return resources.get((ResourceKey) id).isPresent();
+    public Stream<EternalAsset> getAll() {
+        return resources.getAll()
+            .filter(asset -> asset.size() != 0)
+            .distinct();
     }
 
     @Override
-    public Object loadAsset(AssetID id) throws IOException {
-        var resource = resources.get((ResourceKey) id)
-            .orElseThrow(() -> new IllegalArgumentException("Resource not found: " + id));
-
-        var reader = readers.stream()
-            .filter(r -> r.canRead(resource.key()))
-            .findFirst()
-            .orElseThrow(() -> new IllegalArgumentException("No reader found for resource: " + resource));
-
-        var buffer = resources.read(resource);
-        try (var source = ByteArrayDataSource.fromBuffer(buffer)) {
-            return reader.read(source, toAsset(resource));
-        }
-    }
-
-    @Override
-    public ByteBuffer loadRawAsset(AssetID id) throws IOException {
-        var resource = resources.get((ResourceKey) id)
-            .orElseThrow(() -> new IllegalArgumentException("Resource not found: " + id));
-
-        return resources.read(resource);
+    public Bytes read(EternalAssetID identifier, Integer size) throws IOException {
+        return resources.exists(identifier)
+            ? resources.read(identifier, null)
+            : common.read(identifier, null);
     }
 
     public boolean containsStream(long identifier) {
         return streams.exists(identifier);
     }
 
-    public ByteBuffer readStream(long identifier, int uncompressedSize) throws IOException {
-        return streams.read(identifier, uncompressedSize);
+    public Bytes readStream(long identifier, int size) throws IOException {
+        return streams.read(identifier, size);
     }
 
-    private AssetType mapType(ResourceType type) {
-        return switch (Objects.requireNonNull(type)) {
-            case Image -> AssetType.Image;
-            default -> AssetType.Binary;
-        };
+    @Override
+    public void close() throws IOException {
+        streams.close();
+        common.close();
+        resources.close();
     }
-
-    /*
-        public <T> T readResource(String name, FileType<T> type) throws IOException {
-        var entry = resourceManager.get(name, type.resourceType())
-            .orElseThrow(() -> new IllegalArgumentException("Resource not found: " + name));
-
-        var reader = readers.stream()
-            .filter(r -> r.canRead(entry))
-            .findFirst()
-            .orElseThrow(() -> new IllegalArgumentException("No reader found for " + entry));
-
-        // TODO: Fix this, a filter would fix issues with decl sub readers
-        var readType = reader.getReadType();
-        if (readType != null && !readType.isAssignableFrom(type.instanceType())) {
-            throw new IllegalArgumentException("Reader " + reader.getClass() + " cannot read " + type.instanceType());
-        }
-
-        var buffer = resourceManager.read(entry);
-        var result = reader.read(ByteArrayDataSource.fromBuffer(buffer), entry);
-        return type.instanceType().cast(result);
-    }
-     */
 }

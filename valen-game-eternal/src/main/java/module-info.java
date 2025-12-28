@@ -1,13 +1,11 @@
 module valen.game.eternal {
-    requires com.sun.jna; // For testing only
     requires com.google.gson;
-    requires java.desktop; // For testing only
-    requires java.sql; // For import only
+    requires org.slf4j;
     requires valen.core;
+    requires valen.game.idtech;
+    requires wtf.reversed.toolbox;
 
-    exports be.twofold.valen.game.eternal;
-
-    uses be.twofold.valen.core.game.GameFactory;
+    requires static java.sql; // For import only
 
     provides be.twofold.valen.core.game.GameFactory
         with be.twofold.valen.game.eternal.EternalGameFactory;

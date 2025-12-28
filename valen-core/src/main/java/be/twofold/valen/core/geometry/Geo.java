@@ -1,74 +1,74 @@
 package be.twofold.valen.core.geometry;
 
-import be.twofold.valen.core.io.*;
-import be.twofold.valen.core.util.*;
+import wtf.reversed.toolbox.collect.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
-import java.nio.*;
 import java.util.*;
+import java.util.stream.*;
 
 public final class Geo {
-    private final boolean invertFaces;
+    private final boolean flipWindingOrder;
 
-    public Geo(boolean invertFaces) {
-        this.invertFaces = invertFaces;
+    public Geo(boolean flipWindingOrder) {
+        this.flipWindingOrder = flipWindingOrder;
     }
 
-    public Mesh readMesh(DataSource source, List<Accessor> vertexAccessors, Accessor faceAccessor) throws IOException {
-        var startPos = source.tell();
-
-        var vertexBuffers = new HashMap<Semantic, VertexBuffer>();
-        for (var accessor : vertexAccessors) {
-            source.seek(startPos);
-            var buffer = read(source, accessor);
-            var vertexBuffer = new VertexBuffer(buffer, accessor.info());
-            vertexBuffers.put(accessor.info().semantic(), vertexBuffer);
-        }
-
-        source.seek(startPos);
-        var buffer = read(source, faceAccessor);
-        if (invertFaces) {
-            invertFaces((ShortBuffer) buffer);
-        }
-        var faceBuffer = new VertexBuffer(buffer, faceAccessor.info());
-
-        source.seek(startPos);
-        return new Mesh(faceBuffer, vertexBuffers, -1);
-    }
-
-    private Buffer read(
-        DataSource source,
-        Accessor accessor
-    ) throws IOException {
-        var numPrimitives = accessor.count() * accessor.info().elementType().size();
-        var buffer = Buffers.allocate(numPrimitives, accessor.info().componentType());
-
-        var start = source.tell() + accessor.offset();
-        for (var i = 0L; i < accessor.count(); i++) {
-            source.seek(start + i * accessor.stride());
-            accessor.reader().read(source, buffer);
-        }
-        return buffer.flip();
-    }
-
-    private void invertFaces(ShortBuffer buffer) {
-        for (int i = 0, lim = buffer.capacity(); i < lim; i += 3) {
-            var temp = buffer.get(i);
-            buffer.put(i, buffer.get(i + 2));
-            buffer.put(i + 2, temp);
-        }
-    }
-
-    public interface Reader {
-        void read(DataSource source, Buffer buffer) throws IOException;
-    }
-
-    public record Accessor(
-        int offset,
-        int count,
-        int stride,
-        VertexBuffer.Info info,
-        Reader reader
+    public Mesh readMesh(
+        BinarySource source,
+        GeoMeshInfo meshInfo
     ) {
+        var indices = readVertexBuffer(source, meshInfo.indices(), meshInfo.indexCount());
+        if (flipWindingOrder) {
+            invertIndices(indices);
+        }
+
+        Floats positions = readVertexBuffer(source, meshInfo.positions(), meshInfo.vertexCount());
+        Optional<Floats> normals = meshInfo.normals().map(info -> readVertexBuffer(source, info, meshInfo.vertexCount()));
+        Optional<Floats> tangents = meshInfo.tangents().map(info -> readVertexBuffer(source, info, meshInfo.vertexCount()));
+        List<Floats> texCoords = meshInfo.texCoords().stream()
+            .map(info -> readVertexBuffer(source, info, meshInfo.vertexCount()))
+            .collect(Collectors.toUnmodifiableList());
+        List<Bytes> colors = meshInfo.colors().stream()
+            .map(info -> readVertexBuffer(source, info, meshInfo.vertexCount()))
+            .collect(Collectors.toUnmodifiableList());
+        Optional<Shorts> joints = meshInfo.joints().map(info -> readVertexBuffer(source, info, meshInfo.vertexCount()));
+        Optional<Floats> weights = meshInfo.weights().map(info -> readVertexBuffer(source, info, meshInfo.vertexCount()));
+        Map<String, VertexBuffer<?>> custom = new HashMap<>();
+        for (var entry : meshInfo.custom().entrySet()) {
+            var bufferInfo = entry.getValue();
+            var buffer = readVertexBuffer(source, bufferInfo, meshInfo.vertexCount());
+            var vertexBuffer = new VertexBuffer<>(buffer, bufferInfo);
+            custom.put(entry.getKey(), vertexBuffer);
+        }
+
+        return new Mesh(indices, positions, normals, tangents, texCoords, colors, joints, weights, 0, custom);
+    }
+
+    private <T extends Slice> T readVertexBuffer(BinarySource source, GeoBufferInfo<T> accessor, int count) {
+        int capacity = count * accessor.count();
+        T buffer = accessor.allocate(capacity);
+
+        try {
+            long start = accessor.offset();
+            int offset = 0;
+            for (long i = 0L; i < count; i++) {
+                source.position(start + i * accessor.stride());
+                accessor.reader().read(source, buffer, offset);
+                offset += accessor.count();
+            }
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+
+        return buffer;
+    }
+
+    private void invertIndices(Ints.Mutable ints) {
+        for (int i = 0, lim = ints.length(); i < lim; i += 3) {
+            int temp = ints.get(i);
+            ints.set(i, ints.get(i + 2));
+            ints.set(i + 2, temp);
+        }
     }
 }

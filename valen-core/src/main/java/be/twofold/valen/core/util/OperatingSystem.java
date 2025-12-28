@@ -12,10 +12,10 @@ public enum OperatingSystem {
     static {
         String os = System.getProperty("os.name").toLowerCase(Locale.ROOT);
         CURRENT = switch (os.split(" ")[0]) {
-            case "linux" -> OperatingSystem.Linux;
-            case "windows" -> OperatingSystem.Windows;
-            case "mac" -> OperatingSystem.Mac;
-            default -> throw new RuntimeException("Unsupported OS: " + os);
+            case "linux" -> Linux;
+            case "windows" -> Windows;
+            case "mac" -> Mac;
+            default -> throw new ExceptionInInitializerError("Unsupported OS: " + os);
         };
     }
 

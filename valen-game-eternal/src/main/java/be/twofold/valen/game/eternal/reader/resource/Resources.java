@@ -1,9 +1,9 @@
 package be.twofold.valen.game.eternal.reader.resource;
 
-import be.twofold.valen.core.io.*;
+import wtf.reversed.toolbox.collect.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
-import java.nio.*;
 import java.nio.charset.*;
 import java.util.*;
 
@@ -11,28 +11,28 @@ public record Resources(
     ResourcesHeader header,
     List<ResourcesEntry> entries,
     List<String> pathStrings,
-    int[] pathStringIndex,
+    Ints pathStringIndex,
     List<ResourcesDependency> dependencies,
-    int[] dependencyIndex
+    Ints dependencyIndex
 ) {
     private static final CharsetDecoder DECODER = StandardCharsets.US_ASCII.newDecoder();
 
-    public static Resources read(DataSource source) throws IOException {
+    public static Resources read(BinarySource source) throws IOException {
         // Header
         var header = ResourcesHeader.read(source);
 
         // File Entries
         // assert channel.position() == header.addrFileEntries();
-        var entries = source.readStructs(header.numFileEntries(), ResourcesEntry::read);
+        var entries = source.readObjects(header.numFileEntries(), ResourcesEntry::read);
 
         // Path Strings
         // assert channel.position() == header.addrPathStringOffsets();
         var numStrings = source.readLongAsInt();
         var offsets = source.readLongsAsInts(numStrings);
-        var stringBufferLength = Math.toIntExact(header.addrDependencyEntries() - header.addrPathStringOffsets() - (numStrings + 1) * (long) Long.BYTES);
+        var stringBufferLength = header.addrDependencyEntries() - header.addrPathStringOffsets() - (numStrings + 1) * Long.BYTES;
         var stringBufferRaw = source.readBytes(stringBufferLength);
-        var stringBuffer = DECODER.decode(ByteBuffer.wrap(stringBufferRaw)).toString();
-        var pathStrings = Arrays.stream(offsets)
+        var stringBuffer = DECODER.decode(stringBufferRaw.asBuffer()).toString();
+        var pathStrings = offsets.stream()
             .mapToObj(i -> stringBuffer.substring(i, stringBuffer.indexOf('\0', i)))
             .toList();
 
@@ -41,7 +41,7 @@ public record Resources(
         // My guess is that the actual filenames don't matter, and the dependency structure is used to determine
         // which files to load. The filenames are only used for debugging purposes.
         // assert channel.position() == header.addrDependencyEntries();
-        var dependencies = source.readStructs(header.numDependencyEntries(), ResourcesDependency::read);
+        var dependencies = source.readObjects(header.numDependencyEntries(), ResourcesDependency::read);
         var dependencyIndex = source.readInts(header.numDependencyIndexes());
         var pathStringIndex = source.readLongsAsInts(header.numPathStringIndexes());
 
@@ -55,9 +55,9 @@ public record Resources(
             "header=" + header + ", " +
             "entries=(" + entries.size() + " entries), " +
             "pathStrings=(" + pathStrings.size() + " strings), " +
-            "pathStringIndex=(" + pathStringIndex.length + " indices), " +
+            "pathStringIndex=(" + pathStringIndex.length() + " indices), " +
             "dependencies=(" + dependencies.size() + " entries), " +
-            "dependencyIndex=(" + dependencyIndex.length + " indices)" +
+            "dependencyIndex=(" + dependencyIndex.length() + " indices)" +
             "]";
     }
 }

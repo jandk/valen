@@ -1,6 +1,6 @@
 package be.twofold.valen.game.eternal.reader.streamdb;
 
-import be.twofold.valen.core.io.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 
@@ -9,9 +9,7 @@ public record StreamDbEntry(
     int offset16,
     int length
 ) {
-    public static final int BYTES = 16;
-
-    public static StreamDbEntry read(DataSource source) throws IOException {
+    public static StreamDbEntry read(BinarySource source) throws IOException {
         var identity = source.readLong();
         var offset16 = source.readInt();
         var length = source.readInt();

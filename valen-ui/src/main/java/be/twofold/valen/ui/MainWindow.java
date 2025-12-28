@@ -1,64 +1,119 @@
 package be.twofold.valen.ui;
 
+import backbonefx.di.*;
+import backbonefx.event.*;
 import be.twofold.valen.core.game.*;
-import be.twofold.valen.ui.settings.*;
+import be.twofold.valen.ui.common.settings.*;
+import be.twofold.valen.ui.component.*;
+import be.twofold.valen.ui.component.main.*;
 import javafx.application.*;
 import javafx.scene.*;
+import javafx.scene.image.*;
+import javafx.scene.input.*;
 import javafx.stage.*;
 
 import java.io.*;
 import java.nio.file.*;
 import java.util.*;
+import java.util.function.*;
+import java.util.stream.*;
 
-public class MainWindow extends Application {
+public final class MainWindow extends Application {
+    private Stage primaryStage;
+    private MainPresenter presenter;
+    private Settings settings;
+
     @Override
-    public void start(Stage primaryStage) throws IOException {
-        if (SettingsManager.get().getGameDirectory().isEmpty()) {
-            var fileChooser = new FileChooser();
-            fileChooser.setTitle("Select the game executable");
-            fileChooser.getExtensionFilters().addAll(
-                new FileChooser.ExtensionFilter("Game executable", "DoomEternalx64vk.exe")
-            );
-            var selectedFile = fileChooser.showOpenDialog(primaryStage);
-            if (selectedFile != null) {
-                var path = selectedFile.toPath();
-                SettingsManager.get().setGameDirectory(path.getParent());
-            }
-        }
+    @SuppressWarnings("DataFlowIssue")
+    public void start(Stage primaryStage) {
+        this.primaryStage = primaryStage;
 
-        // TODO: Don't hardcode this
-        var path = Path.of("D:\\Games\\Steam\\steamapps\\common\\Wolfenstein.II.The.New.Colossus\\NewColossus_x64vk.exe");
-        // var path = SettingsManager.get().getGameDirectory().get().resolve("DOOMEternalx64vk.exe");
-        var game = resolveGameFactory(path).load(path);
-        var archive = game.loadArchive("gameresources");
+        Feather feather = Feather.with(
+            new ControllerModule(),
+            new EventBusModule(),
+            new SettingsModule(),
+            new ViewModule()
+        );
 
-//        var manager = DaggerManagerFactory.create().fileManager();
-//        manager.load(SettingsManager.get().getGameDirectory().get().resolve("base"));
-//        try {
-//            manager.select("common");
-//        } catch (IOException e) {
-//            System.out.println("Failed to select common");
-//            throw new UncheckedIOException(e);
-//        }
+        feather.instance(EventBus.class)
+            .subscribe(MainEvent.class, event -> {
+                switch (event) {
+                    case MainEvent.GameLoadRequested() -> selectAndLoadGame();
+                    case MainEvent.SaveFileRequested(var filename, var consumer) -> saveFile(filename, consumer);
+                }
+            });
 
-        var presenter = DaggerPresenterFactory.create().presenter();
-        presenter.setArchive(archive);
-        var scene = new Scene(presenter.getView().getView());
-//        System.out.println("Mnemonics:");
-//        scene.getMnemonics().forEach((key, value) -> System.out.println(key + " -> " + value));
-//        System.out.println("Accelerators:");
-//        scene.getAccelerators().forEach((key, value) -> System.out.println(key + " -> " + value));
-//        scene.getAccelerators().put(KeyCombination.valueOf("Ctrl+P"), window::togglePreview);
+        presenter = feather.instance(MainPresenter.class);
+        settings = feather.instance(Settings.class);
 
+        var icons = Stream.of(16, 24, 32, 48, 64, 96, 128)
+            .map(i -> new Image(getClass().getResourceAsStream("/appicon/valen-" + i + ".png")))
+            .toList();
+
+        var scene = new Scene(presenter.getFXNode());
+        scene.getAccelerators().put(KeyCombination.keyCombination("Ctrl+F"), presenter::focusOnSearch);
+        scene.getStylesheets().add(getClass().getResource("/style.css").toExternalForm());
+
+        primaryStage.setTitle("Valen");
+        primaryStage.getIcons().setAll(icons);
         primaryStage.setScene(scene);
         primaryStage.show();
+
+        settings.gameExecutable().get()
+            .ifPresentOrElse(
+                this::tryLoadGame,
+                this::selectAndLoadGame
+            );
     }
 
-    private static GameFactory<?> resolveGameFactory(Path path) {
-        return ServiceLoader.load(GameFactory.class).stream()
-            .map(ServiceLoader.Provider::get)
-            .filter(factory -> factory.executableNames().contains(path.getFileName().toString()))
-            .findFirst()
-            .orElseThrow(() -> new IllegalArgumentException("No GameFactory found for " + path));
+    private void selectAndLoadGame() {
+        Platform.runLater(() -> chooseGame()
+            .ifPresent(this::tryLoadGame));
+    }
+
+    private void saveFile(String initialFilename, Consumer<Path> consumer) {
+        Platform.runLater(() -> {
+            var fileChooser = new FileChooser();
+            fileChooser.setTitle("Select the output file");
+            fileChooser.setInitialFileName(initialFilename);
+            var file = fileChooser.showSaveDialog(primaryStage);
+            if (file == null) {
+                return;
+            }
+
+            consumer.accept(file.toPath());
+        });
+    }
+
+    private Optional<Path> chooseGame() {
+        var fileChooser = new FileChooser();
+        fileChooser.setTitle("Select the game executable");
+        fileChooser.getExtensionFilters().addAll(
+            new FileChooser.ExtensionFilter("Game executable", "*.exe")
+        );
+
+        return Optional
+            .ofNullable(fileChooser.showOpenDialog(primaryStage))
+            .map(File::toPath);
+    }
+
+    private void tryLoadGame(Path path) {
+        try {
+            if (!Files.exists(path)) {
+                selectAndLoadGame();
+                return;
+            }
+
+            var gameFactory = GameFactory.resolve(path);
+            if (gameFactory.isEmpty()) {
+                selectAndLoadGame();
+                return;
+            }
+
+            settings.gameExecutable().set(path);
+            presenter.setGame(gameFactory.get().load(path));
+        } catch (Exception e) {
+            FxUtils.showExceptionDialog(e, "Could not load game");
+        }
     }
 }

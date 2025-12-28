@@ -1,34 +1,26 @@
 package be.twofold.valen.core.geometry;
 
-import be.twofold.valen.core.util.*;
+import wtf.reversed.toolbox.collect.*;
+import wtf.reversed.toolbox.util.*;
 
-import java.nio.*;
-
-public record VertexBuffer(
-    Buffer buffer,
+public record VertexBuffer<T extends Slice>(
+    T array,
+    int length,
     ElementType elementType,
-    ComponentType componentType,
-    boolean normalized
+    ComponentType<T> componentType
 ) {
     public VertexBuffer {
-        Check.notNull(componentType, "componentType must not be null");
-        Check.notNull(elementType, "elementType must not be null");
-        Check.argument(buffer.limit() % elementType.size() == 0, () -> "length must be a multiple of " + elementType.size());
+        Check.nonNull(componentType, "componentType");
+        Check.nonNull(elementType, "elementType");
+        Check.nonNull(array, "array");
     }
 
-    public VertexBuffer(Buffer buffer, VertexBuffer.Info info) {
-        this(buffer, info.elementType(), info.componentType(), info.normalized());
+    @SuppressWarnings("unchecked")
+    public VertexBuffer(T array, GeoBufferInfo<?> bufferInfo) {
+        this(array, bufferInfo.length(), bufferInfo.elementType(), (ComponentType<T>) bufferInfo.componentType());
     }
 
     public int count() {
-        return buffer.limit() / elementType.size();
-    }
-
-    public record Info(
-        Semantic semantic,
-        ElementType elementType,
-        ComponentType componentType,
-        boolean normalized
-    ) {
+        return length * elementType().count();
     }
 }

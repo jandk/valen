@@ -1,6 +1,6 @@
 package be.twofold.valen.game.eternal.reader.lightdb;
 
-import be.twofold.valen.core.io.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 
@@ -11,9 +11,7 @@ public record LightDbIndexEntry(
     short width,
     short height
 ) {
-    public static final int BYTES = 10;
-
-    public static LightDbIndexEntry read(DataSource source) throws IOException {
+    public static LightDbIndexEntry read(BinarySource source) throws IOException {
         var imageIndex = source.readShort();
         var x = source.readShort();
         var y = source.readShort();

@@ -5,10 +5,14 @@
     <parent>
         <groupId>be.twofold</groupId>
         <artifactId>valen</artifactId>
-        <version>1.0-SNAPSHOT</version>
+        <version>0.3.1-SNAPSHOT</version>
     </parent>
 
     <artifactId>valen-app</artifactId>
+
+    <properties>
+        <target.module.path>target/modules</target.module.path>
+    </properties>
 
     <dependencies>
         <!-- Internal -->
@@ -18,7 +22,7 @@
         </dependency>
         <dependency>
             <groupId>be.twofold</groupId>
-            <artifactId>valen-export</artifactId>
+            <artifactId>valen-export-cast</artifactId>
         </dependency>
         <dependency>
             <groupId>be.twofold</groupId>
@@ -26,11 +30,15 @@
         </dependency>
         <dependency>
             <groupId>be.twofold</groupId>
+            <artifactId>valen-export-png</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>be.twofold</groupId>
             <artifactId>valen-export-gltf</artifactId>
         </dependency>
         <dependency>
             <groupId>be.twofold</groupId>
-            <artifactId>valen-game-colossus</artifactId>
+            <artifactId>valen-game-darkages</artifactId>
         </dependency>
         <dependency>
             <groupId>be.twofold</groupId>
@@ -42,20 +50,88 @@
         </dependency>
         <dependency>
             <groupId>be.twofold</groupId>
+            <artifactId>valen-game-greatcircle</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>be.twofold</groupId>
             <artifactId>valen-ui</artifactId>
         </dependency>
 
         <!-- External -->
         <dependency>
-            <groupId>net.java.dev.jna</groupId>
-            <artifactId>jna-jpms</artifactId>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-jdk14</artifactId>
+            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
-            <version>42.7.3</version>
-            <optional>true</optional>
+            <version>42.7.4</version>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <configuration>
+                    <outputDirectory>${target.module.path}</outputDirectory>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>copy-dependencies</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>copy-dependencies</goal>
+                        </goals>
+                        <configuration>
+                            <includeScope>runtime</includeScope>
+                            <outputDirectory>${target.module.path}</outputDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.panteleyev</groupId>
+                <artifactId>jpackage-maven-plugin</artifactId>
+                <version>1.6.5</version>
+                <configuration>
+                    <!-- Generic options -->
+                    <type>APP_IMAGE</type>
+                    <!-- <appVersion>${project.version}</appVersion> -->
+                    <appVersion>1.0</appVersion>
+                    <!-- TODO: copyright? -->
+                    <description>A video game resource extractor</description>
+                    <icon>valen.ico</icon>
+                    <name>Valen</name>
+                    <destination>target/dist</destination>
+                    <vendor>Twofold</vendor>
+                    <verbose>true</verbose>
+
+                    <!-- Options for creating the runtime image -->
+                    <modulePaths>
+                        <modulePath>${target.module.path}</modulePath>
+                    </modulePaths>
+                    <jLinkOptions>
+                        <jLinkOption>--compress=1</jLinkOption>
+                        <jLinkOption>--no-header-files</jLinkOption>
+                        <jLinkOption>--no-man-pages</jLinkOption>
+                    </jLinkOptions>
+
+                    <!-- Options for creating the application launcher -->
+                    <javaOptions>
+                        <javaOption>--enable-native-access=valen.core</javaOption>
+                    </javaOptions>
+                    <module>valen.app/be.twofold.valen.Main</module>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 
 </project>

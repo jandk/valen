@@ -1,6 +1,6 @@
 package be.twofold.valen.game.eternal.reader.staticmodel;
 
-import be.twofold.valen.core.io.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 import java.util.*;
@@ -10,9 +10,9 @@ public record StaticModelGeoDecals(
     String materialName,
     int tintStartOffset
 ) {
-    public static StaticModelGeoDecals read(DataSource source) throws IOException {
-        var projections = source.readStructs(source.readInt(), StaticModelGeoDecalProjection::read);
-        var materialName = source.readPString();
+    public static StaticModelGeoDecals read(BinarySource source) throws IOException {
+        var projections = source.readObjects(source.readInt(), StaticModelGeoDecalProjection::read);
+        var materialName = source.readString(StringFormat.INT_LENGTH);
         var tintStartOffset = source.readInt();
 
         return new StaticModelGeoDecals(

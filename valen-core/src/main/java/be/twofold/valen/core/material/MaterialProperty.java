@@ -1,0 +1,21 @@
+package be.twofold.valen.core.material;
+
+import be.twofold.valen.core.math.*;
+import wtf.reversed.toolbox.util.*;
+
+public record MaterialProperty(
+    MaterialPropertyType type,
+    TextureReference reference,
+    Vector4 factor
+) {
+    public MaterialProperty {
+        Check.nonNull(type, "type");
+        if (factor == null && reference == null) {
+            throw new NullPointerException("At least one of factor, reference should be provided");
+        }
+    }
+
+    public MaterialProperty withFactor(Vector4 factor) {
+        return new MaterialProperty(type, reference, factor);
+    }
+}

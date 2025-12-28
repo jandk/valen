@@ -2,36 +2,37 @@ package be.twofold.valen.export.gltf.mappers;
 
 import be.twofold.valen.core.geometry.*;
 import be.twofold.valen.core.math.*;
-import be.twofold.valen.gltf.*;
-import be.twofold.valen.gltf.model.*;
+import be.twofold.valen.format.gltf.*;
+import be.twofold.valen.format.gltf.model.accessor.*;
+import be.twofold.valen.format.gltf.model.node.*;
+import be.twofold.valen.format.gltf.model.skin.*;
 
+import java.io.*;
 import java.nio.*;
 import java.util.*;
 
 public final class GltfSkeletonMapper {
     private final GltfContext context;
-    private final Quaternion rotation;
 
-    public GltfSkeletonMapper(GltfContext context, Quaternion rotation) {
+    public GltfSkeletonMapper(GltfContext context) {
         this.context = context;
-        this.rotation = rotation;
     }
 
-    public SkinSchema map(Skeleton skeleton) {
+    public SkinID map(Skeleton skeleton) throws IOException {
         var bones = skeleton.bones();
 
         // Calculate the parent-child relationships
         var children = new HashMap<Integer, List<Integer>>();
         for (var i = 0; i < bones.size(); i++) {
             children
-                .computeIfAbsent(bones.get(i).parent(), $ -> new ArrayList<>())
+                .computeIfAbsent(bones.get(i).parent(), _ -> new ArrayList<>())
                 .add(i);
         }
 
         // Build the skeleton
         var baseNodeId = context.nextNodeId();
-        var skeletonNodeId = (NodeId) null;
-        var jointIndices = new ArrayList<NodeId>();
+        var skeletonNodeId = (NodeID) null;
+        var jointIndices = new ArrayList<NodeID>();
         for (var i = 0; i < bones.size(); i++) {
             var bone = bones.get(i);
             var jointChildren = children.getOrDefault(i, List.of()).stream()
@@ -39,7 +40,7 @@ public final class GltfSkeletonMapper {
                 .toList();
 
             var jointId = buildSkeletonJoint(bone, jointChildren,
-                bone.parent() == -1 ? Optional.of(this.rotation) : Optional.empty());
+                bone.parent() == -1 ? Optional.of(skeleton.upAxis().rotateTo(Axis.Y)) : Optional.empty());
 
             jointIndices.add(jointId);
             if (bone.parent() == -1) {
@@ -53,8 +54,8 @@ public final class GltfSkeletonMapper {
         }
         buffer.flip();
 
-        var bufferView = context.createBufferView(buffer, buffer.limit() * 4, null);
-        var accessor = AccessorSchema.builder()
+        var bufferView = context.createBufferView(buffer, null);
+        var accessor = ImmutableAccessor.builder()
             .bufferView(bufferView)
             .componentType(AccessorComponentType.FLOAT)
             .count(bones.size())
@@ -62,16 +63,17 @@ public final class GltfSkeletonMapper {
             .build();
         var inverseBindMatrices = context.addAccessor(accessor);
 
-        return SkinSchema.builder()
+        var skinSchema = ImmutableSkin.builder()
             .skeleton(skeletonNodeId)
             .joints(jointIndices)
             .inverseBindMatrices(inverseBindMatrices)
             .build();
+        return context.addSkin(skinSchema);
     }
 
     @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
-    private NodeId buildSkeletonJoint(Bone joint, List<NodeId> children, Optional<Quaternion> rotation) {
-        var builder = NodeSchema.builder()
+    private NodeID buildSkeletonJoint(Bone joint, List<NodeID> children, Optional<Quaternion> rotation) {
+        var builder = ImmutableNode.builder()
             .name(joint.name())
             .children(children)
             .rotation(GltfUtils.mapQuaternion(joint.rotation()))

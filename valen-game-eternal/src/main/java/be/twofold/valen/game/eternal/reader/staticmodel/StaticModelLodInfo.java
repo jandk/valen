@@ -1,8 +1,8 @@
 package be.twofold.valen.game.eternal.reader.staticmodel;
 
-import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.math.*;
-import be.twofold.valen.game.eternal.reader.geometry.*;
+import be.twofold.valen.game.idtech.geometry.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 
@@ -19,7 +19,7 @@ public record StaticModelLodInfo(
     float unkFloat2,
     float unkFloat3
 ) implements LodInfo {
-    public static StaticModelLodInfo read(DataSource source) throws IOException {
+    public static StaticModelLodInfo read(BinarySource source) throws IOException {
         source.expectInt(-2);
         var numVertices = source.readInt();
         var numEdges = source.readInt();

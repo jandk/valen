@@ -1,22 +1,28 @@
 package be.twofold.valen.core.math;
 
-import be.twofold.valen.core.io.*;
+import be.twofold.valen.core.util.*;
+import wtf.reversed.toolbox.collect.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 import java.nio.*;
 
-public record Vector3(float x, float y, float z) {
+public record Vector3(
+    float x,
+    float y,
+    float z
+) {
     public static final Vector3 Zero = new Vector3(0.0f, 0.0f, 0.0f);
     public static final Vector3 One = new Vector3(1.0f, 1.0f, 1.0f);
-    public static final Vector3 UnitX = new Vector3(1.0f, 0.0f, 0.0f);
-    public static final Vector3 UnitY = new Vector3(0.0f, 1.0f, 0.0f);
-    public static final Vector3 UnitZ = new Vector3(0.0f, 0.0f, 1.0f);
+    public static final Vector3 X = new Vector3(1.0f, 0.0f, 0.0f);
+    public static final Vector3 Y = new Vector3(0.0f, 1.0f, 0.0f);
+    public static final Vector3 Z = new Vector3(0.0f, 0.0f, 1.0f);
 
-    // TODO: Move this field somewhere else
-    public static final int BYTES = 3 * Float.BYTES;
+    public static Vector3 splat(float value) {
+        return new Vector3(value, value, value);
+    }
 
-    // TODO: Move this method somewhere else
-    public static Vector3 read(DataSource source) throws IOException {
+    public static Vector3 read(BinarySource source) throws IOException {
         float x = source.readFloat();
         float y = source.readFloat();
         float z = source.readFloat();
@@ -31,8 +37,16 @@ public record Vector3(float x, float y, float z) {
         return add(other.negate());
     }
 
+    public Vector3 multiply(Vector3 other) {
+        return new Vector3(x * other.x, y * other.y, z * other.z);
+    }
+
     public Vector3 multiply(float scalar) {
         return new Vector3(x * scalar, y * scalar, z * scalar);
+    }
+
+    public Vector3 divide(Vector3 other) {
+        return new Vector3(x / other.x, y / other.y, z / other.z);
     }
 
     public Vector3 divide(float scalar) {
@@ -59,17 +73,47 @@ public record Vector3(float x, float y, float z) {
         return divide(length());
     }
 
-    // TODO: Move this method somewhere else
-    public void put(FloatBuffer dst) {
-        dst.put(x);
-        dst.put(y);
-        dst.put(z);
+    // Custom methods
+
+    public Vector3 cross(Vector3 other) {
+        return new Vector3(
+            y * other.z - other.y * z,
+            z * other.x - other.z * x,
+            x * other.y - other.x * y
+        );
     }
 
-    // TODO: Move this method somewhere else
-    public float[] toArray() {
-        return new float[]{x, y, z};
+    public Vector3 fma(float scale, Vector3 offset) {
+        return fma(splat(scale), offset);
     }
+
+    public Vector3 fma(Vector3 scale, Vector3 offset) {
+        float x = Math.fma(this.x, scale.x, offset.x);
+        float y = Math.fma(this.y, scale.y, offset.y);
+        float z = Math.fma(this.z, scale.z, offset.z);
+        return new Vector3(x, y, z);
+    }
+
+    public void toBuffer(FloatBuffer buffer) {
+        buffer.put(x);
+        buffer.put(y);
+        buffer.put(z);
+    }
+
+    public void toFloats(Floats.Mutable floats, int offset) {
+        floats.set(offset/**/, x);
+        floats.set(offset + 1, y);
+        floats.set(offset + 2, z);
+    }
+
+    public Vector3 map(FloatUnaryOperator operator) {
+        var x = operator.applyAsFloat(this.x);
+        var y = operator.applyAsFloat(this.y);
+        var z = operator.applyAsFloat(this.z);
+        return new Vector3(x, y, z);
+    }
+
+    // Object methods
 
     @Override
     public boolean equals(Object obj) {

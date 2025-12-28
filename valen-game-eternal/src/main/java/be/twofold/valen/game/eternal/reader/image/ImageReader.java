@@ -1,16 +1,14 @@
 package be.twofold.valen.game.eternal.reader.image;
 
 import be.twofold.valen.core.game.*;
-import be.twofold.valen.core.io.*;
 import be.twofold.valen.core.texture.*;
-import be.twofold.valen.core.util.*;
 import be.twofold.valen.game.eternal.*;
-import be.twofold.valen.game.eternal.reader.*;
 import be.twofold.valen.game.eternal.resource.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 
-public final class ImageReader implements ResourceReader<Texture> {
+public final class ImageReader implements AssetReader<Texture, EternalAsset> {
     private final EternalArchive archive;
     private final boolean readStreams;
 
@@ -24,17 +22,17 @@ public final class ImageReader implements ResourceReader<Texture> {
     }
 
     @Override
-    public boolean canRead(ResourceKey key) {
-        return key.type() == ResourceType.Image;
+    public boolean canRead(EternalAsset resource) {
+        return resource.id().type() == ResourceType.Image;
     }
 
     @Override
-    public Texture read(DataSource source, Asset asset) throws IOException {
-        var image = read(source, (Long) asset.properties().get("hash"));
+    public Texture read(BinarySource source, EternalAsset resource) throws IOException {
+        var image = read(source, resource.hash());
         return new ImageMapper().map(image);
     }
 
-    public Image read(DataSource source, long hash) throws IOException {
+    public Image read(BinarySource source, long hash) throws IOException {
         var image = Image.read(source);
         source.expectEnd();
 
@@ -57,10 +55,11 @@ public final class ImageReader implements ResourceReader<Texture> {
     private void readSingleStream(Image image, long hash) throws IOException {
         var lastMip = image.mipInfos().getLast();
         var uncompressedSize = lastMip.cumulativeSizeStreamDB() + lastMip.decompressedSize();
-        var buffer = archive.readStream(hash, uncompressedSize);
-        var mipSource = ByteArrayDataSource.fromBuffer(buffer);
-        for (var i = 0; i < image.header().totalMipCount(); i++) {
-            image.mipData()[i] = mipSource.readBytes(image.mipInfos().get(i).decompressedSize());
+        var bytes = archive.readStream(hash, uncompressedSize);
+        try (var mipSource = BinarySource.wrap(bytes)) {
+            for (var i = 0; i < image.header().totalMipCount(); i++) {
+                image.mipData()[i] = mipSource.readBytes(image.mipInfos().get(i).decompressedSize());
+            }
         }
     }
 
@@ -69,8 +68,7 @@ public final class ImageReader implements ResourceReader<Texture> {
             var mip = image.mipInfos().get(i);
             var mipHash = hash << 4 | (image.header().mipCount() - mip.mipLevel());
             if (archive.containsStream(mipHash)) {
-                var buffer = archive.readStream(mipHash, mip.decompressedSize());
-                image.mipData()[i] = Buffers.toArray(buffer);
+                image.mipData()[i] = archive.readStream(mipHash, mip.decompressedSize());
             }
         }
     }

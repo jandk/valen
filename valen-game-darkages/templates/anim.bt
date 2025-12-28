@@ -1,0 +1,176 @@
+#include "common.bt"
+
+enum <u8> Md6AnimCompressionStreamMethod {
+    UNSTREAMED = 0,
+    UNSTREAMED_FIRST_FRAMESET = 1,
+    STREAMED = 2,
+    LODS = 3,
+};
+
+
+struct MD6AnimHeader {
+    StrP32 skelName;
+    u32    numAttachments;
+    Bounds translatedBounds <comment="animation bounds with translated origin">;
+    Bounds normalizedBounds <comment="animation bounds without origin translation or rotation">;
+    u32    size;
+};
+
+struct MD6AnimData {
+    u32 totalSize               <comment="size of the idMD6AnimData class + all static anim data + all frameset data">;
+    u16 size                    <comment="size of the idMD6AnimData class + all static anim data (includes frameset tables)">;
+    u16 flags                   <comment="various flags indicating properties of the animation">;
+    u16 numFrames               <comment="total number of frames in the entire animation">;
+    u16 frameRate               <comment="frame rate of the animation">;
+    u32 srcSkel                 <comment="source skeleton hierarchy crc">;
+    u32 baseSkel                <comment="the base skeleton crc, this is different than the source skeleton when the animation has attachments">;
+    u16 numFrameSets            <comment="total number of frame sets in this animation">;
+    u16 frameSetTblOffset[2]    <comment="offset to table for looking up a frameset number by animation frame">;
+    u16 frameSetOffsetTblOffset <comment="offset to table for looking up a frameset offset by frameset number">;
+    u16 constROffset            <comment="offset to table with constant joint rotations during this animation">;
+    u16 constSOffset            <comment="offset to table with constant joint scales during this animation">;
+    u16 constTOffset            <comment="offset to table with constant joint translations during this animation">;
+    u16 constUOffset            <comment="offset to table with constant user channel values during this animation">;
+    u16 nextSize                <comment="size of the frameset base data (each frameset uses the base data of the next frameset)">;
+    u16 jointWeightsOffset      <comment="offset to table of joint weights mask for this animation. If 0, the joint weights are all 1 no table is stored.">;
+    u16 numStreamedFrameSets;
+    Md6AnimCompressionStreamMethod streamMethod;
+    u8  pad[1];
+    f32 assetScale;
+    f32 startDelta[12];
+    f32 endDelta[12];
+};
+
+struct MD6AnimMap {
+    local int offset = FTell();
+    u8  padding;
+    u16 constRRLEOffset <comment="offset to RLE stream that specifies how many constant R joints there are and which target joint indices they map to">;
+    u16 constSRLEOffset <comment="offset to RLE stream that specifies how many constant S joints there are and which target joint indices they map to">;
+    u16 constTRLEOffset <comment="offset to RLE stream that specifies how many constant T joints there are and which target joint indices they map to">;
+    u16 constURLEOffset <comment="offset to RLE stream that specifies how many constant user channels there are and which target user channel indices they map to">;
+    u16 animRRLEOffset  <comment="offset to RLE stream that specifies how many animated R joints there are and which target joint indices they map to">;
+    u16 animSRLEOffset  <comment="offset to RLE stream that specifies how many animated S joints there are and which target joint indices they map to">;
+    u16 animTRLEOffset  <comment="offset to RLE stream that specifies how many animated T joints there are and which target joint indices they map to">;
+    u16 animURLEOffset  <comment="offset to RLE stream that specifies how many animated user channels there are and which target user channel indices they map to">;
+
+    FSeek(offset + constRRLEOffset); u16 constRRLELength;
+    FSeek(offset + constSRLEOffset); u16 constSRLELength;
+    FSeek(offset + constTRLEOffset); u16 constTRLELength;
+    FSeek(offset + constURLEOffset); u16 constURLELength;
+    FSeek(offset + animRRLEOffset);  u16 animRRLELength;
+    FSeek(offset + animSRLEOffset);  u16 animSRLELength;
+    FSeek(offset + animTRLEOffset);  u16 animTRLELength;
+    FSeek(offset + animURLEOffset);  u16 animURLELength;
+};
+
+struct Md6FrameSetData {
+    u16 firstROffset <comment="offset to compressed base rotation keys">;
+    u16 firstSOffset <comment="offset to compressed base scale keys">;
+    u16 firstTOffset <comment="offset to compressed base translation keys">;
+    u16 firstUOffset <comment="offset to compressed base user channel keys">;
+    u16 rangeROffset <comment="offset to compressed additional rotation keys">;
+    u16 rangeSOffset <comment="offset to compressed additional scale keys">;
+    u16 rangeTOffset <comment="offset to compressed additional translation keys">;
+    u16 rangeUOffset <comment="offset to compressed additional user channel keys">;
+    u16 RBitsOffset  <comment="offset to rotation frame offset bits">;
+    u16 SBitsOffset  <comment="offset to scale frame offset bits">;
+    u16 TBitsOffset  <comment="offset to translation frame offset bits">;
+    u16 UBitsOffset  <comment="offset to user channel frame offset bits">;
+    u16 nextROffset  <comment="offset to compressed base rotation keys of next frame set">;
+    u16 nextSOffset  <comment="offset to compressed base scale keys of next frame set">;
+    u16 nextTOffset  <comment="offset to compressed base translation keys of next frame set">;
+    u16 nextUOffset  <comment="offset to compressed base user channel keys of next frame set">;
+    u16 totalSize    <comment="total size of the frame set">;
+    u16 frameStart   <comment="first frame of the animation this frame set encodes">;
+    u16 frameRange   <comment="number of frames this set encodes">;
+    u8  lodIndex     <comment="lod this frameset is for">;
+    u8  pad[9]       <comment="Alignment padding">;
+};
+
+struct Md6AnimStreamDiskLayout {
+    u32 uncompressedSize;
+    u32 compressedSize;
+    u32 offset;
+    u16 numFramesets;
+    u16 compression;
+};
+
+struct Md6Streams {
+    u16 numStreamLayouts;
+    if (numStreamLayouts > 0) {
+        u16 numOffsets;
+        Md6AnimStreamDiskLayout streamDiskLayouts[numStreamLayouts];
+        
+        u16 framsetToStreamLayout[numOffsets];
+        u16 streamFrameSetOffsets[numOffsets];
+    }
+};
+
+struct Quat48 {
+    uint16 a15 : 15;
+    uint16 a1  :  1;
+    uint16 b15 : 15;
+    uint16 b1  :  1;
+    uint16 c15 : 15;
+    uint16 c1  :  1;
+};
+
+MD6AnimHeader header <style=sHeading1>;
+MD6AnimData   data   <style=sHeading2>;
+MD6AnimMap    map    <style=sHeading3>;
+
+local int start = startof(data);
+FSeek(start + data.constROffset); Quat48 constR[map.constRRLELength & 0x7FFF] <style=sSection1>;
+FSeek(start + data.constSOffset); Vec3   constS[map.constSRLELength & 0x7FFF] <style=sSection2>;
+FSeek(start + data.constTOffset); Vec3   constT[map.constTRLELength & 0x7FFF] <style=sSection3>;
+FSeek(start + data.constUOffset); Vec3   constU[map.constURLELength & 0x7FFF] <style=sSection4>;
+
+FSeek(start + data.frameSetTblOffset[0]);
+u8  frameSetTbl0[data.numFrames] <style=sSection1>;
+if(data.frameSetTblOffset[1] != 0) {
+    FSeek(start + data.frameSetTblOffset[1]);
+    u8  frameSetTbl1[data.numFrames] <style=sSection2>;
+}
+FSeek(start + data.frameSetOffsetTblOffset);
+u32 frameSetOffsetTbl[data.numFrameSets + 1] <style=sSection3>;
+
+local i32 i;
+local i32 fsStart;
+for(i = 0; i < data.numFrameSets - data.numStreamedFrameSets; i++) {
+    fsStart = start + frameSetOffsetTbl[i] * 16;
+    FSeek(fsStart);
+    struct FrameSet {
+        Md6FrameSetData data <style=sHeading1>;
+        FSeek(fsStart + data.firstROffset); Quat48 firstR[map.animRRLELength & 0x7FFF] <style=sSection1>;
+        FSeek(fsStart + data.firstSOffset); Vec3   firstS[map.animSRLELength & 0x7FFF] <style=sSection2>;
+        FSeek(fsStart + data.firstTOffset); Vec3   firstT[map.animTRLELength & 0x7FFF] <style=sSection3>;
+        FSeek(fsStart + data.firstUOffset); f32    firstU[map.animURLELength & 0x7FFF] <style=sSection4>;
+        
+        local u32 bpb = (data.frameRange + 7) / 8;
+        FSeek(fsStart + data.RBitsOffset); u8 rBits[bpb * (map.animRRLELength & 0x7FFF)] <style=sSection1>;
+        FSeek(fsStart + data.SBitsOffset); u8 sBits[bpb * (map.animSRLELength & 0x7FFF)] <style=sSection2>;
+        FSeek(fsStart + data.TBitsOffset); u8 tBits[bpb * (map.animTRLELength & 0x7FFF)] <style=sSection3>;
+        FSeek(fsStart + data.UBitsOffset); u8 uBits[bpb * (map.animURLELength & 0x7FFF)] <style=sSection4>;
+
+        if (exists(rBits)) { FSeek(fsStart + data.rangeROffset); Quat48 rangeR[parityArray(rBits)] <style=sSection1>; }
+        if (exists(sBits)) { FSeek(fsStart + data.rangeSOffset); Vec3   rangeS[parityArray(sBits)] <style=sSection2>; }
+        if (exists(tBits)) { FSeek(fsStart + data.rangeTOffset); Vec3   rangeT[parityArray(tBits)] <style=sSection3>; }
+        if (exists(uBits)) { FSeek(fsStart + data.rangeUOffset); f32    rangeU[parityArray(uBits)] <style=sSection4>; }
+    } frameSet;
+}
+
+FSeek(start + header.size);
+Md6Streams streams <style=sSection1>;
+
+u32 parity(u8 b) {
+    return ((((b * 0x08040201) >> 3) & 0x11111111) * 0x11111111) >> 28;
+}
+u32 parityArray(u8 array[]) {
+    local u32 sum = 0;
+    local int i;
+    local int lim = sizeof(array) / sizeof(u8);
+    for (i = 0; i < lim; i++) {
+        sum = sum + parity(array[i]);
+    }
+    return sum;
+}    

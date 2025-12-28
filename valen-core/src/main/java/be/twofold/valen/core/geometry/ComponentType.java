@@ -1,23 +1,26 @@
 package be.twofold.valen.core.geometry;
 
+import wtf.reversed.toolbox.collect.*;
+import wtf.reversed.toolbox.util.*;
+
+import java.util.function.*;
+
 /**
  * Type of data component in the buffer, for now the same as the GLTF type.
  */
-public enum ComponentType {
-    Byte(1),
-    UnsignedByte(1),
-    Short(2),
-    UnsignedShort(2),
-    UnsignedInt(4),
-    Float(4);
+public final class ComponentType<T> {
+    public static final ComponentType<Bytes.Mutable> UNSIGNED_BYTE = new ComponentType<>(Bytes.Mutable::allocate);
+    public static final ComponentType<Shorts.Mutable> UNSIGNED_SHORT = new ComponentType<>(Shorts.Mutable::allocate);
+    public static final ComponentType<Ints.Mutable> UNSIGNED_INT = new ComponentType<>(Ints.Mutable::allocate);
+    public static final ComponentType<Floats.Mutable> FLOAT = new ComponentType<>(Floats.Mutable::allocate);
 
-    private final int size;
+    private final IntFunction<T> allocator;
 
-    ComponentType(int size) {
-        this.size = size;
+    private ComponentType(IntFunction<T> allocator) {
+        this.allocator = Check.nonNull(allocator, "allocator");
     }
 
-    public int size() {
-        return size;
+    public T allocate(int capacity) {
+        return allocator.apply(capacity);
     }
 }

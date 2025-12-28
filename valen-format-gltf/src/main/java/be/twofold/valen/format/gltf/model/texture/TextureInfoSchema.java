@@ -1,0 +1,25 @@
+package be.twofold.valen.format.gltf.model.texture;
+
+import be.twofold.valen.format.gltf.model.*;
+import org.immutables.value.*;
+
+import java.util.*;
+
+/**
+ * Reference to a texture.
+ */
+@SchemaStyle
+@Value.Immutable
+public interface TextureInfoSchema extends GltfProperty {
+
+    /**
+     * The index of the texture. (Required)
+     */
+    TextureID getIndex();
+
+    /**
+     * The set index of texture's TEXCOORD attribute used for texture coordinate mapping.
+     */
+    Optional<Integer> getTexCoord();
+
+}

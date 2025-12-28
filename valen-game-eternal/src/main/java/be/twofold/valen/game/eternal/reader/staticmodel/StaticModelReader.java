@@ -2,88 +2,57 @@ package be.twofold.valen.game.eternal.reader.staticmodel;
 
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.geometry.*;
-import be.twofold.valen.core.io.*;
-import be.twofold.valen.core.util.*;
+import be.twofold.valen.core.math.*;
 import be.twofold.valen.game.eternal.*;
-import be.twofold.valen.game.eternal.reader.*;
 import be.twofold.valen.game.eternal.reader.geometry.*;
 import be.twofold.valen.game.eternal.resource.*;
+import be.twofold.valen.game.idtech.geometry.*;
+import wtf.reversed.toolbox.io.*;
+import wtf.reversed.toolbox.util.*;
 
 import java.io.*;
 import java.util.*;
 
-public final class StaticModelReader implements ResourceReader<Model> {
+public final class StaticModelReader implements AssetReader<Model, EternalAsset> {
     private final EternalArchive archive;
-    private final boolean readStreams;
     private final boolean readMaterials;
 
     public StaticModelReader(EternalArchive archive) {
-        this(archive, true, true);
+        this(archive, true);
     }
 
-    StaticModelReader(
-        EternalArchive archive,
-        boolean readStreams,
-        boolean readMaterials
-    ) {
+    StaticModelReader(EternalArchive archive, boolean readMaterials) {
         this.archive = archive;
-        this.readStreams = readStreams;
         this.readMaterials = readMaterials;
     }
 
     @Override
-    public boolean canRead(ResourceKey key) {
-        return key.type() == ResourceType.Model;
+    public boolean canRead(EternalAsset resource) {
+        return resource.id().type() == ResourceType.Model;
     }
 
     @Override
-    public Model read(DataSource source, Asset asset) throws IOException {
-        var model = read(source, (Long) asset.properties().get("hash"));
-        return new Model(model.meshes(), model.materials(), null);
-    }
-
-    public StaticModel read(DataSource source, long hash) throws IOException {
+    public Model read(BinarySource source, EternalAsset resource) throws IOException {
         var model = StaticModel.read(source);
+        var meshes = new ArrayList<>(readMeshes(model, source, resource.hash()));
 
-        model = model.withMeshes(readMeshes(model, source, hash));
-
-//        if (readMaterials) {
-//            var materials = new LinkedHashMap<String, Material>();
-//            var materialIndices = new HashMap<String, Integer>();
-//
-//            var meshes = new ArrayList<Mesh>();
-//            for (int i = 0; i < model.meshes().size(); i++) {
-//                var meshInfo = model.meshInfos().get(i);
-//                var materialName = meshInfo.mtlDecl();
-//                var materialFile = "generated/decls/material2/" + materialName + ".decl";
-//                var materialIndex = materialIndices.computeIfAbsent(materialName, k -> materials.size());
-//                if (!materials.containsKey(materialName)) {
-//                    Material material = fileManager.get().readResource(materialFile, FileType.Material);
-//                    materials.put(materialName, material);
-//                }
-//                meshes.add(model.meshes().get(i).withMaterialIndex(materialIndex));
-//            }
-//            model = model
-//                .withMeshes(meshes)
-//                .withMaterials(List.copyOf(materials.values()));
-//        }
-        return model;
+        if (readMaterials) {
+            Materials.apply(archive, meshes, model.meshInfos(), StaticModelMeshInfo::mtlDecl, _ -> null);
+        }
+        return new Model(meshes, Optional.empty(), Optional.of(resource.id().fullName()), Optional.empty(), Axis.Z);
     }
 
-    private List<Mesh> readMeshes(StaticModel model, DataSource source, long hash) throws IOException {
+    private List<Mesh> readMeshes(StaticModel model, BinarySource source, long hash) throws IOException {
         if (!model.header().streamable()) {
             return readEmbeddedGeometry(model, source);
         }
-        if (readStreams) {
-            return readStreamedGeometry(model, 0, hash);
-        }
-        return List.of();
+        return readStreamedGeometry(model, 0, hash);
     }
 
-    private List<Mesh> readEmbeddedGeometry(StaticModel model, DataSource source) throws IOException {
+    private List<Mesh> readEmbeddedGeometry(StaticModel model, BinarySource source) throws IOException {
         List<Mesh> meshes = new ArrayList<>();
         for (var meshInfo : model.meshInfos()) {
-            Check.state(meshInfo.lodInfos().size() == 1);
+            Check.state(meshInfo.lodInfos().size() == 1, "Expected single LOD");
             meshes.add(GeometryReader.readEmbeddedMesh(source, meshInfo.lodInfos().getFirst()));
         }
         return meshes;
@@ -99,8 +68,8 @@ public final class StaticModelReader implements ResourceReader<Model> {
             .toList();
         var layouts = model.streamDiskLayouts().get(lod).memoryLayouts();
 
-        var buffer = archive.readStream(streamHash, uncompressedSize);
-        var source = ByteArrayDataSource.fromBuffer(buffer);
+        var bytes = archive.readStream(streamHash, uncompressedSize);
+        var source = BinarySource.wrap(bytes);
         return GeometryReader.readStreamedMesh(source, lods, layouts, false);
     }
 

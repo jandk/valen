@@ -1,10 +1,10 @@
 package be.twofold.valen.game.eternal;
 
-import be.twofold.valen.core.io.*;
 import be.twofold.valen.game.eternal.reader.packagemapspec.*;
 import be.twofold.valen.game.eternal.reader.resource.*;
 import be.twofold.valen.game.eternal.reader.streamdb.*;
 import be.twofold.valen.game.eternal.resource.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 import java.nio.file.*;
@@ -12,7 +12,7 @@ import java.sql.*;
 import java.util.*;
 import java.util.stream.*;
 
-public final class DbImporter {
+final class DbImporter {
     private static final String TABLE_SQL = """
         create table if not exists file
         (
@@ -129,11 +129,10 @@ public final class DbImporter {
         var sql = "insert into resource(file_id, name, type, variation, start, size, uncompressedSize, dataCheckSum, defaultHash, timestamp, version, flags, compMode) " +
             "values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
 
-        try (var channel = Files.newByteChannel(BASE.resolve(path));
+        try (var source = BinarySource.open(BASE.resolve(path));
              var statement = connection.prepareStatement(sql)
         ) {
-            var reader = new ChannelDataSource(channel);
-            var resources = mapResources(Resources.read(reader));
+            var resources = mapResources(Resources.read(source));
             System.out.println("Importing " + resources.size() + " resource entries from " + path);
 
             statement.setInt(1, fileId);
@@ -163,8 +162,8 @@ public final class DbImporter {
     }
 
     private ResourceEntity mapResource(Resources resources, ResourcesEntry entry) {
-        var name = resources.pathStrings().get(resources.pathStringIndex()[entry.strings() + 1]);
-        var type = resources.pathStrings().get(resources.pathStringIndex()[entry.strings()]);
+        var name = resources.pathStrings().get(resources.pathStringIndex().get(entry.strings() + 1));
+        var type = resources.pathStrings().get(resources.pathStringIndex().get(entry.strings()));
         var variation = ResourceVariation.fromValue(entry.variation()).name();
         var offset = entry.dataOffset();
         var size = entry.dataSize();
@@ -197,8 +196,8 @@ public final class DbImporter {
     // region .streamdb
 
     private static StreamDb readStreamDb(String relativePath) {
-        try (var channel = Files.newByteChannel(BASE.resolve(relativePath))) {
-            return StreamDb.read(new ChannelDataSource(channel));
+        try (var source = BinarySource.open(BASE.resolve(relativePath))) {
+            return StreamDb.read(source);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }

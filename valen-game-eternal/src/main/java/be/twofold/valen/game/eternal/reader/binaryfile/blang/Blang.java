@@ -1,8 +1,9 @@
 package be.twofold.valen.game.eternal.reader.binaryfile.blang;
 
-import be.twofold.valen.core.io.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
+import java.nio.*;
 import java.util.*;
 
 public record Blang(
@@ -11,11 +12,11 @@ public record Blang(
     int numEntries,
     List<BlangEntry> entries
 ) {
-    public static Blang read(DataSource source) throws IOException {
+    public static Blang read(BinarySource source) throws IOException {
         var versionMaybe = source.readInt();
         var unknownHash = source.readInt();
-        var numEntries = Integer.reverseBytes(source.readInt()); // Big endian all of a sudden?
-        var entries = source.readStructs(numEntries, BlangEntry::read);
+        var numEntries = source.order(ByteOrder.BIG_ENDIAN).readInt(); // Big endian all of a sudden?
+        var entries = source.order(ByteOrder.LITTLE_ENDIAN).readObjects(numEntries, BlangEntry::read);
         return new Blang(versionMaybe, unknownHash, numEntries, entries);
     }
 }

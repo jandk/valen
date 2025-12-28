@@ -8,12 +8,9 @@ import java.util.*;
 import java.util.stream.*;
 
 public final class PackageMapSpecReader {
-    public static PackageMapSpec read(Path path) {
+    public static PackageMapSpec read(Path path) throws IOException {
         try (Reader reader = Files.newBufferedReader(path)) {
             return read(reader);
-        } catch (IOException e) {
-            System.err.println("Failed to read package map spec: " + path);
-            throw new UncheckedIOException(e);
         }
     }
 

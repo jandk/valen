@@ -1,6 +1,6 @@
 package be.twofold.valen.game.eternal.reader.lightdb;
 
-import be.twofold.valen.core.io.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 
@@ -9,9 +9,7 @@ public record LightDbPart1(
     int length,
     int unk3
 ) {
-    public static final int BYTES = 16;
-
-    public static LightDbPart1 read(DataSource source) throws IOException {
+    public static LightDbPart1 read(BinarySource source) throws IOException {
         var offset = source.readInt();
         source.expectInt(0);
         var length = source.readInt();

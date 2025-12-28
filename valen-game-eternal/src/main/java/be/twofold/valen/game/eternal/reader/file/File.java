@@ -1,17 +1,18 @@
 package be.twofold.valen.game.eternal.reader.file;
 
-import be.twofold.valen.core.io.*;
+import wtf.reversed.toolbox.collect.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 import java.time.*;
 
 public record File(
     Instant creationTime,
-    byte[] data
+    Bytes data
 ) {
-    public static File read(DataSource source) throws IOException {
-        Instant creationTime = Instant.ofEpochSecond(source.readInt());
-        byte[] data = source.readBytes(Math.toIntExact(source.size() - 4));
+    public static File read(BinarySource source) throws IOException {
+        var creationTime = Instant.ofEpochSecond(source.readInt());
+        var data = source.readBytes(Math.toIntExact(source.size() - 4));
 
         return new File(creationTime, data);
     }

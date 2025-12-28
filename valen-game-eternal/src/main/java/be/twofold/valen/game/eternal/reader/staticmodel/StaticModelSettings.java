@@ -1,6 +1,6 @@
 package be.twofold.valen.game.eternal.reader.staticmodel;
 
-import be.twofold.valen.core.io.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 import java.util.*;
@@ -11,11 +11,11 @@ public record StaticModelSettings(
     int lighmapHeight,
     List<StaticModelTextureAxis> textureAxes
 ) {
-    public static StaticModelSettings read(DataSource source) throws IOException {
+    public static StaticModelSettings read(BinarySource source) throws IOException {
         var lightmapSurfaceAreaSqrt = source.readFloat();
         var lighmapWidth = source.readInt();
         var lighmapHeight = source.readInt();
-        var textureAxes = source.readStructs(source.readInt(), StaticModelTextureAxis::read);
+        var textureAxes = source.readObjects(source.readInt(), StaticModelTextureAxis::read);
 
         return new StaticModelSettings(
             lightmapSurfaceAreaSqrt,
