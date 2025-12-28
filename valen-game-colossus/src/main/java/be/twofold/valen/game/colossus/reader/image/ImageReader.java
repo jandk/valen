@@ -72,15 +72,21 @@ public final class ImageReader implements AssetReader<Texture, ColossusAsset> {
             }
         }
 
-        Surface surface = surfaces.get(minMip);
-        // saveImage(surface.data(), surface.width(), surface.height(), "D:\\Jan\\Desktop\\colossus\\test.png");
+        var format = surfaces.get(minMip).format();
+        var lastMip = surfaces.size();
+        for (int i = minMip; i < surfaces.size(); i++) {
+            if (surfaces.get(i).format() != format) {
+                lastMip = i;
+                break;
+            }
+        }
 
         return new Texture(
             image.mips().get(minMip).mipPixelWidth(),
             image.mips().get(minMip).mipPixelHeight(),
-            imageFormat,
+            format,
             image.header().textureType() == ImageTextureType.TT_CUBIC,
-            surfaces.subList(minMip, image.header().mipCount())
+            surfaces.subList(minMip, lastMip)
         );
     }
 
