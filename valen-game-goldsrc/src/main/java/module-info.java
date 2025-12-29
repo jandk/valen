@@ -1,9 +1,8 @@
 module valen.game.goldsrc {
-    requires java.sql; // For import only
-    requires valen.core;
     requires org.slf4j;
-    requires jdk.compiler;
+    requires valen.core;
+    requires wtf.reversed.toolbox;
 
     provides be.twofold.valen.core.game.GameFactory
-        with org.redeye.valen.game.halflife.HalfLifeGameFactory;
+        with be.twofold.valen.game.goldsrc.GoldSrcGameFactory;
 }

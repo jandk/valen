@@ -65,8 +65,21 @@ public final class ModelPresenter extends AbstractFXPresenter<ModelView> impleme
         copyIndices(mesh.indices(), result.getFaces());
 
         copyPoints(mesh.positions(), result.getPoints());
-        copy(mesh.normals().orElseThrow(), result.getNormals());
-        copy(mesh.texCoords().getFirst(), result.getTexCoords());
+        if (mesh.normals().isPresent()) {
+            copy(mesh.normals().get(), result.getNormals());
+        } else {
+            for (int i = 0; i < result.getPoints().size() / 3; i++) {
+                result.getNormals().addAll(0.0f, 0.0f, 1.0f);
+            }
+        }
+
+        if (!mesh.texCoords().isEmpty()) {
+            copy(mesh.texCoords().getFirst(), result.getTexCoords());
+        } else {
+            for (int i = 0; i < result.getPoints().size() / 3; i++) {
+                result.getTexCoords().addAll(0.0f, 0.0f);
+            }
+        }
         return result;
     }
 

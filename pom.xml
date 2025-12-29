@@ -23,7 +23,6 @@
         <module>valen-game-goldsrc</module>
         <module>valen-game-greatcircle</module>
         <module>valen-game-idtech</module>
-        <module>valen-gltf</module>
         <module>valen-ui</module>
     </modules>
 
@@ -164,7 +163,7 @@
             <dependency>
                 <groupId>org.redeye</groupId>
                 <artifactId>valen-game-goldsrc</artifactId>
-                <version>1.0-SNAPSHOT</version>
+                <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>be.twofold</groupId>
