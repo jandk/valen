@@ -41,29 +41,11 @@ public final class WadContainer implements Container<GoldSrcAssetID, GoldSrcAsse
             .map(GoldSrcAsset.Wad.class::cast)
             .orElseThrow(() -> new IllegalArgumentException("Unknown key: " + key));
 
-        source.position(asset.entry().offset());
-        return source.readBytes(asset.entry().size());
+        return source
+            .position(asset.entry().offset())
+            .readBytes(asset.entry().size());
     }
 
-//    @Override
-//    public Bytes read(String key, Integer size) throws IOException {
-//        var entry = get(key)
-//            .orElseThrow(() -> new IllegalArgumentException("Unknown key: " + key));
-//
-//        source.position(entry.offset());
-//        return source.readBytes(entry.size());
-//
-
-    /// /            var texture = switch (entry.type()) {
-    /// /                case MIPTEX -> MipTex.read(source);
-    /// /                case FONT -> Font.read(source);
-    /// /
-    /// /                default -> {
-    /// /                    throw new IllegalStateException("Cant read asset " + entry.name() + " of type: " + entry.type().name());
-    /// /                }
-    /// /            };
-    /// /            return clazz.cast(texture);
-//    }
     @Override
     public void close() throws IOException {
         source.close();

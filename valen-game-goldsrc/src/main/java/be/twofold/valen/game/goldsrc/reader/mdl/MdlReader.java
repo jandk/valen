@@ -30,16 +30,26 @@ public final class MdlReader implements AssetReader<Model, GoldSrcAsset> {
         }
 
         source.position(header.boneOffset());
+
+        var boneMatrices = new ArrayList<Matrix4>();
         var bones = new ArrayList<>();
         for (int i = 0; i < header.boneCount(); i++) {
             source.position(header.boneOffset() + i * 112L);
-            bones.add(StudioBone.read(source));
+            StudioBone bone = StudioBone.read(source);
+            bones.add(bone);
+
+            var mat = Matrix4.fromTranslation(bone.pos())
+                .multiply(Matrix4.fromRotationZYX(bone.rot()));
+
+            if (bone.parent() != -1) {
+                mat = boneMatrices.get(bone.parent()).multiply(mat);
+            }
+            boneMatrices.add(mat);
         }
         var meshes = new ArrayList<Mesh>();
 
         for (StudioBodyPart studioBodyPart : bodyParts) {
             for (StudioModel studioModel : studioBodyPart.models()) {
-                var rawVertices = studioModel.vertices();
                 for (StudioMesh studioMesh : studioModel.meshes()) {
                     var faceBuffer = Ints.Mutable.allocate(studioMesh.triangleCount() * 3);
                     var faceIndex = 0;
@@ -59,17 +69,19 @@ public final class MdlReader implements AssetReader<Model, GoldSrcAsset> {
                             }
                         }
                     }
-                    var vertexBuffer = Floats.Mutable.allocate(studioMesh.vertexCount() * 3);
-                    var vertexIndex = 0;
 
-                    for (int i = 0; i < studioMesh.vertexCount(); i++) {
-                        vertexBuffer.set(vertexIndex++, rawVertices.get(studioMesh.vertexOffset() + i + 0));
-                        vertexBuffer.set(vertexIndex++, rawVertices.get(studioMesh.vertexOffset() + i + 1));
-                        vertexBuffer.set(vertexIndex++, rawVertices.get(studioMesh.vertexOffset() + i + 2));
+                    Floats vertices = studioModel.vertices();
+                    Floats.Mutable transformedVertices = Floats.Mutable.allocate(vertices.length());
+                    for (int i = 0; i < vertices.length() / 3; i++) {
+                        Vector3 v = new Vector3(vertices.get(i * 3 + 0), vertices.get(i * 3 + 1), vertices.get(i * 3 + 2));
+                        Vector3 t = boneMatrices.get(studioModel.boneVertexInfo().get(i)).transform(v);
+                        transformedVertices.set(i * 3 + 0, t.x());
+                        transformedVertices.set(i * 3 + 1, t.y());
+                        transformedVertices.set(i * 3 + 2, t.z());
                     }
 
                     meshes.add(new Mesh(
-                        faceBuffer, vertexBuffer,
+                        faceBuffer, transformedVertices,
                         Optional.empty(), Optional.empty(),
                         List.of(), List.of(),
                         Optional.empty(), Optional.empty(),

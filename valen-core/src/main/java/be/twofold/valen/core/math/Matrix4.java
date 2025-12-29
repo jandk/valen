@@ -64,6 +64,71 @@ public record Matrix4(
         );
     }
 
+    public static Matrix4 fromRotationXYZ(Vector3 rotation) {
+        return fromRotationXYZ(rotation.x(), rotation.y(), rotation.z());
+    }
+
+    public static Matrix4 fromRotationXYZ(float angleX, float angleY, float angleZ) {
+        float sinX = MathF.sin(angleX);
+        float cosX = MathF.cos(angleX);
+        float sinY = MathF.sin(angleY);
+        float cosY = MathF.cos(angleY);
+        float sinZ = MathF.sin(angleZ);
+        float cosZ = MathF.cos(angleZ);
+
+        float nm01 = -sinX * -sinY;
+        float nm02 = cosX * -sinY;
+
+        float m00 = cosY * cosZ;
+        float m01 = nm01 * cosZ + cosX * sinZ;
+        float m02 = nm02 * cosZ + sinX * sinZ;
+        float m10 = cosY * -sinZ;
+        float m11 = nm01 * -sinZ + cosX * cosZ;
+        float m12 = nm02 * -sinZ + sinX * cosZ;
+        float m20 = sinY;
+        float m21 = -sinX * cosY;
+        float m22 = cosX * cosY;
+
+        return new Matrix4(
+            m00, m01, m02, 0.f,
+            m10, m11, m12, 0.f,
+            m20, m21, m22, 0.f,
+            0.f, 0.f, 0.f, 1.f
+        );
+    }
+
+    public static Matrix4 fromRotationZYX(Vector3 rotation) {
+        return fromRotationZYX(rotation.x(), rotation.y(), rotation.z());
+    }
+
+    public static Matrix4 fromRotationZYX(float angleX, float angleY, float angleZ) {
+        float sinX = MathF.sin(angleX);
+        float cosX = MathF.cos(angleX);
+        float sinY = MathF.sin(angleY);
+        float cosY = MathF.cos(angleY);
+        float sinZ = MathF.sin(angleZ);
+        float cosZ = MathF.cos(angleZ);
+        float nm20 = cosZ * sinY;
+        float nm21 = sinZ * sinY;
+
+        float m00 = cosZ * cosY;
+        float m01 = sinZ * cosY;
+        float m02 = -sinY;
+        float m10 = -sinZ * cosX + nm20 * sinX;
+        float m11 = cosZ * cosX + nm21 * sinX;
+        float m12 = cosY * sinX;
+        float m20 = -sinZ * -sinX + nm20 * cosX;
+        float m21 = cosZ * -sinX + nm21 * cosX;
+        float m22 = cosY * cosX;
+
+        return new Matrix4(
+            m00, m01, m02, 0.f,
+            m10, m11, m12, 0.f,
+            m20, m21, m22, 0.f,
+            0.f, 0.f, 0.f, 1.f
+        );
+    }
+
     public static Matrix4 fromScale(Vector3 scale) {
         return fromScale(scale.x(), scale.y(), scale.z());
     }
@@ -286,6 +351,18 @@ public record Matrix4(
             m20, m21, m22, m23,
             m30, m31, m32, m33
         };
+    }
+
+    public Vector3 transform(Vector3 v3) {
+        float x = v3.x();
+        float y = v3.y();
+        float z = v3.z();
+
+        return new Vector3(
+            Math.fma(m00, x, Math.fma(m10, y, Math.fma(m20, z, m30))),
+            Math.fma(m01, x, Math.fma(m11, y, Math.fma(m21, z, m31))),
+            Math.fma(m02, x, Math.fma(m12, y, Math.fma(m22, z, m32)))
+        );
     }
 
     // Object methods
