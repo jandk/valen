@@ -8,7 +8,7 @@ import java.io.*;
 import java.util.logging.*;
 
 public final class Main {
-    public static void main(String[] args) throws IOException {
+    static void main(String[] args) throws IOException {
         LogManager.getLogManager().readConfiguration(
             Main.class.getResourceAsStream("/logging.properties")
         );

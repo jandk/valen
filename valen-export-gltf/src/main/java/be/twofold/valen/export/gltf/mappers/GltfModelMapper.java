@@ -1,7 +1,6 @@
 package be.twofold.valen.export.gltf.mappers;
 
 import be.twofold.valen.core.geometry.*;
-import be.twofold.valen.core.math.*;
 import be.twofold.valen.format.gltf.*;
 import be.twofold.valen.format.gltf.model.accessor.*;
 import be.twofold.valen.format.gltf.model.bufferview.*;
@@ -9,6 +8,7 @@ import be.twofold.valen.format.gltf.model.material.*;
 import be.twofold.valen.format.gltf.model.mesh.*;
 import org.slf4j.*;
 import wtf.reversed.toolbox.collect.*;
+import wtf.reversed.toolbox.math.*;
 
 import java.io.*;
 import java.util.*;
@@ -152,24 +152,24 @@ public abstract class GltfModelMapper {
     private List<Map<String, AccessorID>> buildMorphTargets(List<BlendShape> blendShapes, int count) throws IOException {
         var morphTargets = new ArrayList<Map<String, AccessorID>>();
         for (var blendShape : blendShapes) {
-            var indexBufferView = context.createBufferView(blendShape.indices(), null);
+            var indexBufferView = context.createBufferView(blendShape.indices().asBuffer(), null);
             var indices = ImmutableAccessorSparseIndices.builder()
                 .bufferView(indexBufferView)
                 .componentType(AccessorComponentType.UNSIGNED_SHORT)
                 .build();
 
-            var valuesBufferView = context.createBufferView(blendShape.values(), null);
+            var valuesBufferView = context.createBufferView(blendShape.values().asBuffer(), null);
             var values = ImmutableAccessorSparseValues.builder()
                 .bufferView(valuesBufferView)
                 .build();
 
             var accessorSparse = ImmutableAccessorSparse.builder()
-                .count(blendShape.indices().capacity())
+                .count(blendShape.indices().length())
                 .indices(indices)
                 .values(values)
                 .build();
 
-            var bounds = Bounds.calculate(blendShape.values());
+            var bounds = calculateBounds(blendShape.values());
             var accessor = ImmutableAccessor.builder()
                 .componentType(AccessorComponentType.FLOAT)
                 .count(count)
@@ -206,7 +206,7 @@ public abstract class GltfModelMapper {
             .type(type);
 
         if (withBounds) {
-            Bounds bounds = Bounds.calculate((Floats) slice);
+            Bounds bounds = calculateBounds((Floats) slice);
             builder
                 .min(GltfUtils.mapVector3(bounds.min()))
                 .max(GltfUtils.mapVector3(bounds.max()));
@@ -224,5 +224,13 @@ public abstract class GltfModelMapper {
                     }
                 }
             }));
+    }
+
+    private Bounds calculateBounds(Floats slice) {
+        var builder = Bounds.builder();
+        for (int i = 0; i < slice.length(); i += 3) {
+            builder.add(slice.get(i), slice.get(i + 1), slice.get(i + 2));
+        }
+        return builder.build();
     }
 }

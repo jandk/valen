@@ -32,6 +32,7 @@ public final class Geo {
         List<Bytes> colors = meshInfo.colors().stream()
             .map(info -> readVertexBuffer(source, info, meshInfo.vertexCount()))
             .collect(Collectors.toUnmodifiableList());
+
         Optional<Shorts> joints = meshInfo.joints().map(info -> readVertexBuffer(source, info, meshInfo.vertexCount()));
         Optional<Floats> weights = meshInfo.weights().map(info -> readVertexBuffer(source, info, meshInfo.vertexCount()));
         Map<String, VertexBuffer<?>> custom = new HashMap<>();
@@ -42,7 +43,8 @@ public final class Geo {
             custom.put(entry.getKey(), vertexBuffer);
         }
 
-        return new Mesh(indices, positions, normals, tangents, texCoords, colors, joints, weights, 0, custom);
+        int maxInfluence = meshInfo.joints().map(GeoBufferInfo::count).orElse(0);
+        return new Mesh(indices, positions, normals, tangents, texCoords, colors, joints, weights, maxInfluence, custom);
     }
 
     private <T extends Slice> T readVertexBuffer(BinarySource source, GeoBufferInfo<T> accessor, int count) {

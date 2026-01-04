@@ -1,4 +1,6 @@
-package be.twofold.valen.core.math;
+package be.twofold.valen.core.geometry;
+
+import wtf.reversed.toolbox.math.*;
 
 public enum Axis {
     X,
@@ -11,13 +13,13 @@ public enum Axis {
             case X -> throw new UnsupportedOperationException("X axis not supported yet");
             case Y -> switch (axis) {
                 case X -> throw new UnsupportedOperationException("X axis not supported yet");
-                case Y -> Quaternion.Identity;
+                case Y -> Quaternion.IDENTITY;
                 case Z -> Quaternion.fromAxisAngle(Vector3.X, +90.0f, Angle.DEGREES);
             };
             case Z -> switch (axis) {
                 case X -> throw new UnsupportedOperationException("X axis not supported yet");
                 case Y -> Quaternion.fromAxisAngle(Vector3.X, -90.0f, Angle.DEGREES);
-                case Z -> Quaternion.Identity;
+                case Z -> Quaternion.IDENTITY;
             };
         };
     }

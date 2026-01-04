@@ -83,7 +83,7 @@ public final class CastModelMapper {
             modelNode.createBlendShape()
                 .setName(blendShape.name())
                 .setBaseShape(meshNode.getHash())
-                .setTargetShapeVertexIndices(blendShape.indices())
+                .setTargetShapeVertexIndices(blendShape.indices().asBuffer())
                 .setTargetShapeVertexPositions(absolute);
         }
     }
@@ -91,7 +91,7 @@ public final class CastModelMapper {
     private FloatBuffer makeAbsolute(CastNodes.Mesh meshNode, BlendShape blendShape) {
         var positions = meshNode.getVertexPositionBuffer();
         var relatives = blendShape.values();
-        var absolutes = FloatBuffer.allocate(relatives.capacity());
+        var absolutes = FloatBuffer.allocate(relatives.length());
         for (int i = 0, o = 0; o < absolutes.capacity(); i++, o += 3) {
             var index = Short.toUnsignedInt(blendShape.indices().get(i));
             absolutes.put(positions.get(index * 3/**/) + relatives.get(o/**/));

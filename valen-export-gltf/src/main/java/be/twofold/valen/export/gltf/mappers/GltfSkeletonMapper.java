@@ -1,14 +1,14 @@
 package be.twofold.valen.export.gltf.mappers;
 
 import be.twofold.valen.core.geometry.*;
-import be.twofold.valen.core.math.*;
 import be.twofold.valen.format.gltf.*;
 import be.twofold.valen.format.gltf.model.accessor.*;
 import be.twofold.valen.format.gltf.model.node.*;
 import be.twofold.valen.format.gltf.model.skin.*;
+import wtf.reversed.toolbox.collect.*;
+import wtf.reversed.toolbox.math.*;
 
 import java.io.*;
-import java.nio.*;
 import java.util.*;
 
 public final class GltfSkeletonMapper {
@@ -48,13 +48,12 @@ public final class GltfSkeletonMapper {
             }
         }
 
-        var buffer = FloatBuffer.allocate(bones.size() * 16);
-        for (var bone : bones) {
-            buffer.put(bone.inverseBasePose().toArray());
+        var boneSlice = Floats.Mutable.allocate(bones.size() * 16);
+        for (int i = 0; i < bones.size(); i++) {
+            bones.get(i).inverseBasePose().toSlice(boneSlice, i * 16);
         }
-        buffer.flip();
 
-        var bufferView = context.createBufferView(buffer, null);
+        var bufferView = context.createBufferView(boneSlice.asBuffer(), null);
         var accessor = ImmutableAccessor.builder()
             .bufferView(bufferView)
             .componentType(AccessorComponentType.FLOAT)

@@ -2,7 +2,7 @@ package be.twofold.valen.export.cast.mappers;
 
 import be.twofold.tinycast.*;
 import be.twofold.valen.core.animation.*;
-import be.twofold.valen.core.math.*;
+import wtf.reversed.toolbox.math.*;
 
 import java.nio.*;
 import java.util.function.*;
@@ -10,7 +10,7 @@ import java.util.function.*;
 public final class CastAnimationMapper {
     public long map(Animation animation, CastNodes.Root root) {
         var animationNode = root.createAnimation()
-                .setFramerate((float) animation.frameRate());
+            .setFramerate((float) animation.frameRate());
 
         var bones = animation.skeleton().bones();
         for (var track : animation.tracks()) {
@@ -25,37 +25,37 @@ public final class CastAnimationMapper {
             case Track.Rotation rotation -> {
                 createCurve(animationNode, boneName)
                     .setKeyPropertyName(CastNodes.KeyPropertyName.RQ)
-                        .setKeyFrameBuffer(frames(rotation))
-                        .setKeyValueBufferV4(rotation(rotation));
+                    .setKeyFrameBuffer(frames(rotation))
+                    .setKeyValueBufferV4(rotation(rotation));
             }
             case Track.Translation translation -> {
                 var frames = frames(translation);
                 createCurve(animationNode, boneName)
                     .setKeyPropertyName(CastNodes.KeyPropertyName.TX)
-                        .setKeyFrameBuffer(frames)
+                    .setKeyFrameBuffer(frames)
                     .setKeyValueBufferF32(translationScale(translation, Vector3::x));
                 createCurve(animationNode, boneName)
                     .setKeyPropertyName(CastNodes.KeyPropertyName.TY)
-                        .setKeyFrameBuffer(frames)
+                    .setKeyFrameBuffer(frames)
                     .setKeyValueBufferF32(translationScale(translation, Vector3::y));
                 createCurve(animationNode, boneName)
                     .setKeyPropertyName(CastNodes.KeyPropertyName.TZ)
-                        .setKeyFrameBuffer(frames)
+                    .setKeyFrameBuffer(frames)
                     .setKeyValueBufferF32(translationScale(translation, Vector3::z));
             }
             case Track.Scale scale -> {
                 var frames = frames(scale);
                 createCurve(animationNode, boneName)
                     .setKeyPropertyName(CastNodes.KeyPropertyName.SX)
-                        .setKeyFrameBuffer(frames)
+                    .setKeyFrameBuffer(frames)
                     .setKeyValueBufferF32(translationScale(scale, Vector3::x));
                 createCurve(animationNode, boneName)
                     .setKeyPropertyName(CastNodes.KeyPropertyName.SY)
-                        .setKeyFrameBuffer(frames)
+                    .setKeyFrameBuffer(frames)
                     .setKeyValueBufferF32(translationScale(scale, Vector3::y));
                 createCurve(animationNode, boneName)
                     .setKeyPropertyName(CastNodes.KeyPropertyName.SZ)
-                        .setKeyFrameBuffer(frames)
+                    .setKeyFrameBuffer(frames)
                     .setKeyValueBufferF32(translationScale(scale, Vector3::z));
             }
         }
@@ -63,7 +63,7 @@ public final class CastAnimationMapper {
 
     private static CastNodes.Curve createCurve(CastNodes.Animation animationNode, String boneName) {
         return animationNode.createCurve()
-                .setNodeName(boneName)
+            .setNodeName(boneName)
             .setMode(CastNodes.Mode.ABSOLUTE);
     }
 
