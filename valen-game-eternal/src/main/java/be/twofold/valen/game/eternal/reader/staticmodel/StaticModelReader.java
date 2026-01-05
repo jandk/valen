@@ -2,7 +2,6 @@ package be.twofold.valen.game.eternal.reader.staticmodel;
 
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.geometry.*;
-import be.twofold.valen.core.math.*;
 import be.twofold.valen.game.eternal.*;
 import be.twofold.valen.game.eternal.reader.geometry.*;
 import be.twofold.valen.game.eternal.resource.*;

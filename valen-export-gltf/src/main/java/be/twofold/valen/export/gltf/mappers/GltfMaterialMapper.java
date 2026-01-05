@@ -1,12 +1,12 @@
 package be.twofold.valen.export.gltf.mappers;
 
 import be.twofold.valen.core.material.*;
-import be.twofold.valen.core.math.*;
 import be.twofold.valen.core.texture.*;
 import be.twofold.valen.format.gltf.*;
 import be.twofold.valen.format.gltf.model.extension.*;
 import be.twofold.valen.format.gltf.model.material.*;
 import be.twofold.valen.format.gltf.model.texture.*;
+import wtf.reversed.toolbox.math.*;
 
 import java.io.*;
 import java.util.*;
@@ -80,9 +80,9 @@ public final class GltfMaterialMapper {
         MaterialProperty property,
         ImmutableMaterial.Builder builder
     ) throws IOException {
-        var emissiveFactor = new Vector4(property.factor().toVector3(), 1.0f);
+        var emissiveFactor = new Vector4(property.factor().xyz(), 1.0f);
         mapProperty(property.withFactor(emissiveFactor), builder::emissiveTexture,
-            v -> builder.emissiveFactor(GltfUtils.mapVector3(v.toVector3())));
+            v -> builder.emissiveFactor(GltfUtils.mapVector3(v.xyz())));
 
         var emissiveScale = property.factor().w();
         if (emissiveScale != 1.0f) {
@@ -102,7 +102,7 @@ public final class GltfMaterialMapper {
         var specularBuilder = ImmutableKHRMaterialsSpecular.builder();
 
         mapProperty(property, specularBuilder::specularColorTexture,
-            v -> specularBuilder.specularColorFactor(GltfUtils.mapVector3(v.toVector3())));
+            v -> specularBuilder.specularColorFactor(GltfUtils.mapVector3(v.xyz())));
 
         // Workaround for specular in metal-rough
         //  - Set metallic to 0
@@ -122,7 +122,7 @@ public final class GltfMaterialMapper {
         Consumer<TextureInfoSchema> textureConsumer,
         Consumer<Vector4> factorConsumer
     ) throws IOException {
-        var factor = property.factor() != null ? property.factor() : Vector4.One;
+        var factor = property.factor() != null ? property.factor() : Vector4.ONE;
         var textureID = (TextureID) null;
         if (property.reference() != null) {
             textureID = textureMapper.map(property.reference());
@@ -133,7 +133,7 @@ public final class GltfMaterialMapper {
         }
 
         // The default in GLTF is 0, 0, 0 for emissive
-        var reference = property.type() == MaterialPropertyType.Emissive ? Vector4.W : Vector4.One;
+        var reference = property.type() == MaterialPropertyType.Emissive ? Vector4.W : Vector4.ONE;
         /*if (!reference.equals(factor)) */
         {
             factorConsumer.accept(factor);

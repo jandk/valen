@@ -7,6 +7,7 @@ import be.twofold.valen.core.util.*;
 import be.twofold.valen.game.eternal.*;
 import be.twofold.valen.game.eternal.resource.*;
 import wtf.reversed.toolbox.io.*;
+import wtf.reversed.toolbox.math.*;
 import wtf.reversed.toolbox.util.*;
 
 import java.io.*;
@@ -51,7 +52,7 @@ public final class MapFileStaticInstancesReader implements AssetReader<Scene, Et
         return Optional.of(new Instance(
             reference,
             geometry.translation(),
-            geometry.rotation().toRotation(),
+            Quaternion.fromMatrix(geometry.rotation()),
             geometry.scale(),
             instanceName
         ));

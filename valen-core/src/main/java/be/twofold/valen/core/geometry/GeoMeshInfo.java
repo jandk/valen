@@ -31,6 +31,13 @@ public final class GeoMeshInfo {
         GeoBufferInfo<Floats.Mutable> weights,
         Map<String, GeoBufferInfo<?>> custom
     ) {
+        if ((joints == null) != (weights == null)) {
+            throw new IllegalStateException("Joints and weights must be present or absent together");
+        }
+        if ((joints != null ? joints.count() : 0) != (weights != null ? weights.count() : 0)) {
+            throw new IllegalStateException("Joints and weights must have the same number of elements");
+        }
+
         this.indexCount = indexCount;
         this.vertexCount = vertexCount;
         this.indices = Check.nonNull(indices, "indices");
