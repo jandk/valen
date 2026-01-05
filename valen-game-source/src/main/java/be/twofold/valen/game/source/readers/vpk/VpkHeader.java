@@ -12,8 +12,10 @@ public record VpkHeader(
     int otherMD5Size,
     int signatureSize
 ) {
+    public static final int MAGIC = 0x55AA1234;
+
     public static VpkHeader read(BinarySource source) throws IOException {
-        source.expectInt(0x55AA1234);
+        source.expectInt(MAGIC);
         var version = VpkVersion.fromValue(source.readInt());
         var treeSize = source.readInt();
 

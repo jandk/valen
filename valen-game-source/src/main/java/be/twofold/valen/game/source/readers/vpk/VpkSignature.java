@@ -10,8 +10,20 @@ public record VpkSignature(
     Bytes signature
 ) {
     public static VpkSignature read(BinarySource source) throws IOException {
-        var publicKey = source.readBytes(source.readInt());
-        var signature = source.readBytes(source.readInt());
+        Bytes publicKey, signature;
+        int publicKeySize = source.readInt();
+        if (publicKeySize == VpkHeader.MAGIC) {
+            source.expectInt(1);
+            publicKeySize = source.readInt();
+            int signatureSize = source.readInt();
+            source.expectInt(0);
+
+            publicKey = source.readBytes(publicKeySize);
+            signature = source.readBytes(signatureSize);
+        } else {
+            publicKey = source.readBytes(publicKeySize);
+            signature = source.readBytes(source.readInt());
+        }
 
         return new VpkSignature(
             publicKey,

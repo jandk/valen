@@ -32,7 +32,7 @@ public record VpkDirectory(
     }
 
     public static VpkDirectory read(BinarySource source) throws IOException {
-        source.expectInt(0x55AA1234);
+        source.expectInt(VpkHeader.MAGIC);
         var version = VpkVersion.fromValue(source.readInt());
         source.position(0);
 
@@ -59,7 +59,10 @@ public record VpkDirectory(
         }
 
         var signature = VpkSignature.read(source);
-        if (!verifySignature(signature, headerBuffer, treeBuffer, archiveMD5Buffer, otherMD5Buffer)) {
+        var buffers = header.signatureSize() != 20
+            ? List.of(headerBuffer, treeBuffer, archiveMD5Buffer, otherMD5Buffer)
+            : List.of(otherMD5.wholeFileChecksum());
+        if (!verifySignature(signature, buffers)) {
             System.err.println("Failed to verify signature");
         }
 
@@ -117,10 +120,7 @@ public record VpkDirectory(
 
     private static boolean verifySignature(
         VpkSignature vpkSignature,
-        Bytes headerBuffer,
-        Bytes treeBuffer,
-        Bytes archiveMD5Buffer,
-        Bytes otherMD5Buffer
+        List<Bytes> buffers
     ) {
         try {
             var keySpec = new X509EncodedKeySpec(vpkSignature.publicKey().toArray());
@@ -128,10 +128,9 @@ public record VpkDirectory(
 
             var signature = Signature.getInstance("SHA256withRSA");
             signature.initVerify(publicKey);
-            signature.update(headerBuffer.asBuffer());
-            signature.update(treeBuffer.asBuffer());
-            signature.update(archiveMD5Buffer.asBuffer());
-            signature.update(otherMD5Buffer.asBuffer());
+            for (Bytes buffer : buffers) {
+                signature.update(buffer.asBuffer());
+            }
             return signature.verify(vpkSignature.signature().toArray());
         } catch (GeneralSecurityException e) {
             throw new RuntimeException(e);
