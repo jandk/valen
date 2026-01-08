@@ -1,10 +1,9 @@
 package be.twofold.valen.ui.component.modelviewer;
 
-import be.twofold.valen.core.math.*;
+import be.twofold.valen.core.geometry.*;
 import be.twofold.valen.ui.common.*;
 import jakarta.inject.*;
 import javafx.geometry.*;
-import javafx.geometry.Bounds;
 import javafx.scene.*;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;

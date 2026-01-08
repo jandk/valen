@@ -1,9 +1,9 @@
 package be.twofold.valen.game.eternal.reader.md6anim;
 
-import be.twofold.valen.core.math.*;
 import org.slf4j.*;
 import wtf.reversed.toolbox.collect.*;
 import wtf.reversed.toolbox.io.*;
+import wtf.reversed.toolbox.math.*;
 
 import java.io.*;
 import java.util.*;
@@ -110,10 +110,10 @@ public record Md6Anim(
         var yBit = (y >>> 15) & 1;
         var index = (yBit << 1 | xBit);
 
-        var a = Math.fma(x & 0x7fff, MathF.SQRT_2 / 0x7fff, -MathF.SQRT1_2);
-        var b = Math.fma(y & 0x7fff, MathF.SQRT_2 / 0x7fff, -MathF.SQRT1_2);
-        var c = Math.fma(z & 0x7fff, MathF.SQRT_2 / 0x7fff, -MathF.SQRT1_2);
-        var d = MathF.sqrt(1 - a * a - b * b - c * c);
+        var a = Math.fma(x & 0x7fff, FloatMath.SQRT_2 / 0x7fff, -FloatMath.SQRT1_2);
+        var b = Math.fma(y & 0x7fff, FloatMath.SQRT_2 / 0x7fff, -FloatMath.SQRT1_2);
+        var c = Math.fma(z & 0x7fff, FloatMath.SQRT_2 / 0x7fff, -FloatMath.SQRT1_2);
+        var d = FloatMath.sqrt(1 - a * a - b * b - c * c);
 
         return switch (index) {
             case 0 -> new Quaternion(a, b, c, d);

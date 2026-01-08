@@ -1,6 +1,6 @@
 package be.twofold.valen.game.eternal.reader.md6anim;
 
-import be.twofold.valen.core.math.*;
+import wtf.reversed.toolbox.math.*;
 
 import java.util.*;
 

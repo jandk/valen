@@ -1,8 +1,7 @@
 package be.twofold.valen.core.util;
 
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
-import java.util.Optional;
+import java.lang.reflect.*;
+import java.util.*;
 
 public final class Reflections {
     private Reflections() {
