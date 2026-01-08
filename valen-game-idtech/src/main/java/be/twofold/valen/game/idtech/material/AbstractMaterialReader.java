@@ -2,7 +2,6 @@ package be.twofold.valen.game.idtech.material;
 
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.material.*;
-import be.twofold.valen.core.math.*;
 import be.twofold.valen.core.texture.*;
 import be.twofold.valen.core.util.*;
 import be.twofold.valen.game.idtech.decl.*;
@@ -12,6 +11,7 @@ import be.twofold.valen.game.idtech.renderparm.*;
 import com.google.gson.*;
 import org.slf4j.*;
 import wtf.reversed.toolbox.io.*;
+import wtf.reversed.toolbox.math.*;
 import wtf.reversed.toolbox.util.*;
 
 import java.io.*;
@@ -139,7 +139,7 @@ public abstract class AbstractMaterialReader<K extends AssetID, V extends Asset,
 
     private MaterialProperty mapEmissive(Map<String, Parm> allParms) {
         var emissive = mapSimpleTexture(allParms, MaterialPropertyType.Emissive);
-        var emissiveColor = allParms.get("surfaceemissivecolor") != null ? (Vector3) allParms.get("surfaceemissivecolor").value() : Vector3.One;
+        var emissiveColor = allParms.get("surfaceemissivecolor") != null ? (Vector3) allParms.get("surfaceemissivecolor").value() : Vector3.ONE;
         var emissiveScale = allParms.get("surfaceemissivescale") != null ? (Float) allParms.get("surfaceemissivescale").value() : 1.0f;
         var emissiveFactor = new Vector4(emissiveColor, emissiveScale);
 
@@ -306,7 +306,7 @@ public abstract class AbstractMaterialReader<K extends AssetID, V extends Asset,
         var y = object.has("y") ? object.getAsJsonPrimitive("y").getAsFloat() : defaultValue.y();
         var result = new Vector2(x, y);
         return renderParm.parmEdit instanceof ParmEdit.Srgba
-            ? result.map(MathF::srgbToLinear)
+            ? new Vector2(MathF.srgbToLinear(result.x()), MathF.srgbToLinear(result.y()))
             : result;
     }
 
@@ -318,7 +318,7 @@ public abstract class AbstractMaterialReader<K extends AssetID, V extends Asset,
         var z = object.has("z") ? object.getAsJsonPrimitive("z").getAsFloat() : defaultValue.z();
         var result = new Vector3(x, y, z);
         return renderParm.parmEdit instanceof ParmEdit.Srgba
-            ? result.map(MathF::srgbToLinear)
+            ? new Vector3(MathF.srgbToLinear(result.x()), MathF.srgbToLinear(result.y()), MathF.srgbToLinear(result.z()))
             : result;
     }
 
@@ -331,7 +331,7 @@ public abstract class AbstractMaterialReader<K extends AssetID, V extends Asset,
         var w = object.has("w") ? object.getAsJsonPrimitive("w").getAsFloat() : defaultValue.w();
         var result = new Vector4(x, y, z, w);
         return renderParm.parmEdit instanceof ParmEdit.Srgba
-            ? result.map(MathF::srgbToLinear)
+            ? new Vector4(MathF.srgbToLinear(result.x()), MathF.srgbToLinear(result.y()), MathF.srgbToLinear(result.z()), result.w())
             : result;
     }
 

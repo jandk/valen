@@ -1,8 +1,8 @@
 package be.twofold.valen.game.greatcircle.reader.md6skl;
 
-import be.twofold.valen.core.math.*;
 import wtf.reversed.toolbox.collect.*;
 import wtf.reversed.toolbox.io.*;
+import wtf.reversed.toolbox.math.*;
 
 import java.io.*;
 import java.util.*;
@@ -56,7 +56,7 @@ public record Md6Skl(
         var translations = source.readObjects(numJoints8, Vector3::read);
 
         source.position(base + header.inverseBasePoseOffset());
-        var inverseBasePoses = source.readObjects(numJoints8, Md6Skl::readInverseBasePose);
+        var inverseBasePoses = source.readObjects(numJoints8, Matrix4::read3x4);
 
         source.position(base + header.size());
         var unknownInts = source.readInts(numUserChannels8);
@@ -81,12 +81,5 @@ public record Md6Skl(
             userChannelNames,
             rigControlNames
         );
-    }
-
-    private static Matrix4 readInverseBasePose(BinarySource source) throws IOException {
-        var floats = Floats.Mutable.allocate(16);
-        source.readFloats(12).copyTo(floats, 0);
-        floats.set(15, 1.0f);
-        return Matrix4.fromFloats(floats).transpose();
     }
 }

@@ -1,8 +1,9 @@
 package be.twofold.valen.core.texture.conversion;
 
-import be.twofold.valen.core.math.*;
 import be.twofold.valen.core.texture.*;
+import be.twofold.valen.core.util.*;
 import wtf.reversed.toolbox.collect.*;
+import wtf.reversed.toolbox.math.*;
 
 import java.util.function.*;
 
@@ -11,7 +12,7 @@ final class Tonemap extends Conversion {
 
     static {
         for (int i = 0; i <= 0x3C00; i++) {
-            HALF_SRGB[i] = MathF.packUNorm8(MathF.linearToSrgb(Float.float16ToFloat((short) i)));
+            HALF_SRGB[i] = FloatMath.packUNorm8(MathF.linearToSrgb(Float.float16ToFloat((short) i)));
         }
     }
 

@@ -1,11 +1,9 @@
 package be.twofold.valen.game.greatcircle;
 
-import be.twofold.valen.core.game.AssetID;
-import be.twofold.valen.game.greatcircle.resource.ResourceName;
-import be.twofold.valen.game.greatcircle.resource.ResourceType;
-import be.twofold.valen.game.greatcircle.resource.ResourceVariation;
+import be.twofold.valen.core.game.*;
+import be.twofold.valen.game.greatcircle.resource.*;
 
-import java.util.Comparator;
+import java.util.*;
 
 public record GreatCircleAssetID(
         ResourceName name,

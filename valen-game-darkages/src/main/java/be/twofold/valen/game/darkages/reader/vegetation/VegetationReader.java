@@ -2,7 +2,6 @@ package be.twofold.valen.game.darkages.reader.vegetation;
 
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.geometry.*;
-import be.twofold.valen.core.math.*;
 import be.twofold.valen.game.darkages.*;
 import be.twofold.valen.game.darkages.reader.*;
 import be.twofold.valen.game.darkages.reader.geometry.*;
