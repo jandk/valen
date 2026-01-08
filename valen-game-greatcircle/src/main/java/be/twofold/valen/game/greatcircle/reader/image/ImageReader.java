@@ -7,6 +7,7 @@ import be.twofold.valen.game.greatcircle.resource.*;
 import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
+import java.util.*;
 
 public final class ImageReader implements AssetReader<Texture, GreatCircleAsset> {
     private final BinaryStore<Long> streams;
@@ -65,7 +66,7 @@ public final class ImageReader implements AssetReader<Texture, GreatCircleAsset>
             var mip = image.sliceInfos().get(i);
 
             if (streams.exists(mip.hash())) {
-                image.slices()[i] = streams.read(mip.hash(), mip.decompressedSize());
+                image.slices()[i] = streams.read(mip.hash(), OptionalInt.of(mip.decompressedSize()));
             }
         }
     }

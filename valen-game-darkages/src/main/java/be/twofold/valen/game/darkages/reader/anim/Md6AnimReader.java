@@ -71,7 +71,8 @@ public final class Md6AnimReader implements AssetReader<Animation, DarkAgesAsset
             var layoutIndex = streamInfo.framsetToStreamLayout().get(i);
             if (sources[layoutIndex] == null) {
                 var streamHash = Hash.hash(hash, 0, layoutIndex);
-                var bytes = streams.read(streamHash, streamInfo.layouts().get(layoutIndex).uncompressedSize());
+                int uncompressedSize = streamInfo.layouts().get(layoutIndex).uncompressedSize();
+                var bytes = streams.read(streamHash, OptionalInt.of(uncompressedSize));
                 sources[layoutIndex] = BinarySource.wrap(bytes);
             }
 

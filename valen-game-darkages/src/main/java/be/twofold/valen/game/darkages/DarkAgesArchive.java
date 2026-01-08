@@ -73,7 +73,7 @@ public final class DarkAgesArchive extends Archive<DarkAgesAssetID, DarkAgesAsse
     }
 
     @Override
-    public Bytes read(DarkAgesAssetID identifier, Integer size) throws IOException {
+    public Bytes read(DarkAgesAssetID identifier, OptionalInt size) throws IOException {
         return resources.exists(identifier)
             ? resources.read(identifier)
             : common.read(identifier);

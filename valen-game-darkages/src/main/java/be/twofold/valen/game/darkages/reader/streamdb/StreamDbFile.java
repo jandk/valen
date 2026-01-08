@@ -41,18 +41,18 @@ public final class StreamDbFile implements BinaryStore<Long> {
     }
 
     @Override
-    public Bytes read(Long key, Integer size) throws IOException {
+    public Bytes read(Long key, OptionalInt size) throws IOException {
         var entry = index.get(key);
         Check.state(entry != null, () -> "Stream not found: " + key);
 
         log.debug("Reading stream: {}", String.format("%016X", entry.identity()));
         source.position(entry.offset());
         var compressed = source.readBytes(entry.length());
-        if (size == null || compressed.length() == size) {
+        if (size.isEmpty() || size.getAsInt() == compressed.length()) {
             return compressed;
         }
 
-        return decompressor.decompress(compressed, size);
+        return decompressor.decompress(compressed, size.getAsInt());
     }
 
     @Override

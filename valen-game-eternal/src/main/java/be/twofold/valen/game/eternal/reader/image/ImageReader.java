@@ -7,6 +7,7 @@ import be.twofold.valen.game.eternal.resource.*;
 import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
+import java.util.*;
 
 public final class ImageReader implements AssetReader<Texture, EternalAsset> {
     private final BinaryStore<Long> streams;
@@ -55,7 +56,7 @@ public final class ImageReader implements AssetReader<Texture, EternalAsset> {
     private void readSingleStream(Image image, long hash) throws IOException {
         var lastMip = image.mipInfos().getLast();
         var uncompressedSize = lastMip.cumulativeSizeStreamDB() + lastMip.decompressedSize();
-        var bytes = streams.read(hash, uncompressedSize);
+        var bytes = streams.read(hash, OptionalInt.of(uncompressedSize));
         try (var mipSource = BinarySource.wrap(bytes)) {
             for (var i = 0; i < image.header().totalMipCount(); i++) {
                 image.mipData()[i] = mipSource.readBytes(image.mipInfos().get(i).decompressedSize());
@@ -68,7 +69,7 @@ public final class ImageReader implements AssetReader<Texture, EternalAsset> {
             var mip = image.mipInfos().get(i);
             var mipHash = hash << 4 | (image.header().mipCount() - mip.mipLevel());
             if (streams.exists(mipHash)) {
-                image.mipData()[i] = streams.read(mipHash, mip.decompressedSize());
+                image.mipData()[i] = streams.read(mipHash, OptionalInt.of(mip.decompressedSize()));
             }
         }
     }

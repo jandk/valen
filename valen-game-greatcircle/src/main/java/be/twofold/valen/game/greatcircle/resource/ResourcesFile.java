@@ -76,7 +76,7 @@ public final class ResourcesFile implements Container<GreatCircleAssetID, GreatC
     }
 
     @Override
-    public Bytes read(GreatCircleAssetID key, Integer size) throws IOException {
+    public Bytes read(GreatCircleAssetID key, OptionalInt size) throws IOException {
         var resource = index.get(key);
         Check.state(resource != null, () -> "Resource not found: " + key.name());
 

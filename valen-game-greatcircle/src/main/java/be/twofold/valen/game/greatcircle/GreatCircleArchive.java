@@ -65,7 +65,7 @@ public final class GreatCircleArchive extends Archive<GreatCircleAssetID, GreatC
     }
 
     @Override
-    public Bytes read(GreatCircleAssetID identifier, Integer size) throws IOException {
+    public Bytes read(GreatCircleAssetID identifier, OptionalInt size) throws IOException {
         return resources.exists(identifier)
             ? resources.read(identifier)
             : common.read(identifier);

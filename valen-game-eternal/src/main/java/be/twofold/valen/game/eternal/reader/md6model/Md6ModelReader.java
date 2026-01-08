@@ -59,7 +59,7 @@ public final class Md6ModelReader implements AssetReader<Model, EternalAsset> {
         var layouts = md6.layouts().get(lod).memoryLayouts();
 
         var identity = (hash << 4) | lod;
-        var bytes = streams.read(identity, uncompressedSize);
+        var bytes = streams.read(identity, OptionalInt.of(uncompressedSize));
         try (var source = BinarySource.wrap(bytes)) {
             return GeometryReader.readStreamedMesh(source, lodInfos, layouts, true);
         }

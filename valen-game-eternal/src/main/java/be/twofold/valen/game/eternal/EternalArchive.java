@@ -82,7 +82,7 @@ public final class EternalArchive extends Archive<EternalAssetID, EternalAsset> 
     }
 
     @Override
-    public Bytes read(EternalAssetID identifier, Integer size) throws IOException {
+    public Bytes read(EternalAssetID identifier, OptionalInt size) throws IOException {
         return resources.exists(identifier)
             ? resources.read(identifier)
             : common.read(identifier);

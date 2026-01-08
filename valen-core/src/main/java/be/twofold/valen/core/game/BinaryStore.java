@@ -10,10 +10,11 @@ public interface BinaryStore<K> extends Closeable {
     boolean exists(K key);
 
     default Bytes read(K key) throws IOException {
-        return read(key, null);
+        return read(key, OptionalInt.empty());
     }
 
-    Bytes read(K key, Integer size) throws IOException;
+    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
+    Bytes read(K key, OptionalInt size) throws IOException;
 
     static <K> BinaryStore<K> compose(List<BinaryStore<K>> stores) {
         return new BinaryStore<K>() {
@@ -28,7 +29,7 @@ public interface BinaryStore<K> extends Closeable {
             }
 
             @Override
-            public Bytes read(K key, Integer size) throws IOException {
+            public Bytes read(K key, OptionalInt size) throws IOException {
                 for (var store : stores) {
                     if (store.exists(key)) {
                         return store.read(key, size);

@@ -76,7 +76,7 @@ public final class ResourcesFile implements Container<DarkAgesAssetID, DarkAgesA
     }
 
     @Override
-    public Bytes read(DarkAgesAssetID key, Integer size) throws IOException {
+    public Bytes read(DarkAgesAssetID key, OptionalInt size) throws IOException {
         var resource = index.get(key);
         Check.state(resource != null, () -> "Resource not found: " + key.name());
 

@@ -8,6 +8,7 @@ import be.twofold.valen.game.darkages.reader.resources.*;
 import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
+import java.util.*;
 
 public final class ImageReader implements AssetReader<Texture, DarkAgesAsset> {
     private final BinaryStore<Long> streams;
@@ -56,7 +57,7 @@ public final class ImageReader implements AssetReader<Texture, DarkAgesAsset> {
     private void readSingleStream(Image image, long hash) throws IOException {
         var lastMip = image.mipInfos().getLast();
         var uncompressedSize = lastMip.cumulativeSizeStreamDB() + lastMip.decompressedSize();
-        var bytes = streams.read(Hash.hash(hash, 0, 0), uncompressedSize);
+        var bytes = streams.read(Hash.hash(hash, 0, 0), OptionalInt.of(uncompressedSize));
         try (var mipSource = BinarySource.wrap(bytes)) {
             for (var i = 0; i < image.header().totalMipCount(); i++) {
                 image.mipData()[i] = mipSource.readBytes(image.mipInfos().get(i).decompressedSize());
@@ -70,7 +71,7 @@ public final class ImageReader implements AssetReader<Texture, DarkAgesAsset> {
             int streamID = image.header().streamDBMipCount() - mip.mipLevel() - 1;
             var mipHash = Hash.hash(hash, streamID, 0);
             if (streams.exists(mipHash)) {
-                image.mipData()[i] = streams.read(mipHash, mip.decompressedSize());
+                image.mipData()[i] = streams.read(mipHash, OptionalInt.of(mip.decompressedSize()));
             }
         }
     }

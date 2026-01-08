@@ -31,7 +31,7 @@ public interface Container<K, V> extends BinaryStore<K> {
             }
 
             @Override
-            public Bytes read(K key, Integer size) throws IOException {
+            public Bytes read(K key, OptionalInt size) throws IOException {
                 for (var file : containers) {
                     if (file.exists(key)) {
                         return file.read(key, size);
