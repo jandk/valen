@@ -10,15 +10,15 @@ import wtf.reversed.toolbox.io.*;
 import java.io.*;
 
 public final class ImageReader implements AssetReader<Texture, DarkAgesAsset> {
-    private final DarkAgesArchive archive;
+    private final BinaryStore<Long> streams;
     private final boolean readStreams;
 
-    public ImageReader(DarkAgesArchive archive) {
-        this(archive, true);
+    public ImageReader(BinaryStore<Long> streams) {
+        this(streams, true);
     }
 
-    ImageReader(DarkAgesArchive archive, boolean readStreams) {
-        this.archive = archive;
+    ImageReader(BinaryStore<Long> streams, boolean readStreams) {
+        this.streams = streams;
         this.readStreams = readStreams;
     }
 
@@ -56,7 +56,7 @@ public final class ImageReader implements AssetReader<Texture, DarkAgesAsset> {
     private void readSingleStream(Image image, long hash) throws IOException {
         var lastMip = image.mipInfos().getLast();
         var uncompressedSize = lastMip.cumulativeSizeStreamDB() + lastMip.decompressedSize();
-        var bytes = archive.readStream(Hash.hash(hash, 0, 0), uncompressedSize);
+        var bytes = streams.read(Hash.hash(hash, 0, 0), uncompressedSize);
         try (var mipSource = BinarySource.wrap(bytes)) {
             for (var i = 0; i < image.header().totalMipCount(); i++) {
                 image.mipData()[i] = mipSource.readBytes(image.mipInfos().get(i).decompressedSize());
@@ -69,8 +69,8 @@ public final class ImageReader implements AssetReader<Texture, DarkAgesAsset> {
             var mip = image.mipInfos().get(i);
             int streamID = image.header().streamDBMipCount() - mip.mipLevel() - 1;
             var mipHash = Hash.hash(hash, streamID, 0);
-            if (archive.containsStream(mipHash)) {
-                image.mipData()[i] = archive.readStream(mipHash, mip.decompressedSize());
+            if (streams.exists(mipHash)) {
+                image.mipData()[i] = streams.read(mipHash, mip.decompressedSize());
             }
         }
     }

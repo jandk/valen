@@ -12,7 +12,6 @@ import be.twofold.valen.game.darkages.reader.image.*;
 import be.twofold.valen.game.darkages.reader.model.*;
 import be.twofold.valen.game.darkages.reader.skeleton.*;
 import be.twofold.valen.game.darkages.reader.strandshair.*;
-import be.twofold.valen.game.darkages.reader.streamdb.*;
 import be.twofold.valen.game.darkages.reader.vegetation.*;
 import wtf.reversed.toolbox.collect.*;
 import wtf.reversed.toolbox.util.*;
@@ -22,18 +21,22 @@ import java.util.*;
 import java.util.stream.*;
 
 public final class DarkAgesArchive extends Archive<DarkAgesAssetID, DarkAgesAsset> {
-    private final Container<Long, StreamDbEntry> streams;
+    private final BinaryStore<Long> streams;
     private final Container<DarkAgesAssetID, DarkAgesAsset> common;
     private final Container<DarkAgesAssetID, DarkAgesAsset> resources;
 
     DarkAgesArchive(
-        Container<Long, StreamDbEntry> streams,
+        BinaryStore<Long> streams,
         Container<DarkAgesAssetID, DarkAgesAsset> common,
         Container<DarkAgesAssetID, DarkAgesAsset> resources
     ) {
         this.streams = Check.nonNull(streams, "streams");
         this.common = Check.nonNull(common, "common");
         this.resources = Check.nonNull(resources, "resources");
+    }
+
+    BinaryStore<Long> streams() {
+        return streams;
     }
 
     @Override
@@ -43,16 +46,16 @@ public final class DarkAgesArchive extends Archive<DarkAgesAssetID, DarkAgesAsse
         return List.of(
             declReader,
             new BinaryFileReader(),
-            new BinkReader(this),
-            new ImageReader(this),
+            new BinkReader(streams),
+            new ImageReader(streams),
             new MaterialReader(this, declReader),
-            new Md6AnimReader(this),
-            new Md6ModelReader(this, true),
+            new Md6AnimReader(this, streams),
+            new Md6ModelReader(this, streams, true),
             new Md6SkelReader(),
             new RenderParmReader(),
-            new StaticModelReader(this),
+            new StaticModelReader(this, streams, true),
             new StrandsHairReader(),
-            new VegetationReader(this, true)
+            new VegetationReader(this, streams, true)
         );
     }
 
@@ -72,16 +75,8 @@ public final class DarkAgesArchive extends Archive<DarkAgesAssetID, DarkAgesAsse
     @Override
     public Bytes read(DarkAgesAssetID identifier, Integer size) throws IOException {
         return resources.exists(identifier)
-            ? resources.read(identifier, null)
-            : common.read(identifier, null);
-    }
-
-    public boolean containsStream(long identifier) {
-        return streams.exists(identifier);
-    }
-
-    public Bytes readStream(long identifier, int size) throws IOException {
-        return streams.read(identifier, size < 0 ? null : size);
+            ? resources.read(identifier)
+            : common.read(identifier);
     }
 
     @Override

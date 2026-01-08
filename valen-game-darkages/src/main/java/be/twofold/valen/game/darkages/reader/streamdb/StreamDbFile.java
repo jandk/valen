@@ -13,7 +13,7 @@ import java.util.*;
 import java.util.function.*;
 import java.util.stream.*;
 
-public final class StreamDbFile implements Container<Long, StreamDbEntry> {
+public final class StreamDbFile implements BinaryStore<Long> {
     private static final Logger log = LoggerFactory.getLogger(StreamDbFile.class);
 
     private final Map<Long, StreamDbEntry> index;
@@ -36,13 +36,8 @@ public final class StreamDbFile implements Container<Long, StreamDbEntry> {
     }
 
     @Override
-    public Optional<StreamDbEntry> get(Long identity) {
-        return Optional.ofNullable(index.get(identity));
-    }
-
-    @Override
-    public Stream<StreamDbEntry> getAll() {
-        return index.values().stream();
+    public boolean exists(Long key) {
+        return index.containsKey(key);
     }
 
     @Override

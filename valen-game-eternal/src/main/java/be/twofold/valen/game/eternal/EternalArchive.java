@@ -14,7 +14,6 @@ import be.twofold.valen.game.eternal.reader.md6anim.*;
 import be.twofold.valen.game.eternal.reader.md6model.*;
 import be.twofold.valen.game.eternal.reader.md6skel.*;
 import be.twofold.valen.game.eternal.reader.staticmodel.*;
-import be.twofold.valen.game.eternal.reader.streamdb.*;
 import wtf.reversed.toolbox.collect.*;
 import wtf.reversed.toolbox.compress.*;
 import wtf.reversed.toolbox.util.*;
@@ -24,13 +23,13 @@ import java.util.*;
 import java.util.stream.*;
 
 public final class EternalArchive extends Archive<EternalAssetID, EternalAsset> {
-    private final Container<Long, StreamDbEntry> streams;
+    private final BinaryStore<Long> streams;
     private final Container<EternalAssetID, EternalAsset> common;
     private final Container<EternalAssetID, EternalAsset> resources;
     private final Decompressor decompressor;
 
     EternalArchive(
-        Container<Long, StreamDbEntry> streams,
+        BinaryStore<Long> streams,
         Container<EternalAssetID, EternalAsset> common,
         Container<EternalAssetID, EternalAsset> resources,
         Decompressor decompressor
@@ -39,6 +38,10 @@ public final class EternalArchive extends Archive<EternalAssetID, EternalAsset> 
         this.common = Check.nonNull(common, "common");
         this.resources = Check.nonNull(resources, "resources");
         this.decompressor = Check.nonNull(decompressor, "decompressor");
+    }
+
+    BinaryStore<Long> streams() {
+        return streams;
     }
 
     @Override
@@ -54,14 +57,14 @@ public final class EternalArchive extends Archive<EternalAssetID, EternalAsset> 
             new JsonReader(),
 
             // Actual readers
-            new ImageReader(this),
+            new ImageReader(streams),
             new MapFileStaticInstancesReader(this),
             new MaterialReader(this, declReader),
             new Md6AnimReader(this),
-            new Md6ModelReader(this),
+            new Md6ModelReader(this, streams, true),
             new Md6SkelReader(),
             new RenderParmReader(),
-            new StaticModelReader(this)
+            new StaticModelReader(this, streams, true)
         );
     }
 
@@ -81,16 +84,8 @@ public final class EternalArchive extends Archive<EternalAssetID, EternalAsset> 
     @Override
     public Bytes read(EternalAssetID identifier, Integer size) throws IOException {
         return resources.exists(identifier)
-            ? resources.read(identifier, null)
-            : common.read(identifier, null);
-    }
-
-    public boolean containsStream(long identifier) {
-        return streams.exists(identifier);
-    }
-
-    public Bytes readStream(long identifier, int size) throws IOException {
-        return streams.read(identifier, size);
+            ? resources.read(identifier)
+            : common.read(identifier);
     }
 
     @Override

@@ -14,14 +14,12 @@ import java.util.*;
 
 public final class Md6ModelReader implements AssetReader<Model, EternalAsset> {
     private final EternalArchive archive;
+    private final BinaryStore<Long> streams;
     private final boolean readMaterials;
 
-    public Md6ModelReader(EternalArchive archive) {
-        this(archive, true);
-    }
-
-    Md6ModelReader(EternalArchive archive, boolean readMaterials) {
+    public Md6ModelReader(EternalArchive archive, BinaryStore<Long> streams, boolean readMaterials) {
         this.archive = archive;
+        this.streams = streams;
         this.readMaterials = readMaterials;
     }
 
@@ -61,7 +59,7 @@ public final class Md6ModelReader implements AssetReader<Model, EternalAsset> {
         var layouts = md6.layouts().get(lod).memoryLayouts();
 
         var identity = (hash << 4) | lod;
-        var bytes = archive.readStream(identity, uncompressedSize);
+        var bytes = streams.read(identity, uncompressedSize);
         try (var source = BinarySource.wrap(bytes)) {
             return GeometryReader.readStreamedMesh(source, lodInfos, layouts, true);
         }

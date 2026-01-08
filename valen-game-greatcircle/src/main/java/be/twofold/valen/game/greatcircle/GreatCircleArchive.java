@@ -10,7 +10,6 @@ import be.twofold.valen.game.greatcircle.reader.image.*;
 import be.twofold.valen.game.greatcircle.reader.md6mesh.*;
 import be.twofold.valen.game.greatcircle.reader.md6skl.*;
 import be.twofold.valen.game.greatcircle.reader.staticmodel.*;
-import be.twofold.valen.game.greatcircle.reader.streamdb.*;
 import wtf.reversed.toolbox.collect.*;
 import wtf.reversed.toolbox.util.*;
 
@@ -19,12 +18,12 @@ import java.util.*;
 import java.util.stream.*;
 
 public final class GreatCircleArchive extends Archive<GreatCircleAssetID, GreatCircleAsset> {
-    private final Container<Long, StreamDbEntry> streams;
+    private final BinaryStore<Long> streams;
     private final Container<GreatCircleAssetID, GreatCircleAsset> common;
     private final Container<GreatCircleAssetID, GreatCircleAsset> resources;
 
     GreatCircleArchive(
-        Container<Long, StreamDbEntry> streams,
+        BinaryStore<Long> streams,
         Container<GreatCircleAssetID, GreatCircleAsset> common,
         Container<GreatCircleAssetID, GreatCircleAsset> resources
     ) {
@@ -33,18 +32,22 @@ public final class GreatCircleArchive extends Archive<GreatCircleAssetID, GreatC
         this.resources = Check.nonNull(resources, "resources");
     }
 
+    BinaryStore<Long> streams() {
+        return streams;
+    }
+
     @Override
     public List<AssetReader<?, GreatCircleAsset>> createReaders() {
         var declReader = new DeclReader(this);
         return List.of(
-            new DeformModelReader(this, true),
+            new DeformModelReader(this, streams, true),
             new HairReader(),
-            new ImageReader(this),
+            new ImageReader(streams),
             new MaterialReader(this, declReader),
-            new Md6MeshReader(this),
+            new Md6MeshReader(this, streams, true),
             new Md6SklReader(),
             new RenderParmReader(),
-            new StaticModelReader(this)
+            new StaticModelReader(this, streams, true)
         );
     }
 
@@ -64,16 +67,8 @@ public final class GreatCircleArchive extends Archive<GreatCircleAssetID, GreatC
     @Override
     public Bytes read(GreatCircleAssetID identifier, Integer size) throws IOException {
         return resources.exists(identifier)
-            ? resources.read(identifier, null)
-            : common.read(identifier, null);
-    }
-
-    public boolean containsStream(long identifier) {
-        return streams.exists(identifier);
-    }
-
-    public Bytes readStream(long identifier, int size) throws IOException {
-        return streams.read(identifier, size);
+            ? resources.read(identifier)
+            : common.read(identifier);
     }
 
     @Override

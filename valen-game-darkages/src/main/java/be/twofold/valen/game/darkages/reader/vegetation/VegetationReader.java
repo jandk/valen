@@ -15,10 +15,12 @@ import java.util.*;
 
 public final class VegetationReader implements AssetReader<Model, DarkAgesAsset> {
     private final DarkAgesArchive archive;
+    private final BinaryStore<Long> streams;
     private final boolean readMaterials;
 
-    public VegetationReader(DarkAgesArchive archive, boolean readMaterials) {
+    public VegetationReader(DarkAgesArchive archive, BinaryStore<Long> streams, boolean readMaterials) {
         this.archive = Check.nonNull(archive, "archive");
+        this.streams = Check.nonNull(streams, "streams");
         this.readMaterials = readMaterials;
     }
 
@@ -48,7 +50,7 @@ public final class VegetationReader implements AssetReader<Model, DarkAgesAsset>
             .toList();
 
         var identity = Hash.hash(hash, 4 - lod, 0);
-        var bytes = archive.readStream(identity, uncompressedSize);
+        var bytes = streams.read(identity, uncompressedSize);
 
         try (var source = BinarySource.wrap(bytes)) {
             return GeometryReader.readStreamedMesh(source, lodInfos, false);

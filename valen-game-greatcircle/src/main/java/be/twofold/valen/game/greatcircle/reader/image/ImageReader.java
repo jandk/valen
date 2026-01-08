@@ -9,15 +9,15 @@ import wtf.reversed.toolbox.io.*;
 import java.io.*;
 
 public final class ImageReader implements AssetReader<Texture, GreatCircleAsset> {
-    private final GreatCircleArchive archive;
+    private final BinaryStore<Long> streams;
     private final boolean readStreams;
 
-    public ImageReader(GreatCircleArchive archive) {
-        this(archive, true);
+    public ImageReader(BinaryStore<Long> streams) {
+        this(streams, true);
     }
 
-    ImageReader(GreatCircleArchive archive, boolean readStreams) {
-        this.archive = archive;
+    ImageReader(BinaryStore<Long> streams, boolean readStreams) {
+        this.streams = streams;
         this.readStreams = readStreams;
     }
 
@@ -52,7 +52,7 @@ public final class ImageReader implements AssetReader<Texture, GreatCircleAsset>
     private void readSingleStream(Image image, long hash) throws IOException {
 //        var lastMip = image.sliceInfos().getLast();
 //        var uncompressedSize = lastMip.cumulativeSizeStreamDB() + lastMip.decompressedSize();
-//        var bytes = archive.readStream(hash, uncompressedSize);
+//        var bytes = streams.read(hash, uncompressedSize);
 //        try (var mipSource = DataSource.fromArray(bytes)) {
 //            for (var i = 0; i < image.header().totalMipCount(); i++) {
 //                image.slices()[i] = mipSource.readBytes(image.sliceInfos().get(i).decompressedSize());
@@ -64,8 +64,8 @@ public final class ImageReader implements AssetReader<Texture, GreatCircleAsset>
         for (var i = 0; i < image.header().startMip(); i++) {
             var mip = image.sliceInfos().get(i);
 
-            if (archive.containsStream(mip.hash())) {
-                image.slices()[i] = archive.readStream(mip.hash(), mip.decompressedSize());
+            if (streams.exists(mip.hash())) {
+                image.slices()[i] = streams.read(mip.hash(), mip.decompressedSize());
             }
         }
     }

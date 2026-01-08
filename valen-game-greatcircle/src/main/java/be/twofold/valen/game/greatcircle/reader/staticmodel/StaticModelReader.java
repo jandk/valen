@@ -14,14 +14,12 @@ import java.util.*;
 
 public final class StaticModelReader implements AssetReader<Model, GreatCircleAsset> {
     private final GreatCircleArchive archive;
+    private final BinaryStore<Long> streams;
     private final boolean readMaterials;
 
-    public StaticModelReader(GreatCircleArchive archive) {
-        this(archive, true);
-    }
-
-    StaticModelReader(GreatCircleArchive archive, boolean readMaterials) {
+    public StaticModelReader(GreatCircleArchive archive, BinaryStore<Long> streams, boolean readMaterials) {
         this.archive = archive;
+        this.streams = streams;
         this.readMaterials = readMaterials;
     }
 
@@ -64,7 +62,7 @@ public final class StaticModelReader implements AssetReader<Model, GreatCircleAs
 
         var diskLayout = model.streamDiskLayouts().get(lod);
         var uncompressedSize = diskLayout.uncompressedSize();
-        var bytes = archive.readStream(diskLayout.hash(), uncompressedSize);
+        var bytes = streams.read(diskLayout.hash(), uncompressedSize);
         var source = BinarySource.wrap(bytes);
         return GeometryReader.readStreamedMesh(source, lods, diskLayout.memoryLayouts(), false);
     }

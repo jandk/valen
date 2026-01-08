@@ -17,9 +17,11 @@ import java.util.stream.*;
 
 public final class Md6AnimReader implements AssetReader<Animation, DarkAgesAsset> {
     private final DarkAgesArchive archive;
+    private final BinaryStore<Long> streams;
 
-    public Md6AnimReader(DarkAgesArchive archive) {
+    public Md6AnimReader(DarkAgesArchive archive, BinaryStore<Long> streams) {
         this.archive = Check.nonNull(archive, "archive");
+        this.streams = Check.nonNull(streams, "streams");
     }
 
     @Override
@@ -69,7 +71,7 @@ public final class Md6AnimReader implements AssetReader<Animation, DarkAgesAsset
             var layoutIndex = streamInfo.framsetToStreamLayout().get(i);
             if (sources[layoutIndex] == null) {
                 var streamHash = Hash.hash(hash, 0, layoutIndex);
-                var bytes = archive.readStream(streamHash, streamInfo.layouts().get(layoutIndex).uncompressedSize());
+                var bytes = streams.read(streamHash, streamInfo.layouts().get(layoutIndex).uncompressedSize());
                 sources[layoutIndex] = BinarySource.wrap(bytes);
             }
 

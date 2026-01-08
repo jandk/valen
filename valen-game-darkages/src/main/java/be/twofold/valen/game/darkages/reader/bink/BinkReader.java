@@ -11,10 +11,10 @@ import wtf.reversed.toolbox.util.*;
 import java.io.*;
 
 public final class BinkReader implements AssetReader<Bytes, DarkAgesAsset> {
-    private final DarkAgesArchive archive;
+    private final BinaryStore<Long> streams;
 
-    public BinkReader(DarkAgesArchive archive) {
-        this.archive = Check.nonNull(archive, "archive");
+    public BinkReader(BinaryStore<Long> streams) {
+        this.streams = Check.nonNull(streams, "streams");
     }
 
     @Override
@@ -25,6 +25,6 @@ public final class BinkReader implements AssetReader<Bytes, DarkAgesAsset> {
     @Override
     public Bytes read(BinarySource source, DarkAgesAsset asset) throws IOException {
         long hash = Hash.hash(asset.hash(), 0, 0);
-        return archive.readStream(hash, -1);
+        return streams.read(hash, -1);
     }
 }

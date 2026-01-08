@@ -14,14 +14,12 @@ import java.util.*;
 
 public final class StaticModelReader implements AssetReader<Model, EternalAsset> {
     private final EternalArchive archive;
+    private final BinaryStore<Long> streams;
     private final boolean readMaterials;
 
-    public StaticModelReader(EternalArchive archive) {
-        this(archive, true);
-    }
-
-    StaticModelReader(EternalArchive archive, boolean readMaterials) {
+    public StaticModelReader(EternalArchive archive, BinaryStore<Long> streams, boolean readMaterials) {
         this.archive = archive;
+        this.streams = streams;
         this.readMaterials = readMaterials;
     }
 
@@ -67,7 +65,7 @@ public final class StaticModelReader implements AssetReader<Model, EternalAsset>
             .toList();
         var layouts = model.streamDiskLayouts().get(lod).memoryLayouts();
 
-        var bytes = archive.readStream(streamHash, uncompressedSize);
+        var bytes = streams.read(streamHash, uncompressedSize);
         var source = BinarySource.wrap(bytes);
         return GeometryReader.readStreamedMesh(source, lods, layouts, false);
     }

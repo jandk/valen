@@ -12,7 +12,7 @@ public abstract class Archive<TID extends AssetID, TAsset extends Asset> impleme
 
     public final <T> T loadAsset(TID identifier, Class<T> clazz) throws IOException {
         var asset = get(identifier).orElseThrow(FileNotFoundException::new);
-        var bytes = read(identifier, null);
+        var bytes = read(identifier);
 
         try (var source = BinarySource.wrap(bytes)) {
             return read(asset, source, clazz);

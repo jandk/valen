@@ -13,12 +13,12 @@ import static org.assertj.core.api.Assertions.*;
 
 public abstract class TestUtils {
 
-    public static void testReader(Function<DarkAgesArchive, AssetReader<?, DarkAgesAsset>> readerFunction) throws IOException {
+    public static void testReader(BiFunction<DarkAgesArchive, BinaryStore<Long>, AssetReader<?, DarkAgesAsset>> readerFunction) throws IOException {
         DarkAgesGame game = new DarkAgesGameFactory().load(Path.of(Constants.ExecutablePath));
 
         for (String archiveName : game.archiveNames()) {
             var archive = game.loadArchive(archiveName);
-            var reader = readerFunction.apply(archive);
+            var reader = readerFunction.apply(archive, archive.streams());
             readAllInMap(archive, reader);
         }
     }

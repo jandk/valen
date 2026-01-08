@@ -15,14 +15,12 @@ import java.util.*;
 
 public final class StaticModelReader implements AssetReader<Model, DarkAgesAsset> {
     private final DarkAgesArchive archive;
+    private final BinaryStore<Long> streams;
     private final boolean readMaterials;
 
-    public StaticModelReader(DarkAgesArchive archive) {
-        this(archive, true);
-    }
-
-    StaticModelReader(DarkAgesArchive archive, boolean readMaterials) {
+    public StaticModelReader(DarkAgesArchive archive, BinaryStore<Long> streams, boolean readMaterials) {
         this.archive = archive;
+        this.streams = streams;
         this.readMaterials = readMaterials;
     }
 
@@ -49,7 +47,7 @@ public final class StaticModelReader implements AssetReader<Model, DarkAgesAsset
         return readStreamedGeometry(model, 0, hash);
     }
 
-    private List<Mesh> readEmbeddedGeometry(StaticModel model, BinarySource source) throws IOException {
+    private List<Mesh> readEmbeddedGeometry(StaticModel model, BinarySource source) {
         List<Mesh> meshes = new ArrayList<>();
         for (var meshInfo : model.meshInfos()) {
             Check.state(meshInfo.lodInfos().size() == 1, "Expected single LOD");
@@ -67,7 +65,7 @@ public final class StaticModelReader implements AssetReader<Model, DarkAgesAsset
             .<LodInfo>map(mi -> mi.lodInfos().get(lod))
             .toList();
 
-        var bytes = archive.readStream(streamHash, uncompressedSize);
+        var bytes = streams.read(streamHash, uncompressedSize);
         var source = BinarySource.wrap(bytes);
         return GeometryReader.readStreamedMesh(source, lods, false);
     }

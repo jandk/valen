@@ -15,10 +15,12 @@ import java.util.*;
 
 public final class Md6ModelReader implements AssetReader<Model, DarkAgesAsset> {
     private final DarkAgesArchive archive;
+    private final BinaryStore<Long> streams;
     private final boolean readMaterials;
 
-    public Md6ModelReader(DarkAgesArchive archive, boolean readMaterials) {
+    public Md6ModelReader(DarkAgesArchive archive, BinaryStore<Long> streams, boolean readMaterials) {
         this.archive = archive;
+        this.streams = streams;
         this.readMaterials = false;
     }
 
@@ -58,7 +60,7 @@ public final class Md6ModelReader implements AssetReader<Model, DarkAgesAsset> {
             .toList();
 
         var identity = Hash.hash(hash, 4 - lod, 0);
-        var bytes = archive.readStream(identity, uncompressedSize);
+        var bytes = streams.read(identity, uncompressedSize);
 
         try (var source = BinarySource.wrap(bytes)) {
             List<Mesh> meshes = GeometryReader.readStreamedMesh(source, lodInfos, true);

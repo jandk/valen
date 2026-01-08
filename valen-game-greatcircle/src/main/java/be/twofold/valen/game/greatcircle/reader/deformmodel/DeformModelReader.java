@@ -13,10 +13,12 @@ import java.util.*;
 
 public final class DeformModelReader implements AssetReader<Model, GreatCircleAsset> {
     private final GreatCircleArchive archive;
+    private final BinaryStore<Long> streams;
     private final boolean readMaterials;
 
-    public DeformModelReader(GreatCircleArchive archive, boolean readMaterials) {
+    public DeformModelReader(GreatCircleArchive archive, BinaryStore<Long> streams, boolean readMaterials) {
         this.archive = archive;
+        this.streams = streams;
         this.readMaterials = readMaterials;
     }
 
@@ -58,7 +60,7 @@ public final class DeformModelReader implements AssetReader<Model, GreatCircleAs
         var layouts = deformModel.diskLayouts().get(lod).memoryLayouts();
 
         var identity = (hash << 4) | lod;
-        var bytes = archive.readStream(identity, uncompressedSize);
+        var bytes = streams.read(identity, uncompressedSize);
         try (var source = BinarySource.wrap(bytes)) {
             return GeometryReader.readStreamedMesh(source, lodInfos, layouts, true);
         }

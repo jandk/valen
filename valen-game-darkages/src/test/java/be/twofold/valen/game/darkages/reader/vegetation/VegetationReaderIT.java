@@ -9,7 +9,7 @@ class VegetationReaderIT {
 
     @Test
     void testCanReadAll() throws IOException {
-        TestUtils.testReader(archive -> new VegetationReader(archive, false));
+        TestUtils.testReader((archive, store) -> new VegetationReader(archive, store, false));
     }
 
 }

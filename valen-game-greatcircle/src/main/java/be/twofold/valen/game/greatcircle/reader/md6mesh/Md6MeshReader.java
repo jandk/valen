@@ -6,7 +6,6 @@ import be.twofold.valen.game.greatcircle.*;
 import be.twofold.valen.game.greatcircle.reader.geometry.*;
 import be.twofold.valen.game.greatcircle.resource.*;
 import be.twofold.valen.game.idtech.geometry.*;
-import org.slf4j.*;
 import wtf.reversed.toolbox.collect.*;
 import wtf.reversed.toolbox.io.*;
 
@@ -14,16 +13,13 @@ import java.io.*;
 import java.util.*;
 
 public final class Md6MeshReader implements AssetReader<Model, GreatCircleAsset> {
-    private static final Logger log = LoggerFactory.getLogger(Md6MeshReader.class);
     private final GreatCircleArchive archive;
+    private final BinaryStore<Long> streams;
     private final boolean readMaterials;
 
-    public Md6MeshReader(GreatCircleArchive archive) {
-        this(archive, true);
-    }
-
-    Md6MeshReader(GreatCircleArchive archive, boolean readMaterials) {
+    public Md6MeshReader(GreatCircleArchive archive, BinaryStore<Long> streams, boolean readMaterials) {
         this.archive = archive;
+        this.streams = streams;
         this.readMaterials = readMaterials;
     }
 
@@ -66,7 +62,7 @@ public final class Md6MeshReader implements AssetReader<Model, GreatCircleAsset>
         var layouts = md6.layouts().get(lod).memoryLayouts();
 
         var identity = (hash << 4) | lod;
-        var bytes = archive.readStream(identity, uncompressedSize);
+        var bytes = streams.read(identity, uncompressedSize);
         try (var source = BinarySource.wrap(bytes)) {
             var meshes = GeometryReader.readStreamedMesh(source, lodInfos, layouts, true);
             var allBlendShapes = BlendShapeReader.readBlendShapes(source, lodInfos, layouts);

@@ -2,7 +2,6 @@ package be.twofold.valen.game.eternal;
 
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.game.eternal.reader.packagemapspec.*;
-import be.twofold.valen.game.eternal.reader.streamdb.*;
 import be.twofold.valen.game.eternal.resource.*;
 import be.twofold.valen.game.eternal.stream.*;
 import wtf.reversed.toolbox.compress.*;
@@ -15,7 +14,7 @@ public final class EternalGame implements Game {
     private final Path base;
     private final PackageMapSpec spec;
     private final Decompressor decompressor;
-    private final Container<Long, StreamDbEntry> streamDbCollection;
+    private final BinaryStore<Long> streamDbCollection;
     private final Container<EternalAssetID, EternalAsset> commonCollection;
 
     EternalGame(Path path) throws IOException {
@@ -40,17 +39,17 @@ public final class EternalGame implements Game {
         return Container.compose(files);
     }
 
-    static Container<Long, StreamDbEntry> loadStreams(Path base, PackageMapSpec spec, Decompressor decompressor) throws IOException {
+    static BinaryStore<Long> loadStreams(Path base, PackageMapSpec spec, Decompressor decompressor) throws IOException {
         var paths = spec.files().stream()
             .filter(s -> s.endsWith(".streamdb"))
             .map(base::resolve)
             .toList();
 
-        var files = new ArrayList<Container<Long, StreamDbEntry>>();
+        var files = new ArrayList<BinaryStore<Long>>();
         for (var path : paths) {
             files.add(new StreamDbFile(path, decompressor));
         }
-        return Container.compose(files);
+        return BinaryStore.compose(files);
     }
 
     @Override
