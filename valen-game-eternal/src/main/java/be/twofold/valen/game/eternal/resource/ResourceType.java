@@ -1,6 +1,6 @@
 package be.twofold.valen.game.eternal.resource;
 
-import be.twofold.valen.core.util.*;
+import wtf.reversed.toolbox.util.*;
 
 public enum ResourceType implements ValueEnum<String> {
     AmbientSh("ambientsh"),

@@ -1,6 +1,6 @@
 package be.twofold.valen.game.greatcircle.reader.resources;
 
-import be.twofold.valen.core.util.*;
+import wtf.reversed.toolbox.util.*;
 
 public enum ResourceCompressionMode implements ValueEnum<Integer> {
     RES_COMP_MODE_NONE(0),

@@ -1,6 +1,6 @@
 package be.twofold.valen.game.greatcircle.reader.streamdb;
 
-import be.twofold.valen.core.util.*;
+import wtf.reversed.toolbox.util.*;
 
 /**
  * Based on {@code streamerCompression_t}

@@ -1,6 +1,6 @@
 package be.twofold.valen.game.greatcircle.resource;
 
-import be.twofold.valen.core.util.*;
+import wtf.reversed.toolbox.util.*;
 
 public enum ResourceVariation implements ValueEnum<Integer> {
     RES_VAR_NONE(0),

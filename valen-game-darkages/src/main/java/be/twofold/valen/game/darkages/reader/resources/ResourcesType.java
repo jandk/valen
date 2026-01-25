@@ -1,6 +1,6 @@
 package be.twofold.valen.game.darkages.reader.resources;
 
-import be.twofold.valen.core.util.*;
+import wtf.reversed.toolbox.util.*;
 
 public enum ResourcesType implements ValueEnum<String> {
     AiNav("ainav"),

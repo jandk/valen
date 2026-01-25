@@ -1,6 +1,6 @@
 package be.twofold.valen.game.darkages.reader.resources;
 
-import be.twofold.valen.core.util.*;
+import wtf.reversed.toolbox.util.*;
 
 public enum ResourcesVariation implements ValueEnum<Integer> {
     RES_VAR_NONE(0),
