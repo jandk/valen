@@ -16,7 +16,7 @@ public record StreamDb(
     public static StreamDb read(BinarySource source) throws IOException {
         var header = StreamDbHeader.read(source);
         var entries = source.readObjects(header.numEntries(), StreamDbEntry::read);
-        if (!header.flags().contains(StreamDbHeaderFlag.SDHF_HAS_PREFETCH_BLOCKS)) {
+        if (!header.flags().contains(StreamDbHeaderFlags.SDHF_HAS_PREFETCH_BLOCKS)) {
             return new StreamDb(header, entries, null, List.of(), Longs.empty());
         }
 

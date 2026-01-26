@@ -7,44 +7,55 @@
 // File Mask: *.streamdb
 //  ID Bytes: 50 A5 C2 29 2E F3 C7 61
 //------------------------------------------------
+LittleEndian();
+typedef enum {
+    SDHF_NO_GUID = 1,
+    SDHF_HAS_PREFETCH_BLOCKS = 2,
+} StreamDbHeaderFlags <edit=flags>;
+
+// streamDatabaseHeader_t
 struct StreamDbHeader {
     uquad magic;
+    Assert(magic == 0x61C7F32E29C2A550UL);
     uint headerLength;
     uint pad0;
     uint pad1;
     uint pad2;
     uint numEntries;
-    uint flags;
+    StreamDbHeaderFlags flags;
 };
 
+// streamDatabaseEntry2_t
 struct StreamDbEntry {
     uquad identity;
     uint offset16;
     uint length;
 };
 
+// streamDatabasePrefetchHeader_t
 struct StreamDbPrefetchHeader {
     uint numPrefetchBlocks;
     uint totalLength;
 };
 
+// streamDatabasePrefetchBlock_t
 struct StreamDbPrefetchBlock {
     uquad name;
     uint firstItemIndex;
     uint numItems;
 };
 
-StreamDbHeader header <style=sHeading1>;
-StreamDbEntry entries[header.numEntries] <style=sSection1>;
+StreamDbHeader header                     <style=sHeading1>;
+StreamDbEntry  entries[header.numEntries] <style=sSection1>;
 
-if(header.flags & 0x02) {
-    StreamDbPrefetchHeader prefetchHeader <style=sHeading2>;
-    StreamDbPrefetchBlock prefetchBlocks[prefetchHeader.numPrefetchBlocks] <style=sSection2>;
+// This part is optional
+StreamDbPrefetchHeader prefetchHeader                                   <style=sHeading2>;
+StreamDbPrefetchBlock  prefetchBlocks[prefetchHeader.numPrefetchBlocks] <style=sSection2>;
 
-    local int i = 0;
+if (header.flags & SDHF_HAS_PREFETCH_BLOCKS) {
     local int prefetchBlockCount = 0;
-    for(i = 0; i < prefetchHeader.numPrefetchBlocks; i++) {
+    for (int i = 0; i < prefetchHeader.numPrefetchBlocks; i++) {
         prefetchBlockCount += prefetchBlocks[i].numItems;
     }
     uquad prefetchIds[prefetchBlockCount] <style=sSection3>;
-};
+}
