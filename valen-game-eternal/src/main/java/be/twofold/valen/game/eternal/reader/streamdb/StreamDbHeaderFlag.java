@@ -20,7 +20,7 @@ public enum StreamDbHeaderFlag implements FlagEnum {
     }
 
     @Override
-    public long value() {
+    public int value() {
         return value;
     }
 }

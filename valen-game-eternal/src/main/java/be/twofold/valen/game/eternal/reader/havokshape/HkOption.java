@@ -25,7 +25,7 @@ enum HkOption implements FlagEnum {
     }
 
     @Override
-    public long value() {
+    public int value() {
         return value;
     }
 }
