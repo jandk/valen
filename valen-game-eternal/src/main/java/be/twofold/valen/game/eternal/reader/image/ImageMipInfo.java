@@ -10,20 +10,20 @@ public record ImageMipInfo(
     int mipPixelWidth,
     int mipPixelHeight,
     int decompressedSize,
-    boolean flagIsCompressed,
+    int flagIsCompressed,
     int compressedSize,
-    int cumulativeSizeStreamDB
+    int cumulativeSizeStreamDb
 ) {
     public static ImageMipInfo read(BinarySource source) throws IOException {
         var mipLevel = source.readInt();
         var mipSlice = source.readInt();
         var mipPixelWidth = source.readInt();
         var mipPixelHeight = source.readInt();
-        source.expectInt(1);
+        source.expectInt(0x1); // always1
         var decompressedSize = source.readInt();
-        var flagIsCompressed = source.readBool(BoolFormat.INT);
+        var flagIsCompressed = source.readInt();
         var compressedSize = source.readInt();
-        var cumulativeSizeStreamDB = source.readInt();
+        var cumulativeSizeStreamDb = source.readInt();
 
         return new ImageMipInfo(
             mipLevel,
@@ -33,7 +33,7 @@ public record ImageMipInfo(
             decompressedSize,
             flagIsCompressed,
             compressedSize,
-            cumulativeSizeStreamDB
+            cumulativeSizeStreamDb
         );
     }
 }

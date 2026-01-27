@@ -1,18 +1,16 @@
 package be.twofold.valen.game.eternal.reader.image;
 
 import be.twofold.valen.core.texture.*;
-import be.twofold.valen.game.idtech.defines.*;
-import be.twofold.valen.game.idtech.defines.TextureFormat;
+import wtf.reversed.toolbox.collect.*;
 
 import java.util.*;
 
 public final class ImageMapper {
-    public Texture map(Image image) {
-        int minMip = image.minMip();
+    public Texture map(Image image, Bytes[] mipData, int minMip) {
         int width = minMip < 0 ? image.header().pixelWidth() : image.mipInfos().get(minMip).mipPixelWidth();
         int height = minMip < 0 ? image.header().pixelHeight() : image.mipInfos().get(minMip).mipPixelHeight();
         be.twofold.valen.core.texture.TextureFormat format = toImageFormat(image.header().textureFormat());
-        List<Surface> surfaces = convertMipMaps(image, format);
+        List<Surface> surfaces = convertMipMaps(image, mipData, minMip, format);
         boolean isCubeMap = image.header().textureType() == TextureType.TT_CUBIC;
         float scale = image.header().albedoSpecularScale();
         float bias = image.header().albedoSpecularBias();
@@ -20,10 +18,9 @@ public final class ImageMapper {
         return new Texture(width, height, format, isCubeMap, surfaces, scale, bias);
     }
 
-    private List<Surface> convertMipMaps(Image image, be.twofold.valen.core.texture.TextureFormat format) {
+    private List<Surface> convertMipMaps(Image image, Bytes[] mipData, int minMip, be.twofold.valen.core.texture.TextureFormat format) {
         int faces = image.header().textureType() == TextureType.TT_CUBIC ? 6 : 1;
         int mipCount = image.mipInfos().size() / faces;
-        int minMip = image.minMip() < 0 ? mipCount : image.minMip();
 
         List<Surface> surfaces = new ArrayList<>();
         for (int face = 0; face < faces; face++) {
@@ -33,7 +30,7 @@ public final class ImageMapper {
                     image.mipInfos().get(mipIndex).mipPixelWidth(),
                     image.mipInfos().get(mipIndex).mipPixelHeight(),
                     format,
-                    image.mipData()[mipIndex].toArray()
+                    mipData[mipIndex].toArray()
                 ));
             }
         }
