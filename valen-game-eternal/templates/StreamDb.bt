@@ -16,13 +16,17 @@ typedef enum {
 // streamDatabaseHeader_t
 struct StreamDbHeader {
     uquad magic;
-    Assert(magic == 0x61C7F32E29C2A550UL);
     uint headerLength;
     uint pad0;
     uint pad1;
     uint pad2;
     uint numEntries;
     StreamDbHeaderFlags flags;
+
+    Assert(magic == 0x61C7F32E29C2A550UL);
+    Assert(pad0 == 0);
+    Assert(pad1 == 0);
+    Assert(pad2 == 0);
 };
 
 // streamDatabaseEntry2_t
@@ -45,17 +49,21 @@ struct StreamDbPrefetchBlock {
     uint numItems;
 };
 
-StreamDbHeader header                     <style=sHeading1>;
-StreamDbEntry  entries[header.numEntries] <style=sSection1>;
-
-// This part is optional
-StreamDbPrefetchHeader prefetchHeader                                   <style=sHeading2>;
-StreamDbPrefetchBlock  prefetchBlocks[prefetchHeader.numPrefetchBlocks] <style=sSection2>;
-
-if (header.flags & SDHF_HAS_PREFETCH_BLOCKS) {
-    local int prefetchBlockCount = 0;
-    for (int i = 0; i < prefetchHeader.numPrefetchBlocks; i++) {
-        prefetchBlockCount += prefetchBlocks[i].numItems;
+struct StreamDb {
+    StreamDbHeader header                     <style=sHeading1>;
+    StreamDbEntry  entries[header.numEntries] <style=sSection1>;
+    
+    /* This part is optional, and I need branch support */
+    /*
+    StreamDbPrefetchHeader prefetchHeader                                   <style=sHeading2>;
+    StreamDbPrefetchBlock  prefetchBlocks[prefetchHeader.numPrefetchBlocks] <style=sSection2>;
+    
+    if (header.flags & SDHF_HAS_PREFETCH_BLOCKS) {
+        local int prefetchBlockCount = 0;
+        for (int i = 0; i < prefetchHeader.numPrefetchBlocks; i++) {
+            prefetchBlockCount += prefetchBlocks[i].numItems;
+        }
+        uquad prefetchIds[prefetchBlockCount] <style=sSection3>;
     }
-    uquad prefetchIds[prefetchBlockCount] <style=sSection3>;
+    */
 }
