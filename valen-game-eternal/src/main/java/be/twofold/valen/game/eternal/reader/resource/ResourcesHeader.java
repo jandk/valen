@@ -5,59 +5,56 @@ import wtf.reversed.toolbox.io.*;
 import java.io.*;
 
 public record ResourcesHeader(
-    int numFileEntries,
-    int numDependencyEntries,
-    int numDependencyIndexes,
-    int numPathStringIndexes,
-    int sizeStrings,
-    int addrPathStringOffsets,
-    int addrErrorLogs,
-    int addrFileEntries,
-    int addrDependencyEntries,
-    int addrDependencyIndexes,
-    int addrData,
-    int addrEndMarker
+    int numResources,
+    int numDependencies,
+    int numDepIndices,
+    int numStringIndices,
+    int stringTableSize,
+    long stringTableOffset,
+    long metaEntriesOffset,
+    long resourceEntriesOffset,
+    long resourceDepsOffset,
+    long resourceSpecialHashOffset,
+    long dataOffset,
+    long metaSize
 ) {
     public static ResourcesHeader read(BinarySource source) throws IOException {
-        source.expectInt(0x4c434449);
-        source.expectInt(12);
-        source.expectInt(0);
-        source.expectInt(1);
-        source.expectLong(0xffffffffffL);
-        source.expectLong(0);
-
-        var numFileEntries = source.readInt();
-        var numDependencyEntries = source.readInt();
-        var numDependencyIndexes = source.readInt();
-        var numPathStringIndexes = source.readInt();
-
-        source.expectInt(0);
-        source.expectInt(0);
-        var sizeStrings = source.readInt();
-        source.expectInt(0);
-
-        var addrPathStringOffsets = source.readLongAsInt();
-        var addrErrorLogs = source.readLongAsInt();
-        var addrFileEntries = source.readLongAsInt();
-        var addrDependencyEntries = source.readLongAsInt();
-        var addrDependencyIndexes = source.readLongAsInt();
-        var addrData = source.readLongAsInt();
-        source.expectInt(0);
-        var addrEndMarker = source.readLongAsInt();
+        source.expectInt(0x4C434449); // magic
+        source.expectInt(0xC); // version
+        source.expectInt(0x0); // flags
+        source.expectInt(0x1); // numSegments
+        source.expectLong(0xFFFFFFFFFFL); // segmentSize
+        source.expectLong(0x0); // metadataHash
+        var numResources = source.readInt();
+        var numDependencies = source.readInt();
+        var numDepIndices = source.readInt();
+        var numStringIndices = source.readInt();
+        source.expectInt(0x0); // numSpecialHashes
+        source.expectInt(0x0); // numMetaEntries
+        var stringTableSize = source.readInt();
+        source.expectInt(0x0); // metaEntriesSize
+        var stringTableOffset = source.readLong();
+        var metaEntriesOffset = source.readLong();
+        var resourceEntriesOffset = source.readLong();
+        var resourceDepsOffset = source.readLong();
+        var resourceSpecialHashOffset = source.readLong();
+        var dataOffset = source.readLong();
+        source.expectInt(0x0); // unknown
+        var metaSize = source.readLong();
 
         return new ResourcesHeader(
-            numFileEntries,
-            numDependencyEntries,
-            numDependencyIndexes,
-            numPathStringIndexes,
-            sizeStrings,
-            addrPathStringOffsets,
-            addrErrorLogs,
-            addrFileEntries,
-            addrDependencyEntries,
-            addrDependencyIndexes,
-            addrData,
-            addrEndMarker
+            numResources,
+            numDependencies,
+            numDepIndices,
+            numStringIndices,
+            stringTableSize,
+            stringTableOffset,
+            metaEntriesOffset,
+            resourceEntriesOffset,
+            resourceDepsOffset,
+            resourceSpecialHashOffset,
+            dataOffset,
+            metaSize
         );
     }
 }

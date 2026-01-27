@@ -7,14 +7,32 @@
 // File Mask: *.resources
 //  ID Bytes: 49 44 43 4C
 //------------------------------------------------
-struct ResourceHeader {
-    char  magic[4];
-    uint  version;
+
+enum <ubyte> ResourceCompressionMode {
+    RES_COMP_MODE_NONE = 0,
+    RES_COMP_MODE_ZLIB = 1,
+    RES_COMP_MODE_KRAKEN = 2,
+    RES_COMP_MODE_LZNA = 3,
+    RES_COMP_MODE_KRAKEN_CHUNKED = 4,
+    RES_COMP_MODE_LEVIATHAN = 5,
+    RES_COMP_MODE_ENUM_MAX = 6,
+};
+
+// idResourceHeader
+struct ResourcesHeader {
+    uint magic;
+    uint version;
+    Assert(magic   == 0x4c434449);
+    Assert(version == 12);
 
     uint  flags;
     uint  numSegments;
     uquad segmentSize;
     uquad metadataHash;
+    Assert(flags        == 0);
+    Assert(numSegments  == 1);
+    Assert(segmentSize  == 0xffffffffffL);
+    Assert(metadataHash == 0);
 
     uint  numResources;
     uint  numDependencies;
@@ -24,6 +42,9 @@ struct ResourceHeader {
     uint  numMetaEntries;
     uint  stringTableSize;
     uint  metaEntriesSize;
+    Assert(numSpecialHashes == 0);
+    Assert(numMetaEntries   == 0);
+    Assert(metaEntriesSize  == 0);
 
     uquad stringTableOffset;
     uquad metaEntriesOffset;
@@ -32,11 +53,12 @@ struct ResourceHeader {
     uquad resourceSpecialHashOffset;
 
     uquad dataOffset;
-    uint  unkown;
+    uint  unknown;
     uquad metaSize;
+    Assert(unknown == 0);
 };
 
-struct ResourceEntry
+struct ResourcesEntry
 {
 	quad   resourceTypeString;
 	quad   nameString;
@@ -47,6 +69,11 @@ struct ResourceEntry
 	uquad  metaEntries;
 	uquad  dataOffset;
 	uquad  dataSize;
+    Assert(resourceTypeString == 0);
+    Assert(nameString         == 1);
+    Assert(descString         == -1);
+    Assert(specialHashes      == 0);
+    Assert(metaEntries        == 0);
 
 	uquad  uncompressedSize;
 	uquad  dataCheckSum;
@@ -54,31 +81,40 @@ struct ResourceEntry
 	uquad  defaultHash;
 	uint   version;
 	uint   flags;
-	ubyte  compMode;
+	ResourceCompressionMode compMode;
 	ubyte  reserved0;
 	ushort variation;
 	uint   reserved2;
 	uquad  reservedForVariations;
+    Assert(reserved0             == 0);
+    Assert(reserved2             == 0);
+    Assert(reservedForVariations == 0);
 
 	ushort numStrings;
 	ushort numSources;
 	ushort numDependencies;
 	ushort numSpecialHashes;
 	ushort numMetaEntries;
-    ubyte  padding[6];
+    uint   padding1;
+    ushort padding2;
+    Assert(numStrings       == 2);
+    Assert(numSpecialHashes == 0);
+    Assert(numMetaEntries   == 0);
+    Assert(padding1         == 0);
+    Assert(padding2         == 0);
 };
 
 typedef struct {
     string value;
 } WrappedString <read=this.value>;
 
-struct StringChunk {
+struct ResourcesStrings {
     uint64 numStrings;
     uint64 offsets[numStrings];
     WrappedString values[numStrings] <optimize=false>;
 };
 
-struct ResourceDependency {
+struct ResourcesDependency {
 	uint64 type;
 	uint64 name;
 	uint32 depType;
@@ -87,16 +123,16 @@ struct ResourceDependency {
 };
 
 struct Resources {
-    ResourceHeader header <style=sHeading1>;
+    ResourcesHeader header <style=sHeading1>;
 
     FSeek(header.resourceEntriesOffset);
-    ResourceEntry entries[header.numResources] <style=sHeading2>;
+    ResourcesEntry entries[header.numResources] <style=sHeading2>;
 
     FSeek(header.stringTableOffset);
-    StringChunk stringChunk <style=sHeading3>;
+    ResourcesStrings strings <style=sHeading3>;
 
     FSeek(header.resourceDepsOffset);
-    ResourceDependency dependencies[header.numDependencies] <style=sHeading4>;
+    ResourcesDependency dependencies[header.numDependencies] <style=sHeading4>;
     uint32 dependencyIndex[header.numDepIndices] <style=sHeading1>;
     uint64 stringIndex[header.numStringIndices] <style=sHeading2>;
-} resources;
+} resourceStorage;

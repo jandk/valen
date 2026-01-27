@@ -46,8 +46,8 @@ public final class ResourcesFile implements Container<EternalAssetID, EternalAss
     }
 
     private EternalAsset mapResourceEntry(Resources resources, ResourcesEntry entry) {
-        var type = resources.pathStrings().get(resources.pathStringIndex().get(entry.strings()));
-        var name = resources.pathStrings().get(resources.pathStringIndex().get(entry.strings() + 1));
+        var name = getString(resources, entry, 1);
+        var type = getString(resources, entry, 0);
 
         var resourceName = new ResourceName(name);
         var resourceType = ResourceType.fromName(type);
@@ -55,13 +55,19 @@ public final class ResourcesFile implements Container<EternalAssetID, EternalAss
         var resourceKey = new EternalAssetID(resourceName, resourceType, resourceVariation);
         return new EternalAsset(
             resourceKey,
-            entry.dataOffset(),
-            entry.dataSize(),
-            entry.uncompressedSize(),
+                Math.toIntExact(entry.dataOffset()),
+                Math.toIntExact(entry.dataSize()),
+                Math.toIntExact(entry.uncompressedSize()),
             entry.compMode(),
             entry.defaultHash(),
             entry.dataCheckSum()
         );
+    }
+
+    private static String getString(Resources resources, ResourcesEntry entry, int offset) {
+        int i1 = Math.toIntExact(entry.strings() + offset);
+        int i2 = Math.toIntExact(resources.stringIndex().get(i1));
+        return resources.strings().values().get(i2);
     }
 
     @Override
