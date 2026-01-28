@@ -14,7 +14,7 @@ import wtf.reversed.toolbox.util.*;
 import java.util.*;
 import java.util.stream.*;
 
-public final class RawFXView implements RawView, FXView {
+public final class RawViewImpl extends AbstractView<ViewListener> implements RawView {
     private static final Font MONOSPACED =
         Stream.of("Jetbrains Mono", "Cascadia Mono", "Consolas", "Monospaced")
             .map(Font::font)
@@ -29,7 +29,7 @@ public final class RawFXView implements RawView, FXView {
     private Lines lines;
 
     @Inject
-    public RawFXView() {
+    public RawViewImpl() {
         setupListView(binaryView);
         binaryView.setCellFactory(_ -> new BinaryListCell());
 

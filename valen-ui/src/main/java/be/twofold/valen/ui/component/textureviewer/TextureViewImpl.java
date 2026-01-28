@@ -1,6 +1,5 @@
 package be.twofold.valen.ui.component.textureviewer;
 
-import backbonefx.event.*;
 import be.twofold.valen.ui.common.*;
 import jakarta.inject.*;
 import javafx.scene.*;
@@ -10,7 +9,7 @@ import javafx.scene.layout.*;
 
 import java.util.*;
 
-public final class TextureFXView implements TextureView, FXView {
+public final class TextureViewImpl extends AbstractView<TextureViewListener> implements TextureView {
     private static final Map<Channel, String> CHANNELS = Map.of(
         Channel.RED, "R",
         Channel.GREEN, "G",
@@ -25,11 +24,8 @@ public final class TextureFXView implements TextureView, FXView {
     private final ImageView imageView = new ImageView();
     private final ZoomableScrollPane scrollPane = new ZoomableScrollPane(imageView);
 
-    private final EventBus eventBus;
-
     @Inject
-    TextureFXView(EventBus backboneEventBus) {
-        this.eventBus = backboneEventBus;
+    TextureViewImpl() {
         buildUI();
     }
 
@@ -68,7 +64,7 @@ public final class TextureFXView implements TextureView, FXView {
                 return;
             }
 
-            eventBus.publish(new TextureViewEvent.ChannelSelected((Channel) newValue.getUserData()));
+            getListener().onChannelSelected((Channel) newValue.getUserData());
         });
 
         imageView.setPreserveRatio(true);

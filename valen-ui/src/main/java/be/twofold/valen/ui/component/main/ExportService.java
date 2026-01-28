@@ -116,8 +116,8 @@ final class ExportService extends Service<Void> {
 
             try {
                 Exporter<T> exporter = findExporter(asset);
-                exporter.setProperty("reconstructZ", settings.reconstructZ().get().orElse(false));
-                exporter.setProperty("gltf.mode", settings.modelExporter().get().orElse("gltf"));
+                exporter.setProperty("reconstructZ", settings.isReconstructZ());
+                exporter.setProperty("gltf.mode", settings.getModelExporter());
 
                 var targetPath = findTargetPath(exporter, asset);
                 if (Files.exists(targetPath)) {
@@ -126,7 +126,7 @@ final class ExportService extends Service<Void> {
                 }
 
                 @SuppressWarnings("unchecked")
-                T rawAsset = (T) archive.loadAsset(asset.id(), asset.type().getType());
+                T rawAsset = (T) archive.loadAsset(asset.id(), asset.type().type());
                 Files.createDirectories(targetPath.getParent());
                 exporter.export(rawAsset, targetPath);
             } catch (Exception e) {
@@ -137,22 +137,22 @@ final class ExportService extends Service<Void> {
 
         @SuppressWarnings("unchecked")
         private <T> Exporter<T> findExporter(Asset asset) {
-            boolean isGltf = Set.of("glb", "gltf").contains(settings.modelExporter().get().orElse("gltf"));
+            boolean isGltf = Set.of("glb", "gltf").contains(settings.getModelExporter());
             var exporterId = switch (asset.type()) {
                 case ANIMATION -> "animation." + (isGltf ? "gltf" : "cast");
                 case MATERIAL -> "material." + (isGltf ? "gltf" : "cast");
                 case MODEL -> "model." + (isGltf ? "gltf" : "cast");
-                case TEXTURE -> settings.textureExporter().get().orElse("texture.png");
+                case TEXTURE -> settings.getTextureExporter();
                 case RAW -> "binary.raw";
             };
             var exporter = exporterId != null
-                ? Exporter.forTypeAndId(asset.type().getType(), exporterId)
-                : Exporter.forType(asset.type().getType()).findFirst().orElseThrow();
+                ? Exporter.forTypeAndId(asset.type().type(), exporterId)
+                : Exporter.forType(asset.type().type()).findFirst().orElseThrow();
             return (Exporter<T>) exporter;
         }
 
         private Path findTargetPath(Exporter<?> exporter, Asset asset) {
-            var basePath = settings.exportPath().get().orElse(Path.of("exported"));
+            var basePath = settings.getExportPath();
             var filename = exporter.getExtension().isEmpty()
                 ? asset.id().fileName()
                 : asset.exportName() + "." + exporter.getExtension();

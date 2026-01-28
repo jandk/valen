@@ -20,12 +20,13 @@ import java.util.*;
 import java.util.function.*;
 import java.util.stream.*;
 
-public final class MainPresenter extends AbstractFXPresenter<MainView> {
+public final class MainPresenter extends AbstractPresenter<MainView> implements MainViewListener {
     private final Logger log = LoggerFactory.getLogger(MainPresenter.class);
 
     private final ExportService exportService;
     private final FileListPresenter fileList;
     private final Settings settings;
+    private final EventBus eventBus;
 
     private @Nullable Game game;
     private @Nullable Archive<AssetID, Asset> archive;
@@ -36,29 +37,22 @@ public final class MainPresenter extends AbstractFXPresenter<MainView> {
     MainPresenter(
         MainView view,
         EventBus eventBus,
-        FileListPresenter fileList,
         Settings settings,
-        ExportService exportService
+        ExportService exportService,
+        ViewLoader viewLoader
     ) {
         super(view);
 
-        this.fileList = fileList;
+        this.fileList = viewLoader.loadPresenter(
+            FileListPresenter.class,
+            "/fxml/FileList.fxml"
+        );
         this.settings = settings;
         this.exportService = exportService;
+        this.eventBus = eventBus;
 
-        eventBus.subscribe(MainViewEvent.class, event -> {
-            switch (event) {
-                case MainViewEvent.ArchiveSelected(var name) -> selectArchive(name);
-                case MainViewEvent.PreviewVisibilityChanged(var visible) -> showPreview(visible);
-                case MainViewEvent.SettingVisibilityChanged(var visible) -> showSettings(visible);
-                case MainViewEvent.LoadGameClicked _ -> eventBus.publish(new MainEvent.GameLoadRequested());
-                case MainViewEvent.ExportClicked() -> exportSelectedAssets();
-                case MainViewEvent.SearchChanged(var query) -> {
-                    this.query = query;
-                    updateFileList();
-                }
-            }
-        });
+        view.setListener(this);
+        view.setFileListView(fileList.getView().getFXNode());
 
         eventBus.subscribe(AssetSelected.class, event -> selectAsset(event.asset(), event.forced()));
         eventBus.subscribe(SettingsApplied.class, _ -> updateFileList());
@@ -67,6 +61,37 @@ public final class MainPresenter extends AbstractFXPresenter<MainView> {
         exportService.stateProperty().addListener((_, _, newValue) -> {
             getView().setExporting(newValue == Worker.State.RUNNING);
         });
+    }
+
+    @Override
+    public void onArchiveSelected(String name) {
+        selectArchive(name);
+    }
+
+    @Override
+    public void onPreviewVisibilityChanged(boolean visible) {
+        showPreview(visible);
+    }
+
+    @Override
+    public void onSettingsVisibilityChanged(boolean visible) {
+        showSettings(visible);
+    }
+
+    @Override
+    public void onLoadGameClicked() {
+        eventBus.publish(new MainEvent.GameLoadRequested());
+    }
+
+    @Override
+    public void onExportClicked() {
+        exportSelectedAssets();
+    }
+
+    @Override
+    public void onSearchChanged(String query) {
+        MainPresenter.this.query = query;
+        updateFileList();
     }
 
     @SuppressWarnings("unchecked")
@@ -91,7 +116,7 @@ public final class MainPresenter extends AbstractFXPresenter<MainView> {
         if (getView().isSidePaneVisible() && archive != null) {
             try {
                 var type = switch (asset.type()) {
-                    case MODEL, TEXTURE -> asset.type().getType();
+                    case MODEL, TEXTURE -> asset.type().type();
                     default -> Bytes.class;
                 };
                 var assetData = archive.loadAsset(asset.id(), type);
@@ -147,7 +172,7 @@ public final class MainPresenter extends AbstractFXPresenter<MainView> {
         if (archive == null) {
             return Stream.empty();
         }
-        var predicate = buildPredicate(query, settings.assetTypes().get().orElse(Set.of()));
+        var predicate = buildPredicate(query, settings.getAssetTypes());
         return archive.getAll().filter(predicate);
     }
 

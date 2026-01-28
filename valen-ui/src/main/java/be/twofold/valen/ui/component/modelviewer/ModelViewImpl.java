@@ -14,14 +14,14 @@ import javafx.scene.transform.*;
 import java.util.*;
 import java.util.stream.*;
 
-public final class ModelFXView implements ModelView, FXView {
+public final class ModelViewImpl extends AbstractView<ViewListener> implements ModelView {
     private final VBox view = new VBox();
     private final Group root = new Group();
     private final Label statusLabel = new Label();
     private final CameraSystem cameraSystem;
 
     @Inject
-    public ModelFXView() {
+    public ModelViewImpl() {
         var subScene = new SubScene(root, 400, 400, true, SceneAntialiasing.BALANCED);
         subScene.setFill(new Color(0.2, 0.2, 0.2, 1.0));
         this.cameraSystem = new CameraSystem(subScene);

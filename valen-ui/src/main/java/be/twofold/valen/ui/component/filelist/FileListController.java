@@ -1,6 +1,5 @@
 package be.twofold.valen.ui.component.filelist;
 
-import backbonefx.event.*;
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.ui.common.*;
 import be.twofold.valen.ui.component.utils.*;
@@ -9,28 +8,33 @@ import javafx.application.*;
 import javafx.beans.property.*;
 import javafx.beans.value.*;
 import javafx.collections.*;
+import javafx.fxml.*;
 import javafx.scene.*;
 import javafx.scene.control.*;
-import javafx.scene.layout.*;
 
 import java.util.*;
 import java.util.stream.*;
 
 @Singleton
-public final class FileListFXView implements FileListView, FXView {
+public final class FileListController extends AbstractView<FileListViewListener> implements FileListView {
     private static final String SPACE = "\u2009";
     private static final String SEPARATOR = SPACE + "/" + SPACE;
 
-    private final SplitPane splitPane = new SplitPane();
-    private final TreeView<PathCombo> treeView = new TreeView<>();
-    private final TableView<Asset> tableView = new TableView<>();
-
-    private final EventBus eventBus;
+    private @FXML SplitPane splitPane;
+    private @FXML TreeView<PathCombo> treeView;
+    private @FXML TableView<Asset> tableView;
+    private @FXML TableColumn<Asset, String> nameColumn;
+    private @FXML TableColumn<Asset, String> typeColumn;
+    private @FXML TableColumn<Asset, String> propertiesColumn;
 
     @Inject
-    FileListFXView(EventBus eventBus) {
-        this.eventBus = eventBus;
-        buildUI();
+    FileListController() {
+    }
+
+    @FXML
+    private void initialize() {
+        setupTreeView();
+        setupTableView();
     }
 
     @Override
@@ -85,7 +89,7 @@ public final class FileListFXView implements FileListView, FXView {
 
     private void selectPath(TreeItem<PathCombo> treeItem) {
         if (treeItem != null) {
-            eventBus.publish(new FileListViewEvent.PathSelected(treeItem.getValue().full()));
+            getListener().onPathSelected(treeItem.getValue().full());
         }
     }
 
@@ -97,7 +101,7 @@ public final class FileListFXView implements FileListView, FXView {
 
     private void selectAsset(Asset asset) {
         if (asset != null) {
-            eventBus.publish(new FileListViewEvent.AssetSelected(asset, false));
+            getListener().onAssetSelected(asset, false);
         }
     }
 
@@ -123,60 +127,34 @@ public final class FileListFXView implements FileListView, FXView {
         return item;
     }
 
-    // region UI
+    // region UI Setup
 
-    private void buildUI() {
-        splitPane.setDividerPositions(0.25);
-        splitPane.getItems().addAll(
-            buildTreeView(),
-            buildTableView()
-        );
-
-        // How is it that the exact method I need exists?
-        SplitPane.setResizableWithParent(splitPane.getItems().getFirst(), false);
-        VBox.setVgrow(splitPane, Priority.ALWAYS);
-    }
-
-    private TreeView<PathCombo> buildTreeView() {
+    private void setupTreeView() {
         treeView.getSelectionModel().selectedItemProperty().addListener((_, _, newValue) -> selectPath(newValue));
         treeView.setCellFactory(_ -> new FileListTreeCell());
-        return treeView;
     }
 
-    private TableView<Asset> buildTableView() {
+    private void setupTableView() {
         tableView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         tableView.getSelectionModel().getSelectedItems().addListener((ListChangeListener<Asset>) c -> selectAssets(c.getList()));
         tableView.setRowFactory(_ -> {
             var row = new TableRow<Asset>();
             row.setOnMouseClicked(event -> {
                 if (event.getClickCount() == 2 && !row.isEmpty()) {
-                    eventBus.publish(new FileListViewEvent.AssetSelected(row.getItem(), true));
+                    getListener().onAssetSelected(row.getItem(), true);
                 }
             });
             return row;
         });
 
-        var nameColumn = new TableColumn<Asset, String>();
-        nameColumn.setText("Name");
-        nameColumn.setPrefWidth(160);
         nameColumn.setCellFactory(TooltippedTableCell.forTableColumn());
         nameColumn.setCellValueFactory(param -> new ReadOnlyObjectWrapper<>(param.getValue().id().displayName()));
 
-        var typeColumn = new TableColumn<Asset, String>();
-        typeColumn.setText("Type");
-        typeColumn.setPrefWidth(40);
         typeColumn.setCellFactory(TooltippedTableCell.forTableColumn());
-        typeColumn.setCellValueFactory(param -> new ReadOnlyObjectWrapper<>(param.getValue().type().getName()));
+        typeColumn.setCellValueFactory(param -> new ReadOnlyObjectWrapper<>(param.getValue().type().displayName()));
 
-        var propertiesColumn = new TableColumn<Asset, String>();
-        propertiesColumn.setText("Properties");
-        propertiesColumn.setPrefWidth(80);
         propertiesColumn.setCellFactory(TooltippedTableCell.forTableColumn());
         propertiesColumn.setCellValueFactory(param -> mapPropertiesColumn(param.getValue()));
-
-        tableView.getColumns().addAll(nameColumn, typeColumn, propertiesColumn);
-        tableView.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN); // TODO: Maybe change this?
-        return tableView;
     }
 
     private ObservableStringValue mapPropertiesColumn(Asset asset) {
@@ -189,18 +167,20 @@ public final class FileListFXView implements FileListView, FXView {
         return new ReadOnlyStringWrapper(stringified);
     }
 
+    // endregion
+
     private class FileListTreeCell extends TreeCell<PathCombo> {
         private final ContextMenu contextMenu;
 
         private FileListTreeCell() {
             var exportAll = new MenuItem("Export");
             exportAll.setOnAction(_ -> {
-                eventBus.publish(new FileListViewEvent.PathExportRequested(getItem().full(), false));
+                getListener().onPathExportRequested(getItem().full(), false);
             });
 
             var exportAllSub = new MenuItem("Export recursively");
             exportAllSub.setOnAction(_ -> {
-                eventBus.publish(new FileListViewEvent.PathExportRequested(getItem().full(), true));
+                getListener().onPathExportRequested(getItem().full(), true);
             });
 
             contextMenu = new ContextMenu(exportAll, exportAllSub);
@@ -219,7 +199,4 @@ public final class FileListFXView implements FileListView, FXView {
             }
         }
     }
-
-    // endregion
-
 }

@@ -1,11 +1,10 @@
 package be.twofold.valen.ui.component.main;
 
-import backbonefx.event.*;
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.ui.common.*;
 import be.twofold.valen.ui.component.*;
-import be.twofold.valen.ui.component.filelist.*;
 import be.twofold.valen.ui.component.preview.*;
+import be.twofold.valen.ui.component.settings.*;
 import jakarta.inject.*;
 import javafx.animation.*;
 import javafx.application.*;
@@ -16,11 +15,10 @@ import javafx.scene.layout.*;
 import org.slf4j.*;
 
 import java.util.*;
-import java.util.function.*;
 
 @Singleton
-public final class MainFXView implements MainView, FXView {
-    private static final Logger log = LoggerFactory.getLogger(MainFXView.class);
+public final class MainViewImpl extends AbstractView<MainViewListener> implements MainView {
+    private static final Logger log = LoggerFactory.getLogger(MainViewImpl.class);
 
     private final BorderPane view = new BorderPane();
     private final SplitPane splitPane = new SplitPane();
@@ -32,18 +30,25 @@ public final class MainFXView implements MainView, FXView {
     private final TextField searchTextField = new TextField();
 
     private final PreviewTabPane tabPane;
-    private final Parent settingsView;
-    private final EventBus eventBus;
+    private final SettingsPresenter settingsPresenter;
+
+    private boolean suppressToggleEvents;
 
     @Inject
-    MainFXView(FileListFXView fileListView, PreviewTabPane tabPane, ViewLoader viewLoader, EventBus eventBus) {
+    MainViewImpl(PreviewTabPane tabPane, ViewLoader viewLoader) {
         this.tabPane = tabPane;
-        this.settingsView = viewLoader.load("/fxml/Settings.fxml");
-        this.eventBus = eventBus;
+        this.settingsPresenter = viewLoader.loadPresenter(SettingsPresenter.class, "/fxml/Settings.fxml");
 
         buildUI();
+    }
 
-        splitPane.getItems().add(fileListView.getFXNode());
+    @Override
+    public void setFileListView(Node node) {
+        if (node == null) {
+            log.error("setFileListView called with null node");
+            return;
+        }
+        splitPane.getItems().setAll(node);
     }
 
     @Override
@@ -82,35 +87,49 @@ public final class MainFXView implements MainView, FXView {
 
     @Override
     public void showPreview(boolean enabled) {
-        setSidePanelEnabled(enabled, tabPane, MainViewEvent.PreviewVisibilityChanged::new);
-        previewButton.setSelected(enabled);
+        setSidePanelEnabled(enabled, tabPane);
+        setToggleSelected(previewButton, enabled);
     }
 
     @Override
     public void showSettings(boolean enabled) {
-        setSidePanelEnabled(enabled, settingsView, MainViewEvent.SettingVisibilityChanged::new);
-        settingsButton.setSelected(enabled);
+        setSidePanelEnabled(enabled, settingsPresenter.getView().getFXNode());
+        setToggleSelected(settingsButton, enabled);
     }
 
     private void selectArchive(String archiveName) {
-        eventBus.publish(new MainViewEvent.ArchiveSelected(archiveName));
+        if (archiveName == null) {
+            return;
+        }
+        getListener().onArchiveSelected(archiveName);
     }
 
-    private void setSidePanelEnabled(boolean enabled, Node node, Function<Boolean, MainViewEvent> eventFunction) {
+    private void setSidePanelEnabled(boolean enabled, Node node) {
+        if (node == null) {
+            log.error("setSidePanelEnabled called with null node");
+            return;
+        }
         if (enabled) {
             if (isSidePaneVisible()) {
                 return;
             }
             splitPane.getItems().add(node);
             splitPane.setDividerPositions(0.60);
-            eventBus.publish(eventFunction.apply(true));
         } else {
             if (!isSidePaneVisible()) {
                 return;
             }
             splitPane.getItems().remove(1);
             splitPane.setDividerPositions();
-            eventBus.publish(eventFunction.apply(false));
+        }
+    }
+
+    private void setToggleSelected(ToggleButton button, boolean selected) {
+        suppressToggleEvents = true;
+        try {
+            button.setSelected(selected);
+        } finally {
+            suppressToggleEvents = false;
         }
     }
 
@@ -133,7 +152,7 @@ public final class MainFXView implements MainView, FXView {
         searchTextField.setId("searchTextField");
         searchTextField.setPromptText("Search");
         searchTextField.textProperty().addListener((_, _, newValue) -> {
-            pause.setOnFinished(_ -> eventBus.publish(new MainViewEvent.SearchChanged(newValue)));
+            pause.setOnFinished(_ -> getListener().onSearchChanged(newValue));
             pause.playFromStart();
         });
         searchTextField.setMinWidth(160);
@@ -160,7 +179,7 @@ public final class MainFXView implements MainView, FXView {
 
     private Control buildToolBar() {
         var loadGame = new Button("Load Game");
-        loadGame.setOnAction(_ -> eventBus.publish(new MainViewEvent.LoadGameClicked()));
+        loadGame.setOnAction(_ -> getListener().onLoadGameClicked());
 
         archiveChooser.setPromptText("Select archive to load");
         archiveChooser.getSelectionModel().selectedItemProperty().addListener((_, _, newValue) -> selectArchive(newValue));
@@ -169,9 +188,7 @@ public final class MainFXView implements MainView, FXView {
         HBox.setHgrow(pane, Priority.ALWAYS);
 
         var exportButton = new Button("Export");
-        exportButton.setOnAction(_ -> {
-            eventBus.publish(new MainViewEvent.ExportClicked());
-        });
+        exportButton.setOnAction(_ -> getListener().onExportClicked());
 
         var sidePane = new ToggleGroup();
 
@@ -188,6 +205,22 @@ public final class MainFXView implements MainView, FXView {
             new Separator(),
             previewButton, settingsButton
         );
+    }
+
+    private void showPreview(Boolean newValue) {
+        if (suppressToggleEvents) {
+            return;
+        }
+        setSidePanelEnabled(newValue, tabPane);
+        getListener().onPreviewVisibilityChanged(newValue);
+    }
+
+    private void showSettings(Boolean newValue) {
+        if (suppressToggleEvents) {
+            return;
+        }
+        setSidePanelEnabled(newValue, settingsPresenter.getView().getFXNode());
+        getListener().onSettingsVisibilityChanged(newValue);
     }
 
     // endregion

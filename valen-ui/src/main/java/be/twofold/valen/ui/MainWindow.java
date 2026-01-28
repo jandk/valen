@@ -59,7 +59,7 @@ public final class MainWindow extends Application {
         primaryStage.setScene(scene);
         primaryStage.show();
 
-        settings.gameExecutable().get()
+        settings.getGameExecutable()
             .ifPresentOrElse(
                 this::tryLoadGame,
                 this::selectAndLoadGame
@@ -110,7 +110,7 @@ public final class MainWindow extends Application {
                 return;
             }
 
-            settings.gameExecutable().set(path);
+            settings.setGameExecutable(path);
             presenter.setGame(gameFactory.get().load(path));
         } catch (Exception e) {
             FxUtils.showExceptionDialog(e, "Could not load game");
