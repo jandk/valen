@@ -29,7 +29,6 @@ public final class MainWindow extends Application {
         this.primaryStage = primaryStage;
 
         Feather feather = Feather.with(
-            new ControllerModule(),
             new EventBusModule(),
             new SettingsModule(),
             new ViewModule()

@@ -5,7 +5,7 @@ import be.twofold.valen.ui.common.*;
 
 import java.util.*;
 
-public interface FileListView extends View<FileListViewListener> {
+public interface FileListView extends View<FileListView.Listener> {
 
     void setFileTree(PathNode<PathCombo> tree);
 
@@ -13,4 +13,13 @@ public interface FileListView extends View<FileListViewListener> {
 
     List<Asset> getSelectedAssets();
 
+    interface Listener extends View.Listener {
+
+        void onPathSelected(String path);
+
+        void onAssetSelected(Asset asset, boolean forced);
+
+        void onPathExportRequested(String path, boolean recursive);
+
+    }
 }

@@ -2,7 +2,6 @@ package be.twofold.valen.ui.component.settings;
 
 import be.twofold.valen.ui.common.*;
 import be.twofold.valen.ui.common.settings.*;
-import be.twofold.valen.ui.component.*;
 import jakarta.inject.*;
 import javafx.fxml.*;
 import javafx.scene.*;
@@ -19,7 +18,7 @@ import java.util.function.*;
 import java.util.stream.*;
 
 @Singleton
-public final class SettingsController extends AbstractView<SettingsViewListener> implements SettingsView, Controller {
+public final class SettingsController extends AbstractView<SettingsView.Listener> implements SettingsView {
 
     private @FXML Parent root;
     private @FXML VBox container;

@@ -11,7 +11,7 @@ import jakarta.inject.*;
 
 import java.util.*;
 
-public final class SettingsPresenter extends AbstractPresenter<SettingsView> implements SettingsViewListener {
+public final class SettingsPresenter extends AbstractPresenter<SettingsView> implements SettingsView.Listener {
 
     private final EventBus eventBus;
     private final Settings settings;

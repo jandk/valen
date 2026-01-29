@@ -5,7 +5,7 @@ import be.twofold.valen.ui.common.*;
 
 import java.util.*;
 
-public interface MainView extends View<MainViewListener> {
+public interface MainView extends View<MainView.Listener> {
 
     boolean isSidePaneVisible();
 
@@ -23,4 +23,19 @@ public interface MainView extends View<MainViewListener> {
 
     void setFileListView(javafx.scene.Node node);
 
+    interface Listener extends View.Listener {
+
+        void onArchiveSelected(String name);
+
+        void onPreviewVisibilityChanged(boolean visible);
+
+        void onSettingsVisibilityChanged(boolean visible);
+
+        void onLoadGameClicked();
+
+        void onExportClicked();
+
+        void onSearchChanged(String query);
+
+    }
 }

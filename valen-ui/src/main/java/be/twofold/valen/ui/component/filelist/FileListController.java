@@ -16,7 +16,7 @@ import java.util.*;
 import java.util.stream.*;
 
 @Singleton
-public final class FileListController extends AbstractView<FileListViewListener> implements FileListView {
+public final class FileListController extends AbstractView<FileListView.Listener> implements FileListView {
     private static final String SPACE = "\u2009";
     private static final String SEPARATOR = SPACE + "/" + SPACE;
 

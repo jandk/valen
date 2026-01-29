@@ -13,7 +13,7 @@ import wtf.reversed.toolbox.collect.*;
 import java.util.*;
 import java.util.function.*;
 
-public final class TexturePresenter extends AbstractPresenter<TextureView> implements TextureViewListener, Viewer {
+public final class TexturePresenter extends AbstractPresenter<TextureView> implements TextureView.Listener, Viewer {
     private static final Logger log = LoggerFactory.getLogger(TexturePresenter.class);
     private static final Set<TextureFormat> GRAY = Set.of(
         TextureFormat.R8_UNORM,

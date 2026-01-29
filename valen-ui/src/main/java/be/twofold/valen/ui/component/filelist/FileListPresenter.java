@@ -9,7 +9,7 @@ import jakarta.inject.*;
 import java.util.*;
 import java.util.stream.*;
 
-public final class FileListPresenter extends AbstractPresenter<FileListView> implements FileListViewListener {
+public final class FileListPresenter extends AbstractPresenter<FileListView> implements FileListView.Listener {
 
     private Map<String, List<Asset>> assetIndex = Map.of();
     private final EventBus eventBus;

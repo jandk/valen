@@ -14,7 +14,7 @@ import wtf.reversed.toolbox.util.*;
 import java.util.*;
 import java.util.stream.*;
 
-public final class RawViewImpl extends AbstractView<ViewListener> implements RawView {
+public final class RawViewImpl extends AbstractView<View.Listener> implements RawView {
     private static final Font MONOSPACED =
         Stream.of("Jetbrains Mono", "Cascadia Mono", "Consolas", "Monospaced")
             .map(Font::font)

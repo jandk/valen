@@ -17,7 +17,7 @@ import org.slf4j.*;
 import java.util.*;
 
 @Singleton
-public final class MainViewImpl extends AbstractView<MainViewListener> implements MainView {
+public final class MainViewImpl extends AbstractView<MainView.Listener> implements MainView {
     private static final Logger log = LoggerFactory.getLogger(MainViewImpl.class);
 
     private final BorderPane view = new BorderPane();

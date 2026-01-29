@@ -14,7 +14,7 @@ import javafx.scene.transform.*;
 import java.util.*;
 import java.util.stream.*;
 
-public final class ModelViewImpl extends AbstractView<ViewListener> implements ModelView {
+public final class ModelViewImpl extends AbstractView<View.Listener> implements ModelView {
     private final VBox view = new VBox();
     private final Group root = new Group();
     private final Label statusLabel = new Label();

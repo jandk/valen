@@ -9,7 +9,7 @@ import javafx.scene.layout.*;
 
 import java.util.*;
 
-public final class TextureViewImpl extends AbstractView<TextureViewListener> implements TextureView {
+public final class TextureViewImpl extends AbstractView<TextureView.Listener> implements TextureView {
     private static final Map<Channel, String> CHANNELS = Map.of(
         Channel.RED, "R",
         Channel.GREEN, "G",

@@ -20,7 +20,7 @@ import java.util.*;
 import java.util.function.*;
 import java.util.stream.*;
 
-public final class MainPresenter extends AbstractPresenter<MainView> implements MainViewListener {
+public final class MainPresenter extends AbstractPresenter<MainView> implements MainView.Listener {
     private final Logger log = LoggerFactory.getLogger(MainPresenter.class);
 
     private final ExportService exportService;
