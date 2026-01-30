@@ -22,25 +22,26 @@ final class ExportService extends Service<Void> {
 
     private final Settings settings;
     private final Stage stage;
+    private final ProgressPresenter presenter;
     private Archive<AssetID, Asset> archive;
     private List<Asset> assets;
 
     @Inject
-    ExportService(Settings settings, ViewLoader viewLoader, ProgressController progressController) {
+    ExportService(Settings settings, ViewLoader viewLoader) {
         this.settings = settings;
-        this.stage = createStage(viewLoader.load("/fxml/Progress.fxml"));
+        this.presenter = viewLoader.loadPresenter(ProgressPresenter.class, "/fxml/Progress.fxml");
+        this.stage = createStage(presenter.getView().getFXNode());
 
-        var viewModel = progressController.getViewModel();
-        viewModel.progressProperty().bind(progressProperty());
-        viewModel.messageProperty().bind(messageProperty());
-        viewModel.workDoneProperty().bind(workDoneProperty());
-        viewModel.workTotalProperty().bind(totalWorkProperty());
-        viewModel.cancelledProperty().addListener((_, _, newValue) -> {
-            if (newValue) {
-                cancel();
-            }
-            viewModel.cancelledProperty().setValue(false);
-        });
+        presenter.setCancelHandler(this::cancel);
+
+        progressProperty().addListener((_, _, _) -> update());
+        messageProperty().addListener((_, _, _) -> update());
+        workDoneProperty().addListener((_, _, _) -> update());
+        totalWorkProperty().addListener((_, _, _) -> update());
+    }
+
+    private void update() {
+        presenter.update(new Progress(getMessage(), getProgress(), getWorkDone(), getTotalWork()));
     }
 
     private Stage createStage(Parent parent) {
