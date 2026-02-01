@@ -66,4 +66,22 @@ public record ImageHeader(
             streamDbMipCount
         );
     }
+
+    int startMip() {
+        var mask = switch (textureType()) {
+            case TT_2D -> 0x0f;
+            case TT_CUBIC -> 0xff;
+            default -> throw new UnsupportedOperationException("Unsupported texture type: " + textureType());
+        };
+        return streamDbMipCount() & mask;
+    }
+
+    int totalMipCount() {
+        var faces = switch (textureType()) {
+            case TT_2D -> 1;
+            case TT_CUBIC -> 6;
+            default -> throw new UnsupportedOperationException("Unsupported texture type: " + textureType());
+        };
+        return mipCount() * faces;
+    }
 }

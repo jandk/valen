@@ -11,7 +11,7 @@ public record Image(
 ) {
     public static Image read(BinarySource source) throws IOException {
         var header = ImageHeader.read(source);
-        var mipInfos = source.readObjects(header.mipCount(), ImageMipInfo::read);
+        var mipInfos = source.readObjects(header.totalMipCount(), ImageMipInfo::read);
 
         return new Image(
             header,
