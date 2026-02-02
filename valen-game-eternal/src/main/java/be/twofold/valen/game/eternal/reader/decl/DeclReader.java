@@ -7,7 +7,7 @@ import wtf.reversed.toolbox.util.*;
 
 import java.util.*;
 
-public final class DeclReader extends AbstractDeclReader<EternalAssetID, EternalAsset, EternalArchive> {
+public final class DeclReader extends AbstractDeclReader<EternalAssetID, EternalAsset> {
     private static final String RootPrefix = "generated/decls/";
 
     private static final Set<String> Unsupported = Set.of(
@@ -22,8 +22,8 @@ public final class DeclReader extends AbstractDeclReader<EternalAssetID, Eternal
         "renderprogflag"
     );
 
-    public DeclReader(EternalArchive archive) {
-        super(archive);
+    public DeclReader() {
+        super();
     }
 
     @Override

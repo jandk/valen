@@ -24,7 +24,7 @@ public final class FileCompressedReader implements AssetReader<Bytes, EternalAss
     }
 
     @Override
-    public Bytes read(BinarySource source, EternalAsset resource) throws IOException {
+    public Bytes read(BinarySource source, EternalAsset resource, LoadingContext context) throws IOException {
         var header = FileCompressedHeader.read(source);
         if (header.compressedSize() == -1) {
             return source.readBytes(header.uncompressedSize());

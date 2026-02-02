@@ -13,15 +13,13 @@ import java.io.*;
 import java.util.*;
 
 public final class StaticModelReader implements AssetReader<Model, EternalAsset> {
-    private final EternalArchive archive;
     private final boolean readMaterials;
 
-    public StaticModelReader(EternalArchive archive) {
-        this(archive, true);
+    public StaticModelReader() {
+        this(true);
     }
 
-    StaticModelReader(EternalArchive archive, boolean readMaterials) {
-        this.archive = archive;
+    StaticModelReader(boolean readMaterials) {
         this.readMaterials = readMaterials;
     }
 
@@ -31,21 +29,21 @@ public final class StaticModelReader implements AssetReader<Model, EternalAsset>
     }
 
     @Override
-    public Model read(BinarySource source, EternalAsset resource) throws IOException {
+    public Model read(BinarySource source, EternalAsset resource, LoadingContext context) throws IOException {
         var model = StaticModel.read(source);
-        var meshes = new ArrayList<>(readMeshes(model, source, resource.hash()));
+        var meshes = new ArrayList<>(readMeshes(model, source, resource.hash(), context));
 
         if (readMaterials) {
-            Materials.apply(archive, meshes, model.meshInfos(), StaticModelMeshInfo::mtlDecl, _ -> null);
+            Materials.apply(context, meshes, model.meshInfos(), StaticModelMeshInfo::mtlDecl, _ -> null);
         }
         return new Model(meshes, Optional.empty(), Optional.of(resource.id().fullName()), Optional.empty(), Axis.Z);
     }
 
-    private List<Mesh> readMeshes(StaticModel model, BinarySource source, long hash) throws IOException {
+    private List<Mesh> readMeshes(StaticModel model, BinarySource source, long hash, LoadingContext context) throws IOException {
         if (!model.header().streamable()) {
             return readEmbeddedGeometry(model, source);
         }
-        return readStreamedGeometry(model, 0, hash);
+        return readStreamedGeometry(model, 0, hash, context);
     }
 
     private List<Mesh> readEmbeddedGeometry(StaticModel model, BinarySource source) throws IOException {
@@ -57,7 +55,7 @@ public final class StaticModelReader implements AssetReader<Model, EternalAsset>
         return meshes;
     }
 
-    private List<Mesh> readStreamedGeometry(StaticModel model, int lod, long hash) throws IOException {
+    private List<Mesh> readStreamedGeometry(StaticModel model, int lod, long hash, LoadingContext context) throws IOException {
         var streamHash = (hash << 4) | lod;
         var diskLayout = model.streamDiskLayouts().get(lod);
         var uncompressedSize = diskLayout.uncompressedSize();
@@ -67,7 +65,7 @@ public final class StaticModelReader implements AssetReader<Model, EternalAsset>
             .toList();
         var layouts = model.streamDiskLayouts().get(lod).memoryLayouts();
 
-        var bytes = archive.readStream(streamHash, uncompressedSize);
+        var bytes = context.open(new EternalStreamLocation(streamHash, uncompressedSize));
         var source = BinarySource.wrap(bytes);
         return GeometryReader.readStreamedMesh(source, lods, layouts, false);
     }

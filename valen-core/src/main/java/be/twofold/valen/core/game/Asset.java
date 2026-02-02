@@ -8,6 +8,10 @@ public interface Asset extends Comparable<Asset> {
 
     AssetType type();
 
+    default StorageLocation location() {
+        throw new UnsupportedOperationException();
+    }
+
     int size();
 
     Map<String, Object> properties();

@@ -1,17 +1,13 @@
 package be.twofold.valen.game.eternal;
 
 import be.twofold.valen.core.game.*;
-import be.twofold.valen.game.eternal.reader.resource.*;
 import be.twofold.valen.game.eternal.resource.*;
 
 import java.util.*;
 
 public record EternalAsset(
     EternalAssetID id,
-    int offset,
-    int compressedSize,
-    int size,
-    ResourceCompressionMode compression,
+    StorageLocation location,
     long hash,
     long checksum
 ) implements Asset {
@@ -26,6 +22,15 @@ public record EternalAsset(
             case Image -> AssetType.TEXTURE;
             default -> AssetType.RAW;
         };
+    }
+
+    @Override
+    public int size() {
+//        return switch (location) {
+//            case StorageLocation.Compressed compressed -> compressed.uncompressedSize();
+//            case StorageLocation.FileSlice fileSlice -> fileSlice.size();
+//        };
+        return 0;
     }
 
     @Override

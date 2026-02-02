@@ -25,8 +25,8 @@ public final class EntityReader implements AssetReader<EntityFile, EternalAsset>
     }
 
     @Override
-    public EntityFile read(BinarySource source, EternalAsset resource) throws IOException {
-        var bytes = fileCompressedReader.read(source, resource);
+    public EntityFile read(BinarySource source, EternalAsset resource, LoadingContext context) throws IOException {
+        var bytes = fileCompressedReader.read(source, resource, context);
         var input = StandardCharsets.UTF_8.decode(bytes.asBuffer()).toString();
 
         var parser = new DeclParser(input);

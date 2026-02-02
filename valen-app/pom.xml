@@ -36,18 +36,18 @@
             <groupId>be.twofold</groupId>
             <artifactId>valen-export-gltf</artifactId>
         </dependency>
-        <dependency>
-            <groupId>be.twofold</groupId>
-            <artifactId>valen-game-darkages</artifactId>
-        </dependency>
+        <!--        <dependency>-->
+        <!--            <groupId>be.twofold</groupId>-->
+        <!--            <artifactId>valen-game-darkages</artifactId>-->
+        <!--        </dependency>-->
         <dependency>
             <groupId>be.twofold</groupId>
             <artifactId>valen-game-eternal</artifactId>
         </dependency>
-        <dependency>
-            <groupId>be.twofold</groupId>
-            <artifactId>valen-game-greatcircle</artifactId>
-        </dependency>
+        <!--        <dependency>-->
+        <!--            <groupId>be.twofold</groupId>-->
+        <!--            <artifactId>valen-game-greatcircle</artifactId>-->
+        <!--        </dependency>-->
         <dependency>
             <groupId>be.twofold</groupId>
             <artifactId>valen-ui</artifactId>

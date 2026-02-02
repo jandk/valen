@@ -7,6 +7,6 @@ public interface Game {
 
     List<String> archiveNames();
 
-    Archive<?, ?> loadArchive(String name) throws IOException;
+    AssetLoader open(String name) throws IOException;
 
 }

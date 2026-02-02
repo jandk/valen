@@ -26,9 +26,12 @@ public interface AssetID extends Comparable<AssetID> {
         return Filenames.getExtension(fileName());
     }
 
+    default String exportName() {
+        return fileNameWithoutExtension();
+    }
+
     @Override
     default int compareTo(AssetID o) {
         return fullName().compareTo(o.fullName());
     }
-
 }

@@ -22,8 +22,8 @@ public final class MapResourcesReader implements AssetReader<MapResources, Etern
     }
 
     @Override
-    public MapResources read(BinarySource source, EternalAsset resource) throws IOException {
-        var bytes = fileReader.read(source, resource);
+    public MapResources read(BinarySource source, EternalAsset resource, LoadingContext context) throws IOException {
+        var bytes = fileReader.read(source, resource, context);
         return MapResources.read(BinarySource.wrap(bytes));
     }
 }

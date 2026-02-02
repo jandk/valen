@@ -12,15 +12,13 @@ import java.util.*;
 import java.util.stream.*;
 
 public final class ImageReader implements AssetReader<Texture, EternalAsset> {
-    private final EternalArchive archive;
     private final boolean readStreams;
 
-    public ImageReader(EternalArchive archive) {
-        this(archive, true);
+    public ImageReader() {
+        this(true);
     }
 
-    ImageReader(EternalArchive archive, boolean readStreams) {
-        this.archive = archive;
+    ImageReader(boolean readStreams) {
         this.readStreams = readStreams;
     }
 
@@ -30,7 +28,7 @@ public final class ImageReader implements AssetReader<Texture, EternalAsset> {
     }
 
     @Override
-    public Texture read(BinarySource source, EternalAsset resource) throws IOException {
+    public Texture read(BinarySource source, EternalAsset resource, LoadingContext context) throws IOException {
         long hash = resource.hash();
         var image = Image.read(source);
 
@@ -47,19 +45,19 @@ public final class ImageReader implements AssetReader<Texture, EternalAsset> {
              * What is also strange is that the "single stream" format is used only for light probes.
              */
             if (image.header().singleStream()) {
-                readSingleStream(image, hash, mipData);
+                readSingleStream(image, hash, mipData, context);
             } else {
-                readMultiStream(image, hash, mipData);
+                readMultiStream(image, hash, mipData, context);
             }
         }
 
         return map(image, mipData);
     }
 
-    private void readSingleStream(Image image, long hash, Bytes[] mipData) throws IOException {
+    private void readSingleStream(Image image, long hash, Bytes[] mipData, LoadingContext context) throws IOException {
         var lastMip = image.mipInfos().getLast();
         var uncompressedSize = lastMip.cumulativeSizeStreamDb() + lastMip.decompressedSize();
-        var bytes = archive.readStream(hash, uncompressedSize);
+        var bytes = context.open(new EternalStreamLocation(hash, uncompressedSize));
         try (var mipSource = BinarySource.wrap(bytes)) {
             for (var i = 0; i < image.header().totalMipCount(); i++) {
                 mipData[i] = mipSource.readBytes(image.mipInfos().get(i).decompressedSize());
@@ -67,13 +65,14 @@ public final class ImageReader implements AssetReader<Texture, EternalAsset> {
         }
     }
 
-    private void readMultiStream(Image image, long hash, Bytes[] mipData) throws IOException {
+    private void readMultiStream(Image image, long hash, Bytes[] mipData, LoadingContext context) throws IOException {
         for (var i = 0; i < image.header().startMip(); i++) {
             var mip = image.mipInfos().get(i);
             var mipHash = hash << 4 | (image.header().mipCount() - mip.mipLevel());
-            if (archive.containsStream(mipHash)) {
-                mipData[i] = archive.readStream(mipHash, mip.decompressedSize());
-            }
+            // TODO: Fix this if
+            //if (archive.containsStream(mipHash)) {
+            mipData[i] = context.open(new EternalStreamLocation(mipHash, mip.decompressedSize()));
+            //}
         }
     }
 

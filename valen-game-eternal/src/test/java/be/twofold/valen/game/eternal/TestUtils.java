@@ -12,27 +12,27 @@ import static org.assertj.core.api.Assertions.*;
 
 public abstract class TestUtils {
 
-    public static void testReader(Function<EternalArchive, AssetReader<?, EternalAsset>> readerFunction) throws IOException {
+    public static void testReader(Function<LoadingContext, AssetReader<?, EternalAsset>> readerFunction) throws IOException {
         EternalGame game = new EternalGameFactory().load(Path.of(Constants.ExecutablePath));
 
         for (String archiveName : game.archiveNames()) {
-            var archive = game.loadArchive(archiveName);
-            var reader = readerFunction.apply(archive);
-            readAllInMap(archive, reader);
+            var loader = game.open(archiveName);
+            var reader = readerFunction.apply(loader);
+            readAllInMap(loader, reader);
         }
     }
 
-    private static void readAllInMap(EternalArchive archive, AssetReader<?, EternalAsset> reader) {
-        var entries = archive.getAll()
-            .filter(asset -> asset.size() != 0 && reader.canRead(asset))
+    private static void readAllInMap(AssetLoader loader, AssetReader<?, EternalAsset> reader) {
+        var entries = loader.archive().all()
+            .filter(asset -> asset.size() != 0 && reader.canRead((EternalAsset) asset))
             .toList();
 
         System.out.println("Trying to read " + entries.size() + " entries");
 
-        for (EternalAsset asset : entries) {
+        for (Asset asset : entries) {
             try {
-                var bytes = archive.loadAsset(asset.id(), Bytes.class);
-                reader.read(BinarySource.wrap(bytes), asset);
+                var bytes = loader.load(asset.id(), Bytes.class);
+                reader.read(BinarySource.wrap(bytes), (EternalAsset) asset, loader);
             } catch (FileNotFoundException e) {
                 System.err.println("File not found" + asset.id().fullName());
             } catch (Exception e) {

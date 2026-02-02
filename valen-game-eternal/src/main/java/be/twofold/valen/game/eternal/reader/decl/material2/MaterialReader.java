@@ -5,9 +5,9 @@ import be.twofold.valen.game.eternal.reader.decl.*;
 import be.twofold.valen.game.eternal.resource.*;
 import be.twofold.valen.game.idtech.material.*;
 
-public final class MaterialReader extends AbstractMaterialReader<EternalAssetID, EternalAsset, EternalArchive> {
-    public MaterialReader(EternalArchive archive, DeclReader declReader) {
-        super(archive, declReader, true);
+public final class MaterialReader extends AbstractMaterialReader<EternalAssetID, EternalAsset> {
+    public MaterialReader(DeclReader declReader) {
+        super(declReader, true);
     }
 
     @Override
