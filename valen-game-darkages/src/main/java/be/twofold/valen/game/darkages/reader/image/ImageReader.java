@@ -10,15 +10,9 @@ import wtf.reversed.toolbox.io.*;
 import java.io.*;
 
 public final class ImageReader implements AssetReader<Texture, DarkAgesAsset> {
-    private final DarkAgesArchive archive;
     private final boolean readStreams;
 
-    public ImageReader(DarkAgesArchive archive) {
-        this(archive, true);
-    }
-
-    ImageReader(DarkAgesArchive archive, boolean readStreams) {
-        this.archive = archive;
+    public ImageReader(boolean readStreams) {
         this.readStreams = readStreams;
     }
 
@@ -28,12 +22,12 @@ public final class ImageReader implements AssetReader<Texture, DarkAgesAsset> {
     }
 
     @Override
-    public Texture read(BinarySource source, DarkAgesAsset asset) throws IOException {
-        var image = read(source, asset.hash());
+    public Texture read(BinarySource source, DarkAgesAsset asset, LoadingContext context) throws IOException {
+        var image = read(source, asset.hash(), context);
         return new ImageMapper().map(image);
     }
 
-    public Image read(BinarySource source, long hash) throws IOException {
+    public Image read(BinarySource source, long hash, LoadingContext context) throws IOException {
         var image = Image.read(source);
         source.expectEnd();
 
@@ -44,19 +38,20 @@ public final class ImageReader implements AssetReader<Texture, DarkAgesAsset> {
              * What is also strange is that the "single stream" format is used only for light probes.
              */
             if (image.header().singleStream()) {
-                readSingleStream(image, hash);
+                readSingleStream(image, hash, context);
             } else {
-                readMultiStream(image, hash);
+                readMultiStream(image, hash, context);
             }
         }
 
         return image;
     }
 
-    private void readSingleStream(Image image, long hash) throws IOException {
+    private void readSingleStream(Image image, long hash, LoadingContext context) throws IOException {
         var lastMip = image.mipInfos().getLast();
         var uncompressedSize = lastMip.cumulativeSizeStreamDB() + lastMip.decompressedSize();
-        var bytes = archive.readStream(Hash.hash(hash, 0, 0), uncompressedSize);
+        long streamId = Hash.hash(hash, 0, 0);
+        var bytes = context.open(new DarkAgesStreamLocation(streamId, uncompressedSize));
         try (var mipSource = BinarySource.wrap(bytes)) {
             for (var i = 0; i < image.header().totalMipCount(); i++) {
                 image.mipData()[i] = mipSource.readBytes(image.mipInfos().get(i).decompressedSize());
@@ -64,14 +59,15 @@ public final class ImageReader implements AssetReader<Texture, DarkAgesAsset> {
         }
     }
 
-    private void readMultiStream(Image image, long hash) throws IOException {
+    private void readMultiStream(Image image, long hash, LoadingContext context) throws IOException {
         for (var i = 0; i < image.header().startMip(); i++) {
             var mip = image.mipInfos().get(i);
-            int streamID = image.header().streamDBMipCount() - mip.mipLevel() - 1;
-            var mipHash = Hash.hash(hash, streamID, 0);
-            if (archive.containsStream(mipHash)) {
-                image.mipData()[i] = archive.readStream(mipHash, mip.decompressedSize());
-            }
+            int mipStreamId = image.header().streamDBMipCount() - mip.mipLevel() - 1;
+            var streamId = Hash.hash(hash, mipStreamId, 0);
+            // TODO: Handle missing streams
+            //if (context.containsStream(streamId)) {
+            image.mipData()[i] = context.open(new DarkAgesStreamLocation(streamId, mip.decompressedSize()));
+            //}
         }
     }
 }

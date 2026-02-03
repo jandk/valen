@@ -26,11 +26,11 @@ public record EternalAsset(
 
     @Override
     public int size() {
-//        return switch (location) {
-//            case StorageLocation.Compressed compressed -> compressed.uncompressedSize();
-//            case StorageLocation.FileSlice fileSlice -> fileSlice.size();
-//        };
-        return 0;
+        return switch (location) {
+            case StorageLocation.Compressed compressed -> compressed.uncompressedSize();
+            case StorageLocation.FileSlice fileSlice -> fileSlice.size();
+            default -> 0;
+        };
     }
 
     @Override

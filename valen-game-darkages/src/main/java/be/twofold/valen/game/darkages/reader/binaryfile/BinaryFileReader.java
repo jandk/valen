@@ -19,7 +19,7 @@ public final class BinaryFileReader implements AssetReader<Bytes, DarkAgesAsset>
     }
 
     @Override
-    public Bytes read(BinarySource source, DarkAgesAsset asset) throws IOException {
+    public Bytes read(BinarySource source, DarkAgesAsset asset, LoadingContext context) throws IOException {
         try {
             var salt = source.readBytes(12);
             var iVec = source.readBytes(16);

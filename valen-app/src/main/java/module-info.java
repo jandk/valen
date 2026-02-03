@@ -11,7 +11,7 @@ module valen.app {
     requires valen.export.png;
 
     // Games
-    //requires valen.game.darkages;
+    requires valen.game.darkages;
     requires valen.game.eternal;
     //requires valen.game.greatcircle;
     requires wtf.reversed.toolbox;

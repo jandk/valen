@@ -13,28 +13,28 @@ import static org.assertj.core.api.Assertions.*;
 
 public abstract class TestUtils {
 
-    public static void testReader(Function<DarkAgesArchive, AssetReader<?, DarkAgesAsset>> readerFunction) throws IOException {
+    public static void testReader(Function<LoadingContext, AssetReader<?, DarkAgesAsset>> readerFunction) throws IOException {
         DarkAgesGame game = new DarkAgesGameFactory().load(Path.of(Constants.ExecutablePath));
 
         for (String archiveName : game.archiveNames()) {
-            var archive = game.loadArchive(archiveName);
-            var reader = readerFunction.apply(archive);
-            readAllInMap(archive, reader);
+            var loader = game.open(archiveName);
+            var reader = readerFunction.apply(loader);
+            readAllInMap(loader, reader);
         }
     }
 
-    private static void readAllInMap(DarkAgesArchive archive, AssetReader<?, DarkAgesAsset> reader) {
-        var entries = archive.getAll()
-            .filter(asset -> asset.size() != 0 && reader.canRead(asset))
+    private static void readAllInMap(AssetLoader loader, AssetReader<?, DarkAgesAsset> reader) {
+        var entries = loader.archive().all()
+                .filter(asset -> asset.size() != 0 && reader.canRead((DarkAgesAsset) asset))
             .sorted(Comparator.naturalOrder())
             .toList();
 
         System.out.println("Trying to read " + entries.size() + " entries");
 
-        for (DarkAgesAsset asset : entries) {
+        for (Asset asset : entries) {
             try {
-                var fromBytes = archive.loadAsset(asset.id(), Bytes.class);
-                reader.read(BinarySource.wrap(fromBytes), asset);
+                var fromBytes = loader.load(asset.id(), Bytes.class);
+                reader.read(BinarySource.wrap(fromBytes), (DarkAgesAsset) asset, loader);
             } catch (FileNotFoundException e) {
                 System.err.println("File not found" + asset.id().fullName());
             } catch (Exception e) {

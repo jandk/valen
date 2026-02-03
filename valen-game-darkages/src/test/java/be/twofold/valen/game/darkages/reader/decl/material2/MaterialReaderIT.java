@@ -10,8 +10,8 @@ class MaterialReaderIT {
     @Test
     void testCanReadAll() throws IOException {
         TestUtils.testReader(archive -> {
-            var declReader = new DeclReader(archive);
-            return new MaterialReader(archive, declReader);
+            var declReader = new DeclReader();
+            return new MaterialReader(declReader);
         });
     }
 }

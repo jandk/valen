@@ -25,6 +25,30 @@ import java.nio.file.*;
 import java.util.*;
 
 public final class EternalGame implements Game {
+    private static final AssetReaders ASSET_READERS;
+
+    static {
+        var declReader = new DeclReader();
+        ASSET_READERS = new AssetReaders(List.of(
+            declReader,
+            // Binary converters
+            new BinaryFileReader(),
+            new FileCompressedReader(),
+            new FileReader(),
+            new JsonReader(),
+
+            // Actual readers
+            new ImageReader(),
+            new MapFileStaticInstancesReader(),
+            new MaterialReader(declReader),
+            new Md6AnimReader(),
+            new Md6ModelReader(),
+            new Md6SkelReader(),
+            new RenderParmReader(),
+            new StaticModelReader()
+        ));
+    }
+
     private final Path base;
     private final PackageMapSpec spec;
     private final Decompressor decompressor;
@@ -42,15 +66,10 @@ public final class EternalGame implements Game {
         return spec.maps().stream()
             .filter(map -> spec.mapFiles().get(map).stream()
                 .anyMatch(file -> file.endsWith(".resources")))
-            .map(s -> s.equals("common") ? "gameresources" : s)
             .toList();
     }
 
     public AssetLoader open(String name) throws IOException {
-        if (name.equals("gameresources")) {
-            name = "common";
-        }
-
         var paths = filterResources(base, spec, name);
         var sources = new HashMap<FileId, BinarySource>();
         var resourceFiles = new ArrayList<ResourcesFile>();
@@ -69,29 +88,7 @@ public final class EternalGame implements Game {
             decompressor
         );
 
-        var declReader = new DeclReader();
-        List<AssetReader<?, EternalAsset>> assetReaders = List.of(
-            declReader,
-            // Binary converters
-            new BinaryFileReader(),
-            new FileCompressedReader(decompressor),
-            new FileReader(),
-            new JsonReader(),
-
-            // Actual readers
-            new ImageReader(),
-            new MapFileStaticInstancesReader(),
-            new MaterialReader(declReader),
-            new Md6AnimReader(),
-            new Md6ModelReader(),
-            new Md6SkelReader(),
-            new RenderParmReader(),
-            new StaticModelReader()
-        );
-        // TODO: Fix this cast
-        var assetReaderRegistry = new AssetReaders((List) assetReaders);
-
-        return new AssetLoader(archive, storageManager, assetReaderRegistry);
+        return new AssetLoader(archive, storageManager, ASSET_READERS);
     }
 
     private List<StreamDbFile> loadStreamDbFiles(Path base, PackageMapSpec spec, Decompressor decompressor) throws IOException {

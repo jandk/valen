@@ -7,10 +7,7 @@ import java.util.*;
 
 public record DarkAgesAsset(
     DarkAgesAssetID id,
-    int offset,
-    int compressedSize,
-    int size,
-    ResourcesCompressionMode compression,
+    StorageLocation location,
     long hash,
     long checksum,
     int version
@@ -25,6 +22,15 @@ public record DarkAgesAsset(
             case BaseModel, Model, StrandsHair, Vegetation -> AssetType.MODEL;
             case Image -> AssetType.TEXTURE;
             default -> AssetType.RAW;
+        };
+    }
+
+    @Override
+    public int size() {
+        return switch (location) {
+            case StorageLocation.Compressed compressed -> compressed.uncompressedSize();
+            case StorageLocation.FileSlice fileSlice -> fileSlice.size();
+            default -> 0;
         };
     }
 

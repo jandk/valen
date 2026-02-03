@@ -9,7 +9,7 @@ class Md6AnimReaderIT {
 
     @Test
     void testCanReadAll() throws IOException {
-        TestUtils.testReader(Md6AnimReader::new);
+        TestUtils.testReader(_ -> new Md6AnimReader());
     }
 
 }

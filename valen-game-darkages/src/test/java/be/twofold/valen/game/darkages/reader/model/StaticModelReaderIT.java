@@ -9,7 +9,7 @@ class StaticModelReaderIT {
 
     @Test
     void testCanReadAll() throws IOException {
-        TestUtils.testReader(archive -> new StaticModelReader(archive, false));
+        TestUtils.testReader(_ -> new StaticModelReader(false));
     }
 
 }

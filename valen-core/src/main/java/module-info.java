@@ -17,7 +17,6 @@ module valen.core {
     exports be.twofold.valen.core.texture;
     exports be.twofold.valen.core.util.logging;
     exports be.twofold.valen.core.util;
-    exports be.twofold.valen.core.game2;
 
     uses be.twofold.valen.core.export.Exporter;
     uses be.twofold.valen.core.game.GameFactory;
