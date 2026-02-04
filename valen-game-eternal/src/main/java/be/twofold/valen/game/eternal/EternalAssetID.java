@@ -1,6 +1,7 @@
 package be.twofold.valen.game.eternal;
 
 import be.twofold.valen.core.game.*;
+import be.twofold.valen.game.eternal.reader.resource.*;
 import be.twofold.valen.game.eternal.resource.*;
 import wtf.reversed.toolbox.util.*;
 
@@ -17,23 +18,23 @@ public record EternalAssetID(
         .thenComparing(EternalAssetID::variation);
 
     private static final Map<ResourceType, Set<ResourceVariation>> Variations = Map.of(
-        ResourceType.HavokShape, Set.of(ResourceVariation.HkMsvc64),
-        ResourceType.HkNavMesh, Set.of(ResourceVariation.HkMsvc64),
-        ResourceType.HkNavMeshMediator, Set.of(ResourceVariation.HkMsvc64),
-        ResourceType.HkNavVolume, Set.of(ResourceVariation.HkMsvc64),
-        ResourceType.HkNavVolumeMediator, Set.of(ResourceVariation.HkMsvc64),
+        ResourceType.HavokShape, Set.of(ResourceVariation.RES_VAR_HK_MSVC_64),
+        ResourceType.HkNavMesh, Set.of(ResourceVariation.RES_VAR_HK_MSVC_64),
+        ResourceType.HkNavMeshMediator, Set.of(ResourceVariation.RES_VAR_HK_MSVC_64),
+        ResourceType.HkNavVolume, Set.of(ResourceVariation.RES_VAR_HK_MSVC_64),
+        ResourceType.HkNavVolumeMediator, Set.of(ResourceVariation.RES_VAR_HK_MSVC_64),
         ResourceType.RenderProgResource, Set.of(
-            ResourceVariation.RenderProgVulkanPcAmd,
-            ResourceVariation.RenderProgVulkanPcAmdRetail,
-            ResourceVariation.RenderProgVulkanPcBase,
-            ResourceVariation.RenderProgVulkanPcBaseRetail
+            ResourceVariation.RES_VAR_RENDERPROG_VULKAN_PC_AMD,
+            ResourceVariation.RES_VAR_RENDERPROG_VULKAN_PC_AMD_RETAIL,
+            ResourceVariation.RES_VAR_RENDERPROG_VULKAN_PC_BASE,
+            ResourceVariation.RES_VAR_RENDERPROG_VULKAN_PC_BASE_RETAIL
         )
     );
 
     public static EternalAssetID from(String name, ResourceType type) {
         var resourceName = new ResourceName(name);
         var variations = Variations
-            .getOrDefault(type, Set.of(ResourceVariation.None));
+            .getOrDefault(type, Set.of(ResourceVariation.RES_VAR_NONE));
 
         Check.state(variations.size() == 1, "Multiple variations found");
 
@@ -45,7 +46,7 @@ public record EternalAssetID(
     }
 
     public static EternalAssetID from(String name, ResourceType type, ResourceVariation variation) {
-        Check.argument(Variations.getOrDefault(type, Set.of(ResourceVariation.None)).contains(variation), "Invalid variation for type: " + type + " (" + variation + ")");
+        Check.argument(Variations.getOrDefault(type, Set.of(ResourceVariation.RES_VAR_NONE)).contains(variation), "Invalid variation for type: " + type + " (" + variation + ")");
         return new EternalAssetID(
             new ResourceName(name),
             type,

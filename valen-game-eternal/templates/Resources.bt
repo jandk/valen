@@ -5,10 +5,18 @@
 //   Purpose: Template for .resources from DOOM: Eternal
 //  Category: Archive
 // File Mask: *.resources
-//  ID Bytes: 49 44 43 4C
+//  ID Bytes: 49 44 43 4C 0C 00 00 00
 //------------------------------------------------
 
-enum <ubyte> ResourceCompressionMode {
+// idResEntryFlags_t
+enum ResourcesFlags {
+    RES_ENTRY_FLAG_NONE = 0,
+    RES_ENTRY_FLAG_DEFAULTED = 1,
+    RES_ENTRY_FLAG_HAS_VARIATION = 2,
+};
+
+// idResourceCompressionMode
+enum <ubyte> ResourcesCompressionMode {
     RES_COMP_MODE_NONE = 0,
     RES_COMP_MODE_ZLIB = 1,
     RES_COMP_MODE_KRAKEN = 2,
@@ -16,6 +24,45 @@ enum <ubyte> ResourceCompressionMode {
     RES_COMP_MODE_KRAKEN_CHUNKED = 4,
     RES_COMP_MODE_LEVIATHAN = 5,
     RES_COMP_MODE_ENUM_MAX = 6,
+};
+
+// idResourceVariation
+enum <ushort> ResourcesVariation {
+    RES_VAR_NONE = 0,
+    RES_VAR_RENDERPROG_VULKAN_PC_BASE = 33,
+    RES_VAR_RENDERPROG_VULKAN_PC_AMD = 34,
+    RES_VAR_RENDERPROG_D3D12_PC_BASE = 37,
+    RES_VAR_RENDERPROG_PS4_BASE_SRT = 42,
+    RES_VAR_RENDERPROG_PS4_NEO_SRT = 43,
+    RES_VAR_RENDERPROG_XB1_BASE_D3D12 = 44,
+    RES_VAR_RENDERPROG_SWITCH = 48,
+    RES_VAR_RENDERPROG_SCARLETT_D3D12 = 50,
+    RES_VAR_RENDERPROG_PROSPERO = 51,
+    RES_VAR_RENDERPROG_VULKAN_PC_BASE_RETAIL = 300,
+    RES_VAR_RENDERPROG_VULKAN_PC_AMD_RETAIL = 301,
+    RES_VAR_RENDERPROG_D3D12_PC_BASE_RETAIL = 304,
+    RES_VAR_RENDERPROG_PS4_BASE_SRT_RETAIL = 305,
+    RES_VAR_RENDERPROG_PS4_NEO_SRT_RETAIL = 306,
+    RES_VAR_RENDERPROG_XB1_BASE_D3D12_RETAIL = 307,
+    RES_VAR_RENDERPROG_SWITCH_RETAIL = 311,
+    RES_VAR_RENDERPROG_SCARLETT_D3D12_RETAIL = 313,
+    RES_VAR_RENDERPROG_PROSPERO_RETAIL = 314,
+    RES_VAR_HK_GEN_64 = 64,
+    RES_VAR_HK_MSVC_64 = 65,
+    RES_VAR_PLATFORM_WIN = 200,
+    RES_VAR_PLATFORM_WIN32 = 201,
+    RES_VAR_PLATFORM_WIN64 = 202,
+    RES_VAR_PLATFORM_LINUX = 210,
+    RES_VAR_PLATFORM_LINUX32 = 211,
+    RES_VAR_PLATFORM_LINUX64 = 212,
+    RES_VAR_PLATFORM_PS4 = 220,
+    RES_VAR_PLATFORM_PS4_NEO = 221,
+    RES_VAR_PLATFORM_XB1 = 230,
+    RES_VAR_PLATFORM_XB1_SCORPIO = 231,
+    RES_VAR_PLATFORM_SWITCH = 240,
+    RES_VAR_PLATFORM_SCARLETT = 241,
+    RES_VAR_PLATFORM_PROSPERO = 242,
+    RES_VAR_PLATFORM_RESERVED_DO_NOT_USE = 299,
 };
 
 // idResourceHeader
@@ -80,10 +127,10 @@ struct ResourcesEntry
 	uquad  generationTimeStamp;
 	uquad  defaultHash;
 	uint   version;
-	uint   flags;
-	ResourceCompressionMode compMode;
+	ResourcesFlags flags;
+	ResourcesCompressionMode compMode;
 	ubyte  reserved0;
-	ushort variation;
+	ResourcesVariation variation;
 	uint   reserved2;
 	uquad  reservedForVariations;
     Assert(reserved0             == 0);
@@ -126,7 +173,7 @@ struct Resources {
     ResourcesHeader header <style=sHeading1>;
 
     FSeek(header.resourceEntriesOffset);
-    ResourcesEntry entries[header.numResources] <style=sHeading2>;
+    ResourcesEntry entries[header.numResources] <style=sHeading2, optimize=false>;
 
     FSeek(header.stringTableOffset);
     ResourcesStrings strings <style=sHeading3>;

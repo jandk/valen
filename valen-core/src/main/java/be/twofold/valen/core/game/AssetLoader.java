@@ -6,7 +6,7 @@ import wtf.reversed.toolbox.util.*;
 
 import java.io.*;
 
-public class AssetLoader implements LoadingContext, Closeable {
+public final class AssetLoader implements LoadingContext, Closeable {
     private final Archive archive;
     private final StorageManager storage;
     private final AssetReaders readers;

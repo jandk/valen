@@ -1,6 +1,7 @@
 package be.twofold.valen.game.eternal;
 
 import be.twofold.valen.core.game.*;
+import be.twofold.valen.game.eternal.reader.resource.*;
 import be.twofold.valen.game.eternal.resource.*;
 
 import java.util.*;
@@ -38,7 +39,7 @@ public record EternalAsset(
         var properties = new HashMap<String, Object>();
         properties.put("hash", hash);
         properties.put("Type", id.type().toString());
-        if (id.variation() != ResourceVariation.None) {
+        if (id.variation() != ResourceVariation.RES_VAR_NONE) {
             properties.put("Variation", id.variation());
         }
         return properties;

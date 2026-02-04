@@ -14,9 +14,9 @@ public record ResourcesEntry(
     long generationTimeStamp,
     long defaultHash,
     int version,
-    int flags,
+    ResourceFlags flags,
     ResourceCompressionMode compMode,
-    short variation,
+    ResourceVariation variation,
     short numSources,
     short numDependencies
 ) {
@@ -35,10 +35,10 @@ public record ResourcesEntry(
         var generationTimeStamp = source.readLong();
         var defaultHash = source.readLong();
         var version = source.readInt();
-        var flags = source.readInt();
+        var flags = ResourceFlags.read(source);
         var compMode = ResourceCompressionMode.read(source);
         source.expectByte((byte) 0x0); // reserved0
-        var variation = source.readShort();
+        var variation = ResourceVariation.read(source);
         source.expectInt(0x0); // reserved2
         source.expectLong(0x0); // reservedForVariations
         source.expectShort((short) 0x2); // numStrings
