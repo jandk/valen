@@ -48,7 +48,7 @@ record ResourcesIndex(
 
         var resourceName = new ResourceName(name);
         var resourceType = ResourcesType.fromName(type);
-        var resourceKey = new DarkAgesAssetID(resourceName, resourceType, ResourcesVariation.fromValue(entry.variation()));
+        var resourceKey = new DarkAgesAssetID(resourceName, resourceType, entry.variation());
 
         var location = new StorageLocation.FileSlice(
             fileId, entry.dataOffset(), Math.toIntExact(entry.dataSize())
@@ -78,7 +78,7 @@ record ResourcesIndex(
 
     private static String getString(Resources resources, ResourcesEntry entry, int offset) {
         var i1 = Math.toIntExact(entry.strings() + offset);
-        var i2 = Math.toIntExact(resources.pathStringIndex().get(i1));
-        return resources.pathStrings().get(i2);
+        var i2 = Math.toIntExact(resources.stringIndex().get(i1));
+        return resources.strings().values().get(i2);
     }
 }

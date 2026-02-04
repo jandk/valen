@@ -1,11 +1,11 @@
-package be.twofold.valen.game.eternal.reader.resource;
+package be.twofold.valen.game.eternal.reader.resources;
 
 import wtf.reversed.toolbox.io.*;
 import wtf.reversed.toolbox.util.*;
 
 import java.io.*;
 
-public enum ResourceVariation implements ValueEnum<Integer> {
+public enum ResourcesVariation implements ValueEnum<Integer> {
     RES_VAR_NONE(0),
     RES_VAR_RENDERPROG_VULKAN_PC_BASE(33),
     RES_VAR_RENDERPROG_VULKAN_PC_AMD(34),
@@ -45,12 +45,12 @@ public enum ResourceVariation implements ValueEnum<Integer> {
 
     private final int value;
 
-    ResourceVariation(int value) {
+    ResourcesVariation(int value) {
         this.value = value;
     }
 
-    public static ResourceVariation read(BinarySource source) throws IOException {
-        return ValueEnum.fromValue(ResourceVariation.class, Short.toUnsignedInt(source.readShort()));
+    public static ResourcesVariation read(BinarySource source) throws IOException {
+        return ValueEnum.fromValue(ResourcesVariation.class, Short.toUnsignedInt(source.readShort()));
     }
 
     @Override

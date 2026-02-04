@@ -1,11 +1,11 @@
-package be.twofold.valen.game.eternal.reader.resource;
+package be.twofold.valen.game.eternal.reader.resources;
 
 import wtf.reversed.toolbox.io.*;
 import wtf.reversed.toolbox.util.*;
 
 import java.io.*;
 
-public enum ResourceCompressionMode implements ValueEnum<Integer> {
+public enum ResourcesCompressionMode implements ValueEnum<Integer> {
     RES_COMP_MODE_NONE(0),
     RES_COMP_MODE_ZLIB(1),
     RES_COMP_MODE_KRAKEN(2),
@@ -17,12 +17,12 @@ public enum ResourceCompressionMode implements ValueEnum<Integer> {
 
     private final int value;
 
-    ResourceCompressionMode(int value) {
+    ResourcesCompressionMode(int value) {
         this.value = value;
     }
 
-    public static ResourceCompressionMode read(BinarySource source) throws IOException {
-        return ValueEnum.fromValue(ResourceCompressionMode.class, Byte.toUnsignedInt(source.readByte()));
+    public static ResourcesCompressionMode read(BinarySource source) throws IOException {
+        return ValueEnum.fromValue(ResourcesCompressionMode.class, Byte.toUnsignedInt(source.readByte()));
     }
 
     @Override

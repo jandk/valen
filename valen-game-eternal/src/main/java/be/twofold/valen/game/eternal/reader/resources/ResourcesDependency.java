@@ -1,4 +1,4 @@
-package be.twofold.valen.game.eternal.reader.resource;
+package be.twofold.valen.game.eternal.reader.resources;
 
 import wtf.reversed.toolbox.io.*;
 

@@ -2,10 +2,10 @@
 //      File: resources.bt
 //   Authors: JanDK
 //   Version: 0.1
-//   Purpose: Template for .resources from DOOM: Eternal
+//   Purpose: Template for .resources from DOOM: The Dark Ages
 //  Category: Archive
 // File Mask: *.resources
-//  ID Bytes: 49 44 43 4C 0C 00 00 00
+//  ID Bytes: 49 44 43 4C 0D 00 00 00
 //------------------------------------------------
 
 // idResEntryFlags_t
@@ -22,7 +22,8 @@ enum <ubyte> ResourcesCompressionMode {
     RES_COMP_MODE_LZNA = 3,
     RES_COMP_MODE_KRAKEN_CHUNKED = 4,
     RES_COMP_MODE_LEVIATHAN = 5,
-    RES_COMP_MODE_ENUM_MAX = 6,
+    RES_COMP_MODE_BCPACK = 6,
+    RES_COMP_MODE_ENUM_MAX = 7,
 };
 
 // idResourceVariation
@@ -30,46 +31,35 @@ enum <ushort> ResourcesVariation {
     RES_VAR_NONE = 0,
     RES_VAR_RENDERPROG_VULKAN_PC_BASE = 33,
     RES_VAR_RENDERPROG_VULKAN_PC_AMD = 34,
-    RES_VAR_RENDERPROG_D3D12_PC_BASE = 37,
-    RES_VAR_RENDERPROG_PS4_BASE_SRT = 42,
-    RES_VAR_RENDERPROG_PS4_NEO_SRT = 43,
-    RES_VAR_RENDERPROG_XB1_BASE_D3D12 = 44,
-    RES_VAR_RENDERPROG_SWITCH = 48,
     RES_VAR_RENDERPROG_SCARLETT_D3D12 = 50,
-    RES_VAR_RENDERPROG_PROSPERO = 51,
+    RES_VAR_RENDERPROG_PROSPERO_BASE = 51,
+    RES_VAR_RENDERPROG_PROSPERO_TRINITY = 52,
     RES_VAR_RENDERPROG_VULKAN_PC_BASE_RETAIL = 300,
     RES_VAR_RENDERPROG_VULKAN_PC_AMD_RETAIL = 301,
-    RES_VAR_RENDERPROG_D3D12_PC_BASE_RETAIL = 304,
-    RES_VAR_RENDERPROG_PS4_BASE_SRT_RETAIL = 305,
-    RES_VAR_RENDERPROG_PS4_NEO_SRT_RETAIL = 306,
-    RES_VAR_RENDERPROG_XB1_BASE_D3D12_RETAIL = 307,
-    RES_VAR_RENDERPROG_SWITCH_RETAIL = 311,
     RES_VAR_RENDERPROG_SCARLETT_D3D12_RETAIL = 313,
-    RES_VAR_RENDERPROG_PROSPERO_RETAIL = 314,
+    RES_VAR_RENDERPROG_PROSPERO_BASE_RETAIL = 314,
+    RES_VAR_RENDERPROG_PROSPERO_TRINITY_RETAIL = 315,
     RES_VAR_HK_GEN_64 = 64,
     RES_VAR_HK_MSVC_64 = 65,
+    RES_VAR_DECLS_NO_SANITYCHECKS = 70,
     RES_VAR_PLATFORM_WIN = 200,
     RES_VAR_PLATFORM_WIN32 = 201,
     RES_VAR_PLATFORM_WIN64 = 202,
     RES_VAR_PLATFORM_LINUX = 210,
     RES_VAR_PLATFORM_LINUX32 = 211,
     RES_VAR_PLATFORM_LINUX64 = 212,
-    RES_VAR_PLATFORM_PS4 = 220,
-    RES_VAR_PLATFORM_PS4_NEO = 221,
-    RES_VAR_PLATFORM_XB1 = 230,
-    RES_VAR_PLATFORM_XB1_SCORPIO = 231,
-    RES_VAR_PLATFORM_SWITCH = 240,
     RES_VAR_PLATFORM_SCARLETT = 241,
     RES_VAR_PLATFORM_PROSPERO = 242,
+    RES_VAR_PLATFORM_PROSPERO_BASE = 243,
+    RES_VAR_PLATFORM_PROSPERO_TRINITY = 244,
     RES_VAR_PLATFORM_RESERVED_DO_NOT_USE = 299,
 };
 
-// idResourceHeader
 struct ResourcesHeader {
     uint magic;
     uint version;
     Assert(magic   == 0x4c434449);
-    Assert(version == 12);
+    Assert(version == 13);
 
     uint  flags;
     uint  numSegments;
@@ -99,9 +89,6 @@ struct ResourcesHeader {
     uquad resourceSpecialHashOffset;
 
     uquad dataOffset;
-    uint  unknown;
-    uquad metaSize;
-    Assert(unknown == 0);
 };
 
 struct ResourcesEntry

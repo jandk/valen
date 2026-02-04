@@ -1,6 +1,9 @@
 package be.twofold.valen.game.darkages.reader.resources;
 
+import wtf.reversed.toolbox.io.*;
 import wtf.reversed.toolbox.util.*;
+
+import java.io.*;
 
 public enum ResourcesCompressionMode implements ValueEnum<Integer> {
     RES_COMP_MODE_NONE(0),
@@ -19,12 +22,12 @@ public enum ResourcesCompressionMode implements ValueEnum<Integer> {
         this.value = value;
     }
 
-    public static ResourcesCompressionMode fromValue(Integer value) {
-        return ValueEnum.fromValue(ResourcesCompressionMode.class, value);
+    public static ResourcesCompressionMode read(BinarySource source) throws IOException {
+        return ValueEnum.fromValue(ResourcesCompressionMode.class, Byte.toUnsignedInt(source.readByte()));
     }
 
     @Override
     public Integer value() {
         return value;
     }
-    }
+}

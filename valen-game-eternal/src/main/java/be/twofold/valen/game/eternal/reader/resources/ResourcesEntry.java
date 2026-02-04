@@ -1,8 +1,9 @@
-package be.twofold.valen.game.eternal.reader.resource;
+package be.twofold.valen.game.eternal.reader.resources;
 
 import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
+import java.util.*;
 
 public record ResourcesEntry(
     long depIndices,
@@ -14,9 +15,9 @@ public record ResourcesEntry(
     long generationTimeStamp,
     long defaultHash,
     int version,
-    ResourceFlags flags,
-    ResourceCompressionMode compMode,
-    ResourceVariation variation,
+    Set<ResourcesFlags> flags,
+    ResourcesCompressionMode compMode,
+    ResourcesVariation variation,
     short numSources,
     short numDependencies
 ) {
@@ -35,10 +36,10 @@ public record ResourcesEntry(
         var generationTimeStamp = source.readLong();
         var defaultHash = source.readLong();
         var version = source.readInt();
-        var flags = ResourceFlags.read(source);
-        var compMode = ResourceCompressionMode.read(source);
+        var flags = ResourcesFlags.read(source);
+        var compMode = ResourcesCompressionMode.read(source);
         source.expectByte((byte) 0x0); // reserved0
-        var variation = ResourceVariation.read(source);
+        var variation = ResourcesVariation.read(source);
         source.expectInt(0x0); // reserved2
         source.expectLong(0x0); // reservedForVariations
         source.expectShort((short) 0x2); // numStrings
