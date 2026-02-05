@@ -4,7 +4,7 @@ import com.google.gson.annotations.*;
 
 import java.util.*;
 
-public record File(
+public record SpecFile(
     @SerializedName("blake3") String blake3,
     @SerializedName("chunk_id") int chunkId,
     @SerializedName("hq") boolean hq,
@@ -14,7 +14,7 @@ public record File(
     @SerializedName("name") String name,
     @SerializedName("sha256") String sha256
 ) {
-    public File {
+    public SpecFile {
         Objects.requireNonNull(blake3);
         lang = lang == null ? List.of() : List.copyOf(lang);
         Objects.requireNonNull(name);

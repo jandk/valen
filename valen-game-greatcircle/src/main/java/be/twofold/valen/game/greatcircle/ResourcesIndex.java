@@ -1,7 +1,8 @@
-package be.twofold.valen.game.darkages;
+package be.twofold.valen.game.greatcircle;
 
 import be.twofold.valen.core.game.*;
-import be.twofold.valen.game.darkages.reader.resources.*;
+import be.twofold.valen.game.greatcircle.reader.resources.*;
+import be.twofold.valen.game.greatcircle.resource.*;
 import org.slf4j.*;
 import wtf.reversed.toolbox.io.*;
 
@@ -11,7 +12,7 @@ import java.util.*;
 
 record ResourcesIndex(
     Map<FileId, BinarySource> sources,
-    Map<DarkAgesAssetID, DarkAgesAsset> index
+    Map<GreatCircleAssetID, GreatCircleAsset> index
 ) {
     private static final Logger log = LoggerFactory.getLogger(ResourcesIndex.class);
 
@@ -22,7 +23,7 @@ record ResourcesIndex(
 
     static ResourcesIndex build(Path base, List<String> paths) throws IOException {
         var sources = new HashMap<FileId, BinarySource>();
-        var index = new HashMap<DarkAgesAssetID, DarkAgesAsset>();
+        var index = new HashMap<GreatCircleAssetID, GreatCircleAsset>();
         for (var path : paths) {
             log.info("Loading Resources: {}", path);
 
@@ -42,32 +43,28 @@ record ResourcesIndex(
         return new ResourcesIndex(sources, index);
     }
 
-    private static DarkAgesAsset mapResourceEntry(Resources resources, ResourcesEntry entry, FileId fileId) {
-        var name = getString(resources, entry, 1);
-        var type = getString(resources, entry, 0);
+    private static GreatCircleAsset mapResourceEntry(Resources resources, ResourcesEntry entry, FileId fileId) {
+        var name = getString(resources, entry.strings() + entry.nameString());
+        var type = getString(resources, entry.strings()/* + entry.typeString()*/);
 
         var resourceName = new ResourceName(name);
-        var resourceType = ResourcesType.fromValue(type);
-        var resourceKey = new DarkAgesAssetID(resourceName, resourceType, entry.variation());
+        var resourceType = ResourceType.fromValue(type);
+        var resourceKey = new GreatCircleAssetID(resourceName, resourceType, entry.variation());
 
         var location = new StorageLocation.FileSlice(
             fileId, entry.dataOffset(), Math.toIntExact(entry.dataSize())
         );
         StorageLocation finalLocation = switch (entry.compMode()) {
             case RES_COMP_MODE_NONE -> location;
-            case RES_COMP_MODE_KRAKEN -> new StorageLocation.Compressed(
+            case RES_COMP_MODE_KRAKEN,
+                 RES_COMP_MODE_KRAKEN_CHUNKED,
+                 RES_COMP_MODE_LEVIATHAN -> new StorageLocation.Compressed(
                 location, "oodle", Math.toIntExact(entry.uncompressedSize())
-            );
-            case RES_COMP_MODE_KRAKEN_CHUNKED -> new StorageLocation.Compressed(
-                new StorageLocation.FileSlice(
-                    location.fileId(), location.offset() + 12, location.size() - 12
-                ),
-                "oodle", Math.toIntExact(entry.uncompressedSize())
             );
             default -> throw new UnsupportedOperationException(entry.compMode().toString());
         };
 
-        return new DarkAgesAsset(
+        return new GreatCircleAsset(
             resourceKey,
             finalLocation,
             entry.defaultHash(),
@@ -76,8 +73,8 @@ record ResourcesIndex(
         );
     }
 
-    private static String getString(Resources resources, ResourcesEntry entry, int offset) {
-        var i1 = Math.toIntExact(entry.strings() + offset);
+    private static String getString(Resources resources, long index) {
+        var i1 = Math.toIntExact(index);
         var i2 = Math.toIntExact(resources.stringIndex().get(i1));
         return resources.strings().values().get(i2);
     }

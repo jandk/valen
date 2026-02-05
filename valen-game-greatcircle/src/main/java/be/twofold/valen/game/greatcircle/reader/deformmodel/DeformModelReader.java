@@ -12,11 +12,9 @@ import java.io.*;
 import java.util.*;
 
 public final class DeformModelReader implements AssetReader<Model, GreatCircleAsset> {
-    private final GreatCircleArchive archive;
     private final boolean readMaterials;
 
-    public DeformModelReader(GreatCircleArchive archive, boolean readMaterials) {
-        this.archive = archive;
+    public DeformModelReader(boolean readMaterials) {
         this.readMaterials = readMaterials;
     }
 
@@ -26,13 +24,13 @@ public final class DeformModelReader implements AssetReader<Model, GreatCircleAs
     }
 
     @Override
-    public Model read(BinarySource source, GreatCircleAsset asset) throws IOException {
+    public Model read(BinarySource source, GreatCircleAsset asset, LoadingContext context) throws IOException {
         var deformModel = DeformModel.read(source);
-        var meshes = new ArrayList<>(readMeshes(deformModel, asset.hash()));
+        var meshes = new ArrayList<>(readMeshes(deformModel, asset.hash(), context));
 
         if (readMaterials) {
             Materials.apply(
-                archive, meshes, deformModel.meshes(),
+                context, meshes, deformModel.meshes(),
                 deformModelMesh -> deformModelMesh.lods().getFirst().materialName(),
                 _ -> null
             );
@@ -40,13 +38,13 @@ public final class DeformModelReader implements AssetReader<Model, GreatCircleAs
         return new Model(meshes, Optional.empty(), Optional.of(asset.id().fullName()), Optional.empty(), Axis.Z);
     }
 
-    private List<Mesh> readMeshes(DeformModel deformModel, long hash) throws IOException {
-        var meshes = readStreamedGeometry(deformModel, 0, hash);
+    private List<Mesh> readMeshes(DeformModel deformModel, long hash, LoadingContext context) throws IOException {
+        var meshes = readStreamedGeometry(deformModel, 0, hash, context);
         fixJointIndices(deformModel, meshes);
         return meshes;
     }
 
-    private List<Mesh> readStreamedGeometry(DeformModel deformModel, int lod, long hash) throws IOException {
+    private List<Mesh> readStreamedGeometry(DeformModel deformModel, int lod, long hash, LoadingContext context) throws IOException {
         var uncompressedSize = deformModel.diskLayouts().get(lod).uncompressedSize();
         if (uncompressedSize == 0) {
             return List.of();
@@ -58,7 +56,7 @@ public final class DeformModelReader implements AssetReader<Model, GreatCircleAs
         var layouts = deformModel.diskLayouts().get(lod).memoryLayouts();
 
         var identity = (hash << 4) | lod;
-        var bytes = archive.readStream(identity, uncompressedSize);
+        var bytes = context.open(new GreatCircleStreamLocation(identity, uncompressedSize));
         try (var source = BinarySource.wrap(bytes)) {
             return GeometryReader.readStreamedMesh(source, lodInfos, layouts, true);
         }

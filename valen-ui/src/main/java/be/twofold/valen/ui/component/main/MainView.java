@@ -2,6 +2,7 @@ package be.twofold.valen.ui.component.main;
 
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.ui.common.*;
+import javafx.scene.*;
 
 import java.util.*;
 
@@ -21,7 +22,7 @@ public interface MainView extends View<MainView.Listener> {
 
     void showSettings(boolean enabled);
 
-    void setFileListView(javafx.scene.Node node);
+    void setFileListView(Node node);
 
     interface Listener extends View.Listener {
 

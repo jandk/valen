@@ -14,11 +14,7 @@ import java.util.stream.*;
 public final class ImageReader implements AssetReader<Texture, EternalAsset> {
     private final boolean readStreams;
 
-    public ImageReader() {
-        this(true);
-    }
-
-    ImageReader(boolean readStreams) {
+    public ImageReader(boolean readStreams) {
         this.readStreams = readStreams;
     }
 

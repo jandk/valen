@@ -9,15 +9,9 @@ import wtf.reversed.toolbox.io.*;
 import java.io.*;
 
 public final class ImageReader implements AssetReader<Texture, GreatCircleAsset> {
-    private final GreatCircleArchive archive;
     private final boolean readStreams;
 
-    public ImageReader(GreatCircleArchive archive) {
-        this(archive, true);
-    }
-
-    ImageReader(GreatCircleArchive archive, boolean readStreams) {
-        this.archive = archive;
+    public ImageReader(boolean readStreams) {
         this.readStreams = readStreams;
     }
 
@@ -28,7 +22,7 @@ public final class ImageReader implements AssetReader<Texture, GreatCircleAsset>
     }
 
     @Override
-    public Texture read(BinarySource source, GreatCircleAsset asset) throws IOException {
+    public Texture read(BinarySource source, GreatCircleAsset asset, LoadingContext context) throws IOException {
         var image = Image.read(source);
         source.expectEnd();
 
@@ -42,7 +36,7 @@ public final class ImageReader implements AssetReader<Texture, GreatCircleAsset>
                 throw new UnsupportedOperationException("Single stream not supported");
                 // readSingleStream(image, hash);
             } else {
-                readMultiStream(image);
+                readMultiStream(image, context);
             }
         }
 
@@ -60,13 +54,14 @@ public final class ImageReader implements AssetReader<Texture, GreatCircleAsset>
 //        }
     }
 
-    private void readMultiStream(Image image) throws IOException {
+    private void readMultiStream(Image image, LoadingContext context) throws IOException {
         for (var i = 0; i < image.header().startMip(); i++) {
             var mip = image.sliceInfos().get(i);
 
-            if (archive.containsStream(mip.hash())) {
-                image.slices()[i] = archive.readStream(mip.hash(), mip.decompressedSize());
-            }
+            // TODO: Fix this if
+            //if (archive.containsStream(mip.hash())) {
+            image.slices()[i] = context.open(new GreatCircleStreamLocation(mip.hash(), mip.decompressedSize()));
+            //}
         }
     }
 }

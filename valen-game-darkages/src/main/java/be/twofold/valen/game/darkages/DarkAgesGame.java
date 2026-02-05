@@ -54,7 +54,7 @@ public final class DarkAgesGame implements Game {
         this.spec = PackageMapSpecReader.read(base.resolve("packagemapspec.json"));
         this.decompressor = Decompressor.oodle(OodleDownloader.download());
         this.streamDbIndex = loadStreamDbIndex(base, spec);
-        this.commonResources = ResourcesIndex.build(base, filterResources(spec, "common", "warehouse"));
+        this.commonResources = ResourcesIndex.build(base, filterResources(spec, "common", "warehouse", "init"));
     }
 
     @Override

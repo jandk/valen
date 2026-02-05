@@ -48,7 +48,7 @@ record ResourcesIndex(
         var type = getString(resources, entry, 0);
 
         var resourceName = new ResourceName(name);
-        var resourceType = ResourceType.fromName(type);
+        var resourceType = ResourceType.fromValue(type);
         var resourceKey = new EternalAssetID(resourceName, resourceType, entry.variation());
 
         var location = new StorageLocation.FileSlice(

@@ -44,10 +44,10 @@
             <groupId>be.twofold</groupId>
             <artifactId>valen-game-eternal</artifactId>
         </dependency>
-        <!--        <dependency>-->
-        <!--            <groupId>be.twofold</groupId>-->
-        <!--            <artifactId>valen-game-greatcircle</artifactId>-->
-        <!--        </dependency>-->
+        <dependency>
+            <groupId>be.twofold</groupId>
+            <artifactId>valen-game-greatcircle</artifactId>
+        </dependency>
         <dependency>
             <groupId>be.twofold</groupId>
             <artifactId>valen-ui</artifactId>

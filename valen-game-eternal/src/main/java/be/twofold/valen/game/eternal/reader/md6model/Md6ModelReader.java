@@ -15,11 +15,7 @@ import java.util.*;
 public final class Md6ModelReader implements AssetReader<Model, EternalAsset> {
     private final boolean readMaterials;
 
-    public Md6ModelReader() {
-        this(true);
-    }
-
-    Md6ModelReader(boolean readMaterials) {
+    public Md6ModelReader(boolean readMaterials) {
         this.readMaterials = readMaterials;
     }
 

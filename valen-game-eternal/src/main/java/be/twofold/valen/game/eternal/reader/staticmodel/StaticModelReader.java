@@ -15,11 +15,7 @@ import java.util.*;
 public final class StaticModelReader implements AssetReader<Model, EternalAsset> {
     private final boolean readMaterials;
 
-    public StaticModelReader() {
-        this(true);
-    }
-
-    StaticModelReader(boolean readMaterials) {
+    public StaticModelReader(boolean readMaterials) {
         this.readMaterials = readMaterials;
     }
 

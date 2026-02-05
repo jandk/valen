@@ -1,8 +1,11 @@
-package be.twofold.valen.game.greatcircle.resource;
+package be.twofold.valen.game.greatcircle.reader.resources;
 
+import wtf.reversed.toolbox.io.*;
 import wtf.reversed.toolbox.util.*;
 
-public enum ResourceVariation implements ValueEnum<Integer> {
+import java.io.*;
+
+public enum ResourcesVariation implements ValueEnum<Integer> {
     RES_VAR_NONE(0),
     RES_VAR_DEBUG(24),
     RES_VAR_DEV(25),
@@ -56,6 +59,7 @@ public enum ResourceVariation implements ValueEnum<Integer> {
     RES_VAR_PLATFORM_LIME(242),
     RES_VAR_PLATFORM_LIME_BASE(243),
     RES_VAR_PLATFORM_LIME_PLUS(244),
+    RES_VAR_PLATFORM_KIWI(245),
     RES_VAR_PLATFORM_RESERVED_DO_NOT_USE(299),
     RES_VAR_LANGUAGE_AR_AE(400),
     RES_VAR_LANGUAGE_AR_SA(401),
@@ -93,17 +97,18 @@ public enum ResourceVariation implements ValueEnum<Integer> {
     RES_VAR_LANGUAGE_ZH_CN(433),
     RES_VAR_LANGUAGE_ZH_HK(434),
     RES_VAR_LANGUAGE_ZH_TW(435),
+    RES_VAR_LANGUAGE_ID_ID(436),
     RES_VAR_LANGUAGE_RESERVED_DO_NOT_USE(499),
     ;
 
     private final int value;
 
-    ResourceVariation(int value) {
+    ResourcesVariation(int value) {
         this.value = value;
     }
 
-    public static ResourceVariation fromValue(int value) {
-        return ValueEnum.fromValue(ResourceVariation.class, value);
+    public static ResourcesVariation read(BinarySource source) throws IOException {
+        return ValueEnum.fromValue(ResourcesVariation.class, Short.toUnsignedInt(source.readShort()));
     }
 
     @Override

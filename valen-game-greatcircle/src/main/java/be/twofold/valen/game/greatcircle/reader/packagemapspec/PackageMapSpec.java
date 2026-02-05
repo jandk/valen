@@ -8,10 +8,10 @@ import java.nio.file.*;
 import java.util.*;
 
 public record PackageMapSpec(
-    @SerializedName("containers") List<Container> containers,
-    @SerializedName("files") List<File> files,
+    @SerializedName("containers") List<SpecContainer> containers,
+    @SerializedName("files") List<SpecFile> files,
     @SerializedName("initial_chunk") int initialChunk,
-    @SerializedName("maps") List<Map> maps,
+    @SerializedName("maps") List<SpecMap> maps,
     @SerializedName("project") String project,
     @SerializedName("text_languages") List<String> textLanguages,
     @SerializedName("vo_chunk") int voChunk,

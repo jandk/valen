@@ -7,21 +7,17 @@ import java.io.*;
 public record StreamDbEntry(
     int offset16,
     int length,
-    StreamerCompression compressionMode
+    StreamDbCompression compressionType
 ) {
     public static StreamDbEntry read(BinarySource source) throws IOException {
-        int offset16 = source.readInt();
-        int length = source.readInt();
-        StreamerCompression compressionMode = StreamerCompression.fromValue(source.readInt());
+        var offset16 = source.readInt();
+        var length = source.readInt();
+        var compressionType = StreamDbCompression.read(source);
 
         return new StreamDbEntry(
             offset16,
             length,
-            compressionMode
+            compressionType
         );
-    }
-
-    public long offset() {
-        return offset16 * 16L;
     }
 }

@@ -8,9 +8,7 @@ public interface Asset extends Comparable<Asset> {
 
     AssetType type();
 
-    default StorageLocation location() {
-        throw new UnsupportedOperationException();
-    }
+    StorageLocation location();
 
     int size();
 

@@ -1,17 +1,17 @@
 package be.twofold.valen.game.greatcircle.reader.streamdb;
 
+import wtf.reversed.toolbox.io.*;
 import wtf.reversed.toolbox.util.*;
 
-/**
- * Based on {@code streamerCompression_t}
- */
-public enum StreamerCompression implements ValueEnum<Integer> {
+import java.io.*;
+
+public enum StreamDbCompression implements ValueEnum<Integer> {
     STREAMER_COMPRESSION_NONE_IMAGE(0),
     STREAMER_COMPRESSION_KRAKEN_IMAGE(1),
     STREAMER_COMPRESSION_SCARLETT_TILED_Z(2),
     STREAMER_COMPRESSION_NONE_MODEL(3),
     STREAMER_COMPRESSION_KRAKEN_MODEL(4),
-    STREAMER_COMPRESSION_UNUSED_2(5),
+    STREAMER_COMPRESSION_TILED(5),
     STREAMER_COMPRESSION_UNUSED_3(6),
     STREAMER_COMPRESSION_UNUSED_4(7),
     STREAMER_COMPRESSION_NONE_TRIANGLEFAN(8),
@@ -28,16 +28,16 @@ public enum StreamerCompression implements ValueEnum<Integer> {
 
     private final int value;
 
-    StreamerCompression(int value) {
+    StreamDbCompression(int value) {
         this.value = value;
+    }
+
+    public static StreamDbCompression read(BinarySource source) throws IOException {
+        return ValueEnum.fromValue(StreamDbCompression.class, source.readInt());
     }
 
     @Override
     public Integer value() {
         return value;
-    }
-
-    public static StreamerCompression fromValue(int value) {
-        return ValueEnum.fromValue(StreamerCompression.class, value);
     }
 }

@@ -13,7 +13,7 @@ module valen.app {
     // Games
     requires valen.game.darkages;
     requires valen.game.eternal;
-    //requires valen.game.greatcircle;
+    requires valen.game.greatcircle;
     requires wtf.reversed.toolbox;
 
     exports be.twofold.valen;

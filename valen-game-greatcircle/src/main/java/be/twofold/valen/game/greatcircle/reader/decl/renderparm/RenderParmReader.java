@@ -1,5 +1,6 @@
 package be.twofold.valen.game.greatcircle.reader.decl.renderparm;
 
+import be.twofold.valen.core.game.*;
 import be.twofold.valen.game.greatcircle.*;
 import be.twofold.valen.game.greatcircle.resource.*;
 import be.twofold.valen.game.idtech.renderparm.*;
@@ -14,7 +15,7 @@ public final class RenderParmReader extends AbstractRenderParmReader<GreatCircle
     }
 
     @Override
-    public RenderParm read(BinarySource source, GreatCircleAsset asset) throws IOException {
+    public RenderParm read(BinarySource source, GreatCircleAsset asset, LoadingContext context) throws IOException {
         return read(source);
     }
 }

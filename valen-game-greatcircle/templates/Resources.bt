@@ -7,18 +7,18 @@
 // File Mask: *.resources
 //  ID Bytes: 49 44 43 4C 0D 00 00 00
 //------------------------------------------------
-enum idResEntryFlags_t {
-    RES_ENTRY_FLAG_NONE = 0,
+// idResEntryFlags_t
+typedef enum {
     RES_ENTRY_FLAG_DEFAULTED = 1,
     RES_ENTRY_FLAG_HAS_VARIATION = 2,
     RES_ENTRY_FLAG_FARMHASH = 4,
     RES_ENTRY_FLAG_EMBEDDED = 8,
     RES_ENTRY_FLAG_META = 16,
     RES_ENTRY_FLAG_STREAM_FILE = 32,
-    RES_ENTRY_FLAG_MAKE_SURE_ENUM_IS_32BIT = -2147483648,
-};
+} ResourcesFlags <edit=flags>;
 
-enum <ubyte> idResourceCompressionMode {
+// idResourceCompressionMode
+enum <ubyte> ResourcesCompressionMode {
     RES_COMP_MODE_NONE = 0,
     RES_COMP_MODE_ZLIB = 1,
     RES_COMP_MODE_KRAKEN = 2,
@@ -28,7 +28,8 @@ enum <ubyte> idResourceCompressionMode {
     RES_COMP_MODE_ENUM_MAX = 6,
 };
 
-enum <ushort> idResourceVariation {
+// idResourceVariation
+enum <ushort> ResourcesVariation {
     RES_VAR_NONE = 0,
     RES_VAR_DEBUG = 24,
     RES_VAR_DEV = 25,
@@ -47,9 +48,10 @@ enum <ushort> idResourceVariation {
     RES_VAR_RENDERPROG_SWITCH = 48,
     RES_VAR_RENDERPROG_VULKAN_YETI = 49,
     RES_VAR_RENDERPROG_SCARLETT_D3D12 = 50,
-    RES_VAR_RENDERPROG_PROSPERO = 51,
+    RES_VAR_RENDERPROG_LIME_BASE = 51,
     RES_VAR_RENDERPROG_DUMMY = 52,
     RES_VAR_RENDERPROG_SCARLETT_D3D12_LOCKHART = 53,
+    RES_VAR_RENDERPROG_LIME_PLUS = 54,
     RES_VAR_RENDERPROG_VULKAN_PC_BASE_RETAIL = 300,
     RES_VAR_RENDERPROG_VULKAN_PC_AMD_RETAIL = 301,
     RES_VAR_RENDERPROG_VULKAN_PC_NVIDIA_RETAIL = 302,
@@ -61,8 +63,9 @@ enum <ushort> idResourceVariation {
     RES_VAR_RENDERPROG_SWITCH_RETAIL = 311,
     RES_VAR_RENDERPROG_VULKAN_YETI_RETAIL = 312,
     RES_VAR_RENDERPROG_SCARLETT_D3D12_RETAIL = 313,
-    RES_VAR_RENDERPROG_PROSPERO_RETAIL = 314,
+    RES_VAR_RENDERPROG_LIME_BASE_RETAIL = 314,
     RES_VAR_RENDERPROG_SCARLETT_D3D12_LOCKHART_RETAIL = 315,
+    RES_VAR_RENDERPROG_LIME_PLUS_RETAIL = 316,
     RES_VAR_HK_GEN_64 = 64,
     RES_VAR_HK_MSVC_64 = 65,
     RES_VAR_PLATFORM_WIN = 200,
@@ -77,7 +80,10 @@ enum <ushort> idResourceVariation {
     RES_VAR_PLATFORM_XB1_SCORPIO = 231,
     RES_VAR_PLATFORM_SWITCH = 240,
     RES_VAR_PLATFORM_SCARLETT = 241,
-    RES_VAR_PLATFORM_PROSPERO = 242,
+    RES_VAR_PLATFORM_LIME = 242,
+    RES_VAR_PLATFORM_LIME_BASE = 243,
+    RES_VAR_PLATFORM_LIME_PLUS = 244,
+    RES_VAR_PLATFORM_KIWI = 245,
     RES_VAR_PLATFORM_RESERVED_DO_NOT_USE = 299,
     RES_VAR_LANGUAGE_AR_AE = 400,
     RES_VAR_LANGUAGE_AR_SA = 401,
@@ -115,18 +121,25 @@ enum <ushort> idResourceVariation {
     RES_VAR_LANGUAGE_ZH_CN = 433,
     RES_VAR_LANGUAGE_ZH_HK = 434,
     RES_VAR_LANGUAGE_ZH_TW = 435,
+    RES_VAR_LANGUAGE_ID_ID = 436,
     RES_VAR_LANGUAGE_RESERVED_DO_NOT_USE = 499,
 };
 
-struct ResourceHeader {
-    char  magic[4];
-    uint  version;
+struct ResourcesHeader {
+    uint magic;
+    uint version;
     uquad headerHash;
     uint  headerSize;
+    Assert(magic      == 0x4c434449);
+    Assert(version    == 13);
+    Assert(headerSize == 116);
 
     uint  flags;
     uint  numSegments;
     uquad segmentSize;
+    Assert(flags        == 0);
+    Assert(numSegments  == 1);
+    Assert(segmentSize  == 0xffffffffffL);
 
     uint  numResources;
     uint  numDependencies;
@@ -136,6 +149,9 @@ struct ResourceHeader {
     uint  numMetaEntries;
     uint  stringTableSize;
     uint  metaEntriesSize;
+    // Assert(numSpecialHashes == 0);
+    Assert(numMetaEntries   == 0);
+    Assert(metaEntriesSize  == 0);
 
     uquad stringTableOffset;
     uquad metaEntriesOffset;
@@ -144,12 +160,13 @@ struct ResourceHeader {
     uquad resourceSpecialHashOffset;
 
     uquad dataOffset;
-    uint  unkown;
+    uint  unknown;
     uquad metaSize;
     uquad metaHash;
+    Assert(unknown == 0);
 };
 
-struct ResourceEntry
+struct ResourcesEntry
 {
 	quad   resourceTypeString;
 	quad   nameString;
@@ -160,38 +177,52 @@ struct ResourceEntry
 	uquad  metaEntries;
 	uquad  dataOffset;
 	uquad  dataSize;
+    Assert(resourceTypeString == 0);
+    // Assert(nameString         == 1);
+    Assert(descString         == -1);
+    // Assert(specialHashes      == 0);
+    Assert(metaEntries        == 0);
 
 	uquad  uncompressedSize;
 	uquad  dataCheckSum;
 	uquad  generationTimeStamp;
 	uquad  defaultHash;
 	uint   version;
-	idResEntryFlags_t flags;
-	idResourceCompressionMode compMode;
+	ResourcesFlags flags;
+	ResourcesCompressionMode compMode;
 	ubyte  reserved0;
-	idResourceVariation variation;
+	ResourcesVariation variation;
 	uint   reserved2;
 	uquad  reservedForVariations;
+    Assert(reserved0             == 0);
+    Assert(reserved2             == 0);
+    Assert(reservedForVariations == 0);
 
 	ushort numStrings;
 	ushort numSources;
 	ushort numDependencies;
 	ushort numSpecialHashes;
 	ushort numMetaEntries;
-    ubyte  padding[6];
+    uint   padding1;
+    ushort padding2;
+    // Assert(numStrings       == 2);
+    // Assert(numSpecialHashes == 0);
+    Assert(numMetaEntries   == 0);
+    Assert(padding1         == 0);
+    Assert(padding2         == 0);
 };
 
 typedef struct {
     string value;
 } WrappedString <read=this.value>;
 
-struct StringChunk {
+struct ResourcesStrings {
     uint64 numStrings;
     uint64 offsets[numStrings];
     WrappedString values[numStrings] <optimize=false>;
 };
 
-struct ResourceDependency {
+struct ResourcesDependency {
 	uint64 type;
 	uint64 name;
 	uint32 depType;
@@ -199,17 +230,23 @@ struct ResourceDependency {
 	uint64 hashOrTimestamp;
 };
 
+struct ResourcesSpecialHash {
+    uquad unknownHash1;
+    uquad unknownHash2;
+};
+
 struct Resources {
-    ResourceHeader header <style=sHeading1>;
+    ResourcesHeader header <style=sHeading1>;
 
     FSeek(header.resourceEntriesOffset);
-    ResourceEntry entries[header.numResources] <style=sHeading2>;
+    ResourcesEntry entries[header.numResources] <style=sHeading2, optimize=false>;
 
     FSeek(header.stringTableOffset);
-    StringChunk stringChunk <style=sHeading3>;
+    ResourcesStrings strings <style=sHeading3>;
 
     FSeek(header.resourceDepsOffset);
-    ResourceDependency dependencies[header.numDependencies] <style=sHeading4>;
-    uint32 dependencyIndex[header.numDepIndices] <style=sHeading1>;
-    uint64 stringIndex[header.numStringIndices] <style=sHeading2>;
+    ResourcesDependency dependencies[header.numDependencies] <style=sHeading4>;
+    ResourcesSpecialHash specialHashes[header.numSpecialHashes] <style=sHeading1>;
+    uint32 dependencyIndex[header.numDepIndices] <style=sHeading2>;
+    uint64 stringIndex[header.numStringIndices] <style=sHeading3>;
 } resources;

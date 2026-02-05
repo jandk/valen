@@ -36,14 +36,14 @@ public final class EternalGame implements Game {
             new JsonReader(),
 
             // Actual readers
-            new ImageReader(),
+            new ImageReader(true),
             new MapFileStaticInstancesReader(),
             new MaterialReader(declReader),
             new Md6AnimReader(),
-            new Md6ModelReader(),
+            new Md6ModelReader(true),
             new Md6SkelReader(),
             new RenderParmReader(),
-            new StaticModelReader()
+            new StaticModelReader(true)
         ));
     }
 
