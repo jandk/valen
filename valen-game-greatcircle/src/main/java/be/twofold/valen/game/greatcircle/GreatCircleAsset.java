@@ -1,6 +1,7 @@
 package be.twofold.valen.game.greatcircle;
 
 import be.twofold.valen.core.game.*;
+import be.twofold.valen.core.game.io.*;
 import be.twofold.valen.game.greatcircle.reader.resources.*;
 import be.twofold.valen.game.greatcircle.resource.*;
 
@@ -8,7 +9,7 @@ import java.util.*;
 
 public record GreatCircleAsset(
     GreatCircleAssetID id,
-    StorageLocation location,
+    Location location,
     long hash,
     long checksum,
     int version
@@ -31,8 +32,8 @@ public record GreatCircleAsset(
     @Override
     public int size() {
         return switch (location) {
-            case StorageLocation.Compressed compressed -> compressed.uncompressedSize();
-            case StorageLocation.FileSlice fileSlice -> fileSlice.size();
+            case Location.Compressed compressed -> compressed.uncompressedSize();
+            case Location.FileSlice fileSlice -> fileSlice.size();
             default -> 0;
         };
     }

@@ -1,13 +1,14 @@
 package be.twofold.valen.game.darkages;
 
 import be.twofold.valen.core.game.*;
+import be.twofold.valen.core.game.io.*;
 import be.twofold.valen.game.darkages.reader.resources.*;
 
 import java.util.*;
 
 public record DarkAgesAsset(
     DarkAgesAssetID id,
-    StorageLocation location,
+    Location location,
     long hash,
     long checksum,
     int version
@@ -28,8 +29,8 @@ public record DarkAgesAsset(
     @Override
     public int size() {
         return switch (location) {
-            case StorageLocation.Compressed compressed -> compressed.uncompressedSize();
-            case StorageLocation.FileSlice fileSlice -> fileSlice.size();
+            case Location.Compressed compressed -> compressed.uncompressedSize();
+            case Location.FileSlice fileSlice -> fileSlice.size();
             default -> 0;
         };
     }

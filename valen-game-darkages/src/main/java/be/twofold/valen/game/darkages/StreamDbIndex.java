@@ -1,6 +1,6 @@
 package be.twofold.valen.game.darkages;
 
-import be.twofold.valen.core.game.*;
+import be.twofold.valen.core.game.io.*;
 import be.twofold.valen.game.darkages.reader.streamdb.*;
 import org.slf4j.*;
 import wtf.reversed.toolbox.io.*;
@@ -11,7 +11,7 @@ import java.util.*;
 
 record StreamDbIndex(
     Map<FileId, BinarySource> sources,
-    Map<Long, StorageLocation.FileSlice> index
+    Map<Long, Location.FileSlice> index
 ) {
     private static final Logger log = LoggerFactory.getLogger(StreamDbIndex.class);
 
@@ -22,7 +22,7 @@ record StreamDbIndex(
 
     static StreamDbIndex build(Path base, List<String> paths) throws IOException {
         var sources = new HashMap<FileId, BinarySource>();
-        var index = new HashMap<Long, StorageLocation.FileSlice>();
+        var index = new HashMap<Long, Location.FileSlice>();
         for (var path : paths) {
             log.info("Loading StreamDb: {}", path);
 
@@ -31,7 +31,7 @@ record StreamDbIndex(
             sources.put(fileId, source);
 
             for (var entry : StreamDb.read(source).entries()) {
-                index.computeIfAbsent(entry.identity(), _ -> new StorageLocation.FileSlice(
+                index.computeIfAbsent(entry.identity(), _ -> new Location.FileSlice(
                     fileId, entry.offset16() * 16L, entry.length()
                 ));
             }

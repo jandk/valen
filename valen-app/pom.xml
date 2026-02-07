@@ -122,7 +122,7 @@
 
                     <!-- Options for creating the application launcher -->
                     <javaOptions>
-                        <javaOption>--enable-native-access=valen.core</javaOption>
+                        <javaOption>--enable-native-access=javafx.graphics,wtf.reversed.toolbox</javaOption>
                     </javaOptions>
                     <module>valen.app/be.twofold.valen.Main</module>
                 </configuration>

@@ -1,6 +1,7 @@
 package be.twofold.valen.game.eternal.reader.filecompressed;
 
 import be.twofold.valen.core.game.*;
+import be.twofold.valen.core.game.io.*;
 import be.twofold.valen.game.eternal.*;
 import be.twofold.valen.game.eternal.resource.*;
 import wtf.reversed.toolbox.collect.*;
@@ -10,7 +11,6 @@ import java.io.*;
 
 public final class FileCompressedReader implements AssetReader<Bytes, EternalAsset> {
     public FileCompressedReader() {
-        // this.decompressor = Check.nonNull(decompressor, "decompressor");
     }
 
     @Override
@@ -27,7 +27,7 @@ public final class FileCompressedReader implements AssetReader<Bytes, EternalAss
         }
 
         var compressed = source.readBytes(header.compressedSize());
-        // return decompressor.decompress(compressed, header.uncompressedSize());
-        return compressed;
+        return Decompressors.getOodle()
+            .decompress(compressed, header.uncompressedSize());
     }
 }

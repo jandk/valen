@@ -1,6 +1,7 @@
 package be.twofold.valen.game.greatcircle;
 
 import be.twofold.valen.core.game.*;
+import be.twofold.valen.core.game.io.*;
 import be.twofold.valen.game.greatcircle.reader.decl.*;
 import be.twofold.valen.game.greatcircle.reader.decl.material2.*;
 import be.twofold.valen.game.greatcircle.reader.decl.renderparm.*;
@@ -20,23 +21,17 @@ import java.util.*;
 import java.util.stream.*;
 
 public final class GreatCircleGame implements Game {
-    private static final AssetReaders ASSET_READERS;
-
-    static {
-        var declReader = new DeclReader();
-
-        ASSET_READERS = new AssetReaders(List.of(
-                new DeformModelReader(true),
-                new HairReader(),
-                new ImageReader(true),
-                new MaterialReader(declReader),
-                new Md6MeshReader(true),
-                new Md6SklReader(),
-                new RenderParmReader(),
-                new StaticModelReader(true)
-        ));
-    }
-
+    private static final DeclReader DECL_READER = new DeclReader();
+    private static final List<AssetReader<?, GreatCircleAsset>> ASSET_READERS = List.of(
+        new DeformModelReader(true),
+        new HairReader(),
+        new ImageReader(true),
+        new MaterialReader(DECL_READER),
+        new Md6MeshReader(true),
+        new Md6SklReader(),
+        new RenderParmReader(),
+        new StaticModelReader(true)
+    );
 
     private final Path base;
     private final PackageMapSpec spec;
@@ -55,7 +50,7 @@ public final class GreatCircleGame implements Game {
     @Override
     public List<String> archiveNames() {
         return spec.maps().stream()
-                .map(SpecMap::name)
+            .map(SpecMap::name)
             .toList();
     }
 
@@ -64,8 +59,8 @@ public final class GreatCircleGame implements Game {
         var loadedResources = ResourcesIndex.build(base, filterResources(spec, name));
 
         var archive = new GreatCircleArchive(
-                Map.copyOf(commonResources.index()),
-                Map.copyOf(loadedResources.index())
+            Map.copyOf(commonResources.index()),
+            Map.copyOf(loadedResources.index())
         );
 
         var sources = new HashMap<FileId, BinarySource>();
@@ -73,20 +68,19 @@ public final class GreatCircleGame implements Game {
         sources.putAll(commonResources.sources());
         sources.putAll(loadedResources.sources());
         var storageManager = new GreatCircleStorageManager(
-                sources,
-                streamDbIndex.sources().keySet(),
-                decompressor,
-                streamDbIndex.index()
+            sources,
+            streamDbIndex.sources().keySet(),
+            streamDbIndex.index()
         );
 
-        return new AssetLoader(archive, storageManager, ASSET_READERS);
+        return new AssetLoader(archive, storageManager, List.copyOf(ASSET_READERS));
     }
 
     private StreamDbIndex loadStreamDbIndex(Path base, PackageMapSpec spec) throws IOException {
         var paths = spec.files().stream()
-                .map(SpecFile::name)
-                .filter(s -> s.endsWith(".streamdb"))
-                .toList();
+            .map(SpecFile::name)
+            .filter(s -> s.endsWith(".streamdb"))
+            .toList();
 
         return StreamDbIndex.build(base, paths);
     }
@@ -94,14 +88,22 @@ public final class GreatCircleGame implements Game {
     private List<String> filterResources(PackageMapSpec spec, String... names) {
         var uniqueNames = Set.of(names);
         var fileRefs = spec.maps().stream()
-                .filter(map -> uniqueNames.contains(map.name()))
+            .filter(map -> uniqueNames.contains(map.name()))
             .flatMap(map -> map.fileRefs().stream())
             .collect(Collectors.toUnmodifiableSet());
 
         return spec.files().stream()
             .filter(f -> fileRefs.contains(f.id()))
-                .map(SpecFile::name)
+            .map(SpecFile::name)
             .filter(s -> s.endsWith(".resources"))
             .toList();
+    }
+
+
+    @Override
+    public void close() {
+        // Unload for the next game
+        Decompressors.resetOodle();
+        DECL_READER.clearCache();
     }
 }

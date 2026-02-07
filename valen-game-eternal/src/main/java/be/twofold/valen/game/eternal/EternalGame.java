@@ -1,6 +1,7 @@
 package be.twofold.valen.game.eternal;
 
 import be.twofold.valen.core.game.*;
+import be.twofold.valen.core.game.io.*;
 import be.twofold.valen.game.eternal.reader.binaryfile.*;
 import be.twofold.valen.game.eternal.reader.decl.*;
 import be.twofold.valen.game.eternal.reader.decl.material2.*;
@@ -15,7 +16,6 @@ import be.twofold.valen.game.eternal.reader.md6model.*;
 import be.twofold.valen.game.eternal.reader.md6skel.*;
 import be.twofold.valen.game.eternal.reader.packagemapspec.*;
 import be.twofold.valen.game.eternal.reader.staticmodel.*;
-import wtf.reversed.toolbox.compress.*;
 import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
@@ -23,42 +23,37 @@ import java.nio.file.*;
 import java.util.*;
 
 public final class EternalGame implements Game {
-    private static final AssetReaders ASSET_READERS;
+    private static final DeclReader DECL_READER = new DeclReader();
+    private static final List<AssetReader<?, EternalAsset>> ASSET_READERS = List.of(
+        DECL_READER,
+        // Binary converters
+        new BinaryFileReader(),
+        new FileCompressedReader(),
+        new FileReader(),
+        new JsonReader(),
 
-    static {
-        var declReader = new DeclReader();
-        ASSET_READERS = new AssetReaders(List.of(
-            declReader,
-            // Binary converters
-            new BinaryFileReader(),
-            new FileCompressedReader(),
-            new FileReader(),
-            new JsonReader(),
-
-            // Actual readers
-            new ImageReader(true),
-            new MapFileStaticInstancesReader(),
-            new MaterialReader(declReader),
-            new Md6AnimReader(),
-            new Md6ModelReader(true),
-            new Md6SkelReader(),
-            new RenderParmReader(),
-            new StaticModelReader(true)
-        ));
-    }
+        // Actual readers
+        new ImageReader(true),
+        new MapFileStaticInstancesReader(),
+        new MaterialReader(DECL_READER),
+        new Md6AnimReader(),
+        new Md6ModelReader(true),
+        new Md6SkelReader(),
+        new RenderParmReader(),
+        new StaticModelReader(true)
+    );
 
     private final Path base;
     private final PackageMapSpec spec;
-    private final Decompressor decompressor;
     private final StreamDbIndex streamDbIndex;
     private final ResourcesIndex commonResources;
 
     EternalGame(Path path) throws IOException {
         this.base = path.resolve("base");
         this.spec = PackageMapSpecReader.read(base.resolve("packagemapspec.json"));
-        this.decompressor = Decompressor.oodle(path.resolve("oo2core_8_win64.dll"));
         this.streamDbIndex = loadStreamDbIndex(base, spec);
         this.commonResources = ResourcesIndex.build(base, filterResources(spec, "common", "warehouse"));
+        Decompressors.setOodlePath(path.resolve("oo2core_8_win64.dll"));
     }
 
     @Override
@@ -84,11 +79,10 @@ public final class EternalGame implements Game {
         var storageManager = new EternalStorageManager(
             sources,
             streamDbIndex.sources().keySet(),
-            decompressor,
             streamDbIndex.index()
         );
 
-        return new AssetLoader(archive, storageManager, ASSET_READERS);
+        return new AssetLoader(archive, storageManager, List.copyOf(ASSET_READERS));
     }
 
     private StreamDbIndex loadStreamDbIndex(Path base, PackageMapSpec spec) throws IOException {
@@ -104,5 +98,12 @@ public final class EternalGame implements Game {
             .flatMap(map -> spec.mapFiles().get(map).stream())
             .filter(file -> file.endsWith(".resources"))
             .toList();
+    }
+
+    @Override
+    public void close() {
+        // Unload for the next game
+        Decompressors.resetOodle();
+        DECL_READER.clearCache();
     }
 }

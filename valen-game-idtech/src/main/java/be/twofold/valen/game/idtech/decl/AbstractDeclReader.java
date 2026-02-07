@@ -19,10 +19,10 @@ public abstract class AbstractDeclReader<K extends AssetID, V extends Asset> imp
 
     private final Map<K, JsonObject> declCache = new HashMap<>();
 
+    public abstract K getAssetID(String name, K baseAssetID);
+
     @Override
     public abstract boolean canRead(V asset);
-
-    public abstract K getAssetID(String name, K baseAssetID);
 
     @Override
     public JsonObject read(BinarySource source, V asset, LoadingContext context) throws IOException {
@@ -38,6 +38,10 @@ public abstract class AbstractDeclReader<K extends AssetID, V extends Asset> imp
             return new JsonObject();
         }
         return result.getAsJsonObject("edit");
+    }
+
+    public void clearCache() {
+        declCache.clear();
     }
 
     private JsonObject loadInherit(JsonObject object, K baseAssetID, LoadingContext context) throws IOException {

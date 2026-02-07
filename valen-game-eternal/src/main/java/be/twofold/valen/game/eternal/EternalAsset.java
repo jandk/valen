@@ -1,6 +1,7 @@
 package be.twofold.valen.game.eternal;
 
 import be.twofold.valen.core.game.*;
+import be.twofold.valen.core.game.io.*;
 import be.twofold.valen.game.eternal.reader.resources.*;
 import be.twofold.valen.game.eternal.resource.*;
 
@@ -8,7 +9,7 @@ import java.util.*;
 
 public record EternalAsset(
     EternalAssetID id,
-    StorageLocation location,
+    Location location,
     long hash,
     long checksum
 ) implements Asset {
@@ -28,8 +29,8 @@ public record EternalAsset(
     @Override
     public int size() {
         return switch (location) {
-            case StorageLocation.Compressed compressed -> compressed.uncompressedSize();
-            case StorageLocation.FileSlice fileSlice -> fileSlice.size();
+            case Location.Compressed compressed -> compressed.uncompressedSize();
+            case Location.FileSlice fileSlice -> fileSlice.size();
             default -> 0;
         };
     }

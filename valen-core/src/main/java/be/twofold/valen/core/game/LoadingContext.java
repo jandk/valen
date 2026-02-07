@@ -1,5 +1,6 @@
 package be.twofold.valen.core.game;
 
+import be.twofold.valen.core.game.io.*;
 import wtf.reversed.toolbox.collect.*;
 
 import java.io.*;
@@ -35,6 +36,6 @@ public interface LoadingContext {
      * @return A binary source for reading the location.
      * @throws IOException If an I/O error occurs.
      */
-    Bytes open(StorageLocation location) throws IOException;
+    Bytes open(Location location) throws IOException;
 
 }

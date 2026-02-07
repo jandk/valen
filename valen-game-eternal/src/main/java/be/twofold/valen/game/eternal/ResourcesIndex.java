@@ -1,6 +1,6 @@
 package be.twofold.valen.game.eternal;
 
-import be.twofold.valen.core.game.*;
+import be.twofold.valen.core.game.io.*;
 import be.twofold.valen.game.eternal.reader.resources.*;
 import be.twofold.valen.game.eternal.resource.*;
 import org.slf4j.*;
@@ -51,19 +51,19 @@ record ResourcesIndex(
         var resourceType = ResourceType.fromValue(type);
         var resourceKey = new EternalAssetID(resourceName, resourceType, entry.variation());
 
-        var location = new StorageLocation.FileSlice(
+        var location = new Location.FileSlice(
             fileId, entry.dataOffset(), Math.toIntExact(entry.dataSize())
         );
-        StorageLocation finalLocation = switch (entry.compMode()) {
+        Location finalLocation = switch (entry.compMode()) {
             case RES_COMP_MODE_NONE -> location;
-            case RES_COMP_MODE_KRAKEN -> new StorageLocation.Compressed(
-                location, "oodle", Math.toIntExact(entry.uncompressedSize())
+            case RES_COMP_MODE_KRAKEN -> new Location.Compressed(
+                location, CompressionType.OODLE, Math.toIntExact(entry.uncompressedSize())
             );
-            case RES_COMP_MODE_KRAKEN_CHUNKED -> new StorageLocation.Compressed(
-                new StorageLocation.FileSlice(
+            case RES_COMP_MODE_KRAKEN_CHUNKED -> new Location.Compressed(
+                new Location.FileSlice(
                     location.fileId(), location.offset() + 12, location.size() - 12
                 ),
-                "oodle", Math.toIntExact(entry.uncompressedSize())
+                CompressionType.OODLE, Math.toIntExact(entry.uncompressedSize())
             );
             default -> throw new UnsupportedOperationException(entry.compMode().toString());
         };

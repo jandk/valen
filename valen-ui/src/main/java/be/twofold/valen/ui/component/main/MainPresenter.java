@@ -191,6 +191,10 @@ public final class MainPresenter extends AbstractPresenter<MainView> implements 
     }
 
     public void setGame(Game game) {
+        if (this.game != null) {
+            this.game.close();
+        }
+
         this.game = game;
         getView().setArchives(game.archiveNames().stream().sorted().toList());
     }

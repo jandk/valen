@@ -1,6 +1,6 @@
 package be.twofold.valen.game.greatcircle;
 
-import be.twofold.valen.core.game.*;
+import be.twofold.valen.core.game.io.*;
 import be.twofold.valen.game.greatcircle.reader.resources.*;
 import be.twofold.valen.game.greatcircle.resource.*;
 import org.slf4j.*;
@@ -51,15 +51,15 @@ record ResourcesIndex(
         var resourceType = ResourceType.fromValue(type);
         var resourceKey = new GreatCircleAssetID(resourceName, resourceType, entry.variation());
 
-        var location = new StorageLocation.FileSlice(
+        var location = new Location.FileSlice(
             fileId, entry.dataOffset(), Math.toIntExact(entry.dataSize())
         );
-        StorageLocation finalLocation = switch (entry.compMode()) {
+        Location finalLocation = switch (entry.compMode()) {
             case RES_COMP_MODE_NONE -> location;
             case RES_COMP_MODE_KRAKEN,
                  RES_COMP_MODE_KRAKEN_CHUNKED,
-                 RES_COMP_MODE_LEVIATHAN -> new StorageLocation.Compressed(
-                location, "oodle", Math.toIntExact(entry.uncompressedSize())
+                 RES_COMP_MODE_LEVIATHAN -> new Location.Compressed(
+                location, CompressionType.OODLE, Math.toIntExact(entry.uncompressedSize())
             );
             default -> throw new UnsupportedOperationException(entry.compMode().toString());
         };
