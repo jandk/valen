@@ -1,4 +1,4 @@
-package be.twofold.valen.core.game.io;
+package be.twofold.valen.core.game;
 
 public enum CompressionType {
     NONE,

@@ -1,6 +1,6 @@
 package be.twofold.valen.game.greatcircle;
 
-import be.twofold.valen.core.game.io.*;
+import be.twofold.valen.core.game.*;
 
 public record GreatCircleStreamLocation(
     long streamId,

@@ -1,7 +1,6 @@
 package be.twofold.valen.game.greatcircle;
 
 import be.twofold.valen.core.game.*;
-import be.twofold.valen.core.game.io.*;
 import be.twofold.valen.game.greatcircle.reader.resources.*;
 import be.twofold.valen.game.greatcircle.resource.*;
 

@@ -1,6 +1,6 @@
 package be.twofold.valen.game.eternal;
 
-import be.twofold.valen.core.game.io.*;
+import be.twofold.valen.core.game.*;
 import be.twofold.valen.game.eternal.reader.streamdb.*;
 import org.slf4j.*;
 import wtf.reversed.toolbox.io.*;

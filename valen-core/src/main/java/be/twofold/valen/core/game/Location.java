@@ -1,4 +1,4 @@
-package be.twofold.valen.core.game.io;
+package be.twofold.valen.core.game;
 
 /**
  * Represents a location where data is stored.

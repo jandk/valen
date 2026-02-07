@@ -1,4 +1,4 @@
-package be.twofold.valen.core.game.io;
+package be.twofold.valen.core.game;
 
 import org.jetbrains.annotations.*;
 import wtf.reversed.toolbox.util.*;

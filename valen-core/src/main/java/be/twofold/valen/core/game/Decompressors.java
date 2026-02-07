@@ -1,4 +1,4 @@
-package be.twofold.valen.core.game.io;
+package be.twofold.valen.core.game;
 
 import wtf.reversed.toolbox.compress.*;
 

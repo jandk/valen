@@ -1,6 +1,5 @@
 package be.twofold.valen.core.game;
 
-import be.twofold.valen.core.game.io.*;
 import wtf.reversed.toolbox.collect.*;
 import wtf.reversed.toolbox.io.*;
 import wtf.reversed.toolbox.util.*;

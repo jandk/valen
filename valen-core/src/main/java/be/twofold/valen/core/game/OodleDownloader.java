@@ -1,4 +1,4 @@
-package be.twofold.valen.core.game.io;
+package be.twofold.valen.core.game;
 
 import be.twofold.valen.core.util.*;
 import org.slf4j.*;
