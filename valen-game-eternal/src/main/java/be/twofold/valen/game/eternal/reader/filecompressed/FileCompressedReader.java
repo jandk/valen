@@ -14,13 +14,13 @@ public final class FileCompressedReader implements AssetReader<Bytes, EternalAss
     }
 
     @Override
-    public boolean canRead(EternalAsset resource) {
-        return resource.id().type() == ResourceType.CompFile
+    public boolean canRead(EternalAsset asset) {
+        return asset.id().type() == ResourceType.CompFile
             /*&& !resource.id().extension().equals("entities")*/;
     }
 
     @Override
-    public Bytes read(BinarySource source, EternalAsset resource, LoadingContext context) throws IOException {
+    public Bytes read(BinarySource source, EternalAsset asset, LoadingContext context) throws IOException {
         var header = FileCompressedHeader.read(source);
         if (header.compressedSize() == -1) {
             return source.readBytes(header.uncompressedSize());

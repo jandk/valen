@@ -20,8 +20,8 @@ public final class Md6MeshReader implements AssetReader<Model, GreatCircleAsset>
     }
 
     @Override
-    public boolean canRead(GreatCircleAsset resource) {
-        return resource.id().type() == ResourceType.basemodel;
+    public boolean canRead(GreatCircleAsset asset) {
+        return asset.id().type() == ResourceType.basemodel;
     }
 
     @Override

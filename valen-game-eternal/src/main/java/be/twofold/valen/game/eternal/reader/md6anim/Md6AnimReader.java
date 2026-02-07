@@ -18,17 +18,17 @@ public final class Md6AnimReader implements AssetReader<Animation, EternalAsset>
     private static final Logger log = LoggerFactory.getLogger(Md6AnimReader.class);
 
     @Override
-    public boolean canRead(EternalAsset resource) {
-        return resource.id().type() == ResourceType.Anim;
+    public boolean canRead(EternalAsset asset) {
+        return asset.id().type() == ResourceType.Anim;
     }
 
     @Override
-    public Animation read(BinarySource source, EternalAsset resource, LoadingContext context) throws IOException {
+    public Animation read(BinarySource source, EternalAsset asset, LoadingContext context) throws IOException {
         var anim = Md6Anim.read(source);
 
         var skeletonKey = EternalAssetID.from(anim.header().skelName(), ResourceType.Skeleton);
         if (context.exists(skeletonKey)) {
-            log.warn("Could not find skeleton asset '{}' while loading anim '{}'", anim.header().skelName(), resource.id().fullName());
+            log.warn("Could not find skeleton asset '{}' while loading anim '{}'", anim.header().skelName(), asset.id().fullName());
             throw new FileNotFoundException(anim.header().skelName());
         }
         var skeleton = context.load(skeletonKey, Skeleton.class);

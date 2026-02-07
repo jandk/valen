@@ -20,21 +20,21 @@ public final class Md6ModelReader implements AssetReader<Model, EternalAsset> {
     }
 
     @Override
-    public boolean canRead(EternalAsset resource) {
-        return resource.id().type() == ResourceType.BaseModel;
+    public boolean canRead(EternalAsset asset) {
+        return asset.id().type() == ResourceType.BaseModel;
     }
 
     @Override
-    public Model read(BinarySource source, EternalAsset resource, LoadingContext context) throws IOException {
+    public Model read(BinarySource source, EternalAsset asset, LoadingContext context) throws IOException {
         var model = Md6Model.read(source);
-        var meshes = new ArrayList<>(readMeshes(model, resource.hash(), context));
+        var meshes = new ArrayList<>(readMeshes(model, asset.hash(), context));
         var skeletonKey = EternalAssetID.from(model.header().md6SkelName(), ResourceType.Skeleton);
         var skeleton = context.load(skeletonKey, Skeleton.class);
 
         if (readMaterials) {
             Materials.apply(context, meshes, model.meshInfos(), Md6ModelInfo::materialName, Md6ModelInfo::meshName);
         }
-        return new Model(meshes, Optional.of(skeleton), Optional.of(resource.id().fullName()), Optional.empty(), Axis.Z);
+        return new Model(meshes, Optional.of(skeleton), Optional.of(asset.id().fullName()), Optional.empty(), Axis.Z);
     }
 
     private List<Mesh> readMeshes(Md6Model md6, long hash, LoadingContext context) throws IOException {

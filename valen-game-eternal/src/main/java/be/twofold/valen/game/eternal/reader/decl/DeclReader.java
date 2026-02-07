@@ -27,12 +27,12 @@ public final class DeclReader extends AbstractDeclReader<EternalAssetID, Eternal
     }
 
     @Override
-    public boolean canRead(EternalAsset resource) {
-        if (resource.id().type() != ResourceType.RsStreamFile) {
+    public boolean canRead(EternalAsset asset) {
+        if (asset.id().type() != ResourceType.RsStreamFile) {
             return false;
         }
 
-        var name = resource.id().name().name();
+        var name = asset.id().name().name();
         if (!name.startsWith(RootPrefix)) {
             return false;
         }

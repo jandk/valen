@@ -16,14 +16,14 @@ public final class MapResourcesReader implements AssetReader<MapResources, Etern
     }
 
     @Override
-    public boolean canRead(EternalAsset resource) {
-        return resource.id().type() == ResourceType.File
-            && resource.id().extension().equals("mapresources");
+    public boolean canRead(EternalAsset asset) {
+        return asset.id().type() == ResourceType.File
+            && asset.id().extension().equals("mapresources");
     }
 
     @Override
-    public MapResources read(BinarySource source, EternalAsset resource, LoadingContext context) throws IOException {
-        var bytes = fileReader.read(source, resource, context);
+    public MapResources read(BinarySource source, EternalAsset asset, LoadingContext context) throws IOException {
+        var bytes = fileReader.read(source, asset, context);
         return MapResources.read(BinarySource.wrap(bytes));
     }
 }

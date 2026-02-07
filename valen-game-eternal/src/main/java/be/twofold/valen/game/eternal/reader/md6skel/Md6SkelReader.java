@@ -11,12 +11,12 @@ import java.util.stream.*;
 
 public final class Md6SkelReader implements AssetReader<Skeleton, EternalAsset> {
     @Override
-    public boolean canRead(EternalAsset resource) {
-        return resource.id().type() == ResourceType.Skeleton;
+    public boolean canRead(EternalAsset asset) {
+        return asset.id().type() == ResourceType.Skeleton;
     }
 
     @Override
-    public Skeleton read(BinarySource source, EternalAsset resource, LoadingContext context) throws IOException {
+    public Skeleton read(BinarySource source, EternalAsset asset, LoadingContext context) throws IOException {
         Md6Skel skeleton = Md6Skel.read(source);
         return map(skeleton);
     }

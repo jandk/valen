@@ -13,8 +13,8 @@ public final class DeclReader extends AbstractDeclReader<GreatCircleAssetID, Gre
     );
 
     @Override
-    public boolean canRead(GreatCircleAsset key) {
-        return ValidDeclTypes.contains(key.id().type());
+    public boolean canRead(GreatCircleAsset asset) {
+        return ValidDeclTypes.contains(asset.id().type());
     }
 
     @Override

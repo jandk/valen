@@ -16,14 +16,14 @@ public final class BlangReader implements AssetReader<Blang, EternalAsset> {
     }
 
     @Override
-    public boolean canRead(EternalAsset resource) {
-        return resource.id().type() == ResourceType.BinaryFile
-            && resource.id().extension().equals("blang");
+    public boolean canRead(EternalAsset asset) {
+        return asset.id().type() == ResourceType.BinaryFile
+            && asset.id().extension().equals("blang");
     }
 
     @Override
-    public Blang read(BinarySource source, EternalAsset resource, LoadingContext context) throws IOException {
-        var bytes = binaryFileReader.read(source, resource, context);
+    public Blang read(BinarySource source, EternalAsset asset, LoadingContext context) throws IOException {
+        var bytes = binaryFileReader.read(source, asset, context);
         return Blang.read(BinarySource.wrap(bytes));
     }
 }

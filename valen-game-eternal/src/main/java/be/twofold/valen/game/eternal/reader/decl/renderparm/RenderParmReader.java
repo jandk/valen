@@ -10,13 +10,13 @@ import java.io.*;
 
 public final class RenderParmReader extends AbstractRenderParmReader<EternalAsset> {
     @Override
-    public boolean canRead(EternalAsset resource) {
-        return resource.id().type() == ResourceType.RsStreamFile
-            && resource.id().name().name().startsWith("generated/decls/renderparm/");
+    public boolean canRead(EternalAsset asset) {
+        return asset.id().type() == ResourceType.RsStreamFile
+            && asset.id().name().name().startsWith("generated/decls/renderparm/");
     }
 
     @Override
-    public RenderParm read(BinarySource source, EternalAsset resource, LoadingContext context) throws IOException {
+    public RenderParm read(BinarySource source, EternalAsset asset, LoadingContext context) throws IOException {
         return read(source);
     }
 }

@@ -13,12 +13,12 @@ import java.util.*;
 
 public final class MapFileStaticInstancesReader implements AssetReader<Scene, EternalAsset> {
     @Override
-    public boolean canRead(EternalAsset resource) {
-        return resource.id().type() == ResourceType.StaticInstances;
+    public boolean canRead(EternalAsset asset) {
+        return asset.id().type() == ResourceType.StaticInstances;
     }
 
     @Override
-    public Scene read(BinarySource source, EternalAsset resource, LoadingContext context) throws IOException {
+    public Scene read(BinarySource source, EternalAsset asset, LoadingContext context) throws IOException {
         var staticInstances = MapFileStaticInstances.read(source);
 
         var instances = new ArrayList<Instance>();

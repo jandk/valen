@@ -20,19 +20,19 @@ public final class StaticModelReader implements AssetReader<Model, EternalAsset>
     }
 
     @Override
-    public boolean canRead(EternalAsset resource) {
-        return resource.id().type() == ResourceType.Model;
+    public boolean canRead(EternalAsset asset) {
+        return asset.id().type() == ResourceType.Model;
     }
 
     @Override
-    public Model read(BinarySource source, EternalAsset resource, LoadingContext context) throws IOException {
+    public Model read(BinarySource source, EternalAsset asset, LoadingContext context) throws IOException {
         var model = StaticModel.read(source);
-        var meshes = new ArrayList<>(readMeshes(model, source, resource.hash(), context));
+        var meshes = new ArrayList<>(readMeshes(model, source, asset.hash(), context));
 
         if (readMaterials) {
             Materials.apply(context, meshes, model.meshInfos(), StaticModelMeshInfo::mtlDecl, _ -> null);
         }
-        return new Model(meshes, Optional.empty(), Optional.of(resource.id().fullName()), Optional.empty(), Axis.Z);
+        return new Model(meshes, Optional.empty(), Optional.of(asset.id().fullName()), Optional.empty(), Axis.Z);
     }
 
     private List<Mesh> readMeshes(StaticModel model, BinarySource source, long hash, LoadingContext context) throws IOException {

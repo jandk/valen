@@ -11,13 +11,13 @@ import java.io.*;
 
 public final class EntityDefReader implements AssetReader<JsonObject, EternalAsset> {
     @Override
-    public boolean canRead(EternalAsset resource) {
-        return resource.id().type() == ResourceType.RsStreamFile
-            && resource.id().name().name().startsWith("generated/decls/entitydef/");
+    public boolean canRead(EternalAsset asset) {
+        return asset.id().type() == ResourceType.RsStreamFile
+            && asset.id().name().name().startsWith("generated/decls/entitydef/");
     }
 
     @Override
-    public JsonObject read(BinarySource source, EternalAsset resource, LoadingContext context) throws IOException {
+    public JsonObject read(BinarySource source, EternalAsset asset, LoadingContext context) throws IOException {
         var string = source.readString(Math.toIntExact(source.size()));
         var parser = new DeclParser(string, true);
         return parser.parse();

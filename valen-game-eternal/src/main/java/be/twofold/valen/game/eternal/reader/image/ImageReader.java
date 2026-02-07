@@ -19,13 +19,13 @@ public final class ImageReader implements AssetReader<Texture, EternalAsset> {
     }
 
     @Override
-    public boolean canRead(EternalAsset resource) {
-        return resource.id().type() == ResourceType.Image;
+    public boolean canRead(EternalAsset asset) {
+        return asset.id().type() == ResourceType.Image;
     }
 
     @Override
-    public Texture read(BinarySource source, EternalAsset resource, LoadingContext context) throws IOException {
-        long hash = resource.hash();
+    public Texture read(BinarySource source, EternalAsset asset, LoadingContext context) throws IOException {
+        long hash = asset.hash();
         var image = Image.read(source);
 
         Bytes[] mipData = new Bytes[image.header().totalMipCount()];
