@@ -25,11 +25,11 @@ public final class ImageReader implements AssetReader<Texture, EternalAsset> {
 
     @Override
     public Texture read(BinarySource source, EternalAsset asset, LoadingContext context) throws IOException {
-        long hash = asset.hash();
+        var hash = asset.hash();
         var image = Image.read(source);
 
-        Bytes[] mipData = new Bytes[image.header().totalMipCount()];
-        for (int i = image.header().startMip(); i < image.header().totalMipCount(); i++) {
+        var mipData = new Bytes[image.header().totalMipCount()];
+        for (var i = image.header().startMip(); i < image.header().totalMipCount(); i++) {
             mipData[i] = source.readBytes(image.mipInfos().get(i).decompressedSize());
         }
         source.expectEnd();
@@ -63,36 +63,34 @@ public final class ImageReader implements AssetReader<Texture, EternalAsset> {
 
     private void readMultiStream(Image image, long hash, Bytes[] mipData, LoadingContext context) throws IOException {
         for (var i = 0; i < image.header().startMip(); i++) {
-            var mip = image.mipInfos().get(i);
-            var mipHash = hash << 4 | (image.header().mipCount() - mip.mipLevel());
-            // TODO: Fix this if
-            //if (archive.containsStream(mipHash)) {
-            mipData[i] = context.open(new EternalStreamLocation(mipHash, mip.decompressedSize()));
-            //}
+            var mipInfo = image.mipInfos().get(i);
+            var mipHash = hash << 4 | (image.header().mipCount() - mipInfo.mipLevel());
+            var mip = context.open(new EternalStreamLocation(mipHash, mipInfo.decompressedSize()));
+            mipData[i] = mip.length() > 0 ? mip : null;
         }
     }
 
-    public Texture map(Image image, Bytes[] mipData) {
-        int minMip = minMip(mipData);
-        int width = minMip < 0 ? image.header().pixelWidth() : image.mipInfos().get(minMip).mipPixelWidth();
-        int height = minMip < 0 ? image.header().pixelHeight() : image.mipInfos().get(minMip).mipPixelHeight();
-        be.twofold.valen.core.texture.TextureFormat format = toImageFormat(image.header().textureFormat());
-        List<Surface> surfaces = convertMipMaps(image, mipData, minMip, format);
-        boolean isCubeMap = image.header().textureType() == TextureType.TT_CUBIC;
-        float scale = image.header().albedoSpecularScale();
-        float bias = image.header().albedoSpecularBias();
+    private Texture map(Image image, Bytes[] mipData) {
+        var minMip = minMip(mipData);
+        var width = minMip < 0 ? image.header().pixelWidth() : image.mipInfos().get(minMip).mipPixelWidth();
+        var height = minMip < 0 ? image.header().pixelHeight() : image.mipInfos().get(minMip).mipPixelHeight();
+        var format = toImageFormat(image.header().textureFormat());
+        var surfaces = convertMipMaps(image, mipData, minMip, format);
+        var isCubeMap = image.header().textureType() == TextureType.TT_CUBIC;
+        var scale = image.header().albedoSpecularScale();
+        var bias = image.header().albedoSpecularBias();
 
         return new Texture(width, height, format, isCubeMap, surfaces, scale, bias);
     }
 
     private List<Surface> convertMipMaps(Image image, Bytes[] mipData, int minMip, be.twofold.valen.core.texture.TextureFormat format) {
-        int faces = image.header().textureType() == TextureType.TT_CUBIC ? 6 : 1;
-        int mipCount = image.mipInfos().size() / faces;
+        var faces = image.header().textureType() == TextureType.TT_CUBIC ? 6 : 1;
+        var mipCount = image.mipInfos().size() / faces;
 
-        List<Surface> surfaces = new ArrayList<>();
-        for (int face = 0; face < faces; face++) {
-            for (int mip = minMip; mip < mipCount; mip++) {
-                int mipIndex = mip * faces + face;
+        var surfaces = new ArrayList<Surface>();
+        for (var face = 0; face < faces; face++) {
+            for (var mip = minMip; mip < mipCount; mip++) {
+                var mipIndex = mip * faces + face;
                 surfaces.add(new Surface(
                     image.mipInfos().get(mipIndex).mipPixelWidth(),
                     image.mipInfos().get(mipIndex).mipPixelHeight(),

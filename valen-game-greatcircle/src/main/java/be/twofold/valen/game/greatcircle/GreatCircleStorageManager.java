@@ -27,7 +27,7 @@ public final class GreatCircleStorageManager extends StorageManager {
 
         var slice = streamIndex.get(streamLocation.streamId());
         if (slice == null) {
-            throw new FileNotFoundException("Stream not found: " + streamLocation.streamId());
+            return Bytes.empty();
         }
 
         if (streamLocation.size() > 0) {

@@ -27,10 +27,10 @@ public final class EternalStorageManager extends StorageManager {
 
         var slice = streamIndex.get(streamLocation.streamId());
         if (slice == null) {
-            throw new FileNotFoundException("Stream not found: " + streamLocation.streamId());
+            return Bytes.empty();
         }
 
-        if (streamLocation.size() > 0) {
+        if (streamLocation.size() > 0 && streamLocation.size() != slice.size()) {
             return open(new Location.Compressed(slice, CompressionType.OODLE, streamLocation.size()));
         } else {
             return open(slice);

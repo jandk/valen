@@ -22,6 +22,7 @@ public final class MainWindow extends Application {
     private Stage primaryStage;
     private MainPresenter presenter;
     private Settings settings;
+    private Game game;
 
     @Override
     @SuppressWarnings("DataFlowIssue")
@@ -110,7 +111,11 @@ public final class MainWindow extends Application {
             }
 
             settings.setGameExecutable(path);
-            presenter.setGame(gameFactory.get().load(path));
+            if (game != null) {
+                game.close();
+            }
+            game = gameFactory.get().load(path);
+            presenter.setGame(game);
         } catch (Exception e) {
             FxUtils.showExceptionDialog(e, "Could not load game");
         }
