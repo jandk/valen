@@ -13,13 +13,24 @@ public interface AssetReader<R, A extends Asset> {
     R read(BinarySource source, A asset, LoadingContext context) throws IOException;
 
     default Class<?> getReturnType() {
-        for (var genericInterface : getClass().getGenericInterfaces()) {
+        return getReturnType(getClass());
+    }
+
+    private Class<?> getReturnType(Class<?> clazz) {
+        for (var genericInterface : clazz.getGenericInterfaces()) {
             if (genericInterface instanceof ParameterizedType parameterizedType
                 && parameterizedType.getRawType().equals(AssetReader.class)) {
                 return (Class<?>) parameterizedType.getActualTypeArguments()[0];
             }
         }
-        throw new UnsupportedOperationException(getClass().getSimpleName() + " does not implement AssetReader");
+
+        var superclass = clazz.getSuperclass();
+        if (superclass != null && superclass != Object.class) {
+            return getReturnType(superclass);
+        }
+
+        throw new UnsupportedOperationException(
+            clazz.getSimpleName() + " does not implement AssetReader with proper type parameters");
     }
 
     final class Raw implements AssetReader<Bytes, Asset> {

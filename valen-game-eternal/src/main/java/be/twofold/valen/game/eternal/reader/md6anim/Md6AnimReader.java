@@ -27,7 +27,7 @@ public final class Md6AnimReader implements AssetReader<Animation, EternalAsset>
         var anim = Md6Anim.read(source);
 
         var skeletonKey = EternalAssetID.from(anim.header().skelName(), ResourceType.Skeleton);
-        if (context.exists(skeletonKey)) {
+        if (!context.exists(skeletonKey)) {
             log.warn("Could not find skeleton asset '{}' while loading anim '{}'", anim.header().skelName(), asset.id().fullName());
             throw new FileNotFoundException(anim.header().skelName());
         }

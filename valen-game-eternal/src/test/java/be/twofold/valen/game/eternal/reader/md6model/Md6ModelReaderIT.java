@@ -9,7 +9,7 @@ class Md6ModelReaderIT {
 
     @Test
     void testCanReadAll() throws IOException {
-        TestUtils.testReader(_ -> new Md6ModelReader(false));
+        TestUtils.testReader(new Md6ModelReader(false));
     }
 
 }

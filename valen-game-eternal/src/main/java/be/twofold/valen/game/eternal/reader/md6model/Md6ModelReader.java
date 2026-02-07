@@ -56,6 +56,9 @@ public final class Md6ModelReader implements AssetReader<Model, EternalAsset> {
 
         var identity = (hash << 4) | lod;
         var bytes = context.open(new EternalStreamLocation(identity, uncompressedSize));
+        if (bytes.length() == 0) {
+            throw new FileNotFoundException("Streamed geometry not found for hash: " + hash);
+        }
         try (var source = BinarySource.wrap(bytes)) {
             return GeometryReader.readStreamedMesh(source, lodInfos, layouts, true);
         }
