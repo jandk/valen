@@ -24,7 +24,7 @@ public class StorageManager implements Closeable {
         if (location instanceof Location.Compressed compressed) {
             Bytes compressedData = open(compressed.base());
             return Decompressors.get(compressed.type())
-                .decompress(compressedData, compressed.uncompressedSize());
+                .decompress(compressedData, compressed.size());
         }
         return openCustom(location);
     }

@@ -5,6 +5,11 @@ package be.twofold.valen.core.game;
  */
 public sealed interface Location {
     /**
+     * Returns the size of the location.
+     */
+    int size();
+
+    /**
      * Represents a slice of a file.
      *
      * @param fileId The id of the file to read from.
@@ -21,14 +26,14 @@ public sealed interface Location {
     /**
      * Represents a compressed file.
      *
-     * @param base             The base location.
-     * @param type             The compression type.
-     * @param uncompressedSize The uncompressed size.
+     * @param base The base location.
+     * @param type The compression type.
+     * @param size The uncompressed size.
      */
     record Compressed(
         Location base,
         CompressionType type,
-        int uncompressedSize
+        int size
     ) implements Location {
     }
 

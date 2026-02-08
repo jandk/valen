@@ -26,15 +26,6 @@ public record EternalAsset(
     }
 
     @Override
-    public int size() {
-        return switch (location) {
-            case Location.Compressed compressed -> compressed.uncompressedSize();
-            case Location.FileSlice fileSlice -> fileSlice.size();
-            default -> 0;
-        };
-    }
-
-    @Override
     public Map<String, Object> properties() {
         var properties = new HashMap<String, Object>();
         properties.put("hash", hash);

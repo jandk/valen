@@ -10,8 +10,6 @@ public interface Asset extends Comparable<Asset> {
 
     Location location();
 
-    int size();
-
     Map<String, Object> properties();
 
     default String exportName() {

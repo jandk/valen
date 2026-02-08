@@ -22,7 +22,7 @@ public abstract class TestUtils {
 
     private static void readAllInMap(AssetLoader loader, AssetReader<?, EternalAsset> reader) {
         var entries = loader.archive().all()
-            .filter(asset -> asset.size() != 0 && reader.canRead((EternalAsset) asset))
+            .filter(asset -> asset.location().size() != 0 && reader.canRead((EternalAsset) asset))
             .toList();
 
         System.out.println("Trying to read " + entries.size() + " entries");
