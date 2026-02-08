@@ -94,7 +94,6 @@ public final class MainPresenter extends AbstractPresenter<MainView> implements 
         updateFileList();
     }
 
-    @SuppressWarnings("unchecked")
     private void selectArchive(String archiveName) {
         if (game == null) {
             return;
