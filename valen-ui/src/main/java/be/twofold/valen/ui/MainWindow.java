@@ -22,6 +22,7 @@ public final class MainWindow extends Application {
     private Stage primaryStage;
     private MainPresenter presenter;
     private Settings settings;
+    private Game game;
 
     @Override
     @SuppressWarnings("DataFlowIssue")
@@ -29,7 +30,6 @@ public final class MainWindow extends Application {
         this.primaryStage = primaryStage;
 
         Feather feather = Feather.with(
-            new ControllerModule(),
             new EventBusModule(),
             new SettingsModule(),
             new ViewModule()
@@ -59,7 +59,7 @@ public final class MainWindow extends Application {
         primaryStage.setScene(scene);
         primaryStage.show();
 
-        settings.gameExecutable().get()
+        settings.getGameExecutable()
             .ifPresentOrElse(
                 this::tryLoadGame,
                 this::selectAndLoadGame
@@ -110,8 +110,12 @@ public final class MainWindow extends Application {
                 return;
             }
 
-            settings.gameExecutable().set(path);
-            presenter.setGame(gameFactory.get().load(path));
+            settings.setGameExecutable(path);
+            if (game != null) {
+                game.close();
+            }
+            game = gameFactory.get().load(path);
+            presenter.setGame(game);
         } catch (Exception e) {
             FxUtils.showExceptionDialog(e, "Could not load game");
         }

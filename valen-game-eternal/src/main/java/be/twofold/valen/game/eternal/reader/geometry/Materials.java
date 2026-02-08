@@ -1,5 +1,6 @@
 package be.twofold.valen.game.eternal.reader.geometry;
 
+import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.geometry.*;
 import be.twofold.valen.core.material.*;
 import be.twofold.valen.game.eternal.*;
@@ -17,7 +18,7 @@ public final class Materials {
     }
 
     public static <T> void apply(
-        EternalArchive archive,
+        LoadingContext context,
         List<Mesh> meshes,
         List<T> meshInfos,
         Function<T, String> materialNameMapper,
@@ -31,8 +32,8 @@ public final class Materials {
             if (!materials.containsKey(materialName)) {
                 var materialFile = "generated/decls/material2/" + materialName + ".decl";
                 var assetId = EternalAssetID.from(materialFile, ResourceType.RsStreamFile);
-                if (archive.exists(assetId)) {
-                    var material = archive.loadAsset(assetId, Material.class);
+                if (context.exists(assetId)) {
+                    var material = context.load(assetId, Material.class);
                     materials.put(materialName, material);
                 } else {
                     LOG.warn("Could not load material {}", materialName);

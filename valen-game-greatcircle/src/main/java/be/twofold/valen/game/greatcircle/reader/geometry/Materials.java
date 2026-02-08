@@ -1,5 +1,6 @@
 package be.twofold.valen.game.greatcircle.reader.geometry;
 
+import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.geometry.*;
 import be.twofold.valen.core.material.*;
 import be.twofold.valen.game.greatcircle.*;
@@ -17,7 +18,7 @@ public final class Materials {
     }
 
     public static <T> void apply(
-        GreatCircleArchive archive,
+        LoadingContext context,
         List<Mesh> meshes,
         List<T> meshInfos,
         Function<T, String> materialNameMapper,
@@ -30,8 +31,8 @@ public final class Materials {
             var meshName = meshNameMapper.apply(meshInfo);
             if (!materials.containsKey(materialName)) {
                 var assetId = GreatCircleAssetID.from(materialName, ResourceType.material2);
-                if (archive.exists(assetId)) {
-                    var material = archive.loadAsset(assetId, Material.class);
+                if (context.exists(assetId)) {
+                    var material = context.load(assetId, Material.class);
                     materials.put(materialName, material);
                 } else {
                     LOG.warn("Could not load material {}", materialName);

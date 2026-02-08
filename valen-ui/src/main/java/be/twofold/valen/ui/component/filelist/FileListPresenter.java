@@ -9,35 +9,39 @@ import jakarta.inject.*;
 import java.util.*;
 import java.util.stream.*;
 
-public final class FileListPresenter extends AbstractFXPresenter<FileListView> {
+public final class FileListPresenter extends AbstractPresenter<FileListView> implements FileListView.Listener {
 
     private Map<String, List<Asset>> assetIndex = Map.of();
+    private final EventBus eventBus;
 
     @Inject
     FileListPresenter(FileListView view, EventBus eventBus) {
         super(view);
+        this.eventBus = eventBus;
 
-        eventBus.subscribe(FileListViewEvent.class, event -> {
-            switch (event) {
-                case FileListViewEvent.AssetSelected assetSelected ->
-                    eventBus.publish(new AssetSelected(assetSelected.asset(), assetSelected.forced()));
-                case FileListViewEvent.PathSelected pathSelected -> selectPath(pathSelected.path());
-                case FileListViewEvent.PathExportRequested pathExportRequested -> {
-                    eventBus.publish(new ExportRequested(pathExportRequested.path(), pathExportRequested.recursive()));
-                }
-            }
-        });
+        view.setListener(this);
+    }
+
+    @Override
+    public void onPathSelected(String path) {
+        var assets = assetIndex.getOrDefault(path, List.of()).stream().sorted().toList();
+        getView().setFilteredAssets(assets);
+    }
+
+    @Override
+    public void onAssetSelected(Asset asset, boolean forced) {
+        eventBus.publish(new AssetSelected(asset, forced));
+    }
+
+    @Override
+    public void onPathExportRequested(String path, boolean recursive) {
+        eventBus.publish(new ExportRequested(path, recursive));
     }
 
     public void setAssets(Stream<? extends Asset> assets) {
         assetIndex = assets.collect(Collectors.groupingBy(asset -> asset.id().pathName()));
 
         getView().setFileTree(buildPathTree());
-    }
-
-    private void selectPath(String path) {
-        var assets = assetIndex.getOrDefault(path, List.of()).stream().sorted().toList();
-        getView().setFilteredAssets(assets);
     }
 
     private PathNode<PathCombo> buildPathTree() {

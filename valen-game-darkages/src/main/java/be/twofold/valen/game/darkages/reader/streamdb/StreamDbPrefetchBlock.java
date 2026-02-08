@@ -13,6 +13,11 @@ public record StreamDbPrefetchBlock(
         var name = source.readLong();
         var firstItemIndex = source.readInt();
         var numItems = source.readInt();
-        return new StreamDbPrefetchBlock(name, firstItemIndex, numItems);
+
+        return new StreamDbPrefetchBlock(
+            name,
+            firstItemIndex,
+            numItems
+        );
     }
 }

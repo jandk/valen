@@ -1,6 +1,6 @@
 package be.twofold.valen.game.darkages.reader.resources;
 
-import be.twofold.valen.core.util.*;
+import wtf.reversed.toolbox.util.*;
 
 public enum ResourcesType implements ValueEnum<String> {
     AiNav("ainav"),
@@ -74,7 +74,7 @@ public enum ResourcesType implements ValueEnum<String> {
         this.value = value;
     }
 
-    public static ResourcesType fromName(String name) {
+    public static ResourcesType fromValue(String name) {
         return ValueEnum.fromValue(ResourcesType.class, name);
     }
 

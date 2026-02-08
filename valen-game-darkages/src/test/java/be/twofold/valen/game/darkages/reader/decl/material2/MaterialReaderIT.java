@@ -9,9 +9,6 @@ import java.io.*;
 class MaterialReaderIT {
     @Test
     void testCanReadAll() throws IOException {
-        TestUtils.testReader(archive -> {
-            var declReader = new DeclReader(archive);
-            return new MaterialReader(archive, declReader);
-        });
+        TestUtils.testReader(new MaterialReader(new DeclReader()));
     }
 }

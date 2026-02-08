@@ -1,6 +1,9 @@
 package be.twofold.valen.game.darkages.reader.resources;
 
-import be.twofold.valen.core.util.*;
+import wtf.reversed.toolbox.io.*;
+import wtf.reversed.toolbox.util.*;
+
+import java.io.*;
 
 public enum ResourcesVariation implements ValueEnum<Integer> {
     RES_VAR_NONE(0),
@@ -36,8 +39,8 @@ public enum ResourcesVariation implements ValueEnum<Integer> {
         this.value = value;
     }
 
-    public static ResourcesVariation fromValue(int value) {
-        return ValueEnum.fromValue(ResourcesVariation.class, value);
+    public static ResourcesVariation read(BinarySource source) throws IOException {
+        return ValueEnum.fromValue(ResourcesVariation.class, Short.toUnsignedInt(source.readShort()));
     }
 
     @Override

@@ -11,6 +11,10 @@ public record StreamDbPrefetchHeader(
     public static StreamDbPrefetchHeader read(BinarySource source) throws IOException {
         var numPrefetchBlocks = source.readInt();
         var totalLength = source.readInt();
-        return new StreamDbPrefetchHeader(numPrefetchBlocks, totalLength);
+
+        return new StreamDbPrefetchHeader(
+            numPrefetchBlocks,
+            totalLength
+        );
     }
 }

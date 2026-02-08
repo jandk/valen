@@ -1,9 +1,8 @@
 package be.twofold.valen.game.eternal;
 
 import be.twofold.valen.game.eternal.reader.packagemapspec.*;
-import be.twofold.valen.game.eternal.reader.resource.*;
+import be.twofold.valen.game.eternal.reader.resources.*;
 import be.twofold.valen.game.eternal.reader.streamdb.*;
-import be.twofold.valen.game.eternal.resource.*;
 import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
@@ -162,9 +161,9 @@ final class DbImporter {
     }
 
     private ResourceEntity mapResource(Resources resources, ResourcesEntry entry) {
-        var name = resources.pathStrings().get(resources.pathStringIndex().get(entry.strings() + 1));
-        var type = resources.pathStrings().get(resources.pathStringIndex().get(entry.strings()));
-        var variation = ResourceVariation.fromValue(entry.variation()).name();
+        var name = getString(resources, entry, 1);
+        var type = getString(resources, entry, 0);
+        var variation = entry.variation().name();
         var offset = entry.dataOffset();
         var size = entry.dataSize();
         var uncompressedSize = entry.uncompressedSize();
@@ -179,16 +178,22 @@ final class DbImporter {
             name,
             type,
             variation,
-            offset,
-            size,
-            uncompressedSize,
+            Math.toIntExact(offset),
+            Math.toIntExact(size),
+            Math.toIntExact(uncompressedSize),
             dataCheckSum,
             defaultHash,
             timestamp,
             version,
-            flags,
+            /*flags*/ 0,
             compMode
         );
+    }
+
+    private static String getString(Resources resources, ResourcesEntry entry, int offset) {
+        int i1 = Math.toIntExact(entry.strings() + offset);
+        int i2 = Math.toIntExact(resources.stringIndex().get(i1));
+        return resources.strings().values().get(i2);
     }
 
     // endregion

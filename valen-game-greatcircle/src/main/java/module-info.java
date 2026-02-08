@@ -6,7 +6,8 @@ module valen.game.greatcircle {
     requires valen.game.idtech;
     requires wtf.reversed.toolbox;
 
-    requires static java.sql; // For import only
+    requires static java.sql;
+    requires jdk.management.jfr; // For import only
 
     provides be.twofold.valen.core.game.GameFactory
         with be.twofold.valen.game.greatcircle.GreatCircleGameFactory;

@@ -1,6 +1,6 @@
 package be.twofold.valen.game.greatcircle.resource;
 
-import be.twofold.valen.core.util.*;
+import wtf.reversed.toolbox.util.*;
 
 public enum ResourceType implements ValueEnum<String> {
     achievement("achievement"),
@@ -181,6 +181,7 @@ public enum ResourceType implements ValueEnum<String> {
     playeractionxprewardtable("playeractionxprewardtable"),
     playerarmik("playerarmik"),
     playerlegik("playerlegik"),
+    playfabevent("playfabevent"),
     posematching("posematching"),
     progressionscaler("progressionscaler"),
     projectilepenetration("projectilepenetration"),
@@ -254,6 +255,7 @@ public enum ResourceType implements ValueEnum<String> {
     terrain("terrain"),
     terraintexturepayloadresource("terraintexturepayloadresource"),
     tooltip("tooltip"),
+    traversalmovements("traversalmovements"),
     tutorial("tutorial"),
     tutorialcollection("tutorialcollection"),
     uicategory("uicategory"),

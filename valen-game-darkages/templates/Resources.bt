@@ -1,0 +1,171 @@
+//------------------------------------------------
+//      File: resources.bt
+//   Authors: JanDK
+//   Version: 0.1
+//   Purpose: Template for .resources from DOOM: The Dark Ages
+//  Category: Archive
+// File Mask: *.resources
+//  ID Bytes: 49 44 43 4C 0D 00 00 00
+//------------------------------------------------
+
+// idResEntryFlags_t
+typedef enum {
+    RES_ENTRY_FLAG_DEFAULTED = 1,
+    RES_ENTRY_FLAG_HAS_VARIATION = 2,
+} ResourcesFlags <edit=flags>;
+
+// idResourceCompressionMode
+enum <ubyte> ResourcesCompressionMode {
+    RES_COMP_MODE_NONE = 0,
+    RES_COMP_MODE_ZLIB = 1,
+    RES_COMP_MODE_KRAKEN = 2,
+    RES_COMP_MODE_LZNA = 3,
+    RES_COMP_MODE_KRAKEN_CHUNKED = 4,
+    RES_COMP_MODE_LEVIATHAN = 5,
+    RES_COMP_MODE_BCPACK = 6,
+    RES_COMP_MODE_ENUM_MAX = 7,
+};
+
+// idResourceVariation
+enum <ushort> ResourcesVariation {
+    RES_VAR_NONE = 0,
+    RES_VAR_RENDERPROG_VULKAN_PC_BASE = 33,
+    RES_VAR_RENDERPROG_VULKAN_PC_AMD = 34,
+    RES_VAR_RENDERPROG_SCARLETT_D3D12 = 50,
+    RES_VAR_RENDERPROG_PROSPERO_BASE = 51,
+    RES_VAR_RENDERPROG_PROSPERO_TRINITY = 52,
+    RES_VAR_RENDERPROG_VULKAN_PC_BASE_RETAIL = 300,
+    RES_VAR_RENDERPROG_VULKAN_PC_AMD_RETAIL = 301,
+    RES_VAR_RENDERPROG_SCARLETT_D3D12_RETAIL = 313,
+    RES_VAR_RENDERPROG_PROSPERO_BASE_RETAIL = 314,
+    RES_VAR_RENDERPROG_PROSPERO_TRINITY_RETAIL = 315,
+    RES_VAR_HK_GEN_64 = 64,
+    RES_VAR_HK_MSVC_64 = 65,
+    RES_VAR_DECLS_NO_SANITYCHECKS = 70,
+    RES_VAR_PLATFORM_WIN = 200,
+    RES_VAR_PLATFORM_WIN32 = 201,
+    RES_VAR_PLATFORM_WIN64 = 202,
+    RES_VAR_PLATFORM_LINUX = 210,
+    RES_VAR_PLATFORM_LINUX32 = 211,
+    RES_VAR_PLATFORM_LINUX64 = 212,
+    RES_VAR_PLATFORM_SCARLETT = 241,
+    RES_VAR_PLATFORM_PROSPERO = 242,
+    RES_VAR_PLATFORM_PROSPERO_BASE = 243,
+    RES_VAR_PLATFORM_PROSPERO_TRINITY = 244,
+    RES_VAR_PLATFORM_RESERVED_DO_NOT_USE = 299,
+};
+
+struct ResourcesHeader {
+    uint magic;
+    uint version;
+    Assert(magic   == 0x4c434449);
+    Assert(version == 13);
+
+    uint  flags;
+    uint  numSegments;
+    uquad segmentSize;
+    uquad metadataHash;
+    Assert(flags        == 0);
+    Assert(numSegments  == 1);
+    Assert(segmentSize  == 0xffffffffffL);
+    Assert(metadataHash == 0);
+
+    uint  numResources;
+    uint  numDependencies;
+    uint  numDepIndices;
+    uint  numStringIndices;
+    uint  numSpecialHashes;
+    uint  numMetaEntries;
+    uint  stringTableSize;
+    uint  metaEntriesSize;
+    Assert(numSpecialHashes == 0);
+    Assert(numMetaEntries   == 0);
+    Assert(metaEntriesSize  == 0);
+
+    uquad stringTableOffset;
+    uquad metaEntriesOffset;
+    uquad resourceEntriesOffset;
+    uquad resourceDepsOffset;
+    uquad resourceSpecialHashOffset;
+
+    uquad dataOffset;
+};
+
+struct ResourcesEntry
+{
+	quad   resourceTypeString;
+	quad   nameString;
+	quad   descString;
+	uquad  depIndices;
+	uquad  strings;
+	uquad  specialHashes;
+	uquad  metaEntries;
+	uquad  dataOffset;
+	uquad  dataSize;
+    Assert(resourceTypeString == 0);
+    Assert(nameString         == 1);
+    Assert(descString         == -1);
+    Assert(specialHashes      == 0);
+    Assert(metaEntries        == 0);
+
+	uquad  uncompressedSize;
+	uquad  dataCheckSum;
+	uquad  generationTimeStamp;
+	uquad  defaultHash;
+	uint   version;
+	ResourcesFlags flags;
+	ResourcesCompressionMode compMode;
+	ubyte  reserved0;
+	ResourcesVariation variation;
+	uint   reserved2;
+	uquad  reservedForVariations;
+    Assert(reserved0             == 0);
+    Assert(reserved2             == 0);
+    Assert(reservedForVariations == 0);
+
+	ushort numStrings;
+	ushort numSources;
+	ushort numDependencies;
+	ushort numSpecialHashes;
+	ushort numMetaEntries;
+    uint   padding1;
+    ushort padding2;
+    Assert(numStrings       == 2);
+    Assert(numSpecialHashes == 0);
+    Assert(numMetaEntries   == 0);
+    Assert(padding1         == 0);
+    Assert(padding2         == 0);
+};
+
+typedef struct {
+    string value;
+} WrappedString <read=this.value>;
+
+struct ResourcesStrings {
+    uint64 numStrings;
+    uint64 offsets[numStrings];
+    WrappedString values[numStrings] <optimize=false>;
+};
+
+struct ResourcesDependency {
+	uint64 type;
+	uint64 name;
+	uint32 depType;
+	uint32 depSubType;
+	uint64 hashOrTimestamp;
+};
+
+struct Resources {
+    ResourcesHeader header <style=sHeading1>;
+
+    FSeek(header.resourceEntriesOffset);
+    ResourcesEntry entries[header.numResources] <style=sHeading2, optimize=false>;
+
+    FSeek(header.stringTableOffset);
+    ResourcesStrings strings <style=sHeading3>;
+
+    FSeek(header.resourceDepsOffset);
+    ResourcesDependency dependencies[header.numDependencies] <style=sHeading4>;
+    uint32 dependencyIndex[header.numDepIndices] <style=sHeading1>;
+    uint64 stringIndex[header.numStringIndices] <style=sHeading2>;
+} resourceStorage;

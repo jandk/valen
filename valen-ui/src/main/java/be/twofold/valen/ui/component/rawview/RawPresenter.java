@@ -6,7 +6,7 @@ import be.twofold.valen.ui.component.*;
 import jakarta.inject.*;
 import wtf.reversed.toolbox.collect.*;
 
-public final class RawPresenter extends AbstractFXPresenter<RawView> implements Viewer {
+public final class RawPresenter extends AbstractPresenter<RawView> implements Viewer {
     private final BinaryToText binaryToText = new BinaryToText();
 
     @Inject

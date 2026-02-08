@@ -11,32 +11,32 @@ import be.twofold.valen.ui.component.textureviewer.*;
 public final class ViewModule {
 
     @Provides
-    public MainView bindMainView(MainFXView mainView) {
+    public MainView bindMainView(MainViewImpl mainView) {
         return mainView;
     }
 
     @Provides
-    public FileListView bindFileListView(FileListFXView fileListView) {
+    public FileListView bindFileListView(FileListController fileListView) {
         return fileListView;
     }
 
     @Provides
-    public ModelView bindModelView(ModelFXView modelView) {
-        return modelView;
-    }
-
-    @Provides
-    public RawView bindRawView(RawFXView rawView) {
-        return rawView;
-    }
-
-    @Provides
-    public SettingsView bindOptionsView(SettingsFXView settingsView) {
+    public SettingsView bindSettingsView(SettingsController settingsView) {
         return settingsView;
     }
 
     @Provides
-    public TextureView bindTextureView(TextureFXView textureView) {
+    public ModelView bindModelView(ModelViewImpl modelView) {
+        return modelView;
+    }
+
+    @Provides
+    public RawView bindRawView(RawViewImpl rawView) {
+        return rawView;
+    }
+
+    @Provides
+    public TextureView bindTextureView(TextureViewImpl textureView) {
         return textureView;
     }
 

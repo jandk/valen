@@ -6,6 +6,10 @@ import be.twofold.valen.core.texture.*;
 import java.io.*;
 
 public final class DdsExporter extends TextureExporter {
+    public DdsExporter() {
+        super(true);
+    }
+
     @Override
     public String getID() {
         return "texture.dds";
@@ -27,7 +31,7 @@ public final class DdsExporter extends TextureExporter {
     }
 
     @Override
-    public TextureFormat chooseFormat(TextureFormat format) {
+    protected TextureFormat chooseFormat(TextureFormat format) {
         return switch (format) {
             case R8G8B8_UNORM -> TextureFormat.R8G8B8A8_UNORM;
             case B8G8R8_UNORM -> TextureFormat.B8G8R8A8_UNORM;
@@ -37,7 +41,7 @@ public final class DdsExporter extends TextureExporter {
     }
 
     @Override
-    public void doExport(Texture texture, OutputStream out) throws IOException {
+    protected void doExport(Texture texture, OutputStream out) throws IOException {
         out.write(createHeader(texture).toBuffer().array());
         for (var surface : texture.surfaces()) {
             out.write(surface.data());

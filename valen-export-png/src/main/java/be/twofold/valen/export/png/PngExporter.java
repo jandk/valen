@@ -7,6 +7,10 @@ import be.twofold.valen.format.png.*;
 import java.io.*;
 
 public final class PngExporter extends TextureExporter {
+    public PngExporter() {
+        super(false);
+    }
+
     @Override
     public String getID() {
         return "texture.png";
@@ -28,7 +32,7 @@ public final class PngExporter extends TextureExporter {
     }
 
     @Override
-    public TextureFormat chooseFormat(TextureFormat format) {
+    protected TextureFormat chooseFormat(TextureFormat format) {
         return switch (format) {
             case R8_UNORM,
                  BC4_UNORM,
@@ -59,7 +63,7 @@ public final class PngExporter extends TextureExporter {
     }
 
     @Override
-    public void doExport(Texture texture, OutputStream out) throws IOException {
+    protected void doExport(Texture texture, OutputStream out) throws IOException {
         var stripped = stripAlpha(texture);
         var format = mapPngFormat(stripped);
 

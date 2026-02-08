@@ -7,7 +7,7 @@ import wtf.reversed.toolbox.util.*;
 
 import java.util.*;
 
-public final class DeclReader extends AbstractDeclReader<DarkAgesAssetID, DarkAgesAsset, DarkAgesArchive> {
+public final class DeclReader extends AbstractDeclReader<DarkAgesAssetID, DarkAgesAsset> {
     private static final String RootPrefix = "generated/decls/";
 
     private static final Set<String> Unsupported = Set.of(
@@ -21,10 +21,6 @@ public final class DeclReader extends AbstractDeclReader<DarkAgesAssetID, DarkAg
         "renderparm", // Has a custom reader
         "renderprogflag"
     );
-
-    public DeclReader(DarkAgesArchive archive) {
-        super(archive);
-    }
 
     @Override
     public boolean canRead(DarkAgesAsset asset) {

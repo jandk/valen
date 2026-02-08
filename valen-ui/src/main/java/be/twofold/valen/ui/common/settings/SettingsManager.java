@@ -11,7 +11,6 @@ import java.util.*;
 public final class SettingsManager {
     private static final Gson GSON = new GsonBuilder()
         .registerTypeHierarchyAdapter(Path.class, new PathTypeAdapter().nullSafe())
-        .registerTypeAdapterFactory(new SettingTypeAdapterFactory())
         .setPrettyPrinting()
         .create();
 

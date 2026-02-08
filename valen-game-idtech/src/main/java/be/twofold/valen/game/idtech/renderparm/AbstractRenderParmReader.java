@@ -342,8 +342,8 @@ public abstract class AbstractRenderParmReader<V extends Asset> implements Asset
                     }
                     continue;
                 }
-                case "cvar" -> {
-                    // Just ignore this one
+                case "cvar", "const", "coherent" -> {
+                    // Just ignore these ones
                     continue;
                 }
             }

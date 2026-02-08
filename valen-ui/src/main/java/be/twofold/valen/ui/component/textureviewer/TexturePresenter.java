@@ -1,6 +1,5 @@
 package be.twofold.valen.ui.component.textureviewer;
 
-import backbonefx.event.*;
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.texture.*;
 import be.twofold.valen.ui.common.*;
@@ -14,7 +13,7 @@ import wtf.reversed.toolbox.collect.*;
 import java.util.*;
 import java.util.function.*;
 
-public final class TexturePresenter extends AbstractFXPresenter<TextureView> implements Viewer {
+public final class TexturePresenter extends AbstractPresenter<TextureView> implements TextureView.Listener, Viewer {
     private static final Logger log = LoggerFactory.getLogger(TexturePresenter.class);
     private static final Set<TextureFormat> GRAY = Set.of(
         TextureFormat.R8_UNORM,
@@ -34,16 +33,12 @@ public final class TexturePresenter extends AbstractFXPresenter<TextureView> imp
     private Channel channel = Channel.ALL;
 
     @Inject
-    public TexturePresenter(TextureView view, EventBus backboneEventBus, Settings settings) {
+    public TexturePresenter(TextureView view, Settings settings) {
         // TODO: Make package-private
         super(view);
         this.settings = settings;
 
-        backboneEventBus.subscribe(TextureViewEvent.class, event -> {
-            switch (event) {
-                case TextureViewEvent.ChannelSelected(var selectedChannel) -> filterImage(selectedChannel);
-            }
-        });
+        view.setListener(this);
     }
 
     @Override
@@ -69,7 +64,7 @@ public final class TexturePresenter extends AbstractFXPresenter<TextureView> imp
         // Let's try our new ops
         long t0 = System.nanoTime();
         Texture texture = ((Texture) data).firstOnly();
-        decoded = texture.convert(TextureFormat.B8G8R8A8_UNORM, settings.reconstructZ().get().orElse(false));
+        decoded = texture.convert(TextureFormat.B8G8R8A8_UNORM, settings.isReconstructZ());
         if (GRAY.contains(texture.format())) {
             splatGray();
         }
@@ -95,6 +90,11 @@ public final class TexturePresenter extends AbstractFXPresenter<TextureView> imp
 
         long t3 = System.nanoTime();
         log.info("Decode: {}, Create: {}, Filter: {}", (t1 - t0) / 1e6, (t2 - t1) / 1e6, (t3 - t2) / 1e6);
+    }
+
+    @Override
+    public void onChannelSelected(Channel channel) {
+        filterImage(channel);
     }
 
     private void splatGray() {

@@ -12,30 +12,25 @@ import java.nio.charset.*;
 import java.util.*;
 import java.util.regex.*;
 
-public abstract class AbstractDeclReader<K extends AssetID, V extends Asset, A extends Archive<K, V>> implements AssetReader<JsonObject, V> {
+public abstract class AbstractDeclReader<K extends AssetID, V extends Asset> implements AssetReader<JsonObject, V> {
     private static final Pattern ItemPattern = Pattern.compile("^\\w+\\[(\\d+)]$");
     private static final CharsetDecoder Utf8Decoder = StandardCharsets.UTF_8.newDecoder();
     private static final CharsetDecoder Iso88591Decoder = StandardCharsets.ISO_8859_1.newDecoder();
 
     private final Map<K, JsonObject> declCache = new HashMap<>();
-    private final A archive;
-
-    public AbstractDeclReader(A archive) {
-        this.archive = archive;
-    }
-
-    @Override
-    public abstract boolean canRead(V asset);
 
     public abstract K getAssetID(String name, K baseAssetID);
 
     @Override
-    public JsonObject read(BinarySource source, V asset) throws IOException {
+    public abstract boolean canRead(V asset);
+
+    @Override
+    public JsonObject read(BinarySource source, V asset, LoadingContext context) throws IOException {
         var bytes = source.readBytes(Math.toIntExact(source.size()));
         var object = DeclParser.parse(decode(bytes));
 
         @SuppressWarnings("unchecked")
-        var result = loadInherit(object, (K) asset.id());
+        var result = loadInherit(object, (K) asset.id(), context);
         result = result.deepCopy();
         postProcessArrays(result);
 
@@ -45,7 +40,11 @@ public abstract class AbstractDeclReader<K extends AssetID, V extends Asset, A e
         return result.getAsJsonObject("edit");
     }
 
-    private JsonObject loadInherit(JsonObject object, K baseAssetID) throws IOException {
+    public void clearCache() {
+        declCache.clear();
+    }
+
+    private JsonObject loadInherit(JsonObject object, K baseAssetID, LoadingContext context) throws IOException {
         if (!object.has("inherit")) {
             return object;
         }
@@ -58,9 +57,9 @@ public abstract class AbstractDeclReader<K extends AssetID, V extends Asset, A e
             return merge(inherit, object);
         }
 
-        var bytes = archive.loadAsset(inheritID, Bytes.class);
+        var bytes = context.load(inheritID, Bytes.class);
         inherit = DeclParser.parse(decode(bytes));
-        inherit = loadInherit(inherit, baseAssetID);
+        inherit = loadInherit(inherit, baseAssetID, context);
         declCache.put(inheritID, inherit);
         return merge(inherit, object);
     }
