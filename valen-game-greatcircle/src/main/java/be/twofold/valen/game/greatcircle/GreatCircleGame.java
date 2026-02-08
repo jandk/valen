@@ -11,7 +11,6 @@ import be.twofold.valen.game.greatcircle.reader.md6mesh.*;
 import be.twofold.valen.game.greatcircle.reader.md6skl.*;
 import be.twofold.valen.game.greatcircle.reader.packagemapspec.*;
 import be.twofold.valen.game.greatcircle.reader.staticmodel.*;
-import wtf.reversed.toolbox.compress.*;
 import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
@@ -34,16 +33,15 @@ public final class GreatCircleGame implements Game {
 
     private final Path base;
     private final PackageMapSpec spec;
-    private final Decompressor decompressor;
     private final StreamDbIndex streamDbIndex;
     private final ResourcesIndex commonResources;
 
     public GreatCircleGame(Path path) throws IOException {
         this.base = path.resolve("base");
         this.spec = PackageMapSpec.read(base.resolve("packagemapspec_pc.json"));
-        this.decompressor = Decompressor.oodle(path.resolve("oo2core_9_win64.dll"));
         this.streamDbIndex = loadStreamDbIndex(base, spec);
         this.commonResources = ResourcesIndex.build(base, filterResources(spec, "common"));
+        Decompressors.setOodlePath(path.resolve("oo2core_9_win64.dll"));
     }
 
     @Override

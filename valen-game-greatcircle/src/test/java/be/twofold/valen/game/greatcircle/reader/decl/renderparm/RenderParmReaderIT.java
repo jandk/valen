@@ -8,6 +8,6 @@ import java.io.*;
 class RenderParmReaderIT {
     @Test
     void testCanReadAll() throws IOException {
-        TestUtils.testReader(archive -> new RenderParmReader());
+        TestUtils.testReader(new RenderParmReader());
     }
 }

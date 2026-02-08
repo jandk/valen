@@ -9,7 +9,7 @@ class DeformModelReaderIT {
 
     @Test
     void testCanReadAll() throws IOException {
-        TestUtils.testReader(archive -> new DeformModelReader(false));
+        TestUtils.testReader(new DeformModelReader(false));
     }
 
 }

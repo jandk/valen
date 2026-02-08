@@ -6,18 +6,16 @@ import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 import java.nio.file.*;
-import java.util.function.*;
 
 import static org.assertj.core.api.Assertions.*;
 
 public abstract class TestUtils {
 
-    public static void testReader(Function<LoadingContext, AssetReader<?, GreatCircleAsset>> readerFunction) throws IOException {
+    public static void testReader(AssetReader<?, GreatCircleAsset> reader) throws IOException {
         GreatCircleGame game = new GreatCircleGameFactory().load(Path.of(Constants.ExecutablePath));
 
         for (String archiveName : game.archiveNames()) {
             var loader = game.open(archiveName);
-            var reader = readerFunction.apply(loader);
             readAllInMap(loader, reader);
         }
     }

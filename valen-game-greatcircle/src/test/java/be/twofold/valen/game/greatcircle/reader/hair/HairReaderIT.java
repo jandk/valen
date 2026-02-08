@@ -9,7 +9,7 @@ class HairReaderIT {
 
     @Test
     void testCanReadAll() throws IOException {
-        TestUtils.testReader(archive -> new HairReader());
+        TestUtils.testReader(new HairReader());
     }
 
 }

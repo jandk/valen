@@ -9,7 +9,7 @@ class Md6MeshReaderIT {
 
     @Test
     void testCanReadAll() throws IOException {
-        TestUtils.testReader(archive -> new Md6MeshReader(false));
+        TestUtils.testReader(new Md6MeshReader(false));
     }
 
 }
