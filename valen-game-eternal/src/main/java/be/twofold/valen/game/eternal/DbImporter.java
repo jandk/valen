@@ -1,9 +1,8 @@
 package be.twofold.valen.game.eternal;
 
 import be.twofold.valen.game.eternal.reader.packagemapspec.*;
-import be.twofold.valen.game.eternal.reader.resource.*;
+import be.twofold.valen.game.eternal.reader.resources.*;
 import be.twofold.valen.game.eternal.reader.streamdb.*;
-import be.twofold.valen.game.eternal.resource.*;
 import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
@@ -164,7 +163,7 @@ final class DbImporter {
     private ResourceEntity mapResource(Resources resources, ResourcesEntry entry) {
         var name = getString(resources, entry, 1);
         var type = getString(resources, entry, 0);
-        var variation = ResourceVariation.fromValue(entry.variation()).name();
+        var variation = entry.variation().name();
         var offset = entry.dataOffset();
         var size = entry.dataSize();
         var uncompressedSize = entry.uncompressedSize();
@@ -186,7 +185,7 @@ final class DbImporter {
             defaultHash,
             timestamp,
             version,
-            flags,
+            /*flags*/ 0,
             compMode
         );
     }

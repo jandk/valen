@@ -29,7 +29,7 @@ public final class MainPresenter extends AbstractPresenter<MainView> implements 
     private final EventBus eventBus;
 
     private @Nullable Game game;
-    private @Nullable Archive<AssetID, Asset> archive;
+    private AssetLoader loader;
     private @Nullable Asset lastAsset;
     private String query = "";
 
@@ -101,7 +101,7 @@ public final class MainPresenter extends AbstractPresenter<MainView> implements 
         }
         try {
             // This cast is safe here, we don't care about the actual types
-            archive = (Archive<AssetID, Asset>) game.loadArchive(archiveName);
+            loader = game.open(archiveName);
             updateFileList();
         } catch (IOException e) {
             log.error("Could not load archive {}", archiveName, e);
@@ -113,13 +113,13 @@ public final class MainPresenter extends AbstractPresenter<MainView> implements 
         if (forced) {
             Platform.runLater(() -> getView().showPreview(true));
         }
-        if (getView().isSidePaneVisible() && archive != null) {
+        if (getView().isSidePaneVisible() && loader != null) {
             try {
                 var type = switch (asset.type()) {
                     case MODEL, TEXTURE -> asset.type().type();
                     default -> Bytes.class;
                 };
-                var assetData = archive.loadAsset(asset.id(), type);
+                var assetData = loader.load(asset.id(), type);
                 Platform.runLater(() -> getView().setupPreview(asset, assetData));
             } catch (IOException e) {
                 log.error("Could not load asset {}", asset.id().fileName(), e);
@@ -158,7 +158,7 @@ public final class MainPresenter extends AbstractPresenter<MainView> implements 
         }
 
         Platform.runLater(() -> {
-            exportService.setArchive(archive);
+            exportService.setLoader(loader);
             exportService.setAssets(assets);
             exportService.restart();
         });
@@ -169,11 +169,11 @@ public final class MainPresenter extends AbstractPresenter<MainView> implements 
     }
 
     private Stream<Asset> filteredAssets() {
-        if (archive == null) {
+        if (loader == null) {
             return Stream.empty();
         }
         var predicate = buildPredicate(query, settings.getAssetTypes());
-        return archive.getAll().filter(predicate);
+        return loader.archive().all().filter(predicate);
     }
 
     private Predicate<Asset> buildPredicate(String assetName, Collection<AssetType> assetTypes) {

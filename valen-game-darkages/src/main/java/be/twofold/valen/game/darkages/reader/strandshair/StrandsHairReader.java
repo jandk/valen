@@ -18,7 +18,7 @@ public final class StrandsHairReader implements AssetReader<Model, DarkAgesAsset
     }
 
     @Override
-    public Model read(BinarySource source, DarkAgesAsset asset) throws IOException {
+    public Model read(BinarySource source, DarkAgesAsset asset, LoadingContext context) throws IOException {
         var strandsHair = StrandsHair.read(source);
 
         var segments = getSegments(strandsHair.strands());

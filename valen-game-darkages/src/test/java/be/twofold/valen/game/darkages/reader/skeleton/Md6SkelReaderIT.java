@@ -9,7 +9,7 @@ class Md6SkelReaderIT {
 
     @Test
     void testCanReadAll() throws IOException {
-        TestUtils.testReader(_ -> new Md6SkelReader());
+        TestUtils.testReader(new Md6SkelReader());
     }
 
 }

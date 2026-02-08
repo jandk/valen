@@ -74,7 +74,7 @@ public enum ResourcesType implements ValueEnum<String> {
         this.value = value;
     }
 
-    public static ResourcesType fromName(String name) {
+    public static ResourcesType fromValue(String name) {
         return ValueEnum.fromValue(ResourcesType.class, name);
     }
 

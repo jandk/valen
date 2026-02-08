@@ -16,7 +16,7 @@ public final class Md6SkelReader implements AssetReader<Skeleton, DarkAgesAsset>
     }
 
     @Override
-    public Skeleton read(BinarySource source, DarkAgesAsset asset) throws IOException {
+    public Skeleton read(BinarySource source, DarkAgesAsset asset, LoadingContext context) throws IOException {
         int size = source.readInt();
         if (size == 0) {
             throw new UnsupportedOperationException();

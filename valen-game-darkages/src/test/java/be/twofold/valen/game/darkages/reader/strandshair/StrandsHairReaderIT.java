@@ -6,8 +6,10 @@ import org.junit.jupiter.api.*;
 import java.io.*;
 
 class StrandsHairReaderIT {
+
     @Test
     void testCanReadAll() throws IOException {
-        TestUtils.testReader(_ -> new StrandsHairReader());
+        TestUtils.testReader(new StrandsHairReader());
     }
+
 }

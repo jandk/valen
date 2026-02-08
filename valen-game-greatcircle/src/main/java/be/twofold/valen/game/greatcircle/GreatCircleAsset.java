@@ -8,10 +8,7 @@ import java.util.*;
 
 public record GreatCircleAsset(
     GreatCircleAssetID id,
-    long offset,
-    int compressedSize,
-    int uncompressedSize,
-    ResourceCompressionMode compression,
+    Location location,
     long hash,
     long checksum,
     int version
@@ -33,7 +30,11 @@ public record GreatCircleAsset(
 
     @Override
     public int size() {
-        return uncompressedSize;
+        return switch (location) {
+            case Location.Compressed compressed -> compressed.uncompressedSize();
+            case Location.FileSlice fileSlice -> fileSlice.size();
+            default -> 0;
+        };
     }
 
     @Override
@@ -42,7 +43,7 @@ public record GreatCircleAsset(
         properties.put("hash", hash);
         properties.put("version", version);
         properties.put("Type", id.type().toString());
-        if (id.variation() != ResourceVariation.RES_VAR_NONE) {
+        if (id.variation() != ResourcesVariation.RES_VAR_NONE) {
             properties.put("Variation", id.variation());
         }
         return properties;

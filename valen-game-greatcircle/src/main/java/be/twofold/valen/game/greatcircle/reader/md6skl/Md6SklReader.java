@@ -16,7 +16,7 @@ public final class Md6SklReader implements AssetReader<Skeleton, GreatCircleAsse
     }
 
     @Override
-    public Skeleton read(BinarySource source, GreatCircleAsset asset) throws IOException {
+    public Skeleton read(BinarySource source, GreatCircleAsset asset, LoadingContext context) throws IOException {
         Md6Skl md6Skl1 = null;
         int skeleton1Length = source.readInt();
         if (skeleton1Length != 0) {

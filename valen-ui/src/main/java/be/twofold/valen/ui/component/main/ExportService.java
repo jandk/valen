@@ -23,7 +23,7 @@ final class ExportService extends Service<Void> {
     private final Settings settings;
     private final Stage stage;
     private final ProgressPresenter presenter;
-    private Archive<AssetID, Asset> archive;
+    private AssetLoader loader;
     private List<Asset> assets;
 
     @Inject
@@ -55,8 +55,8 @@ final class ExportService extends Service<Void> {
         return stage;
     }
 
-    public void setArchive(Archive<AssetID, Asset> archive) {
-        this.archive = archive;
+    public void setLoader(AssetLoader loader) {
+        this.loader = loader;
     }
 
     public void setAssets(List<Asset> assets) {
@@ -65,7 +65,7 @@ final class ExportService extends Service<Void> {
 
     @Override
     protected Task<Void> createTask() {
-        Check.nonNull(this.archive, "archive");
+        Check.nonNull(this.loader, "archive");
         Check.nonNull(this.assets, "assets");
 
         ExportTask exportTask = new ExportTask();
@@ -127,7 +127,7 @@ final class ExportService extends Service<Void> {
                 }
 
                 @SuppressWarnings("unchecked")
-                T rawAsset = (T) archive.loadAsset(asset.id(), asset.type().type());
+                T rawAsset = (T) loader.load(asset.id(), asset.type().type());
                 Files.createDirectories(targetPath.getParent());
                 exporter.export(rawAsset, targetPath);
             } catch (Exception e) {

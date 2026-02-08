@@ -12,28 +12,28 @@ import static org.assertj.core.api.Assertions.*;
 
 public abstract class TestUtils {
 
-    public static void testReader(Function<GreatCircleArchive, AssetReader<?, GreatCircleAsset>> readerFunction) throws IOException {
+    public static void testReader(Function<LoadingContext, AssetReader<?, GreatCircleAsset>> readerFunction) throws IOException {
         GreatCircleGame game = new GreatCircleGameFactory().load(Path.of(Constants.ExecutablePath));
 
         for (String archiveName : game.archiveNames()) {
-            var archive = game.loadArchive(archiveName);
-            var reader = readerFunction.apply(archive);
-            readAllInMap(archive, reader);
+            var loader = game.open(archiveName);
+            var reader = readerFunction.apply(loader);
+            readAllInMap(loader, reader);
         }
     }
 
-    private static void readAllInMap(GreatCircleArchive archive, AssetReader<?, GreatCircleAsset> reader) {
-        var entries = archive.getAll()
-            .filter(asset -> asset.size() != 0 && reader.canRead(asset))
+    private static void readAllInMap(AssetLoader loader, AssetReader<?, GreatCircleAsset> reader) {
+        var entries = loader.archive().all()
+            .filter(asset -> asset.size() != 0 && reader.canRead((GreatCircleAsset) asset))
             .sorted()
             .toList();
 
         System.out.println("Trying to read " + entries.size() + " entries");
 
-        for (GreatCircleAsset asset : entries) {
+        for (Asset asset : entries) {
             try {
-                var bytes = archive.loadAsset(asset.id(), Bytes.class);
-                reader.read(BinarySource.wrap(bytes), asset);
+                var bytes = loader.load(asset.id(), Bytes.class);
+                reader.read(BinarySource.wrap(bytes), (GreatCircleAsset) asset, loader);
             } catch (FileNotFoundException e) {
                 System.err.println(e.getMessage());
             } catch (IOException e) {

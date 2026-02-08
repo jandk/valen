@@ -1,59 +1,53 @@
 package be.twofold.valen.game.darkages;
 
 import be.twofold.valen.core.game.*;
-import be.twofold.valen.core.util.*;
+import be.twofold.valen.game.darkages.reader.anim.*;
+import be.twofold.valen.game.darkages.reader.basemodel.*;
+import be.twofold.valen.game.darkages.reader.binaryfile.*;
+import be.twofold.valen.game.darkages.reader.bink.*;
+import be.twofold.valen.game.darkages.reader.decl.*;
+import be.twofold.valen.game.darkages.reader.decl.material2.*;
+import be.twofold.valen.game.darkages.reader.decl.renderparm.*;
+import be.twofold.valen.game.darkages.reader.image.*;
+import be.twofold.valen.game.darkages.reader.model.*;
 import be.twofold.valen.game.darkages.reader.packagemapspec.*;
-import be.twofold.valen.game.darkages.reader.resources.*;
-import be.twofold.valen.game.darkages.reader.streamdb.*;
-import wtf.reversed.toolbox.compress.*;
+import be.twofold.valen.game.darkages.reader.skeleton.*;
+import be.twofold.valen.game.darkages.reader.strandshair.*;
+import be.twofold.valen.game.darkages.reader.vegetation.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
-import java.net.*;
 import java.nio.file.*;
 import java.util.*;
 
 public final class DarkAgesGame implements Game {
-    private static final String OODLE_URL = "https://github.com/WorkingRobot/OodleUE/raw/refs/heads/main/Engine/Source/Programs/Shared/EpicGames.Oodle/Sdk/2.9.10/win/redist/oo2core_9_win64.dll";
+    private static final DeclReader DECL_READER = new DeclReader();
+    private static final List<AssetReader<?, DarkAgesAsset>> ASSET_READERS = List.of(
+        DECL_READER,
+        new BinaryFileReader(),
+        new BinkReader(),
+        new ImageReader(true),
+        new MaterialReader(DECL_READER),
+        new Md6AnimReader(),
+        new Md6ModelReader(true),
+        new Md6SkelReader(),
+        new RenderParmReader(),
+        new StaticModelReader(true),
+        new StrandsHairReader(),
+        new VegetationReader(true)
+    );
 
     private final Path base;
     private final PackageMapSpec spec;
-    private final Decompressor decompressor;
-    private final Container<Long, StreamDbEntry> streamDbCollection;
-    private final Container<DarkAgesAssetID, DarkAgesAsset> commonCollection;
+    private final StreamDbIndex streamDbIndex;
+    private final ResourcesIndex commonResources;
 
     DarkAgesGame(Path path) throws IOException {
         this.base = path.resolve("base");
         this.spec = PackageMapSpecReader.read(base.resolve("packagemapspec.json"));
-        this.decompressor = Decompressor.oodle(downloadOodle());
-        this.streamDbCollection = loadStreams(base, spec, decompressor);
-        this.commonCollection = loadResources(base, spec, decompressor, "common", "warehouse", "init");
-    }
-
-    static Container<DarkAgesAssetID, DarkAgesAsset> loadResources(Path base, PackageMapSpec spec, Decompressor decompressor, String... names) throws IOException {
-        var paths = Arrays.stream(names)
-            .flatMap(map -> spec.mapFiles().get(map).stream())
-            .filter(file -> file.endsWith(".resources"))
-            .map(base::resolve)
-            .toList();
-
-        var files = new ArrayList<Container<DarkAgesAssetID, DarkAgesAsset>>();
-        for (var path : paths) {
-            files.add(new ResourcesFile(path, decompressor));
-        }
-        return Container.compose(files);
-    }
-
-    static Container<Long, StreamDbEntry> loadStreams(Path base, PackageMapSpec spec, Decompressor decompressor) throws IOException {
-        var paths = spec.files().stream()
-            .filter(s -> s.endsWith(".streamdb"))
-            .map(base::resolve)
-            .toList();
-
-        var files = new ArrayList<Container<Long, StreamDbEntry>>();
-        for (var path : paths) {
-            files.add(new StreamDbFile(path, decompressor));
-        }
-        return Container.compose(files);
+        this.streamDbIndex = loadStreamDbIndex(base, spec);
+        this.commonResources = ResourcesIndex.build(base, filterResources(spec, "common", "warehouse", "init"));
+        Decompressors.setOodlePath(OodleDownloader.download());
     }
 
     @Override
@@ -61,25 +55,50 @@ public final class DarkAgesGame implements Game {
         return spec.maps().stream()
             .filter(map -> spec.mapFiles().get(map).stream()
                 .anyMatch(file -> file.endsWith(".resources")))
-            .map(s -> s.equals("common") ? "gameresources" : s)
             .toList();
     }
 
-    @Override
-    public DarkAgesArchive loadArchive(String name) throws IOException {
-        if (name.equals("gameresources")) {
-            name = "common";
-        }
-        var resourcesCollection = loadResources(base, spec, decompressor, name);
-        return new DarkAgesArchive(streamDbCollection, commonCollection, resourcesCollection);
+    public AssetLoader open(String name) throws IOException {
+        var loadedResources = ResourcesIndex.build(base, filterResources(spec, name));
+
+        var archive = new DarkAgesArchive(
+            Map.copyOf(commonResources.index()),
+            Map.copyOf(loadedResources.index())
+        );
+
+        var sources = new HashMap<FileId, BinarySource>();
+        sources.putAll(streamDbIndex.sources());
+        sources.putAll(commonResources.sources());
+        sources.putAll(loadedResources.sources());
+        var storageManager = new DarkAgesStorageManager(
+            sources,
+            streamDbIndex.sources().keySet(),
+            streamDbIndex.index()
+        );
+
+        return new AssetLoader(archive, storageManager, List.copyOf(ASSET_READERS));
     }
 
-    private Path downloadOodle() {
-        var uri = URI.create(OODLE_URL);
-        var fileName = Path.of(uri.getPath()).getFileName();
-        if (!Files.exists(fileName)) {
-            HttpUtils.downloadFile(uri, fileName);
-        }
-        return fileName;
+    private StreamDbIndex loadStreamDbIndex(Path base, PackageMapSpec spec) throws IOException {
+        var paths = spec.files().stream()
+            .filter(s -> s.endsWith(".streamdb"))
+            .toList();
+
+        return StreamDbIndex.build(base, paths);
+    }
+
+    private List<String> filterResources(PackageMapSpec spec, String... names) {
+        return Arrays.stream(names)
+            .flatMap(map -> spec.mapFiles().get(map).stream())
+            .filter(file -> file.endsWith(".resources"))
+            .toList();
+    }
+
+
+    @Override
+    public void close() {
+        // Unload for the next game
+        Decompressors.resetOodle();
+        DECL_READER.clearCache();
     }
 }

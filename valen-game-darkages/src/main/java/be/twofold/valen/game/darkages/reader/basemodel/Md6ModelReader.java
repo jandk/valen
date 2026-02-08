@@ -14,12 +14,10 @@ import java.io.*;
 import java.util.*;
 
 public final class Md6ModelReader implements AssetReader<Model, DarkAgesAsset> {
-    private final DarkAgesArchive archive;
     private final boolean readMaterials;
 
-    public Md6ModelReader(DarkAgesArchive archive, boolean readMaterials) {
-        this.archive = archive;
-        this.readMaterials = false;
+    public Md6ModelReader(boolean readMaterials) {
+        this.readMaterials = readMaterials;
     }
 
     @Override
@@ -28,22 +26,22 @@ public final class Md6ModelReader implements AssetReader<Model, DarkAgesAsset> {
     }
 
     @Override
-    public Model read(BinarySource source, DarkAgesAsset asset) throws IOException {
+    public Model read(BinarySource source, DarkAgesAsset asset, LoadingContext context) throws IOException {
         var skelName = source.readString(StringFormat.INT_LENGTH);
         var skeletonKey = DarkAgesAssetID.from(skelName, ResourcesType.Skeleton);
-        var skeleton = archive.loadAsset(skeletonKey, Skeleton.class);
+        var skeleton = context.load(skeletonKey, Skeleton.class);
         var md6Model = Md6Model.read(source, skeleton.bones().size() + 7 & ~7);
         source.expectEnd();
 
-        var meshes = readMeshes(md6Model, 0, asset.hash());
+        var meshes = readMeshes(md6Model, 0, asset.hash(), context);
         if (readMaterials) {
-            Materials.apply(archive, meshes, md6Model.meshInfos(), Md6ModelMeshInfo::materialName, Md6ModelMeshInfo::meshName);
+            Materials.apply(context, meshes, md6Model.meshInfos(), Md6ModelMeshInfo::materialName, Md6ModelMeshInfo::meshName);
         }
 
         return new Model(meshes, Optional.of(skeleton), Optional.of(asset.id().fullName()), Optional.empty(), Axis.Z);
     }
 
-    private List<Mesh> readMeshes(Md6Model md6Model, int lod, long hash) throws IOException {
+    private List<Mesh> readMeshes(Md6Model md6Model, int lod, long hash, LoadingContext context) throws IOException {
         if (md6Model.diskLayouts().isEmpty()) {
             return List.of();
         }
@@ -58,7 +56,7 @@ public final class Md6ModelReader implements AssetReader<Model, DarkAgesAsset> {
             .toList();
 
         var identity = Hash.hash(hash, 4 - lod, 0);
-        var bytes = archive.readStream(identity, uncompressedSize);
+        var bytes = context.open(new DarkAgesStreamLocation(identity, uncompressedSize));
 
         try (var source = BinarySource.wrap(bytes)) {
             List<Mesh> meshes = GeometryReader.readStreamedMesh(source, lodInfos, true);

@@ -5,23 +5,24 @@ import wtf.reversed.toolbox.io.*;
 import java.io.*;
 
 public record ResourcesDependency(
-    int type,
-    int name,
+    long type,
+    long name,
     int depType,
+    int depSubType,
     long hashOrTimestamp
 ) {
     public static ResourcesDependency read(BinarySource source) throws IOException {
-        var type = source.readLongAsInt();
-        var name = source.readLongAsInt();
+        var type = source.readLong();
+        var name = source.readLong();
         var depType = source.readInt();
-        source.readInt();
-        // source.expectInt(1); // depSubType
+        var depSubType = source.readInt();
         var hashOrTimestamp = source.readLong();
 
         return new ResourcesDependency(
             type,
             name,
             depType,
+            depSubType,
             hashOrTimestamp
         );
     }

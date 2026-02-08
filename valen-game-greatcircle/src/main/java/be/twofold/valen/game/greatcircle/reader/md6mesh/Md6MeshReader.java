@@ -6,7 +6,6 @@ import be.twofold.valen.game.greatcircle.*;
 import be.twofold.valen.game.greatcircle.reader.geometry.*;
 import be.twofold.valen.game.greatcircle.resource.*;
 import be.twofold.valen.game.idtech.geometry.*;
-import org.slf4j.*;
 import wtf.reversed.toolbox.collect.*;
 import wtf.reversed.toolbox.io.*;
 
@@ -14,47 +13,40 @@ import java.io.*;
 import java.util.*;
 
 public final class Md6MeshReader implements AssetReader<Model, GreatCircleAsset> {
-    private static final Logger log = LoggerFactory.getLogger(Md6MeshReader.class);
-    private final GreatCircleArchive archive;
     private final boolean readMaterials;
 
-    public Md6MeshReader(GreatCircleArchive archive) {
-        this(archive, true);
-    }
-
-    Md6MeshReader(GreatCircleArchive archive, boolean readMaterials) {
-        this.archive = archive;
+    public Md6MeshReader(boolean readMaterials) {
         this.readMaterials = readMaterials;
     }
 
     @Override
-    public boolean canRead(GreatCircleAsset resource) {
-        return resource.id().type() == ResourceType.basemodel;
+    public boolean canRead(GreatCircleAsset asset) {
+        return asset.id().type() == ResourceType.basemodel;
     }
 
     @Override
-    public Model read(BinarySource source, GreatCircleAsset asset) throws IOException {
+    public Model read(BinarySource source, GreatCircleAsset asset, LoadingContext context) throws IOException {
         var model = Md6Mesh.read(source);
         if (model.header().skeletonName().equals("models/characters/abgal/abgal_wear_base.md6skl")) {
             System.out.println("Fount it!");
         }
         var skeletonKey = GreatCircleAssetID.from(model.header().skeletonName(), ResourceType.skeleton);
-        var skeleton = archive.loadAsset(skeletonKey, Skeleton.class);
-        var meshes = new ArrayList<>(readMeshes(model, asset.hash()));
+        var skeleton = context.load(skeletonKey, Skeleton.class);
+        var meshes = new ArrayList<>(readMeshes(model, asset.hash(), context));
 
         if (readMaterials) {
-            Materials.apply(archive, meshes, model.meshInfos(), Md6MeshInfo::materialName, Md6MeshInfo::meshName);
+            Materials.apply(context, meshes, model.meshInfos(), Md6MeshInfo::materialName, Md6MeshInfo::meshName);
         }
         return new Model(meshes, Optional.ofNullable(skeleton), Optional.of(asset.id().fullName()), Optional.empty(), Axis.Z);
     }
 
-    private List<Mesh> readMeshes(Md6Mesh md6, long hash) throws IOException {
-        var meshes = readStreamedGeometry(md6, 0, hash);
+    private List<Mesh> readMeshes(Md6Mesh md6, long hash, LoadingContext context) throws IOException {
+        var meshes = readStreamedGeometry(md6, 0, hash, context);
         fixJointIndices(md6, meshes);
         return meshes;
     }
 
-    private List<Mesh> readStreamedGeometry(Md6Mesh md6, int lod, long hash) throws IOException {
+    private List<Mesh> readStreamedGeometry(Md6Mesh md6, int lod, long hash, LoadingContext context) throws IOException {
         var uncompressedSize = md6.layouts().get(lod).uncompressedSize();
         if (uncompressedSize == 0) {
             return List.of();
@@ -66,7 +58,7 @@ public final class Md6MeshReader implements AssetReader<Model, GreatCircleAsset>
         var layouts = md6.layouts().get(lod).memoryLayouts();
 
         var identity = (hash << 4) | lod;
-        var bytes = archive.readStream(identity, uncompressedSize);
+        var bytes = context.open(new GreatCircleStreamLocation(identity, uncompressedSize));
         try (var source = BinarySource.wrap(bytes)) {
             var meshes = GeometryReader.readStreamedMesh(source, lodInfos, layouts, true);
             var allBlendShapes = BlendShapeReader.readBlendShapes(source, lodInfos, layouts);

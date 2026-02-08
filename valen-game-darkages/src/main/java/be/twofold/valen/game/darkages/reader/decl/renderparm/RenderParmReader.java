@@ -1,5 +1,6 @@
 package be.twofold.valen.game.darkages.reader.decl.renderparm;
 
+import be.twofold.valen.core.game.*;
 import be.twofold.valen.game.darkages.*;
 import be.twofold.valen.game.darkages.reader.resources.*;
 import be.twofold.valen.game.idtech.renderparm.*;
@@ -15,7 +16,7 @@ public final class RenderParmReader extends AbstractRenderParmReader<DarkAgesAss
     }
 
     @Override
-    public RenderParm read(BinarySource source, DarkAgesAsset asset) throws IOException {
+    public RenderParm read(BinarySource source, DarkAgesAsset asset, LoadingContext context) throws IOException {
         return read(source);
     }
 }

@@ -8,6 +8,8 @@ public interface Asset extends Comparable<Asset> {
 
     AssetType type();
 
+    Location location();
+
     int size();
 
     Map<String, Object> properties();

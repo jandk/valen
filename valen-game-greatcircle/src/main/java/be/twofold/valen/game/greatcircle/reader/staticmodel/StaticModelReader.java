@@ -13,15 +13,9 @@ import java.io.*;
 import java.util.*;
 
 public final class StaticModelReader implements AssetReader<Model, GreatCircleAsset> {
-    private final GreatCircleArchive archive;
     private final boolean readMaterials;
 
-    public StaticModelReader(GreatCircleArchive archive) {
-        this(archive, true);
-    }
-
-    StaticModelReader(GreatCircleArchive archive, boolean readMaterials) {
-        this.archive = archive;
+    public StaticModelReader(boolean readMaterials) {
         this.readMaterials = readMaterials;
     }
 
@@ -31,21 +25,21 @@ public final class StaticModelReader implements AssetReader<Model, GreatCircleAs
     }
 
     @Override
-    public Model read(BinarySource source, GreatCircleAsset asset) throws IOException {
+    public Model read(BinarySource source, GreatCircleAsset asset, LoadingContext context) throws IOException {
         var model = StaticModel.read(source, (Integer) asset.properties().get("version"));
-        var meshes = new ArrayList<>(readMeshes(model, source));
+        var meshes = new ArrayList<>(readMeshes(model, source, context));
 
         if (readMaterials) {
-            Materials.apply(archive, meshes, model.meshInfos(), StaticModelMeshInfo::mtlDecl, _ -> null);
+            Materials.apply(context, meshes, model.meshInfos(), StaticModelMeshInfo::mtlDecl, _ -> null);
         }
         return new Model(meshes, Optional.empty(), Optional.of(asset.id().fullName()), Optional.empty(), Axis.Z);
     }
 
-    private List<Mesh> readMeshes(StaticModel model, BinarySource source) throws IOException {
+    private List<Mesh> readMeshes(StaticModel model, BinarySource source, LoadingContext context) throws IOException {
         if (!model.header().streamable()) {
             return readEmbeddedGeometry(model, source);
         }
-        return readStreamedGeometry(model, 0);
+        return readStreamedGeometry(model, 0, context);
     }
 
     private List<Mesh> readEmbeddedGeometry(StaticModel model, BinarySource source) throws IOException {
@@ -57,14 +51,14 @@ public final class StaticModelReader implements AssetReader<Model, GreatCircleAs
         return meshes;
     }
 
-    private List<Mesh> readStreamedGeometry(StaticModel model, int lod) throws IOException {
+    private List<Mesh> readStreamedGeometry(StaticModel model, int lod, LoadingContext context) throws IOException {
         var lods = model.meshInfos().stream()
             .<LodInfo>map(mi -> mi.lodInfos().get(lod))
             .toList();
 
         var diskLayout = model.streamDiskLayouts().get(lod);
         var uncompressedSize = diskLayout.uncompressedSize();
-        var bytes = archive.readStream(diskLayout.hash(), uncompressedSize);
+        var bytes = context.open(new GreatCircleStreamLocation(diskLayout.hash(), uncompressedSize));
         var source = BinarySource.wrap(bytes);
         return GeometryReader.readStreamedMesh(source, lods, diskLayout.memoryLayouts(), false);
     }
