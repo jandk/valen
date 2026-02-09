@@ -1,5 +1,8 @@
 package be.twofold.valen.core.game;
 
+import wtf.reversed.toolbox.collect.*;
+
+import java.io.*;
 import java.nio.file.*;
 
 /**
@@ -10,6 +13,24 @@ public sealed interface Location {
      * Returns the size of the location.
      */
     int size();
+
+    /**
+     * Represents a whole file.
+     *
+     * @param path The path to the file.
+     */
+    record File(
+        Path path
+    ) implements Location {
+        @Override
+        public int size() {
+            try {
+                return Math.toIntExact(Files.size(path));
+            } catch (IOException e) {
+                return 0;
+            }
+        }
+    }
 
     /**
      * Represents a slice of a file.
@@ -23,6 +44,20 @@ public sealed interface Location {
         long offset,
         int size
     ) implements Location {
+    }
+
+    /**
+     * Represents an in memory blob.
+     *
+     * @param data The data.
+     */
+    record Memory(
+        Bytes data
+    ) implements Location {
+        @Override
+        public int size() {
+            return data.length();
+        }
     }
 
     /**

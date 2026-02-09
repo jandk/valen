@@ -17,21 +17,23 @@ public class StorageManager implements Closeable {
     }
 
     public final Bytes open(Location location) throws IOException {
-        if (location instanceof Location.FileSlice fileSlice) {
-            return sources.get(fileSlice.path())
+        return switch (location) {
+            case Location.File file -> Bytes.wrap(Files.readAllBytes(file.path()));
+            case Location.FileSlice fileSlice -> sources.get(fileSlice.path())
                 .position(fileSlice.offset())
                 .readBytes(fileSlice.size());
-        }
-        if (location instanceof Location.Compressed compressed) {
-            Bytes compressedData = open(compressed.base());
-            return Decompressors.get(compressed.type())
-                .decompress(compressedData, compressed.size());
-        }
-        return openCustom(location);
+            case Location.Memory memory -> memory.data();
+            case Location.Compressed compressed -> {
+                Bytes compressedData = open(compressed.base());
+                yield Decompressors.get(compressed.type())
+                    .decompress(compressedData, compressed.size());
+            }
+            case Location.Custom custom -> openCustom(custom);
+        };
     }
 
-    protected Bytes openCustom(Location location) throws IOException {
-        throw new UnsupportedOperationException("Unsupported location: " + location);
+    protected Bytes openCustom(Location.Custom custom) throws IOException {
+        throw new UnsupportedOperationException("Unsupported location: " + custom);
     }
 
     @Override

@@ -21,9 +21,9 @@ public final class EternalStorageManager extends StorageManager {
     }
 
     @Override
-    protected Bytes openCustom(Location location) throws IOException {
-        if (!(location instanceof EternalStreamLocation streamLocation)) {
-            return super.openCustom(location);
+    protected Bytes openCustom(Location.Custom custom) throws IOException {
+        if (!(custom instanceof EternalStreamLocation streamLocation)) {
+            return super.openCustom(custom);
         }
 
         var slice = streamIndex.get(streamLocation.streamId());

@@ -21,9 +21,9 @@ public final class GreatCircleStorageManager extends StorageManager {
     }
 
     @Override
-    protected Bytes openCustom(Location location) throws IOException {
-        if (!(location instanceof GreatCircleStreamLocation streamLocation)) {
-            return super.openCustom(location);
+    protected Bytes openCustom(Location.Custom custom) throws IOException {
+        if (!(custom instanceof GreatCircleStreamLocation streamLocation)) {
+            return super.openCustom(custom);
         }
 
         var slice = streamIndex.get(streamLocation.streamId());
