@@ -1,7 +1,7 @@
 package be.twofold.valen.game.source.readers.vtf;
 
-import be.twofold.valen.core.util.*;
 import wtf.reversed.toolbox.collect.*;
+import wtf.reversed.toolbox.util.*;
 
 public enum VtfResourceTag implements ValueEnum<Bytes> {
     LOW_RES(Bytes.wrap(new byte[]{0x01, 0, 0})),

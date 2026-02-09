@@ -1,17 +1,21 @@
 package be.twofold.valen.game.source;
 
 import be.twofold.valen.core.game.*;
-import be.twofold.valen.game.source.readers.vpk.*;
 import wtf.reversed.toolbox.util.*;
 
 import java.util.*;
 
-public sealed interface SourceAsset extends Asset {
-    @Override
-    SourceAssetID id();
+public record SourceAsset(
+    SourceAssetID id,
+    Location location
+) implements Asset {
+    public SourceAsset {
+        Check.nonNull(id, "id");
+        Check.nonNull(location, "location");
+    }
 
     @Override
-    default AssetType type() {
+    public AssetType type() {
         return switch (id().extension()) {
             case "vtf" -> AssetType.TEXTURE;
             case "mdl" -> AssetType.MODEL;
@@ -20,26 +24,7 @@ public sealed interface SourceAsset extends Asset {
     }
 
     @Override
-    default Map<String, Object> properties() {
+    public Map<String, Object> properties() {
         return Map.of();
-    }
-
-    record File(SourceAssetID id, int size) implements SourceAsset {
-        public File {
-            Check.nonNull(id, "id");
-            Check.argument(size >= 0, "size < 0");
-        }
-    }
-
-    record Vpk(SourceAssetID id, VpkEntry entry) implements SourceAsset {
-        public Vpk {
-            Check.nonNull(id, "id");
-            Check.nonNull(entry, "entry");
-        }
-
-        @Override
-        public int size() {
-            return entry.preloadBytes().length() + entry.entryLength();
-        }
     }
 }

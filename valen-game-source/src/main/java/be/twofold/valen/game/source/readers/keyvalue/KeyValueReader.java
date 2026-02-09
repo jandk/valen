@@ -16,7 +16,7 @@ public final class KeyValueReader implements AssetReader<KeyValue, SourceAsset> 
     }
 
     @Override
-    public KeyValue read(BinarySource source, SourceAsset asset) throws IOException {
+    public KeyValue read(BinarySource source, SourceAsset asset, LoadingContext context) throws IOException {
         var string = source.readString(Math.toIntExact(source.size()));
         return KeyValue.parse(string);
     }

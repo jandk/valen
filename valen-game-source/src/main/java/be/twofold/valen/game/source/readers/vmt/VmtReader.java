@@ -14,7 +14,7 @@ public final class VmtReader implements AssetReader<ValveMaterial, SourceAsset> 
     }
 
     @Override
-    public ValveMaterial read(BinarySource source, SourceAsset asset) throws IOException {
+    public ValveMaterial read(BinarySource source, SourceAsset asset, LoadingContext context) throws IOException {
         var string = source.readString(Math.toIntExact(source.size()));
         var keyValue = KeyValue.parse(string);
         return ValveMaterial.read(keyValue);

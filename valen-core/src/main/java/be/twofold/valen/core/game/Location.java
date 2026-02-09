@@ -1,5 +1,10 @@
 package be.twofold.valen.core.game;
 
+import wtf.reversed.toolbox.collect.*;
+
+import java.io.*;
+import java.nio.file.*;
+
 /**
  * Represents a location where data is stored.
  */
@@ -35,6 +40,28 @@ public sealed interface Location {
         CompressionType type,
         int size
     ) implements Location {
+    }
+
+    record FullFile(
+        Path path
+    ) implements Location {
+        @Override
+        public int size() {
+            try {
+                return Math.toIntExact(Files.size(path));
+            } catch (IOException e) {
+                return 0;
+            }
+        }
+    }
+
+    record InMemory(
+        Bytes data
+    ) implements Location {
+        @Override
+        public int size() {
+            return data.length();
+        }
     }
 
     /**

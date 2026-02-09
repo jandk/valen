@@ -15,7 +15,7 @@ public final class VtfReader implements AssetReader<Texture, SourceAsset> {
     }
 
     @Override
-    public Texture read(BinarySource source, SourceAsset asset) throws IOException {
+    public Texture read(BinarySource source, SourceAsset asset, LoadingContext context) throws IOException {
         var header = VtfHeader.read(source);
         var resources = source.readObjects(header.numResources(), VtfResourceEntry::read);
 
