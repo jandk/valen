@@ -1,5 +1,7 @@
 package be.twofold.valen.core.game;
 
+import java.nio.file.*;
+
 /**
  * Represents a location where data is stored.
  */
@@ -12,12 +14,12 @@ public sealed interface Location {
     /**
      * Represents a slice of a file.
      *
-     * @param fileId The id of the file to read from.
+     * @param path   The path of the file to read from.
      * @param offset The offset in the container file.
      * @param size   The size of the slice.
      */
     record FileSlice(
-        FileId fileId,
+        Path path,
         long offset,
         int size
     ) implements Location {

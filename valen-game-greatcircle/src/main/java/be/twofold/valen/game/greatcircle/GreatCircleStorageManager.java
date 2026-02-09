@@ -5,17 +5,18 @@ import wtf.reversed.toolbox.collect.*;
 import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
+import java.nio.file.*;
 import java.util.*;
 
 public final class GreatCircleStorageManager extends StorageManager {
     private final Map<Long, Location.FileSlice> streamIndex;
 
     public GreatCircleStorageManager(
-        Map<FileId, BinarySource> sources,
-        Set<FileId> sharedIds,
+        Map<Path, BinarySource> sources,
+        Set<Path> shared,
         Map<Long, Location.FileSlice> streamIndex
     ) {
-        super(sources, sharedIds); // TODO: Fix decompressors
+        super(sources, shared); // TODO: Fix decompressors
         this.streamIndex = Map.copyOf(streamIndex);
     }
 

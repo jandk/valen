@@ -39,8 +39,8 @@ public final class GreatCircleGame implements Game {
     public GreatCircleGame(Path path) throws IOException {
         this.base = path.resolve("base");
         this.spec = PackageMapSpec.read(base.resolve("packagemapspec_pc.json"));
-        this.streamDbIndex = loadStreamDbIndex(base, spec);
-        this.commonResources = ResourcesIndex.build(base, filterResources(spec, "common"));
+        this.streamDbIndex = loadStreamDbIndex(spec);
+        this.commonResources = ResourcesIndex.build(filterResources(spec, "common"));
         Decompressors.setOodlePath(path.resolve("oo2core_9_win64.dll"));
     }
 
@@ -53,14 +53,14 @@ public final class GreatCircleGame implements Game {
 
     @Override
     public AssetLoader open(String name) throws IOException {
-        var loadedResources = ResourcesIndex.build(base, filterResources(spec, name));
+        var loadedResources = ResourcesIndex.build(filterResources(spec, name));
 
         var archive = new GreatCircleArchive(
             Map.copyOf(commonResources.index()),
             Map.copyOf(loadedResources.index())
         );
 
-        var sources = new HashMap<FileId, BinarySource>();
+        var sources = new HashMap<Path, BinarySource>();
         sources.putAll(streamDbIndex.sources());
         sources.putAll(commonResources.sources());
         sources.putAll(loadedResources.sources());
@@ -73,16 +73,17 @@ public final class GreatCircleGame implements Game {
         return new AssetLoader(archive, storageManager, List.copyOf(ASSET_READERS));
     }
 
-    private StreamDbIndex loadStreamDbIndex(Path base, PackageMapSpec spec) throws IOException {
+    private StreamDbIndex loadStreamDbIndex(PackageMapSpec spec) throws IOException {
         var paths = spec.files().stream()
             .map(SpecFile::name)
             .filter(s -> s.endsWith(".streamdb"))
+            .map(base::resolve)
             .toList();
 
-        return StreamDbIndex.build(base, paths);
+        return StreamDbIndex.build(paths);
     }
 
-    private List<String> filterResources(PackageMapSpec spec, String... names) {
+    private List<Path> filterResources(PackageMapSpec spec, String... names) {
         var uniqueNames = Set.of(names);
         var fileRefs = spec.maps().stream()
             .filter(map -> uniqueNames.contains(map.name()))
@@ -93,6 +94,7 @@ public final class GreatCircleGame implements Game {
             .filter(f -> fileRefs.contains(f.id()))
             .map(SpecFile::name)
             .filter(s -> s.endsWith(".resources"))
+            .map(base::resolve)
             .toList();
     }
 

@@ -4,20 +4,21 @@ import wtf.reversed.toolbox.collect.*;
 import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
+import java.nio.file.*;
 import java.util.*;
 
 public class StorageManager implements Closeable {
-    private final Map<FileId, BinarySource> sources;
-    private final Set<FileId> sharedIds;
+    private final Map<Path, BinarySource> sources;
+    private final Set<Path> sharedIds;
 
-    public StorageManager(Map<FileId, BinarySource> sources, Set<FileId> sharedIds) {
+    public StorageManager(Map<Path, BinarySource> sources, Set<Path> shared) {
         this.sources = Map.copyOf(sources);
-        this.sharedIds = Set.copyOf(sharedIds);
+        this.sharedIds = Set.copyOf(shared);
     }
 
     public final Bytes open(Location location) throws IOException {
         if (location instanceof Location.FileSlice fileSlice) {
-            return sources.get(fileSlice.fileId())
+            return sources.get(fileSlice.path())
                 .position(fileSlice.offset())
                 .readBytes(fileSlice.size());
         }

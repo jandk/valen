@@ -11,7 +11,7 @@ import java.nio.file.*;
 import java.util.*;
 
 record ResourcesIndex(
-    Map<FileId, BinarySource> sources,
+    Map<Path, BinarySource> sources,
     Map<EternalAssetID, EternalAsset> index
 ) {
     private static final Logger log = LoggerFactory.getLogger(ResourcesIndex.class);
@@ -21,20 +21,19 @@ record ResourcesIndex(
         index = Map.copyOf(index);
     }
 
-    static ResourcesIndex build(Path base, List<String> paths) throws IOException {
-        var sources = new HashMap<FileId, BinarySource>();
+    static ResourcesIndex build(List<Path> paths) throws IOException {
+        var sources = new HashMap<Path, BinarySource>();
         var index = new HashMap<EternalAssetID, EternalAsset>();
         for (var path : paths) {
             log.info("Loading Resources: {}", path);
 
-            var fileId = new FileId(path);
-            var source = BinarySource.open(base.resolve(path));
-            sources.put(fileId, source);
+            var source = BinarySource.open(path);
+            sources.put(path, source);
 
             var resources = Resources.read(source);
             for (var entry : resources.entries()) {
                 if (entry.uncompressedSize() > 0) {
-                    var asset = mapResourceEntry(resources, entry, fileId);
+                    var asset = mapResourceEntry(resources, entry, path);
                     index.putIfAbsent(asset.id(), asset);
                 }
             }
@@ -43,7 +42,7 @@ record ResourcesIndex(
         return new ResourcesIndex(sources, index);
     }
 
-    private static EternalAsset mapResourceEntry(Resources resources, ResourcesEntry entry, FileId fileId) {
+    private static EternalAsset mapResourceEntry(Resources resources, ResourcesEntry entry, Path path) {
         var name = getString(resources, entry, 1);
         var type = getString(resources, entry, 0);
 
@@ -52,7 +51,7 @@ record ResourcesIndex(
         var resourceKey = new EternalAssetID(resourceName, resourceType, entry.variation());
 
         var location = new Location.FileSlice(
-            fileId, entry.dataOffset(), Math.toIntExact(entry.dataSize())
+            path, entry.dataOffset(), Math.toIntExact(entry.dataSize())
         );
         Location finalLocation = switch (entry.compMode()) {
             case RES_COMP_MODE_NONE -> location;
@@ -61,7 +60,7 @@ record ResourcesIndex(
             );
             case RES_COMP_MODE_KRAKEN_CHUNKED -> new Location.Compressed(
                 new Location.FileSlice(
-                    location.fileId(), location.offset() + 12, location.size() - 12
+                    location.path(), location.offset() + 12, location.size() - 12
                 ),
                 CompressionType.OODLE, Math.toIntExact(entry.uncompressedSize())
             );
