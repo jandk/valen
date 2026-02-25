@@ -19,14 +19,14 @@ public final class EntityReader implements AssetReader<EntityFile, EternalAsset>
     }
 
     @Override
-    public boolean canRead(EternalAsset resource) {
-        return resource.id().type() == ResourceType.CompFile
-            && resource.id().extension().equals("entities");
+    public boolean canRead(EternalAsset asset) {
+        return asset.id().type() == ResourceType.CompFile
+            && asset.id().extension().equals("entities");
     }
 
     @Override
-    public EntityFile read(BinarySource source, EternalAsset resource) throws IOException {
-        var bytes = fileCompressedReader.read(source, resource);
+    public EntityFile read(BinarySource source, EternalAsset asset, LoadingContext context) throws IOException {
+        var bytes = fileCompressedReader.read(source, asset, context);
         var input = StandardCharsets.UTF_8.decode(bytes.asBuffer()).toString();
 
         var parser = new DeclParser(input);

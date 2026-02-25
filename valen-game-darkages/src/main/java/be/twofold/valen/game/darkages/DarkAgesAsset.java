@@ -7,10 +7,7 @@ import java.util.*;
 
 public record DarkAgesAsset(
     DarkAgesAssetID id,
-    int offset,
-    int compressedSize,
-    int size,
-    ResourcesCompressionMode compression,
+    Location location,
     long hash,
     long checksum,
     int version

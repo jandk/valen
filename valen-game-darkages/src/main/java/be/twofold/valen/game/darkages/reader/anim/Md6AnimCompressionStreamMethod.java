@@ -1,6 +1,6 @@
 package be.twofold.valen.game.darkages.reader.anim;
 
-import be.twofold.valen.core.util.*;
+import wtf.reversed.toolbox.util.*;
 
 public enum Md6AnimCompressionStreamMethod implements ValueEnum<Byte> {
     UNSTREAMED(0),

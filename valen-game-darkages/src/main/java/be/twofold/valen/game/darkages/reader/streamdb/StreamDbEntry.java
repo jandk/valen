@@ -13,10 +13,11 @@ public record StreamDbEntry(
         var identity = source.readLong();
         var offset16 = source.readInt();
         var length = source.readInt();
-        return new StreamDbEntry(identity, offset16, length);
-    }
 
-    public long offset() {
-        return offset16 * 16L;
+        return new StreamDbEntry(
+                identity,
+                offset16,
+                length
+        );
     }
 }

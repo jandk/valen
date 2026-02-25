@@ -2,7 +2,6 @@ package be.twofold.valen.game.darkages.reader.skeleton;
 
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.geometry.*;
-import be.twofold.valen.core.math.*;
 import be.twofold.valen.game.darkages.*;
 import be.twofold.valen.game.darkages.reader.resources.*;
 import wtf.reversed.toolbox.io.*;
@@ -17,7 +16,7 @@ public final class Md6SkelReader implements AssetReader<Skeleton, DarkAgesAsset>
     }
 
     @Override
-    public Skeleton read(BinarySource source, DarkAgesAsset asset) throws IOException {
+    public Skeleton read(BinarySource source, DarkAgesAsset asset, LoadingContext context) throws IOException {
         int size = source.readInt();
         if (size == 0) {
             throw new UnsupportedOperationException();

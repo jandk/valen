@@ -1,0 +1,72 @@
+//------------------------------------------------
+//--- 010 Editor v15.0.1 Binary Template
+//
+//      File: streamdb.bt
+//   Authors: JanDK
+//   Version: 0.1
+//   Purpose: .streamdb from The Great Circle
+//  Category: Archive
+// File Mask: *.streamdb
+//  ID Bytes: 51 A5 C2 29 2E F3 C7 61
+//------------------------------------------------
+
+// streamerCompression_t
+enum StreamDbCompression {
+    STREAMER_COMPRESSION_NONE_IMAGE = 0,
+    STREAMER_COMPRESSION_KRAKEN_IMAGE = 1,
+    STREAMER_COMPRESSION_SCARLETT_TILED_Z = 2,
+    STREAMER_COMPRESSION_NONE_MODEL = 3,
+    STREAMER_COMPRESSION_KRAKEN_MODEL = 4,
+    STREAMER_COMPRESSION_TILED = 5,
+    STREAMER_COMPRESSION_UNUSED_3 = 6,
+    STREAMER_COMPRESSION_UNUSED_4 = 7,
+    STREAMER_COMPRESSION_NONE_TRIANGLEFAN = 8,
+    STREAMER_COMPRESSION_KRAKEN_TRIANGLEFAN = 9,
+    STREAMER_COMPRESSION_RESOURCE_IMAGE = 10,
+    STREAMER_COMPRESSION_NONE_DIRECT = 11,
+    STREAMER_COMPRESSION_KRAKEN_DIRECT = 12,
+    STREAMER_COMPRESSION_NONE_STAGE = 13,
+    STREAMER_COMPRESSION_KRAKEN_STAGE = 14,
+    STREAMER_COMPRESSION_KRAKEN_PROGRAM = 15,
+    STREAMER_COMPRESSION_COUNT = 16,
+    STREAMER_COMPRESSION_UNSET = 255,
+};
+
+// streamDatabaseMainHeader_t
+struct StreamDbHeader {
+    uquad magic;
+    uint headerLengthOrPad;
+    uint version;
+    uint pad0;
+    uint subBlockTableSize;
+    uint numEntries;
+    uint flags;
+
+    Assert(magic == 0x61C7F32E29C2A551L);
+    Assert(headerLengthOrPad == 0);
+    Assert(version == 4);
+    Assert(pad0 == 0);
+    Assert(subBlockTableSize == 4);
+    Assert(flags == 0);
+    
+    uint hashTypeOrPad;
+    uint entryHashesListOffset;
+    ubyte entriesTablesHash[32];
+    ubyte entryHashesHash[32];
+    ubyte headerHash[32];
+    Assert(hashTypeOrPad == 1);
+    Assert(entryHashesListOffset == 0);
+};
+
+// streamDatabaseEntry4_t
+struct StreamDbEntry {
+    uint offset16;
+    uint length;
+    StreamDbCompression compressionType;
+};
+
+struct StreamDb {
+    StreamDbHeader header <style=sHeading1>;
+    uquad identities[header.numEntries]  <style=sHeading2>;
+    StreamDbEntry entries[header.numEntries] <style=sHeading3>;
+} streamDb;

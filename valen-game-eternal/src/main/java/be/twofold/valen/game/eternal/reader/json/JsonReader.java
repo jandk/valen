@@ -16,7 +16,7 @@ public final class JsonReader implements AssetReader<Bytes, EternalAsset> {
     }
 
     @Override
-    public Bytes read(BinarySource source, EternalAsset asset) throws IOException {
+    public Bytes read(BinarySource source, EternalAsset asset, LoadingContext context) throws IOException {
         int size = source.order(ByteOrder.BIG_ENDIAN).readLongAsInt();
         return source.readBytes(size);
     }

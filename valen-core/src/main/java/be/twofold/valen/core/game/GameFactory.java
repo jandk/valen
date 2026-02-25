@@ -23,4 +23,5 @@ public interface GameFactory<T extends Game> {
         }
         return Optional.empty();
     }
+
 }

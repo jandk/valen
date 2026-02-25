@@ -1,6 +1,6 @@
 module valen.format.gltf {
     requires com.google.gson;
-    requires static org.immutables.value;
+    requires static org.immutables.value.annotations;
 
     exports be.twofold.valen.format.gltf.model.accessor;
     exports be.twofold.valen.format.gltf.model.animation;

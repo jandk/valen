@@ -7,25 +7,18 @@ import be.twofold.valen.core.util.*;
 import be.twofold.valen.game.eternal.*;
 import be.twofold.valen.game.eternal.resource.*;
 import wtf.reversed.toolbox.io.*;
-import wtf.reversed.toolbox.util.*;
 
 import java.io.*;
 import java.util.*;
 
 public final class MapFileStaticInstancesReader implements AssetReader<Scene, EternalAsset> {
-    private final EternalArchive archive;
-
-    public MapFileStaticInstancesReader(EternalArchive archive) {
-        this.archive = Check.nonNull(archive, "archive");
+    @Override
+    public boolean canRead(EternalAsset asset) {
+        return asset.id().type() == ResourceType.StaticInstances;
     }
 
     @Override
-    public boolean canRead(EternalAsset resource) {
-        return resource.id().type() == ResourceType.StaticInstances;
-    }
-
-    @Override
-    public Scene read(BinarySource source, EternalAsset resource) throws IOException {
+    public Scene read(BinarySource source, EternalAsset asset, LoadingContext context) throws IOException {
         var staticInstances = MapFileStaticInstances.read(source);
 
         var instances = new ArrayList<Instance>();
@@ -33,19 +26,19 @@ public final class MapFileStaticInstancesReader implements AssetReader<Scene, Et
             var geometry = staticInstances.modelInstanceGeometries().get(i);
             var instanceName = staticInstances.modelInstanceNames().get(i);
             var modelName = staticInstances.models().get(geometry.modelIndex());
-            mapToInstance(modelName, instanceName, geometry)
+            mapToInstance(modelName, instanceName, geometry, context)
                 .ifPresent(instances::add);
         }
         return new Scene(instances);
     }
 
-    private Optional<Instance> mapToInstance(String modelName, String instanceName, MapFileStaticInstancesModelGeometry geometry) {
+    private Optional<Instance> mapToInstance(String modelName, String instanceName, MapFileStaticInstancesModelGeometry geometry, LoadingContext context) {
         var resourceKey = EternalAssetID.from(modelName, ResourceType.Model);
-        if (!archive.exists(resourceKey)) {
+        if (!context.exists(resourceKey)) {
             return Optional.empty();
         }
 
-        var supplier = ThrowingSupplier.lazy(() -> archive.loadAsset(resourceKey, Model.class));
+        var supplier = ThrowingSupplier.lazy(() -> context.load(resourceKey, Model.class));
         var reference = new ModelReference(modelName, modelName, supplier);
 
         return Optional.of(new Instance(

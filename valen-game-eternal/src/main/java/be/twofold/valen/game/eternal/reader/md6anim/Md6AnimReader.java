@@ -17,27 +17,21 @@ import java.util.stream.*;
 public final class Md6AnimReader implements AssetReader<Animation, EternalAsset> {
     private static final Logger log = LoggerFactory.getLogger(Md6AnimReader.class);
 
-    private final EternalArchive archive;
-
-    public Md6AnimReader(EternalArchive archive) {
-        this.archive = archive;
+    @Override
+    public boolean canRead(EternalAsset asset) {
+        return asset.id().type() == ResourceType.Anim;
     }
 
     @Override
-    public boolean canRead(EternalAsset resource) {
-        return resource.id().type() == ResourceType.Anim;
-    }
-
-    @Override
-    public Animation read(BinarySource source, EternalAsset resource) throws IOException {
+    public Animation read(BinarySource source, EternalAsset asset, LoadingContext context) throws IOException {
         var anim = Md6Anim.read(source);
 
         var skeletonKey = EternalAssetID.from(anim.header().skelName(), ResourceType.Skeleton);
-        if (archive.get(skeletonKey).isEmpty()) {
-            log.warn("Could not find skeleton asset '{}' while loading anim '{}'", anim.header().skelName(), resource.id().fullName());
+        if (!context.exists(skeletonKey)) {
+            log.warn("Could not find skeleton asset '{}' while loading anim '{}'", anim.header().skelName(), asset.id().fullName());
             throw new FileNotFoundException(anim.header().skelName());
         }
-        var skeleton = archive.loadAsset(skeletonKey, Skeleton.class);
+        var skeleton = context.load(skeletonKey, Skeleton.class);
 
         var animMap = anim.animMaps().getFirst();
 

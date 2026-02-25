@@ -1,84 +1,33 @@
 package be.twofold.valen.game.greatcircle;
 
 import be.twofold.valen.core.game.*;
-import be.twofold.valen.game.greatcircle.reader.decl.*;
-import be.twofold.valen.game.greatcircle.reader.decl.material2.*;
-import be.twofold.valen.game.greatcircle.reader.decl.renderparm.*;
-import be.twofold.valen.game.greatcircle.reader.deformmodel.*;
-import be.twofold.valen.game.greatcircle.reader.hair.*;
-import be.twofold.valen.game.greatcircle.reader.image.*;
-import be.twofold.valen.game.greatcircle.reader.md6mesh.*;
-import be.twofold.valen.game.greatcircle.reader.md6skl.*;
-import be.twofold.valen.game.greatcircle.reader.staticmodel.*;
-import be.twofold.valen.game.greatcircle.reader.streamdb.*;
-import wtf.reversed.toolbox.collect.*;
-import wtf.reversed.toolbox.util.*;
 
-import java.io.*;
 import java.util.*;
 import java.util.stream.*;
 
-public final class GreatCircleArchive extends Archive<GreatCircleAssetID, GreatCircleAsset> {
-    private final Container<Long, StreamDbEntry> streams;
-    private final Container<GreatCircleAssetID, GreatCircleAsset> common;
-    private final Container<GreatCircleAssetID, GreatCircleAsset> resources;
+public final class GreatCircleArchive implements Archive {
+    private final Map<AssetID, Asset> commonIndex;
+    private final Map<AssetID, Asset> loadedIndex;
 
     GreatCircleArchive(
-        Container<Long, StreamDbEntry> streams,
-        Container<GreatCircleAssetID, GreatCircleAsset> common,
-        Container<GreatCircleAssetID, GreatCircleAsset> resources
+        Map<AssetID, Asset> commonIndex,
+        Map<AssetID, Asset> loadedIndex
     ) {
-        this.streams = Check.nonNull(streams, "streams");
-        this.common = Check.nonNull(common, "common");
-        this.resources = Check.nonNull(resources, "resources");
+        this.commonIndex = Map.copyOf(commonIndex);
+        this.loadedIndex = Map.copyOf(loadedIndex);
     }
 
     @Override
-    public List<AssetReader<?, GreatCircleAsset>> createReaders() {
-        var declReader = new DeclReader(this);
-        return List.of(
-            new DeformModelReader(this, true),
-            new HairReader(),
-            new ImageReader(this),
-            new MaterialReader(this, declReader),
-            new Md6MeshReader(this),
-            new Md6SklReader(),
-            new RenderParmReader(),
-            new StaticModelReader(this)
-        );
+    public Optional<Asset> get(AssetID id) {
+        Asset asset = loadedIndex.get(id);
+        if (asset == null) {
+            asset = commonIndex.get(id);
+        }
+        return Optional.ofNullable(asset);
     }
 
     @Override
-    public Optional<GreatCircleAsset> get(GreatCircleAssetID key) {
-        return resources.get(key)
-            .or(() -> common.get(key));
-    }
-
-    @Override
-    public Stream<GreatCircleAsset> getAll() {
-        return resources.getAll()
-            .filter(asset -> asset.size() != 0)
-            .distinct();
-    }
-
-    @Override
-    public Bytes read(GreatCircleAssetID identifier, Integer size) throws IOException {
-        return resources.exists(identifier)
-            ? resources.read(identifier, null)
-            : common.read(identifier, null);
-    }
-
-    public boolean containsStream(long identifier) {
-        return streams.exists(identifier);
-    }
-
-    public Bytes readStream(long identifier, int size) throws IOException {
-        return streams.read(identifier, size);
-    }
-
-    @Override
-    public void close() throws IOException {
-        streams.close();
-        resources.close();
+    public Stream<Asset> all() {
+        return loadedIndex.values().stream();
     }
 }

@@ -1,7 +1,8 @@
 package be.twofold.valen.core.texture.conversion;
 
-import be.twofold.valen.core.math.*;
 import be.twofold.valen.core.texture.*;
+import be.twofold.valen.core.util.*;
+import wtf.reversed.toolbox.math.*;
 import wtf.reversed.toolbox.util.*;
 
 final class ScaleAndBias extends Conversion {
@@ -66,8 +67,8 @@ final class ScaleAndBias extends Conversion {
     }
 
     private static byte scaleAndBias(byte b, float scale, float bias) {
-        float f = MathF.srgbToLinear(MathF.unpackUNorm8(b));
+        float f = MathF.srgbToLinear(FloatMath.unpackUNorm8(b));
         f = Math.fma(f, scale, bias);
-        return MathF.packUNorm8(MathF.linearToSrgb(f));
+        return FloatMath.packUNorm8(MathF.linearToSrgb(f));
     }
 }

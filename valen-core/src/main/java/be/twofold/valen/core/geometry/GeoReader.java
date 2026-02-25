@@ -1,8 +1,9 @@
 package be.twofold.valen.core.geometry;
 
-import be.twofold.valen.core.math.*;
+import be.twofold.valen.core.util.*;
 import wtf.reversed.toolbox.collect.*;
 import wtf.reversed.toolbox.io.*;
+import wtf.reversed.toolbox.math.*;
 
 import java.io.*;
 
@@ -11,22 +12,22 @@ public interface GeoReader<T> {
     void read(BinarySource source, T target, int offset) throws IOException;
 
     static GeoReader<Floats.Mutable> readPosition(float scale, Vector3 bias) {
-        return (source, target, offset) -> Vector3.read(source).fma(scale, bias).toFloats(target, offset);
+        return (source, target, offset) -> Vector3.read(source).multiply(scale).add(bias).toSlice(target, offset);
     }
 
     static GeoReader<Floats.Mutable> readPackedPosition(float scale, Vector3 bias) {
         return (source, target, offset) -> {
-            float x = MathF.unpackUNorm16(source.readShort());
-            float y = MathF.unpackUNorm16(source.readShort());
-            float z = MathF.unpackUNorm16(source.readShort());
+            float x = FloatMath.unpackUNorm16(source.readShort());
+            float y = FloatMath.unpackUNorm16(source.readShort());
+            float z = FloatMath.unpackUNorm16(source.readShort());
             source.skip(2);
 
-            new Vector3(x, y, z).fma(scale, bias).toFloats(target, offset);
+            new Vector3(x, y, z).multiply(scale).add(bias).toSlice(target, offset);
         };
     }
 
     static GeoReader<Floats.Mutable> readPackedNormal() {
-        return (source, target, offset) -> readVector3UNorm8Normal(source).normalize().toFloats(target, offset);
+        return (source, target, offset) -> readVector3UNorm8Normal(source).normalize().toSlice(target, offset);
     }
 
     static GeoReader<Floats.Mutable> readPackedTangent() {
@@ -35,7 +36,7 @@ public interface GeoReader<T> {
 
             Vector3 xyz = readVector3UNorm8Normal(source).normalize();
             float w = Float.intBitsToFloat(((source.readByte() & 0x80) << 24) | 0x3F800000);
-            new Vector4(xyz, w).toFloats(target, offset);
+            new Vector4(xyz, w).toSlice(target, offset);
         };
     }
 
@@ -60,7 +61,7 @@ public interface GeoReader<T> {
             source.skip(3); // skip tangent
             byte wt = source.readByte();
 
-            float y = MathF.unpackUNorm8((byte) (wt & 0x7f));
+            float y = FloatMath.unpackUNorm8((byte) (wt & 0x7f));
             float z = ((wn & 0xf0) >>> 4) * factor1;
             float w = ((wn & 0x0f)) * factor2;
 
@@ -80,15 +81,15 @@ public interface GeoReader<T> {
 
     static GeoReader<Floats.Mutable> readUV(float scale, Vector2 bias) {
         return (source, target, offset) -> {
-            Vector2.read(source).fma(scale, bias).toFloats(target, offset);
+            Vector2.read(source).multiply(scale).add(bias).toSlice(target, offset);
         };
     }
 
     static GeoReader<Floats.Mutable> readPackedUV(float scale, Vector2 bias) {
         return (source, target, offset) -> {
-            float x = MathF.unpackUNorm16(source.readShort());
-            float y = MathF.unpackUNorm16(source.readShort());
-            new Vector2(x, y).fma(scale, bias).toFloats(target, offset);
+            float x = FloatMath.unpackUNorm16(source.readShort());
+            float y = FloatMath.unpackUNorm16(source.readShort());
+            new Vector2(x, y).multiply(scale).add(bias).toSlice(target, offset);
         };
     }
 
@@ -109,7 +110,7 @@ public interface GeoReader<T> {
     static GeoReader<Floats.Mutable> copyBytesAsFloats(int n) {
         return (source, target, offset) -> {
             for (int i = 0; i < n; i++) {
-                target.set(offset + i, MathF.unpackUNorm8(source.readByte()));
+                target.set(offset + i, FloatMath.unpackUNorm8(source.readByte()));
             }
         };
     }

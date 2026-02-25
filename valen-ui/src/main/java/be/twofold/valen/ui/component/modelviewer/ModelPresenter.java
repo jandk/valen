@@ -19,7 +19,7 @@ import java.io.*;
 import java.nio.*;
 import java.util.*;
 
-public final class ModelPresenter extends AbstractFXPresenter<ModelView> implements Viewer {
+public final class ModelPresenter extends AbstractPresenter<ModelView> implements Viewer {
     @Inject
     public ModelPresenter(ModelView view) {
         super(view);

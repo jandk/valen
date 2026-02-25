@@ -1,8 +1,8 @@
 package be.twofold.valen.game.darkages.reader.skeleton;
 
-import be.twofold.valen.core.math.*;
 import wtf.reversed.toolbox.collect.*;
 import wtf.reversed.toolbox.io.*;
+import wtf.reversed.toolbox.math.*;
 
 import java.io.*;
 import java.util.*;
@@ -48,7 +48,7 @@ public record Md6Skel(
         var translations = source.readObjects(header.numJoints8(), Vector3::read);
 
         source.position(base + header.inverseBasePoseOffset());
-        var inverseBasePoses = source.readObjects(header.numJoints8(), Md6Skel::readInverseBasePose);
+        var inverseBasePoses = source.readObjects(header.numJoints8(), Matrix4::read3x4);
 
         source.position(base + header.loadedDataSize() + header.jointSetTblOffset());
         var jointSetTable = source.readShorts(source.readShort());
@@ -76,12 +76,5 @@ public record Md6Skel(
             jointNames,
             userChannelNames
         );
-    }
-
-    private static Matrix4 readInverseBasePose(BinarySource source) throws IOException {
-        var floats = Floats.Mutable.allocate(16);
-        source.readFloats(12).copyTo(floats, 0);
-        floats.set(15, 1.0f);
-        return Matrix4.fromFloats(floats).transpose();
     }
 }

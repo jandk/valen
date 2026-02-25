@@ -5,9 +5,9 @@ import be.twofold.valen.game.darkages.reader.decl.*;
 import be.twofold.valen.game.darkages.reader.resources.*;
 import be.twofold.valen.game.idtech.material.*;
 
-public final class MaterialReader extends AbstractMaterialReader<DarkAgesAssetID, DarkAgesAsset, DarkAgesArchive> {
-    public MaterialReader(DarkAgesArchive archive, DeclReader declReader) {
-        super(archive, declReader, false);
+public final class MaterialReader extends AbstractMaterialReader<DarkAgesAssetID, DarkAgesAsset> {
+    public MaterialReader(DeclReader declReader) {
+        super(declReader, false);
     }
 
     @Override

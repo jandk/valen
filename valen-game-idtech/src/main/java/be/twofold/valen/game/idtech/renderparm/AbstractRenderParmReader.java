@@ -1,10 +1,10 @@
 package be.twofold.valen.game.idtech.renderparm;
 
 import be.twofold.valen.core.game.*;
-import be.twofold.valen.core.math.*;
 import be.twofold.valen.game.idtech.decl.parser.*;
 import be.twofold.valen.game.idtech.defines.*;
 import wtf.reversed.toolbox.io.*;
+import wtf.reversed.toolbox.math.*;
 
 import java.io.*;
 import java.util.*;
@@ -342,8 +342,8 @@ public abstract class AbstractRenderParmReader<V extends Asset> implements Asset
                     }
                     continue;
                 }
-                case "cvar" -> {
-                    // Just ignore this one
+                case "cvar", "const", "coherent" -> {
+                    // Just ignore these ones
                     continue;
                 }
             }
