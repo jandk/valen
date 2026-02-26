@@ -10,7 +10,7 @@ import wtf.reversed.toolbox.io.*;
 import java.io.*;
 import java.util.*;
 
-public final class ImageReader implements AssetReader<Texture, GreatCircleAsset> {
+public final class ImageReader implements AssetReader.Binary<Texture, GreatCircleAsset> {
     private final boolean readStreams;
 
     public ImageReader(boolean readStreams) {

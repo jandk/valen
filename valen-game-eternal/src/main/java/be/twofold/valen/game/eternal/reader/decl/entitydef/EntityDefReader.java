@@ -9,7 +9,7 @@ import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 
-public final class EntityDefReader implements AssetReader<JsonObject, EternalAsset> {
+public final class EntityDefReader implements AssetReader.Binary<JsonObject, EternalAsset> {
     @Override
     public boolean canRead(EternalAsset asset) {
         return asset.id().type() == ResourceType.RsStreamFile

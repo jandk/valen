@@ -12,7 +12,7 @@ import java.io.*;
 import java.security.*;
 import java.util.*;
 
-public final class BinaryFileReader implements AssetReader<Bytes, DarkAgesAsset> {
+public final class BinaryFileReader implements AssetReader.Binary<Bytes, DarkAgesAsset> {
     @Override
     public boolean canRead(DarkAgesAsset asset) {
         return asset.id().type() == ResourcesType.BinaryFile;

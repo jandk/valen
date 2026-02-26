@@ -9,7 +9,7 @@ import wtf.reversed.toolbox.math.*;
 import java.io.*;
 import java.util.*;
 
-public abstract class AbstractRenderParmReader<V extends Asset> implements AssetReader<RenderParm, V> {
+public abstract class AbstractRenderParmReader<V extends Asset> implements AssetReader.Binary<RenderParm, V> {
     private static final Set<String> Skipped = Set.of(
         "borderclamp",
         "clamp",

@@ -8,7 +8,7 @@ import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 
-public final class FileCompressedReader implements AssetReader<Bytes, EternalAsset> {
+public final class FileCompressedReader implements AssetReader.Binary<Bytes, EternalAsset> {
     public FileCompressedReader() {
     }
 

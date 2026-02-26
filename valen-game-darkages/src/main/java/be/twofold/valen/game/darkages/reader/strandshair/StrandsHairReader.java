@@ -11,7 +11,7 @@ import wtf.reversed.toolbox.math.*;
 import java.io.*;
 import java.util.*;
 
-public final class StrandsHairReader implements AssetReader<Model, DarkAgesAsset> {
+public final class StrandsHairReader implements AssetReader.Binary<Model, DarkAgesAsset> {
     @Override
     public boolean canRead(DarkAgesAsset asset) {
         return asset.id().type() == ResourcesType.StrandsHair;

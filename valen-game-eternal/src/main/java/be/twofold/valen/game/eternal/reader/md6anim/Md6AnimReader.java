@@ -14,7 +14,7 @@ import java.util.*;
 import java.util.function.*;
 import java.util.stream.*;
 
-public final class Md6AnimReader implements AssetReader<Animation, EternalAsset> {
+public final class Md6AnimReader implements AssetReader.Binary<Animation, EternalAsset> {
     private static final Logger log = LoggerFactory.getLogger(Md6AnimReader.class);
 
     @Override

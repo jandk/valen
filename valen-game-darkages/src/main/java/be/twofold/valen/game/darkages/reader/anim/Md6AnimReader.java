@@ -14,7 +14,7 @@ import java.util.*;
 import java.util.function.*;
 import java.util.stream.*;
 
-public final class Md6AnimReader implements AssetReader<Animation, DarkAgesAsset> {
+public final class Md6AnimReader implements AssetReader.Binary<Animation, DarkAgesAsset> {
     @Override
     public boolean canRead(DarkAgesAsset asset) {
         return asset.id().type() == ResourcesType.Anim;

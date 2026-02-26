@@ -11,7 +11,7 @@ import wtf.reversed.toolbox.io.*;
 import java.io.*;
 import java.util.*;
 
-public final class DeformModelReader implements AssetReader<Model, GreatCircleAsset> {
+public final class DeformModelReader implements AssetReader.Binary<Model, GreatCircleAsset> {
     private final boolean readMaterials;
 
     public DeformModelReader(boolean readMaterials) {

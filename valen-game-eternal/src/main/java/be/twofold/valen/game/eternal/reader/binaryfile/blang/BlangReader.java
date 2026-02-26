@@ -8,7 +8,7 @@ import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 
-public final class BlangReader implements AssetReader<Blang, EternalAsset> {
+public final class BlangReader implements AssetReader.Binary<Blang, EternalAsset> {
     private final BinaryFileReader binaryFileReader;
 
     public BlangReader(BinaryFileReader binaryFileReader) {

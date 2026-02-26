@@ -10,7 +10,7 @@ public interface AssetReader<R, A extends Asset> {
 
     boolean canRead(A asset);
 
-    R read(BinarySource source, A asset, LoadingContext context) throws IOException;
+    R read(A asset, LoadingContext context) throws IOException;
 
     default Class<?> getReturnType() {
         return getReturnType(getClass());
@@ -33,7 +33,18 @@ public interface AssetReader<R, A extends Asset> {
             clazz.getSimpleName() + " does not implement AssetReader with proper type parameters");
     }
 
-    final class Raw implements AssetReader<Bytes, Asset> {
+    interface Binary<R, A extends Asset> extends AssetReader<R, A> {
+        @Override
+        default R read(A asset, LoadingContext context) throws IOException {
+            try (BinarySource source = BinarySource.wrap(context.open(asset.location()))) {
+                return read(source, asset, context);
+            }
+        }
+
+        R read(BinarySource source, A asset, LoadingContext context) throws IOException;
+    }
+
+    final class Raw implements Binary<Bytes, Asset> {
         @Override
         public boolean canRead(Asset asset) {
             return true;
