@@ -1,7 +1,6 @@
 package be.twofold.valen.core.game;
 
 import wtf.reversed.toolbox.collect.*;
-import wtf.reversed.toolbox.io.*;
 import wtf.reversed.toolbox.util.*;
 
 import java.io.*;
@@ -38,12 +37,8 @@ public final class AssetLoader implements LoadingContext, Closeable {
     @Override
     public <T> T load(AssetID id, Class<T> clazz) throws IOException {
         Asset asset = archive.get(id).orElseThrow();
-        Location location = asset.location();
-
-        try (BinarySource source = BinarySource.wrap(storage.open(location))) {
             AssetReader<T, Asset> reader = findReader(asset, clazz);
-            return reader.read(source, asset, this);
-        }
+        return reader.read(asset, this);
     }
 
     @Override

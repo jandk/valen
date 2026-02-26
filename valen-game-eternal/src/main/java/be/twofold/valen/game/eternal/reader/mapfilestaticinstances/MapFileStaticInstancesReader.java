@@ -11,7 +11,7 @@ import wtf.reversed.toolbox.io.*;
 import java.io.*;
 import java.util.*;
 
-public final class MapFileStaticInstancesReader implements AssetReader<Scene, EternalAsset> {
+public final class MapFileStaticInstancesReader implements AssetReader.Binary<Scene, EternalAsset> {
     @Override
     public boolean canRead(EternalAsset asset) {
         return asset.id().type() == ResourceType.StaticInstances;

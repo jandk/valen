@@ -12,7 +12,7 @@ import wtf.reversed.toolbox.io.*;
 import java.io.*;
 import java.util.*;
 
-public final class Md6MeshReader implements AssetReader<Model, GreatCircleAsset> {
+public final class Md6MeshReader implements AssetReader.Binary<Model, GreatCircleAsset> {
     private final boolean readMaterials;
 
     public Md6MeshReader(boolean readMaterials) {

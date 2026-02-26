@@ -11,7 +11,7 @@ import wtf.reversed.toolbox.math.*;
 import java.io.*;
 import java.util.*;
 
-public final class HairReader implements AssetReader<Model, GreatCircleAsset> {
+public final class HairReader implements AssetReader.Binary<Model, GreatCircleAsset> {
     @Override
     public boolean canRead(GreatCircleAsset asset) {
         return asset.id().type() == ResourceType.hair;

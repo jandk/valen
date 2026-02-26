@@ -8,7 +8,7 @@ import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 
-public final class MapResourcesReader implements AssetReader<MapResources, EternalAsset> {
+public final class MapResourcesReader implements AssetReader.Binary<MapResources, EternalAsset> {
     private final FileReader fileReader;
 
     public MapResourcesReader(FileReader fileReader) {

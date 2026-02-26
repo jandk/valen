@@ -12,7 +12,7 @@ import wtf.reversed.toolbox.io.*;
 import java.io.*;
 import java.util.*;
 
-public final class VegetationReader implements AssetReader<Model, DarkAgesAsset> {
+public final class VegetationReader implements AssetReader.Binary<Model, DarkAgesAsset> {
     private final boolean readMaterials;
 
     public VegetationReader(boolean readMaterials) {

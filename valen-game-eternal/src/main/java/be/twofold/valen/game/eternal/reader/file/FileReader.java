@@ -8,7 +8,7 @@ import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 
-public final class FileReader implements AssetReader<Bytes, EternalAsset> {
+public final class FileReader implements AssetReader.Binary<Bytes, EternalAsset> {
     @Override
     public boolean canRead(EternalAsset asset) {
         return asset.id().type() == ResourceType.File;

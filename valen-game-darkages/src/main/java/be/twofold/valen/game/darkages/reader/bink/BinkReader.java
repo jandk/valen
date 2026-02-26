@@ -9,7 +9,7 @@ import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 
-public final class BinkReader implements AssetReader<Bytes, DarkAgesAsset> {
+public final class BinkReader implements AssetReader.Binary<Bytes, DarkAgesAsset> {
     @Override
     public boolean canRead(DarkAgesAsset asset) {
         return asset.id().type() == ResourcesType.Bink;
