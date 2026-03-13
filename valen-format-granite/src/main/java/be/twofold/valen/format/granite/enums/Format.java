@@ -1,6 +1,6 @@
 package be.twofold.valen.format.granite.enums;
 
-import be.twofold.valen.core.util.*;
+import wtf.reversed.toolbox.util.*;
 
 public enum Format implements ValueEnum<Integer> {
     R8G8B8A8(0),

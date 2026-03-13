@@ -18,8 +18,11 @@ public interface AssetReader<R, A extends Asset> {
 
     private Class<?> getReturnType(Class<?> clazz) {
         for (var genericInterface : clazz.getGenericInterfaces()) {
-            if (genericInterface instanceof ParameterizedType parameterizedType
-                && parameterizedType.getRawType().equals(AssetReader.class)) {
+            if (!(genericInterface instanceof ParameterizedType parameterizedType)) {
+                continue;
+            }
+            if (parameterizedType.getRawType().equals(AssetReader.class) ||
+                parameterizedType.getRawType().equals(Binary.class)) {
                 return (Class<?>) parameterizedType.getActualTypeArguments()[0];
             }
         }

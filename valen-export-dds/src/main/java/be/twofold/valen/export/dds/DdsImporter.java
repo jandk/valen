@@ -8,7 +8,7 @@ import java.io.*;
 import java.nio.*;
 import java.util.*;
 
-public final class DdsImporter implements AssetReader<Texture, Asset> {
+public final class DdsImporter implements AssetReader.Binary<Texture, Asset> {
     private DdsImporter() {
     }
 
@@ -23,7 +23,7 @@ public final class DdsImporter implements AssetReader<Texture, Asset> {
     }
 
     @Override
-    public Texture read(BinarySource source, Asset asset) throws IOException {
+    public Texture read(BinarySource source, Asset asset, LoadingContext context) throws IOException {
         var headerBuffer = source
             .readBytes(4 + DdsHeader.SIZE + DdsHeaderDxt10.SIZE) // for magic
             .asBuffer().order(ByteOrder.LITTLE_ENDIAN);

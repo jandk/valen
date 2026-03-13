@@ -25,21 +25,17 @@ public final class GraniteContainer {
     private final Map<String, Gtp> gtpCache = new HashMap<>(CACHE_SIZE);
 
     private final Gts gts;
-    private final ThrowingFunction<String, BinarySource, IOException> gtpSupplier;
+    private final GtpSupplier gtpSupplier;
     private final List<GraniteTexture> textures;
 
-    private GraniteContainer(Gts gts, ThrowingFunction<String, BinarySource, IOException> gtpSupplier) throws IOException {
+    private GraniteContainer(Gts gts, GtpSupplier gtpSupplier) throws IOException {
         this.gts = Objects.requireNonNull(gts);
         this.gtpSupplier = Objects.requireNonNull(gtpSupplier);
         this.textures = mapTextures(gts.metadata());
         log.info("Loaded {} textures from {}", textures.size(), gts.path());
     }
 
-    public static GraniteContainer open(
-        BinarySource source,
-        String path,
-        ThrowingFunction<String, BinarySource, IOException> gtpSupplier
-    ) throws IOException {
+    public static GraniteContainer open(BinarySource source, String path, GtpSupplier gtpSupplier) throws IOException {
         return new GraniteContainer(Gts.read(source, path), gtpSupplier);
     }
 
@@ -128,7 +124,7 @@ public final class GraniteContainer {
             if (gtpCache.size() == CACHE_SIZE) {
                 gtpCache.keySet().removeIf(path -> !path.endsWith("_mips.gtp"));
             }
-            try (var source = gtpSupplier.apply(pagePath)) {
+            try (var source = gtpSupplier.open(pagePath)) {
                 log.info("Reading {}", pagePath);
                 var gtp = Gtp.read(source, gts.header().pageSize());
                 gtpCache.put(pagePath, gtp);

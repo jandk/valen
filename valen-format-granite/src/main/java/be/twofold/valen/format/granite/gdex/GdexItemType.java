@@ -1,7 +1,7 @@
 package be.twofold.valen.format.granite.gdex;
 
-import be.twofold.valen.core.util.*;
 import wtf.reversed.toolbox.io.*;
+import wtf.reversed.toolbox.util.*;
 
 import java.io.*;
 

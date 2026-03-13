@@ -1,8 +1,6 @@
 package be.twofold.valen.game.darkages;
 
 import be.twofold.valen.core.game.*;
-import wtf.reversed.toolbox.collect.*;
-import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 import java.nio.file.*;
@@ -31,8 +29,7 @@ public abstract class TestUtils {
 
         for (Asset asset : entries) {
             try {
-                var fromBytes = loader.load(asset.id(), Bytes.class);
-                reader.read(BinarySource.wrap(fromBytes), (DarkAgesAsset) asset, loader);
+                reader.read((DarkAgesAsset) asset, loader);
             } catch (FileNotFoundException e) {
                 System.err.println("File not found: " + asset.id().fullName());
             } catch (Exception e) {

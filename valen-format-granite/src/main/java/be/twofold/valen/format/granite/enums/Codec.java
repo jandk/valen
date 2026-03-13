@@ -1,6 +1,6 @@
 package be.twofold.valen.format.granite.enums;
 
-import be.twofold.valen.core.util.*;
+import wtf.reversed.toolbox.util.*;
 
 public enum Codec implements ValueEnum<Integer> {
     UNIFORM(0),

@@ -1,8 +1,6 @@
 package be.twofold.valen.game.greatcircle;
 
 import be.twofold.valen.core.game.*;
-import wtf.reversed.toolbox.collect.*;
-import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 import java.nio.file.*;
@@ -22,7 +20,7 @@ public abstract class TestUtils {
 
     private static void readAllInMap(AssetLoader loader, AssetReader<?, GreatCircleAsset> reader) {
         var entries = loader.archive().all()
-                .filter(asset -> asset.location().size() != 0 && reader.canRead((GreatCircleAsset) asset))
+            .filter(asset -> asset.location().size() != 0 && reader.canRead((GreatCircleAsset) asset))
             .sorted()
             .toList();
 
@@ -30,8 +28,7 @@ public abstract class TestUtils {
 
         for (Asset asset : entries) {
             try {
-                var bytes = loader.load(asset.id(), Bytes.class);
-                reader.read(BinarySource.wrap(bytes), (GreatCircleAsset) asset, loader);
+                reader.read((GreatCircleAsset) asset, loader);
             } catch (FileNotFoundException e) {
                 System.err.println(e.getMessage());
             } catch (IOException e) {
