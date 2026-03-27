@@ -14,7 +14,7 @@ public final class GraniteArchive implements Archive {
     private final Map<String, GraniteContainer> containers;
     private final Map<GraniteAssetID, GraniteAsset> assets;
 
-    public GraniteArchive(List<Asset> gtsAssets, StorageManager storage, GtpSupplier gtpSupplier) throws IOException {
+    public GraniteArchive(List<? extends Asset> gtsAssets, StorageManager storage, GtpSupplier gtpSupplier) throws IOException {
         this.storage = Check.nonNull(storage, "storageManager");
         this.containers = openGraniteContainers(gtsAssets, gtpSupplier);
         this.assets = mapGraniteAssets();
@@ -24,7 +24,7 @@ public final class GraniteArchive implements Archive {
         return containers;
     }
 
-    private Map<String, GraniteContainer> openGraniteContainers(List<Asset> gtsAssets, GtpSupplier gtpSupplier) throws IOException {
+    private Map<String, GraniteContainer> openGraniteContainers(List<? extends Asset> gtsAssets, GtpSupplier gtpSupplier) throws IOException {
         if (gtsAssets.isEmpty()) {
             return Map.of();
         }
