@@ -6,7 +6,7 @@ import wtf.reversed.toolbox.util.*;
 import java.io.*;
 import java.util.*;
 
-public class AssetLoader implements LoadingContext, Closeable {
+public final class AssetLoader implements LoadingContext, Closeable {
     private final Archive archive;
     private final StorageManager storage;
     private final List<AssetReader<?, ?>> readers;
@@ -36,8 +36,8 @@ public class AssetLoader implements LoadingContext, Closeable {
 
     @Override
     public <T> T load(AssetID id, Class<T> clazz) throws IOException {
-        var asset = archive.get(id).orElseThrow();
-        var reader = findReader(asset, clazz);
+        Asset asset = archive.get(id).orElseThrow();
+        AssetReader<T, Asset> reader = findReader(asset, clazz);
         return reader.read(asset, this);
     }
 
@@ -52,7 +52,7 @@ public class AssetLoader implements LoadingContext, Closeable {
     }
 
     @SuppressWarnings("unchecked")
-    private <T, A extends Asset> AssetReader<T, A> findReader(A asset, Class<T> clazz) throws IOException {
+    public <T, A extends Asset> AssetReader<T, A> findReader(A asset, Class<T> clazz) throws IOException {
         return (AssetReader<T, A>) readers.stream()
             .filter(ar -> ((AssetReader<?, A>) ar).canRead(asset) && clazz.isAssignableFrom(ar.getReturnType()))
             .findFirst()

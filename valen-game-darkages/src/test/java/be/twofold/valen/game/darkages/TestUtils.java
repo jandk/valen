@@ -10,7 +10,7 @@ import static org.assertj.core.api.Assertions.*;
 
 public abstract class TestUtils {
 
-    public static void testReader(AssetReader<?, DarkAgesAsset> reader) throws IOException {
+    public static void testReader(AssetReader.Binary<?, DarkAgesAsset> reader) throws IOException {
         DarkAgesGame game = new DarkAgesGameFactory().load(Path.of(Constants.ExecutablePath));
 
         for (String archiveName : game.archiveNames()) {
@@ -19,7 +19,7 @@ public abstract class TestUtils {
         }
     }
 
-    private static void readAllInMap(AssetLoader loader, AssetReader<?, DarkAgesAsset> reader) {
+    private static void readAllInMap(AssetLoader loader, AssetReader.Binary<?, DarkAgesAsset> reader) {
         var entries = loader.archive().all()
             .filter(asset -> asset.location().size() != 0 && reader.canRead((DarkAgesAsset) asset))
             .sorted(Comparator.naturalOrder())
