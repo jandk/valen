@@ -13,7 +13,7 @@ public interface Asset extends Comparable<Asset> {
     Map<String, Object> properties();
 
     default String exportName() {
-        return id().fileNameWithoutExtension();
+        return id().exportName();
     }
 
     @Override

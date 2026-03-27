@@ -18,25 +18,25 @@ public record DarkAgesAssetID(
 
     private static final Map<ResourcesType, Set<ResourcesVariation>> Variations = Map.ofEntries(
         // Binary decls
-            Map.entry(ResourcesType.EntityDef, Set.of(ResourcesVariation.RES_VAR_DECLS_NO_SANITYCHECKS)),
-            Map.entry(ResourcesType.LogicClass, Set.of(ResourcesVariation.RES_VAR_DECLS_NO_SANITYCHECKS)),
-            Map.entry(ResourcesType.LogicEntity, Set.of(ResourcesVariation.RES_VAR_DECLS_NO_SANITYCHECKS)),
-            Map.entry(ResourcesType.LogicFX, Set.of(ResourcesVariation.RES_VAR_DECLS_NO_SANITYCHECKS)),
-            Map.entry(ResourcesType.LogicLibrary, Set.of(ResourcesVariation.RES_VAR_DECLS_NO_SANITYCHECKS)),
-            Map.entry(ResourcesType.LogicUIWidget, Set.of(ResourcesVariation.RES_VAR_DECLS_NO_SANITYCHECKS)),
-            Map.entry(ResourcesType.MapEntities, Set.of(ResourcesVariation.RES_VAR_DECLS_NO_SANITYCHECKS)),
+        Map.entry(ResourcesType.EntityDef, Set.of(ResourcesVariation.RES_VAR_DECLS_NO_SANITYCHECKS)),
+        Map.entry(ResourcesType.LogicClass, Set.of(ResourcesVariation.RES_VAR_DECLS_NO_SANITYCHECKS)),
+        Map.entry(ResourcesType.LogicEntity, Set.of(ResourcesVariation.RES_VAR_DECLS_NO_SANITYCHECKS)),
+        Map.entry(ResourcesType.LogicFX, Set.of(ResourcesVariation.RES_VAR_DECLS_NO_SANITYCHECKS)),
+        Map.entry(ResourcesType.LogicLibrary, Set.of(ResourcesVariation.RES_VAR_DECLS_NO_SANITYCHECKS)),
+        Map.entry(ResourcesType.LogicUIWidget, Set.of(ResourcesVariation.RES_VAR_DECLS_NO_SANITYCHECKS)),
+        Map.entry(ResourcesType.MapEntities, Set.of(ResourcesVariation.RES_VAR_DECLS_NO_SANITYCHECKS)),
 
         // Physics
-            Map.entry(ResourcesType.HavokCloth, Set.of(ResourcesVariation.RES_VAR_PLATFORM_WIN64)),
-            Map.entry(ResourcesType.PhysicsRagdollResource, Set.of(ResourcesVariation.RES_VAR_PLATFORM_WIN64)),
-            Map.entry(ResourcesType.CollisionShape, Set.of(ResourcesVariation.RES_VAR_HK_MSVC_64)),
-            Map.entry(ResourcesType.HkNavVolumeIp, Set.of(ResourcesVariation.RES_VAR_HK_MSVC_64)),
-            Map.entry(ResourcesType.MapEntityCollisionResources, Set.of(ResourcesVariation.RES_VAR_HK_MSVC_64)),
-            Map.entry(ResourcesType.PhysicsWorldCollision, Set.of(ResourcesVariation.RES_VAR_HK_MSVC_64)),
+        Map.entry(ResourcesType.HavokCloth, Set.of(ResourcesVariation.RES_VAR_PLATFORM_WIN64)),
+        Map.entry(ResourcesType.PhysicsRagdollResource, Set.of(ResourcesVariation.RES_VAR_PLATFORM_WIN64)),
+        Map.entry(ResourcesType.CollisionShape, Set.of(ResourcesVariation.RES_VAR_HK_MSVC_64)),
+        Map.entry(ResourcesType.HkNavVolumeIp, Set.of(ResourcesVariation.RES_VAR_HK_MSVC_64)),
+        Map.entry(ResourcesType.MapEntityCollisionResources, Set.of(ResourcesVariation.RES_VAR_HK_MSVC_64)),
+        Map.entry(ResourcesType.PhysicsWorldCollision, Set.of(ResourcesVariation.RES_VAR_HK_MSVC_64)),
 
         // Shaders
-            Map.entry(ResourcesType.OpacityMicroMapData, Set.of(ResourcesVariation.RES_VAR_RENDERPROG_VULKAN_PC_BASE)),
-            Map.entry(ResourcesType.RenderProgResource, Set.of(
+        Map.entry(ResourcesType.OpacityMicroMapData, Set.of(ResourcesVariation.RES_VAR_RENDERPROG_VULKAN_PC_BASE)),
+        Map.entry(ResourcesType.RenderProgResource, Set.of(
             ResourcesVariation.RES_VAR_RENDERPROG_VULKAN_PC_AMD,
             ResourcesVariation.RES_VAR_RENDERPROG_VULKAN_PC_AMD_RETAIL,
             ResourcesVariation.RES_VAR_RENDERPROG_VULKAN_PC_BASE,
@@ -54,7 +54,7 @@ public record DarkAgesAssetID(
         return new DarkAgesAssetID(
             resourceName,
             type,
-            ResourcesVariation.RES_VAR_NONE
+            variations.iterator().next()
         );
     }
 

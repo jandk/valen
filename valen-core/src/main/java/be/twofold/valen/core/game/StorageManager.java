@@ -18,11 +18,11 @@ public class StorageManager implements Closeable {
 
     public final Bytes open(Location location) throws IOException {
         return switch (location) {
-            case Location.File file -> Bytes.wrap(Files.readAllBytes(file.path()));
+            case Location.FullFile fullFile -> Bytes.wrap(Files.readAllBytes(fullFile.path()));
             case Location.FileSlice fileSlice -> sources.get(fileSlice.path())
                 .position(fileSlice.offset())
                 .readBytes(fileSlice.size());
-            case Location.Memory memory -> memory.data();
+            case Location.InMemory inMemory -> inMemory.data();
             case Location.Compressed compressed -> {
                 Bytes compressedData = open(compressed.base());
                 yield Decompressors.get(compressed.type())
