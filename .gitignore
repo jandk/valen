@@ -10,3 +10,6 @@ pom.xml.versionsBackup
 /*.dll
 /*.so.*
 /*.dylib
+
+# Export folder
+/exported

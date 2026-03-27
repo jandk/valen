@@ -19,7 +19,7 @@ public sealed interface Location {
      *
      * @param path The path to the file.
      */
-    record File(
+    record FullFile(
         Path path
     ) implements Location {
         @Override
@@ -51,7 +51,7 @@ public sealed interface Location {
      *
      * @param data The data.
      */
-    record Memory(
+    record InMemory(
         Bytes data
     ) implements Location {
         @Override
