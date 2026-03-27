@@ -11,7 +11,7 @@ import static org.assertj.core.api.Assertions.*;
 
 public abstract class TestUtils {
 
-    public static void testReader(AssetReader<?, GreatCircleAsset> reader) throws IOException {
+    public static void testReader(AssetReader.Binary<?, GreatCircleAsset> reader) throws IOException {
         GreatCircleGame game = new GreatCircleGameFactory().load(Path.of(Constants.ExecutablePath));
 
         for (String archiveName : game.archiveNames()) {
@@ -20,7 +20,7 @@ public abstract class TestUtils {
         }
     }
 
-    private static void readAllInMap(AssetLoader loader, AssetReader<?, GreatCircleAsset> reader) {
+    private static void readAllInMap(AssetLoader loader, AssetReader.Binary<?, GreatCircleAsset> reader) {
         var entries = loader.archive().all()
                 .filter(asset -> asset.location().size() != 0 && reader.canRead((GreatCircleAsset) asset))
             .sorted()

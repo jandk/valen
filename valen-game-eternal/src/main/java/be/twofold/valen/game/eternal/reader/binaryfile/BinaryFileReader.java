@@ -12,7 +12,7 @@ import java.io.*;
 import java.security.*;
 import java.util.*;
 
-public final class BinaryFileReader implements AssetReader<Bytes, EternalAsset> {
+public final class BinaryFileReader implements AssetReader.Binary<Bytes, EternalAsset> {
     @Override
     public boolean canRead(EternalAsset asset) {
         return asset.id().type() == ResourceType.BinaryFile;

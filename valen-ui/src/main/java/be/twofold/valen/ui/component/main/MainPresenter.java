@@ -151,7 +151,7 @@ public final class MainPresenter extends AbstractPresenter<MainView> implements 
         exportAssets(assets);
     }
 
-    private void exportAssets(List<Asset> assets) {
+    private void exportAssets(List<? extends Asset> assets) {
         if (assets.isEmpty()) {
             return;
         }
@@ -167,7 +167,7 @@ public final class MainPresenter extends AbstractPresenter<MainView> implements 
         fileList.setAssets(filteredAssets());
     }
 
-    private Stream<Asset> filteredAssets() {
+    private Stream<? extends Asset> filteredAssets() {
         if (loader == null) {
             return Stream.empty();
         }

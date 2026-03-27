@@ -12,7 +12,7 @@ import java.nio.charset.*;
 import java.util.*;
 import java.util.regex.*;
 
-public abstract class AbstractDeclReader<K extends AssetID, V extends Asset> implements AssetReader<JsonObject, V> {
+public abstract class AbstractDeclReader<K extends AssetID, V extends Asset> implements AssetReader.Binary<JsonObject, V> {
     private static final Pattern ItemPattern = Pattern.compile("^\\w+\\[(\\d+)]$");
     private static final CharsetDecoder Utf8Decoder = StandardCharsets.UTF_8.newDecoder();
     private static final CharsetDecoder Iso88591Decoder = StandardCharsets.ISO_8859_1.newDecoder();

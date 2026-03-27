@@ -24,7 +24,7 @@ final class ExportService extends Service<Void> {
     private final Stage stage;
     private final ProgressPresenter presenter;
     private AssetLoader loader;
-    private List<Asset> assets;
+    private List<? extends Asset> assets;
 
     @Inject
     ExportService(Settings settings, ViewLoader viewLoader) {
@@ -59,7 +59,7 @@ final class ExportService extends Service<Void> {
         this.loader = loader;
     }
 
-    public void setAssets(List<Asset> assets) {
+    public void setAssets(List<? extends Asset> assets) {
         this.assets = assets;
     }
 

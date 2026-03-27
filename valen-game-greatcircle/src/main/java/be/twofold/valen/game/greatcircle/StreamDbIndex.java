@@ -10,7 +10,7 @@ import java.nio.file.*;
 import java.util.*;
 
 record StreamDbIndex(
-    Map<FileId, BinarySource> sources,
+    Map<Path, BinarySource> sources,
     Map<Long, Location.FileSlice> index
 ) {
     private static final Logger log = LoggerFactory.getLogger(StreamDbIndex.class);
@@ -20,15 +20,14 @@ record StreamDbIndex(
         index = Map.copyOf(index);
     }
 
-    static StreamDbIndex build(Path base, List<String> paths) throws IOException {
-        var sources = new HashMap<FileId, BinarySource>();
+    static StreamDbIndex build(List<Path> paths) throws IOException {
+        var sources = new HashMap<Path, BinarySource>();
         var index = new HashMap<Long, Location.FileSlice>();
         for (var path : paths) {
             log.info("Loading StreamDb: {}", path);
 
-            var fileId = new FileId(path);
-            var source = BinarySource.open(base.resolve(path));
-            sources.put(fileId, source);
+            var source = BinarySource.open(path);
+            sources.put(path, source);
 
             StreamDb streamDb = StreamDb.read(source);
             int length = streamDb.entries().size();
@@ -38,7 +37,7 @@ record StreamDbIndex(
 
                 // TODO: Wrap compression
                 index.computeIfAbsent(identity, _ -> new Location.FileSlice(
-                    fileId, entry.offset16() * 16L, entry.length()
+                    path, entry.offset16() * 16L, entry.length()
                 ));
             }
         }

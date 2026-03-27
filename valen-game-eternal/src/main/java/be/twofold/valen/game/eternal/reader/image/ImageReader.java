@@ -11,7 +11,7 @@ import java.io.*;
 import java.util.*;
 import java.util.stream.*;
 
-public final class ImageReader implements AssetReader<Texture, EternalAsset> {
+public final class ImageReader implements AssetReader.Binary<Texture, EternalAsset> {
     private final boolean readStreams;
 
     public ImageReader(boolean readStreams) {

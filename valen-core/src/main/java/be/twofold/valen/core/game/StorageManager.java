@@ -8,41 +8,32 @@ import java.nio.file.*;
 import java.util.*;
 
 public class StorageManager implements Closeable {
-    private final Map<FileId, BinarySource> sources;
-    private final Set<FileId> sharedIds;
+    private final Map<Path, BinarySource> sources;
+    private final Set<Path> sharedIds;
 
-    public StorageManager(Map<FileId, BinarySource> sources, Set<FileId> sharedIds) {
+    public StorageManager(Map<Path, BinarySource> sources, Set<Path> shared) {
         this.sources = Map.copyOf(sources);
-        this.sharedIds = Set.copyOf(sharedIds);
+        this.sharedIds = Set.copyOf(shared);
     }
 
     public final Bytes open(Location location) throws IOException {
-        System.out.println("Loading " + location);
-        switch (location) {
-            case Location.FileSlice fileSlice -> {
-                return sources.get(fileSlice.fileId())
-                    .position(fileSlice.offset())
-                    .readBytes(fileSlice.size());
-            }
+        return switch (location) {
+            case Location.FullFile fullFile -> Bytes.wrap(Files.readAllBytes(fullFile.path()));
+            case Location.FileSlice fileSlice -> sources.get(fileSlice.path())
+                .position(fileSlice.offset())
+                .readBytes(fileSlice.size());
+            case Location.InMemory inMemory -> inMemory.data();
             case Location.Compressed compressed -> {
                 Bytes compressedData = open(compressed.base());
-                return Decompressors.get(compressed.type())
+                yield Decompressors.get(compressed.type())
                     .decompress(compressedData, compressed.size());
             }
-            case Location.FullFile fullFile -> {
-                return Bytes.wrap(Files.readAllBytes(fullFile.path()));
-            }
-            case Location.InMemory inMemory -> {
-                return inMemory.data();
-            }
-            default -> {
-                return openCustom(location);
-            }
-        }
+            case Location.Custom custom -> openCustom(custom);
+        };
     }
 
-    protected Bytes openCustom(Location location) throws IOException {
-        throw new UnsupportedOperationException("Unsupported location: " + location);
+    protected Bytes openCustom(Location.Custom custom) throws IOException {
+        throw new UnsupportedOperationException("Unsupported location: " + custom);
     }
 
     @Override

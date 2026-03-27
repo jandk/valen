@@ -9,7 +9,7 @@ import wtf.reversed.toolbox.io.*;
 import java.io.*;
 import java.util.stream.*;
 
-public final class Md6SklReader implements AssetReader<Skeleton, GreatCircleAsset> {
+public final class Md6SklReader implements AssetReader.Binary<Skeleton, GreatCircleAsset> {
     @Override
     public boolean canRead(GreatCircleAsset asset) {
         return asset.id().type() == ResourceType.skeleton;

@@ -51,7 +51,7 @@ public final class EternalGame implements Game {
         this.base = path.resolve("base");
         this.spec = PackageMapSpecReader.read(base.resolve("packagemapspec.json"));
         this.streamDbIndex = loadStreamDbIndex(base, spec);
-        this.commonResources = ResourcesIndex.build(base, filterResources(spec, "common", "warehouse"));
+        this.commonResources = ResourcesIndex.build(filterResources(spec, "common", "warehouse"));
         Decompressors.setOodlePath(path.resolve("oo2core_8_win64.dll"));
     }
 
@@ -64,14 +64,14 @@ public final class EternalGame implements Game {
     }
 
     public AssetLoader open(String name) throws IOException {
-        var loadedResources = ResourcesIndex.build(base, filterResources(spec, name));
+        var loadedResources = ResourcesIndex.build(filterResources(spec, name));
 
         var archive = new EternalArchive(
             Map.copyOf(commonResources.index()),
             Map.copyOf(loadedResources.index())
         );
 
-        var sources = new HashMap<FileId, BinarySource>();
+        var sources = new HashMap<Path, BinarySource>();
         sources.putAll(streamDbIndex.sources());
         sources.putAll(commonResources.sources());
         sources.putAll(loadedResources.sources());
@@ -87,15 +87,17 @@ public final class EternalGame implements Game {
     private StreamDbIndex loadStreamDbIndex(Path base, PackageMapSpec spec) throws IOException {
         var paths = spec.files().stream()
             .filter(s -> s.endsWith(".streamdb"))
+            .map(base::resolve)
             .toList();
 
-        return StreamDbIndex.build(base, paths);
+        return StreamDbIndex.build(paths);
     }
 
-    private List<String> filterResources(PackageMapSpec spec, String... names) {
+    private List<Path> filterResources(PackageMapSpec spec, String... names) {
         return Arrays.stream(names)
             .flatMap(map -> spec.mapFiles().get(map).stream())
             .filter(file -> file.endsWith(".resources"))
+            .map(base::resolve)
             .toList();
     }
 

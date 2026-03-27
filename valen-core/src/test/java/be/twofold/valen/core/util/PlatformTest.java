@@ -4,10 +4,10 @@ import org.junit.jupiter.api.*;
 
 import static org.assertj.core.api.Assertions.*;
 
-class OperatingSystemTest {
+class PlatformTest {
     @Test
     void testCurrent() {
         System.setProperty("os.name", "Linux");
-        assertThat(OperatingSystem.current()).isEqualTo(OperatingSystem.Linux);
+        assertThat(Platform.OS.current()).isEqualTo(Platform.OS.LINUX);
     }
 }

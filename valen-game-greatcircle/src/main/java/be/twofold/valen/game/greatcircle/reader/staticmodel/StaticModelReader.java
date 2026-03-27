@@ -12,7 +12,7 @@ import wtf.reversed.toolbox.util.*;
 import java.io.*;
 import java.util.*;
 
-public final class StaticModelReader implements AssetReader<Model, GreatCircleAsset> {
+public final class StaticModelReader implements AssetReader.Binary<Model, GreatCircleAsset> {
     private final boolean readMaterials;
 
     public StaticModelReader(boolean readMaterials) {

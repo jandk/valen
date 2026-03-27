@@ -27,7 +27,7 @@ public final class EternalArchive implements Archive {
     }
 
     @Override
-    public Stream<Asset> all() {
+    public Stream<? extends Asset> all() {
         return loadedIndex.values().stream();
     }
 }

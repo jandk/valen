@@ -12,7 +12,7 @@ import wtf.reversed.toolbox.io.*;
 import java.io.*;
 import java.util.*;
 
-public final class Md6ModelReader implements AssetReader<Model, EternalAsset> {
+public final class Md6ModelReader implements AssetReader.Binary<Model, EternalAsset> {
     private final boolean readMaterials;
 
     public Md6ModelReader(boolean readMaterials) {

@@ -11,7 +11,7 @@ import java.io.*;
 import java.nio.charset.*;
 import java.util.*;
 
-public final class EntityReader implements AssetReader<EntityFile, EternalAsset> {
+public final class EntityReader implements AssetReader.Binary<EntityFile, EternalAsset> {
     private final FileCompressedReader fileCompressedReader;
 
     public EntityReader(FileCompressedReader fileCompressedReader) {
