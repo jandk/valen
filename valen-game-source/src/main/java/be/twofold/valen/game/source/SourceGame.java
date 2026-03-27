@@ -46,7 +46,7 @@ public final class SourceGame implements Game {
             .distinct()
             .toList();
 
-        var sources = new HashMap<FileId, BinarySource>();
+        var sources = new HashMap<Path, BinarySource>();
         var index = new HashMap<SourceAssetID, SourceAsset>();
         for (var searchPath : searchPaths) {
             if (searchPath.getFileName().toString().endsWith(".vpk")) {
@@ -65,7 +65,7 @@ public final class SourceGame implements Game {
             }
         }
 
-        var archive = new SourceArchive(Map.copyOf(index));
+        var archive = Archive.simple(index);
         var storageManager = new StorageManager(sources, Set.of());
         return new AssetLoader(archive, storageManager, List.copyOf(READERS));
     }

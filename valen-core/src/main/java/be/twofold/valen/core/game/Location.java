@@ -74,28 +74,6 @@ public sealed interface Location {
     ) implements Location {
     }
 
-    record FullFile(
-        Path path
-    ) implements Location {
-        @Override
-        public int size() {
-            try {
-                return Math.toIntExact(Files.size(path));
-            } catch (IOException e) {
-                return 0;
-            }
-        }
-    }
-
-    record InMemory(
-        Bytes data
-    ) implements Location {
-        @Override
-        public int size() {
-            return data.length();
-        }
-    }
-
     /**
      * Extension point for custom storage locations.
      */

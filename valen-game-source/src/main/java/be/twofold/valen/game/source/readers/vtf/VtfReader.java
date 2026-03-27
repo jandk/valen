@@ -8,7 +8,7 @@ import wtf.reversed.toolbox.io.*;
 import java.io.*;
 import java.util.*;
 
-public final class VtfReader implements AssetReader<Texture, SourceAsset> {
+public final class VtfReader implements AssetReader.Binary<Texture, SourceAsset> {
     @Override
     public boolean canRead(SourceAsset asset) {
         return asset.id().extension().equals("vtf");

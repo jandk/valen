@@ -14,7 +14,7 @@ import java.util.function.*;
 import java.util.stream.*;
 
 public record VpkIndex(
-    Map<FileId, BinarySource> sources,
+    Map<Path, BinarySource> sources,
     Map<SourceAssetID, SourceAsset> index
 ) {
     private static final Logger LOGGER = LoggerFactory.getLogger(VpkIndex.class);
@@ -37,29 +37,24 @@ public record VpkIndex(
             .max().orElseThrow();
 
         var template = path.getFileName().toString().replace("_dir.vpk", "");
-        var fileIds = new ArrayList<FileId>();
+        var vpkPaths = new ArrayList<Path>();
+        var sources = new HashMap<Path, BinarySource>();
+        sources.put(path, source);
         for (int i = 0; i <= maxArchiveIndex; i++) {
-            var fileId = new FileId(template + "_" + FORMAT.format(i) + ".vpk");
-            fileIds.add(fileId);
-        }
-
-        var rootFileId = new FileId(path.getFileName().toString());
-        var sources = new HashMap<FileId, BinarySource>();
-        sources.put(rootFileId, source);
-        for (var fileId : fileIds) {
-            var vpkPath = path.getParent().resolve(fileId.name());
+            var vpkPath = path.getParent().resolve(template + "_" + FORMAT.format(i) + ".vpk");
             LOGGER.info("  Loading {}", vpkPath);
-            sources.put(new FileId(fileId.name()), BinarySource.open(vpkPath));
+            vpkPaths.add(vpkPath);
+            sources.put(vpkPath, BinarySource.open(vpkPath));
         }
 
         var index = directory.entries().stream()
-            .map(entry -> mapEntry(entry, entry.archiveIndex() == 0x7FFF ? rootFileId : fileIds.get(entry.archiveIndex())))
+            .map(entry -> mapEntry(entry, entry.archiveIndex() == 0x7FFF ? path : vpkPaths.get(entry.archiveIndex())))
             .collect(Collectors.toUnmodifiableMap(SourceAsset::id, Function.identity()));
 
         return new VpkIndex(sources, index);
     }
 
-    private static SourceAsset mapEntry(VpkEntry entry, FileId fileId) {
+    private static SourceAsset mapEntry(VpkEntry entry, Path path) {
         boolean hasPreload = entry.preloadBytes().length() > 0;
         boolean hasEntry = entry.entryLength() > 0;
         if (hasPreload && hasEntry) {
@@ -67,7 +62,7 @@ public record VpkIndex(
         }
 
         Location location = hasEntry
-            ? new Location.FileSlice(fileId, entry.entryOffset(), entry.entryLength())
+            ? new Location.FileSlice(path, entry.entryOffset(), entry.entryLength())
             : new Location.InMemory(entry.preloadBytes());
 
         return new SourceAsset(new SourceAssetID(entry.name()), location);

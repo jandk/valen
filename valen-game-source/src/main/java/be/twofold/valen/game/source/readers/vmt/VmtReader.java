@@ -7,7 +7,7 @@ import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 
-public final class VmtReader implements AssetReader<ValveMaterial, SourceAsset> {
+public final class VmtReader implements AssetReader.Binary<ValveMaterial, SourceAsset> {
     @Override
     public boolean canRead(SourceAsset asset) {
         return asset.id().extension().equals("vmt");

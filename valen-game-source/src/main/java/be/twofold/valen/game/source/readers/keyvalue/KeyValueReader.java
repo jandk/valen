@@ -7,7 +7,7 @@ import wtf.reversed.toolbox.io.*;
 import java.io.*;
 import java.util.*;
 
-public final class KeyValueReader implements AssetReader<KeyValue, SourceAsset> {
+public final class KeyValueReader implements AssetReader.Binary<KeyValue, SourceAsset> {
     private static final Set<String> SUPPORTED = Set.of("res", "vdf", "vmt");
 
     @Override
