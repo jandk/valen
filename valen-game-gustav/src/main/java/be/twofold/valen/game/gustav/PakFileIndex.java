@@ -130,7 +130,7 @@ record PakFileIndex(
 
     private static GustavAsset mapEntrySolid(PakEntry entry, Bytes data, int offset) {
         var id = new GustavAssetID(entry.name());
-        var location = new Location.Memory(data.slice(offset, entry.size()));
+        var location = new Location.InMemory(data.slice(offset, entry.size()));
         return new GustavAsset(id, location);
     }
 
