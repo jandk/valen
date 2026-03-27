@@ -1,14 +1,13 @@
 package be.twofold.valen.core.game;
 
 import java.util.*;
-import java.util.function.*;
 import java.util.stream.*;
 
 public interface Archive {
 
     Optional<Asset> get(AssetID id);
 
-    Stream<Asset> all();
+    Stream<? extends Asset> all();
 
     static Archive simple(Map<? extends AssetID, ? extends Asset> assets) {
         return new Archive() {
@@ -18,9 +17,8 @@ public interface Archive {
             }
 
             @Override
-            public Stream<Asset> all() {
-                return assets.values().stream()
-                    .map(Function.identity());
+            public Stream<? extends Asset> all() {
+                return assets.values().stream();
             }
         };
     }
@@ -35,7 +33,7 @@ public interface Archive {
             }
 
             @Override
-            public Stream<Asset> all() {
+            public Stream<? extends Asset> all() {
                 return archives.stream()
                     .flatMap(Archive::all);
             }

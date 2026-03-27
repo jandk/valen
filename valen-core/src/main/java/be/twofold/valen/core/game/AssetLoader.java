@@ -37,7 +37,7 @@ public final class AssetLoader implements LoadingContext, Closeable {
     @Override
     public <T> T load(AssetID id, Class<T> clazz) throws IOException {
         Asset asset = archive.get(id).orElseThrow();
-            AssetReader<T, Asset> reader = findReader(asset, clazz);
+        AssetReader<T, Asset> reader = findReader(asset, clazz);
         return reader.read(asset, this);
     }
 
