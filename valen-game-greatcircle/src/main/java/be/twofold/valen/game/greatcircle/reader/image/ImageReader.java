@@ -69,10 +69,13 @@ public final class ImageReader implements AssetReader.Binary<Texture, GreatCircl
         var width = minMip < 0 ? image.header().width() : image.sliceInfos().get(minMip).width();
         var height = minMip < 0 ? image.header().height() : image.sliceInfos().get(minMip).height();
         var format = toImageFormat(image.header().textureFormat());
-        var surfaces = convertMipMaps(image, format);
         var isCubeMap = image.header().type() == TextureType.TT_CUBIC;
+        var surfaces = convertMipMaps(image, format);
 
-        return new Texture(width, height, format, isCubeMap, surfaces, image.header().scale(), image.header().bias());
+        var kind = isCubeMap ? TextureKind.CUBE_MAP : TextureKind.TEXTURE_2D;
+        var layers = isCubeMap ? 6 : 1;
+        var mipLevels = surfaces.size() / layers;
+        return new Texture(kind, width, height, layers, mipLevels, format, surfaces, image.header().scale(), image.header().bias());
     }
 
     private List<Surface> convertMipMaps(Image image, be.twofold.valen.core.texture.TextureFormat format) {
@@ -91,6 +94,7 @@ public final class ImageReader implements AssetReader.Binary<Texture, GreatCircl
                 surfaces.add(new Surface(
                     image.sliceInfos().get(mipIndex).width(),
                     image.sliceInfos().get(mipIndex).height(),
+                    1,
                     format,
                     image.slices()[mipIndex].toArray()
                 ));

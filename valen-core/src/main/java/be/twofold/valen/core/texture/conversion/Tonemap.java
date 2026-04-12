@@ -39,7 +39,7 @@ final class Tonemap extends Conversion {
     }
 
     private Surface toneMapU16(Surface surface, TextureFormat format) {
-        Surface target = Surface.create(surface.width(), surface.height(), format);
+        Surface target = Surface.create(surface.width(), surface.height(), surface.depth(), format);
 
         var src = surface.data();
         var dst = target.data();
@@ -50,7 +50,7 @@ final class Tonemap extends Conversion {
     }
 
     private Surface toneMapF16(Surface surface, TextureFormat format) {
-        Surface target = Surface.create(surface.width(), surface.height(), format);
+        Surface target = Surface.create(surface.width(), surface.height(), surface.depth(), format);
 
         var src = Bytes.wrap(surface.data());
         var dst = target.data();

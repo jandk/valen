@@ -16,7 +16,7 @@ final class Decompress extends Conversion {
         var format = getTextureFormat(surface.format());
         var decoder = getBlockDecoder(surface.format());
 
-        var result = Surface.create(surface.width(), surface.height(), format);
+        var result = Surface.create(surface.width(), surface.height(), surface.depth(), format);
         decoder.decode(surface.data(), 0, surface.width(), surface.height(), result.data(), 0);
         return result;
     }

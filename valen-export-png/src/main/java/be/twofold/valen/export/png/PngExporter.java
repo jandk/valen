@@ -100,7 +100,7 @@ public final class PngExporter extends TextureExporter {
                 newArray[o + 2] = data[i + 2];
             }
 
-            return Texture.fromSurface(surface.withData(newArray), TextureFormat.R8G8B8_UNORM);
+            return Texture.fromSurface(surface.withData(newArray).withFormat(TextureFormat.R8G8B8_UNORM), TextureFormat.R8G8B8_UNORM);
         }
         return texture;
     }
