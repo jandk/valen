@@ -25,6 +25,10 @@ public final class TexturePresenter extends AbstractPresenter<TextureView> imple
 
     private final Settings settings;
 
+    private Texture texture;
+    private int currentSlice;
+    private int currentMip;
+
     private Bytes.Mutable imagePixels;
     private Texture decoded;
     private boolean premultiplied;
@@ -54,17 +58,57 @@ public final class TexturePresenter extends AbstractPresenter<TextureView> imple
     @Override
     public void setData(Object data) {
         if (data == null) {
-            getView().setImage(null);
+            getView().setImage(null, true);
+            getView().setSliceCount(1);
+            getView().setMipCount(1);
             image = null;
             decoded = null;
             imagePixels = null;
+            texture = null;
             return;
         }
 
-        // Let's try our new ops
+        texture = (Texture) data;
+        currentSlice = 0;
+        currentMip = 0;
+
+        getView().setSliceCount(texture.depthOrLayers());
+        getView().setMipCount(texture.mipLevels());
+
+        decodeAndDisplay(true);
+    }
+
+    @Override
+    public void onChannelSelected(Channel channel) {
+        filterImage(channel);
+    }
+
+    @Override
+    public void onSliceSelected(int slice) {
+        if (currentSlice == slice) return;
+        currentSlice = slice;
+        decodeAndDisplay(false);
+    }
+
+    @Override
+    public void onMipSelected(int mip) {
+        currentMip = mip;
+        if (texture.kind() == TextureKind.TEXTURE_3D) {
+            currentSlice = 0;
+            getView().setSliceCount(texture.sliceCount(currentMip));
+        }
+        decodeAndDisplay(false);
+    }
+
+    private void decodeAndDisplay(boolean resetZoom) {
         long t0 = System.nanoTime();
-        Texture texture = ((Texture) data).firstOnly();
-        decoded = texture.convert(TextureFormat.B8G8R8A8_UNORM, settings.isReconstructZ());
+
+        var oldWidth = decoded != null ? decoded.width() : 0;
+
+        var surface = texture.getSurface(currentSlice, currentMip);
+        var single = Texture.fromSurface(surface, texture.format(), texture.scale(), texture.bias());
+
+        decoded = single.convert(TextureFormat.B8G8R8A8_UNORM, settings.isReconstructZ());
         if (GRAY.contains(texture.format())) {
             splatGray();
         }
@@ -83,18 +127,16 @@ public final class TexturePresenter extends AbstractPresenter<TextureView> imple
         if (channel != Channel.ALL || !premultiplied) {
             filterImage(channel);
         }
-        getView().setImage(image);
+        getView().setImage(image, resetZoom);
+        if (!resetZoom && oldWidth > 0) {
+            getView().adjustScale((double) oldWidth / decoded.width());
+        }
 
-        var status = String.format("%s\u2009-\u2009%dx%d", texture.format(), texture.width(), texture.height());
+        var status = String.format("%s\u2009-\u2009%dx%d", texture.format(), surface.width(), surface.height());
         getView().setStatus(status);
 
         long t3 = System.nanoTime();
         log.info("Decode: {}, Create: {}, Filter: {}", (t1 - t0) / 1e6, (t2 - t1) / 1e6, (t3 - t2) / 1e6);
-    }
-
-    @Override
-    public void onChannelSelected(Channel channel) {
-        filterImage(channel);
     }
 
     private void splatGray() {
