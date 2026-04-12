@@ -14,6 +14,9 @@ module valen.core {
     exports be.twofold.valen.core.geometry;
     exports be.twofold.valen.core.material;
     exports be.twofold.valen.core.scene;
+    exports be.twofold.valen.core.texture.shader.node;
+    exports be.twofold.valen.core.texture.shader.operation;
+    exports be.twofold.valen.core.texture.shader;
     exports be.twofold.valen.core.texture;
     exports be.twofold.valen.core.util.logging;
     exports be.twofold.valen.core.util;

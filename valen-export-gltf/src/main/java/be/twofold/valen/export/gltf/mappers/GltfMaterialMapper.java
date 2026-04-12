@@ -2,6 +2,8 @@ package be.twofold.valen.export.gltf.mappers;
 
 import be.twofold.valen.core.material.*;
 import be.twofold.valen.core.texture.*;
+import be.twofold.valen.core.texture.shader.*;
+import be.twofold.valen.core.texture.shader.node.*;
 import be.twofold.valen.format.gltf.*;
 import be.twofold.valen.format.gltf.model.extension.*;
 import be.twofold.valen.format.gltf.model.material.*;
@@ -58,8 +60,7 @@ public final class GltfMaterialMapper {
         if (groups.containsKey(MaterialPropertyType.Smoothness)) {
             var property = groups.get(MaterialPropertyType.Smoothness).getFirst();
             var reference = property.reference();
-            var smoothnessTexture = reference.supplier().get().firstOnly().convert(TextureFormat.R8_UNORM, true);
-            var metalRoughnessTexture = mapSmoothness(smoothnessTexture);
+            var metalRoughnessTexture = mapSmoothness(reference.supplier().get());
             var roughnessReference = new TextureReference(reference.name(), reference.filename() + ".mr", () -> metalRoughnessTexture);
 
             // TODO: Proper support for metallic and roughness factors
@@ -141,17 +142,15 @@ public final class GltfMaterialMapper {
     }
 
     private Texture mapSmoothness(Texture texture) {
-        var surface = Surface.create(texture.width(), texture.height(), TextureFormat.R8G8B8A8_UNORM);
+        var smoothness = ShaderNode.source();
+        var decorated = texture.decorator().apply(smoothness);
+        var inverted = ShaderNode.scaleAndBias(decorated, -1.0f, 1.0f);
+        var metalRough = ShaderNode.merge(builder -> builder.channel(Channel.GREEN, inverted, Channel.RED));
 
-        var src = texture.surfaces().getFirst().data();
-        var dst = surface.mutableData();
-
-        for (int i = 0, o = 0; i < src.length(); i++, o += 4) {
-            dst.set(o + 1, (byte) (255 - src.getUnsigned(i)));
-            dst.set(o + 3, (byte) (255));
-        }
-
-        return Texture.fromSurface(surface, TextureFormat.R8G8B8A8_UNORM, texture.scale(), texture.bias());
+        return Shader
+            .of(TextureFormat.R8G8B8_UNORM, metalRough)
+            .execute(smoothness.bind(texture.surfaces().getFirst()))
+            .toTexture();
     }
 
     private TextureInfoSchema textureSchema(TextureID textureID) {
