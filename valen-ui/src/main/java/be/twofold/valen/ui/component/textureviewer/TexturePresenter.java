@@ -108,7 +108,7 @@ public final class TexturePresenter extends AbstractPresenter<TextureView> imple
         var surface = texture.getSurface(currentSlice, currentMip);
         var single = Texture.fromSurface(surface, texture.format(), texture.scale(), texture.bias());
 
-        decoded = single.convert(TextureFormat.B8G8R8A8_UNORM, settings.isReconstructZ());
+        decoded = single.convert(TextureFormat.B8G8R8A8_SRGB, settings.isReconstructZ());
         if (GRAY.contains(texture.format())) {
             splatGray();
         }
@@ -119,7 +119,7 @@ public final class TexturePresenter extends AbstractPresenter<TextureView> imple
         image.getPixelWriter().setPixels(
             0, 0, decoded.width(), decoded.height(),
             PixelFormat.getByteBgraPreInstance(),
-            decoded.surfaces().getFirst().data(), 0, decoded.width() * 4
+            decoded.surfaces().getFirst().data().asBuffer(), decoded.width() * 4
         );
         imagePixels = null;
 
@@ -140,7 +140,7 @@ public final class TexturePresenter extends AbstractPresenter<TextureView> imple
     }
 
     private void splatGray() {
-        var data = Bytes.Mutable.wrap(decoded.surfaces().getFirst().data());
+        var data = decoded.surfaces().getFirst().mutableData();
         for (int i = 0; i < data.length(); i += 4) {
             int bgra = data.getInt(i);
             bgra = ((bgra >> 16) & 0xFF) * 0x010101 | (bgra & 0xFF000000);
@@ -150,11 +150,11 @@ public final class TexturePresenter extends AbstractPresenter<TextureView> imple
 
     private boolean detectPremultiplied() {
         var data = decoded.surfaces().getFirst().data();
-        for (int i = 0; i < data.length; i += 4) {
-            int b = Byte.toUnsignedInt(data[i]);
-            int g = Byte.toUnsignedInt(data[i + 1]);
-            int r = Byte.toUnsignedInt(data[i + 2]);
-            int a = Byte.toUnsignedInt(data[i + 3]);
+        for (int i = 0; i < data.length(); i += 4) {
+            int b = data.getUnsigned(i);
+            int g = data.getUnsigned(i + 1);
+            int r = data.getUnsigned(i + 2);
+            int a = data.getUnsigned(i + 3);
             int max = Math.max(Math.max(r, g), b);
             if (max > a) {
                 return false;
@@ -180,7 +180,7 @@ public final class TexturePresenter extends AbstractPresenter<TextureView> imple
             case ALL -> premultiplied ? IntUnaryOperator.identity() : this::premultiply;
         };
 
-        var data = Bytes.wrap(decoded.surfaces().getFirst().data());
+        var data = decoded.surfaces().getFirst().data();
         for (int i = 0; i < data.length(); i += 4) {
             int bgra = data.getInt(i);
             bgra = operator.applyAsInt(bgra);

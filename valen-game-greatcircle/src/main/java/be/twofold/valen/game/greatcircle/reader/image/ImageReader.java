@@ -96,7 +96,7 @@ public final class ImageReader implements AssetReader.Binary<Texture, GreatCircl
                     image.sliceInfos().get(mipIndex).height(),
                     1,
                     format,
-                    image.slices()[mipIndex].toArray()
+                    image.slices()[mipIndex]
                 ));
             }
         }

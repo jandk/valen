@@ -4,7 +4,7 @@ module valen.core {
     requires java.net.http;
     requires org.jetbrains.annotations;
     requires org.slf4j;
-    requires wtf.reversed.toolbox;
+    requires transitive wtf.reversed.toolbox;
 
     requires static java.compiler;
 

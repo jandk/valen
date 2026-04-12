@@ -16,7 +16,6 @@ import javafx.scene.shape.*;
 import wtf.reversed.toolbox.collect.*;
 
 import java.io.*;
-import java.nio.*;
 import java.util.*;
 
 public final class ModelPresenter extends AbstractPresenter<ModelView> implements Viewer {
@@ -102,7 +101,7 @@ public final class ModelPresenter extends AbstractPresenter<ModelView> implement
             var pixelBuffer = new PixelBuffer<>(
                 converted.width(),
                 converted.height(),
-                ByteBuffer.wrap(converted.surfaces().getFirst().data()),
+                converted.surfaces().getFirst().mutableData().asMutableBuffer(),
                 PixelFormat.getByteBgraPreInstance()
             );
 

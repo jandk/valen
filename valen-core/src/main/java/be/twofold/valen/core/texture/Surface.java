@@ -1,5 +1,6 @@
 package be.twofold.valen.core.texture;
 
+import wtf.reversed.toolbox.collect.*;
 import wtf.reversed.toolbox.util.*;
 
 public record Surface(
@@ -7,7 +8,7 @@ public record Surface(
     int height,
     int depth,
     TextureFormat format,
-    byte[] data
+    Bytes data
 ) {
     public Surface {
         Check.positive(width, "width");
@@ -25,16 +26,26 @@ public record Surface(
         Check.positive(width, "width");
         Check.positive(height, "height");
         Check.positive(depth, "depth");
-        var data = new byte[format.surfaceSize(width, height) * depth];
-        return new Surface(width, height, depth, format, data);
+        return new Surface(width, height, depth, format, Bytes.Mutable.allocate(format.surfaceSize(width, height) * depth));
     }
 
     public Surface withFormat(TextureFormat format) {
         return new Surface(width, height, depth, format, data);
     }
 
-    public Surface withData(byte[] data) {
+    public Bytes.Mutable mutableData() {
+        if (!(data instanceof Bytes.Mutable mutable)) {
+            throw new UnsupportedOperationException("Surface data is read-only");
+        }
+        return mutable;
+    }
+
+    public Surface withData(Bytes data) {
         return new Surface(width, height, depth, format, data);
+    }
+
+    public Surface withData(byte[] data) {
+        return withData(Bytes.Mutable.wrap(data));
     }
 
     public static void copy(
@@ -70,7 +81,7 @@ public record Surface(
         for (var ty = 0; ty < tileHeight; ty++) {
             var srcIndex = ((srcTileY + ty) * srcTileWidth + srcTileX) * format.blockSize();
             var dstIndex = ((dstTileY + ty) * dstTileWidth + dstTileX) * format.blockSize();
-            System.arraycopy(src.data, srcIndex, dst.data, dstIndex, tileStride);
+            src.data.slice(srcIndex, tileStride).copyTo(dst.mutableData(), dstIndex);
         }
     }
 
@@ -81,7 +92,7 @@ public record Surface(
             "height=" + height + ", " +
             "depth=" + depth + ", " +
             "format=" + format + ", " +
-            "data=[" + data.length + " bytes]" +
+            "data=[" + data.length() + " bytes]" +
             ")";
     }
 }
