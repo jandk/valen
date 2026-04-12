@@ -3,11 +3,16 @@ package be.twofold.valen.core.texture;
 public enum TextureFormat {
     // Uncompressed formats
     R8_UNORM,
+    R8_SRGB,
     R8G8_UNORM,
     R8G8B8_UNORM,
+    R8G8B8_SRGB,
     R8G8B8A8_UNORM,
+    R8G8B8A8_SRGB,
     B8G8R8_UNORM,
+    B8G8R8_SRGB,
     B8G8R8A8_UNORM,
+    B8G8R8A8_SRGB,
     R16_UNORM,
     R16G16B16A16_UNORM,
     R16_SFLOAT,
@@ -42,16 +47,18 @@ public enum TextureFormat {
 
     public int blockSize() {
         return switch (this) {
-            case R8_UNORM -> 1;
+            case R8_UNORM, R8_SRGB -> 1;
             case R8G8_UNORM,
                  R16_UNORM, R16_SFLOAT -> 2;
-            case R8G8B8_UNORM, B8G8R8_UNORM -> 3;
-            case R8G8B8A8_UNORM, B8G8R8A8_UNORM,
+            case R8G8B8_UNORM, R8G8B8_SRGB,
+                 B8G8R8_UNORM, B8G8R8_SRGB -> 3;
+            case R8G8B8A8_UNORM, R8G8B8A8_SRGB,
+                 B8G8R8A8_UNORM, B8G8R8A8_SRGB,
                  R16G16_SFLOAT -> 4;
+            case R16G16B16_SFLOAT -> 6;
             case R16G16B16A16_UNORM, R16G16B16A16_SFLOAT,
                  BC1_UNORM, BC1_SRGB,
                  BC4_UNORM, BC4_SNORM -> 8;
-            case R16G16B16_SFLOAT -> 6;
             case BC2_UNORM, BC2_SRGB,
                  BC3_UNORM, BC3_SRGB,
                  BC5_UNORM, BC5_SNORM,
@@ -60,9 +67,32 @@ public enum TextureFormat {
         };
     }
 
+    public int channelCount() {
+        return switch (this) {
+            case R8_UNORM, R8_SRGB,
+                 R16_UNORM, R16_SFLOAT,
+                 BC4_UNORM, BC4_SNORM -> 1;
+            case R8G8_UNORM,
+                 R16G16_SFLOAT,
+                 BC5_UNORM, BC5_SNORM -> 2;
+            case R8G8B8_UNORM, R8G8B8_SRGB,
+                 B8G8R8_UNORM, B8G8R8_SRGB,
+                 R16G16B16_SFLOAT,
+                 BC6H_UFLOAT, BC6H_SFLOAT -> 3;
+            case R8G8B8A8_UNORM, R8G8B8A8_SRGB,
+                 B8G8R8A8_UNORM, B8G8R8A8_SRGB,
+                 R16G16B16A16_UNORM, R16G16B16A16_SFLOAT,
+                 BC1_UNORM, BC1_SRGB,
+                 BC2_UNORM, BC2_SRGB,
+                 BC3_UNORM, BC3_SRGB,
+                 BC7_UNORM, BC7_SRGB -> 4;
+        };
+    }
+
     public boolean hasAlpha() {
         return switch (this) {
-            case R8G8B8A8_UNORM, B8G8R8A8_UNORM,
+            case R8G8B8A8_UNORM, R8G8B8A8_SRGB,
+                 B8G8R8A8_UNORM, B8G8R8A8_SRGB,
                  R16G16B16A16_UNORM, R16G16B16A16_SFLOAT,
                  BC1_UNORM, BC1_SRGB,
                  BC2_UNORM, BC2_SRGB,
@@ -81,6 +111,16 @@ public enum TextureFormat {
                  BC5_SNORM, BC5_UNORM,
                  BC6H_SFLOAT, BC6H_UFLOAT,
                  BC7_SRGB, BC7_UNORM -> true;
+            default -> false;
+        };
+    }
+
+    public boolean isSrgb() {
+        return switch (this) {
+            case R8_SRGB,
+                 R8G8B8_SRGB, R8G8B8A8_SRGB,
+                 B8G8R8_SRGB, B8G8R8A8_SRGB,
+                 BC1_SRGB, BC2_SRGB, BC3_SRGB, BC7_SRGB -> true;
             default -> false;
         };
     }

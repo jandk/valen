@@ -144,11 +144,11 @@ public final class GltfMaterialMapper {
         var surface = Surface.create(texture.width(), texture.height(), TextureFormat.R8G8B8A8_UNORM);
 
         var src = texture.surfaces().getFirst().data();
-        var dst = surface.data();
+        var dst = surface.mutableData();
 
-        for (int i = 0, o = 0; i < src.length; i++, o += 4) {
-            dst[o + 1] = (byte) (255 - Byte.toUnsignedInt(src[i]));
-            dst[o + 3] = (byte) (255);
+        for (int i = 0, o = 0; i < src.length(); i++, o += 4) {
+            dst.set(o + 1, (byte) (255 - src.getUnsigned(i)));
+            dst.set(o + 3, (byte) (255));
         }
 
         return Texture.fromSurface(surface, TextureFormat.R8G8B8A8_UNORM, texture.scale(), texture.bias());

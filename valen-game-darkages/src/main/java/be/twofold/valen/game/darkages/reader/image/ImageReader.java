@@ -101,7 +101,7 @@ public final class ImageReader implements AssetReader.Binary<Texture, DarkAgesAs
                     image.mipInfos().get(mipIndex).mipPixelHeight(),
                     1,
                     format,
-                    image.mipData()[mipIndex].toArray()
+                    image.mipData()[mipIndex]
                 ));
             }
         }

@@ -99,7 +99,7 @@ public final class ImageReader implements AssetReader.Binary<Texture, EternalAss
                     image.mipInfos().get(mipIndex).mipPixelHeight(),
                     1,
                     format,
-                    mipData[mipIndex].toArray()
+                    mipData[mipIndex]
                 ));
             }
         }

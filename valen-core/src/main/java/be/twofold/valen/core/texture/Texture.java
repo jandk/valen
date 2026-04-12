@@ -1,6 +1,6 @@
 package be.twofold.valen.core.texture;
 
-import be.twofold.valen.core.texture.conversion.*;
+import be.twofold.valen.core.texture.pipeline.*;
 import wtf.reversed.toolbox.util.*;
 
 import java.util.*;
@@ -57,7 +57,7 @@ public record Texture(
         if (kind == TextureKind.TEXTURE_3D) {
             var mipSurface = surfaces.get(mip);
             var sliceSize = format.surfaceSize(mipSurface.width(), mipSurface.height());
-            var sliceData = Arrays.copyOfRange(mipSurface.data(), slice * sliceSize, (slice + 1) * sliceSize);
+            var sliceData = mipSurface.data().slice(slice * sliceSize, sliceSize);
             return new Surface(mipSurface.width(), mipSurface.height(), 1, format, sliceData);
         }
         return surfaces.get(slice * mipLevels + mip);
@@ -79,8 +79,8 @@ public record Texture(
         return fromSurface(surfaces.getFirst(), format, scale, bias);
     }
 
-    public Texture convert(TextureFormat format, boolean reconstructZ) {
-        return Conversion.convert(this, format, reconstructZ);
+    public Texture convert(TextureFormat dstFormat, boolean reconstructZ) {
+        return TextureConverter.convert(this, dstFormat, reconstructZ);
     }
 
     public static Texture of1D(int width, int mipLevels, TextureFormat format, List<Surface> surfaces) {

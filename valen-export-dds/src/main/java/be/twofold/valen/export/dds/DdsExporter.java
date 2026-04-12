@@ -33,8 +33,12 @@ public final class DdsExporter extends TextureExporter {
     @Override
     protected TextureFormat chooseFormat(TextureFormat format) {
         return switch (format) {
+            // DDS has no 24-bit formats — expand to 32-bit
             case R8G8B8_UNORM -> TextureFormat.R8G8B8A8_UNORM;
             case B8G8R8_UNORM -> TextureFormat.B8G8R8A8_UNORM;
+            case R8G8B8_SRGB -> TextureFormat.R8G8B8A8_SRGB;
+            case B8G8R8_SRGB -> TextureFormat.B8G8R8A8_SRGB;
+            // DDS has no 48-bit float — expand to 64-bit
             case R16G16B16_SFLOAT -> TextureFormat.R16G16B16A16_SFLOAT;
             default -> format;
         };
@@ -44,7 +48,9 @@ public final class DdsExporter extends TextureExporter {
     protected void doExport(Texture texture, OutputStream out) throws IOException {
         out.write(createHeader(texture).toBuffer().array());
         for (var surface : texture.surfaces()) {
-            out.write(surface.data());
+            try (var in = surface.data().asInputStream()) {
+                in.transferTo(out);
+            }
         }
     }
 
@@ -89,11 +95,17 @@ public final class DdsExporter extends TextureExporter {
     private static DxgiFormat mapFormat(TextureFormat format) {
         return switch (format) {
             case R8_UNORM -> DxgiFormat.R8_UNORM;
+            // DXGI has no R8_UNORM_SRGB — preserve bytes, lose sRGB tag
+            case R8_SRGB -> DxgiFormat.R8_UNORM;
             case R8G8_UNORM -> DxgiFormat.R8G8_UNORM;
             case R8G8B8_UNORM,
                  R8G8B8A8_UNORM -> DxgiFormat.R8G8B8A8_UNORM;
+            case R8G8B8_SRGB,
+                 R8G8B8A8_SRGB -> DxgiFormat.R8G8B8A8_UNORM_SRGB;
             case B8G8R8_UNORM,
                  B8G8R8A8_UNORM -> DxgiFormat.B8G8R8A8_UNORM;
+            case B8G8R8_SRGB,
+                 B8G8R8A8_SRGB -> DxgiFormat.B8G8R8A8_UNORM_SRGB;
             case R16_UNORM -> DxgiFormat.R16_UNORM;
             case R16G16B16A16_UNORM -> DxgiFormat.R16G16B16A16_UNORM;
             case R16_SFLOAT -> DxgiFormat.R16_FLOAT;
