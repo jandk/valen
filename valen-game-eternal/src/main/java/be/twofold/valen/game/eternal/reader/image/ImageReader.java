@@ -2,6 +2,7 @@ package be.twofold.valen.game.eternal.reader.image;
 
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.texture.*;
+import be.twofold.valen.core.texture.shader.node.*;
 import be.twofold.valen.game.eternal.*;
 import be.twofold.valen.game.eternal.resource.*;
 import wtf.reversed.toolbox.collect.*;
@@ -9,6 +10,7 @@ import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 import java.util.*;
+import java.util.function.*;
 import java.util.stream.*;
 
 public final class ImageReader implements AssetReader.Binary<Texture, EternalAsset> {
@@ -83,7 +85,8 @@ public final class ImageReader implements AssetReader.Binary<Texture, EternalAss
         var kind = isCubeMap ? TextureKind.CUBE_MAP : TextureKind.TEXTURE_2D;
         var layers = isCubeMap ? 6 : 1;
         var mipLevels = surfaces.size() / layers;
-        return new Texture(kind, width, height, layers, mipLevels, format, surfaces, scale, bias);
+        UnaryOperator<ShaderNode> scaleAndBias = node -> ShaderNode.scaleAndBias(node, scale, bias);
+        return new Texture(format, kind, width, height, layers, mipLevels, surfaces, scaleAndBias);
     }
 
     private List<Surface> convertMipMaps(Image image, Bytes[] mipData, int minMip, be.twofold.valen.core.texture.TextureFormat format) {

@@ -10,19 +10,10 @@ import javafx.scene.image.*;
 import org.slf4j.*;
 import wtf.reversed.toolbox.collect.*;
 
-import java.util.*;
 import java.util.function.*;
 
 public final class TexturePresenter extends AbstractPresenter<TextureView> implements TextureView.Listener, Viewer {
     private static final Logger log = LoggerFactory.getLogger(TexturePresenter.class);
-    private static final Set<TextureFormat> GRAY = Set.of(
-        TextureFormat.R8_UNORM,
-        TextureFormat.R16_UNORM,
-        TextureFormat.R16_SFLOAT,
-        TextureFormat.BC4_UNORM,
-        TextureFormat.BC4_SNORM
-    );
-
     private final Settings settings;
 
     private Texture texture;
@@ -85,7 +76,9 @@ public final class TexturePresenter extends AbstractPresenter<TextureView> imple
 
     @Override
     public void onSliceSelected(int slice) {
-        if (currentSlice == slice) return;
+        if (currentSlice == slice) {
+            return;
+        }
         currentSlice = slice;
         decodeAndDisplay(false);
     }
@@ -106,12 +99,7 @@ public final class TexturePresenter extends AbstractPresenter<TextureView> imple
         var oldWidth = decoded != null ? decoded.width() : 0;
 
         var surface = texture.getSurface(currentSlice, currentMip);
-        var single = Texture.fromSurface(surface, texture.format(), texture.scale(), texture.bias());
-
-        decoded = single.convert(TextureFormat.B8G8R8A8_SRGB, settings.isReconstructZ());
-        if (GRAY.contains(texture.format())) {
-            splatGray();
-        }
+        decoded = texture.convertSurface(currentSlice, currentMip, TextureFormat.B8G8R8A8_SRGB, settings.isReconstructZ());
         premultiplied = !texture.format().hasAlpha() || detectPremultiplied();
 
         long t1 = System.nanoTime();
@@ -139,19 +127,10 @@ public final class TexturePresenter extends AbstractPresenter<TextureView> imple
         log.info("Decode: {}, Create: {}, Filter: {}", (t1 - t0) / 1e6, (t2 - t1) / 1e6, (t3 - t2) / 1e6);
     }
 
-    private void splatGray() {
-        var data = decoded.surfaces().getFirst().mutableData();
-        for (int i = 0; i < data.length(); i += 4) {
-            int bgra = data.getInt(i);
-            bgra = ((bgra >> 16) & 0xFF) * 0x010101 | (bgra & 0xFF000000);
-            data.setInt(i, bgra);
-        }
-    }
-
     private boolean detectPremultiplied() {
         var data = decoded.surfaces().getFirst().data();
         for (int i = 0; i < data.length(); i += 4) {
-            int b = data.getUnsigned(i);
+            int b = data.getUnsigned(i/**/);
             int g = data.getUnsigned(i + 1);
             int r = data.getUnsigned(i + 2);
             int a = data.getUnsigned(i + 3);
@@ -167,7 +146,7 @@ public final class TexturePresenter extends AbstractPresenter<TextureView> imple
         this.channel = channel;
 
         if (imagePixels == null) {
-            imagePixels = Bytes.Mutable.allocate(decoded.width() * decoded.height() * 4);
+            imagePixels = Bytes.allocate(decoded.width() * decoded.height() * 4);
         }
 
         // B8G8R8A8

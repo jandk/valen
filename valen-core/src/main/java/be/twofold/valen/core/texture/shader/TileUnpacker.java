@@ -1,4 +1,4 @@
-package be.twofold.valen.core.texture.pipeline;
+package be.twofold.valen.core.texture.shader;
 
 import be.twofold.tinybcdec.*;
 import be.twofold.valen.core.texture.*;
@@ -8,23 +8,35 @@ import wtf.reversed.toolbox.math.*;
 
 @FunctionalInterface
 interface TileUnpacker {
-    void unpack(int sx, int sy, float[] dst, int tw, int th);
+    void unpack(int srcX, int srcY, int srcZ, float[] dst, int tileW, int tileH);
 
     static TileUnpacker forSurface(Surface source) {
         Surface dec = source.format().isCompressed() ? decompress(source) : source;
         return switch (dec.format()) {
-            case R8_UNORM, R8_SRGB -> (sx, sy, dst, tw, th) -> unpackR8(dec, sx, sy, dst, tw, th);
-            case R8G8_UNORM -> (sx, sy, dst, tw, th) -> unpackR8G8(dec, sx, sy, dst, tw, th);
-            case R8G8B8_UNORM, R8G8B8_SRGB -> (sx, sy, dst, tw, th) -> unpackR8G8B8(dec, sx, sy, dst, tw, th);
-            case R8G8B8A8_UNORM, R8G8B8A8_SRGB -> (sx, sy, dst, tw, th) -> unpackR8G8B8A8(dec, sx, sy, dst, tw, th);
-            case B8G8R8_UNORM, B8G8R8_SRGB -> (sx, sy, dst, tw, th) -> unpackB8G8R8(dec, sx, sy, dst, tw, th);
-            case B8G8R8A8_UNORM, B8G8R8A8_SRGB -> (sx, sy, dst, tw, th) -> unpackB8G8R8A8(dec, sx, sy, dst, tw, th);
-            case R16_UNORM -> (sx, sy, dst, tw, th) -> unpackR16Unorm(dec, sx, sy, dst, tw, th);
-            case R16G16B16A16_UNORM -> (sx, sy, dst, tw, th) -> unpackR16G16B16A16Unorm(dec, sx, sy, dst, tw, th);
-            case R16_SFLOAT -> (sx, sy, dst, tw, th) -> unpackR16Sfloat(dec, sx, sy, dst, tw, th);
-            case R16G16_SFLOAT -> (sx, sy, dst, tw, th) -> unpackR16G16Sfloat(dec, sx, sy, dst, tw, th);
-            case R16G16B16_SFLOAT -> (sx, sy, dst, tw, th) -> unpackR16G16B16Sfloat(dec, sx, sy, dst, tw, th);
-            case R16G16B16A16_SFLOAT -> (sx, sy, dst, tw, th) -> unpackR16G16B16A16Sfloat(dec, sx, sy, dst, tw, th);
+            case R8_UNORM, R8_SRGB ->
+                (srcX, srcY, srcZ, dst, tileW, tileH) -> unpackR8(dec, srcX, srcY, srcZ, dst, tileW, tileH);
+            case R8G8_UNORM ->
+                (srcX, srcY, srcZ, dst, tileW, tileH) -> unpackR8G8(dec, srcX, srcY, srcZ, dst, tileW, tileH);
+            case R8G8B8_UNORM, R8G8B8_SRGB ->
+                (srcX, srcY, srcZ, dst, tileW, tileH) -> unpackR8G8B8(dec, srcX, srcY, srcZ, dst, tileW, tileH);
+            case R8G8B8A8_UNORM, R8G8B8A8_SRGB ->
+                (srcX, srcY, srcZ, dst, tileW, tileH) -> unpackR8G8B8A8(dec, srcX, srcY, srcZ, dst, tileW, tileH);
+            case B8G8R8_UNORM, B8G8R8_SRGB ->
+                (srcX, srcY, srcZ, dst, tileW, tileH) -> unpackB8G8R8(dec, srcX, srcY, srcZ, dst, tileW, tileH);
+            case B8G8R8A8_UNORM, B8G8R8A8_SRGB ->
+                (srcX, srcY, srcZ, dst, tileW, tileH) -> unpackB8G8R8A8(dec, srcX, srcY, srcZ, dst, tileW, tileH);
+            case R16_UNORM ->
+                (srcX, srcY, srcZ, dst, tileW, tileH) -> unpackR16Unorm(dec, srcX, srcY, srcZ, dst, tileW, tileH);
+            case R16G16B16A16_UNORM ->
+                (srcX, srcY, srcZ, dst, tileW, tileH) -> unpackR16G16B16A16Unorm(dec, srcX, srcY, srcZ, dst, tileW, tileH);
+            case R16_SFLOAT ->
+                (srcX, srcY, srcZ, dst, tileW, tileH) -> unpackR16Sfloat(dec, srcX, srcY, srcZ, dst, tileW, tileH);
+            case R16G16_SFLOAT ->
+                (srcX, srcY, srcZ, dst, tileW, tileH) -> unpackR16G16Sfloat(dec, srcX, srcY, srcZ, dst, tileW, tileH);
+            case R16G16B16_SFLOAT ->
+                (srcX, srcY, srcZ, dst, tileW, tileH) -> unpackR16G16B16Sfloat(dec, srcX, srcY, srcZ, dst, tileW, tileH);
+            case R16G16B16A16_SFLOAT ->
+                (srcX, srcY, srcZ, dst, tileW, tileH) -> unpackR16G16B16A16Sfloat(dec, srcX, srcY, srcZ, dst, tileW, tileH);
             default -> throw new UnsupportedOperationException("No unpacker for: " + dec.format());
         };
     }
@@ -73,13 +85,13 @@ interface TileUnpacker {
         };
     }
 
-    private static void unpackR8(Surface src, int sx, int sy, float[] dst, int tw, int th) {
+    private static void unpackR8(Surface src, int srcX, int srcY, int srcZ, float[] dst, int tileW, int tileH) {
         Bytes data = src.data();
         boolean srgb = src.format().isSrgb();
-        for (int row = 0; row < th; row++) {
-            int srcOff = (sy + row) * src.width() + sx;
-            int dstOff = row * tw * 4;
-            for (int col = 0; col < tw; col++, srcOff++, dstOff += 4) {
+        for (int row = 0; row < tileH; row++) {
+            int srcOff = src.offset(srcX, srcY + row, srcZ);
+            int dstOff = row * tileW * 4;
+            for (int col = 0; col < tileW; col++, srcOff++, dstOff += 4) {
                 float r = FloatMath.unpackUNorm8(data.get(srcOff));
                 dst[dstOff/**/] = srgb ? MathF.srgbToLinear(r) : r;
                 dst[dstOff + 1] = 0.0f;
@@ -89,13 +101,13 @@ interface TileUnpacker {
         }
     }
 
-    private static void unpackR8G8(Surface src, int sx, int sy, float[] dst, int tw, int th) {
+    private static void unpackR8G8(Surface src, int srcX, int srcY, int srcZ, float[] dst, int tileW, int tileH) {
         Bytes data = src.data();
         boolean srgb = src.format().isSrgb();
-        for (int row = 0; row < th; row++) {
-            int srcOff = ((sy + row) * src.width() + sx) * 2;
-            int dstOff = row * tw * 4;
-            for (int col = 0; col < tw; col++, srcOff += 2, dstOff += 4) {
+        for (int row = 0; row < tileH; row++) {
+            int srcOff = src.offset(srcX, srcY + row, srcZ);
+            int dstOff = row * tileW * 4;
+            for (int col = 0; col < tileW; col++, srcOff += 2, dstOff += 4) {
                 float r = FloatMath.unpackUNorm8(data.get(srcOff/**/));
                 float g = FloatMath.unpackUNorm8(data.get(srcOff + 1));
                 dst[dstOff/**/] = srgb ? MathF.srgbToLinear(r) : r;
@@ -106,13 +118,13 @@ interface TileUnpacker {
         }
     }
 
-    private static void unpackR8G8B8(Surface src, int sx, int sy, float[] dst, int tw, int th) {
+    private static void unpackR8G8B8(Surface src, int srcX, int srcY, int srcZ, float[] dst, int tileW, int tileH) {
         Bytes data = src.data();
         boolean srgb = src.format().isSrgb();
-        for (int row = 0; row < th; row++) {
-            int srcOff = ((sy + row) * src.width() + sx) * 3;
-            int dstOff = row * tw * 4;
-            for (int col = 0; col < tw; col++, srcOff += 3, dstOff += 4) {
+        for (int row = 0; row < tileH; row++) {
+            int srcOff = src.offset(srcX, srcY + row, srcZ);
+            int dstOff = row * tileW * 4;
+            for (int col = 0; col < tileW; col++, srcOff += 3, dstOff += 4) {
                 float r = FloatMath.unpackUNorm8(data.get(srcOff/**/));
                 float g = FloatMath.unpackUNorm8(data.get(srcOff + 1));
                 float b = FloatMath.unpackUNorm8(data.get(srcOff + 2));
@@ -124,13 +136,13 @@ interface TileUnpacker {
         }
     }
 
-    private static void unpackR8G8B8A8(Surface src, int sx, int sy, float[] dst, int tw, int th) {
+    private static void unpackR8G8B8A8(Surface src, int srcX, int srcY, int srcZ, float[] dst, int tileW, int tileH) {
         Bytes data = src.data();
         boolean srgb = src.format().isSrgb();
-        for (int row = 0; row < th; row++) {
-            int srcOff = ((sy + row) * src.width() + sx) * 4;
-            int dstOff = row * tw * 4;
-            for (int col = 0; col < tw; col++, srcOff += 4, dstOff += 4) {
+        for (int row = 0; row < tileH; row++) {
+            int srcOff = src.offset(srcX, srcY + row, srcZ);
+            int dstOff = row * tileW * 4;
+            for (int col = 0; col < tileW; col++, srcOff += 4, dstOff += 4) {
                 float r = FloatMath.unpackUNorm8(data.get(srcOff/**/));
                 float g = FloatMath.unpackUNorm8(data.get(srcOff + 1));
                 float b = FloatMath.unpackUNorm8(data.get(srcOff + 2));
@@ -143,13 +155,13 @@ interface TileUnpacker {
         }
     }
 
-    private static void unpackB8G8R8(Surface src, int sx, int sy, float[] dst, int tw, int th) {
+    private static void unpackB8G8R8(Surface src, int srcX, int srcY, int srcZ, float[] dst, int tileW, int tileH) {
         Bytes data = src.data();
         boolean srgb = src.format().isSrgb();
-        for (int row = 0; row < th; row++) {
-            int srcOff = ((sy + row) * src.width() + sx) * 3;
-            int dstOff = row * tw * 4;
-            for (int col = 0; col < tw; col++, srcOff += 3, dstOff += 4) {
+        for (int row = 0; row < tileH; row++) {
+            int srcOff = src.offset(srcX, srcY + row, srcZ);
+            int dstOff = row * tileW * 4;
+            for (int col = 0; col < tileW; col++, srcOff += 3, dstOff += 4) {
                 float r = FloatMath.unpackUNorm8(data.get(srcOff + 2));
                 float g = FloatMath.unpackUNorm8(data.get(srcOff + 1));
                 float b = FloatMath.unpackUNorm8(data.get(srcOff/**/));
@@ -161,13 +173,13 @@ interface TileUnpacker {
         }
     }
 
-    private static void unpackB8G8R8A8(Surface src, int sx, int sy, float[] dst, int tw, int th) {
+    private static void unpackB8G8R8A8(Surface src, int srcX, int srcY, int srcZ, float[] dst, int tileW, int tileH) {
         Bytes data = src.data();
         boolean srgb = src.format().isSrgb();
-        for (int row = 0; row < th; row++) {
-            int srcOff = ((sy + row) * src.width() + sx) * 4;
-            int dstOff = row * tw * 4;
-            for (int col = 0; col < tw; col++, srcOff += 4, dstOff += 4) {
+        for (int row = 0; row < tileH; row++) {
+            int srcOff = src.offset(srcX, srcY + row, srcZ);
+            int dstOff = row * tileW * 4;
+            for (int col = 0; col < tileW; col++, srcOff += 4, dstOff += 4) {
                 float r = FloatMath.unpackUNorm8(data.get(srcOff + 2));
                 float g = FloatMath.unpackUNorm8(data.get(srcOff + 1));
                 float b = FloatMath.unpackUNorm8(data.get(srcOff/**/));
@@ -180,12 +192,12 @@ interface TileUnpacker {
         }
     }
 
-    private static void unpackR16Unorm(Surface src, int sx, int sy, float[] dst, int tw, int th) {
+    private static void unpackR16Unorm(Surface src, int srcX, int srcY, int srcZ, float[] dst, int tileW, int tileH) {
         Bytes data = src.data();
-        for (int row = 0; row < th; row++) {
-            int srcOff = ((sy + row) * src.width() + sx) * 2;
-            int dstOff = row * tw * 4;
-            for (int col = 0; col < tw; col++, srcOff += 2, dstOff += 4) {
+        for (int row = 0; row < tileH; row++) {
+            int srcOff = src.offset(srcX, srcY + row, srcZ);
+            int dstOff = row * tileW * 4;
+            for (int col = 0; col < tileW; col++, srcOff += 2, dstOff += 4) {
                 dst[dstOff/**/] = FloatMath.unpackUNorm16(data.getShort(srcOff));
                 dst[dstOff + 1] = 0.0f;
                 dst[dstOff + 2] = 0.0f;
@@ -194,12 +206,12 @@ interface TileUnpacker {
         }
     }
 
-    private static void unpackR16G16B16A16Unorm(Surface src, int sx, int sy, float[] dst, int tw, int th) {
+    private static void unpackR16G16B16A16Unorm(Surface src, int srcX, int srcY, int srcZ, float[] dst, int tileW, int tileH) {
         Bytes data = src.data();
-        for (int row = 0; row < th; row++) {
-            int srcOff = ((sy + row) * src.width() + sx) * 8;
-            int dstOff = row * tw * 4;
-            for (int col = 0; col < tw; col++, srcOff += 8, dstOff += 4) {
+        for (int row = 0; row < tileH; row++) {
+            int srcOff = src.offset(srcX, srcY + row, srcZ);
+            int dstOff = row * tileW * 4;
+            for (int col = 0; col < tileW; col++, srcOff += 8, dstOff += 4) {
                 dst[dstOff/**/] = FloatMath.unpackUNorm16(data.getShort(srcOff/**/));
                 dst[dstOff + 1] = FloatMath.unpackUNorm16(data.getShort(srcOff + 2));
                 dst[dstOff + 2] = FloatMath.unpackUNorm16(data.getShort(srcOff + 4));
@@ -208,12 +220,12 @@ interface TileUnpacker {
         }
     }
 
-    private static void unpackR16Sfloat(Surface src, int sx, int sy, float[] dst, int tw, int th) {
+    private static void unpackR16Sfloat(Surface src, int srcX, int srcY, int srcZ, float[] dst, int tileW, int tileH) {
         Bytes data = src.data();
-        for (int row = 0; row < th; row++) {
-            int srcOff = ((sy + row) * src.width() + sx) * 2;
-            int dstOff = row * tw * 4;
-            for (int col = 0; col < tw; col++, srcOff += 2, dstOff += 4) {
+        for (int row = 0; row < tileH; row++) {
+            int srcOff = src.offset(srcX, srcY + row, srcZ);
+            int dstOff = row * tileW * 4;
+            for (int col = 0; col < tileW; col++, srcOff += 2, dstOff += 4) {
                 dst[dstOff/**/] = Float.float16ToFloat(data.getShort(srcOff));
                 dst[dstOff + 1] = 0.0f;
                 dst[dstOff + 2] = 0.0f;
@@ -222,12 +234,12 @@ interface TileUnpacker {
         }
     }
 
-    private static void unpackR16G16Sfloat(Surface src, int sx, int sy, float[] dst, int tw, int th) {
+    private static void unpackR16G16Sfloat(Surface src, int srcX, int srcY, int srcZ, float[] dst, int tileW, int tileH) {
         Bytes data = src.data();
-        for (int row = 0; row < th; row++) {
-            int srcOff = ((sy + row) * src.width() + sx) * 4;
-            int dstOff = row * tw * 4;
-            for (int col = 0; col < tw; col++, srcOff += 4, dstOff += 4) {
+        for (int row = 0; row < tileH; row++) {
+            int srcOff = src.offset(srcX, srcY + row, srcZ);
+            int dstOff = row * tileW * 4;
+            for (int col = 0; col < tileW; col++, srcOff += 4, dstOff += 4) {
                 dst[dstOff/**/] = Float.float16ToFloat(data.getShort(srcOff/**/));
                 dst[dstOff + 1] = Float.float16ToFloat(data.getShort(srcOff + 2));
                 dst[dstOff + 2] = 0.0f;
@@ -236,12 +248,12 @@ interface TileUnpacker {
         }
     }
 
-    private static void unpackR16G16B16Sfloat(Surface src, int sx, int sy, float[] dst, int tw, int th) {
+    private static void unpackR16G16B16Sfloat(Surface src, int srcX, int srcY, int srcZ, float[] dst, int tileW, int tileH) {
         Bytes data = src.data();
-        for (int row = 0; row < th; row++) {
-            int srcOff = ((sy + row) * src.width() + sx) * 6;
-            int dstOff = row * tw * 4;
-            for (int col = 0; col < tw; col++, srcOff += 6, dstOff += 4) {
+        for (int row = 0; row < tileH; row++) {
+            int srcOff = src.offset(srcX, srcY + row, srcZ);
+            int dstOff = row * tileW * 4;
+            for (int col = 0; col < tileW; col++, srcOff += 6, dstOff += 4) {
                 dst[dstOff/**/] = Float.float16ToFloat(data.getShort(srcOff/**/));
                 dst[dstOff + 1] = Float.float16ToFloat(data.getShort(srcOff + 2));
                 dst[dstOff + 2] = Float.float16ToFloat(data.getShort(srcOff + 4));
@@ -250,12 +262,12 @@ interface TileUnpacker {
         }
     }
 
-    private static void unpackR16G16B16A16Sfloat(Surface src, int sx, int sy, float[] dst, int tw, int th) {
+    private static void unpackR16G16B16A16Sfloat(Surface src, int srcX, int srcY, int srcZ, float[] dst, int tileW, int tileH) {
         Bytes data = src.data();
-        for (int row = 0; row < th; row++) {
-            int srcOff = ((sy + row) * src.width() + sx) * 8;
-            int dstOff = row * tw * 4;
-            for (int col = 0; col < tw; col++, srcOff += 8, dstOff += 4) {
+        for (int row = 0; row < tileH; row++) {
+            int srcOff = src.offset(srcX, srcY + row, srcZ);
+            int dstOff = row * tileW * 4;
+            for (int col = 0; col < tileW; col++, srcOff += 8, dstOff += 4) {
                 dst[dstOff/**/] = Float.float16ToFloat(data.getShort(srcOff/**/));
                 dst[dstOff + 1] = Float.float16ToFloat(data.getShort(srcOff + 2));
                 dst[dstOff + 2] = Float.float16ToFloat(data.getShort(srcOff + 4));

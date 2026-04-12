@@ -1,28 +1,29 @@
 package be.twofold.valen.core.texture;
 
-import be.twofold.valen.core.texture.pipeline.*;
+import be.twofold.valen.core.texture.shader.*;
+import be.twofold.valen.core.texture.shader.node.*;
 import wtf.reversed.toolbox.util.*;
 
 import java.util.*;
+import java.util.function.*;
 
 public record Texture(
+    TextureFormat format,
     TextureKind kind,
     int width,
     int height,
     int depthOrLayers,
     int mipLevels,
-    TextureFormat format,
     List<Surface> surfaces,
-    float scale,
-    float bias
+    UnaryOperator<ShaderNode> decorator
 ) {
     public Texture {
+        Check.nonNull(format, "format");
         Check.nonNull(kind, "kind");
         Check.argument(width > 0, "width must be greater than 0");
         Check.argument(height > 0, "height must be greater than 0");
         Check.argument(depthOrLayers > 0, "depthOrLayers must be greater than 0");
         Check.argument(mipLevels > 0, "mipLevels must be greater than 0");
-        Check.nonNull(format, "format");
 
         switch (kind) {
             case TEXTURE_1D, TEXTURE_1D_ARRAY -> Check.argument(height == 1, "height must be 1 for " + kind);
@@ -63,65 +64,42 @@ public record Texture(
         return surfaces.get(slice * mipLevels + mip);
     }
 
-    public Texture withFormat(TextureFormat format) {
-        return new Texture(kind, width, height, depthOrLayers, mipLevels, format, surfaces, scale, bias);
+    public Texture convert(TextureFormat dstFormat, boolean reconstructZ) {
+        var source = ShaderNode.source();
+
+        ShaderNode node = decorator.apply(source);
+        if (format.channelCount() == 1 && dstFormat.channelCount() >= 3) {
+            node = ShaderNode.splat(node, Channel.RED, Channel.GREEN, Channel.BLUE);
+        }
+        if (reconstructZ && format.channelCount() == 2 && dstFormat.channelCount() >= 3) {
+            node = ShaderNode.reconstructZ(node);
+        }
+        var shader = Shader.of(dstFormat, node);
+
+        var surfaces = this.surfaces.stream()
+            .map(surface -> shader.execute(source.bind(surface)))
+            .toList();
+        return new Texture(dstFormat, kind, width, height, depthOrLayers, mipLevels, surfaces, UnaryOperator.identity());
     }
 
-    public Texture withSurfaces(List<Surface> surfaces) {
-        return new Texture(kind, width, height, depthOrLayers, mipLevels, format, surfaces, scale, bias);
-    }
-
-    public Texture withScaleAndBias(float scale, float bias) {
-        return new Texture(kind, width, height, depthOrLayers, mipLevels, format, surfaces, scale, bias);
+    public Texture convertSurface(int slice, int mip, TextureFormat dstFormat, boolean reconstructZ) {
+        return withSingleSurface(getSurface(slice, mip)).convert(dstFormat, reconstructZ);
     }
 
     public Texture firstOnly() {
-        return fromSurface(surfaces.getFirst(), format, scale, bias);
+        return withSingleSurface(surfaces.getFirst());
     }
 
-    public Texture convert(TextureFormat dstFormat, boolean reconstructZ) {
-        return TextureConverter.convert(this, dstFormat, reconstructZ);
-    }
-
-    public static Texture of1D(int width, int mipLevels, TextureFormat format, List<Surface> surfaces) {
-        return new Texture(TextureKind.TEXTURE_1D, width, 1, 1, mipLevels, format, surfaces, 1.0f, 0.0f);
-    }
-
-    public static Texture of1DArray(int width, int layers, int mipLevels, TextureFormat format, List<Surface> surfaces) {
-        return new Texture(TextureKind.TEXTURE_1D_ARRAY, width, 1, layers, mipLevels, format, surfaces, 1.0f, 0.0f);
-    }
-
-    public static Texture of2D(int width, int height, int mipLevels, TextureFormat format, List<Surface> surfaces) {
-        return new Texture(TextureKind.TEXTURE_2D, width, height, 1, mipLevels, format, surfaces, 1.0f, 0.0f);
-    }
-
-    public static Texture of2DArray(int width, int height, int layers, int mipLevels, TextureFormat format, List<Surface> surfaces) {
-        return new Texture(TextureKind.TEXTURE_2D_ARRAY, width, height, layers, mipLevels, format, surfaces, 1.0f, 0.0f);
-    }
-
-    public static Texture of3D(int width, int height, int depth, int mipLevels, TextureFormat format, List<Surface> surfaces) {
-        return new Texture(TextureKind.TEXTURE_3D, width, height, depth, mipLevels, format, surfaces, 1.0f, 0.0f);
-    }
-
-    public static Texture ofCube(int width, int height, int mipLevels, TextureFormat format, List<Surface> surfaces) {
-        return new Texture(TextureKind.CUBE_MAP, width, height, 6, mipLevels, format, surfaces, 1.0f, 0.0f);
-    }
-
-    public static Texture fromSurface(Surface surface, TextureFormat format) {
-        return fromSurface(surface, format, 1.0f, 0.0f);
-    }
-
-    public static Texture fromSurface(Surface surface, TextureFormat format, float scale, float bias) {
+    private Texture withSingleSurface(Surface surface) {
         return new Texture(
+            format,
             TextureKind.TEXTURE_2D,
             surface.width(),
             surface.height(),
+            surface.depth(),
             1,
-            1,
-            format,
             List.of(surface),
-            scale,
-            bias
+            decorator
         );
     }
 }

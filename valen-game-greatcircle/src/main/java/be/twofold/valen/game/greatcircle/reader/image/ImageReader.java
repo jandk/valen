@@ -2,6 +2,7 @@ package be.twofold.valen.game.greatcircle.reader.image;
 
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.texture.*;
+import be.twofold.valen.core.texture.shader.node.*;
 import be.twofold.valen.game.greatcircle.*;
 import be.twofold.valen.game.greatcircle.resource.*;
 import be.twofold.valen.game.idtech.defines.*;
@@ -9,6 +10,7 @@ import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 import java.util.*;
+import java.util.function.*;
 
 public final class ImageReader implements AssetReader.Binary<Texture, GreatCircleAsset> {
     private final boolean readStreams;
@@ -75,7 +77,8 @@ public final class ImageReader implements AssetReader.Binary<Texture, GreatCircl
         var kind = isCubeMap ? TextureKind.CUBE_MAP : TextureKind.TEXTURE_2D;
         var layers = isCubeMap ? 6 : 1;
         var mipLevels = surfaces.size() / layers;
-        return new Texture(kind, width, height, layers, mipLevels, format, surfaces, image.header().scale(), image.header().bias());
+        UnaryOperator<ShaderNode> scaleAndBias = node -> ShaderNode.scaleAndBias(node, image.header().scale(), image.header().bias());
+        return new Texture(format, kind, width, height, layers, mipLevels, surfaces, scaleAndBias);
     }
 
     private List<Surface> convertMipMaps(Image image, be.twofold.valen.core.texture.TextureFormat format) {

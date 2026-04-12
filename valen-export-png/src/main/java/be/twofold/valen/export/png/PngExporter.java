@@ -3,6 +3,7 @@ package be.twofold.valen.export.png;
 import be.twofold.valen.core.export.*;
 import be.twofold.valen.core.texture.*;
 import be.twofold.valen.format.png.*;
+import wtf.reversed.toolbox.collect.*;
 
 import java.io.*;
 
@@ -103,7 +104,9 @@ public final class PngExporter extends TextureExporter {
             stripped[o + 2] = raw[i + 2];
         }
 
-        return Texture.fromSurface(surface.withData(stripped).withFormat(rgbFormat), rgbFormat);
+        return surface
+            .withFormatAndData(rgbFormat, Bytes.wrap(stripped))
+            .toTexture();
     }
 
     private PngFormat mapPngFormat(Texture texture) {
