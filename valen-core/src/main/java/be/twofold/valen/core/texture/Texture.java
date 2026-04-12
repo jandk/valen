@@ -44,6 +44,25 @@ public record Texture(
         surfaces = List.copyOf(surfaces);
     }
 
+    public int sliceCount(int mip) {
+        return kind == TextureKind.TEXTURE_3D
+            ? Math.max(1, depthOrLayers >> mip)
+            : depthOrLayers;
+    }
+
+    public Surface getSurface(int slice, int mip) {
+        Check.argument(mip >= 0 && mip < mipLevels, "mip out of range: " + mip);
+        Check.argument(slice >= 0 && slice < sliceCount(mip), "slice out of range: " + slice);
+
+        if (kind == TextureKind.TEXTURE_3D) {
+            var mipSurface = surfaces.get(mip);
+            var sliceSize = format.surfaceSize(mipSurface.width(), mipSurface.height());
+            var sliceData = Arrays.copyOfRange(mipSurface.data(), slice * sliceSize, (slice + 1) * sliceSize);
+            return new Surface(mipSurface.width(), mipSurface.height(), 1, format, sliceData);
+        }
+        return surfaces.get(slice * mipLevels + mip);
+    }
+
     public Texture withFormat(TextureFormat format) {
         return new Texture(kind, width, height, depthOrLayers, mipLevels, format, surfaces, scale, bias);
     }
