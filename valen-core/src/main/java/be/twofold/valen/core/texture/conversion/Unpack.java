@@ -22,7 +22,7 @@ final class Unpack extends Conversion {
     }
 
     private static Surface unpack(Surface source, TextureFormat dstFormat, BiConsumer<byte[], byte[]> operation) {
-        var target = Surface.create(source.width(), source.height(), dstFormat);
+        var target = Surface.create(source.width(), source.height(), source.depth(), dstFormat);
 
         var src = source.data();
         var dst = target.data();

@@ -56,7 +56,7 @@ public final class DdsExporter extends TextureExporter {
         var width = texture.width();
         var caps1 = DdsHeader.DDSCAPS_TEXTURE;
 
-        var mipMapCount = texture.surfaces().size() / (texture.isCubeMap() ? 6 : 1);
+        var mipMapCount = texture.mipLevels();
         if (mipMapCount > 0) {
             flags |= DdsHeader.DDSD_MIPMAPCOUNT;
 
@@ -78,7 +78,7 @@ public final class DdsExporter extends TextureExporter {
         var header10 = createHeaderDxt10(texture, format);
 
         var caps2 = 0;
-        if (texture.isCubeMap()) {
+        if (texture.kind() == TextureKind.CUBE_MAP) {
             caps1 |= DdsHeader.DDSCAPS_COMPLEX;
             caps2 |= DdsHeader.DDSCAPS2_CUBEMAP | DdsHeader.DDSCAPS2_CUBEMAP_ALL_FACES;
         }
@@ -124,7 +124,7 @@ public final class DdsExporter extends TextureExporter {
     }
 
     private DdsHeaderDxt10 createHeaderDxt10(Texture texture, DxgiFormat format) {
-        var miscFlag = texture.isCubeMap() ? DdsHeaderDxt10.DDS_RESOURCE_MISC_TEXTURECUBE : 0;
+        var miscFlag = texture.kind() == TextureKind.CUBE_MAP ? DdsHeaderDxt10.DDS_RESOURCE_MISC_TEXTURECUBE : 0;
         return new DdsHeaderDxt10(
             format.getCode(),
             DdsHeaderDxt10.DDS_DIMENSION_TEXTURE2D,
