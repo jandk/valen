@@ -73,20 +73,21 @@ public final class ImageReader implements AssetReader.Binary<Texture, EternalAss
     }
 
     private Texture map(Image image, Bytes[] mipData) {
+        var cubeMap = image.header().textureType() == TextureType.TT_CUBIC;
         var minMip = minMip(mipData);
+        var format = toImageFormat(image.header().textureFormat());
+        var kind = cubeMap ? TextureKind.CUBE_MAP : TextureKind.TEXTURE_2D;
         var width = minMip < 0 ? image.header().pixelWidth() : image.mipInfos().get(minMip).mipPixelWidth();
         var height = minMip < 0 ? image.header().pixelHeight() : image.mipInfos().get(minMip).mipPixelHeight();
-        var format = toImageFormat(image.header().textureFormat());
-        var isCubeMap = image.header().textureType() == TextureType.TT_CUBIC;
+        int depthOrLayers = cubeMap ? 6 : 1;
+        int mipLevels = image.mipInfos().size() / depthOrLayers;
         var surfaces = convertMipMaps(image, mipData, minMip, format);
+
         var scale = image.header().albedoSpecularScale();
         var bias = image.header().albedoSpecularBias();
-
-        var kind = isCubeMap ? TextureKind.CUBE_MAP : TextureKind.TEXTURE_2D;
-        var layers = isCubeMap ? 6 : 1;
-        var mipLevels = surfaces.size() / layers;
         UnaryOperator<ShaderNode> scaleAndBias = node -> ShaderNode.scaleAndBias(node, scale, bias);
-        return new Texture(format, kind, width, height, layers, mipLevels, surfaces, scaleAndBias);
+
+        return new Texture(format, kind, width, height, depthOrLayers, mipLevels, surfaces, scaleAndBias);
     }
 
     private List<Surface> convertMipMaps(Image image, Bytes[] mipData, int minMip, be.twofold.valen.core.texture.TextureFormat format) {

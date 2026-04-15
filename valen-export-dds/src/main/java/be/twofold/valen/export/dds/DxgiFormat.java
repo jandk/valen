@@ -221,6 +221,7 @@ public enum DxgiFormat {
             case R8_SNORM:
             case R8_SINT:
             case A8_UNORM:
+                return 8;
 
             case R1_UNORM:
                 return 1;
