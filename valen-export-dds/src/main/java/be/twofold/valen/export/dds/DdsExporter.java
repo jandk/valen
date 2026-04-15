@@ -74,7 +74,7 @@ public final class DdsExporter extends TextureExporter {
         int pitchOrLinearSize;
         if (format.isCompressed()) {
             flags |= DdsHeader.DDSD_LINEARSIZE;
-            pitchOrLinearSize = computeLinearSize(texture.width(), texture.height(), format);
+            pitchOrLinearSize = computeLinearSize(texture.width(), texture.height(), texture.depthOrLayers(), format);
         } else {
             flags |= DdsHeader.DDSD_PITCH;
             pitchOrLinearSize = computePitch(texture.width(), format);
@@ -83,13 +83,22 @@ public final class DdsExporter extends TextureExporter {
         var pixelFormat = createPixelFormat();
         var header10 = createHeaderDxt10(texture, format);
 
+        var depth = 0;
         var caps2 = 0;
-        if (texture.kind() == TextureKind.CUBE_MAP) {
-            caps1 |= DdsHeader.DDSCAPS_COMPLEX;
-            caps2 |= DdsHeader.DDSCAPS2_CUBEMAP | DdsHeader.DDSCAPS2_CUBEMAP_ALL_FACES;
+        switch (texture.kind()) {
+            case CUBE_MAP -> {
+                caps1 |= DdsHeader.DDSCAPS_COMPLEX;
+                caps2 |= DdsHeader.DDSCAPS2_CUBEMAP | DdsHeader.DDSCAPS2_CUBEMAP_ALL_FACES;
+            }
+            case TEXTURE_3D -> {
+                flags |= DdsHeader.DDSD_DEPTH;
+                caps1 |= DdsHeader.DDSCAPS_COMPLEX;
+                caps2 |= DdsHeader.DDSCAPS2_VOLUME;
+                depth = texture.depthOrLayers();
+            }
         }
 
-        return new DdsHeader(flags, height, width, pitchOrLinearSize, 0, mipMapCount, pixelFormat, caps1, caps2, header10);
+        return new DdsHeader(flags, height, width, pitchOrLinearSize, depth, mipMapCount, pixelFormat, caps1, caps2, header10);
     }
 
     private static DxgiFormat mapFormat(TextureFormat format) {
@@ -136,17 +145,27 @@ public final class DdsExporter extends TextureExporter {
     }
 
     private DdsHeaderDxt10 createHeaderDxt10(Texture texture, DxgiFormat format) {
+        var dimension = switch (texture.kind()) {
+            case TEXTURE_1D, TEXTURE_1D_ARRAY -> DdsHeaderDxt10.DDS_DIMENSION_TEXTURE1D;
+            case TEXTURE_2D, TEXTURE_2D_ARRAY, CUBE_MAP -> DdsHeaderDxt10.DDS_DIMENSION_TEXTURE2D;
+            case TEXTURE_3D -> DdsHeaderDxt10.DDS_DIMENSION_TEXTURE3D;
+        };
         var miscFlag = texture.kind() == TextureKind.CUBE_MAP ? DdsHeaderDxt10.DDS_RESOURCE_MISC_TEXTURECUBE : 0;
+        var arraySize = switch (texture.kind()) {
+            case TEXTURE_1D, TEXTURE_2D, TEXTURE_3D -> 1;
+            case TEXTURE_1D_ARRAY, TEXTURE_2D_ARRAY -> texture.depthOrLayers();
+            case CUBE_MAP -> texture.depthOrLayers() / 6;
+        };
         return new DdsHeaderDxt10(
             format.getCode(),
-            DdsHeaderDxt10.DDS_DIMENSION_TEXTURE2D,
+            dimension,
             miscFlag,
-            1,
+            arraySize,
             DdsHeaderDxt10.DDS_ALPHA_MODE_UNKNOWN
         );
     }
 
-    private int computeLinearSize(int width, int height, DxgiFormat format) {
+    private int computeLinearSize(int width, int height, int depth, DxgiFormat format) {
         // Round up to next multiple of 4
         var blocksX = Math.max(1, (width + 3) / 4);
         var blocksY = Math.max(1, (height + 3) / 4);
@@ -154,16 +173,14 @@ public final class DdsExporter extends TextureExporter {
         switch (format) {
             case BC1_UNORM, BC1_UNORM_SRGB,
                  BC4_UNORM, BC4_SNORM -> {
-                var pitch = blocksX * 8;
-                return pitch * blocksY;
+                return blocksX * 8 * blocksY * depth;
             }
             case BC2_UNORM, BC2_UNORM_SRGB,
                  BC3_UNORM, BC3_UNORM_SRGB,
                  BC5_UNORM, BC5_SNORM,
                  BC6H_UF16, BC6H_SF16,
                  BC7_UNORM, BC7_UNORM_SRGB -> {
-                var pitch = blocksX * 16;
-                return pitch * blocksY;
+                return blocksX * 16 * blocksY * depth;
             }
             default -> throw new UnsupportedOperationException("Unsupported format: " + format);
         }

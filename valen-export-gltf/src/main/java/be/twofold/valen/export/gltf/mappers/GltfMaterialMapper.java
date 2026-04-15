@@ -145,10 +145,10 @@ public final class GltfMaterialMapper {
         var smoothness = ShaderNode.source();
         var decorated = texture.decorator().apply(smoothness);
         var inverted = ShaderNode.scaleAndBias(decorated, -1.0f, 1.0f);
-        var metalRough = ShaderNode.merge(builder -> builder.channel(Channel.GREEN, inverted, Channel.RED));
+        var metalRough = ShaderNode.merge(builder -> builder.channel(Channel.RED, inverted, Channel.GREEN));
 
         return Shader
-            .of(TextureFormat.R8G8B8_UNORM, metalRough)
+            .of(metalRough, TextureFormat.R8G8B8_UNORM)
             .execute(smoothness.bind(texture.surfaces().getFirst()))
             .toTexture();
     }

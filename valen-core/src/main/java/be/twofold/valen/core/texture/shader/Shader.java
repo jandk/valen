@@ -17,14 +17,14 @@ public final class Shader {
     private final List<ShaderNode> executionOrder;
 
     private Shader(ShaderNode root, TextureFormat format) {
-        this.root = root;
-        this.format = format;
+        this.root = Check.nonNull(root, "root");
+        this.format = Check.nonNull(format, "format");
         this.consumerCounts = computeCounts(root);
         this.executionOrder = topologicalSort(root);
     }
 
-    public static Shader of(TextureFormat format, ShaderNode output) {
-        return new Shader(output, format);
+    public static Shader of(ShaderNode root, TextureFormat format) {
+        return new Shader(root, format);
     }
 
     public Surface execute(SourceNode.Bind... binds) {
@@ -61,8 +61,10 @@ public final class Shader {
             .forEach(tile -> processTile(width, height, tile[0], tile[1], tile[2], unpackers, packer));
     }
 
-    private void processTile(int width, int height, int tileX, int tileY, int tileZ,
-                             Map<SourceNode, TileUnpacker> unpackers, TilePacker packer) {
+    private void processTile(
+        int width, int height, int tileX, int tileY, int tileZ,
+        Map<SourceNode, TileUnpacker> unpackers, TilePacker packer
+    ) {
         int tw = Math.min(TILE_SIZE, width - tileX * TILE_SIZE);
         int th = Math.min(TILE_SIZE, height - tileY * TILE_SIZE);
         int sx = tileX * TILE_SIZE;

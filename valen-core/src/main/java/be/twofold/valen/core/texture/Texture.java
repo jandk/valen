@@ -66,15 +66,18 @@ public record Texture(
 
     public Texture convert(TextureFormat dstFormat, boolean reconstructZ) {
         var source = ShaderNode.source();
+        var current = decorator.apply(source);
+        if (dstFormat == format && (format.isCompressed() || current == source)) {
+            return this;
+        }
 
-        ShaderNode node = decorator.apply(source);
         if (format.channelCount() == 1 && dstFormat.channelCount() >= 3) {
-            node = ShaderNode.splat(node, Channel.RED, Channel.GREEN, Channel.BLUE);
+            current = ShaderNode.splat(current, Channel.RED, Channel.GREEN, Channel.BLUE);
         }
         if (reconstructZ && format.channelCount() == 2 && dstFormat.channelCount() >= 3) {
-            node = ShaderNode.reconstructZ(node);
+            current = ShaderNode.reconstructZ(current);
         }
-        var shader = Shader.of(dstFormat, node);
+        var shader = Shader.of(current, dstFormat);
 
         var surfaces = this.surfaces.stream()
             .map(surface -> shader.execute(source.bind(surface)))

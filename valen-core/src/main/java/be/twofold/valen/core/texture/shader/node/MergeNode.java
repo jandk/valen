@@ -79,7 +79,7 @@ public record MergeNode(
         private Source b = Source.Const.ZERO;
         private Source a = Source.Const.UNIT;
 
-        public Builder channel(Channel dst, ShaderNode node, Channel src) {
+        public Builder channel(Channel src, ShaderNode node, Channel dst) {
             set(dst, new Source.From(node, src));
             return this;
         }
