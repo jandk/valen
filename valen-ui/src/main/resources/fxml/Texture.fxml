@@ -9,10 +9,10 @@
         <Label text="Channel"/>
         <ChoiceBox fx:id="channelBox" prefWidth="60"/>
         <Separator fx:id="sliceSeparator"/>
-        <Label fx:id="sliceLabel" text="Slice"/>
-        <Spinner fx:id="sliceSpinner" prefWidth="70"/>
         <Label fx:id="mipLabel" text="Mip"/>
         <Spinner fx:id="mipSpinner" prefWidth="70"/>
+        <Label fx:id="sliceLabel" text="Slice"/>
+        <Spinner fx:id="sliceSpinner" prefWidth="70"/>
         <Pane HBox.hgrow="ALWAYS"/>
         <Label fx:id="statusLabel"/>
     </ToolBar>

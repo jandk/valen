@@ -80,14 +80,13 @@ public final class ImageReader implements AssetReader.Binary<Texture, EternalAss
         var width = minMip < 0 ? image.header().pixelWidth() : image.mipInfos().get(minMip).mipPixelWidth();
         var height = minMip < 0 ? image.header().pixelHeight() : image.mipInfos().get(minMip).mipPixelHeight();
         int depthOrLayers = cubeMap ? 6 : 1;
-        int mipLevels = image.mipInfos().size() / depthOrLayers;
         var surfaces = convertMipMaps(image, mipData, minMip, format);
 
         var scale = image.header().albedoSpecularScale();
         var bias = image.header().albedoSpecularBias();
         UnaryOperator<ShaderNode> scaleAndBias = node -> ShaderNode.scaleAndBias(node, scale, bias);
 
-        return new Texture(format, kind, width, height, depthOrLayers, mipLevels, surfaces, scaleAndBias);
+        return new Texture(format, kind, width, height, depthOrLayers, surfaces, scaleAndBias);
     }
 
     private List<Surface> convertMipMaps(Image image, Bytes[] mipData, int minMip, be.twofold.valen.core.texture.TextureFormat format) {
@@ -99,10 +98,10 @@ public final class ImageReader implements AssetReader.Binary<Texture, EternalAss
             for (var mip = minMip; mip < mipCount; mip++) {
                 var mipIndex = mip * faces + face;
                 surfaces.add(new Surface(
+                    format,
                     image.mipInfos().get(mipIndex).mipPixelWidth(),
                     image.mipInfos().get(mipIndex).mipPixelHeight(),
                     1,
-                    format,
                     mipData[mipIndex]
                 ));
             }
