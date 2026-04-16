@@ -23,6 +23,42 @@ public final class Shader {
         this.executionOrder = topologicalSort(root);
     }
 
+    // region Graph
+
+    private static Map<ShaderNode, Integer> computeCounts(ShaderNode root) {
+        var counts = new IdentityHashMap<ShaderNode, Integer>();
+        counts.put(root, 1);
+        computeCounts(root, counts);
+        return counts;
+    }
+
+    private static void computeCounts(ShaderNode node, Map<ShaderNode, Integer> counts) {
+        for (var input : node.inputs()) {
+            if (counts.merge(input, 1, Integer::sum) == 1) {
+                computeCounts(input, counts);
+            }
+        }
+    }
+
+    private static List<ShaderNode> topologicalSort(ShaderNode root) {
+        var order = new ArrayList<ShaderNode>();
+        var visited = Collections.newSetFromMap(new IdentityHashMap<ShaderNode, Boolean>());
+        topologicalSort(root, visited, order);
+        return List.copyOf(order);
+    }
+
+    private static void topologicalSort(ShaderNode node, Set<ShaderNode> visited, List<ShaderNode> order) {
+        if (!visited.add(node)) {
+            return;
+        }
+        for (var input : node.inputs()) {
+            topologicalSort(input, visited, order);
+        }
+        order.add(node);
+    }
+
+    // endregion
+
     public static Shader of(ShaderNode root, TextureFormat format) {
         return new Shader(root, format);
     }
@@ -43,10 +79,10 @@ public final class Shader {
             bind -> TileUnpacker.forSurface(bind.surface())
         ));
 
-        var dst = Surface.create(first.width(), first.height(), first.depth(), format);
-        var packer = TilePacker.forSurface(dst);
+        var target = Surface.create(first.width(), first.height(), first.depth(), format);
+        var packer = TilePacker.forSurface(target);
         process(first.width(), first.height(), first.depth(), unpackers, packer);
-        return dst;
+        return target;
     }
 
     private void process(int width, int height, int depth, Map<SourceNode, TileUnpacker> unpackers, TilePacker packer) {
@@ -77,37 +113,5 @@ public final class Shader {
         var out = ctx.get(root);
         packer.pack(out.data(), tw, th, sx, sy, tileZ);
         out.release();
-    }
-
-    private Map<ShaderNode, Integer> computeCounts(ShaderNode root) {
-        var counts = new IdentityHashMap<ShaderNode, Integer>();
-        counts.put(root, 1);
-        walkCounts(root, counts);
-        return counts;
-    }
-
-    private void walkCounts(ShaderNode node, Map<ShaderNode, Integer> counts) {
-        for (var input : node.inputs()) {
-            if (counts.merge(input, 1, Integer::sum) == 1) {
-                walkCounts(input, counts);
-            }
-        }
-    }
-
-    private List<ShaderNode> topologicalSort(ShaderNode root) {
-        var order = new ArrayList<ShaderNode>();
-        var visited = Collections.newSetFromMap(new IdentityHashMap<ShaderNode, Boolean>());
-        walkTopo(root, visited, order);
-        return List.copyOf(order);
-    }
-
-    private void walkTopo(ShaderNode node, Set<ShaderNode> visited, List<ShaderNode> order) {
-        if (!visited.add(node)) {
-            return;
-        }
-        for (var input : node.inputs()) {
-            walkTopo(input, visited, order);
-        }
-        order.add(node);
     }
 }

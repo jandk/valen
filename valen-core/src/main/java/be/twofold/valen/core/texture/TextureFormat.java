@@ -125,10 +125,6 @@ public enum TextureFormat {
         };
     }
 
-    public int surfaceSize(int width, int height) {
-        return surfaceSize(width, height, 1);
-    }
-
     public int surfaceSize(int width, int height, int depth) {
         var widthInBlocks = Math.ceilDiv(width, blockWidth());
         var heightInBlocks = Math.ceilDiv(height, blockHeight());

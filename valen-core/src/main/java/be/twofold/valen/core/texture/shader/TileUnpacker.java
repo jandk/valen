@@ -11,7 +11,11 @@ interface TileUnpacker {
     void unpack(int srcX, int srcY, int srcZ, float[] dst, int tileW, int tileH);
 
     static TileUnpacker forSurface(Surface source) {
-        Surface dec = source.format().isCompressed() ? decompress(source) : source;
+        // TODO: Replace this with tile decompression (update tinybcdec to support it)
+        Surface dec = source.format().isCompressed()
+            ? decompress(source)
+            : source;
+
         return switch (dec.format()) {
             case R8_UNORM, R8_SRGB ->
                 (srcX, srcY, srcZ, dst, tileW, tileH) -> unpackR8(dec, srcX, srcY, srcZ, dst, tileW, tileH);
@@ -49,7 +53,7 @@ interface TileUnpacker {
         TextureFormat format = formatFor(source.format());
         byte[] data = new byte[source.width() * source.height() * format.blockSize()];
         decoder.decode(source.data().toArray(), 0, source.width(), source.height(), data, 0);
-        return new Surface(source.width(), source.height(), 1, format, Bytes.Mutable.wrap(data));
+        return new Surface(format, source.width(), source.height(), 1, Bytes.Mutable.wrap(data));
     }
 
     private static BlockDecoder decoderFor(TextureFormat format) {

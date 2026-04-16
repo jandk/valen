@@ -75,38 +75,27 @@ public final class ImageReader implements AssetReader.Binary<Texture, DarkAgesAs
 
     private Texture map(Image image) {
         var minMip = image.minMip();
+        var kind = switch (image.header().textureType()) {
+            case TT_2D -> TextureKind.TEXTURE_2D;
+            case TT_3D -> TextureKind.TEXTURE_3D;
+            case TT_CUBIC -> TextureKind.CUBE_MAP;
+        };
         var format = toImageFormat(image.header().textureFormat());
         var width = minMip < 0 ? image.header().pixelWidth() : image.mipInfos().get(minMip).mipPixelWidth();
         var height = minMip < 0 ? image.header().pixelHeight() : image.mipInfos().get(minMip).mipPixelHeight();
         var depth = minMip < 0 ? image.header().depth() : image.mipInfos().get(minMip).mipPixelDepth();
+        var depthOrLayers = switch (image.header().textureType()) {
+            case TT_2D -> 1;
+            case TT_3D -> depth;
+            case TT_CUBIC -> 6;
+        };
         var surfaces = convertMipMaps(image, format);
+
         var scale = image.header().albedoSpecularScale();
         var bias = image.header().albedoSpecularBias();
-
-        TextureKind kind;
-        int depthOrLayers;
-        int mipLevels;
-        switch (image.header().textureType()) {
-            case TT_2D -> {
-                kind = TextureKind.TEXTURE_2D;
-                depthOrLayers = 1;
-                mipLevels = surfaces.size();
-            }
-            case TT_3D -> {
-                kind = TextureKind.TEXTURE_3D;
-                depthOrLayers = depth;
-                mipLevels = surfaces.size();
-            }
-            case TT_CUBIC -> {
-                kind = TextureKind.CUBE_MAP;
-                depthOrLayers = 6;
-                mipLevels = surfaces.size() / 6;
-            }
-            default -> throw new IllegalArgumentException();
-        }
-
         UnaryOperator<ShaderNode> scaleAndBias = node -> ShaderNode.scaleAndBias(node, scale, bias);
-        return new Texture(format, kind, width, height, depthOrLayers, mipLevels, surfaces, scaleAndBias);
+
+        return new Texture(format, kind, width, height, depthOrLayers, surfaces, scaleAndBias);
     }
 
     private List<Surface> convertMipMaps(Image image, be.twofold.valen.core.texture.TextureFormat format) {
@@ -119,10 +108,10 @@ public final class ImageReader implements AssetReader.Binary<Texture, DarkAgesAs
             for (var mip = minMip; mip < mipCount; mip++) {
                 var mipIndex = mip * faces + face;
                 surfaces.add(new Surface(
+                    format,
                     image.mipInfos().get(mipIndex).mipPixelWidth(),
                     image.mipInfos().get(mipIndex).mipPixelHeight(),
                     image.mipInfos().get(mipIndex).mipPixelDepth(),
-                    format,
                     image.mipData()[mipIndex]
                 ));
             }

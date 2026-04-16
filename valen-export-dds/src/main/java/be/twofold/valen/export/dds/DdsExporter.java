@@ -33,12 +33,10 @@ public final class DdsExporter extends TextureExporter {
     @Override
     protected TextureFormat chooseFormat(TextureFormat format) {
         return switch (format) {
-            // DDS has no 24-bit formats — expand to 32-bit
             case R8G8B8_UNORM -> TextureFormat.R8G8B8A8_UNORM;
             case B8G8R8_UNORM -> TextureFormat.B8G8R8A8_UNORM;
             case R8G8B8_SRGB -> TextureFormat.R8G8B8A8_SRGB;
             case B8G8R8_SRGB -> TextureFormat.B8G8R8A8_SRGB;
-            // DDS has no 48-bit float — expand to 64-bit
             case R16G16B16_SFLOAT -> TextureFormat.R16G16B16A16_SFLOAT;
             default -> format;
         };
@@ -62,23 +60,17 @@ public final class DdsExporter extends TextureExporter {
         var width = texture.width();
         var caps1 = DdsHeader.DDSCAPS_TEXTURE;
 
-        var mipMapCount = texture.mipLevels();
-        if (mipMapCount > 0) {
+        var mipCount = texture.mipCount();
+        if (mipCount > 0) {
             flags |= DdsHeader.DDSD_MIPMAPCOUNT;
 
-            if (mipMapCount > 1) {
+            if (mipCount > 1) {
                 caps1 |= DdsHeader.DDSCAPS_COMPLEX | DdsHeader.DDSCAPS_MIPMAP;
             }
         }
 
-        int pitchOrLinearSize;
-        if (format.isCompressed()) {
-            flags |= DdsHeader.DDSD_LINEARSIZE;
-            pitchOrLinearSize = computeLinearSize(texture.width(), texture.height(), texture.depthOrLayers(), format);
-        } else {
-            flags |= DdsHeader.DDSD_PITCH;
-            pitchOrLinearSize = computePitch(texture.width(), format);
-        }
+        int pitchOrLinearSize = computePitchOrLinearSize(texture.width(), texture.height(), texture.depthOrLayers(), format);
+        flags |= format.isCompressed() ? DdsHeader.DDSD_LINEARSIZE : DdsHeader.DDSD_PITCH;
 
         var pixelFormat = createPixelFormat();
         var header10 = createHeaderDxt10(texture, format);
@@ -86,26 +78,25 @@ public final class DdsExporter extends TextureExporter {
         var depth = 0;
         var caps2 = 0;
         switch (texture.kind()) {
-            case CUBE_MAP -> {
-                caps1 |= DdsHeader.DDSCAPS_COMPLEX;
-                caps2 |= DdsHeader.DDSCAPS2_CUBEMAP | DdsHeader.DDSCAPS2_CUBEMAP_ALL_FACES;
-            }
             case TEXTURE_3D -> {
                 flags |= DdsHeader.DDSD_DEPTH;
                 caps1 |= DdsHeader.DDSCAPS_COMPLEX;
                 caps2 |= DdsHeader.DDSCAPS2_VOLUME;
                 depth = texture.depthOrLayers();
             }
+            case CUBE_MAP -> {
+                caps1 |= DdsHeader.DDSCAPS_COMPLEX;
+                caps2 |= DdsHeader.DDSCAPS2_CUBEMAP | DdsHeader.DDSCAPS2_CUBEMAP_ALL_FACES;
+            }
         }
 
-        return new DdsHeader(flags, height, width, pitchOrLinearSize, depth, mipMapCount, pixelFormat, caps1, caps2, header10);
+        return new DdsHeader(flags, height, width, pitchOrLinearSize, depth, mipCount, pixelFormat, caps1, caps2, header10);
     }
 
     private static DxgiFormat mapFormat(TextureFormat format) {
         return switch (format) {
-            case R8_UNORM -> DxgiFormat.R8_UNORM;
-            // DXGI has no R8_UNORM_SRGB — preserve bytes, lose sRGB tag
-            case R8_SRGB -> DxgiFormat.R8_UNORM;
+            case R8_UNORM,
+                 R8_SRGB -> DxgiFormat.R8_UNORM;
             case R8G8_UNORM -> DxgiFormat.R8G8_UNORM;
             case R8G8B8_UNORM,
                  R8G8B8A8_UNORM -> DxgiFormat.R8G8B8A8_UNORM;
@@ -146,14 +137,14 @@ public final class DdsExporter extends TextureExporter {
 
     private DdsHeaderDxt10 createHeaderDxt10(Texture texture, DxgiFormat format) {
         var dimension = switch (texture.kind()) {
-            case TEXTURE_1D, TEXTURE_1D_ARRAY -> DdsHeaderDxt10.DDS_DIMENSION_TEXTURE1D;
-            case TEXTURE_2D, TEXTURE_2D_ARRAY, CUBE_MAP -> DdsHeaderDxt10.DDS_DIMENSION_TEXTURE2D;
+            case TEXTURE_1D -> DdsHeaderDxt10.DDS_DIMENSION_TEXTURE1D;
+            case TEXTURE_2D, CUBE_MAP -> DdsHeaderDxt10.DDS_DIMENSION_TEXTURE2D;
             case TEXTURE_3D -> DdsHeaderDxt10.DDS_DIMENSION_TEXTURE3D;
         };
         var miscFlag = texture.kind() == TextureKind.CUBE_MAP ? DdsHeaderDxt10.DDS_RESOURCE_MISC_TEXTURECUBE : 0;
         var arraySize = switch (texture.kind()) {
-            case TEXTURE_1D, TEXTURE_2D, TEXTURE_3D -> 1;
-            case TEXTURE_1D_ARRAY, TEXTURE_2D_ARRAY -> texture.depthOrLayers();
+            case TEXTURE_1D, TEXTURE_2D -> texture.depthOrLayers();
+            case TEXTURE_3D -> 1;
             case CUBE_MAP -> texture.depthOrLayers() / 6;
         };
         return new DdsHeaderDxt10(
@@ -165,28 +156,21 @@ public final class DdsExporter extends TextureExporter {
         );
     }
 
-    private int computeLinearSize(int width, int height, int depth, DxgiFormat format) {
-        // Round up to next multiple of 4
-        var blocksX = Math.max(1, (width + 3) / 4);
-        var blocksY = Math.max(1, (height + 3) / 4);
+    private int computePitchOrLinearSize(int width, int height, int depth, DxgiFormat format) {
+        var blocksX = Math.ceilDiv(width, 4);
+        var blocksY = Math.ceilDiv(height, 4);
 
-        switch (format) {
+        return switch (format) {
+            // For compressed formats, pitch is the size of the compressed block
             case BC1_UNORM, BC1_UNORM_SRGB,
-                 BC4_UNORM, BC4_SNORM -> {
-                return blocksX * 8 * blocksY * depth;
-            }
+                 BC4_UNORM, BC4_SNORM -> blocksX * blocksY * depth * 8;
             case BC2_UNORM, BC2_UNORM_SRGB,
                  BC3_UNORM, BC3_UNORM_SRGB,
                  BC5_UNORM, BC5_SNORM,
                  BC6H_UF16, BC6H_SF16,
-                 BC7_UNORM, BC7_UNORM_SRGB -> {
-                return blocksX * 16 * blocksY * depth;
-            }
-            default -> throw new UnsupportedOperationException("Unsupported format: " + format);
-        }
-    }
-
-    private int computePitch(int width, DxgiFormat format) {
-        return (width * format.bitsPerPixel() + 7) / 8;
+                 BC7_UNORM, BC7_UNORM_SRGB -> blocksX * blocksY * depth * 16;
+            // For uncompressed formats, pitch is the size of a row in bytes
+            default -> (width * format.bitsPerPixel() + 7) / 8;
+        };
     }
 }

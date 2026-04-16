@@ -20,9 +20,9 @@ public final class TexturePresenter extends AbstractPresenter<TextureView> imple
     private int currentSlice;
     private int currentMip;
 
+    private Surface decoded;
     private Bytes.Mutable imagePixels;
-    private Texture decoded;
-    private boolean premultiplied;
+    private Boolean premultiplied;
     private WritableImage image;
 
     private Channel channel = Channel.ALL;
@@ -52,10 +52,12 @@ public final class TexturePresenter extends AbstractPresenter<TextureView> imple
             getView().setImage(null, true);
             getView().setSliceCount(1);
             getView().setMipCount(1);
-            image = null;
+
+            texture = null;
             decoded = null;
             imagePixels = null;
-            texture = null;
+            premultiplied = null;
+            image = null;
             return;
         }
 
@@ -64,7 +66,7 @@ public final class TexturePresenter extends AbstractPresenter<TextureView> imple
         currentMip = 0;
 
         getView().setSliceCount(texture.depthOrLayers());
-        getView().setMipCount(texture.mipLevels());
+        getView().setMipCount(texture.mipCount());
 
         decodeAndDisplay(true);
     }
@@ -97,38 +99,50 @@ public final class TexturePresenter extends AbstractPresenter<TextureView> imple
         long t0 = System.nanoTime();
 
         var oldWidth = decoded != null ? decoded.width() : 0;
-
-        var surface = texture.getSurface(currentSlice, currentMip);
-        decoded = texture.convertSurface(currentSlice, currentMip, TextureFormat.B8G8R8A8_SRGB, settings.isReconstructZ());
-        premultiplied = !texture.format().hasAlpha() || detectPremultiplied();
+        decoded = texture
+            .convertSurface(currentMip, currentSlice, TextureFormat.B8G8R8A8_SRGB, settings.isReconstructZ())
+            .getSurface(0, 0);
+        premultiplied = null;
 
         long t1 = System.nanoTime();
-        image = new WritableImage(decoded.width(), decoded.height());
-        image.getPixelWriter().setPixels(
-            0, 0, decoded.width(), decoded.height(),
-            PixelFormat.getByteBgraPreInstance(),
-            decoded.surfaces().getFirst().data().asBuffer(), decoded.width() * 4
-        );
-        imagePixels = null;
 
-        long t2 = System.nanoTime();
-        if (channel != Channel.ALL || !premultiplied) {
-            filterImage(channel);
+        if (image == null || (int) image.getWidth() != decoded.width() || (int) image.getHeight() != decoded.height()) {
+            image = new WritableImage(decoded.width(), decoded.height());
+            imagePixels = Bytes.allocate(decoded.width() * decoded.height() * 4);
         }
+
+        filterImage(channel);
         getView().setImage(image, resetZoom);
         if (!resetZoom && oldWidth > 0) {
             getView().adjustScale((double) oldWidth / decoded.width());
         }
 
-        var status = String.format("%s\u2009-\u2009%dx%d", texture.format(), surface.width(), surface.height());
-        getView().setStatus(status);
+        getView().setStatus(buildStatus());
 
-        long t3 = System.nanoTime();
-        log.info("Decode: {}, Create: {}, Filter: {}", (t1 - t0) / 1e6, (t2 - t1) / 1e6, (t3 - t2) / 1e6);
+        long t2 = System.nanoTime();
+        log.info("Decode: {}, Filter: {}", (t1 - t0) / 1e6, (t2 - t1) / 1e6);
+    }
+
+    private String buildStatus() {
+        StringBuilder builder = new StringBuilder()
+            .append(texture.format())
+            .append("\u2009-\u2009")
+            .append(Math.max(1, texture.width() >> currentMip));
+
+        if (texture.kind() != TextureKind.TEXTURE_1D) {
+            builder.append("x")
+                .append(Math.max(1, texture.height() >> currentMip));
+        }
+        if (texture.kind() == TextureKind.TEXTURE_3D) {
+            builder.append("x")
+                .append(Math.max(1, texture.depthOrLayers() >> currentMip));
+        }
+
+        return builder.toString();
     }
 
     private boolean detectPremultiplied() {
-        var data = decoded.surfaces().getFirst().data();
+        var data = decoded.data();
         for (int i = 0; i < data.length(); i += 4) {
             int b = data.getUnsigned(i/**/);
             int g = data.getUnsigned(i + 1);
@@ -145,8 +159,8 @@ public final class TexturePresenter extends AbstractPresenter<TextureView> imple
     private void filterImage(Channel channel) {
         this.channel = channel;
 
-        if (imagePixels == null) {
-            imagePixels = Bytes.allocate(decoded.width() * decoded.height() * 4);
+        if (premultiplied == null) {
+            premultiplied = !texture.format().hasAlpha() || detectPremultiplied();
         }
 
         // B8G8R8A8
@@ -159,7 +173,7 @@ public final class TexturePresenter extends AbstractPresenter<TextureView> imple
             case ALL -> premultiplied ? IntUnaryOperator.identity() : this::premultiply;
         };
 
-        var data = decoded.surfaces().getFirst().data();
+        var data = decoded.data();
         for (int i = 0; i < data.length(); i += 4) {
             int bgra = data.getInt(i);
             bgra = operator.applyAsInt(bgra);

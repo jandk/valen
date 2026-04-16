@@ -87,8 +87,8 @@ public final class ModelPresenter extends AbstractPresenter<ModelView> implement
             var texture = reference.supplier().get();
 
             // I have to limit this, because the performance absolutely tanks, not sure why yet...
-            int mip = Math.min(texture.mipLevels() - 1, 2);
-            var converted = texture.convertSurface(0, mip, TextureFormat.B8G8R8A8_SRGB, true);
+            int mip = Math.min(texture.mipCount() - 1, 2);
+            var converted = texture.convertSurface(mip, 0, TextureFormat.B8G8R8A8_SRGB, true);
 
             var diffuseMap = new WritableImage(new PixelBuffer<>(
                 converted.width(),

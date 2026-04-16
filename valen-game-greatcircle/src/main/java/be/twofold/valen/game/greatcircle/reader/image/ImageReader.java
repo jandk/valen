@@ -69,37 +69,26 @@ public final class ImageReader implements AssetReader.Binary<Texture, GreatCircl
     private Texture map(Image image) {
         var minMip = image.minMip();
         var format = toImageFormat(image.header().textureFormat());
+        var kind = switch (image.header().type()) {
+            case TT_2D -> TextureKind.TEXTURE_2D;
+            case TT_3D -> TextureKind.TEXTURE_3D;
+            case TT_CUBIC -> TextureKind.CUBE_MAP;
+        };
         var width = minMip < 0 ? image.header().width() : image.sliceInfos().get(minMip).width();
         var height = minMip < 0 ? image.header().height() : image.sliceInfos().get(minMip).height();
         var depth = minMip < 0 ? image.header().depth() : image.sliceInfos().get(minMip).decompressedSize();
+        var depthOrLayers = switch (image.header().type()) {
+            case TT_2D -> 1;
+            case TT_3D -> depth;
+            case TT_CUBIC -> 6;
+        };
         var surfaces = convertMipMaps(image, format);
+
         var scale = image.header().scale();
         var bias = image.header().bias();
-
-        TextureKind kind;
-        int depthOrLayers;
-        int mipLevels;
-        switch (image.header().type()) {
-            case TT_2D -> {
-                kind = TextureKind.TEXTURE_2D;
-                depthOrLayers = 1;
-                mipLevels = surfaces.size();
-            }
-            case TT_3D -> {
-                kind = TextureKind.TEXTURE_3D;
-                depthOrLayers = depth;
-                mipLevels = surfaces.size();
-            }
-            case TT_CUBIC -> {
-                kind = TextureKind.CUBE_MAP;
-                depthOrLayers = 6;
-                mipLevels = surfaces.size() / 6;
-            }
-            default -> throw new IllegalArgumentException();
-        }
-
         UnaryOperator<ShaderNode> scaleAndBias = node -> ShaderNode.scaleAndBias(node, scale, bias);
-        return new Texture(format, kind, width, height, depthOrLayers, mipLevels, surfaces, scaleAndBias);
+
+        return new Texture(format, kind, width, height, depthOrLayers, surfaces, scaleAndBias);
     }
 
     private List<Surface> convertMipMaps(Image image, be.twofold.valen.core.texture.TextureFormat format) {
@@ -116,10 +105,10 @@ public final class ImageReader implements AssetReader.Binary<Texture, GreatCircl
                     break;
                 }
                 surfaces.add(new Surface(
+                    format,
                     image.sliceInfos().get(mipIndex).width(),
                     image.sliceInfos().get(mipIndex).height(),
                     image.sliceInfos().get(mipIndex).depth(),
-                    format,
                     image.slices()[mipIndex]
                 ));
             }

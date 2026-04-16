@@ -7,26 +7,24 @@ import java.util.*;
 import java.util.function.*;
 
 public record Surface(
+    TextureFormat format,
     int width,
     int height,
     int depth,
-    TextureFormat format,
     Bytes data
 ) {
     public Surface {
+        Check.nonNull(format, "format");
         Check.positive(width, "width");
         Check.positive(height, "height");
         Check.positive(depth, "depth");
-        Check.nonNull(format, "format");
-        Check.nonNull(data, "data");
+        int expectedSize = format.surfaceSize(width, height, depth);
+        Check.argument(data.length() == expectedSize,
+            () -> String.format("Expected %d bytes, got %d", expectedSize, data.length()));
     }
 
     public static Surface create(int width, int height, int depth, TextureFormat format) {
-        return new Surface(width, height, depth, format, Bytes.allocate(format.surfaceSize(width, height, depth)));
-    }
-
-    public Surface withFormatAndData(TextureFormat format, Bytes data) {
-        return new Surface(this.width, this.height, this.depth, format, data);
+        return new Surface(format, width, height, depth, Bytes.allocate(format.surfaceSize(width, height, depth)));
     }
 
     public int offset(int x, int y, int z) {
@@ -34,15 +32,8 @@ public record Surface(
     }
 
     public Texture toTexture() {
-        return new Texture(
-            this.format(), TextureKind.TEXTURE_2D,
-            this.width(),
-            this.height(),
-            this.depth(),
-            1,
-            List.of(this),
-            UnaryOperator.identity()
-        );
+        TextureKind kind = depth > 1 ? TextureKind.TEXTURE_3D : TextureKind.TEXTURE_2D;
+        return new Texture(format, kind, width, height, depth, List.of(this), UnaryOperator.identity());
     }
 
     public static void copy(

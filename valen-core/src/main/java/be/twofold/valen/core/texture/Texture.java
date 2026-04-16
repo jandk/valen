@@ -13,36 +13,66 @@ public record Texture(
     int width,
     int height,
     int depthOrLayers,
-    int mipLevels,
     List<Surface> surfaces,
     UnaryOperator<ShaderNode> decorator
 ) {
     public Texture {
         Check.nonNull(format, "format");
         Check.nonNull(kind, "kind");
-        Check.argument(width > 0, "width must be greater than 0");
-        Check.argument(height > 0, "height must be greater than 0");
-        Check.argument(depthOrLayers > 0, "depthOrLayers must be greater than 0");
-        Check.argument(mipLevels > 0, "mipLevels must be greater than 0");
+        Check.positive(width, "width");
+        Check.positive(height, "height");
+        Check.positive(depthOrLayers, "depthOrLayers");
+        Check.argument(!surfaces.isEmpty(), "surfaces must not be empty");
+        Check.nonNull(decorator, "decorator");
 
-        switch (kind) {
-            case TEXTURE_1D, TEXTURE_1D_ARRAY -> Check.argument(height == 1, "height must be 1 for " + kind);
+        if (kind == TextureKind.TEXTURE_1D) {
+            Check.argument(height == 1, "height must be 1 for TEXTURE_1D");
         }
-        switch (kind) {
-            case TEXTURE_1D, TEXTURE_2D -> Check.argument(depthOrLayers == 1, "depthOrLayers must be 1 for " + kind);
-            case TEXTURE_1D_ARRAY, TEXTURE_2D_ARRAY ->
-                Check.argument(depthOrLayers > 1, "depthOrLayers must be greater than 1 for " + kind);
-            case CUBE_MAP -> Check.argument(depthOrLayers == 6, "depthOrLayers must be 6 for CUBE_MAP");
-            case TEXTURE_3D -> {
+        if (kind == TextureKind.CUBE_MAP) {
+            Check.argument(depthOrLayers == 6, "depthOrLayers must be 6 for CUBE_MAP");
+        }
+
+        if (kind == TextureKind.TEXTURE_3D) {
+            for (int mip = 0; mip < surfaces.size(); mip++) {
+                checkSurface(surfaces.get(mip), format,
+                    Math.max(1, width >> mip),
+                    Math.max(1, height >> mip),
+                    Math.max(1, depthOrLayers >> mip));
+            }
+        } else {
+            int surfaceCount = surfaces.size();
+            Check.argument(surfaceCount % depthOrLayers == 0,
+                () -> String.format("surfaces.size() %s is not divisible by depthOrLayers %s", surfaceCount, depthOrLayers));
+
+            var mipCount = surfaceCount / depthOrLayers;
+            for (int slice = 0; slice < depthOrLayers; slice++) {
+                for (int mip = 0; mip < mipCount; mip++) {
+                    checkSurface(surfaces.get(slice * mipCount + mip), format,
+                        Math.max(1, width >> mip),
+                        Math.max(1, height >> mip),
+                        1);
+                }
             }
         }
 
-        var expectedSurfaces = kind == TextureKind.TEXTURE_3D ? mipLevels : depthOrLayers * mipLevels;
-        Check.argument(!surfaces.isEmpty(), "surfaces must not be empty");
-        Check.argument(surfaces.size() == expectedSurfaces,
-            "Expected " + expectedSurfaces + " surfaces, got " + surfaces.size());
-
         surfaces = List.copyOf(surfaces);
+    }
+
+    private static void checkSurface(Surface surface, TextureFormat format, int width, int height, int depth) {
+        Check.argument(surface.format() == format,
+            () -> String.format("Surface format %s does not match texture format %s", surface.format(), format));
+        Check.argument(surface.width() == width,
+            () -> String.format("Surface width %s does not match expected %s", surface.width(), width));
+        Check.argument(surface.height() == height,
+            () -> String.format("Surface height %s does not match expected %s", surface.height(), height));
+        Check.argument(surface.depth() == depth,
+            () -> String.format("Surface depth %s does not match expected %s", surface.depth(), depth));
+    }
+
+    public int mipCount() {
+        return kind == TextureKind.TEXTURE_3D
+            ? surfaces.size()
+            : surfaces.size() / depthOrLayers;
     }
 
     public int sliceCount(int mip) {
@@ -51,17 +81,17 @@ public record Texture(
             : depthOrLayers;
     }
 
-    public Surface getSurface(int slice, int mip) {
-        Check.argument(mip >= 0 && mip < mipLevels, "mip out of range: " + mip);
-        Check.argument(slice >= 0 && slice < sliceCount(mip), "slice out of range: " + slice);
+    public Surface getSurface(int mip, int slice) {
+        Check.index(mip, mipCount());
+        Check.index(slice, sliceCount(mip));
 
         if (kind == TextureKind.TEXTURE_3D) {
             var mipSurface = surfaces.get(mip);
-            var sliceSize = format.surfaceSize(mipSurface.width(), mipSurface.height());
+            var sliceSize = format.surfaceSize(mipSurface.width(), mipSurface.height(), 1);
             var sliceData = mipSurface.data().slice(slice * sliceSize, sliceSize);
-            return new Surface(mipSurface.width(), mipSurface.height(), 1, format, sliceData);
+            return new Surface(format, mipSurface.width(), mipSurface.height(), 1, sliceData);
         }
-        return surfaces.get(slice * mipLevels + mip);
+        return surfaces.get(slice * mipCount() + mip);
     }
 
     public Texture convert(TextureFormat dstFormat, boolean reconstructZ) {
@@ -77,21 +107,24 @@ public record Texture(
         if (reconstructZ && format.channelCount() == 2 && dstFormat.channelCount() >= 3) {
             current = ShaderNode.reconstructZ(current);
         }
-        var shader = Shader.of(current, dstFormat);
 
+        var shader = Shader.of(current, dstFormat);
         var surfaces = this.surfaces.stream()
             .map(surface -> shader.execute(source.bind(surface)))
             .toList();
-        return new Texture(dstFormat, kind, width, height, depthOrLayers, mipLevels, surfaces, UnaryOperator.identity());
+        return new Texture(dstFormat, kind, width, height, depthOrLayers, surfaces, UnaryOperator.identity());
     }
 
-    public Texture convertSurface(int slice, int mip, TextureFormat dstFormat, boolean reconstructZ) {
-        return withSingleSurface(getSurface(slice, mip)).convert(dstFormat, reconstructZ);
+    public Texture convertSurface(int mip, int slice, TextureFormat dstFormat, boolean reconstructZ) {
+        return withSingleSurface(getSurface(mip, slice))
+            .convert(dstFormat, reconstructZ);
     }
 
     public Texture firstOnly() {
         return withSingleSurface(surfaces.getFirst());
     }
+
+    // Helpers
 
     private Texture withSingleSurface(Surface surface) {
         return new Texture(
@@ -100,7 +133,6 @@ public record Texture(
             surface.width(),
             surface.height(),
             surface.depth(),
-            1,
             List.of(surface),
             decorator
         );
