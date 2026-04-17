@@ -1,13 +1,14 @@
 package be.twofold.valen.ui.component.main;
 
 import be.twofold.valen.core.game.*;
+import be.twofold.valen.core.util.*;
 import be.twofold.valen.ui.common.*;
 import be.twofold.valen.ui.component.*;
 import be.twofold.valen.ui.component.preview.*;
 import be.twofold.valen.ui.component.settings.*;
 import jakarta.inject.*;
 import javafx.animation.*;
-import javafx.application.*;
+import javafx.application.Platform;
 import javafx.geometry.*;
 import javafx.scene.*;
 import javafx.scene.control.*;
@@ -68,8 +69,8 @@ public final class MainViewImpl extends AbstractView<MainView.Listener> implemen
     }
 
     @Override
-    public void setupPreview(Asset asset, Object assetData) {
-        tabPane.setData(asset.type(), assetData);
+    public void setupPreview(Asset asset, Object assetData, Meta.Node metadata) {
+        tabPane.setData(asset.type(), assetData, metadata);
     }
 
     @Override

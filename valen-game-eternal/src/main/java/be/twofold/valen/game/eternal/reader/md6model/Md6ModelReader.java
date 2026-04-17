@@ -2,6 +2,7 @@ package be.twofold.valen.game.eternal.reader.md6model;
 
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.geometry.*;
+import be.twofold.valen.core.util.*;
 import be.twofold.valen.game.eternal.*;
 import be.twofold.valen.game.eternal.reader.geometry.*;
 import be.twofold.valen.game.eternal.resource.*;
@@ -10,6 +11,7 @@ import wtf.reversed.toolbox.collect.*;
 import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
+import java.lang.invoke.*;
 import java.util.*;
 
 public final class Md6ModelReader implements AssetReader.Binary<Model, EternalAsset> {
@@ -35,6 +37,14 @@ public final class Md6ModelReader implements AssetReader.Binary<Model, EternalAs
             Materials.apply(context, meshes, model.meshInfos(), Md6ModelInfo::materialName, Md6ModelInfo::meshName);
         }
         return new Model(meshes, Optional.of(skeleton), Optional.of(asset.id().fullName()), Optional.empty(), Axis.Z);
+    }
+
+    @Override
+    public Optional<Meta.Node> readMetadata(EternalAsset asset, LoadingContext context) throws IOException {
+        try (var source = BinarySource.wrap(context.open(asset.location()))) {
+            var model = Md6Model.read(source);
+            return Optional.of(Meta.build(MethodHandles.lookup(), model));
+        }
     }
 
     private List<Mesh> readMeshes(Md6Model md6, long hash, LoadingContext context) throws IOException {

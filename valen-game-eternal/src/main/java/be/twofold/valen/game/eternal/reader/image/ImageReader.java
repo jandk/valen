@@ -3,12 +3,14 @@ package be.twofold.valen.game.eternal.reader.image;
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.texture.*;
 import be.twofold.valen.core.texture.shader.node.*;
+import be.twofold.valen.core.util.*;
 import be.twofold.valen.game.eternal.*;
 import be.twofold.valen.game.eternal.resource.*;
 import wtf.reversed.toolbox.collect.*;
 import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
+import java.lang.invoke.*;
 import java.util.*;
 import java.util.function.*;
 import java.util.stream.*;
@@ -50,6 +52,14 @@ public final class ImageReader implements AssetReader.Binary<Texture, EternalAss
         }
 
         return map(image, mipData);
+    }
+
+    @Override
+    public Optional<Meta.Node> readMetadata(EternalAsset asset, LoadingContext context) throws IOException {
+        try (var source = BinarySource.wrap(context.open(asset.location()))) {
+            var image = Image.read(source);
+            return Optional.of(Meta.build(MethodHandles.lookup(), image));
+        }
     }
 
     private void readSingleStream(Image image, long hash, Bytes[] mipData, LoadingContext context) throws IOException {
