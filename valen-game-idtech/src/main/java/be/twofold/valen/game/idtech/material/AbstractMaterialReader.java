@@ -304,7 +304,7 @@ public abstract class AbstractMaterialReader<K extends AssetID, V extends Asset>
         var y = object.has("y") ? object.getAsJsonPrimitive("y").getAsFloat() : defaultValue.y();
         var result = new Vector2(x, y);
         return renderParm.parmEdit instanceof ParmEdit.Srgba
-            ? new Vector2(MathF.srgbToLinear(result.x()), MathF.srgbToLinear(result.y()))
+            ? new Vector2(Srgb.srgbToLinear(result.x()), Srgb.srgbToLinear(result.y()))
             : result;
     }
 
@@ -316,7 +316,7 @@ public abstract class AbstractMaterialReader<K extends AssetID, V extends Asset>
         var z = object.has("z") ? object.getAsJsonPrimitive("z").getAsFloat() : defaultValue.z();
         var result = new Vector3(x, y, z);
         return renderParm.parmEdit instanceof ParmEdit.Srgba
-            ? new Vector3(MathF.srgbToLinear(result.x()), MathF.srgbToLinear(result.y()), MathF.srgbToLinear(result.z()))
+            ? new Vector3(Srgb.srgbToLinear(result.x()), Srgb.srgbToLinear(result.y()), Srgb.srgbToLinear(result.z()))
             : result;
     }
 
@@ -329,7 +329,7 @@ public abstract class AbstractMaterialReader<K extends AssetID, V extends Asset>
         var w = object.has("w") ? object.getAsJsonPrimitive("w").getAsFloat() : defaultValue.w();
         var result = new Vector4(x, y, z, w);
         return renderParm.parmEdit instanceof ParmEdit.Srgba
-            ? new Vector4(MathF.srgbToLinear(result.x()), MathF.srgbToLinear(result.y()), MathF.srgbToLinear(result.z()), result.w())
+            ? new Vector4(Srgb.srgbToLinear(result.x()), Srgb.srgbToLinear(result.y()), Srgb.srgbToLinear(result.z()), result.w())
             : result;
     }
 

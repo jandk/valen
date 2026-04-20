@@ -111,7 +111,7 @@ public final class Shader {
             node.process(ctx);
         }
         var out = ctx.get(root);
-        packer.pack(out.data(), tw, th, sx, sy, tileZ);
+        packer.pack(ctx, out.data());
         out.release();
     }
 }

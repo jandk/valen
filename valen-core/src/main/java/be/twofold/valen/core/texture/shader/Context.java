@@ -11,30 +11,30 @@ public final class Context {
     private final Map<SourceNode, TileUnpacker> unpackers;
     private final Map<ShaderNode, TileBuffer> results = new IdentityHashMap<>();
 
-    private final int srcX;
-    private final int srcY;
-    private final int srcZ;
-    private final int tileW;
-    private final int tileH;
+    final int x;
+    final int y;
+    final int z;
+    final int width;
+    final int height;
 
     Context(
         TilePool pool,
         Map<ShaderNode, Integer> consumers,
         Map<SourceNode, TileUnpacker> unpackers,
-        int srcX, int srcY, int srcZ, int tileW, int tileH
+        int x, int y, int z, int width, int height
     ) {
         this.pool = Check.nonNull(pool, "pool");
         this.consumers = Map.copyOf(consumers);
         this.unpackers = Map.copyOf(unpackers);
-        this.srcX = srcX;
-        this.srcY = srcY;
-        this.srcZ = srcZ;
-        this.tileW = tileW;
-        this.tileH = tileH;
+        this.x = x;
+        this.y = y;
+        this.z = z;
+        this.width = width;
+        this.height = height;
     }
 
     public int pixelCount() {
-        return tileW * tileH;
+        return width * height;
     }
 
     public TileBuffer allocate(ShaderNode node) {
@@ -55,6 +55,6 @@ public final class Context {
     }
 
     public void unpack(SourceNode source, float[] target) {
-        unpackers.get(source).unpack(srcX, srcY, srcZ, target, tileW, tileH);
+        unpackers.get(source).unpack(this, target);
     }
 }
