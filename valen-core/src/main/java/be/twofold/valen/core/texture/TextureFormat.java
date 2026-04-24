@@ -20,6 +20,10 @@ public enum TextureFormat {
     R16G16B16_SFLOAT,
     R16G16B16A16_SFLOAT,
 
+    // Packed formats
+    R10G10B10A2_UNORM,
+    R11G11B10_SFLOAT,
+
     // Compressed formats
     BC1_UNORM,
     BC1_SRGB,
@@ -54,6 +58,8 @@ public enum TextureFormat {
                  B8G8R8_UNORM, B8G8R8_SRGB -> 3;
             case R8G8B8A8_UNORM, R8G8B8A8_SRGB,
                  B8G8R8A8_UNORM, B8G8R8A8_SRGB,
+                 R10G10B10A2_UNORM,
+                 R11G11B10_SFLOAT,
                  R16G16_SFLOAT -> 4;
             case R16G16B16_SFLOAT -> 6;
             case R16G16B16A16_UNORM, R16G16B16A16_SFLOAT,
@@ -77,10 +83,12 @@ public enum TextureFormat {
                  BC5_UNORM, BC5_SNORM -> 2;
             case R8G8B8_UNORM, R8G8B8_SRGB,
                  B8G8R8_UNORM, B8G8R8_SRGB,
+                 R11G11B10_SFLOAT,
                  R16G16B16_SFLOAT,
                  BC6H_UFLOAT, BC6H_SFLOAT -> 3;
             case R8G8B8A8_UNORM, R8G8B8A8_SRGB,
                  B8G8R8A8_UNORM, B8G8R8A8_SRGB,
+                 R10G10B10A2_UNORM,
                  R16G16B16A16_UNORM, R16G16B16A16_SFLOAT,
                  BC1_UNORM, BC1_SRGB,
                  BC2_UNORM, BC2_SRGB,
@@ -93,6 +101,7 @@ public enum TextureFormat {
         return switch (this) {
             case R8G8B8A8_UNORM, R8G8B8A8_SRGB,
                  B8G8R8A8_UNORM, B8G8R8A8_SRGB,
+                 R10G10B10A2_UNORM,
                  R16G16B16A16_UNORM, R16G16B16A16_SFLOAT,
                  BC1_UNORM, BC1_SRGB,
                  BC2_UNORM, BC2_SRGB,

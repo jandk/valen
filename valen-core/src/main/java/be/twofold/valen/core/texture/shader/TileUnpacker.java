@@ -40,6 +40,10 @@ interface TileUnpacker {
                 (ctx, dst) -> unpackR16G16B16Sfloat(decompressed, ctx.x, ctx.y, ctx.z, ctx.width, ctx.height, dst);
             case R16G16B16A16_SFLOAT ->
                 (ctx, dst) -> unpackR16G16B16A16Sfloat(decompressed, ctx.x, ctx.y, ctx.z, ctx.width, ctx.height, dst);
+            case R10G10B10A2_UNORM ->
+                (ctx, dst) -> unpackR10G10B10A2Unorm(decompressed, ctx.x, ctx.y, ctx.z, ctx.width, ctx.height, dst);
+            case R11G11B10_SFLOAT ->
+                (ctx, dst) -> unpackR11G11B10Sfloat(decompressed, ctx.x, ctx.y, ctx.z, ctx.width, ctx.height, dst);
             default -> throw new UnsupportedOperationException("No unpacker for: " + decompressed.format());
         };
     }
@@ -258,6 +262,36 @@ interface TileUnpacker {
                 dst[dstOff + 1] = Float.float16ToFloat(data.getShort(srcOff + 2));
                 dst[dstOff + 2] = Float.float16ToFloat(data.getShort(srcOff + 4));
                 dst[dstOff + 3] = Float.float16ToFloat(data.getShort(srcOff + 6));
+            }
+        }
+    }
+
+    private static void unpackR10G10B10A2Unorm(Surface src, int x, int y, int z, int width, int height, float[] dst) {
+        Bytes data = src.data();
+        for (int row = 0; row < height; row++) {
+            int srcOff = src.offset(x, y + row, z);
+            int dstOff = row * width * 4;
+            for (int col = 0; col < width; col++, srcOff += 4, dstOff += 4) {
+                int value = data.getInt(srcOff);
+                dst[dstOff/**/] = ((value /* */) & 0x03FF) / 1023.0f;
+                dst[dstOff + 1] = ((value >> 10) & 0x03FF) / 1023.0f;
+                dst[dstOff + 2] = ((value >> 20) & 0x03FF) / 1023.0f;
+                dst[dstOff + 3] = ((value >> 30) & 0x03) / 3.0f;
+            }
+        }
+    }
+
+    private static void unpackR11G11B10Sfloat(Surface src, int x, int y, int z, int width, int height, float[] dst) {
+        Bytes data = src.data();
+        for (int row = 0; row < height; row++) {
+            int srcOff = src.offset(x, y + row, z);
+            int dstOff = row * width * 4;
+            for (int col = 0; col < width; col++, srcOff += 4, dstOff += 4) {
+                int value = data.getInt(srcOff);
+                dst[dstOff/**/] = Float.float16ToFloat((short) ((value & 0x0000_07FF) << 4));
+                dst[dstOff + 1] = Float.float16ToFloat((short) ((value & 0x003F_F800) >>> (11 - 4)));
+                dst[dstOff + 2] = Float.float16ToFloat((short) ((value & 0xFFC0_0000) >>> (22 - 5)));
+                dst[dstOff + 3] = 1.0f;
             }
         }
     }
