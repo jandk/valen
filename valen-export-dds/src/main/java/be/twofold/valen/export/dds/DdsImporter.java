@@ -7,6 +7,7 @@ import wtf.reversed.toolbox.io.*;
 import java.io.*;
 import java.nio.*;
 import java.util.*;
+import java.util.function.*;
 
 public final class DdsImporter implements AssetReader.Binary<Texture, Asset> {
     private DdsImporter() {
@@ -25,7 +26,7 @@ public final class DdsImporter implements AssetReader.Binary<Texture, Asset> {
     @Override
     public Texture read(BinarySource source, Asset asset, LoadingContext context) throws IOException {
         var headerBuffer = source
-            .readBytes(4 + DdsHeader.SIZE + DdsHeaderDxt10.SIZE) // for magic
+            .readBytes(4 + DdsHeader.SIZE + DdsHeaderDxt10.SIZE)
             .asBuffer().order(ByteOrder.LITTLE_ENDIAN);
         var header = DdsHeader.fromBuffer(headerBuffer);
         source.position(4 + DdsHeader.SIZE + (header.header10().isPresent() ? DdsHeaderDxt10.SIZE : 0));
@@ -46,22 +47,66 @@ public final class DdsImporter implements AssetReader.Binary<Texture, Asset> {
             default -> throw new UnsupportedOperationException("Unsupported fourCC: " + header.pixelFormat().fourCC());
         };
 
-        var w = header.width();
-        var h = header.height();
+        var kind = detectKind(header);
+        var width = header.width();
+        var height = header.height();
+        var mipCount = Math.max(header.mipMapCount(), 1);
+        var depthOrLayers = switch (kind) {
+            case TEXTURE_3D -> Math.max(header.depth(), 1);
+            case CUBE_MAP -> 6;
+            default -> header.header10().map(DdsHeaderDxt10::arraySize).orElse(1);
+        };
+
         var surfaces = new ArrayList<Surface>();
-        for (int i = 0; i < header.mipMapCount(); i++) {
-            var data = source.readBytes(format.surfaceSize(w, h));
-            surfaces.add(new Surface(w, h, format, data.toArray()));
-            w = Math.max(w / 2, 1);
-            h = Math.max(h / 2, 1);
+        if (kind == TextureKind.TEXTURE_3D) {
+            var w = width;
+            var h = height;
+            var d = depthOrLayers;
+            for (int mip = 0; mip < mipCount; mip++) {
+                surfaces.add(new Surface(format, w, h, d, source.readBytes(format.surfaceSize(w, h, d))));
+                w = Math.max(1, w / 2);
+                h = Math.max(1, h / 2);
+                d = Math.max(1, d / 2);
+            }
+        } else {
+            for (int layer = 0; layer < depthOrLayers; layer++) {
+                var w = width;
+                var h = height;
+                for (int mip = 0; mip < mipCount; mip++) {
+                    surfaces.add(new Surface(format, w, h, 1, source.readBytes(format.surfaceSize(w, h, 1))));
+                    w = Math.max(1, w / 2);
+                    h = Math.max(1, h / 2);
+                }
+            }
         }
 
-        return new Texture(header.width(), header.height(), format, false, surfaces);
+        return new Texture(format, kind, width, height, depthOrLayers, surfaces, UnaryOperator.identity());
     }
 
-    private TextureFormat mapDxgiFormat(DxgiFormat dxgiFormat) {
+    private static TextureKind detectKind(DdsHeader header) {
+        if (header.header10().isPresent()) {
+            var header10 = header.header10().get();
+            return switch (header10.resourceDimension()) {
+                case DdsHeaderDxt10.DDS_DIMENSION_TEXTURE1D -> TextureKind.TEXTURE_1D;
+                case DdsHeaderDxt10.DDS_DIMENSION_TEXTURE3D -> TextureKind.TEXTURE_3D;
+                default -> (header10.miscFlag() & DdsHeaderDxt10.DDS_RESOURCE_MISC_TEXTURECUBE) != 0
+                    ? TextureKind.CUBE_MAP
+                    : TextureKind.TEXTURE_2D;
+            };
+        }
+        if (header.caps2().contains(DdsHeaderCaps2.DDSCAPS2_VOLUME)) {
+            return TextureKind.TEXTURE_3D;
+        }
+        if (header.caps2().contains(DdsHeaderCaps2.DDSCAPS2_CUBEMAP)) {
+            return TextureKind.CUBE_MAP;
+        }
+        return TextureKind.TEXTURE_2D;
+    }
+
+    private static TextureFormat mapDxgiFormat(DxgiFormat dxgiFormat) {
         return switch (dxgiFormat) {
             case R10G10B10A2_UNORM -> TextureFormat.R10G10B10A2_UNORM;
+            case R11G11B10_FLOAT -> TextureFormat.R11G11B10_SFLOAT;
             case R16_FLOAT -> TextureFormat.R16_SFLOAT;
             case R16G16_FLOAT -> TextureFormat.R16G16_SFLOAT;
             case R16G16B16A16_FLOAT -> TextureFormat.R16G16B16A16_SFLOAT;
@@ -80,7 +125,6 @@ public final class DdsImporter implements AssetReader.Binary<Texture, Asset> {
             case BC6H_SF16 -> TextureFormat.BC6H_SFLOAT;
             case BC7_TYPELESS, BC7_UNORM -> TextureFormat.BC7_UNORM;
             case BC7_UNORM_SRGB -> TextureFormat.BC7_SRGB;
-
 
             default -> throw new UnsupportedOperationException("Unsupported DXGI format: " + dxgiFormat);
         };

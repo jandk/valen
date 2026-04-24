@@ -68,7 +68,7 @@ public final class GraniteContainer {
         }
 
         var format = fromLayer(gts.metadata(), layer);
-        var tgt = Surface.create(layerWidth, layerHeight, format);
+        var tgt = Surface.create(layerWidth, layerHeight, 1, format);
 
         for (var y = 0; y < tileH; y++) {
             for (var x = 0; x < tileW; x++) {
@@ -83,7 +83,7 @@ public final class GraniteContainer {
             }
         }
 
-        return Texture.fromSurface(tgt, format);
+        return tgt.toTexture();
     }
 
     private boolean allTilesPresent(int tileX, int numTilesX, int tileY, int numTilesY, int layer, int level) {
@@ -117,7 +117,8 @@ public final class GraniteContainer {
         var pagePath = Filenames.getPath(gts.path()) + "/" + page.filename();
         var surfaceSize = format.surfaceSize(
             gts.header().tileWidth(),
-            gts.header().tileHeight()
+            gts.header().tileHeight(),
+            1
         );
 
         if (!gtpCache.containsKey(pagePath)) {
@@ -140,10 +141,10 @@ public final class GraniteContainer {
             case BC -> createBCTile(chunk, surfaceSize);
             default -> throw new UnsupportedOperationException("Unsupported codec: " + chunk.codec());
         };
-        return new Surface(gts.header().tileWidth(), gts.header().tileHeight(), format, bytes);
+        return new Surface(format, gts.header().tileWidth(), gts.header().tileHeight(), 1, bytes);
     }
 
-    private byte[] createUniformTile(GtpChunk data, int surfaceSize, TextureFormat format) {
+    private Bytes createUniformTile(GtpChunk data, int surfaceSize, TextureFormat format) {
         var r = data.data().get(0);
         var g = data.data().length() > 1 ? data.data().get(1) : 0;
         var b = data.data().length() > 2 ? data.data().get(2) : 0;
@@ -157,15 +158,14 @@ public final class GraniteContainer {
             default -> throw new UnsupportedOperationException("Can't create a block for " + format);
         };
 
-        var result = new byte[surfaceSize];
-        var bytes = Bytes.Mutable.wrap(result);
-        for (var i = 0; i < bytes.length(); i += block.length()) {
-            block.copyTo(bytes, i);
+        var result = Bytes.allocate(surfaceSize);
+        for (var i = 0; i < result.length(); i += block.length()) {
+            block.copyTo(result, i);
         }
         return result;
     }
 
-    private byte[] createBCTile(GtpChunk chunk, int surfaceSize) throws IOException {
+    private Bytes createBCTile(GtpChunk chunk, int surfaceSize) throws IOException {
         var header = (CodecHeader.BC) gts.codecHeaders().get(chunk.param());
         var decompressor = switch (header.getCompression()) {
             case FAST_LZ -> Decompressor.fastLZ();
@@ -177,8 +177,7 @@ public final class GraniteContainer {
         // TODO: Figure out when the mip is present and when it isn't
         return decompressor
             .decompress(chunk.data(), surfaceSize + surfaceSize / 4)
-            .slice(0, surfaceSize)
-            .toArray();
+            .slice(0, surfaceSize);
     }
 
     private TextureFormat fromLayer(GdexStruct meta, int layer) {
