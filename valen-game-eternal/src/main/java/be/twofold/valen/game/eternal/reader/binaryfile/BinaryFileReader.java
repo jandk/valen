@@ -48,7 +48,7 @@ public final class BinaryFileReader implements AssetReader.Binary<Bytes, Eternal
             var parameterSpec = new IvParameterSpec(iVec.toArray());
             cipher.init(Cipher.DECRYPT_MODE, keySpec, parameterSpec);
 
-            var result = Bytes.Mutable.allocate(cipher.getOutputSize(text.length()));
+            var result = Bytes.allocate(cipher.getOutputSize(text.length()));
             cipher.doFinal(text.asBuffer(), result.asMutableBuffer());
             return result;
         } catch (GeneralSecurityException e) {

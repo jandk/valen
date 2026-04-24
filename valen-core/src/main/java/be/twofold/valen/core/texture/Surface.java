@@ -1,34 +1,39 @@
 package be.twofold.valen.core.texture;
 
+import wtf.reversed.toolbox.collect.*;
 import wtf.reversed.toolbox.util.*;
 
+import java.util.*;
+import java.util.function.*;
+
 public record Surface(
+    TextureFormat format,
     int width,
     int height,
-    TextureFormat format,
-    byte[] data
+    int depth,
+    Bytes data
 ) {
     public Surface {
-        Check.positive(width, "width");
-        Check.positive(height, "height");
         Check.nonNull(format, "format");
-        Check.nonNull(data, "data");
-    }
-
-    public static Surface create(int width, int height, TextureFormat format) {
         Check.positive(width, "width");
         Check.positive(height, "height");
-
-        var data = new byte[format.surfaceSize(width, height)];
-        return new Surface(width, height, format, data);
+        Check.positive(depth, "depth");
+        int expectedSize = format.surfaceSize(width, height, depth);
+        Check.argument(data.length() == expectedSize,
+            () -> String.format("Expected %d bytes, got %d", expectedSize, data.length()));
     }
 
-    public Surface withFormat(TextureFormat format) {
-        return new Surface(width, height, format, data);
+    public static Surface create(int width, int height, int depth, TextureFormat format) {
+        return new Surface(format, width, height, depth, Bytes.allocate(format.surfaceSize(width, height, depth)));
     }
 
-    public Surface withData(byte[] data) {
-        return new Surface(width, height, format, data);
+    public int offset(int x, int y, int z) {
+        return ((z * height + y) * width + x) * format.blockSize();
+    }
+
+    public Texture toTexture() {
+        TextureKind kind = depth > 1 ? TextureKind.TEXTURE_3D : TextureKind.TEXTURE_2D;
+        return new Texture(format, kind, width, height, depth, List.of(this), UnaryOperator.identity());
     }
 
     public static void copy(
@@ -64,17 +69,7 @@ public record Surface(
         for (var ty = 0; ty < tileHeight; ty++) {
             var srcIndex = ((srcTileY + ty) * srcTileWidth + srcTileX) * format.blockSize();
             var dstIndex = ((dstTileY + ty) * dstTileWidth + dstTileX) * format.blockSize();
-            System.arraycopy(src.data, srcIndex, dst.data, dstIndex, tileStride);
+            src.data.slice(srcIndex, tileStride).copyTo((Bytes.Mutable) dst.data, dstIndex);
         }
-    }
-
-    @Override
-    public String toString() {
-        return "Surface(" +
-            "width=" + width + ", " +
-            "height=" + height + ", " +
-            "format=" + format + ", " +
-            "data=[" + data.length + " bytes]" +
-            ")";
     }
 }

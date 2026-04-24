@@ -36,21 +36,4 @@ public final class MathF {
     public static float unpackUNorm8Normal(byte value) {
         return Math.fma(FloatMath.unpackUNorm8(value), 2.0f, -1.0f);
     }
-
-    public static float linearToSrgb(float f) {
-        if (f <= (0.04045f / 12.92f)) {
-            return f * 12.92f;
-        } else {
-            return Math.fma((float) Math.pow(f, 1.0f / 2.4f), 1.055f, -0.055f);
-        }
-    }
-
-    public static float srgbToLinear(float f) {
-        if (f <= 0.04045f) {
-            return f * (1.0f / 12.92f);
-        } else {
-            float a = Math.fma(f, 1.0f / 1.055f, 0.055f / 1.055f);
-            return (float) Math.pow(a, 2.4f);
-        }
-    }
 }

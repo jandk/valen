@@ -36,6 +36,8 @@ public final class DdsExporter extends TextureExporter {
         return switch (format) {
             case R8G8B8_UNORM -> TextureFormat.R8G8B8A8_UNORM;
             case B8G8R8_UNORM -> TextureFormat.B8G8R8A8_UNORM;
+            case R8G8B8_SRGB -> TextureFormat.R8G8B8A8_SRGB;
+            case B8G8R8_SRGB -> TextureFormat.B8G8R8A8_SRGB;
             case R16G16B16_SFLOAT -> TextureFormat.R16G16B16A16_SFLOAT;
             default -> format;
         };
@@ -45,7 +47,9 @@ public final class DdsExporter extends TextureExporter {
     protected void doExport(Texture texture, OutputStream out) throws IOException {
         out.write(createHeader(texture).toBuffer().array());
         for (var surface : texture.surfaces()) {
-            out.write(surface.data());
+            try (var in = surface.data().asInputStream()) {
+                in.transferTo(out);
+            }
         }
     }
 
@@ -57,53 +61,60 @@ public final class DdsExporter extends TextureExporter {
         var width = texture.width();
         var caps1 = EnumSet.of(DdsHeaderCaps1.DDSCAPS_TEXTURE);
 
-        var mipMapCount = texture.surfaces().size() / (texture.isCubeMap() ? 6 : 1);
-        if (mipMapCount > 0) {
-            flags.add(DdsHeaderFlags.DDSD_MIPMAPCOUNT);
+        var mipCount = texture.mipCount();
+        if (mipCount > 0) {
+            flags |= DdsHeader.DDSD_MIPMAPCOUNT;
 
-            if (mipMapCount > 1) {
-                caps1.add(DdsHeaderCaps1.DDSCAPS_COMPLEX);
-                caps1.add(DdsHeaderCaps1.DDSCAPS_MIPMAP);
+            if (mipCount > 1) {
+                caps1 |= DdsHeader.DDSCAPS_COMPLEX | DdsHeader.DDSCAPS_MIPMAP;
             }
         }
 
-        int pitchOrLinearSize;
-        if (format.isCompressed()) {
-            flags.add(DdsHeaderFlags.DDSD_LINEARSIZE);
-            pitchOrLinearSize = computeLinearSize(texture.width(), texture.height(), format);
-        } else {
-            flags.add(DdsHeaderFlags.DDSD_PITCH);
-            pitchOrLinearSize = computePitch(texture.width(), format);
-        }
+        int pitchOrLinearSize = computePitchOrLinearSize(texture.width(), texture.height(), texture.depthOrLayers(), format);
+        flags |= format.isCompressed() ? DdsHeader.DDSD_LINEARSIZE : DdsHeader.DDSD_PITCH;
 
         var pixelFormat = createPixelFormat();
         var header10 = createHeaderDxt10(texture, format);
 
-        var caps2 = EnumSet.noneOf(DdsHeaderCaps2.class);
-        if (texture.isCubeMap()) {
-            caps1.add(DdsHeaderCaps1.DDSCAPS_COMPLEX);
-            caps2.add(DdsHeaderCaps2.DDSCAPS2_CUBEMAP);
-            caps2.addAll(DdsHeaderCaps2.DDSCAPS2_CUBEMAP_ALL_FACES);
+        var depth = 0;
+        var caps2 = 0;
+        switch (texture.kind()) {
+            case TEXTURE_3D -> {
+                flags |= DdsHeader.DDSD_DEPTH;
+                caps1 |= DdsHeader.DDSCAPS_COMPLEX;
+                caps2 |= DdsHeader.DDSCAPS2_VOLUME;
+                depth = texture.depthOrLayers();
+            }
+            case CUBE_MAP -> {
+                caps1 |= DdsHeader.DDSCAPS_COMPLEX;
+                caps2 |= DdsHeader.DDSCAPS2_CUBEMAP | DdsHeader.DDSCAPS2_CUBEMAP_ALL_FACES;
+            }
         }
 
-        return new DdsHeader(flags, height, width, pitchOrLinearSize, 0, mipMapCount, pixelFormat, caps1, caps2, Optional.of(header10));
+        return new DdsHeader(flags, height, width, pitchOrLinearSize, depth, mipCount, pixelFormat, caps1, caps2, header10);
     }
 
     private static DxgiFormat mapFormat(TextureFormat format) {
         return switch (format) {
-            case R8_UNORM -> DxgiFormat.R8_UNORM;
+            case R8_UNORM,
+                 R8_SRGB -> DxgiFormat.R8_UNORM;
             case R8G8_UNORM -> DxgiFormat.R8G8_UNORM;
             case R8G8B8_UNORM,
                  R8G8B8A8_UNORM -> DxgiFormat.R8G8B8A8_UNORM;
+            case R8G8B8_SRGB,
+                 R8G8B8A8_SRGB -> DxgiFormat.R8G8B8A8_UNORM_SRGB;
             case B8G8R8_UNORM,
                  B8G8R8A8_UNORM -> DxgiFormat.B8G8R8A8_UNORM;
-            case R10G10B10A2_UNORM -> DxgiFormat.R10G10B10A2_UNORM;
+            case B8G8R8_SRGB,
+                 B8G8R8A8_SRGB -> DxgiFormat.B8G8R8A8_UNORM_SRGB;
             case R16_UNORM -> DxgiFormat.R16_UNORM;
             case R16G16B16A16_UNORM -> DxgiFormat.R16G16B16A16_UNORM;
             case R16_SFLOAT -> DxgiFormat.R16_FLOAT;
             case R16G16_SFLOAT -> DxgiFormat.R16G16_FLOAT;
             case R16G16B16_SFLOAT,
                  R16G16B16A16_SFLOAT -> DxgiFormat.R16G16B16A16_FLOAT;
+            case R10G10B10A2_UNORM -> DxgiFormat.R10G10B10A2_UNORM;
+            case R11G11B10_SFLOAT -> DxgiFormat.R11G11B10_FLOAT;
             case BC1_UNORM -> DxgiFormat.BC1_UNORM;
             case BC1_SRGB -> DxgiFormat.BC1_UNORM_SRGB;
             case BC2_UNORM -> DxgiFormat.BC2_UNORM;
@@ -134,40 +145,41 @@ public final class DdsExporter extends TextureExporter {
     }
 
     private DdsHeaderDxt10 createHeaderDxt10(Texture texture, DxgiFormat format) {
-        var miscFlag = texture.isCubeMap() ? DdsHeaderDxt10.DDS_RESOURCE_MISC_TEXTURECUBE : 0;
+        var dimension = switch (texture.kind()) {
+            case TEXTURE_1D -> DdsHeaderDxt10.DDS_DIMENSION_TEXTURE1D;
+            case TEXTURE_2D, CUBE_MAP -> DdsHeaderDxt10.DDS_DIMENSION_TEXTURE2D;
+            case TEXTURE_3D -> DdsHeaderDxt10.DDS_DIMENSION_TEXTURE3D;
+        };
+        var miscFlag = texture.kind() == TextureKind.CUBE_MAP ? DdsHeaderDxt10.DDS_RESOURCE_MISC_TEXTURECUBE : 0;
+        var arraySize = switch (texture.kind()) {
+            case TEXTURE_1D, TEXTURE_2D -> texture.depthOrLayers();
+            case TEXTURE_3D -> 1;
+            case CUBE_MAP -> texture.depthOrLayers() / 6;
+        };
         return new DdsHeaderDxt10(
-            format,
-            DdsHeaderDxt10.DDS_DIMENSION_TEXTURE2D,
+            format.getCode(),
+            dimension,
             miscFlag,
-            1,
+            arraySize,
             DdsHeaderDxt10.DDS_ALPHA_MODE_UNKNOWN
         );
     }
 
-    private int computeLinearSize(int width, int height, DxgiFormat format) {
-        // Round up to next multiple of 4
-        var blocksX = Math.max(1, (width + 3) / 4);
-        var blocksY = Math.max(1, (height + 3) / 4);
+    private int computePitchOrLinearSize(int width, int height, int depth, DxgiFormat format) {
+        var blocksX = Math.ceilDiv(width, 4);
+        var blocksY = Math.ceilDiv(height, 4);
 
-        switch (format) {
+        return switch (format) {
+            // For compressed formats, pitch is the size of the compressed block
             case BC1_UNORM, BC1_UNORM_SRGB,
-                 BC4_UNORM, BC4_SNORM -> {
-                var pitch = blocksX * 8;
-                return pitch * blocksY;
-            }
+                 BC4_UNORM, BC4_SNORM -> blocksX * blocksY * depth * 8;
             case BC2_UNORM, BC2_UNORM_SRGB,
                  BC3_UNORM, BC3_UNORM_SRGB,
                  BC5_UNORM, BC5_SNORM,
                  BC6H_UF16, BC6H_SF16,
-                 BC7_UNORM, BC7_UNORM_SRGB -> {
-                var pitch = blocksX * 16;
-                return pitch * blocksY;
-            }
-            default -> throw new UnsupportedOperationException("Unsupported format: " + format);
-        }
-    }
-
-    private int computePitch(int width, DxgiFormat format) {
-        return (width * format.bitsPerPixel() + 7) / 8;
+                 BC7_UNORM, BC7_UNORM_SRGB -> blocksX * blocksY * depth * 16;
+            // For uncompressed formats, pitch is the size of a row in bytes
+            default -> (width * format.bitsPerPixel() + 7) / 8;
+        };
     }
 }

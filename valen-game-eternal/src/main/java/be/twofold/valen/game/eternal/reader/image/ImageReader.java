@@ -2,13 +2,17 @@ package be.twofold.valen.game.eternal.reader.image;
 
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.texture.*;
+import be.twofold.valen.core.texture.shader.node.*;
+import be.twofold.valen.core.util.*;
 import be.twofold.valen.game.eternal.*;
 import be.twofold.valen.game.eternal.resource.*;
 import wtf.reversed.toolbox.collect.*;
 import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
+import java.lang.invoke.*;
 import java.util.*;
+import java.util.function.*;
 import java.util.stream.*;
 
 public final class ImageReader implements AssetReader.Binary<Texture, EternalAsset> {
@@ -50,6 +54,14 @@ public final class ImageReader implements AssetReader.Binary<Texture, EternalAss
         return map(image, mipData);
     }
 
+    @Override
+    public Optional<Meta.Node> readMetadata(EternalAsset asset, LoadingContext context) throws IOException {
+        try (var source = BinarySource.wrap(context.open(asset.location()))) {
+            var image = Image.read(source);
+            return Optional.of(Meta.build(MethodHandles.lookup(), image));
+        }
+    }
+
     private void readSingleStream(Image image, long hash, Bytes[] mipData, LoadingContext context) throws IOException {
         var lastMip = image.mipInfos().getLast();
         var uncompressedSize = lastMip.cumulativeSizeStreamDb() + lastMip.decompressedSize();
@@ -71,16 +83,20 @@ public final class ImageReader implements AssetReader.Binary<Texture, EternalAss
     }
 
     private Texture map(Image image, Bytes[] mipData) {
+        var cubeMap = image.header().textureType() == TextureType.TT_CUBIC;
         var minMip = minMip(mipData);
+        var format = toImageFormat(image.header().textureFormat());
+        var kind = cubeMap ? TextureKind.CUBE_MAP : TextureKind.TEXTURE_2D;
         var width = minMip < 0 ? image.header().pixelWidth() : image.mipInfos().get(minMip).mipPixelWidth();
         var height = minMip < 0 ? image.header().pixelHeight() : image.mipInfos().get(minMip).mipPixelHeight();
-        var format = toImageFormat(image.header().textureFormat());
+        int depthOrLayers = cubeMap ? 6 : 1;
         var surfaces = convertMipMaps(image, mipData, minMip, format);
-        var isCubeMap = image.header().textureType() == TextureType.TT_CUBIC;
+
         var scale = image.header().albedoSpecularScale();
         var bias = image.header().albedoSpecularBias();
+        UnaryOperator<ShaderNode> scaleAndBias = node -> ShaderNode.scaleAndBias(node, scale, bias);
 
-        return new Texture(width, height, format, isCubeMap, surfaces, scale, bias);
+        return new Texture(format, kind, width, height, depthOrLayers, surfaces, scaleAndBias);
     }
 
     private List<Surface> convertMipMaps(Image image, Bytes[] mipData, int minMip, be.twofold.valen.core.texture.TextureFormat format) {
@@ -92,10 +108,11 @@ public final class ImageReader implements AssetReader.Binary<Texture, EternalAss
             for (var mip = minMip; mip < mipCount; mip++) {
                 var mipIndex = mip * faces + face;
                 surfaces.add(new Surface(
+                    format,
                     image.mipInfos().get(mipIndex).mipPixelWidth(),
                     image.mipInfos().get(mipIndex).mipPixelHeight(),
-                    format,
-                    mipData[mipIndex].toArray()
+                    1,
+                    mipData[mipIndex]
                 ));
             }
         }

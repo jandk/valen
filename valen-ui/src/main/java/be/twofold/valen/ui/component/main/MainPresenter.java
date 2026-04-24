@@ -119,7 +119,8 @@ public final class MainPresenter extends AbstractPresenter<MainView> implements 
                     default -> Bytes.class;
                 };
                 var assetData = loader.load(asset.id(), type);
-                Platform.runLater(() -> getView().setupPreview(asset, assetData));
+                var metadata = loader.loadMetadata(asset.id()).orElse(null);
+                Platform.runLater(() -> getView().setupPreview(asset, assetData, metadata));
             } catch (IOException e) {
                 log.error("Could not load asset {}", asset.id().fileName(), e);
                 FxUtils.showExceptionDialog(e, "Could not load asset " + asset.id().fileName());

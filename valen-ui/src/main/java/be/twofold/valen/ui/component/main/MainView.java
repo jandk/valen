@@ -1,6 +1,7 @@
 package be.twofold.valen.ui.component.main;
 
 import be.twofold.valen.core.game.*;
+import be.twofold.valen.core.util.*;
 import be.twofold.valen.ui.common.*;
 import javafx.scene.*;
 
@@ -12,7 +13,7 @@ public interface MainView extends View<MainView.Listener> {
 
     void setArchives(List<String> archives);
 
-    void setupPreview(Asset asset, Object assetData);
+    void setupPreview(Asset asset, Object assetData, Meta.Node metadata);
 
     void focusOnSearch();
 

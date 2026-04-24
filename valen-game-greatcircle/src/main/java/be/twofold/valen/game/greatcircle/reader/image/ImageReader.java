@@ -2,6 +2,7 @@ package be.twofold.valen.game.greatcircle.reader.image;
 
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.texture.*;
+import be.twofold.valen.core.texture.shader.node.*;
 import be.twofold.valen.game.greatcircle.*;
 import be.twofold.valen.game.greatcircle.resource.*;
 import be.twofold.valen.game.idtech.defines.*;
@@ -9,6 +10,7 @@ import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 import java.util.*;
+import java.util.function.*;
 
 public final class ImageReader implements AssetReader.Binary<Texture, GreatCircleAsset> {
     private final boolean readStreams;
@@ -66,13 +68,27 @@ public final class ImageReader implements AssetReader.Binary<Texture, GreatCircl
 
     private Texture map(Image image) {
         var minMip = image.minMip();
+        var format = toImageFormat(image.header().textureFormat());
+        var kind = switch (image.header().type()) {
+            case TT_2D -> TextureKind.TEXTURE_2D;
+            case TT_3D -> TextureKind.TEXTURE_3D;
+            case TT_CUBIC -> TextureKind.CUBE_MAP;
+        };
         var width = minMip < 0 ? image.header().width() : image.sliceInfos().get(minMip).width();
         var height = minMip < 0 ? image.header().height() : image.sliceInfos().get(minMip).height();
-        var format = toImageFormat(image.header().textureFormat());
+        var depth = minMip < 0 ? image.header().depth() : image.sliceInfos().get(minMip).decompressedSize();
+        var depthOrLayers = switch (image.header().type()) {
+            case TT_2D -> 1;
+            case TT_3D -> depth;
+            case TT_CUBIC -> 6;
+        };
         var surfaces = convertMipMaps(image, format);
-        var isCubeMap = image.header().type() == TextureType.TT_CUBIC;
 
-        return new Texture(width, height, format, isCubeMap, surfaces, image.header().scale(), image.header().bias());
+        var scale = image.header().scale();
+        var bias = image.header().bias();
+        UnaryOperator<ShaderNode> scaleAndBias = node -> ShaderNode.scaleAndBias(node, scale, bias);
+
+        return new Texture(format, kind, width, height, depthOrLayers, surfaces, scaleAndBias);
     }
 
     private List<Surface> convertMipMaps(Image image, be.twofold.valen.core.texture.TextureFormat format) {
@@ -89,10 +105,11 @@ public final class ImageReader implements AssetReader.Binary<Texture, GreatCircl
                     break;
                 }
                 surfaces.add(new Surface(
+                    format,
                     image.sliceInfos().get(mipIndex).width(),
                     image.sliceInfos().get(mipIndex).height(),
-                    format,
-                    image.slices()[mipIndex].toArray()
+                    image.sliceInfos().get(mipIndex).depth(),
+                    image.slices()[mipIndex]
                 ));
             }
         }
