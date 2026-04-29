@@ -41,7 +41,6 @@ public abstract class GltfExporter<T> implements Exporter<T> {
     }
 
     @Override
-    @SuppressWarnings("resource")
     public void export(T value, Path path) throws IOException {
         var writer = switch (mode) {
             case GLB -> GltfWriter.createGlbWriter(path);

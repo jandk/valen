@@ -5,3 +5,11 @@ pom.xml.versionsBackup
 # IntelliJ
 .idea/
 *.iml
+
+# Native
+/*.dll
+/*.so.*
+/*.dylib
+
+# Export folder
+/exported

@@ -12,14 +12,14 @@ import java.io.*;
 import java.security.*;
 import java.util.*;
 
-public final class BinaryFileReader implements AssetReader<Bytes, DarkAgesAsset> {
+public final class BinaryFileReader implements AssetReader.Binary<Bytes, DarkAgesAsset> {
     @Override
     public boolean canRead(DarkAgesAsset asset) {
         return asset.id().type() == ResourcesType.BinaryFile;
     }
 
     @Override
-    public Bytes read(BinarySource source, DarkAgesAsset asset) throws IOException {
+    public Bytes read(BinarySource source, DarkAgesAsset asset, LoadingContext context) throws IOException {
         try {
             var salt = source.readBytes(12);
             var iVec = source.readBytes(16);
@@ -48,7 +48,7 @@ public final class BinaryFileReader implements AssetReader<Bytes, DarkAgesAsset>
             var parameterSpec = new IvParameterSpec(iVec.toArray());
             cipher.init(Cipher.DECRYPT_MODE, keySpec, parameterSpec);
 
-            var result = Bytes.Mutable.allocate(cipher.getOutputSize(text.length()));
+            var result = Bytes.allocate(cipher.getOutputSize(text.length()));
             cipher.doFinal(text.asBuffer(), result.asMutableBuffer());
             return result;
         } catch (GeneralSecurityException e) {

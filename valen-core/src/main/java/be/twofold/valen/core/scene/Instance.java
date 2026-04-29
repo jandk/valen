@@ -1,7 +1,7 @@
 package be.twofold.valen.core.scene;
 
 import be.twofold.valen.core.geometry.*;
-import be.twofold.valen.core.math.*;
+import wtf.reversed.toolbox.math.*;
 import wtf.reversed.toolbox.util.*;
 
 public record Instance(

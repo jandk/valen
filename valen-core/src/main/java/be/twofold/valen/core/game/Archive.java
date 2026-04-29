@@ -1,34 +1,43 @@
 package be.twofold.valen.core.game;
 
-import wtf.reversed.toolbox.io.*;
-
-import java.io.*;
 import java.util.*;
+import java.util.stream.*;
 
-public abstract class Archive<TID extends AssetID, TAsset extends Asset> implements Container<TID, TAsset> {
-    private List<AssetReader<?, TAsset>> readers;
+public interface Archive {
 
-    public abstract List<AssetReader<?, TAsset>> createReaders();
+    Optional<Asset> get(AssetID id);
 
-    public final <T> T loadAsset(TID identifier, Class<T> clazz) throws IOException {
-        var asset = get(identifier).orElseThrow(FileNotFoundException::new);
-        var bytes = read(identifier, null);
+    Stream<? extends Asset> all();
 
-        try (var source = BinarySource.wrap(bytes)) {
-            return read(asset, source, clazz);
-        }
+    static Archive simple(Map<? extends AssetID, ? extends Asset> assets) {
+        return new Archive() {
+            @Override
+            public Optional<Asset> get(AssetID id) {
+                return Optional.ofNullable(assets.get(id));
+            }
+
+            @Override
+            public Stream<? extends Asset> all() {
+                return assets.values().stream();
+            }
+        };
     }
 
-    public <R> R read(TAsset asset, BinarySource source, Class<R> clazz) throws IOException {
-        if (readers == null) {
-            var readersCopy = new ArrayList<>(createReaders());
-            readersCopy.add(AssetReader.raw());
-            readers = List.copyOf(readersCopy);
-        }
-        var assetReader = readers.stream()
-            .filter(ar -> ar.canRead(asset) && clazz.isAssignableFrom(ar.getReturnType()))
-            .findFirst().orElseThrow(() -> new IOException("No reader found with type " + clazz + " for " + asset));
+    static Archive combine(List<Archive> archives) {
+        return new Archive() {
+            @Override
+            public Optional<Asset> get(AssetID id) {
+                return archives.stream()
+                    .flatMap(archive -> archive.get(id).stream())
+                    .findFirst();
+            }
 
-        return clazz.cast(assetReader.read(source, asset));
+            @Override
+            public Stream<? extends Asset> all() {
+                return archives.stream()
+                    .flatMap(Archive::all);
+            }
+        };
     }
+
 }

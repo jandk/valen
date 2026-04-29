@@ -1,9 +1,11 @@
 package be.twofold.valen.ui.component;
 
 import be.twofold.valen.core.game.*;
-import be.twofold.valen.ui.common.*;
+import javafx.scene.*;
 
-public interface Viewer extends FXView {
+public interface Viewer {
+
+    Node getFXNode();
 
     String getName();
 

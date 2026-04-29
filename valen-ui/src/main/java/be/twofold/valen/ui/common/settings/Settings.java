@@ -1,42 +1,64 @@
 package be.twofold.valen.ui.common.settings;
 
 import be.twofold.valen.core.game.*;
+import wtf.reversed.toolbox.util.*;
 
 import java.nio.file.*;
 import java.util.*;
 
 public final class Settings {
-    private final Setting<Set<AssetType>> assetTypes = new Setting<>();
-    private final Setting<Path> gameExecutable = new Setting<>();
-    private final Setting<String> textureExporter = new Setting<>();
-    private final Setting<String> modelExporter = new Setting<>();
-    private final Setting<Boolean> reconstructZ = new Setting<>();
-    private final Setting<Path> exportPath = new Setting<>();
+    private Set<AssetType> assetTypes = AssetType.ALL_NO_RAW;
+    private Path gameExecutable = null;
+    private String textureExporter = "texture.png";
+    private String modelExporter = "gltf";
+    private Boolean reconstructZ = true;
+    private Path exportPath = Path.of("exported").toAbsolutePath();
 
-    Settings() {
+    public Set<AssetType> getAssetTypes() {
+        return EnumSet.copyOf(assetTypes);
     }
 
-    public Setting<Set<AssetType>> assetTypes() {
-        return assetTypes;
+    public void setAssetTypes(Set<AssetType> assetTypes) {
+        this.assetTypes = EnumSet.copyOf(assetTypes);
     }
 
-    public Setting<Path> gameExecutable() {
-        return gameExecutable;
+    public Optional<Path> getGameExecutable() {
+        return Optional.ofNullable(gameExecutable);
     }
 
-    public Setting<String> textureExporter() {
+    public void setGameExecutable(Path gameExecutable) {
+        this.gameExecutable = gameExecutable;
+    }
+
+    public String getTextureExporter() {
         return textureExporter;
     }
 
-    public Setting<String> modelExporter() {
+    public void setTextureExporter(String textureExporter) {
+        this.textureExporter = Check.nonNull(textureExporter, "textureExporter");
+    }
+
+    public String getModelExporter() {
         return modelExporter;
     }
 
-    public Setting<Boolean> reconstructZ() {
+    public void setModelExporter(String modelExporter) {
+        this.modelExporter = Check.nonNull(modelExporter, "modelExporter");
+    }
+
+    public Boolean isReconstructZ() {
         return reconstructZ;
     }
 
-    public Setting<Path> exportPath() {
+    public void setReconstructZ(Boolean reconstructZ) {
+        this.reconstructZ = Check.nonNull(reconstructZ, "reconstructZ");
+    }
+
+    public Path getExportPath() {
         return exportPath;
+    }
+
+    public void setExportPath(Path exportPath) {
+        this.exportPath = Check.nonNull(exportPath, "exportPath");
     }
 }

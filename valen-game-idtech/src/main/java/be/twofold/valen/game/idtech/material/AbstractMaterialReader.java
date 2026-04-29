@@ -2,7 +2,6 @@ package be.twofold.valen.game.idtech.material;
 
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.material.*;
-import be.twofold.valen.core.math.*;
 import be.twofold.valen.core.texture.*;
 import be.twofold.valen.core.util.*;
 import be.twofold.valen.game.idtech.decl.*;
@@ -12,6 +11,7 @@ import be.twofold.valen.game.idtech.renderparm.*;
 import com.google.gson.*;
 import org.slf4j.*;
 import wtf.reversed.toolbox.io.*;
+import wtf.reversed.toolbox.math.*;
 import wtf.reversed.toolbox.util.*;
 
 import java.io.*;
@@ -19,7 +19,7 @@ import java.util.*;
 import java.util.function.*;
 import java.util.stream.*;
 
-public abstract class AbstractMaterialReader<K extends AssetID, V extends Asset, A extends Archive<K, V>> implements AssetReader<Material, V> {
+public abstract class AbstractMaterialReader<K extends AssetID, V extends Asset> implements AssetReader.Binary<Material, V> {
     private static final Map<MaterialPropertyType, List<String>> ParmTextures = Map.of(
         MaterialPropertyType.Albedo, List.of(
             "albedo",
@@ -78,13 +78,11 @@ public abstract class AbstractMaterialReader<K extends AssetID, V extends Asset,
     private static final Map<String, RenderParm> RenderParmCache = new HashMap<>();
     private final Logger log;
 
-    private final A archive;
     private final boolean idTech8;
-    protected final AbstractDeclReader<K, V, A> declReader;
+    protected final AbstractDeclReader<K, V> declReader;
 
-    protected AbstractMaterialReader(A archive, AbstractDeclReader<K, V, A> declReader, boolean idTech8) {
+    protected AbstractMaterialReader(AbstractDeclReader<K, V> declReader, boolean idTech8) {
         this.log = LoggerFactory.getLogger(getClass());
-        this.archive = Check.nonNull(archive, "archive");
         this.declReader = Check.nonNull(declReader, "declReader");
         this.idTech8 = idTech8;
     }
@@ -93,9 +91,9 @@ public abstract class AbstractMaterialReader<K extends AssetID, V extends Asset,
     public abstract boolean canRead(V asset);
 
     @Override
-    public final Material read(BinarySource source, V asset) throws IOException {
-        var object = declReader.read(source, asset);
-        return parseMaterial(object, asset);
+    public final Material read(BinarySource source, V asset, LoadingContext context) throws IOException {
+        var object = declReader.read(source, asset, context);
+        return parseMaterial(object, asset, context);
     }
 
     public abstract String materialName(V asset);
@@ -104,29 +102,29 @@ public abstract class AbstractMaterialReader<K extends AssetID, V extends Asset,
 
     public abstract K renderParmAssetID(String name);
 
-    protected Material parseMaterial(JsonObject object, V asset) throws IOException {
+    protected Material parseMaterial(JsonObject object, V asset, LoadingContext context) throws IOException {
         var materialName = materialName(asset);
         if (!object.has("RenderLayers") && !object.has("Parms")) {
             return new Material(materialName, List.of());
         }
 
-        var renderLayerParms = parseRenderLayerParms(object.getAsJsonArray("RenderLayers"));
-        var standardParms = parseParms(object.getAsJsonObject("Parms"));
+        var renderLayerParms = parseRenderLayerParms(object.getAsJsonArray("RenderLayers"), context);
+        var standardParms = parseParms(object.getAsJsonObject("Parms"), context);
 
         var allParms = Stream.of(renderLayerParms, standardParms)
             .flatMap(Collection::stream)
             .collect(Collectors.toUnmodifiableMap(Parm::name, Function.identity(), (first, second) -> second));
 
-        var albedo = mapSimpleTexture(allParms, MaterialPropertyType.Albedo);
-        var normal = mapSimpleTexture(allParms, MaterialPropertyType.Normal);
-        var specular = mapSimpleTexture(allParms, MaterialPropertyType.Specular);
-        var smoothness = mapSimpleTexture(allParms, MaterialPropertyType.Smoothness);
-        var occlusion = mapSimpleTexture(allParms, MaterialPropertyType.Occlusion);
-        var emissive = mapEmissive(allParms);
+        var albedo = mapSimpleTexture(allParms, MaterialPropertyType.Albedo, context);
+        var normal = mapSimpleTexture(allParms, MaterialPropertyType.Normal, context);
+        var specular = mapSimpleTexture(allParms, MaterialPropertyType.Specular, context);
+        var smoothness = mapSimpleTexture(allParms, MaterialPropertyType.Smoothness, context);
+        var occlusion = mapSimpleTexture(allParms, MaterialPropertyType.Occlusion, context);
+        var emissive = mapEmissive(allParms, context);
 
         var other = allParms.values().stream()
             .filter(parm -> parm.value() instanceof Tex)
-            .map(parm -> mapTex2D(parm, allParms))
+            .map(parm -> mapTex2D(parm, allParms, context))
             .filter(Objects::nonNull)
             .map(reference -> new MaterialProperty(MaterialPropertyType.Unknown, reference, null));
 
@@ -137,9 +135,9 @@ public abstract class AbstractMaterialReader<K extends AssetID, V extends Asset,
         return new Material(materialName, properties);
     }
 
-    private MaterialProperty mapEmissive(Map<String, Parm> allParms) {
-        var emissive = mapSimpleTexture(allParms, MaterialPropertyType.Emissive);
-        var emissiveColor = allParms.get("surfaceemissivecolor") != null ? (Vector3) allParms.get("surfaceemissivecolor").value() : Vector3.One;
+    private MaterialProperty mapEmissive(Map<String, Parm> allParms, LoadingContext context) {
+        var emissive = mapSimpleTexture(allParms, MaterialPropertyType.Emissive, context);
+        var emissiveColor = allParms.get("surfaceemissivecolor") != null ? (Vector3) allParms.get("surfaceemissivecolor").value() : Vector3.ONE;
         var emissiveScale = allParms.get("surfaceemissivescale") != null ? (Float) allParms.get("surfaceemissivescale").value() : 1.0f;
         var emissiveFactor = new Vector4(emissiveColor, emissiveScale);
 
@@ -149,7 +147,7 @@ public abstract class AbstractMaterialReader<K extends AssetID, V extends Asset,
         return emissive.withFactor(emissiveFactor);
     }
 
-    private MaterialProperty mapSimpleTexture(Map<String, Parm> parms, MaterialPropertyType propertyType) {
+    private MaterialProperty mapSimpleTexture(Map<String, Parm> parms, MaterialPropertyType propertyType, LoadingContext context) {
         var textureParm = ParmTextures.getOrDefault(propertyType, List.of()).stream()
             .map(parms::get)
             .filter(Objects::nonNull)
@@ -164,7 +162,7 @@ public abstract class AbstractMaterialReader<K extends AssetID, V extends Asset,
             return null;
         }
 
-        var reference = textureParm.map(parm -> mapTex2D(parm, parms)).orElse(null);
+        var reference = textureParm.map(parm -> mapTex2D(parm, parms, context)).orElse(null);
         var factor = factorParm.map(parm -> switch (parm.renderParm().parmType) {
             case PT_F32_VEC4, PT_F16_VEC4 -> (Vector4) parm.value();
             case PT_F32_VEC3, PT_F16_VEC3 -> new Vector4((Vector3) parm.value(), 0.0f);
@@ -180,7 +178,7 @@ public abstract class AbstractMaterialReader<K extends AssetID, V extends Asset,
         return new MaterialProperty(propertyType, reference, factor);
     }
 
-    private TextureReference mapTex2D(Parm parm, Map<String, Parm> allParms) {
+    private TextureReference mapTex2D(Parm parm, Map<String, Parm> allParms, LoadingContext context) {
         var filePath = ((Tex) parm.value()).filePath();
         if (filePath == null || filePath.isEmpty() || filePath.equals("_default")) {
             return null;
@@ -206,17 +204,17 @@ public abstract class AbstractMaterialReader<K extends AssetID, V extends Asset,
 
         var name = builder.toString();
         var imageAssetID = imageAssetID(name);
-        var imageAsset = archive.get(imageAssetID);
-        if (imageAsset.isEmpty()) {
+        if (!context.exists(imageAssetID)) {
             log.warn("Missing image file: '{}'", name);
             return null;
         }
 
-        var supplier = ThrowingSupplier.lazy(() -> archive.loadAsset(imageAssetID, Texture.class));
-        return new TextureReference(name, imageAsset.get().exportName(), supplier);
+        // TODO: Fix exportName properly
+        var supplier = ThrowingSupplier.lazy(() -> context.load(imageAssetID, Texture.class));
+        return new TextureReference(name, imageAssetID.exportName(), supplier);
     }
 
-    private List<Parm> parseRenderLayerParms(JsonArray array) throws IOException {
+    private List<Parm> parseRenderLayerParms(JsonArray array, LoadingContext context) throws IOException {
         if (array == null) {
             return List.of();
         }
@@ -229,7 +227,7 @@ public abstract class AbstractMaterialReader<K extends AssetID, V extends Asset,
         }
         var renderLayerParms = new ArrayList<Parm>();
         for (var entry : parms.entrySet()) {
-            var renderParm = getRenderParm(entry.getKey());
+            var renderParm = getRenderParm(entry.getKey(), context);
             if (renderParm.isEmpty()) {
                 log.warn("Skipping unknown render layer parm: {}", entry.getKey());
                 continue;
@@ -241,25 +239,25 @@ public abstract class AbstractMaterialReader<K extends AssetID, V extends Asset,
         return renderLayerParms;
     }
 
-    private List<Parm> parseParms(JsonObject object) throws IOException {
+    private List<Parm> parseParms(JsonObject object, LoadingContext context) throws IOException {
         if (object == null) {
             return List.of();
         }
 
         var result = new ArrayList<Parm>();
         for (var entry : object.entrySet()) {
-            var parm = parseParm(object, entry.getKey());
+            var parm = parseParm(object, entry.getKey(), context);
             parm.ifPresent(result::add);
         }
         return result;
     }
 
-    private Optional<Parm> parseParm(JsonObject parms, String name) throws IOException {
+    private Optional<Parm> parseParm(JsonObject parms, String name, LoadingContext context) throws IOException {
         if (!parms.has(name)) {
             return Optional.empty();
         }
 
-        var renderParm = getRenderParm(name);
+        var renderParm = getRenderParm(name, context);
         if (renderParm.isEmpty()) {
             return Optional.empty();
         }
@@ -306,7 +304,7 @@ public abstract class AbstractMaterialReader<K extends AssetID, V extends Asset,
         var y = object.has("y") ? object.getAsJsonPrimitive("y").getAsFloat() : defaultValue.y();
         var result = new Vector2(x, y);
         return renderParm.parmEdit instanceof ParmEdit.Srgba
-            ? result.map(MathF::srgbToLinear)
+            ? new Vector2(Srgb.srgbToLinear(result.x()), Srgb.srgbToLinear(result.y()))
             : result;
     }
 
@@ -318,7 +316,7 @@ public abstract class AbstractMaterialReader<K extends AssetID, V extends Asset,
         var z = object.has("z") ? object.getAsJsonPrimitive("z").getAsFloat() : defaultValue.z();
         var result = new Vector3(x, y, z);
         return renderParm.parmEdit instanceof ParmEdit.Srgba
-            ? result.map(MathF::srgbToLinear)
+            ? new Vector3(Srgb.srgbToLinear(result.x()), Srgb.srgbToLinear(result.y()), Srgb.srgbToLinear(result.z()))
             : result;
     }
 
@@ -331,24 +329,24 @@ public abstract class AbstractMaterialReader<K extends AssetID, V extends Asset,
         var w = object.has("w") ? object.getAsJsonPrimitive("w").getAsFloat() : defaultValue.w();
         var result = new Vector4(x, y, z, w);
         return renderParm.parmEdit instanceof ParmEdit.Srgba
-            ? result.map(MathF::srgbToLinear)
+            ? new Vector4(Srgb.srgbToLinear(result.x()), Srgb.srgbToLinear(result.y()), Srgb.srgbToLinear(result.z()), result.w())
             : result;
     }
 
-    private Optional<RenderParm> getRenderParm(String name) throws IOException {
+    private Optional<RenderParm> getRenderParm(String name, LoadingContext context) throws IOException {
         name = name.toLowerCase();
         if (RenderParmCache.containsKey(name)) {
             return Optional.ofNullable(RenderParmCache.get(name));
         }
 
         var renderParmAsset = renderParmAssetID(name);
-        if (!archive.exists(renderParmAsset)) {
+        if (!context.exists(renderParmAsset)) {
             RenderParmCache.put(name, null);
             log.warn("Could not load renderparm: '{}'", name);
             return Optional.empty();
         }
 
-        var renderParm = archive.loadAsset(renderParmAsset, RenderParm.class);
+        var renderParm = context.load(renderParmAsset, RenderParm.class);
         RenderParmCache.put(name, renderParm);
         return Optional.of(renderParm);
     }

@@ -1,6 +1,6 @@
 package be.twofold.valen.game.idtech.geometry;
 
-import be.twofold.valen.core.math.*;
+import wtf.reversed.toolbox.math.*;
 
 public interface LodInfo {
 

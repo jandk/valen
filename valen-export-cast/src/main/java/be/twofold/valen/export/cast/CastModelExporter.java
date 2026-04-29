@@ -2,7 +2,6 @@ package be.twofold.valen.export.cast;
 
 import be.twofold.tinycast.*;
 import be.twofold.valen.core.geometry.*;
-import be.twofold.valen.core.math.*;
 import be.twofold.valen.export.cast.mappers.*;
 
 import java.io.*;

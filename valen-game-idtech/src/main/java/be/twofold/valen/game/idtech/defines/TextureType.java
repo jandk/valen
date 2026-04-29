@@ -1,6 +1,6 @@
 package be.twofold.valen.game.idtech.defines;
 
-import be.twofold.valen.core.util.*;
+import wtf.reversed.toolbox.util.*;
 
 public enum TextureType implements ValueEnum<Integer> {
     TT_2D(0),

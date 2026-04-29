@@ -2,23 +2,23 @@ package be.twofold.valen.game.greatcircle.reader.hair;
 
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.geometry.*;
-import be.twofold.valen.core.math.*;
 import be.twofold.valen.game.greatcircle.*;
 import be.twofold.valen.game.greatcircle.resource.*;
 import wtf.reversed.toolbox.collect.*;
 import wtf.reversed.toolbox.io.*;
+import wtf.reversed.toolbox.math.*;
 
 import java.io.*;
 import java.util.*;
 
-public final class HairReader implements AssetReader<Model, GreatCircleAsset> {
+public final class HairReader implements AssetReader.Binary<Model, GreatCircleAsset> {
     @Override
     public boolean canRead(GreatCircleAsset asset) {
         return asset.id().type() == ResourceType.hair;
     }
 
     @Override
-    public Model read(BinarySource source, GreatCircleAsset asset) throws IOException {
+    public Model read(BinarySource source, GreatCircleAsset asset, LoadingContext context) throws IOException {
         var hairMesh = HairMesh.read(source);
         source.expectEnd();
 
@@ -51,9 +51,10 @@ public final class HairReader implements AssetReader<Model, GreatCircleAsset> {
     private Floats getPositions(Shorts sourcePositions, float scale, Vector3 bias) {
         var positions = new float[sourcePositions.length() * 3 / 4];
         for (int i = 0, o = 0; i < sourcePositions.length(); i += 4, o += 3) {
-            positions[o/**/] = Math.fma(MathF.unpackUNorm16(sourcePositions.get(i/**/)), scale, bias.x());
-            positions[o + 1] = Math.fma(MathF.unpackUNorm16(sourcePositions.get(i + 1)), scale, bias.y());
-            positions[o + 2] = Math.fma(MathF.unpackUNorm16(sourcePositions.get(i + 2)), scale, bias.z());
+            /**/
+            positions[o/**/] = Math.fma(FloatMath.unpackUNorm16(sourcePositions.get(i/**/)), scale, bias.x());
+            positions[o + 1] = Math.fma(FloatMath.unpackUNorm16(sourcePositions.get(i + 1)), scale, bias.y());
+            positions[o + 2] = Math.fma(FloatMath.unpackUNorm16(sourcePositions.get(i + 2)), scale, bias.z());
         }
         return Floats.wrap(positions);
     }

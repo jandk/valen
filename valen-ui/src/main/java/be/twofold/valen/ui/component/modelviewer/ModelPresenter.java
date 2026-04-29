@@ -16,10 +16,9 @@ import javafx.scene.shape.*;
 import wtf.reversed.toolbox.collect.*;
 
 import java.io.*;
-import java.nio.*;
 import java.util.*;
 
-public final class ModelPresenter extends AbstractFXPresenter<ModelView> implements Viewer {
+public final class ModelPresenter extends AbstractPresenter<ModelView> implements Viewer {
     @Inject
     public ModelPresenter(ModelView view) {
         super(view);
@@ -88,27 +87,18 @@ public final class ModelPresenter extends AbstractFXPresenter<ModelView> impleme
             var texture = reference.supplier().get();
 
             // I have to limit this, because the performance absolutely tanks, not sure why yet...
-            var surface = texture.surfaces().stream()
-                // .filter(s -> s.width() <= 1024 && s.height() <= 1024)
-                .skip(2)
-                .findFirst();
-            if (surface.isEmpty()) {
-                return null;
-            }
+            int mip = Math.min(texture.mipCount() - 1, 2);
+            var converted = texture.convertSurface(mip, 0, TextureFormat.B8G8R8A8_SRGB, true);
 
-            var converted = Texture.fromSurface(surface.get(), texture.format())
-                .convert(TextureFormat.B8G8R8A8_UNORM, true);
-
-            var pixelBuffer = new PixelBuffer<>(
+            var diffuseMap = new WritableImage(new PixelBuffer<>(
                 converted.width(),
                 converted.height(),
-                ByteBuffer.wrap(converted.surfaces().getFirst().data()),
+                ((Bytes.Mutable) converted.surfaces().getFirst().data()).asMutableBuffer(), // Disgusting
                 PixelFormat.getByteBgraPreInstance()
-            );
+            ));
 
-            var image = new WritableImage(pixelBuffer);
             var result = new PhongMaterial();
-            result.setDiffuseMap(image);
+            result.setDiffuseMap(diffuseMap);
             return result;
         } catch (IOException e) {
             e.printStackTrace();

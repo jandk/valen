@@ -8,14 +8,14 @@ import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 
-public final class FileReader implements AssetReader<Bytes, EternalAsset> {
+public final class FileReader implements AssetReader.Binary<Bytes, EternalAsset> {
     @Override
-    public boolean canRead(EternalAsset resource) {
-        return resource.id().type() == ResourceType.File;
+    public boolean canRead(EternalAsset asset) {
+        return asset.id().type() == ResourceType.File;
     }
 
     @Override
-    public Bytes read(BinarySource source, EternalAsset resource) throws IOException {
+    public Bytes read(BinarySource source, EternalAsset asset, LoadingContext context) throws IOException {
         return File.read(source).data();
     }
 }

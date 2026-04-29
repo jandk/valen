@@ -1,7 +1,7 @@
 package be.twofold.valen.core.export;
 
 import be.twofold.valen.core.geometry.*;
-import be.twofold.valen.core.math.*;
+import wtf.reversed.toolbox.math.*;
 
 public final class MeshGenerator {
     private MeshGenerator() {
@@ -39,9 +39,9 @@ public final class MeshGenerator {
             float dy = row / (float) resY;
             for (int col = 0; col <= resX; col++) {
                 float dx = col / (float) resX;
-                float angle = MathF.TAU * dx - MathF.PI;
-                float x = MathF.sin(angle);
-                float z = MathF.cos(angle);
+                float angle = FloatMath.TAU * dx - FloatMath.PI;
+                float x = FloatMath.sin(angle);
+                float z = FloatMath.cos(angle);
 
                 Vector3 position = new Vector3(x, dy, z);
                 builder.addVertex(position, new Vector2(dx, 1 - dy), position.normalize());
@@ -66,14 +66,14 @@ public final class MeshGenerator {
 
         for (int row = 0; row <= resY; row++) {
             float dy = row / (float) resY;
-            float xz = MathF.sin(MathF.PI * dy);
-            float y = -MathF.cos(MathF.PI * dy);
+            float xz = FloatMath.sin(FloatMath.PI * dy);
+            float y = -FloatMath.cos(FloatMath.PI * dy);
             // float t = y * 0.5f + 0.5f;
             for (int col = 0; col <= resX; col++) {
                 float dx = col / (float) resX;
-                float angle = MathF.TAU * dx - MathF.PI;
-                float x = MathF.sin(angle) * xz;
-                float z = MathF.cos(angle) * xz;
+                float angle = FloatMath.TAU * dx - FloatMath.PI;
+                float x = FloatMath.sin(angle) * xz;
+                float z = FloatMath.cos(angle) * xz;
 
                 Vector3 position = new Vector3(x, y, z);
                 builder.addVertex(position, new Vector2(dx, 1 - dy), position.normalize());

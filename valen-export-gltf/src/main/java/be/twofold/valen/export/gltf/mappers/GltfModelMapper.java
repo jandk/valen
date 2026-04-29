@@ -1,7 +1,6 @@
 package be.twofold.valen.export.gltf.mappers;
 
 import be.twofold.valen.core.geometry.*;
-import be.twofold.valen.core.math.*;
 import be.twofold.valen.format.gltf.*;
 import be.twofold.valen.format.gltf.model.accessor.*;
 import be.twofold.valen.format.gltf.model.bufferview.*;
@@ -9,8 +8,10 @@ import be.twofold.valen.format.gltf.model.material.*;
 import be.twofold.valen.format.gltf.model.mesh.*;
 import org.slf4j.*;
 import wtf.reversed.toolbox.collect.*;
+import wtf.reversed.toolbox.math.*;
 
 import java.io.*;
+import java.nio.*;
 import java.util.*;
 
 public abstract class GltfModelMapper {
@@ -169,7 +170,7 @@ public abstract class GltfModelMapper {
                 .values(values)
                 .build();
 
-            var bounds = Bounds.calculate(blendShape.values());
+            var bounds = calculateBounds(blendShape.values());
             var accessor = ImmutableAccessor.builder()
                 .componentType(AccessorComponentType.FLOAT)
                 .count(count)
@@ -206,13 +207,21 @@ public abstract class GltfModelMapper {
             .type(type);
 
         if (withBounds) {
-            Bounds bounds = Bounds.calculate((Floats) slice);
+            Bounds bounds = calculateBounds(((Floats) slice).asBuffer());
             builder
                 .min(GltfUtils.mapVector3(bounds.min()))
                 .max(GltfUtils.mapVector3(bounds.max()));
         }
 
         return context.addAccessor(builder.build());
+    }
+
+    private Bounds calculateBounds(FloatBuffer buffer) {
+        var builder = Bounds.builder();
+        for (int i = 0; i < buffer.remaining(); i += 3) {
+            builder.add(buffer.get(i), buffer.get(i + 1), buffer.get(i + 2));
+        }
+        return builder.build();
     }
 
     private void fixJointsAndWeights(Mesh mesh) {

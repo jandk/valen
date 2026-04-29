@@ -1,6 +1,5 @@
 package be.twofold.valen.ui.component.textureviewer;
 
-import backbonefx.event.*;
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.texture.*;
 import be.twofold.valen.ui.common.*;
@@ -11,39 +10,30 @@ import javafx.scene.image.*;
 import org.slf4j.*;
 import wtf.reversed.toolbox.collect.*;
 
-import java.util.*;
 import java.util.function.*;
 
-public final class TexturePresenter extends AbstractFXPresenter<TextureView> implements Viewer {
+public final class TexturePresenter extends AbstractPresenter<TextureView> implements TextureView.Listener, Viewer {
     private static final Logger log = LoggerFactory.getLogger(TexturePresenter.class);
-    private static final Set<TextureFormat> GRAY = Set.of(
-        TextureFormat.R8_UNORM,
-        TextureFormat.R16_UNORM,
-        TextureFormat.R16_SFLOAT,
-        TextureFormat.BC4_UNORM,
-        TextureFormat.BC4_SNORM
-    );
-
     private final Settings settings;
 
+    private Texture texture;
+    private int currentSlice;
+    private int currentMip;
+
+    private Surface decoded;
     private Bytes.Mutable imagePixels;
-    private Texture decoded;
-    private boolean premultiplied;
+    private Boolean premultiplied;
     private WritableImage image;
 
     private Channel channel = Channel.ALL;
 
     @Inject
-    public TexturePresenter(TextureView view, EventBus backboneEventBus, Settings settings) {
+    public TexturePresenter(TextureView view, Settings settings) {
         // TODO: Make package-private
         super(view);
         this.settings = settings;
 
-        backboneEventBus.subscribe(TextureViewEvent.class, event -> {
-            switch (event) {
-                case TextureViewEvent.ChannelSelected(var selectedChannel) -> filterImage(selectedChannel);
-            }
-        });
+        view.setListener(this);
     }
 
     @Override
@@ -59,60 +49,105 @@ public final class TexturePresenter extends AbstractFXPresenter<TextureView> imp
     @Override
     public void setData(Object data) {
         if (data == null) {
-            getView().setImage(null);
-            image = null;
+            getView().setImage(null, true);
+            getView().setSliceCount(1);
+            getView().setMipCount(1);
+
+            texture = null;
             decoded = null;
             imagePixels = null;
+            premultiplied = null;
+            image = null;
             return;
         }
 
-        // Let's try our new ops
-        long t0 = System.nanoTime();
-        Texture texture = ((Texture) data).firstOnly();
-        decoded = texture.convert(TextureFormat.B8G8R8A8_UNORM, settings.reconstructZ().get().orElse(false));
-        if (GRAY.contains(texture.format())) {
-            splatGray();
-        }
-        premultiplied = !texture.format().hasAlpha() || detectPremultiplied();
+        texture = (Texture) data;
+        currentSlice = 0;
+        currentMip = 0;
 
-        long t1 = System.nanoTime();
-        image = new WritableImage(decoded.width(), decoded.height());
-        image.getPixelWriter().setPixels(
-            0, 0, decoded.width(), decoded.height(),
-            PixelFormat.getByteBgraPreInstance(),
-            decoded.surfaces().getFirst().data(), 0, decoded.width() * 4
-        );
-        imagePixels = null;
+        getView().setSliceCount(texture.depthOrLayers());
+        getView().setMipCount(texture.mipCount());
 
-        long t2 = System.nanoTime();
-        if (channel != Channel.ALL || !premultiplied) {
-            filterImage(channel);
-        }
-        getView().setImage(image);
-
-        var status = String.format("%s\u2009-\u2009%dx%d", texture.format(), texture.width(), texture.height());
-        getView().setStatus(status);
-
-        long t3 = System.nanoTime();
-        log.info("Decode: {}, Create: {}, Filter: {}", (t1 - t0) / 1e6, (t2 - t1) / 1e6, (t3 - t2) / 1e6);
+        decodeAndDisplay(true);
     }
 
-    private void splatGray() {
-        var data = Bytes.Mutable.wrap(decoded.surfaces().getFirst().data());
-        for (int i = 0; i < data.length(); i += 4) {
-            int bgra = data.getInt(i);
-            bgra = ((bgra >> 16) & 0xFF) * 0x010101 | (bgra & 0xFF000000);
-            data.setInt(i, bgra);
+    @Override
+    public void onChannelSelected(Channel channel) {
+        filterImage(channel);
+    }
+
+    @Override
+    public void onSliceSelected(int slice) {
+        if (currentSlice == slice) {
+            return;
         }
+        currentSlice = slice;
+        decodeAndDisplay(false);
+    }
+
+    @Override
+    public void onMipSelected(int mip) {
+        currentMip = mip;
+        if (texture.kind() == TextureKind.TEXTURE_3D) {
+            currentSlice = 0;
+            getView().setSliceCount(texture.sliceCount(currentMip));
+        }
+        decodeAndDisplay(false);
+    }
+
+    private void decodeAndDisplay(boolean resetZoom) {
+        long t0 = System.nanoTime();
+
+        var oldWidth = decoded != null ? decoded.width() : 0;
+        decoded = texture
+            .convertSurface(currentMip, currentSlice, TextureFormat.B8G8R8A8_SRGB, settings.isReconstructZ())
+            .getSurface(0, 0);
+        premultiplied = null;
+
+        long t1 = System.nanoTime();
+
+        if (image == null || (int) image.getWidth() != decoded.width() || (int) image.getHeight() != decoded.height()) {
+            image = new WritableImage(decoded.width(), decoded.height());
+            imagePixels = Bytes.allocate(decoded.width() * decoded.height() * 4);
+        }
+
+        filterImage(channel);
+        getView().setImage(image, resetZoom);
+        if (!resetZoom && oldWidth > 0) {
+            getView().adjustScale((double) oldWidth / decoded.width());
+        }
+
+        getView().setStatus(buildStatus());
+
+        long t2 = System.nanoTime();
+        log.info("Decode: {}, Filter: {}", (t1 - t0) / 1e6, (t2 - t1) / 1e6);
+    }
+
+    private String buildStatus() {
+        StringBuilder builder = new StringBuilder()
+            .append(texture.format())
+            .append("\u2009-\u2009")
+            .append(Math.max(1, texture.width() >> currentMip));
+
+        if (texture.kind() != TextureKind.TEXTURE_1D) {
+            builder.append("x")
+                .append(Math.max(1, texture.height() >> currentMip));
+        }
+        if (texture.kind() == TextureKind.TEXTURE_3D) {
+            builder.append("x")
+                .append(Math.max(1, texture.depthOrLayers() >> currentMip));
+        }
+
+        return builder.toString();
     }
 
     private boolean detectPremultiplied() {
-        var data = decoded.surfaces().getFirst().data();
-        for (int i = 0; i < data.length; i += 4) {
-            int b = Byte.toUnsignedInt(data[i]);
-            int g = Byte.toUnsignedInt(data[i + 1]);
-            int r = Byte.toUnsignedInt(data[i + 2]);
-            int a = Byte.toUnsignedInt(data[i + 3]);
+        var data = decoded.data();
+        for (int i = 0; i < data.length(); i += 4) {
+            int b = data.getUnsigned(i/**/);
+            int g = data.getUnsigned(i + 1);
+            int r = data.getUnsigned(i + 2);
+            int a = data.getUnsigned(i + 3);
             int max = Math.max(Math.max(r, g), b);
             if (max > a) {
                 return false;
@@ -124,8 +159,8 @@ public final class TexturePresenter extends AbstractFXPresenter<TextureView> imp
     private void filterImage(Channel channel) {
         this.channel = channel;
 
-        if (imagePixels == null) {
-            imagePixels = Bytes.Mutable.allocate(decoded.width() * decoded.height() * 4);
+        if (premultiplied == null) {
+            premultiplied = !texture.format().hasAlpha() || detectPremultiplied();
         }
 
         // B8G8R8A8
@@ -138,7 +173,7 @@ public final class TexturePresenter extends AbstractFXPresenter<TextureView> imp
             case ALL -> premultiplied ? IntUnaryOperator.identity() : this::premultiply;
         };
 
-        var data = Bytes.wrap(decoded.surfaces().getFirst().data());
+        var data = decoded.data();
         for (int i = 0; i < data.length(); i += 4) {
             int bgra = data.getInt(i);
             bgra = operator.applyAsInt(bgra);

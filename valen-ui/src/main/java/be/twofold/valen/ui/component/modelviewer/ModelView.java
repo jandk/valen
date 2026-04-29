@@ -1,6 +1,6 @@
 package be.twofold.valen.ui.component.modelviewer;
 
-import be.twofold.valen.core.math.*;
+import be.twofold.valen.core.geometry.*;
 import javafx.scene.paint.*;
 import javafx.scene.shape.*;
 

@@ -2,7 +2,6 @@ package be.twofold.valen.game.darkages.reader.model;
 
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.geometry.*;
-import be.twofold.valen.core.math.*;
 import be.twofold.valen.game.darkages.*;
 import be.twofold.valen.game.darkages.reader.*;
 import be.twofold.valen.game.darkages.reader.geometry.*;
@@ -14,16 +13,10 @@ import wtf.reversed.toolbox.util.*;
 import java.io.*;
 import java.util.*;
 
-public final class StaticModelReader implements AssetReader<Model, DarkAgesAsset> {
-    private final DarkAgesArchive archive;
+public final class StaticModelReader implements AssetReader.Binary<Model, DarkAgesAsset> {
     private final boolean readMaterials;
 
-    public StaticModelReader(DarkAgesArchive archive) {
-        this(archive, true);
-    }
-
-    StaticModelReader(DarkAgesArchive archive, boolean readMaterials) {
-        this.archive = archive;
+    public StaticModelReader(boolean readMaterials) {
         this.readMaterials = readMaterials;
     }
 
@@ -33,21 +26,21 @@ public final class StaticModelReader implements AssetReader<Model, DarkAgesAsset
     }
 
     @Override
-    public Model read(BinarySource source, DarkAgesAsset asset) throws IOException {
+    public Model read(BinarySource source, DarkAgesAsset asset, LoadingContext context) throws IOException {
         var model = StaticModel.read(source);
-        var meshes = new ArrayList<>(readMeshes(model, source, asset.hash()));
+        var meshes = new ArrayList<>(readMeshes(model, source, asset.hash(), context));
 
         if (readMaterials) {
-            Materials.apply(archive, meshes, model.meshInfos(), StaticModelMeshInfo::mtlDecl, _ -> null);
+            Materials.apply(context, meshes, model.meshInfos(), StaticModelMeshInfo::mtlDecl, _ -> null);
         }
         return new Model(meshes, Optional.empty(), Optional.of(asset.id().fullName()), Optional.empty(), Axis.Z);
     }
 
-    private List<Mesh> readMeshes(StaticModel model, BinarySource source, long hash) throws IOException {
+    private List<Mesh> readMeshes(StaticModel model, BinarySource source, long hash, LoadingContext context) throws IOException {
         if (!model.header().streamable()) {
             return readEmbeddedGeometry(model, source);
         }
-        return readStreamedGeometry(model, 0, hash);
+        return readStreamedGeometry(model, 0, hash, context);
     }
 
     private List<Mesh> readEmbeddedGeometry(StaticModel model, BinarySource source) throws IOException {
@@ -59,7 +52,7 @@ public final class StaticModelReader implements AssetReader<Model, DarkAgesAsset
         return meshes;
     }
 
-    private List<Mesh> readStreamedGeometry(StaticModel model, int lod, long hash) throws IOException {
+    private List<Mesh> readStreamedGeometry(StaticModel model, int lod, long hash, LoadingContext context) throws IOException {
         var streamHash = Hash.hash(hash, 4 - lod, 0);
         var diskLayout = model.streamDiskLayouts().get(lod);
         var uncompressedSize = diskLayout.uncompressedSize();
@@ -68,7 +61,7 @@ public final class StaticModelReader implements AssetReader<Model, DarkAgesAsset
             .<LodInfo>map(mi -> mi.lodInfos().get(lod))
             .toList();
 
-        var bytes = archive.readStream(streamHash, uncompressedSize);
+        var bytes = context.open(new DarkAgesStreamLocation(streamHash, uncompressedSize));
         var source = BinarySource.wrap(bytes);
         return GeometryReader.readStreamedMesh(source, lods, false);
     }
