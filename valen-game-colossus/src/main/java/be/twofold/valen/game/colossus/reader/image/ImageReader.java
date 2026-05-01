@@ -4,31 +4,22 @@ import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.texture.*;
 import be.twofold.valen.game.colossus.*;
 import be.twofold.valen.game.colossus.resource.*;
-import wtf.reversed.toolbox.compress.*;
+import wtf.reversed.toolbox.collect.*;
 import wtf.reversed.toolbox.io.*;
 import wtf.reversed.toolbox.util.*;
 
 import java.io.*;
 import java.util.*;
+import java.util.function.*;
 
-public final class ImageReader implements AssetReader<Texture, ColossusAsset> {
-    private final ColossusArchive archive;
-    private final Decompressor decompressor;
-    private final boolean readStreams;
-
-    public ImageReader(ColossusArchive archive, Decompressor decompressor, boolean readStreams) {
-        this.archive = Check.nonNull(archive, "archive");
-        this.decompressor = Check.nonNull(decompressor, "decompressor");
-        this.readStreams = readStreams;
-    }
-
+public final class ImageReader implements AssetReader.Binary<Texture, ColossusAsset> {
     @Override
     public boolean canRead(ColossusAsset asset) {
         return asset.id().type() == ResourceType.image;
     }
 
     @Override
-    public Texture read(BinarySource source, ColossusAsset asset) throws IOException {
+    public Texture read(BinarySource source, ColossusAsset asset, LoadingContext context) throws IOException {
         var image = Image.read(source);
         source.expectEnd();
 
@@ -43,10 +34,11 @@ public final class ImageReader implements AssetReader<Texture, ColossusAsset> {
 
             var mip = image.mips().get(i);
             surfaces.add(new Surface(
+                imageFormat,
                 mip.mipPixelWidth(),
                 mip.mipPixelHeight(),
-                imageFormat,
-                image.mipData()[i].toArray()
+                1,
+                image.mipData()[i]
             ));
         }
 
@@ -54,12 +46,12 @@ public final class ImageReader implements AssetReader<Texture, ColossusAsset> {
             var mip = image.mips().get(i);
             var mipHash = asset.hash() << 4 | (image.header().mipCount() - mip.mipLevel());
 
-            if (archive.containsStream(mipHash)) {
-                var surface = switch (mip.compressionMode()) {
-                    case 1 -> readMode1Mip(mipHash, mip, imageFormat);
-                    case 2 -> readMode2Mip(mipHash, mip, imageFormat);
-                    default -> throw new IOException("Unknown compression mode: " + mip.compressionMode());
-                };
+            var surface = switch (mip.compressionMode()) {
+                case 1 -> readMode1Mip(context, mipHash, mip, imageFormat);
+                case 2 -> readMode2Mip(context, mipHash, mip, imageFormat);
+                default -> throw new IOException("Unknown compression mode: " + mip.compressionMode());
+            };
+            if (surface != null) {
                 surfaces.set(i, surface);
             }
         }
@@ -73,6 +65,11 @@ public final class ImageReader implements AssetReader<Texture, ColossusAsset> {
         }
 
         var format = surfaces.get(minMip).format();
+        var kind = switch (image.header().textureType()) {
+            case TT_2D -> TextureKind.TEXTURE_2D;
+            case TT_3D -> TextureKind.TEXTURE_3D;
+            case TT_CUBIC -> TextureKind.CUBE_MAP;
+        };
         var lastMip = surfaces.size();
         for (int i = minMip; i < surfaces.size(); i++) {
             if (surfaces.get(i).format() != format) {
@@ -82,21 +79,29 @@ public final class ImageReader implements AssetReader<Texture, ColossusAsset> {
         }
 
         return new Texture(
+            format,
+            kind,
             image.mips().get(minMip).mipPixelWidth(),
             image.mips().get(minMip).mipPixelHeight(),
-            format,
-            image.header().textureType() == ImageTextureType.TT_CUBIC,
-            surfaces.subList(minMip, lastMip)
+            1,
+            surfaces.subList(minMip, lastMip),
+            UnaryOperator.identity()
         );
     }
 
-    private Surface readMode1Mip(long mipHash, ImageMip mip, TextureFormat format) throws IOException {
-        var bytes = archive.readStream(mipHash, mip.compressedSize(), mip.decompressedSize());
-        return new Surface(mip.mipPixelWidth(), mip.mipPixelHeight(), format, bytes.toArray());
+    private Surface readMode1Mip(LoadingContext context, long mipHash, ImageMip mip, TextureFormat format) throws IOException {
+        var bytes = context.open(new ColossusStreamLocation(mipHash, mip.compressedSize(), mip.decompressedSize()));
+        if (bytes.length() == 0) {
+            return null;
+        }
+        return new Surface(format, mip.mipPixelWidth(), mip.mipPixelHeight(), 1, bytes);
     }
 
-    private Surface readMode2Mip(long mipHash, ImageMip mip, TextureFormat textureFormat) throws IOException {
-        var bytes = archive.readStreamRaw(mipHash, mip.compressedSize());
+    private Surface readMode2Mip(LoadingContext context, long mipHash, ImageMip mip, TextureFormat textureFormat) throws IOException {
+        var bytes = context.open(new ColossusStreamLocation(mipHash, mip.compressedSize(), mip.compressedSize()));
+        if (bytes.length() == 0) {
+            return null;
+        }
         var source = BinarySource.wrap(bytes);
 
         var surfaceFormat = switch (textureFormat) {
@@ -111,14 +116,15 @@ public final class ImageReader implements AssetReader<Texture, ColossusAsset> {
             default -> throw new UnsupportedOperationException("Unsupported texture format: " + textureFormat);
         };
 
-        var surface = Surface.create(mip.mipPixelWidth(), mip.mipPixelHeight(), surfaceFormat);
+        var decompressor = Decompressors.getOodle();
+        var surface = Surface.create(mip.mipPixelWidth(), mip.mipPixelHeight(), 1, surfaceFormat);
         while (source.position() < source.size()) {
             var tile = ImageTile.read(source);
             Check.state(tile.format() == tileFormat, "Tile format mismatch");
 
             var tileData = decompressor.decompress(tile.data(), tile.size()).toArray();
             byte[] decoded = WbpDecoder.decode(tile, tileData);
-            var tileSurface = new Surface(tile.width(), tile.height(), surfaceFormat, decoded);
+            var tileSurface = new Surface(surfaceFormat, tile.width(), tile.height(), 1, Bytes.wrap(decoded));
             Surface.copy(
                 tileSurface, 0, 0,
                 surface, tile.x(), tile.y(),
@@ -129,7 +135,6 @@ public final class ImageReader implements AssetReader<Texture, ColossusAsset> {
     }
 
     private static TextureFormat toImageFormat(ImageTextureFormat format) {
-        // I might not be sure about all these mappings, but it's a start
         return switch (format) {
             case FMT_ALPHA -> TextureFormat.R8_UNORM;
             case FMT_BC1, FMT_BC1_ZERO_ALPHA -> TextureFormat.BC1_UNORM;

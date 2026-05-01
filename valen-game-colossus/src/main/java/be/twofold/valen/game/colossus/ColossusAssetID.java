@@ -15,22 +15,6 @@ public record ColossusAssetID(
         .thenComparing(ColossusAssetID::type)
         .thenComparing(ColossusAssetID::variation);
 
-    public static ColossusAssetID from(String name, ResourceType type) {
-        return new ColossusAssetID(
-            new ResourceName(name),
-            type,
-            ResourceVariation.None
-        );
-    }
-
-    public static ColossusAssetID from(String name, ResourceType type, ResourceVariation variation) {
-        return new ColossusAssetID(
-            new ResourceName(name),
-            type,
-            variation
-        );
-    }
-
     @Override
     public String fullName() {
         return name.name();

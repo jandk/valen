@@ -1,6 +1,6 @@
 package be.twofold.valen.game.colossus.reader.image;
 
-import be.twofold.valen.core.math.*;
+import wtf.reversed.toolbox.math.*;
 
 public final class WbpDecoder {
     private static final float H1 = -0.091271763114f;
@@ -175,8 +175,8 @@ public final class WbpDecoder {
                 float v0 = f1(l1, l2, l3, h0, h1, h2, h3);
                 float v1 = f2(l1, l2, l3, l4, h0, h1, h2, h3, h4);
 
-                dst[(y * width + x * 2) * dstPitch + dstOffset] = MathF.packUNorm8(v0);
-                dst[(y * width + x * 2) * dstPitch + dstPitch + dstOffset] = MathF.packUNorm8(v1);
+                dst[(y * width + x * 2) * dstPitch + dstOffset] = FloatMath.packUNorm8(v0);
+                dst[(y * width + x * 2) * dstPitch + dstPitch + dstOffset] = FloatMath.packUNorm8(v1);
             }
         }
     }
@@ -190,7 +190,7 @@ public final class WbpDecoder {
     }
 
     private static float unpackLow(byte b) {
-        return Byte.toUnsignedInt(b) * (1.0f / 255.0f);
+        return FloatMath.unpackUNorm8(b);
     }
 
     private static float unpackHigh(byte b) {

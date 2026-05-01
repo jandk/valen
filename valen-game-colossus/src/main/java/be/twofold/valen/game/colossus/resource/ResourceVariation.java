@@ -1,6 +1,6 @@
 package be.twofold.valen.game.colossus.resource;
 
-import be.twofold.valen.core.util.*;
+import wtf.reversed.toolbox.util.*;
 
 public enum ResourceVariation implements ValueEnum<Integer> {
     None(0),

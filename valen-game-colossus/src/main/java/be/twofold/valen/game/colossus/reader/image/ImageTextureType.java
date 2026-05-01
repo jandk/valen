@@ -1,6 +1,6 @@
 package be.twofold.valen.game.colossus.reader.image;
 
-import be.twofold.valen.core.util.*;
+import wtf.reversed.toolbox.util.*;
 
 public enum ImageTextureType implements ValueEnum<Integer> {
     TT_2D(0x00),

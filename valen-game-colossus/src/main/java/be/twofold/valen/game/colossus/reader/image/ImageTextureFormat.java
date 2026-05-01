@@ -1,6 +1,6 @@
 package be.twofold.valen.game.colossus.reader.image;
 
-import be.twofold.valen.core.util.*;
+import wtf.reversed.toolbox.util.*;
 
 public enum ImageTextureFormat implements ValueEnum<Integer> {
     FMT_NONE(0x00),
