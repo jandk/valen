@@ -113,7 +113,7 @@ public final class Md6ModelReader implements AssetReader.Binary<Model, DarkAgesA
             }
             localInfluence[0] = weight;
 
-            Floats.wrap(localInfluence).copyTo(weights, o);
+            weights.slice(o).copyFrom(localInfluence);
             o += localInfluence.length;
         }
         return weights;
@@ -144,20 +144,11 @@ public final class Md6ModelReader implements AssetReader.Binary<Model, DarkAgesA
             var shorts = meshes.get(i).joints().map(Shorts.Mutable.class::cast).orElseThrow();
 
             for (var j = 0; j < shorts.length(); j++) {
-                var index0 = shorts.getUnsigned(j);
-                var index1 = index0 + offset;
-                short index2;
-                if (index1 < skinnedJointsLen8) {
-                    index2 = skinnedJoints.get(index1);
-                } else {
-                    var index11 = extraJoints.get(index1 - skinnedJointsLen8);
-                    if (index11 < skinnedJointsLen8) {
-                        index2 = skinnedJoints.get(index11);
-                    } else {
-                        index2 = skinnedJoints.get(extraJoints.get(index11 - skinnedJointsLen8));
-                    }
+                int index = shorts.getUnsigned(j) + offset;
+                while (index >= skinnedJointsLen8) {
+                    index = extraJoints.getUnsigned(index - skinnedJointsLen8);
                 }
-                shorts.set(j, index2);
+                shorts.set(j, skinnedJoints.get(index));
             }
         }
     }

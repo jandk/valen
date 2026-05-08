@@ -6,7 +6,6 @@ import wtf.reversed.toolbox.math.*;
 import wtf.reversed.toolbox.util.*;
 
 import java.util.*;
-import java.util.Arrays;
 
 final class MeshBuilder {
     private static final int INITIAL_CAPACITY = 16;
@@ -67,11 +66,11 @@ final class MeshBuilder {
 
     Mesh build() {
         return new Mesh(
-            Ints.Mutable.wrap(indices, 0, indexSize),
-            Floats.Mutable.wrap(positions),
-            Optional.of(Floats.Mutable.wrap(normals)),
+            Ints.Mutable.copyOf(indices, 0, indexSize),
+            Floats.Mutable.copyOf(positions),
+            Optional.of(Floats.Mutable.copyOf(normals)),
             Optional.empty(),
-            List.of(Floats.Mutable.wrap(texCoords)),
+            List.of(Floats.Mutable.copyOf(texCoords)),
             List.of(),
             Optional.empty(),
             Optional.empty(),

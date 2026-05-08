@@ -34,22 +34,22 @@ public final class StrandsHairReader implements AssetReader.Binary<Model, DarkAg
     }
 
     private Ints getSegments(Ints strands) {
-        var result = new int[strands.length()];
-        result[0] = strands.get(0) - 1;
-        for (var i = 1; i < result.length - 1; i++) {
-            result[i] = strands.get(i) - strands.get(i - 1) - 1;
+        var segments = Ints.allocate(strands.length());
+        segments.set(0, strands.get(0) - 1);
+        for (var i = 1; i < segments.length() - 1; i++) {
+            segments.set(i, strands.get(i) - strands.get(i - 1) - 1);
         }
-        return Ints.wrap(result);
+        return segments;
     }
 
     private Floats getPositions(Shorts sourcePositions, float scale, Vector3 bias) {
-        var positions = new float[sourcePositions.length() * 3 / 4];
+        var positions = Floats.allocate(sourcePositions.length() * 3 / 4);
         for (int i = 0, o = 0; i < sourcePositions.length(); i += 4, o += 3) {
             /**/
-            positions[o/**/] = Math.fma(FloatMath.unpackUNorm16(sourcePositions.get(i/**/)), scale, bias.x());
-            positions[o + 1] = Math.fma(FloatMath.unpackUNorm16(sourcePositions.get(i + 1)), scale, bias.y());
-            positions[o + 2] = Math.fma(FloatMath.unpackUNorm16(sourcePositions.get(i + 2)), scale, bias.z());
+            positions.set(o/**/, Math.fma(FloatMath.unpackUNorm16(sourcePositions.get(i/**/)), scale, bias.x()));
+            positions.set(o + 1, Math.fma(FloatMath.unpackUNorm16(sourcePositions.get(i + 1)), scale, bias.y()));
+            positions.set(o + 2, Math.fma(FloatMath.unpackUNorm16(sourcePositions.get(i + 2)), scale, bias.z()));
         }
-        return Floats.wrap(positions);
+        return positions;
     }
 }
