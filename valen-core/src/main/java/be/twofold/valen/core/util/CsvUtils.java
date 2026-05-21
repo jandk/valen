@@ -41,7 +41,7 @@ public final class CsvUtils {
                 continue;
             }
             if (names.size() == values.size()) {
-                builder.append(names.get(i)).append(',');
+                builder.append(toString(names.get(i))).append(',');
             }
 
             for (int j = 0; j < components.length; j++) {
@@ -65,6 +65,7 @@ public final class CsvUtils {
             case long[] longs -> Arrays.toString(longs);
             case float[] floats -> Arrays.toString(floats);
             case double[] doubles -> Arrays.toString(doubles);
+            case Long l -> HexFormat.of().toHexDigits(l);
             default -> Objects.toString(value);
         };
         return s.contains(",") ? "\"" + s + "\"" : s;

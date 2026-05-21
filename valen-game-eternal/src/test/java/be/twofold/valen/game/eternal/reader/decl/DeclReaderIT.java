@@ -8,6 +8,6 @@ import java.io.*;
 class DeclReaderIT {
     @Test
     void testCanReadAll() throws IOException {
-        TestUtils.testReader(DeclReader::new);
+        TestUtils.testReader(new DeclReader());
     }
 }

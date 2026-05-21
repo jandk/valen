@@ -13,12 +13,12 @@ import javafx.collections.*;
 import javafx.scene.image.*;
 import javafx.scene.paint.*;
 import javafx.scene.shape.*;
+import wtf.reversed.toolbox.collect.*;
 
 import java.io.*;
-import java.nio.*;
 import java.util.*;
 
-public final class ModelPresenter extends AbstractFXPresenter<ModelView> implements Viewer {
+public final class ModelPresenter extends AbstractPresenter<ModelView> implements Viewer {
     @Inject
     public ModelPresenter(ModelView view) {
         super(view);
@@ -59,15 +59,13 @@ public final class ModelPresenter extends AbstractFXPresenter<ModelView> impleme
     }
 
     private TriangleMesh mapMesh(Mesh mesh) {
-        var pointBuffer = mesh.getBuffer(Semantic.POSITION).orElseThrow();
-        var normalBuffer = mesh.getBuffer(Semantic.NORMAL).orElseThrow();
-        var texCoordBuffer = mesh.getBuffer(Semantic.TEX_COORD0).orElseThrow();
 
         var result = new TriangleMesh(VertexFormat.POINT_NORMAL_TEXCOORD);
-        copyPoints(pointBuffer, result.getPoints());
-        copy(normalBuffer, result.getNormals());
-        copy(texCoordBuffer, result.getTexCoords());
-        copyIndices(mesh.indexBuffer(), result.getFaces());
+        copyIndices(mesh.indices(), result.getFaces());
+
+        copyPoints(mesh.positions(), result.getPoints());
+        copy(mesh.normals().orElseThrow(), result.getNormals());
+        copy(mesh.texCoords().getFirst(), result.getTexCoords());
         return result;
     }
 
@@ -81,25 +79,26 @@ public final class ModelPresenter extends AbstractFXPresenter<ModelView> impleme
         }
 
         try {
-            var texture = property.get()
-                .reference().supplier().get();
-            var surface = texture.surfaces().stream() // .skip(2) was another idea
-                // I have to limit this, because the performance absolutely tanks
-                .filter(s -> s.width() <= 1024 && s.height() <= 1024)
-                .findFirst().orElseThrow();
-            var converted = Texture.fromSurface(surface, texture.format())
-                .convert(TextureFormat.B8G8R8A8_UNORM, true);
+            var reference = property.get().reference();
+            if (reference == null) {
+                return null;
+            }
 
-            var pixelBuffer = new PixelBuffer<>(
+            var texture = reference.supplier().get();
+
+            // I have to limit this, because the performance absolutely tanks, not sure why yet...
+            int mip = Math.min(texture.mipCount() - 1, 2);
+            var converted = texture.convertSurface(mip, 0, TextureFormat.B8G8R8A8_SRGB, true);
+
+            var diffuseMap = new WritableImage(new PixelBuffer<>(
                 converted.width(),
                 converted.height(),
-                ByteBuffer.wrap(converted.surfaces().getFirst().data()),
+                ((Bytes.Mutable) converted.surfaces().getFirst().data()).asMutableBuffer(), // Disgusting
                 PixelFormat.getByteBgraPreInstance()
-            );
+            ));
 
-            var image = new WritableImage(pixelBuffer);
             var result = new PhongMaterial();
-            result.setDiffuseMap(image);
+            result.setDiffuseMap(diffuseMap);
             return result;
         } catch (IOException e) {
             e.printStackTrace();
@@ -107,43 +106,27 @@ public final class ModelPresenter extends AbstractFXPresenter<ModelView> impleme
         }
     }
 
-    private void copy(VertexBuffer<?> buffer, ObservableFloatArray floatArray) {
-        var floatBuffer = (FloatBuffer) buffer.buffer();
-        var array = new float[floatBuffer.remaining()];
-        floatBuffer.get(array);
-        floatBuffer.rewind();
-        floatArray.setAll(array);
+    private void copy(Floats floats, ObservableFloatArray floatArray) {
+        floatArray.setAll(floats.toArray());
     }
 
-    private void copyPoints(VertexBuffer<?> buffer, ObservableFloatArray floatArray) {
-        var floatBuffer = (FloatBuffer) buffer.buffer();
-        var array = new float[floatBuffer.remaining()];
-        floatBuffer.get(array);
-        floatBuffer.rewind();
-
+    private void copyPoints(Floats floats, ObservableFloatArray floatArray) {
+        var array = floats.toArray();
         for (var i = 0; i < array.length; i++) {
             array[i] *= 100;
         }
         floatArray.setAll(array);
     }
 
-    private void copyIndices(VertexBuffer<?> buffer, ObservableFaceArray faces) {
-        switch (buffer.buffer()) {
-            case ByteBuffer _ -> throw new UnsupportedOperationException("ByteBuffer not supported yet");
-            case ShortBuffer shortBuffer -> {
-                var capacity = shortBuffer.limit();
-                var indices = new int[capacity * 3];
-                for (int i = 0, o = 0; i < capacity; i++) {
-                    var index = Short.toUnsignedInt(shortBuffer.get(i));
-                    indices[o++] = index;
-                    indices[o++] = index;
-                    indices[o++] = index;
-                }
-                shortBuffer.rewind();
-                faces.addAll(indices);
-            }
-            case IntBuffer _ -> throw new UnsupportedOperationException("IntBuffer not supported yet");
-            default -> throw new UnsupportedOperationException("Unexpected type: " + buffer.buffer().getClass());
+    private void copyIndices(Ints buffer, ObservableFaceArray faces) {
+        var capacity = buffer.length();
+        var indices = new int[capacity * 3];
+        for (int i = 0, o = 0; i < capacity; i++) {
+            var index = buffer.get(i);
+            indices[o++] = index;
+            indices[o++] = index;
+            indices[o++] = index;
         }
+        faces.addAll(indices);
     }
 }

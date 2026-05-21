@@ -3,40 +3,35 @@ package be.twofold.valen.game.eternal.reader.md6anim;
 import be.twofold.valen.core.animation.*;
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.geometry.*;
-import be.twofold.valen.core.io.*;
 import be.twofold.valen.game.eternal.*;
 import be.twofold.valen.game.eternal.resource.*;
 import org.slf4j.*;
+import wtf.reversed.toolbox.collect.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 import java.util.*;
 import java.util.function.*;
 import java.util.stream.*;
 
-public final class Md6AnimReader implements AssetReader<Animation, EternalAsset> {
+public final class Md6AnimReader implements AssetReader.Binary<Animation, EternalAsset> {
     private static final Logger log = LoggerFactory.getLogger(Md6AnimReader.class);
 
-    private final EternalArchive archive;
-
-    public Md6AnimReader(EternalArchive archive) {
-        this.archive = archive;
+    @Override
+    public boolean canRead(EternalAsset asset) {
+        return asset.id().type() == ResourceType.Anim;
     }
 
     @Override
-    public boolean canRead(EternalAsset resource) {
-        return resource.id().type() == ResourceType.Anim;
-    }
-
-    @Override
-    public Animation read(DataSource source, EternalAsset resource) throws IOException {
+    public Animation read(BinarySource source, EternalAsset asset, LoadingContext context) throws IOException {
         var anim = Md6Anim.read(source);
 
         var skeletonKey = EternalAssetID.from(anim.header().skelName(), ResourceType.Skeleton);
-        if (archive.get(skeletonKey).isEmpty()) {
-            log.warn("Could not find skeleton asset '{}' while loading anim '{}'", anim.header().skelName(), resource.id().fullName());
+        if (!context.exists(skeletonKey)) {
+            log.warn("Could not find skeleton asset '{}' while loading anim '{}'", anim.header().skelName(), asset.id().fullName());
             throw new FileNotFoundException(anim.header().skelName());
         }
-        var skeleton = archive.loadAsset(skeletonKey, Skeleton.class);
+        var skeleton = context.load(skeletonKey, Skeleton.class);
 
         var animMap = anim.animMaps().getFirst();
 
@@ -52,17 +47,17 @@ public final class Md6AnimReader implements AssetReader<Animation, EternalAsset>
     }
 
     private <T> List<Track<T>> mapConstant(
-        int[] boneIDs,
+        Ints boneIDs,
         List<T> values,
         BiFunction<Integer, List<KeyFrame<T>>, Track<T>> constructor
     ) {
-        return IntStream.range(0, boneIDs.length)
-            .mapToObj(i -> constructor.apply(boneIDs[i], List.of(new KeyFrame<>(0, values.get(i)))))
+        return IntStream.range(0, boneIDs.length())
+            .mapToObj(i -> constructor.apply(boneIDs.get(i), List.of(new KeyFrame<>(0, values.get(i)))))
             .toList();
     }
 
     private <T> List<Track<T>> mapAnimated(
-        int[] animBoneIds,
+        Ints animBoneIds,
         List<FrameSet> frameSets,
         Function<FrameSet, Bits> bitsMapper,
         Function<FrameSet, List<T>> firstMapper,
@@ -76,8 +71,8 @@ public final class Md6AnimReader implements AssetReader<Animation, EternalAsset>
             var first = firstMapper.apply(frameSet);
             var range = rangeMapper.apply(frameSet);
 
-            for (int i = 0, vi = 0; i < animBoneIds.length; i++) {
-                var curve = curves.computeIfAbsent(animBoneIds[i], _ -> new ArrayList<>());
+            for (int i = 0, vi = 0; i < animBoneIds.length(); i++) {
+                var curve = curves.computeIfAbsent(animBoneIds.get(i), _ -> new ArrayList<>());
                 curve.add(new KeyFrame<>(frameSet.frameStart(), first.get(i)));
                 for (var frame = 0; frame < frameSet.frameRange(); frame++) {
                     if (bits.get(i * frameSet.bytesPerBone() * 8 + frame)) {

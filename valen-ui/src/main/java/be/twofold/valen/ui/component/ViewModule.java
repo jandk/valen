@@ -3,6 +3,7 @@ package be.twofold.valen.ui.component;
 import backbonefx.di.*;
 import be.twofold.valen.ui.component.filelist.*;
 import be.twofold.valen.ui.component.main.*;
+import be.twofold.valen.ui.component.metaview.*;
 import be.twofold.valen.ui.component.modelviewer.*;
 import be.twofold.valen.ui.component.rawview.*;
 import be.twofold.valen.ui.component.settings.*;
@@ -11,32 +12,37 @@ import be.twofold.valen.ui.component.textureviewer.*;
 public final class ViewModule {
 
     @Provides
-    public MainView bindMainView(MainFXView mainView) {
-        return mainView;
-    }
-
-    @Provides
-    public FileListView bindFileListView(FileListFXView fileListView) {
+    public FileListView bindFileListView(FileListController fileListView) {
         return fileListView;
     }
 
     @Provides
-    public ModelView bindModelView(ModelFXView modelView) {
+    public MainView bindMainView(MainViewImpl mainView) {
+        return mainView;
+    }
+
+    @Provides
+    public MetaView bindMetaView(MetaViewImpl dataView) {
+        return dataView;
+    }
+
+    @Provides
+    public ModelView bindModelView(ModelViewImpl modelView) {
         return modelView;
     }
 
     @Provides
-    public RawView bindRawView(RawFXView rawView) {
+    public RawView bindRawView(RawViewImpl rawView) {
         return rawView;
     }
 
     @Provides
-    public SettingsView bindOptionsView(SettingsFXView settingsView) {
+    public SettingsView bindSettingsView(SettingsController settingsView) {
         return settingsView;
     }
 
     @Provides
-    public TextureView bindTextureView(TextureFXView textureView) {
+    public TextureView bindTextureView(TextureController textureView) {
         return textureView;
     }
 

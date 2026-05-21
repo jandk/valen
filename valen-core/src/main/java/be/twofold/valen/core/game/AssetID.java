@@ -7,7 +7,7 @@ public interface AssetID extends Comparable<AssetID> {
     String fullName();
 
     default String displayName() {
-        return fullName();
+        return fileName();
     }
 
     default String pathName() {
@@ -24,6 +24,10 @@ public interface AssetID extends Comparable<AssetID> {
 
     default String extension() {
         return Filenames.getExtension(fileName());
+    }
+
+    default String exportName() {
+        return fileNameWithoutExtension();
     }
 
     @Override

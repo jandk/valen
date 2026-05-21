@@ -8,7 +8,7 @@ import java.util.*;
 /**
  * Reference to a texture.
  */
-@Schema2Style
+@SchemaStyle
 @Value.Immutable
 public interface TextureInfoSchema extends GltfProperty {
 

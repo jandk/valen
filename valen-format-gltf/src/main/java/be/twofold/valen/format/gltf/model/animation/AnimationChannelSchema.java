@@ -6,7 +6,7 @@ import org.immutables.value.*;
 /**
  * An animation channel combines an animation sampler with a target property being animated.
  */
-@Schema2Style
+@SchemaStyle
 @Value.Immutable
 public interface AnimationChannelSchema extends GltfProperty {
 

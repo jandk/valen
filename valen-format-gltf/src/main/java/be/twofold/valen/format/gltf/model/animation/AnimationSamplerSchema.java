@@ -9,7 +9,7 @@ import java.util.*;
 /**
  * An animation sampler combines timestamps with a sequence of output values and defines an interpolation algorithm.
  */
-@Schema2Style
+@SchemaStyle
 @Value.Immutable
 public interface AnimationSamplerSchema extends GltfProperty {
 

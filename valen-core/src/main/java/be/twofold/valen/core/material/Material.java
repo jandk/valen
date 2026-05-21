@@ -1,6 +1,6 @@
 package be.twofold.valen.core.material;
 
-import be.twofold.valen.core.util.*;
+import wtf.reversed.toolbox.util.*;
 
 import java.util.*;
 
@@ -9,7 +9,7 @@ public record Material(
     List<MaterialProperty> properties
 ) {
     public Material {
-        Check.notNull(name, "name");
+        Check.nonNull(name, "name");
         properties = List.copyOf(properties);
     }
 }

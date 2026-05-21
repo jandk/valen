@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<VBox xmlns="http://javafx.com/javafx/25.0.2" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="be.twofold.valen.ui.component.textureviewer.TextureController"
+      fx:id="root" prefWidth="900" prefHeight="600">
+    <ToolBar>
+        <Label text="Channel"/>
+        <ChoiceBox fx:id="channelBox" prefWidth="60"/>
+        <Separator fx:id="sliceSeparator"/>
+        <Label fx:id="mipLabel" text="Mip"/>
+        <Spinner fx:id="mipSpinner" prefWidth="70"/>
+        <Label fx:id="sliceLabel" text="Slice"/>
+        <Spinner fx:id="sliceSpinner" prefWidth="70"/>
+        <Pane HBox.hgrow="ALWAYS"/>
+        <Label fx:id="statusLabel"/>
+    </ToolBar>
+    <StackPane fx:id="imageArea" VBox.vgrow="ALWAYS"/>
+</VBox>

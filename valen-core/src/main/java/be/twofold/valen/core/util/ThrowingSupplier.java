@@ -1,5 +1,7 @@
 package be.twofold.valen.core.util;
 
+import wtf.reversed.toolbox.util.*;
+
 @FunctionalInterface
 public interface ThrowingSupplier<T, X extends Exception> {
     T get() throws X;
@@ -7,7 +9,7 @@ public interface ThrowingSupplier<T, X extends Exception> {
     static <T, X extends Exception> ThrowingSupplier<T, X> lazy(
         ThrowingSupplier<T, X> supplier
     ) {
-        Check.notNull(supplier, "supplier must not be null");
+        Check.nonNull(supplier, "supplier");
 
         return new ThrowingSupplier<>() {
             private volatile ThrowingSupplier<T, X> delegate = supplier;

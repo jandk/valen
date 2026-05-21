@@ -10,7 +10,7 @@ import java.util.*;
 /**
  * A texture and its sampler.
  */
-@Schema2Style
+@SchemaStyle
 @Value.Immutable
 public interface TextureSchema extends GltfChildOfRootProperty {
 

@@ -1,15 +1,43 @@
 package be.twofold.valen.core.game;
 
-import java.io.*;
-import java.nio.*;
+import java.util.*;
+import java.util.stream.*;
 
-public interface Archive<K extends AssetID, V extends Asset> extends Container<K, V> {
+public interface Archive {
 
-    @Override
-    default ByteBuffer read(K key, Integer size) throws IOException {
-        return loadAsset(key, ByteBuffer.class);
+    Optional<Asset> get(AssetID id);
+
+    Stream<? extends Asset> all();
+
+    static Archive simple(Map<? extends AssetID, ? extends Asset> assets) {
+        return new Archive() {
+            @Override
+            public Optional<Asset> get(AssetID id) {
+                return Optional.ofNullable(assets.get(id));
+            }
+
+            @Override
+            public Stream<? extends Asset> all() {
+                return assets.values().stream();
+            }
+        };
     }
 
-    <T> T loadAsset(K identifier, Class<T> clazz) throws IOException;
+    static Archive combine(List<Archive> archives) {
+        return new Archive() {
+            @Override
+            public Optional<Asset> get(AssetID id) {
+                return archives.stream()
+                    .flatMap(archive -> archive.get(id).stream())
+                    .findFirst();
+            }
+
+            @Override
+            public Stream<? extends Asset> all() {
+                return archives.stream()
+                    .flatMap(Archive::all);
+            }
+        };
+    }
 
 }

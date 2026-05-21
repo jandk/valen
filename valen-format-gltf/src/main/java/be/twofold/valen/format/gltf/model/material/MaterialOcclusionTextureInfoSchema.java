@@ -9,7 +9,7 @@ import java.util.*;
 /**
  * Material Occlusion Texture Info
  */
-@Schema2Style
+@SchemaStyle
 @Value.Immutable
 public interface MaterialOcclusionTextureInfoSchema extends TextureInfoSchema {
 

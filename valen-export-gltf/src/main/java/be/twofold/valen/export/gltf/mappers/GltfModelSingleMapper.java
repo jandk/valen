@@ -43,7 +43,7 @@ public final class GltfModelSingleMapper extends GltfModelMapper {
     private MeshID mapModel(Model model) throws IOException {
         var primitiveSchemas = new ArrayList<MeshPrimitiveSchema>();
         for (var mesh : model.meshes()) {
-            primitiveSchemas.add(mapMeshPrimitive(mesh));
+            mapMeshPrimitive(mesh).ifPresent(primitiveSchemas::add);
         }
 
         var meshSchema = ImmutableMesh.builder()

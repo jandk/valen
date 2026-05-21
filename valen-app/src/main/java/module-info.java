@@ -1,5 +1,7 @@
 module valen.app {
+    requires java.logging;
     requires javafx.graphics;
+    requires org.slf4j;
     requires valen.core;
     requires valen.ui;
 
@@ -9,7 +11,9 @@ module valen.app {
     requires valen.export.png;
 
     // Games
+    requires valen.game.darkages;
     requires valen.game.eternal;
+    requires valen.game.greatcircle;
 
     exports be.twofold.valen;
 }

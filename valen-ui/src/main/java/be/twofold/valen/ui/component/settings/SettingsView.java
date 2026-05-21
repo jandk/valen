@@ -1,25 +1,12 @@
 package be.twofold.valen.ui.component.settings;
 
-import be.twofold.valen.core.game.*;
+import be.twofold.valen.ui.common.*;
+import be.twofold.valen.ui.common.settings.*;
 
-import java.util.*;
+public interface SettingsView extends View<SettingsView.Listener> {
+    void setDescriptors(SettingDescriptor<?, ?>... descriptors);
 
-public interface SettingsView {
-
-    void setAssetTypeSelection(Set<AssetType> assetTypes);
-
-    Set<AssetType> getAssetTypes();
-
-    void setAssetTypes(Set<AssetType> assetTypes);
-
-    void setTextureExporterSelection(Set<Map.Entry<String, String>> exporters);
-
-    String getTextureExporter();
-
-    void setTextureExporter(String exporter);
-
-    boolean getReconstructZ();
-
-    void setReconstructZ(boolean reconstructZ);
-
+    interface Listener extends View.Listener {
+        void onSave();
+    }
 }

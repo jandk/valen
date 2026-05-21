@@ -1,6 +1,6 @@
 package be.twofold.valen.game.eternal.reader.md6model;
 
-import be.twofold.valen.core.io.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 import java.util.*;
@@ -14,9 +14,9 @@ public record Md6ModelInfo(
     int unkHash,
     List<Md6ModelLodInfo> lodInfos
 ) {
-    public static Md6ModelInfo read(DataSource source) throws IOException {
-        var meshName = source.readPString();
-        var materialName = source.readPString();
+    public static Md6ModelInfo read(BinarySource source) throws IOException {
+        var meshName = source.readString(StringFormat.INT_LENGTH);
+        var materialName = source.readString(StringFormat.INT_LENGTH);
         source.expectByte((byte) 1);
         source.expectInt(1);
         var unknown1 = source.readInt();
@@ -26,7 +26,7 @@ public record Md6ModelInfo(
 
         var lodInfos = new ArrayList<Md6ModelLodInfo>();
         for (var i = 0; i < 5; i++) {
-            if (!source.readBoolInt()) {
+            if (!source.readBool(BoolFormat.INT)) {
                 lodInfos.add(Md6ModelLodInfo.read(source));
             }
         }

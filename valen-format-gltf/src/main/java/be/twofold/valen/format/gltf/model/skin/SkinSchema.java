@@ -10,7 +10,7 @@ import java.util.*;
 /**
  * Joints and matrices defining a skin.
  */
-@Schema2Style
+@SchemaStyle
 @Value.Immutable
 public interface SkinSchema extends GltfChildOfRootProperty {
 

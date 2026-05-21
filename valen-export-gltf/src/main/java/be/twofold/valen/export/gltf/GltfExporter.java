@@ -29,7 +29,7 @@ public abstract class GltfExporter<T> implements Exporter<T> {
             mode = switch (value.toString()) {
                 case "glb" -> GltfExportMode.GLB;
                 case "gltf" -> GltfExportMode.GLTF_SPLIT;
-                default -> throw new IllegalArgumentException("Unexpected value: " + value);
+                default -> throw new UnsupportedOperationException("Unsupported value: " + value);
             };
         }
     }
@@ -41,7 +41,6 @@ public abstract class GltfExporter<T> implements Exporter<T> {
     }
 
     @Override
-    @SuppressWarnings("resource")
     public void export(T value, Path path) throws IOException {
         var writer = switch (mode) {
             case GLB -> GltfWriter.createGlbWriter(path);

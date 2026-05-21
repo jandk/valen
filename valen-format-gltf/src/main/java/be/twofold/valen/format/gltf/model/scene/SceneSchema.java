@@ -9,7 +9,7 @@ import java.util.*;
 /**
  * The root nodes of a scene.
  */
-@Schema2Style
+@SchemaStyle
 @Value.Immutable
 public interface SceneSchema extends GltfChildOfRootProperty {
 

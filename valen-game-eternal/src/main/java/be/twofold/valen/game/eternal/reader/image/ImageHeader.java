@@ -1,13 +1,13 @@
 package be.twofold.valen.game.eternal.reader.image;
 
-import be.twofold.valen.core.io.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 
 public record ImageHeader(
     byte version,
-    ImageTextureType textureType,
-    ImageTextureMaterialKind textureMaterialKind,
+    TextureType textureType,
+    TextureMaterialKind textureMaterialKind,
     int pixelWidth,
     int pixelHeight,
     int depth,
@@ -15,21 +15,20 @@ public record ImageHeader(
     int unkFlags,
     float albedoSpecularBias,
     float albedoSpecularScale,
-    ImageTextureFormat textureFormat,
+    TextureFormat textureFormat,
     boolean streamed,
     boolean singleStream,
     boolean noMips,
     boolean fftBloom,
-    int streamDBMipCount
+    int streamDbMipCount
 ) {
-    public static ImageHeader read(DataSource source) throws IOException {
-        source.expectByte((byte) 'B');
-        source.expectByte((byte) 'I');
-        source.expectByte((byte) 'M');
+    public static ImageHeader read(BinarySource source) throws IOException {
+        source.expectByte((byte) 0x42); // magic0
+        source.expectByte((byte) 0x49); // magic1
+        source.expectByte((byte) 0x4D); // magic2
         var version = source.readByte();
-
-        var textureType = ImageTextureType.fromCode(source.readInt());
-        var textureMaterialKind = ImageTextureMaterialKind.fromCode(source.readInt());
+        var textureType = TextureType.read(source);
+        var textureMaterialKind = TextureMaterialKind.read(source);
         var pixelWidth = source.readInt();
         var pixelHeight = source.readInt();
         var depth = source.readInt();
@@ -37,16 +36,16 @@ public record ImageHeader(
         var unkFlags = source.readInt();
         var albedoSpecularBias = source.readFloat();
         var albedoSpecularScale = source.readFloat();
-        source.expectByte((byte) 0);
-        var textureFormat = ImageTextureFormat.fromCode(source.readInt());
-        source.expectInt(7); // always 7
-        source.expectInt(0); // padding
-        source.expectShort((short) 0); // padding
-        var streamed = source.readBoolByte();
-        var singleStream = source.readBoolByte();
-        var noMips = source.readBoolByte();
-        var fftBloom = source.readBoolByte();
-        var streamDBMipCount = source.readInt();
+        source.expectByte((byte) 0x0); // padding1
+        var textureFormat = TextureFormat.read(source);
+        source.expectInt(0x7); // always7
+        source.expectInt(0x0); // padding2
+        source.expectShort((short) 0x0); // padding3
+        var streamed = source.readBool(BoolFormat.BYTE);
+        var singleStream = source.readBool(BoolFormat.BYTE);
+        var noMips = source.readBool(BoolFormat.BYTE);
+        var fftBloom = source.readBool(BoolFormat.BYTE);
+        var streamDbMipCount = source.readInt();
 
         return new ImageHeader(
             version,
@@ -64,25 +63,25 @@ public record ImageHeader(
             singleStream,
             noMips,
             fftBloom,
-            streamDBMipCount
+            streamDbMipCount
         );
     }
 
-    public int startMip() {
-        var mask = switch (textureType) {
+    int startMip() {
+        var mask = switch (textureType()) {
             case TT_2D -> 0x0f;
             case TT_CUBIC -> 0xff;
-            default -> throw new IllegalArgumentException("Unsupported texture type: " + textureType);
+            default -> throw new UnsupportedOperationException("Unsupported texture type: " + textureType());
         };
-        return streamDBMipCount & mask;
+        return streamDbMipCount() & mask;
     }
 
-    public int totalMipCount() {
-        var faces = switch (textureType) {
+    int totalMipCount() {
+        var faces = switch (textureType()) {
             case TT_2D -> 1;
             case TT_CUBIC -> 6;
-            default -> throw new IllegalArgumentException("Unsupported texture type: " + textureType);
+            default -> throw new UnsupportedOperationException("Unsupported texture type: " + textureType());
         };
-        return mipCount * faces;
+        return mipCount() * faces;
     }
 }

@@ -10,10 +10,10 @@ import java.lang.annotation.*;
     defaults = @Value.Immutable(copy = false),
     depluralize = true,
     depluralizeDictionary = "mesh:meshes",
+    from = "",
     get = {"is*", "get*"},
     jdk9Collections = true,
-    typeAbstract = {"Abstract*", "*Def"},
-    typeImmutable = "*Schema",
+    typeAbstract = "*Schema",
     visibility = Value.Style.ImplementationVisibility.PUBLIC
 )
 public @interface SchemaStyle {

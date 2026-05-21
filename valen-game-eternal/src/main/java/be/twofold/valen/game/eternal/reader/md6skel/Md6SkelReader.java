@@ -2,22 +2,21 @@ package be.twofold.valen.game.eternal.reader.md6skel;
 
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.geometry.*;
-import be.twofold.valen.core.io.*;
-import be.twofold.valen.core.math.*;
 import be.twofold.valen.game.eternal.*;
 import be.twofold.valen.game.eternal.resource.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 import java.util.stream.*;
 
-public final class Md6SkelReader implements AssetReader<Skeleton, EternalAsset> {
+public final class Md6SkelReader implements AssetReader.Binary<Skeleton, EternalAsset> {
     @Override
-    public boolean canRead(EternalAsset resource) {
-        return resource.id().type() == ResourceType.Skeleton;
+    public boolean canRead(EternalAsset asset) {
+        return asset.id().type() == ResourceType.Skeleton;
     }
 
     @Override
-    public Skeleton read(DataSource source, EternalAsset resource) throws IOException {
+    public Skeleton read(BinarySource source, EternalAsset asset, LoadingContext context) throws IOException {
         Md6Skel skeleton = Md6Skel.read(source);
         return map(skeleton);
     }
@@ -33,7 +32,7 @@ public final class Md6SkelReader implements AssetReader<Skeleton, EternalAsset> 
     private Bone mapBone(Md6Skel skeleton, int index) {
         return new Bone(
             skeleton.names().get(index),
-            skeleton.parents()[index],
+            skeleton.parents().get(index),
             skeleton.rotations().get(index),
             skeleton.scales().get(index),
             skeleton.translations().get(index),

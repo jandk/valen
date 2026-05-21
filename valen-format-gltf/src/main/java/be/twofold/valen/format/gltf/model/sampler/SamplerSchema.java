@@ -8,7 +8,7 @@ import java.util.*;
 /**
  * Texture sampler properties for filtering and wrapping modes.
  */
-@Schema2Style
+@SchemaStyle
 @Value.Immutable
 public interface SamplerSchema extends GltfChildOfRootProperty {
 

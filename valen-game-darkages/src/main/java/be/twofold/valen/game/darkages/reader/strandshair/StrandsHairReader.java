@@ -1,0 +1,55 @@
+package be.twofold.valen.game.darkages.reader.strandshair;
+
+import be.twofold.valen.core.game.*;
+import be.twofold.valen.core.geometry.*;
+import be.twofold.valen.game.darkages.*;
+import be.twofold.valen.game.darkages.reader.resources.*;
+import wtf.reversed.toolbox.collect.*;
+import wtf.reversed.toolbox.io.*;
+import wtf.reversed.toolbox.math.*;
+
+import java.io.*;
+import java.util.*;
+
+public final class StrandsHairReader implements AssetReader.Binary<Model, DarkAgesAsset> {
+    @Override
+    public boolean canRead(DarkAgesAsset asset) {
+        return asset.id().type() == ResourcesType.StrandsHair;
+    }
+
+    @Override
+    public Model read(BinarySource source, DarkAgesAsset asset, LoadingContext context) throws IOException {
+        var strandsHair = StrandsHair.read(source);
+
+        var segments = getSegments(strandsHair.strands());
+        var positions = getPositions(
+            strandsHair.particles(),
+            strandsHair.header().compressionPosScale(),
+            strandsHair.header().compressionPosBias()
+        );
+
+        var hair = new Hair(asset.id().fileName(), segments, positions);
+        return new Model(List.of(), Axis.Z)
+            .withHair(Optional.of(hair));
+    }
+
+    private Ints getSegments(Ints strands) {
+        var segments = Ints.allocate(strands.length());
+        segments.set(0, strands.get(0) - 1);
+        for (var i = 1; i < segments.length() - 1; i++) {
+            segments.set(i, strands.get(i) - strands.get(i - 1) - 1);
+        }
+        return segments;
+    }
+
+    private Floats getPositions(Shorts sourcePositions, float scale, Vector3 bias) {
+        var positions = Floats.allocate(sourcePositions.length() * 3 / 4);
+        for (int i = 0, o = 0; i < sourcePositions.length(); i += 4, o += 3) {
+            /**/
+            positions.set(o/**/, Math.fma(FloatMath.unpackUNorm16(sourcePositions.get(i/**/)), scale, bias.x()));
+            positions.set(o + 1, Math.fma(FloatMath.unpackUNorm16(sourcePositions.get(i + 1)), scale, bias.y()));
+            positions.set(o + 2, Math.fma(FloatMath.unpackUNorm16(sourcePositions.get(i + 2)), scale, bias.z()));
+        }
+        return positions;
+    }
+}

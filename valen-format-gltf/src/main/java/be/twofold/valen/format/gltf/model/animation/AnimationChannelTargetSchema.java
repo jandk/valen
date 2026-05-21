@@ -9,7 +9,7 @@ import java.util.*;
 /**
  * The descriptor of the animated property.
  */
-@Schema2Style
+@SchemaStyle
 @Value.Immutable
 public interface AnimationChannelTargetSchema extends GltfProperty {
 

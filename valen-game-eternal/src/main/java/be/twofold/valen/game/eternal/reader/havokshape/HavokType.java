@@ -142,7 +142,7 @@ public final class HavokType {
             case 6 -> HavokFormatType.Pointer;
             case 7 -> HavokFormatType.Record;
             case 8 -> HavokFormatType.Array;
-            default -> throw new IllegalArgumentException("Unknown format type: " + format);
+            default -> throw new UnsupportedOperationException("Unsupported format type: " + format);
         };
     }
 

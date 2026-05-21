@@ -1,0 +1,69 @@
+//------------------------------------------------
+//      File: streamdb.bt
+//   Authors: JanDK
+//   Version: 0.1
+//   Purpose: Template for .streamdb from DOOM: The Dark Ages
+//  Category: Archive
+// File Mask: *.streamdb
+//  ID Bytes: 50 A5 C2 29 2E F3 C7 61
+//------------------------------------------------
+LittleEndian();
+typedef enum {
+    SDHF_NO_GUID = 1,
+    SDHF_HAS_PREFETCH_BLOCKS = 2,
+} StreamDbHeaderFlags <edit=flags>;
+
+// streamDatabaseHeader_t
+struct StreamDbHeader {
+    uquad magic;
+    uint headerLength;
+    uint pad0;
+    uint pad1;
+    uint pad2;
+    uint numEntries;
+    StreamDbHeaderFlags flags;
+
+    Assert(magic == 0x61C7F32E29C2A550UL);
+    Assert(pad0 == 0);
+    Assert(pad1 == 0);
+    Assert(pad2 == 0);
+};
+
+// streamDatabaseEntry2_t
+struct StreamDbEntry {
+    uquad identity;
+    uint offset16;
+    uint length;
+};
+
+// streamDatabasePrefetchHeader_t
+struct StreamDbPrefetchHeader {
+    uint numPrefetchBlocks;
+    uint totalLength;
+};
+
+// streamDatabasePrefetchBlock_t
+struct StreamDbPrefetchBlock {
+    uquad name;
+    uint firstItemIndex;
+    uint numItems;
+};
+
+struct StreamDb {
+    StreamDbHeader header                     <style=sHeading1>;
+    StreamDbEntry  entries[header.numEntries] <style=sSection1>;
+    
+    /* This part is optional, and I need branch support */
+    /*
+    StreamDbPrefetchHeader prefetchHeader                                   <style=sHeading2>;
+    StreamDbPrefetchBlock  prefetchBlocks[prefetchHeader.numPrefetchBlocks] <style=sSection2>;
+    
+    if (header.flags & SDHF_HAS_PREFETCH_BLOCKS) {
+        local int prefetchBlockCount = 0;
+        for (int i = 0; i < prefetchHeader.numPrefetchBlocks; i++) {
+            prefetchBlockCount += prefetchBlocks[i].numItems;
+        }
+        uquad prefetchIds[prefetchBlockCount] <style=sSection3>;
+    }
+    */
+} streamDb;

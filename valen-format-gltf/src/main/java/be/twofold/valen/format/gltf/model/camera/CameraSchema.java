@@ -8,7 +8,7 @@ import java.util.*;
 /**
  * A camera's projection.  A node <b>MAY</b> reference a camera to apply a transform to place the camera in the scene.
  */
-@Schema2Style
+@SchemaStyle
 @Value.Immutable
 public interface CameraSchema extends GltfChildOfRootProperty {
 

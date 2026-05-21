@@ -1,6 +1,6 @@
 package be.twofold.valen.game.eternal.reader.havokshape;
 
-import be.twofold.valen.core.io.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 
@@ -14,7 +14,7 @@ public record HavokShapeInfo(
     float restitution,
     int unknown
 ) {
-    public static HavokShapeInfo read(DataSource source) throws IOException {
+    public static HavokShapeInfo read(BinarySource source) throws IOException {
         var contentFlags = source.readInt();
         var surfaceType = source.readInt();
         var surfaceFlags = source.readInt();

@@ -1,6 +1,6 @@
 package be.twofold.valen.game.eternal.reader.mapfilestaticinstances;
 
-import be.twofold.valen.core.io.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 import java.util.*;
@@ -23,25 +23,25 @@ public record MapFileStaticInstances(
     List<MapFileStaticInstancesPlayerStart> playerStarts,
     List<MapFileStaticInstancesLayerStateChange> layerStateChanges
 ) {
-    public static MapFileStaticInstances read(DataSource source) throws IOException {
+    public static MapFileStaticInstances read(BinarySource source) throws IOException {
         source.expectInt(1);
 
-        var materials = source.readObjects(source.readInt() - 1, DataSource::readPString);
-        var declRenderParams = source.readObjects(source.readInt() - 1, DataSource::readPString);
-        var renderParams = source.readObjects(source.readInt(), DataSource::readPString);
-        var models = source.readObjects(source.readInt(), DataSource::readPString);
+        var materials = source.readStrings(source.readInt() - 1, StringFormat.INT_LENGTH);
+        var declRenderParams = source.readStrings(source.readInt() - 1, StringFormat.INT_LENGTH);
+        var renderParams = source.readStrings(source.readInt(), StringFormat.INT_LENGTH);
+        var models = source.readStrings(source.readInt(), StringFormat.INT_LENGTH);
         var materialGroups = source.readObjects(source.readInt(), MapFileStaticInstancesMaterialGroup::read);
         var group2 = source.readObjects(source.readInt(), MapFileStaticInstancesGroup2::read);
         var group3 = source.readObjects(source.readInt(), MapFileStaticInstancesGroup3::read);
-        var declLayers = source.readObjects(source.readInt(), DataSource::readPString);
+        var declLayers = source.readStrings(source.readInt(), StringFormat.INT_LENGTH);
 
         var modelInstanceCount = source.readInt();
-        var modelInstanceNames = source.readObjects(modelInstanceCount, DataSource::readPString);
+        var modelInstanceNames = source.readStrings(modelInstanceCount, StringFormat.INT_LENGTH);
         var modelInstanceGeometries = source.readObjects(modelInstanceCount, MapFileStaticInstancesModelGeometry::read);
         var modelInstanceExtras = source.readObjects(source.readInt(), MapFileStaticInstancesModelExtra::read);
 
         var decalInstanceCount = source.readInt();
-        var decalInstanceNames = source.readObjects(decalInstanceCount, DataSource::readPString);
+        var decalInstanceNames = source.readStrings(decalInstanceCount, StringFormat.INT_LENGTH);
         var decalInstanceGeometries = source.readObjects(decalInstanceCount, MapFileStaticInstancesDeclGeometry::read);
         var decalInstanceExtras = source.readObjects(source.readInt(), MapFileStaticInstancesDeclExtra::read);
 

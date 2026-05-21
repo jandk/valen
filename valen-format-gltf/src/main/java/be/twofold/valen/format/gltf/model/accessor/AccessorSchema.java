@@ -10,7 +10,7 @@ import java.util.*;
 /**
  * A typed view into a buffer view that contains raw binary data.
  */
-@Schema2Style
+@SchemaStyle
 @Value.Immutable
 public interface AccessorSchema extends GltfChildOfRootProperty {
 

@@ -1,6 +1,8 @@
 package be.twofold.valen.game.eternal.reader.geometry;
 
-import be.twofold.valen.core.io.*;
+import be.twofold.valen.game.idtech.geometry.*;
+import wtf.reversed.toolbox.collect.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 
@@ -8,11 +10,11 @@ public record GeometryMemoryLayout(
     int combinedVertexMask,
     int size,
     int numVertexStreams,
-    int[] vertexMasks,
-    int[] vertexOffsets,
+    Ints vertexMasks,
+    Ints vertexOffsets,
     int indexOffset
-) {
-    public static GeometryMemoryLayout read(DataSource source) throws IOException {
+) implements GeoMemoryLayout {
+    public static GeometryMemoryLayout read(BinarySource source) throws IOException {
         var combinedVertexMask = source.readInt();
         var size = source.readInt();
         var numVertexStreams = source.readInt();

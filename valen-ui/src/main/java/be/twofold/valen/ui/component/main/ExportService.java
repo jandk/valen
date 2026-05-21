@@ -2,7 +2,6 @@ package be.twofold.valen.ui.component.main;
 
 import be.twofold.valen.core.export.*;
 import be.twofold.valen.core.game.*;
-import be.twofold.valen.core.util.*;
 import be.twofold.valen.ui.common.settings.*;
 import be.twofold.valen.ui.component.*;
 import be.twofold.valen.ui.component.progress.*;
@@ -11,33 +10,38 @@ import javafx.application.*;
 import javafx.concurrent.*;
 import javafx.scene.*;
 import javafx.stage.*;
+import org.slf4j.*;
+import wtf.reversed.toolbox.util.*;
 
 import java.nio.file.*;
 import java.util.*;
 import java.util.stream.*;
 
 final class ExportService extends Service<Void> {
+    private static final Logger log = LoggerFactory.getLogger(ExportService.class);
+
     private final Settings settings;
     private final Stage stage;
-    private Archive<AssetID, Asset> archive;
-    private List<Asset> assets;
+    private final ProgressPresenter presenter;
+    private AssetLoader loader;
+    private List<? extends Asset> assets;
 
     @Inject
-    ExportService(Settings settings, ViewLoader viewLoader, ProgressController progressController) {
+    ExportService(Settings settings, ViewLoader viewLoader) {
         this.settings = settings;
-        this.stage = createStage(viewLoader.load("/fxml/Progress.fxml"));
+        this.presenter = viewLoader.loadPresenter(ProgressPresenter.class, "/fxml/Progress.fxml");
+        this.stage = createStage(presenter.getView().getFXNode());
 
-        var viewModel = progressController.getViewModel();
-        viewModel.progressProperty().bind(progressProperty());
-        viewModel.messageProperty().bind(messageProperty());
-        viewModel.workDoneProperty().bind(workDoneProperty());
-        viewModel.workTotalProperty().bind(totalWorkProperty());
-        viewModel.cancelledProperty().addListener((_, _, newValue) -> {
-            if (newValue) {
-                cancel();
-            }
-            viewModel.cancelledProperty().setValue(false);
-        });
+        presenter.setCancelHandler(this::cancel);
+
+        progressProperty().addListener((_, _, _) -> update());
+        messageProperty().addListener((_, _, _) -> update());
+        workDoneProperty().addListener((_, _, _) -> update());
+        totalWorkProperty().addListener((_, _, _) -> update());
+    }
+
+    private void update() {
+        presenter.update(new Progress(getMessage(), getProgress(), getWorkDone(), getTotalWork()));
     }
 
     private Stage createStage(Parent parent) {
@@ -51,18 +55,18 @@ final class ExportService extends Service<Void> {
         return stage;
     }
 
-    public void setArchive(Archive<AssetID, Asset> archive) {
-        this.archive = archive;
+    public void setLoader(AssetLoader loader) {
+        this.loader = loader;
     }
 
-    public void setAssets(List<Asset> assets) {
+    public void setAssets(List<? extends Asset> assets) {
         this.assets = assets;
     }
 
     @Override
     protected Task<Void> createTask() {
-        Check.notNull(this.archive, "archive");
-        Check.notNull(this.assets, "assets");
+        Check.nonNull(this.loader, "archive");
+        Check.nonNull(this.assets, "assets");
 
         ExportTask exportTask = new ExportTask();
         exportTask.setOnFailed(event -> Platform.runLater(() -> {
@@ -113,8 +117,8 @@ final class ExportService extends Service<Void> {
 
             try {
                 Exporter<T> exporter = findExporter(asset);
-                exporter.setProperty("reconstructZ", settings.reconstructZ().get().orElse(false));
-                exporter.setProperty("gltf.mode", settings.modelExporter().get().orElse("gltf"));
+                exporter.setProperty("reconstructZ", settings.isReconstructZ());
+                exporter.setProperty("gltf.mode", settings.getModelExporter());
 
                 var targetPath = findTargetPath(exporter, asset);
                 if (Files.exists(targetPath)) {
@@ -123,28 +127,33 @@ final class ExportService extends Service<Void> {
                 }
 
                 @SuppressWarnings("unchecked")
-                T rawAsset = (T) archive.loadAsset(asset.id(), asset.type().getType());
+                T rawAsset = (T) loader.load(asset.id(), asset.type().type());
                 Files.createDirectories(targetPath.getParent());
                 exporter.export(rawAsset, targetPath);
             } catch (Exception e) {
-                e.printStackTrace();
+                log.warn("Failed exporting asset", e);
                 failedAssets.add(asset.id());
             }
         }
 
         @SuppressWarnings("unchecked")
         private <T> Exporter<T> findExporter(Asset asset) {
-            var exporterId = asset.type() == AssetType.TEXTURE
-                ? settings.textureExporter().get().orElse("texture.png")
-                : null;
+            boolean isGltf = Set.of("glb", "gltf").contains(settings.getModelExporter());
+            var exporterId = switch (asset.type()) {
+                case ANIMATION -> "animation." + (isGltf ? "gltf" : "cast");
+                case MATERIAL -> "material." + (isGltf ? "gltf" : "cast");
+                case MODEL -> "model." + (isGltf ? "gltf" : "cast");
+                case TEXTURE -> settings.getTextureExporter();
+                case RAW -> "binary.raw";
+            };
             var exporter = exporterId != null
-                ? Exporter.forTypeAndId(asset.type().getType(), exporterId)
-                : Exporter.forType(asset.type().getType()).findFirst().orElseThrow();
+                ? Exporter.forTypeAndId(asset.type().type(), exporterId)
+                : Exporter.forType(asset.type().type()).findFirst().orElseThrow();
             return (Exporter<T>) exporter;
         }
 
         private Path findTargetPath(Exporter<?> exporter, Asset asset) {
-            var basePath = settings.exportPath().get().orElse(Path.of("exported"));
+            var basePath = settings.getExportPath();
             var filename = exporter.getExtension().isEmpty()
                 ? asset.id().fileName()
                 : asset.exportName() + "." + exporter.getExtension();

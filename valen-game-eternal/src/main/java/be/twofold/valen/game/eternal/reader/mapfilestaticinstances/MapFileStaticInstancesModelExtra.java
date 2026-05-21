@@ -1,6 +1,6 @@
 package be.twofold.valen.game.eternal.reader.mapfilestaticinstances;
 
-import be.twofold.valen.core.io.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 
@@ -39,7 +39,7 @@ public record MapFileStaticInstancesModelExtra(
     float unknown144,
     short unknown148
 ) {
-    public static MapFileStaticInstancesModelExtra read(DataSource source) throws IOException {
+    public static MapFileStaticInstancesModelExtra read(BinarySource source) throws IOException {
         source.expectInt(0);
         source.expectInt(0);
         float unknown008 = source.readFloat();

@@ -1,0 +1,26 @@
+package be.twofold.valen.game.darkages.reader.strandshair;
+
+import wtf.reversed.toolbox.io.*;
+
+import java.io.*;
+
+record StrandsHairLocationInfo(
+    short baryCentric1,
+    short baryCentric2,
+    int triangleNormal,
+    int triangleSide
+) {
+    static StrandsHairLocationInfo read(BinarySource source) throws IOException {
+        var barycentric1 = source.readShort();
+        var barycentric2 = source.readShort();
+        var triangleNormal = source.readInt();
+        var triangleSide = source.readInt();
+
+        return new StrandsHairLocationInfo(
+            barycentric1,
+            barycentric2,
+            triangleNormal,
+            triangleSide
+        );
+    }
+}

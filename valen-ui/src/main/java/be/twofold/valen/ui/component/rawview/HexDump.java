@@ -1,10 +1,10 @@
 package be.twofold.valen.ui.component.rawview;
 
-import be.twofold.valen.core.util.*;
 import javafx.scene.paint.*;
 import javafx.scene.text.*;
+import wtf.reversed.toolbox.collect.*;
+import wtf.reversed.toolbox.util.*;
 
-import java.nio.*;
 import java.nio.charset.*;
 import java.util.*;
 
@@ -15,13 +15,13 @@ final class HexDump {
     };
 
     private final TextFlowBuilder builder;
-    private final ByteBuffer binary;
+    private final Bytes binary;
     private final Color primary;
     private final Color secondary;
 
-    public HexDump(ByteBuffer binary, Font font, Color primary, Color secondary) {
+    public HexDump(Bytes binary, Font font, Color primary, Color secondary) {
         this.builder = new TextFlowBuilder(font);
-        this.binary = Check.notNull(binary);
+        this.binary = Check.nonNull(binary, "binary");
         this.primary = primary;
         this.secondary = secondary;
     }
@@ -59,8 +59,8 @@ final class HexDump {
             if (i % 8 == 0) {
                 builder.append(' ');
             }
-            if (i < binary.limit()) {
-                int value = Byte.toUnsignedInt(binary.get(i));
+            if (i < binary.length()) {
+                int value = binary.getUnsigned(i);
                 var color = value != 0 ? primary : secondary;
                 toHex(value, 2, color);
             } else {
@@ -75,8 +75,8 @@ final class HexDump {
         builder.append(' ');
         builder.append('|', primary);
         for (int i = offset; i < offset + 16; i++) {
-            if (i < binary.limit()) {
-                int value = Byte.toUnsignedInt(binary.get(i));
+            if (i < binary.length()) {
+                int value = binary.getUnsigned(i);
                 var color = value != 0 ? primary : secondary;
                 builder.append(ALPHABET[value], color);
             } else {

@@ -1,0 +1,61 @@
+package be.twofold.valen.game.greatcircle.reader.hair;
+
+import be.twofold.valen.core.game.*;
+import be.twofold.valen.core.geometry.*;
+import be.twofold.valen.game.greatcircle.*;
+import be.twofold.valen.game.greatcircle.resource.*;
+import wtf.reversed.toolbox.collect.*;
+import wtf.reversed.toolbox.io.*;
+import wtf.reversed.toolbox.math.*;
+
+import java.io.*;
+import java.util.*;
+
+public final class HairReader implements AssetReader.Binary<Model, GreatCircleAsset> {
+    @Override
+    public boolean canRead(GreatCircleAsset asset) {
+        return asset.id().type() == ResourceType.hair;
+    }
+
+    @Override
+    public Model read(BinarySource source, GreatCircleAsset asset, LoadingContext context) throws IOException {
+        var hairMesh = HairMesh.read(source);
+        source.expectEnd();
+
+        var hair = map(hairMesh, asset);
+        return new Model(List.of(), Axis.Z)
+            .withHair(Optional.of(hair));
+    }
+
+    private Hair map(HairMesh hairMesh, GreatCircleAsset asset) {
+        var segments = getSegments(hairMesh.particleSumPerStrand());
+        var header = hairMesh.header();
+        var positions = getPositions(
+            hairMesh.sourcePositions(),
+            header.compressionPosScale(),
+            header.compressionPosBias()
+        );
+
+        return new Hair(asset.id().fullName(), segments, positions);
+    }
+
+    private Ints getSegments(Ints strands) {
+        var segments = Ints.allocate(strands.length());
+        segments.set(0, strands.get(0) - 1);
+        for (var i = 1; i < segments.length() - 1; i++) {
+            segments.set(i, strands.get(i) - strands.get(i - 1) - 1);
+        }
+        return segments;
+    }
+
+    private Floats getPositions(Shorts sourcePositions, float scale, Vector3 bias) {
+        var positions = Floats.allocate(sourcePositions.length() * 3 / 4);
+        for (int i = 0, o = 0; i < sourcePositions.length(); i += 4, o += 3) {
+            /**/
+            positions.set(o/**/, Math.fma(FloatMath.unpackUNorm16(sourcePositions.get(i/**/)), scale, bias.x()));
+            positions.set(o + 1, Math.fma(FloatMath.unpackUNorm16(sourcePositions.get(i + 1)), scale, bias.y()));
+            positions.set(o + 2, Math.fma(FloatMath.unpackUNorm16(sourcePositions.get(i + 2)), scale, bias.z()));
+        }
+        return positions;
+    }
+}

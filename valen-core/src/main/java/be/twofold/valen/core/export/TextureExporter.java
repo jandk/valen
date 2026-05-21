@@ -5,7 +5,12 @@ import be.twofold.valen.core.texture.*;
 import java.io.*;
 
 public abstract class TextureExporter implements Exporter<Texture> {
+    private final boolean useMips;
     private boolean reconstructZ = false;
+
+    protected TextureExporter(boolean useMips) {
+        this.useMips = useMips;
+    }
 
     @Override
     public void setProperty(String key, Object value) {
@@ -14,18 +19,18 @@ public abstract class TextureExporter implements Exporter<Texture> {
         }
     }
 
-    public void setReconstructZ(boolean reconstructZ) {
-        setProperty("reconstructZ", reconstructZ);
-    }
-
-    public abstract TextureFormat chooseFormat(TextureFormat format);
-
-    public abstract void doExport(Texture texture, OutputStream out) throws IOException;
-
     @Override
     public void export(Texture texture, OutputStream out) throws IOException {
+        if (!useMips) {
+            texture = texture.firstOnly();
+        }
+
         var chosenFormat = chooseFormat(texture.format());
-        var converted = texture.firstOnly().convert(chosenFormat, reconstructZ);
+        var converted = texture.convert(chosenFormat, reconstructZ);
         doExport(converted, out);
     }
+
+    protected abstract TextureFormat chooseFormat(TextureFormat format);
+
+    protected abstract void doExport(Texture texture, OutputStream out) throws IOException;
 }

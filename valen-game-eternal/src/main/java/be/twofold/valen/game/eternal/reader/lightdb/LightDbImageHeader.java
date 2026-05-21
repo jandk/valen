@@ -1,6 +1,6 @@
 package be.twofold.valen.game.eternal.reader.lightdb;
 
-import be.twofold.valen.core.io.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 
@@ -13,7 +13,7 @@ public record LightDbImageHeader(
     int unk5,
     int unk6
 ) {
-    public static LightDbImageHeader read(DataSource source) throws IOException {
+    public static LightDbImageHeader read(BinarySource source) throws IOException {
         var hash = source.readLong();
         var unk1 = source.readInt();
         var unk2 = source.readInt();

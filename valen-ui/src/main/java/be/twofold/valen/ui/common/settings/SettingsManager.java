@@ -11,7 +11,6 @@ import java.util.*;
 public final class SettingsManager {
     private static final Gson GSON = new GsonBuilder()
         .registerTypeHierarchyAdapter(Path.class, new PathTypeAdapter().nullSafe())
-        .registerTypeAdapterFactory(new SettingTypeAdapterFactory())
         .setPrettyPrinting()
         .create();
 
@@ -52,10 +51,10 @@ public final class SettingsManager {
     private static Path determinePath() {
         String userHome = System.getProperty("user.home");
 
-        return switch (OperatingSystem.current()) {
-            case Linux -> Path.of(userHome, ".config", "valen", "settings.json");
-            case Windows -> Path.of(System.getenv("LOCALAPPDATA"), "Valen", "settings.json");
-            case Mac -> Path.of(userHome, "Library", "Application Support", "Valen", "settings.json");
+        return switch (Platform.OS.current()) {
+            case LINUX -> Path.of(userHome, ".config", "valen", "settings.json");
+            case WINDOWS -> Path.of(System.getenv("LOCALAPPDATA"), "Valen", "settings.json");
+            case MAC -> Path.of(userHome, "Library", "Application Support", "Valen", "settings.json");
         };
     }
 }

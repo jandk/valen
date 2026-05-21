@@ -1,6 +1,6 @@
 package be.twofold.valen.game.eternal.reader.md6anim;
 
-import be.twofold.valen.core.io.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 
@@ -14,7 +14,7 @@ public record Md6AnimMapOffsets(
     short animTRLEOffset,
     short animURLEOffset
 ) {
-    public static Md6AnimMapOffsets read(DataSource source) throws IOException {
+    public static Md6AnimMapOffsets read(BinarySource source) throws IOException {
         short constRRLEOffset = source.readShort();
         short constSRLEOffset = source.readShort();
         short constTRLEOffset = source.readShort();

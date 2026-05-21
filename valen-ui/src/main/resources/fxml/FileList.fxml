@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.cell.PropertyValueFactory?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.VBox?>
+<SplitPane xmlns="http://javafx.com/javafx/25.0.2" xmlns:fx="http://javafx.com/fxml/1"
+           fx:controller="be.twofold.valen.ui.component.filelist.FileListController"
+           fx:id="splitPane" dividerPositions="0.25">
+
+    <!-- Left Panel: File Tree -->
+    <TreeView fx:id="treeView"
+              VBox.vgrow="ALWAYS"
+              SplitPane.resizableWithParent="false">
+    </TreeView>
+
+    <!-- Right Panel: Asset Table -->
+    <TableView fx:id="tableView"
+               VBox.vgrow="ALWAYS"
+               tableMenuButtonVisible="true">
+        <columns>
+            <TableColumn fx:id="nameColumn"
+                         text="Name"
+                         prefWidth="200">
+                <cellValueFactory>
+                    <PropertyValueFactory property="displayName"/>
+                </cellValueFactory>
+            </TableColumn>
+
+            <TableColumn fx:id="typeColumn"
+                         text="Type"
+                         prefWidth="120">
+                <cellValueFactory>
+                    <PropertyValueFactory property="type"/>
+                </cellValueFactory>
+            </TableColumn>
+
+            <TableColumn fx:id="propertiesColumn"
+                         text="Properties"
+                         prefWidth="250"
+                         sortable="false">
+                <cellValueFactory>
+                    <PropertyValueFactory property="properties"/>
+                </cellValueFactory>
+            </TableColumn>
+        </columns>
+
+        <placeholder>
+            <VBox alignment="CENTER" spacing="10">
+                <Label text="No assets to display"/>
+                <Label text="Select a folder from the tree"/>
+            </VBox>
+        </placeholder>
+
+        <columnResizePolicy>
+            <TableView fx:constant="CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN"/>
+        </columnResizePolicy>
+    </TableView>
+</SplitPane>

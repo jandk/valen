@@ -1,0 +1,146 @@
+//------------------------------------------------
+//--- 010 Editor v15.0.2 Binary Template
+//
+//      File: 
+//   Authors: 
+//   Version: 
+//   Purpose: 
+//  Category: 
+// File Mask: 
+//  ID Bytes: 
+//   History: 
+//------------------------------------------------
+#include "common.bt"
+
+struct MD6Header {
+    PString32 skeletonName;
+    PString32 facerigName;
+    PString32 s3;
+    PString32 hcrigName;
+    
+    Vec3 minBoundsExpansion;
+    Vec3 maxBoundsExpansion;
+    u8   remapForSkinning;
+};
+
+struct MD6BoneInfo {
+    ushort jointRemapCount;
+    ushort jointRemap[jointRemapCount];
+    Bounds defaultBounds;
+    u32 numLods;
+    u32 unknown;
+    f32 maxLodDeviations[numLods];
+};
+
+struct MD6BlendShapeLocationInfo {
+    PString32 name;
+    u16 rigControlIndex;
+    u32 deltaIndexStart;
+};
+
+struct MD6ModelLodInfo {
+    u32 numVertices;
+    u32 numFaces;
+    Bounds bounds;
+    Vec3 vertexOffset;
+    f32  vertexScale;
+    Vec2 uvOffset;
+    f32  uvScale;
+    u32  vertexMask;
+    f32  unknown[2];
+    
+    u32 numBlendShapes;
+    if (numBlendShapes != 0) {
+        u32 numBlendShapesReferences;
+        u16 blendShapesReferences[numBlendShapesReferences];
+        MD6BlendShapeLocationInfo blendShapeLocationInfos[numBlendShapes] <style=sSection4, optimize=false>;
+    }
+};
+
+struct MD6ModelInfo {
+    PString32 meshName;
+    PString32 materialName;
+    u8        fixed1_1;
+    u32       fixed1_2;
+    i32       unknown[3];
+    u32       unkHash;
+    u32       padding;
+    
+    local int i;
+    for (i = 0; i < 5; i++) {
+        uint absent;
+        if(absent == 0) {
+            MD6ModelLodInfo lodInfo <style=sSection3>;
+        }
+    }
+    uint padding;
+};
+
+struct MD6MaterialInfo {
+    PString32 mtrName;
+    u32       renderSurface;
+    u32       firstVertex;
+    u32       lastVertex;
+};
+
+struct MD6GeoDecal {
+    PString32 name;    
+    u32 numStreams;
+    u32 streamSizes[numStreams];
+    local u32 i;
+    local u32 numElements = 0;
+    for (i = 0; i < numStreams; i++) {
+        numElements += streamSizes[i];
+    }
+    u32 decals[numElements];
+};
+
+struct GeometryDiskLayout {
+    u32 compression;
+    u32 uncompressedSize;
+    u32 compressedSize;
+    u32 offset;
+};
+
+struct GeometryMemoryLayout {
+    u32 combinedVertexMask;
+    u32 size;
+    u32 numVertexStreams;
+    u32 vertexMasks[numVertexStreams];
+    u32 vertexOffsets[numVertexStreams];
+    u32 indexOffset;
+    u32 blendSize;
+    if (blendSize != 0) {
+        u32 someCount;
+        
+        struct BlendShapeOffsets {
+            u32 meshIndex;
+            u32 deltaIndicesOffset;
+            u32 deltasOffset;
+            u32 unreliableIndicesOffset;
+            u32 unreliableVerticesOffset;
+            u32 trisPerUnreliableVerticesOffset;
+            u32 metaTrisPerUnreliableVertexOffset;
+            u32 weightsOffset;
+            u32 unknown;
+            u32 numMetaTrisPerUnreliableVertex;
+        } blendShapeOffsets[someCount];
+    }
+};
+
+struct Layout {
+    GeometryMemoryLayout memoryLayout[5] <optimize=false>;
+    u32 padding;
+    GeometryDiskLayout diskLayout[5];
+};
+
+MD6Header   header   <style=sHeading1>;
+MD6BoneInfo boneInfo <style=sSection1>;
+
+u32 modelInfoCount;
+MD6ModelInfo modelInfos[modelInfoCount] <style=sSection2, optimize=false>;
+
+u32 materialInfoCount;
+MD6MaterialInfo materialInfos[materialInfoCount] <style=sSection1, optimize=false>;
+MD6GeoDecal geoDecal <optimize=false>;
+Layout layout;

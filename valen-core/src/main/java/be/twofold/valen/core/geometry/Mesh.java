@@ -1,45 +1,88 @@
 package be.twofold.valen.core.geometry;
 
 import be.twofold.valen.core.material.*;
-import be.twofold.valen.core.util.*;
+import wtf.reversed.toolbox.collect.*;
+import wtf.reversed.toolbox.util.*;
 
 import java.util.*;
 
+@SuppressWarnings("OptionalUsedAsFieldOrParameterType")
 public record Mesh(
-    VertexBuffer<?> indexBuffer,
-    List<VertexBuffer<?>> vertexBuffers,
+    Ints indices,
+    Floats positions,
+    Optional<Floats> normals,
+    Optional<Floats> tangents,
+    List<Floats> texCoords,
+    List<Bytes> colors,
+    Optional<Shorts> joints,
+    Optional<Floats> weights,
+    int maxInfluence,
+    Map<String, VertexBuffer<?>> custom,
+    Optional<String> name,
     Optional<Material> material,
-    Optional<String> name
+    List<BlendShape> blendShapes
 ) {
     public Mesh {
-        Check.notNull(indexBuffer, "indexBuffer must not be null");
+        Check.nonNull(indices, "indices");
+        Check.argument(positions.length() % 3 == 0, "positions.size() % 3 != 0");
 
-        var count = vertexBuffers.stream()
-            .map(vb -> vb.info().semantic())
-            .distinct().count();
-        if (vertexBuffers.size() != count) {
-            throw new IllegalArgumentException("Multiple buffers with the same semantic");
+        int vertexCount = positions.length() / 3;
+        normals.ifPresent(floats -> check(floats.length(), vertexCount, 3));
+        tangents.ifPresent(floats -> check(floats.length(), vertexCount, 4));
+        texCoords.forEach(floats -> check(floats.length(), vertexCount, 2));
+        colors.forEach(bytes -> check(bytes.length(), vertexCount, 4));
+        if (Check.positiveOrZero(maxInfluence, "maxInfluence") > 0) {
+            joints.ifPresent(shorts -> check(shorts.length(), vertexCount, maxInfluence));
+            weights.ifPresent(floats -> check(floats.length(), vertexCount, maxInfluence));
         }
-        vertexBuffers = List.copyOf(vertexBuffers);
+        custom.values().forEach(vb -> check(vb.array().length(), vertexCount, vb.count()));
     }
 
-    public Mesh(VertexBuffer<?> indexBuffer, List<VertexBuffer<?>> vertexBuffers) {
-        this(indexBuffer, vertexBuffers, Optional.empty(), Optional.empty());
+    public Mesh(
+        Ints indices,
+        Floats positions,
+        Optional<Floats> normals,
+        Optional<Floats> tangents,
+        List<Floats> texCoords,
+        List<Bytes> colors,
+        Optional<Shorts> joints,
+        Optional<Floats> weights,
+        int maxInfluence,
+        Map<String, VertexBuffer<?>> custom
+    ) {
+        this(indices, positions, normals, tangents, texCoords, colors, joints, weights, maxInfluence, custom, Optional.empty(), Optional.empty(), List.of());
     }
 
-    public Optional<VertexBuffer<?>> getBuffer(Semantic semantic) {
-        return vertexBuffers.stream()
-            .filter(vb -> vb.info().semantic().equals(semantic))
-            .findFirst();
+    private static void check(int length, int count, int elementSize) {
+        Check.argument(length % elementSize == 0, "array length must be a multiple of elementSize");
+        Check.argument(length == count * elementSize, "array length must be equal to count * elementSize");
     }
 
-    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
-    public Mesh withMaterial(Optional<Material> material) {
-        return new Mesh(indexBuffer, vertexBuffers, material, name);
+    public int faceCount() {
+        return indices.length() / 3;
     }
 
-    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
+    public int vertexCount() {
+        return positions.length() / 3;
+    }
+
+    public Mesh withJointsAndWeights(Shorts joints, Floats weights) {
+        return new Mesh(indices, positions, normals, tangents, texCoords, colors, Optional.of(joints), Optional.of(weights), maxInfluence, custom, name, material, blendShapes);
+    }
+
+    public Mesh withMaxInfluence(int maxInfluence) {
+        return new Mesh(indices, positions, normals, tangents, texCoords, colors, joints, weights, maxInfluence, custom, name, material, blendShapes);
+    }
+
     public Mesh withName(Optional<String> name) {
-        return new Mesh(indexBuffer, vertexBuffers, material, name);
+        return new Mesh(indices, positions, normals, tangents, texCoords, colors, joints, weights, maxInfluence, custom, name, material, blendShapes);
+    }
+
+    public Mesh withMaterial(Optional<Material> material) {
+        return new Mesh(indices, positions, normals, tangents, texCoords, colors, joints, weights, maxInfluence, custom, name, material, blendShapes);
+    }
+
+    public Mesh withBlendShapes(List<BlendShape> blendShapes) {
+        return new Mesh(indices, positions, normals, tangents, texCoords, colors, joints, weights, maxInfluence, custom, name, material, blendShapes);
     }
 }

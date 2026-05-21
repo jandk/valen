@@ -9,7 +9,7 @@ import java.util.*;
 /**
  * A buffer points to binary geometry, animation, or skins.
  */
-@Schema2Style
+@SchemaStyle
 @Value.Immutable
 public interface BufferSchema extends GltfChildOfRootProperty {
 

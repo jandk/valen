@@ -1,11 +1,11 @@
 package be.twofold.valen.export.gltf.mappers;
 
 import be.twofold.valen.core.geometry.*;
-import be.twofold.valen.core.math.*;
 import be.twofold.valen.format.gltf.*;
 import be.twofold.valen.format.gltf.model.accessor.*;
 import be.twofold.valen.format.gltf.model.node.*;
 import be.twofold.valen.format.gltf.model.skin.*;
+import wtf.reversed.toolbox.math.*;
 
 import java.io.*;
 import java.nio.*;
@@ -24,7 +24,6 @@ public final class GltfSkeletonMapper {
         // Calculate the parent-child relationships
         var children = new HashMap<Integer, List<Integer>>();
         for (var i = 0; i < bones.size(); i++) {
-            String s = "€";
             children
                 .computeIfAbsent(bones.get(i).parent(), _ -> new ArrayList<>())
                 .add(i);
@@ -51,7 +50,7 @@ public final class GltfSkeletonMapper {
 
         var buffer = FloatBuffer.allocate(bones.size() * 16);
         for (var bone : bones) {
-            buffer.put(bone.inverseBasePose().toArray());
+            bone.inverseBasePose().toBuffer(buffer);
         }
         buffer.flip();
 

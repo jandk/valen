@@ -4,10 +4,9 @@ import be.twofold.valen.core.game.*;
 import be.twofold.valen.ui.common.*;
 import be.twofold.valen.ui.component.*;
 import jakarta.inject.*;
+import wtf.reversed.toolbox.collect.*;
 
-import java.nio.*;
-
-public final class RawPresenter extends AbstractFXPresenter<RawView> implements Viewer {
+public final class RawPresenter extends AbstractPresenter<RawView> implements Viewer {
     private final BinaryToText binaryToText = new BinaryToText();
 
     @Inject
@@ -31,15 +30,15 @@ public final class RawPresenter extends AbstractFXPresenter<RawView> implements 
             getView().clear();
             return;
         }
-        if (!(data instanceof ByteBuffer buffer)) {
+        if (!(data instanceof Bytes bytes)) {
             throw new UnsupportedOperationException("Unsupported data type: " + data.getClass());
         }
 
         binaryToText
-            .binaryToText(buffer)
+            .binaryToText(bytes)
             .ifPresentOrElse(
                 text -> getView().setText(text),
-                () -> getView().setBinary(buffer)
+                () -> getView().setBinary(bytes)
             );
     }
 }

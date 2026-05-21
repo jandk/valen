@@ -1,6 +1,7 @@
 package be.twofold.valen.game.eternal.reader.md6skel;
 
-import be.twofold.valen.core.io.*;
+import wtf.reversed.toolbox.collect.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 
@@ -15,13 +16,13 @@ public record Md6SkelHeader(
     short lastChildTblOffset,
     short jointHandleTblOffset,
     short userChannelHandleTblOffset,
-    short[] jointWeightOffsets,
-    short[] userWeightOffsets,
+    Shorts jointWeightOffsets,
+    Shorts userWeightOffsets,
     short extraJointTblOffset,
     short loadedDataSize,
-    byte[] pad
+    Bytes pad
 ) {
-    public static Md6SkelHeader read(DataSource source) throws IOException {
+    public static Md6SkelHeader read(BinarySource source) throws IOException {
         source.skip(4); // These are a copy of the compressedSize
         var size = source.readShort();
         var numJoints = source.readShort();
