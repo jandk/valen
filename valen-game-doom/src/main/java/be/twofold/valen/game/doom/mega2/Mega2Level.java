@@ -1,6 +1,6 @@
 package be.twofold.valen.game.doom.mega2;
 
-import be.twofold.valen.core.io.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 
@@ -12,7 +12,7 @@ public record Mega2Level(
     int treeIndex,
     int treeCount
 ) {
-    public static Mega2Level read(DataSource source) throws IOException {
+    public static Mega2Level read(BinarySource source) throws IOException {
         int blockXIndex = source.readInt();
         int blockYIndex = source.readInt();
         int blockXCount = source.readInt();

@@ -1,6 +1,6 @@
 package be.twofold.valen.game.doom.mega2;
 
-import be.twofold.valen.core.io.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 
@@ -24,7 +24,7 @@ public record Mega2Header(
     int pointerCount,
     int quadtreeCount
 ) {
-    public static Mega2Header read(DataSource source) throws IOException {
+    public static Mega2Header read(BinarySource source) throws IOException {
         int signature = source.readInt();
         int version = source.readInt();
         int unknown2 = source.readInt();

@@ -1,8 +1,9 @@
 package be.twofold.valen.game.doom.resources;
 
-import be.twofold.valen.core.io.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
+import java.nio.*;
 
 public record ResourcesIndexEntry(
     int index,
@@ -15,16 +16,21 @@ public record ResourcesIndexEntry(
     int unknown,
     byte fileId
 ) {
-    public static ResourcesIndexEntry read(DataSource source) throws IOException {
-        var index = source.readIntBE();
-        var typeName = source.readPString();
-        var resourceName = source.readPString();
-        var fileName = source.readPString();
+    public static ResourcesIndexEntry read(BinarySource source) throws IOException {
+        source.order(ByteOrder.BIG_ENDIAN);
+        var index = source.readInt();
 
-        var offset = source.readLongBE();
-        var size = source.readIntBE();
-        var sizeCompressed = source.readIntBE();
+        source.order(ByteOrder.LITTLE_ENDIAN);
+        var typeName = source.readString(StringFormat.INT_LENGTH);
+        var resourceName = source.readString(StringFormat.INT_LENGTH);
+        var fileName = source.readString(StringFormat.INT_LENGTH);
 
+        source.order(ByteOrder.BIG_ENDIAN);
+        var offset = source.readLong();
+        var size = source.readInt();
+        var sizeCompressed = source.readInt();
+
+        source.order(ByteOrder.LITTLE_ENDIAN);
         var unknown = source.readInt();
         var fileId = source.readByte();
 

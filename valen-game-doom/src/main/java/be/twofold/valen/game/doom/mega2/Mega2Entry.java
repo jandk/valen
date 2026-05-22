@@ -1,6 +1,6 @@
 package be.twofold.valen.game.doom.mega2;
 
-import be.twofold.valen.core.io.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 
@@ -8,7 +8,7 @@ public record Mega2Entry(
     long offset,
     int length
 ) {
-    public static Mega2Entry read(DataSource source) throws IOException {
+    public static Mega2Entry read(BinarySource source) throws IOException {
         long offset = source.readLong();
         int length = source.readLongAsInt();
 

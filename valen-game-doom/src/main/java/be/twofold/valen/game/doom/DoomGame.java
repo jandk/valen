@@ -6,7 +6,7 @@ import java.io.*;
 import java.nio.file.*;
 import java.util.*;
 
-public class DoomGame implements Game {
+public final class DoomGame implements Game {
     private final Path base;
 
     DoomGame(Path path) {
@@ -22,7 +22,7 @@ public class DoomGame implements Game {
     }
 
     @Override
-    public DoomArchive loadArchive(String name) throws IOException {
-        return new DoomArchive(base, name);
+    public AssetLoader open(String name) throws IOException {
+        throw new UnsupportedOperationException();
     }
 }

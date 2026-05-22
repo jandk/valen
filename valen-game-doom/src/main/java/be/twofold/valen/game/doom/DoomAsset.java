@@ -6,12 +6,14 @@ import java.util.*;
 
 public record DoomAsset(
     DoomAssetID id,
-    AssetType type,
-    long offset,
-    int size,
-    int sizeCompressed,
-    String resourceType
+    Location location,
+    long checksum
 ) implements Asset {
+    @Override
+    public AssetType type() {
+        return AssetType.RAW;
+    }
+
     @Override
     public Map<String, Object> properties() {
         return Map.of();
