@@ -209,9 +209,8 @@ public abstract class AbstractMaterialReader<K extends AssetID, V extends Asset>
             return null;
         }
 
-        // TODO: Fix exportName properly
         var supplier = ThrowingSupplier.lazy(() -> context.load(imageAssetID, Texture.class));
-        return new TextureReference(name, imageAssetID.exportName(), supplier);
+        return new TextureReference(name, imageAssetID.fileNameWithoutExtension(), supplier);
     }
 
     private List<Parm> parseRenderLayerParms(JsonArray array, LoadingContext context) throws IOException {

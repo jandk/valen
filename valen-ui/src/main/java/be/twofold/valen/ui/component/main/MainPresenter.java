@@ -173,7 +173,7 @@ public final class MainPresenter extends AbstractPresenter<MainView> implements 
             return Stream.empty();
         }
         var predicate = buildPredicate(query, settings.getAssetTypes());
-        return loader.archive().all().filter(predicate);
+        return loader.all().filter(predicate);
     }
 
     private Predicate<Asset> buildPredicate(String assetName, Collection<AssetType> assetTypes) {
