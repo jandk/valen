@@ -13,12 +13,20 @@ import javafx.collections.*;
 import javafx.scene.image.*;
 import javafx.scene.paint.*;
 import javafx.scene.shape.*;
+import org.slf4j.*;
 import wtf.reversed.toolbox.collect.*;
 
 import java.io.*;
 import java.util.*;
 
 public final class ModelPresenter extends AbstractPresenter<ModelView> implements Viewer {
+    /**
+     * Largest diffuse-map dimension for JavaFX. This stops framerate tanking completely.
+     */
+    private static final int MAX_DIFFUSE_SIZE = 1024;
+
+    private static final Logger log = LoggerFactory.getLogger(ModelPresenter.class);
+
     @Inject
     public ModelPresenter(ModelView view) {
         super(view);
@@ -86,8 +94,7 @@ public final class ModelPresenter extends AbstractPresenter<ModelView> implement
 
             var texture = reference.supplier().get();
 
-            // I have to limit this, because the performance absolutely tanks, not sure why yet...
-            int mip = Math.min(texture.mipCount() - 1, 2);
+            int mip = chooseMip(texture);
             var converted = texture.convertSurface(mip, 0, TextureFormat.B8G8R8A8_SRGB, true);
 
             var diffuseMap = new WritableImage(new PixelBuffer<>(
@@ -101,9 +108,21 @@ public final class ModelPresenter extends AbstractPresenter<ModelView> implement
             result.setDiffuseMap(diffuseMap);
             return result;
         } catch (IOException e) {
-            e.printStackTrace();
+            log.warn("Failed to load texture", e);
             return null;
         }
+    }
+
+    private int chooseMip(Texture texture) {
+        int lastMip = texture.mipCount() - 1;
+        for (int mip = 0; mip < lastMip; mip++) {
+            var width = Math.max(1, texture.width() >> mip);
+            var height = Math.max(1, texture.height() >> mip);
+            if (Math.max(width, height) <= MAX_DIFFUSE_SIZE) {
+                return mip;
+            }
+        }
+        return lastMip;
     }
 
     private void copy(Floats floats, ObservableFloatArray floatArray) {

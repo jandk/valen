@@ -9,6 +9,12 @@ import java.util.logging.*;
 
 public final class Main {
     static void main(String[] args) throws IOException {
+        /*
+         * The default texture pool size is only 512MB; some models (like the doom slayer in TDA),
+         * have so many textures that we need *a lot* more memory for these, so we bump it to 2GB.
+         */
+        System.setProperty("prism.maxvram", "2G");
+
         LogManager.getLogManager().readConfiguration(
             Main.class.getResourceAsStream("/logging.properties")
         );
