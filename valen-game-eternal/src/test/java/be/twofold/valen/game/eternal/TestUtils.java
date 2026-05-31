@@ -21,7 +21,7 @@ public abstract class TestUtils {
     }
 
     private static void readAllInMap(AssetLoader loader, AssetReader.Binary<?, EternalAsset> reader) {
-        var entries = loader.archive().all()
+        var entries = loader.all()
             .filter(asset -> asset.location().size() != 0 && reader.canRead((EternalAsset) asset))
             .toList();
 

@@ -22,7 +22,7 @@ public abstract class TestUtils {
     }
 
     private static void readAllInMap(AssetLoader loader, AssetReader.Binary<?, DarkAgesAsset> reader) {
-        var entries = loader.archive().all()
+        var entries = loader.all()
             .filter(asset -> asset.location().size() != 0 && reader.canRead((DarkAgesAsset) asset))
             .sorted(Comparator.naturalOrder())
             .toList();

@@ -12,18 +12,18 @@ import java.util.*;
 
 record ResourcesIndex(
     Map<Path, BinarySource> sources,
-    Map<GreatCircleAssetID, GreatCircleAsset> index
+    List<GreatCircleAsset> assets
 ) {
     private static final Logger log = LoggerFactory.getLogger(ResourcesIndex.class);
 
     ResourcesIndex {
         sources = Map.copyOf(sources);
-        index = Map.copyOf(index);
+        assets = List.copyOf(assets);
     }
 
     static ResourcesIndex build(List<Path> paths) throws IOException {
         var sources = new HashMap<Path, BinarySource>();
-        var index = new HashMap<GreatCircleAssetID, GreatCircleAsset>();
+        var assets = new ArrayList<GreatCircleAsset>();
         for (var path : paths) {
             log.info("Loading Resources: {}", path);
 
@@ -33,13 +33,12 @@ record ResourcesIndex(
             var resources = Resources.read(source);
             for (var entry : resources.entries()) {
                 if (entry.uncompressedSize() > 0) {
-                    var asset = mapResourceEntry(resources, entry, path);
-                    index.putIfAbsent(asset.id(), asset);
+                    assets.add(mapResourceEntry(resources, entry, path));
                 }
             }
         }
 
-        return new ResourcesIndex(sources, index);
+        return new ResourcesIndex(sources, assets);
     }
 
     private static GreatCircleAsset mapResourceEntry(Resources resources, ResourcesEntry entry, Path path) {

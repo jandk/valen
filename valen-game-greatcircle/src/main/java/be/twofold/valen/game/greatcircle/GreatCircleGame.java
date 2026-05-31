@@ -55,9 +55,9 @@ public final class GreatCircleGame implements Game {
     public AssetLoader open(String name) throws IOException {
         var loadedResources = ResourcesIndex.build(filterResources(spec, name));
 
-        var archive = new GreatCircleArchive(
-            Map.copyOf(commonResources.index()),
-            Map.copyOf(loadedResources.index())
+        var archive = Archive.layered(
+            Archive.of(loadedResources.assets()),
+            Archive.of(commonResources.assets())
         );
 
         var sources = new HashMap<Path, BinarySource>();
