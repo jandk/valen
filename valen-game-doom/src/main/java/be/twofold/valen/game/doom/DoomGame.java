@@ -1,7 +1,11 @@
 package be.twofold.valen.game.doom;
 
 import be.twofold.valen.core.game.*;
+import be.twofold.valen.core.util.*;
+import be.twofold.valen.game.doom.readers.image.*;
 import be.twofold.valen.game.doom.resources.*;
+import wtf.reversed.toolbox.collect.*;
+import wtf.reversed.toolbox.compress.*;
 import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
@@ -17,7 +21,9 @@ public final class DoomGame implements Game {
         "anim"
     );
 
-    private static final List<AssetReader<?, ?>> READERS = List.of();
+    private static final List<AssetReader<?, DoomAsset>> READERS = List.of(
+        new ImageReader()
+    );
 
     private final Path base;
 
@@ -60,7 +66,7 @@ public final class DoomGame implements Game {
             new StorageManager(Map.of(
                 resourcesPath, resources
             ), Set.of()),
-            READERS
+            List.copyOf(READERS)
         );
     }
 

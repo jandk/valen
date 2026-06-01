@@ -13,7 +13,7 @@ public record DoomAsset(
     public AssetType type() {
         switch (rawType) {
             case "image":
-                return AssetType.TEXTURE;
+                 return AssetType.TEXTURE;
             case "model":
             case "baseModel":
             case "skeleton":
