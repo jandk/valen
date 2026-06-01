@@ -1,0 +1,89 @@
+typedef enum {
+    VERTEX_MASK_XYZ = 1,
+    VERTEX_MASK_XYZ1 = 4096,
+    VERTEX_MASK_ST = 2,
+    VERTEX_MASK_ST1 = 1024,
+    VERTEX_MASK_NORMAL = 4,
+    VERTEX_MASK_COLOR = 8,
+    VERTEX_MASK_TANGENT = 16,
+    VERTEX_MASK_PACKED_INPUTS = 131072,
+    VERTEX_MASK_MORPH = 128,
+    VERTEX_MASK_MORPH_NORMAL = 16384,
+    VERTEX_MASK_XYZ_SHORT = 32,
+    VERTEX_MASK_ST_SHORT = 64,
+    VERTEX_MASK_ST1_SHORT = 2048,
+    VERTEX_MASK_INDEX_LONG = 256,
+    VERTEX_MASK_INDEX_STRIP = 512,
+    VERTEX_MASK_VMTR_TC = 32768,
+    VERTEX_MASK_VMTR_SB = 65536,
+} vertexMask_t <edit=flags>;
+
+typedef struct {
+    uint size;
+    char value[size];
+} SString<read=Str("%s", size > 0 ? this.value : "")>;
+
+typedef struct {
+    float x;
+    float y;
+} Vec2 <read=Str("(%f, %f)", x, y)>;
+
+typedef struct {
+    float x;
+    float y;
+    float z;
+} Vec3 <read=Str("(%f, %f, %f)", x, y, z)>;
+
+typedef struct {
+    Vec3 min;
+    Vec3 max;
+} Bounds;
+
+struct StaticModelHeader {
+    uint magic;
+    uint sourceTimeStamp;
+    uint numSurfaces;
+};
+
+struct StandardVertex {
+    Vec3  xyz;
+    Vec2  st;
+    short normal[2];
+    ubyte color[4];
+    byte  tangent[4];
+    float vmtrTc[2];
+    uint  vmtrSb[2];
+};
+
+struct StaticModelSurface {
+    LittleEndian();
+    SString material;
+    
+    BigEndian();
+    uint unk1;
+    uint unk2;
+    uint unk3;
+    uint unk4;
+    
+    LittleEndian();
+    SString unk5[unk4] <optimize=false>;
+    
+    BigEndian();
+    uint numVerts;
+    uint numIndices;
+    vertexMask_t vertexMask;
+    Vec3 xyzScale;
+    Vec3 xyzBias;
+    Vec2 stScale;
+    Vec2 stBias;
+    StandardVertex vertexBuffer[numVerts] <style=sSection1>;
+    ushort         indexBuffer [numIndices] <style=sSection2>;
+    
+    Bounds bounds;
+    int    detailOffset;
+    int    trailingMagic;
+};
+
+BigEndian();
+StaticModelHeader  header <style=sHeading1>;
+StaticModelSurface surfaces[header.numSurfaces] <style=sHeading2, optimize=false>;

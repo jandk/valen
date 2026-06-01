@@ -3,6 +3,7 @@ package be.twofold.valen.game.doom;
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.util.*;
 import be.twofold.valen.game.doom.readers.image.*;
+import be.twofold.valen.game.doom.readers.model.*;
 import be.twofold.valen.game.doom.resources.*;
 import wtf.reversed.toolbox.collect.*;
 import wtf.reversed.toolbox.compress.*;
@@ -22,7 +23,8 @@ public final class DoomGame implements Game {
     );
 
     private static final List<AssetReader<?, DoomAsset>> READERS = List.of(
-        new ImageReader()
+        new ImageReader(),
+        new ModelReader()
     );
 
     private final Path base;
