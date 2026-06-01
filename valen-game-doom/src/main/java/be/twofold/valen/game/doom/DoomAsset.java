@@ -6,16 +6,34 @@ import java.util.*;
 
 public record DoomAsset(
     DoomAssetID id,
-    Location location,
-    long checksum
+    String rawType,
+    Location location
 ) implements Asset {
     @Override
     public AssetType type() {
-        return AssetType.RAW;
+        switch (rawType) {
+            case "image":
+                return AssetType.TEXTURE;
+            case "model":
+            case "baseModel":
+            case "skeleton":
+            case "material":
+            case "decalatlas":
+            case "transsortatlas":
+            case "anim":
+                return AssetType.RAW;
+            default:
+                return AssetType.RAW;
+        }
     }
 
     @Override
     public Map<String, Object> properties() {
-        return Map.of();
+        return Map.of("Type", rawType);
+    }
+
+    @Override
+    public String toString() {
+        return id.toString();
     }
 }
