@@ -41,19 +41,21 @@ public final class PngExporter extends TextureExporter {
             case R8G8_UNORM,
                  R8G8B8_UNORM,
                  B8G8R8_UNORM,
+                 BC1_UNORM,
                  BC5_UNORM,
                  BC5_SNORM -> TextureFormat.R8G8B8_UNORM;
             case R8G8B8_SRGB,
-                 B8G8R8_SRGB -> TextureFormat.R8G8B8_SRGB;
+                 B8G8R8_SRGB,
+                 BC1_SRGB -> TextureFormat.R8G8B8_SRGB;
             case R8G8B8A8_UNORM,
                  B8G8R8A8_UNORM,
-                 BC1_UNORM,
+                 BC1A_UNORM,
                  BC2_UNORM,
                  BC3_UNORM,
                  BC7_UNORM -> TextureFormat.R8G8B8A8_UNORM;
             case R8G8B8A8_SRGB,
                  B8G8R8A8_SRGB,
-                 BC1_SRGB,
+                 BC1A_SRGB,
                  BC2_SRGB,
                  BC3_SRGB,
                  BC7_SRGB -> TextureFormat.R8G8B8A8_SRGB;

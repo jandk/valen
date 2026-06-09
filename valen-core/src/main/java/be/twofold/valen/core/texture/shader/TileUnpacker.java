@@ -61,7 +61,8 @@ interface TileUnpacker {
 
     private static BlockDecoder decoderFor(TextureFormat format) {
         return switch (format) {
-            case BC1_UNORM, BC1_SRGB -> BlockDecoder.bc1(false);
+            case BC1_UNORM, BC1_SRGB -> BlockDecoder.bc1(true);
+            case BC1A_UNORM, BC1A_SRGB -> BlockDecoder.bc1(false);
             case BC2_UNORM, BC2_SRGB -> BlockDecoder.bc2();
             case BC3_UNORM, BC3_SRGB -> BlockDecoder.bc3();
             case BC4_UNORM -> BlockDecoder.bc4(false);
@@ -78,10 +79,12 @@ interface TileUnpacker {
     private static TextureFormat formatFor(TextureFormat format) {
         return switch (format) {
             case BC1_UNORM,
+                 BC1A_UNORM,
                  BC2_UNORM,
                  BC3_UNORM,
                  BC7_UNORM -> TextureFormat.R8G8B8A8_UNORM;
             case BC1_SRGB,
+                 BC1A_SRGB,
                  BC2_SRGB,
                  BC3_SRGB,
                  BC7_SRGB -> TextureFormat.R8G8B8A8_SRGB;
