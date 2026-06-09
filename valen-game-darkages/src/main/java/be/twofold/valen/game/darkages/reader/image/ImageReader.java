@@ -93,8 +93,7 @@ public final class ImageReader implements AssetReader.Binary<Texture, DarkAgesAs
 
         var scale = image.header().albedoSpecularScale();
         var bias = image.header().albedoSpecularBias();
-//        UnaryOperator<ShaderNode> scaleAndBias = node -> ShaderNode.scaleAndBias(node, scale, bias);
-        UnaryOperator<ShaderNode> scaleAndBias = UnaryOperator.identity();
+        UnaryOperator<ShaderNode> scaleAndBias = node -> ShaderNode.scaleAndBias(node, scale, bias);
 
         return new Texture(format, kind, width, height, depthOrLayers, surfaces, scaleAndBias);
     }
