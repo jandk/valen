@@ -19,10 +19,6 @@ public abstract class GltfModelMapper {
 
     final GltfContext context;
     final GltfMaterialMapper materialMapper;
-    private int numTexCoords = 0;
-    private int numColors = 0;
-    private int numJoints = 0;
-    private int numWeights = 0;
 
     public GltfModelMapper(GltfContext context) {
         this.context = context;
@@ -48,7 +44,10 @@ public abstract class GltfModelMapper {
         attributes.put("POSITION", buildAccessor(mesh.positions(), AccessorComponentType.FLOAT, AccessorType.VEC3, true));
         mesh.normals().ifPresent(floats -> attributes.put("NORMAL", buildAccessor(floats, AccessorComponentType.FLOAT, AccessorType.VEC3, false)));
         mesh.tangents().ifPresent(floats -> attributes.put("TANGENT", buildAccessor(floats, AccessorComponentType.FLOAT, AccessorType.VEC4, false)));
-        mesh.texCoords().forEach(floats -> attributes.put("TEXCOORD_" + numTexCoords++, buildAccessor(floats, AccessorComponentType.FLOAT, AccessorType.VEC2, false)));
+        var texCoords = mesh.texCoords();
+        for (var i = 0; i < texCoords.size(); i++) {
+            attributes.put("TEXCOORD_" + i, buildAccessor(texCoords.get(i), AccessorComponentType.FLOAT, AccessorType.VEC2, false));
+        }
         mesh.joints().ifPresent(shorts -> splitJoints(shorts, mesh.maxInfluence(), attributes));
         mesh.weights().ifPresent(floats -> splitWeights(floats, mesh.maxInfluence(), attributes));
         mesh.custom().forEach((name, vertexBuffer) -> {
@@ -58,11 +57,6 @@ public abstract class GltfModelMapper {
             attributes.put(sanitizedName, buildAccessor(vertexBuffer.array(), componentType, accessorType, false));
         });
         // We don't do anything with colors, as Blender likes to incorporate vertex colors
-
-        this.numTexCoords = 0;
-        this.numColors = 0;
-        this.numJoints = 0;
-        this.numWeights = 0;
 
         var indices = buildAccessor(mesh.indices());
         var morphTargets = buildMorphTargets(mesh.blendShapes(), mesh.faceCount());
@@ -126,7 +120,7 @@ public abstract class GltfModelMapper {
                     joints.set(o + j, (short) 0);
                 }
             }
-            attributes.put("JOINTS_" + numJoints++, buildAccessor(joints, AccessorComponentType.UNSIGNED_SHORT, AccessorType.VEC4, false));
+            attributes.put("JOINTS_" + b, buildAccessor(joints, AccessorComponentType.UNSIGNED_SHORT, AccessorType.VEC4, false));
         }
     }
 
@@ -143,10 +137,10 @@ public abstract class GltfModelMapper {
                     weights.set(o + j, floats.get(i + j));
                 }
                 for (int j = values; j < 4; j++) {
-                    weights.set(o + j, (short) 0);
+                    weights.set(o + j, 0.0f);
                 }
             }
-            attributes.put("WEIGHTS_" + numWeights++, buildAccessor(weights, AccessorComponentType.FLOAT, AccessorType.VEC4, false));
+            attributes.put("WEIGHTS_" + b, buildAccessor(weights, AccessorComponentType.FLOAT, AccessorType.VEC4, false));
         }
     }
 

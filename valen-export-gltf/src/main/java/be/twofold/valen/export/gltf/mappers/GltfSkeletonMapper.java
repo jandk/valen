@@ -17,44 +17,40 @@ public final class GltfSkeletonMapper {
         this.context = context;
     }
 
-    public SkinID map(Skeleton skeleton) throws IOException {
+    /**
+     * Maps a skeleton to a glTF skin and returns it together with the node ID of its root joint, so the
+     * caller can parent it into the model's node tree. The joints are plain nodes in that tree, which is
+     * what lets the skeleton merge into the model rather than living under a dedicated root. Per the spec
+     * {@code skin.skeleton} points at that root joint (the closest common root of the joints hierarchy).
+     */
+    public MappedSkin mapSkin(Skeleton skeleton) throws IOException {
         var bones = skeleton.bones();
 
-        // Calculate the parent-child relationships
-        var children = new HashMap<Integer, List<Integer>>();
+        var jointBuilders = bones.stream()
+            .map(bone -> new NodeBuilder()
+                .name(bone.name())
+                .rotation(GltfUtils.mapQuaternion(bone.rotation()))
+                .scale(GltfUtils.mapVector3(bone.scale()))
+                .translation(GltfUtils.mapVector3(bone.translation())))
+            .toList();
+
+        NodeBuilder root = null;
         for (var i = 0; i < bones.size(); i++) {
-            children
-                .computeIfAbsent(bones.get(i).parent(), _ -> new ArrayList<>())
-                .add(i);
-        }
-
-        // Build the skeleton
-        var baseNodeId = context.nextNodeId();
-        var skeletonNodeId = (NodeID) null;
-        var jointIndices = new ArrayList<NodeID>();
-        for (var i = 0; i < bones.size(); i++) {
-            var bone = bones.get(i);
-            var jointChildren = children.getOrDefault(i, List.of()).stream()
-                .map(baseNodeId::add)
-                .toList();
-
-            var jointId = buildSkeletonJoint(bone, jointChildren);
-
-            jointIndices.add(jointId);
-            if (bone.parent() == -1) {
-                skeletonNodeId = jointId;
+            var parent = bones.get(i).parent();
+            if (parent == -1) {
+                if (root != null) {
+                    throw new IllegalStateException("Skeleton has multiple roots");
+                }
+                root = jointBuilders.get(i);
+            } else {
+                jointBuilders.get(parent).addChild(jointBuilders.get(i));
             }
         }
+        if (root == null) {
+            throw new IllegalStateException("Skeleton has no roots");
+        }
 
-        // The up-axis rotation can't live on the skinned mesh node (its transform is ignored) nor on
-        // the root joint (that corrupts the bind pose and gets overwritten on the first animation
-        // frame). Put it on a wrapper node above the root joint, so it flows into every joint's world
-        // transform while the joints keep their original bind rotations. The wrapper is added after the
-        // joints so the joint node ids stay contiguous (animation channels target them by bone index).
-        var rootNodeId = context.addNode(ImmutableNode.builder()
-            .rotation(GltfUtils.mapQuaternion(skeleton.upAxis().rotateTo(Axis.Y)))
-            .addChildren(skeletonNodeId)
-            .build());
+        var ids = commitTree(root);
 
         var buffer = FloatBuffer.allocate(bones.size() * 16);
         for (var bone : bones) {
@@ -71,21 +67,28 @@ public final class GltfSkeletonMapper {
             .build();
         var inverseBindMatrices = context.addAccessor(accessor);
 
+        var jointNodeIDs = jointBuilders.stream()
+            .map(ids::get)
+            .toList();
+        var rootJoint = ids.get(root);
         var skinSchema = ImmutableSkin.builder()
-            .skeleton(rootNodeId)
-            .joints(jointIndices)
+            .joints(jointNodeIDs)
             .inverseBindMatrices(inverseBindMatrices)
+            .skeleton(rootJoint)
             .build();
-        return context.addSkin(skinSchema);
+        var skinID = context.addSkin(skinSchema);
+
+        return new MappedSkin(skinID, rootJoint, jointNodeIDs);
     }
 
-    private NodeID buildSkeletonJoint(Bone joint, List<NodeID> children) {
-        return context.addNode(ImmutableNode.builder()
-            .name(joint.name())
-            .children(children)
-            .rotation(GltfUtils.mapQuaternion(joint.rotation()))
-            .translation(GltfUtils.mapVector3(joint.translation()))
-            .scale(GltfUtils.mapVector3(joint.scale()))
-            .build());
+    private Map<NodeBuilder, NodeID> commitTree(NodeBuilder root) {
+        return root.commit(context);
+    }
+
+    public record MappedSkin(
+        SkinID skin,
+        NodeID rootJoint,
+        List<NodeID> jointNodeIDs
+    ) {
     }
 }

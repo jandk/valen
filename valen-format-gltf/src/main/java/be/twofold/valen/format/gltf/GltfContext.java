@@ -52,6 +52,4 @@ public interface GltfContext {
 
     ImageID createImage(ByteBuffer buffer, String name, String filename, ImageMimeType mimeType) throws IOException;
 
-    NodeID nextNodeId();
-
 }

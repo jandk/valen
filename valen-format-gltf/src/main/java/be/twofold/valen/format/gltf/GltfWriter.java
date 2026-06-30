@@ -72,16 +72,9 @@ public final class GltfWriter implements Closeable, GltfContext {
     }
 
     public void addScene(List<NodeID> nodes) {
-        var sceneNodes = skins.stream()
-            .flatMap(skinSchema -> skinSchema.getSkeleton().stream())
-            .toList();
-
-        var scene = ImmutableScene.builder()
+        addScene(ImmutableScene.builder()
             .addAllNodes(nodes)
-            .addAllNodes(sceneNodes)
-            .build();
-
-        addScene(scene);
+            .build());
     }
 
     // region GltfContext
@@ -222,18 +215,13 @@ public final class GltfWriter implements Closeable, GltfContext {
         buffersLength = alignedLength(buffersLength + length);
 
         var bufferView = ImmutableBufferView.builder()
-            .buffer(BufferID.ZERO)
+            .buffer(BufferID.of(0))
             .byteOffset(offset)
             .byteLength(length)
             .target(Optional.ofNullable(target))
             .build();
 
         return addBufferView(bufferView);
-    }
-
-    @Override
-    public NodeID nextNodeId() {
-        return NodeID.of(nodes.size());
     }
 
     // endregion
@@ -291,7 +279,7 @@ public final class GltfWriter implements Closeable, GltfContext {
             .generator("Valen")
             .build();
 
-        return ImmutableGltf.builder()
+        var builder = ImmutableGltf.builder()
             .asset(asset)
             .extensions(extensions)
             .extensionsRequired(extensionsRequired)
@@ -308,8 +296,14 @@ public final class GltfWriter implements Closeable, GltfContext {
             .samplers(samplers)
             .scenes(scenes)
             .skins(skins)
-            .textures(textures)
-            .build();
+            .textures(textures);
+
+        // Point at a default scene so viewers that don't fall back to scenes[0] still load something.
+        if (!scenes.isEmpty()) {
+            builder.scene(SceneID.of(0));
+        }
+
+        return builder.build();
     }
 
     // endregion

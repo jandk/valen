@@ -19,14 +19,16 @@ public final class GltfAnimationMapper {
     private final List<AnimationChannelSchema> channels = new ArrayList<>();
     private final Map<List<Integer>, AccessorID> tracks = new HashMap<>();
     private final GltfContext context;
+    private List<NodeID> jointNodeIDs = List.of();
 
     public GltfAnimationMapper(GltfContext context) {
         this.context = context;
     }
 
-    public AnimationSchema map(Animation animation, int numBones) throws IOException {
+    public AnimationSchema map(Animation animation, List<NodeID> jointNodeIDs) throws IOException {
+        this.jointNodeIDs = jointNodeIDs;
         for (var track : animation.tracks()) {
-            if (track.boneId() >= numBones) {
+            if (track.boneId() >= jointNodeIDs.size()) {
                 continue;
             }
             var frameRate = animation.frameRate();
@@ -76,7 +78,7 @@ public final class GltfAnimationMapper {
         channels.add(ImmutableAnimationChannel.builder()
             .sampler(AnimationSamplerID.of(samplers.size() - 1))
             .target(ImmutableAnimationChannelTarget.builder()
-                .node(NodeID.of(track.boneId()))
+                .node(jointNodeIDs.get(track.boneId()))
                 .path(path)
                 .build())
             .build());

@@ -6,7 +6,6 @@ import be.twofold.valen.format.gltf.model.mesh.*;
 import org.slf4j.*;
 
 import java.io.*;
-import java.nio.file.*;
 import java.util.*;
 
 public final class GltfModelSingleMapper extends GltfModelMapper {
@@ -14,7 +13,7 @@ public final class GltfModelSingleMapper extends GltfModelMapper {
 
     private final Map<String, MeshID> models = new HashMap<>();
 
-    public GltfModelSingleMapper(GltfContext context, Path exportPath) {
+    public GltfModelSingleMapper(GltfContext context) {
         super(context);
     }
 
