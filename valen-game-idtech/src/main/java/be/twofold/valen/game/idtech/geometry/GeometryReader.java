@@ -51,9 +51,9 @@ public final class GeometryReader {
 
                 var offsets = offsetsByLayout.get(layout.combinedVertexMask());
                 var builder = GeoMeshInfo.builder(lodInfo.numFaces() * 3, lodInfo.numVertices());
+                var skinningMode = animated ? SkinningMode.Fixed4 : SkinningMode.None;
                 for (var v = 0; v < layout.numVertexStreams(); v++) {
                     var mask = GeometryVertexMask.from(layout.vertexMasks().get(v));
-                    var skinningMode = animated ? SkinningMode.Fixed4 : SkinningMode.None;
                     buildAccessors(offsets.vertexOffsets[v], mask.size(), mask, lodInfo, skinningMode, builder);
                     offsets.vertexOffsets[v] += lodInfo.numVertices() * mask.size();
                 }
@@ -61,7 +61,8 @@ public final class GeometryReader {
                 builder.indices(offsets.indexOffset, Short.BYTES, GeoReader.readShortAsInt());
                 offsets.indexOffset += lodInfo.numFaces() * 3 * Short.BYTES;
 
-                meshes.add(new Geo(true).readMesh(source, builder.build()));
+                var mesh = new Geo(true).readMesh(source, builder.build());
+                meshes.add(skinningMode == SkinningMode.None ? mesh : mesh.withMaxInfluence(skinningMode.influence()));
             }
         }
         return meshes;

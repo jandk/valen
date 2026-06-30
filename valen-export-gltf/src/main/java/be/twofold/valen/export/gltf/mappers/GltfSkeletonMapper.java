@@ -5,7 +5,6 @@ import be.twofold.valen.format.gltf.*;
 import be.twofold.valen.format.gltf.model.accessor.*;
 import be.twofold.valen.format.gltf.model.node.*;
 import be.twofold.valen.format.gltf.model.skin.*;
-import wtf.reversed.toolbox.math.*;
 
 import java.io.*;
 import java.nio.*;
@@ -39,14 +38,23 @@ public final class GltfSkeletonMapper {
                 .map(baseNodeId::add)
                 .toList();
 
-            var jointId = buildSkeletonJoint(bone, jointChildren,
-                bone.parent() == -1 ? Optional.of(skeleton.upAxis().rotateTo(Axis.Y)) : Optional.empty());
+            var jointId = buildSkeletonJoint(bone, jointChildren);
 
             jointIndices.add(jointId);
             if (bone.parent() == -1) {
                 skeletonNodeId = jointId;
             }
         }
+
+        // The up-axis rotation can't live on the skinned mesh node (its transform is ignored) nor on
+        // the root joint (that corrupts the bind pose and gets overwritten on the first animation
+        // frame). Put it on a wrapper node above the root joint, so it flows into every joint's world
+        // transform while the joints keep their original bind rotations. The wrapper is added after the
+        // joints so the joint node ids stay contiguous (animation channels target them by bone index).
+        var rootNodeId = context.addNode(ImmutableNode.builder()
+            .rotation(GltfUtils.mapQuaternion(skeleton.upAxis().rotateTo(Axis.Y)))
+            .addChildren(skeletonNodeId)
+            .build());
 
         var buffer = FloatBuffer.allocate(bones.size() * 16);
         for (var bone : bones) {
@@ -64,23 +72,20 @@ public final class GltfSkeletonMapper {
         var inverseBindMatrices = context.addAccessor(accessor);
 
         var skinSchema = ImmutableSkin.builder()
-            .skeleton(skeletonNodeId)
+            .skeleton(rootNodeId)
             .joints(jointIndices)
             .inverseBindMatrices(inverseBindMatrices)
             .build();
         return context.addSkin(skinSchema);
     }
 
-    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
-    private NodeID buildSkeletonJoint(Bone joint, List<NodeID> children, Optional<Quaternion> rotation) {
-        var builder = ImmutableNode.builder()
+    private NodeID buildSkeletonJoint(Bone joint, List<NodeID> children) {
+        return context.addNode(ImmutableNode.builder()
             .name(joint.name())
             .children(children)
             .rotation(GltfUtils.mapQuaternion(joint.rotation()))
             .translation(GltfUtils.mapVector3(joint.translation()))
-            .scale(GltfUtils.mapVector3(joint.scale()));
-
-        rotation.ifPresent(r -> builder.rotation(GltfUtils.mapQuaternion(r)));
-        return context.addNode(builder.build());
+            .scale(GltfUtils.mapVector3(joint.scale()))
+            .build());
     }
 }
