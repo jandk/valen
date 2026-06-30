@@ -46,13 +46,14 @@ public final class EternalGame implements Game {
     private final PackageMapSpec spec;
     private final StreamDbIndex streamDbIndex;
     private final ResourcesIndex commonResources;
+    private final Decompressors decompressors;
 
     EternalGame(Path path) throws IOException {
         this.base = path.resolve("base");
         this.spec = PackageMapSpecReader.read(base.resolve("packagemapspec.json"));
         this.streamDbIndex = loadStreamDbIndex(base, spec);
         this.commonResources = ResourcesIndex.build(filterResources(spec, "common", "warehouse"));
-        Decompressors.setOodlePath(path.resolve("oo2core_8_win64.dll"));
+        this.decompressors = new Decompressors(path.resolve("oo2core_8_win64.dll"));
     }
 
     @Override
@@ -78,7 +79,8 @@ public final class EternalGame implements Game {
         var storageManager = new EternalStorageManager(
             sources,
             streamDbIndex.sources().keySet(),
-            streamDbIndex.index()
+            streamDbIndex.index(),
+            decompressors
         );
 
         return new AssetLoader(archive, storageManager, List.copyOf(ASSET_READERS));
@@ -104,7 +106,6 @@ public final class EternalGame implements Game {
     @Override
     public void close() {
         // Unload for the next game
-        Decompressors.resetOodle();
         DECL_READER.clearCache();
     }
 }

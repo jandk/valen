@@ -14,9 +14,10 @@ public final class GreatCircleStorageManager extends StorageManager {
     public GreatCircleStorageManager(
         Map<Path, BinarySource> sources,
         Set<Path> shared,
-        Map<Long, Location.FileSlice> streamIndex
+        Map<Long, Location.FileSlice> streamIndex,
+        Decompressors decompressors
     ) {
-        super(sources, shared); // TODO: Fix decompressors
+        super(sources, shared, decompressors);
         this.streamIndex = Map.copyOf(streamIndex);
     }
 

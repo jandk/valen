@@ -37,4 +37,17 @@ public interface LoadingContext {
      */
     Bytes open(Location location) throws IOException;
 
+    /**
+     * Decompresses an in-memory buffer using the decompressor for the given type.
+     * <p>
+     * The available decompressors are game-specific (in particular, Oodle is
+     * supplied per game), which is why this lives on the loading context.
+     *
+     * @param type             The compression type.
+     * @param data             The compressed data.
+     * @param uncompressedSize The expected size of the decompressed data.
+     * @return The decompressed data.
+     */
+    Bytes decompress(CompressionType type, Bytes data, int uncompressedSize);
+
 }

@@ -53,6 +53,11 @@ public final class AssetLoader implements LoadingContext, Closeable {
     }
 
     @Override
+    public Bytes decompress(CompressionType type, Bytes data, int uncompressedSize) {
+        return storage.decompress(type, data, uncompressedSize);
+    }
+
+    @Override
     public void close() throws IOException {
         storage.close();
     }

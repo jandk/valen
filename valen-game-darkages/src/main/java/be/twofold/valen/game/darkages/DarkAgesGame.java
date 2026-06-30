@@ -41,13 +41,14 @@ public final class DarkAgesGame implements Game {
     private final PackageMapSpec spec;
     private final StreamDbIndex streamDbIndex;
     private final ResourcesIndex commonResources;
+    private final Decompressors decompressors;
 
     DarkAgesGame(Path path) throws IOException {
         this.base = path.resolve("base");
         this.spec = PackageMapSpecReader.read(base.resolve("packagemapspec.json"));
         this.streamDbIndex = loadStreamDbIndex(base, spec);
         this.commonResources = ResourcesIndex.build(filterResources(spec, "common", "warehouse", "init"));
-        Decompressors.setOodlePath(OodleDownloader.download());
+        this.decompressors = new Decompressors(null);
     }
 
     @Override
@@ -73,7 +74,8 @@ public final class DarkAgesGame implements Game {
         var storageManager = new DarkAgesStorageManager(
             sources,
             streamDbIndex.sources().keySet(),
-            streamDbIndex.index()
+            streamDbIndex.index(),
+            decompressors
         );
 
         return new AssetLoader(archive, storageManager, List.copyOf(ASSET_READERS));
@@ -100,7 +102,6 @@ public final class DarkAgesGame implements Game {
     @Override
     public void close() {
         // Unload for the next game
-        Decompressors.resetOodle();
         DECL_READER.clearCache();
     }
 }
