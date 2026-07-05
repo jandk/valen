@@ -24,7 +24,7 @@ public final class GeometryReader {
         }
 
         offset += stride * (lodInfo.numVertices() - 1);
-        builder.indices(offset, Short.BYTES, GeoReader.readShortAsInt());
+        builder.indices(offset, Short.BYTES, GeoReader.readShortAsInts());
 
         return new Geo(true).readMesh(source, builder.build());
     }
@@ -58,7 +58,7 @@ public final class GeometryReader {
                     offsets.vertexOffsets[v] += lodInfo.numVertices() * mask.size();
                 }
 
-                builder.indices(offsets.indexOffset, Short.BYTES, GeoReader.readShortAsInt());
+                builder.indices(offsets.indexOffset, Short.BYTES, GeoReader.readShortAsInts());
                 offsets.indexOffset += lodInfo.numFaces() * 3 * Short.BYTES;
 
                 var mesh = new Geo(true).readMesh(source, builder.build());
@@ -88,7 +88,7 @@ public final class GeometryReader {
                 lodOffset = lod.numVertices() * maskSize + bufferOffset;
             }
 
-            builder.indices(offset + lodOffset, Short.BYTES, GeoReader.readShortAsInt());
+            builder.indices(offset + lodOffset, Short.BYTES, GeoReader.readShortAsInts());
             lodOffset += lod.numFaces() * 3 * Short.BYTES;
             offset = (offset + lodOffset + 7) & ~7;
 
@@ -119,25 +119,25 @@ public final class GeometryReader {
     private static GeoMeshInfo.Builder buildAccessors(int offset, int stride, GeometryVertexMask mask, LodInfo lodInfo, SkinningMode skinningMode, GeoMeshInfo.Builder builder) {
         return switch (mask) {
             case POSITION_SHORT ->
-                builder.positions(offset, stride, GeoReader.readPackedPosition(lodInfo.vertexScale(), lodInfo.vertexOffset()));
+                builder.positions(offset, stride, IdTechGeoReader.readPackedPosition(lodInfo.vertexScale(), lodInfo.vertexOffset()));
             case POSITION ->
-                builder.positions(offset, stride, GeoReader.readPosition(lodInfo.vertexScale(), lodInfo.vertexOffset()));
+                builder.positions(offset, stride, GeoReader.readVector3(lodInfo.vertexScale(), lodInfo.vertexOffset()));
             case NORMAL_TANGENT -> {
                 builder
-                    .normals(offset, stride, GeoReader.readPackedNormal())
-                    .tangents(offset, stride, GeoReader.readPackedTangent());
+                    .normals(offset, stride, IdTechGeoReader.readPackedNormal())
+                    .tangents(offset, stride, IdTechGeoReader.readPackedTangent());
                 yield switch (skinningMode) {
                     case None -> builder;
-                    case Fixed4, Skinning4 -> builder.weights(offset, stride, 4, GeoReader.readWeight4());
-                    case Skinning1 -> builder.joints(offset, stride, 1, GeoReader.readBone1());
-                    case Skinning6 -> builder.weights(offset, stride, 4, GeoReader.readWeight6());
-                    case Skinning8 -> builder.weights(offset, stride, 4, GeoReader.readWeight8());
+                    case Fixed4, Skinning4 -> builder.weights(offset, stride, 4, IdTechGeoReader.readWeight4());
+                    case Skinning1 -> builder.joints(offset, stride, 1, IdTechGeoReader.readBone1());
+                    case Skinning6 -> builder.weights(offset, stride, 4, IdTechGeoReader.readWeight6());
+                    case Skinning8 -> builder.weights(offset, stride, 4, IdTechGeoReader.readWeight8());
                 };
             }
             case MATERIAL_UV, MATERIAL_UV1, LIGHTMAP_UV, MATERIAL_UV2 ->
-                builder.addTexCoords(offset, stride, GeoReader.readUV(lodInfo.uvScale(), lodInfo.uvOffset()));
+                builder.addTexCoords(offset, stride, GeoReader.readVector2(lodInfo.uvScale(), lodInfo.uvOffset()));
             case MATERIAL_UV_SHORT, MATERIAL_UV1_SHORT, LIGHTMAP_UV_SHORT, MATERIAL_UV2_SHORT ->
-                builder.addTexCoords(offset, stride, GeoReader.readPackedUV(lodInfo.uvScale(), lodInfo.uvOffset()));
+                builder.addTexCoords(offset, stride, IdTechGeoReader.readPackedUV(lodInfo.uvScale(), lodInfo.uvOffset()));
             case COLOR -> switch (skinningMode) {
                 case Fixed4 -> builder.joints(offset, stride, 4, GeoReader.copyBytesAsShorts(4));
                 default -> builder.addColors(offset, stride, GeoReader.copyBytes(4));
