@@ -13,42 +13,23 @@ public final class MeshReader {
         this.flipWindingOrder = flipWindingOrder;
     }
 
-    public Mesh readMesh(
-        BinarySource source,
-        MeshInfo meshInfo
-    ) {
-        int vertexCount = meshInfo.vertexCount();
-
-        var indices = readVertexBuffer(source, meshInfo.indices(), meshInfo.indexCount());
+    public Mesh readMesh(BinarySource source, MeshFormat plan) {
+        var indices = read(source, plan.indices(), plan.indexCount());
         if (flipWindingOrder) {
             invertIndices(indices);
         }
 
-        var builder = Mesh.builder(indices, vertexCount);
-        builder.attribute(Semantic.POSITION, readAttribute(source, meshInfo.positions(), vertexCount));
-        meshInfo.normals().ifPresent(info -> builder.attribute(Semantic.NORMAL, readAttribute(source, info, vertexCount)));
-        meshInfo.tangents().ifPresent(info -> builder.attribute(Semantic.TANGENT, readAttribute(source, info, vertexCount)));
-        var texCoords = meshInfo.texCoords();
-        for (var i = 0; i < texCoords.size(); i++) {
-            builder.attribute(new Semantic.TexCoord(i), readAttribute(source, texCoords.get(i), vertexCount));
-        }
-        var colors = meshInfo.colors();
-        for (var i = 0; i < colors.size(); i++) {
-            builder.attribute(new Semantic.Color(i), readAttribute(source, colors.get(i), vertexCount));
-        }
-        meshInfo.joints().ifPresent(info -> builder.attribute(Semantic.JOINTS, readAttribute(source, info, vertexCount)));
-        meshInfo.weights().ifPresent(info -> builder.attribute(Semantic.WEIGHTS, readAttribute(source, info, vertexCount)));
-        meshInfo.custom().forEach((name, info) -> builder.attribute(new Semantic.Custom(name), readAttribute(source, info, vertexCount)));
-
+        var builder = Mesh.builder(indices, plan.vertexCount());
+        plan.accessors().forEach((semantic, accessor) ->
+            builder.attribute(semantic, readAttribute(source, accessor, plan.vertexCount())));
         return builder.build();
     }
 
-    private <T extends Slice> VertexBuffer<T> readAttribute(BinarySource source, BufferInfo<T> info, int count) {
-        T buffer = readVertexBuffer(source, info, count);
-        return new VertexBuffer<>(buffer, info.layout());
+    private <T extends Slice> VertexBuffer<T> readAttribute(BinarySource source, Accessor<T> accessor, int count) {
+        return new VertexBuffer<>(read(source, accessor, count), accessor.layout());
     }
 
-    private <T extends Slice> T readVertexBuffer(BinarySource source, BufferInfo<T> accessor, int count) {
+    private <T extends Slice> T read(BinarySource source, Accessor<T> accessor, int count) {
         int capacity = count * accessor.count();
         T buffer = accessor.allocate(capacity);
 

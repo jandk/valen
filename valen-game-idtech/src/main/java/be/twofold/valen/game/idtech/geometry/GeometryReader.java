@@ -18,7 +18,7 @@ public final class GeometryReader {
             .sum();
 
         var offset = 0;
-        var builder = MeshInfo.builder(lodInfo.numFaces() * 3, lodInfo.numVertices());
+        var builder = MeshFormat.builder(lodInfo.numFaces() * 3, lodInfo.numVertices());
         for (var mask : masks) {
             buildAccessors(offset, stride, mask, lodInfo, SkinningMode.None, builder);
             offset += mask.size();
@@ -51,7 +51,7 @@ public final class GeometryReader {
                 }
 
                 var offsets = offsetsByLayout.get(layout.combinedVertexMask());
-                var builder = MeshInfo.builder(lodInfo.numFaces() * 3, lodInfo.numVertices());
+                var builder = MeshFormat.builder(lodInfo.numFaces() * 3, lodInfo.numVertices());
                 var skinningMode = animated ? SkinningMode.Fixed4 : SkinningMode.None;
                 for (var v = 0; v < layout.numVertexStreams(); v++) {
                     var mask = GeometryVertexMask.from(layout.vertexMasks().get(v));
@@ -80,7 +80,7 @@ public final class GeometryReader {
             int lodOffset = 0;
             var masks = GeometryVertexMask.fromMultiple(lod.vertexMask());
             var skinningMode = mapSkinningMode(masks, animated);
-            var builder = MeshInfo.builder(lod.numFaces() * 3, lod.numVertices());
+            var builder = MeshFormat.builder(lod.numFaces() * 3, lod.numVertices());
             for (var mask : masks) {
                 int maskSize = mask.size();
                 int aligner = maskSize == 0 ? 0 : (maskSize - lodOffset % maskSize) % maskSize;
@@ -117,7 +117,7 @@ public final class GeometryReader {
     }
 
     @SuppressWarnings("SwitchStatementWithTooFewBranches")
-    private static MeshInfo.Builder buildAccessors(int offset, int stride, GeometryVertexMask mask, LodInfo lodInfo, SkinningMode skinningMode, MeshInfo.Builder builder) {
+    private static MeshFormat.Builder buildAccessors(int offset, int stride, GeometryVertexMask mask, LodInfo lodInfo, SkinningMode skinningMode, MeshFormat.Builder builder) {
         return switch (mask) {
             case POSITION_SHORT ->
                 builder.positions(offset, stride, IdTechGeoReader.readPackedPosition(lodInfo.vertexScale(), lodInfo.vertexOffset()));

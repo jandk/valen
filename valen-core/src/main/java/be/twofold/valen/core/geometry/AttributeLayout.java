@@ -7,7 +7,7 @@ import wtf.reversed.toolbox.util.*;
 /**
  * The storage layout of a single vertex attribute.
  * <p>
- * Shared by {@link BufferInfo} and {@link VertexBuffer}.
+ * Shared by {@link Accessor} and {@link VertexBuffer}.
  *
  * @param length        How many elements per vertex
  * @param elementType   The shape of each element ([ElementType])
