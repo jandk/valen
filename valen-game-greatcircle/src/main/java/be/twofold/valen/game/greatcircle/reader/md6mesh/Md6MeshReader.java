@@ -68,7 +68,7 @@ public final class Md6MeshReader implements AssetReader.Binary<Model, GreatCircl
                 var mesh = meshes.get(i);
                 var blendShapes = allBlendShapes.get(i);
                 if (blendShapes != null && !blendShapes.isEmpty()) {
-                    mesh = mesh.withBlendShapes(blendShapes);
+                    mesh = mesh.toBuilder().blendShapes(blendShapes).build();
                 }
                 newMeshes.add(mesh);
             }

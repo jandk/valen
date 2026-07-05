@@ -63,7 +63,7 @@ public final class GeometryReader {
                 offsets.indexOffset += lodInfo.numFaces() * 3 * Short.BYTES;
 
                 var mesh = new MeshReader(true).readMesh(source, builder.build());
-                meshes.add(skinningMode == SkinningMode.None ? mesh : mesh.withMaxInfluence(skinningMode.influence()));
+                meshes.add(mesh);
             }
         }
         return meshes;

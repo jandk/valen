@@ -26,7 +26,8 @@ public final class CastMaterialExporter extends CastExporter<Material> {
     public void doExport(Material material, CastNodes.Root root, Path castPath, Path imagePath) throws IOException {
         var mesh = MeshGenerator
                 .createSphere(16, 16)
-                .withMaterial(Optional.of(material));
+                .material(material)
+                .build();
         var model = new Model(List.of(mesh), Axis.Y);
 
         modelExporter.doExport(model, root, castPath, imagePath);

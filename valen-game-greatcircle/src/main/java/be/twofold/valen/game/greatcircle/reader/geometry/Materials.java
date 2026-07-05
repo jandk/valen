@@ -38,9 +38,10 @@ public final class Materials {
                     LOG.warn("Could not load material {}", materialName);
                 }
             }
-            meshes.set(i, meshes.get(i)
-                .withName(Optional.ofNullable(meshName))
-                .withMaterial(Optional.ofNullable(materials.get(materialName))));
+            meshes.set(i, meshes.get(i).toBuilder()
+                .name(meshName)
+                .material(materials.get(materialName))
+                .build());
         }
     }
 }

@@ -5,8 +5,6 @@ import wtf.reversed.toolbox.collect.*;
 import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
-import java.util.*;
-import java.util.stream.*;
 
 public final class MeshReader {
     private final boolean flipWindingOrder;
@@ -19,31 +17,33 @@ public final class MeshReader {
         BinarySource source,
         MeshInfo meshInfo
     ) {
+        int vertexCount = meshInfo.vertexCount();
+
         var indices = readVertexBuffer(source, meshInfo.indices(), meshInfo.indexCount());
         if (flipWindingOrder) {
             invertIndices(indices);
         }
 
-        Floats positions = readVertexBuffer(source, meshInfo.positions(), meshInfo.vertexCount());
-        Optional<Floats> normals = meshInfo.normals().map(info -> readVertexBuffer(source, info, meshInfo.vertexCount()));
-        Optional<Floats> tangents = meshInfo.tangents().map(info -> readVertexBuffer(source, info, meshInfo.vertexCount()));
-        List<Floats> texCoords = meshInfo.texCoords().stream()
-            .map(info -> readVertexBuffer(source, info, meshInfo.vertexCount()))
-            .collect(Collectors.toUnmodifiableList());
-        List<Bytes> colors = meshInfo.colors().stream()
-            .map(info -> readVertexBuffer(source, info, meshInfo.vertexCount()))
-            .collect(Collectors.toUnmodifiableList());
-        Optional<Shorts> joints = meshInfo.joints().map(info -> readVertexBuffer(source, info, meshInfo.vertexCount()));
-        Optional<Floats> weights = meshInfo.weights().map(info -> readVertexBuffer(source, info, meshInfo.vertexCount()));
-        Map<String, VertexBuffer<?>> custom = new HashMap<>();
-        for (var entry : meshInfo.custom().entrySet()) {
-            custom.put(entry.getKey(), readCustom(source, entry.getValue(), meshInfo.vertexCount()));
+        var builder = Mesh.builder(indices, vertexCount);
+        builder.attribute(Semantic.POSITION, readAttribute(source, meshInfo.positions(), vertexCount));
+        meshInfo.normals().ifPresent(info -> builder.attribute(Semantic.NORMAL, readAttribute(source, info, vertexCount)));
+        meshInfo.tangents().ifPresent(info -> builder.attribute(Semantic.TANGENT, readAttribute(source, info, vertexCount)));
+        var texCoords = meshInfo.texCoords();
+        for (var i = 0; i < texCoords.size(); i++) {
+            builder.attribute(new Semantic.TexCoord(i), readAttribute(source, texCoords.get(i), vertexCount));
         }
+        var colors = meshInfo.colors();
+        for (var i = 0; i < colors.size(); i++) {
+            builder.attribute(new Semantic.Color(i), readAttribute(source, colors.get(i), vertexCount));
+        }
+        meshInfo.joints().ifPresent(info -> builder.attribute(Semantic.JOINTS, readAttribute(source, info, vertexCount)));
+        meshInfo.weights().ifPresent(info -> builder.attribute(Semantic.WEIGHTS, readAttribute(source, info, vertexCount)));
+        meshInfo.custom().forEach((name, info) -> builder.attribute(new Semantic.Custom(name), readAttribute(source, info, vertexCount)));
 
-        return new Mesh(indices, positions, normals, tangents, texCoords, colors, joints, weights, 0, custom);
+        return builder.build();
     }
 
-    private <T extends Slice> VertexBuffer<T> readCustom(BinarySource source, BufferInfo<T> info, int count) {
+    private <T extends Slice> VertexBuffer<T> readAttribute(BinarySource source, BufferInfo<T> info, int count) {
         T buffer = readVertexBuffer(source, info, count);
         return new VertexBuffer<>(buffer, info.layout());
     }

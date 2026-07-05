@@ -77,7 +77,7 @@ public final class Md6ModelReader implements AssetReader.Binary<Model, DarkAgesA
 
     private static Mesh mergeJointsAndWeights(Mesh mesh, int realInfluence) {
         if (realInfluence == 1) {
-            return mesh.withMaxInfluence(1);
+            return mesh;
         }
 
         var first = mesh.custom().get("W");
@@ -90,9 +90,10 @@ public final class Md6ModelReader implements AssetReader.Binary<Model, DarkAgesA
             mesh.weights().orElseThrow()
         );
 
-        return mesh
-            .withJointsAndWeights(joints, weights)
-            .withMaxInfluence(realInfluence);
+        return mesh.toBuilder()
+            .joints(joints)
+            .weights(weights)
+            .build();
     }
 
     private static Floats mergeWeights(Mesh mesh, int influence, int realInfluence, Floats buffer1, Floats buffer2) {
