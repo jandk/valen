@@ -5,17 +5,18 @@ import wtf.reversed.toolbox.util.*;
 
 public record VertexBuffer<T extends Slice>(
     T array,
-    int length,
-    ElementType elementType,
-    ComponentType<T> componentType
+    AttributeLayout<T> layout
 ) {
     public VertexBuffer {
-        Check.nonNull(componentType, "componentType");
-        Check.nonNull(elementType, "elementType");
         Check.nonNull(array, "array");
+        Check.nonNull(layout, "layout");
+    }
+
+    public int length() {
+        return layout.length();
     }
 
     public int count() {
-        return length * elementType().count();
+        return layout.count();
     }
 }

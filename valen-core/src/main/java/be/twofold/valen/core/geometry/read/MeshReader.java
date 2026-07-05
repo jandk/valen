@@ -45,7 +45,7 @@ public final class MeshReader {
 
     private <T extends Slice> VertexBuffer<T> readCustom(BinarySource source, BufferInfo<T> info, int count) {
         T buffer = readVertexBuffer(source, info, count);
-        return new VertexBuffer<>(buffer, info.length(), info.elementType(), info.componentType());
+        return new VertexBuffer<>(buffer, info.layout());
     }
 
     private <T extends Slice> T readVertexBuffer(BinarySource source, BufferInfo<T> accessor, int count) {

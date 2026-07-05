@@ -113,47 +113,47 @@ public final class MeshInfo {
         }
 
         public Builder indices(int offset, int stride, AttributeReader<Ints.Mutable> reader) {
-            this.indices = new BufferInfo<>(offset, stride, 1, reader, ElementType.SCALAR, ComponentType.UNSIGNED_INT);
+            this.indices = new BufferInfo<>(offset, stride, reader, new AttributeLayout<>(1, ElementType.SCALAR, ComponentType.UNSIGNED_INT));
             return this;
         }
 
         public Builder positions(int offset, int stride, AttributeReader<Floats.Mutable> reader) {
-            this.positions = new BufferInfo<>(offset, stride, 1, reader, ElementType.VECTOR3, ComponentType.FLOAT);
+            this.positions = new BufferInfo<>(offset, stride, reader, new AttributeLayout<>(1, ElementType.VECTOR3, ComponentType.FLOAT));
             return this;
         }
 
         public Builder normals(int offset, int stride, AttributeReader<Floats.Mutable> reader) {
-            this.normals = new BufferInfo<>(offset, stride, 1, reader, ElementType.VECTOR3, ComponentType.FLOAT);
+            this.normals = new BufferInfo<>(offset, stride, reader, new AttributeLayout<>(1, ElementType.VECTOR3, ComponentType.FLOAT));
             return this;
         }
 
         public Builder tangents(int offset, int stride, AttributeReader<Floats.Mutable> reader) {
-            this.tangents = new BufferInfo<>(offset, stride, 1, reader, ElementType.VECTOR4, ComponentType.FLOAT);
+            this.tangents = new BufferInfo<>(offset, stride, reader, new AttributeLayout<>(1, ElementType.VECTOR4, ComponentType.FLOAT));
             return this;
         }
 
         public Builder addTexCoords(int offset, int stride, AttributeReader<Floats.Mutable> reader) {
-            this.texCoords.add(new BufferInfo<>(offset, stride, 1, reader, ElementType.VECTOR2, ComponentType.FLOAT));
+            this.texCoords.add(new BufferInfo<>(offset, stride, reader, new AttributeLayout<>(1, ElementType.VECTOR2, ComponentType.FLOAT)));
             return this;
         }
 
         public Builder addColors(int offset, int stride, AttributeReader<Bytes.Mutable> reader) {
-            this.colors.add(new BufferInfo<>(offset, stride, 1, reader, ElementType.VECTOR4, ComponentType.UNSIGNED_BYTE));
+            this.colors.add(new BufferInfo<>(offset, stride, reader, new AttributeLayout<>(1, ElementType.VECTOR4, ComponentType.UNSIGNED_BYTE)));
             return this;
         }
 
         public Builder joints(int offset, int stride, int length, AttributeReader<Shorts.Mutable> reader) {
-            this.joints = new BufferInfo<>(offset, stride, length, reader, ElementType.SCALAR, ComponentType.UNSIGNED_SHORT);
+            this.joints = new BufferInfo<>(offset, stride, reader, new AttributeLayout<>(length, ElementType.SCALAR, ComponentType.UNSIGNED_SHORT));
             return this;
         }
 
         public Builder weights(int offset, int stride, int length, AttributeReader<Floats.Mutable> reader) {
-            this.weights = new BufferInfo<>(offset, stride, length, reader, ElementType.SCALAR, ComponentType.FLOAT);
+            this.weights = new BufferInfo<>(offset, stride, reader, new AttributeLayout<>(length, ElementType.SCALAR, ComponentType.FLOAT));
             return this;
         }
 
         public <T extends Slice> Builder custom(String name, int offset, int stride, int length, AttributeReader<T> reader, ComponentType<T> componentType, ElementType elementType) {
-            this.custom.put(name, new BufferInfo<>(offset, stride, length, reader, elementType, componentType));
+            this.custom.put(name, new BufferInfo<>(offset, stride, reader, new AttributeLayout<>(length, elementType, componentType)));
             return this;
         }
 

@@ -52,8 +52,8 @@ public abstract class GltfModelMapper {
         mesh.weights().ifPresent(floats -> splitWeights(floats, mesh.maxInfluence(), attributes));
         mesh.custom().forEach((name, vertexBuffer) -> {
             var sanitizedName = "_" + name.toUpperCase(Locale.ROOT);
-            var componentType = mapComponentType(vertexBuffer.componentType());
-            var accessorType = mapElementType(vertexBuffer.elementType());
+            var componentType = mapComponentType(vertexBuffer.layout().componentType());
+            var accessorType = mapElementType(vertexBuffer.layout().elementType());
             attributes.put(sanitizedName, buildAccessor(vertexBuffer.array(), componentType, accessorType, false));
         });
         // We don't do anything with colors, as Blender likes to incorporate vertex colors

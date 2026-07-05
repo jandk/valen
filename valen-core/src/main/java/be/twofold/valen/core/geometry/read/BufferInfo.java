@@ -7,25 +7,21 @@ import wtf.reversed.toolbox.util.*;
 public record BufferInfo<T extends Slice>(
     int offset,
     int stride,
-    int length,
     AttributeReader<T> reader,
-    ElementType elementType,
-    ComponentType<T> componentType
+    AttributeLayout<T> layout
 ) {
     public BufferInfo {
         Check.positiveOrZero(offset, "offset");
         Check.positiveOrZero(stride, "stride");
-        Check.positive(length, "length");
         Check.nonNull(reader, "reader");
-        Check.nonNull(elementType, "elementType");
-        Check.nonNull(componentType, "componentType");
+        Check.nonNull(layout, "layout");
     }
 
     public int count() {
-        return length * elementType().count();
+        return layout.count();
     }
 
     public T allocate(int capacity) {
-        return componentType.allocate(capacity);
+        return layout.allocate(capacity);
     }
 }
