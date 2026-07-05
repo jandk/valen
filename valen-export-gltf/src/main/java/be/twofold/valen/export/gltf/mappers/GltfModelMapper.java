@@ -40,23 +40,7 @@ public abstract class GltfModelMapper {
         // Have to fix up the joints and weights first
         fixJointsAndWeights(mesh);
 
-        var attributes = new HashMap<String, AccessorID>();
-        attributes.put("POSITION", buildAccessor(mesh.positions(), AccessorComponentType.FLOAT, AccessorType.VEC3, true));
-        mesh.normals().ifPresent(floats -> attributes.put("NORMAL", buildAccessor(floats, AccessorComponentType.FLOAT, AccessorType.VEC3, false)));
-        mesh.tangents().ifPresent(floats -> attributes.put("TANGENT", buildAccessor(floats, AccessorComponentType.FLOAT, AccessorType.VEC4, false)));
-        var texCoords = mesh.texCoords();
-        for (var i = 0; i < texCoords.size(); i++) {
-            attributes.put("TEXCOORD_" + i, buildAccessor(texCoords.get(i), AccessorComponentType.FLOAT, AccessorType.VEC2, false));
-        }
-        mesh.joints().ifPresent(shorts -> splitJoints(shorts, mesh.maxInfluence(), attributes));
-        mesh.weights().ifPresent(floats -> splitWeights(floats, mesh.maxInfluence(), attributes));
-        mesh.custom().forEach((name, vertexBuffer) -> {
-            var sanitizedName = "_" + name.toUpperCase(Locale.ROOT);
-            var componentType = mapComponentType(vertexBuffer.layout().componentType());
-            var accessorType = mapElementType(vertexBuffer.layout().elementType());
-            attributes.put(sanitizedName, buildAccessor(vertexBuffer.array(), componentType, accessorType, false));
-        });
-        // We don't do anything with colors, as Blender likes to incorporate vertex colors
+        var attributes = buildAttributes(mesh);
 
         var indices = buildAccessor(mesh.indices());
         var morphTargets = buildMorphTargets(mesh.blendShapes(), mesh.faceCount());
@@ -68,6 +52,36 @@ public abstract class GltfModelMapper {
             .targets(morphTargets)
             .build();
         return Optional.of(meshPrimitive);
+    }
+
+    private Map<String, AccessorID> buildAttributes(Mesh mesh) {
+        var attributes = new HashMap<String, AccessorID>();
+        mesh.attributes().forEach((semantic, buffer) -> {
+            switch (semantic) {
+                case Semantic.Position ignored ->
+                    attributes.put("POSITION", buildAccessor(buffer.array(), AccessorComponentType.FLOAT, AccessorType.VEC3, true));
+                case Semantic.Normal ignored ->
+                    attributes.put("NORMAL", buildAccessor(buffer.array(), AccessorComponentType.FLOAT, AccessorType.VEC3, false));
+                case Semantic.Tangent ignored ->
+                    attributes.put("TANGENT", buildAccessor(buffer.array(), AccessorComponentType.FLOAT, AccessorType.VEC4, false));
+                case Semantic.TexCoord(int set) ->
+                    attributes.put("TEXCOORD_" + set, buildAccessor(buffer.array(), AccessorComponentType.FLOAT, AccessorType.VEC2, false));
+                case Semantic.Joints ignored ->
+                    splitJoints((Shorts) buffer.array(), mesh.maxInfluence(), attributes);
+                case Semantic.Weights ignored ->
+                    splitWeights((Floats) buffer.array(), mesh.maxInfluence(), attributes);
+                case Semantic.Custom(String name) -> {
+                    var sanitizedName = "_" + name.toUpperCase(Locale.ROOT);
+                    var componentType = mapComponentType(buffer.layout().componentType());
+                    var accessorType = mapElementType(buffer.layout().elementType());
+                    attributes.put(sanitizedName, buildAccessor(buffer.array(), componentType, accessorType, false));
+                }
+                case Semantic.Color ignored -> {
+                    // Skipped on purpose: Blender incorporates vertex colors in ways we don't want
+                }
+            }
+        });
+        return attributes;
     }
 
     private AccessorComponentType mapComponentType(ComponentType<?> componentType) {
