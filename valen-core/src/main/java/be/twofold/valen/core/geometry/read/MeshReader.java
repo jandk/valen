@@ -1,5 +1,6 @@
-package be.twofold.valen.core.geometry;
+package be.twofold.valen.core.geometry.read;
 
+import be.twofold.valen.core.geometry.*;
 import wtf.reversed.toolbox.collect.*;
 import wtf.reversed.toolbox.io.*;
 
@@ -7,16 +8,16 @@ import java.io.*;
 import java.util.*;
 import java.util.stream.*;
 
-public final class Geo {
+public final class MeshReader {
     private final boolean flipWindingOrder;
 
-    public Geo(boolean flipWindingOrder) {
+    public MeshReader(boolean flipWindingOrder) {
         this.flipWindingOrder = flipWindingOrder;
     }
 
     public Mesh readMesh(
         BinarySource source,
-        GeoMeshInfo meshInfo
+        MeshInfo meshInfo
     ) {
         var indices = readVertexBuffer(source, meshInfo.indices(), meshInfo.indexCount());
         if (flipWindingOrder) {
@@ -36,16 +37,18 @@ public final class Geo {
         Optional<Floats> weights = meshInfo.weights().map(info -> readVertexBuffer(source, info, meshInfo.vertexCount()));
         Map<String, VertexBuffer<?>> custom = new HashMap<>();
         for (var entry : meshInfo.custom().entrySet()) {
-            var bufferInfo = entry.getValue();
-            var buffer = readVertexBuffer(source, bufferInfo, meshInfo.vertexCount());
-            var vertexBuffer = new VertexBuffer<>(buffer, bufferInfo);
-            custom.put(entry.getKey(), vertexBuffer);
+            custom.put(entry.getKey(), readCustom(source, entry.getValue(), meshInfo.vertexCount()));
         }
 
         return new Mesh(indices, positions, normals, tangents, texCoords, colors, joints, weights, 0, custom);
     }
 
-    private <T extends Slice> T readVertexBuffer(BinarySource source, GeoBufferInfo<T> accessor, int count) {
+    private <T extends Slice> VertexBuffer<T> readCustom(BinarySource source, BufferInfo<T> info, int count) {
+        T buffer = readVertexBuffer(source, info, count);
+        return new VertexBuffer<>(buffer, info.length(), info.elementType(), info.componentType());
+    }
+
+    private <T extends Slice> T readVertexBuffer(BinarySource source, BufferInfo<T> accessor, int count) {
         int capacity = count * accessor.count();
         T buffer = accessor.allocate(capacity);
 

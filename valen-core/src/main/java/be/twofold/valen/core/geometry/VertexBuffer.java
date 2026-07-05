@@ -15,11 +15,6 @@ public record VertexBuffer<T extends Slice>(
         Check.nonNull(array, "array");
     }
 
-    @SuppressWarnings("unchecked")
-    public VertexBuffer(T array, GeoBufferInfo<?> bufferInfo) {
-        this(array, bufferInfo.length(), bufferInfo.elementType(), (ComponentType<T>) bufferInfo.componentType());
-    }
-
     public int count() {
         return length * elementType().count();
     }

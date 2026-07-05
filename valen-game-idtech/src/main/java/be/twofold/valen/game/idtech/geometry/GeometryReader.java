@@ -1,6 +1,7 @@
 package be.twofold.valen.game.idtech.geometry;
 
 import be.twofold.valen.core.geometry.*;
+import be.twofold.valen.core.geometry.read.*;
 import wtf.reversed.toolbox.io.*;
 
 import java.util.*;
@@ -17,16 +18,16 @@ public final class GeometryReader {
             .sum();
 
         var offset = 0;
-        var builder = GeoMeshInfo.builder(lodInfo.numFaces() * 3, lodInfo.numVertices());
+        var builder = MeshInfo.builder(lodInfo.numFaces() * 3, lodInfo.numVertices());
         for (var mask : masks) {
             buildAccessors(offset, stride, mask, lodInfo, SkinningMode.None, builder);
             offset += mask.size();
         }
 
         offset += stride * (lodInfo.numVertices() - 1);
-        builder.indices(offset, Short.BYTES, GeoReader.readShortAsInts());
+        builder.indices(offset, Short.BYTES, AttributeReader.readShortAsInts());
 
-        return new Geo(true).readMesh(source, builder.build());
+        return new MeshReader(true).readMesh(source, builder.build());
     }
 
     public static List<Mesh> readStreamedMesh(
@@ -50,7 +51,7 @@ public final class GeometryReader {
                 }
 
                 var offsets = offsetsByLayout.get(layout.combinedVertexMask());
-                var builder = GeoMeshInfo.builder(lodInfo.numFaces() * 3, lodInfo.numVertices());
+                var builder = MeshInfo.builder(lodInfo.numFaces() * 3, lodInfo.numVertices());
                 var skinningMode = animated ? SkinningMode.Fixed4 : SkinningMode.None;
                 for (var v = 0; v < layout.numVertexStreams(); v++) {
                     var mask = GeometryVertexMask.from(layout.vertexMasks().get(v));
@@ -58,10 +59,10 @@ public final class GeometryReader {
                     offsets.vertexOffsets[v] += lodInfo.numVertices() * mask.size();
                 }
 
-                builder.indices(offsets.indexOffset, Short.BYTES, GeoReader.readShortAsInts());
+                builder.indices(offsets.indexOffset, Short.BYTES, AttributeReader.readShortAsInts());
                 offsets.indexOffset += lodInfo.numFaces() * 3 * Short.BYTES;
 
-                var mesh = new Geo(true).readMesh(source, builder.build());
+                var mesh = new MeshReader(true).readMesh(source, builder.build());
                 meshes.add(skinningMode == SkinningMode.None ? mesh : mesh.withMaxInfluence(skinningMode.influence()));
             }
         }
@@ -79,7 +80,7 @@ public final class GeometryReader {
             int lodOffset = 0;
             var masks = GeometryVertexMask.fromMultiple(lod.vertexMask());
             var skinningMode = mapSkinningMode(masks, animated);
-            var builder = GeoMeshInfo.builder(lod.numFaces() * 3, lod.numVertices());
+            var builder = MeshInfo.builder(lod.numFaces() * 3, lod.numVertices());
             for (var mask : masks) {
                 int maskSize = mask.size();
                 int aligner = maskSize == 0 ? 0 : (maskSize - lodOffset % maskSize) % maskSize;
@@ -88,11 +89,11 @@ public final class GeometryReader {
                 lodOffset = lod.numVertices() * maskSize + bufferOffset;
             }
 
-            builder.indices(offset + lodOffset, Short.BYTES, GeoReader.readShortAsInts());
+            builder.indices(offset + lodOffset, Short.BYTES, AttributeReader.readShortAsInts());
             lodOffset += lod.numFaces() * 3 * Short.BYTES;
             offset = (offset + lodOffset + 7) & ~7;
 
-            meshes.add(new Geo(true)
+            meshes.add(new MeshReader(true)
                     .readMesh(source, builder.build()));
         }
 
@@ -116,12 +117,12 @@ public final class GeometryReader {
     }
 
     @SuppressWarnings("SwitchStatementWithTooFewBranches")
-    private static GeoMeshInfo.Builder buildAccessors(int offset, int stride, GeometryVertexMask mask, LodInfo lodInfo, SkinningMode skinningMode, GeoMeshInfo.Builder builder) {
+    private static MeshInfo.Builder buildAccessors(int offset, int stride, GeometryVertexMask mask, LodInfo lodInfo, SkinningMode skinningMode, MeshInfo.Builder builder) {
         return switch (mask) {
             case POSITION_SHORT ->
                 builder.positions(offset, stride, IdTechGeoReader.readPackedPosition(lodInfo.vertexScale(), lodInfo.vertexOffset()));
             case POSITION ->
-                builder.positions(offset, stride, GeoReader.readVector3(lodInfo.vertexScale(), lodInfo.vertexOffset()));
+                builder.positions(offset, stride, AttributeReader.readVector3(lodInfo.vertexScale(), lodInfo.vertexOffset()));
             case NORMAL_TANGENT -> {
                 builder
                     .normals(offset, stride, IdTechGeoReader.readPackedNormal())
@@ -135,24 +136,24 @@ public final class GeometryReader {
                 };
             }
             case MATERIAL_UV, MATERIAL_UV1, LIGHTMAP_UV, MATERIAL_UV2 ->
-                builder.addTexCoords(offset, stride, GeoReader.readVector2(lodInfo.uvScale(), lodInfo.uvOffset()));
+                builder.addTexCoords(offset, stride, AttributeReader.readVector2(lodInfo.uvScale(), lodInfo.uvOffset()));
             case MATERIAL_UV_SHORT, MATERIAL_UV1_SHORT, LIGHTMAP_UV_SHORT, MATERIAL_UV2_SHORT ->
                 builder.addTexCoords(offset, stride, IdTechGeoReader.readPackedUV(lodInfo.uvScale(), lodInfo.uvOffset()));
             case COLOR -> switch (skinningMode) {
-                case Fixed4 -> builder.joints(offset, stride, 4, GeoReader.copyBytesAsShorts(4));
-                default -> builder.addColors(offset, stride, GeoReader.copyBytes(4));
+                case Fixed4 -> builder.joints(offset, stride, 4, AttributeReader.copyBytesAsShorts(4));
+                default -> builder.addColors(offset, stride, AttributeReader.copyBytes(4));
             };
             case SKINNING_1 -> switch (skinningMode) {
                 case None -> builder;
                 default -> builder.weights(offset, stride, 1, (_, dst, offset0) -> dst.set(offset0, 1.0f));
             };
-            case SKINNING_4 -> builder.joints(offset, stride, 4, GeoReader.copyBytesAsShorts(4));
+            case SKINNING_4 -> builder.joints(offset, stride, 4, AttributeReader.copyBytesAsShorts(4));
             case SKINNING_6 -> builder
-                .joints(offset, stride, 6, GeoReader.copyBytesAsShorts(6))
-                .custom("W", offset + 6, stride, 2, GeoReader.copyBytesAsFloats(2), ComponentType.FLOAT, ElementType.SCALAR);
+                .joints(offset, stride, 6, AttributeReader.copyBytesAsShorts(6))
+                .custom("W", offset + 6, stride, 2, AttributeReader.copyBytesAsFloats(2), ComponentType.FLOAT, ElementType.SCALAR);
             case SKINNING_8 -> builder
-                .joints(offset, stride, 8, GeoReader.copyBytesAsShorts(8))
-                .custom("W", offset + 8, stride, 4, GeoReader.copyBytesAsFloats(2), ComponentType.FLOAT, ElementType.SCALAR);
+                .joints(offset, stride, 8, AttributeReader.copyBytesAsShorts(8))
+                .custom("W", offset + 8, stride, 4, AttributeReader.copyBytesAsFloats(2), ComponentType.FLOAT, ElementType.SCALAR);
         };
     }
 

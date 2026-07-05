@@ -1,17 +1,18 @@
-package be.twofold.valen.core.geometry;
+package be.twofold.valen.core.geometry.read;
 
+import be.twofold.valen.core.geometry.*;
 import wtf.reversed.toolbox.collect.*;
 import wtf.reversed.toolbox.util.*;
 
-public record GeoBufferInfo<T extends Slice>(
+public record BufferInfo<T extends Slice>(
     int offset,
     int stride,
     int length,
-    GeoReader<T> reader,
+    AttributeReader<T> reader,
     ElementType elementType,
     ComponentType<T> componentType
 ) {
-    public GeoBufferInfo {
+    public BufferInfo {
         Check.positiveOrZero(offset, "offset");
         Check.positiveOrZero(stride, "stride");
         Check.positive(length, "length");

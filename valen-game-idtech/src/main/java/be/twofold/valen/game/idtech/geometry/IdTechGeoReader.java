@@ -1,6 +1,6 @@
 package be.twofold.valen.game.idtech.geometry;
 
-import be.twofold.valen.core.geometry.*;
+import be.twofold.valen.core.geometry.read.*;
 import be.twofold.valen.core.util.*;
 import wtf.reversed.toolbox.collect.*;
 import wtf.reversed.toolbox.io.*;
@@ -10,13 +10,13 @@ import java.io.*;
 
 /**
  * id-tech vertex-attribute readers: fixed byte layouts, bit-packing and magic scale constants
- * specific to the id-tech Geo format. The format-agnostic primitives live in {@link GeoReader}.
+ * specific to the id-tech Geo format. The format-agnostic primitives live in {@link AttributeReader}.
  */
 public final class IdTechGeoReader {
     private IdTechGeoReader() {
     }
 
-    public static GeoReader<Floats.Mutable> readPackedPosition(float scale, Vector3 bias) {
+    public static AttributeReader<Floats.Mutable> readPackedPosition(float scale, Vector3 bias) {
         return (source, target, offset) -> {
             float x = FloatMath.unpackUNorm16(source.readShort());
             float y = FloatMath.unpackUNorm16(source.readShort());
@@ -27,11 +27,11 @@ public final class IdTechGeoReader {
         };
     }
 
-    public static GeoReader<Floats.Mutable> readPackedNormal() {
+    public static AttributeReader<Floats.Mutable> readPackedNormal() {
         return (source, target, offset) -> readVector3UNorm8Normal(source).normalize().toSlice(target, offset);
     }
 
-    public static GeoReader<Floats.Mutable> readPackedTangent() {
+    public static AttributeReader<Floats.Mutable> readPackedTangent() {
         return (source, target, offset) -> {
             source.skip(4); // skip normal
 
@@ -41,7 +41,7 @@ public final class IdTechGeoReader {
         };
     }
 
-    public static GeoReader<Floats.Mutable> readPackedUV(float scale, Vector2 bias) {
+    public static AttributeReader<Floats.Mutable> readPackedUV(float scale, Vector2 bias) {
         return (source, target, offset) -> {
             float x = FloatMath.unpackUNorm16(source.readShort());
             float y = FloatMath.unpackUNorm16(source.readShort());
@@ -49,19 +49,19 @@ public final class IdTechGeoReader {
         };
     }
 
-    public static GeoReader<Floats.Mutable> readWeight4() {
+    public static AttributeReader<Floats.Mutable> readWeight4() {
         return readNormalTangentWeights(45.0f, 60.0f);
     }
 
-    public static GeoReader<Floats.Mutable> readWeight6() {
+    public static AttributeReader<Floats.Mutable> readWeight6() {
         return readNormalTangentWeights(75.0f, 89.0f);
     }
 
-    public static GeoReader<Floats.Mutable> readWeight8() {
+    public static AttributeReader<Floats.Mutable> readWeight8() {
         return readNormalTangentWeights(104.0f, 120.0f);
     }
 
-    private static GeoReader<Floats.Mutable> readNormalTangentWeights(float scale1, float scale2) {
+    private static AttributeReader<Floats.Mutable> readNormalTangentWeights(float scale1, float scale2) {
         float factor1 = 1.0f / scale1;
         float factor2 = 1.0f / scale2;
         return (source, target, offset) -> {
@@ -81,7 +81,7 @@ public final class IdTechGeoReader {
         };
     }
 
-    public static GeoReader<Shorts.Mutable> readBone1() {
+    public static AttributeReader<Shorts.Mutable> readBone1() {
         return (source, target, offset) -> {
             source.skip(3);
             target.set(offset, (short) Byte.toUnsignedInt(source.readByte()));
