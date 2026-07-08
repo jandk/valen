@@ -33,7 +33,9 @@ record ResourcesIndex(
             var resources = Resources.read(source);
             // When no mask entry is present, all resources are valid.
             var maskBytes = masks.masks().get(resources.hash());
-            log.warn("No mask entry for {}", resources.hash());
+            if (maskBytes == null) {
+                log.warn("No mask entry for {}", resources.hash());
+            }
             var mask = maskBytes == null ? null : BitSource.little(BinarySource.wrap(maskBytes));
             for (var entry : resources.entries()) {
                 if (mask != null && !mask.readFlag()) {
