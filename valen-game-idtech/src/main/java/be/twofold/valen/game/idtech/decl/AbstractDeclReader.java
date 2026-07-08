@@ -3,6 +3,7 @@ package be.twofold.valen.game.idtech.decl;
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.game.idtech.decl.parser.*;
 import com.google.gson.*;
+import org.slf4j.*;
 import wtf.reversed.toolbox.collect.*;
 import wtf.reversed.toolbox.io.*;
 import wtf.reversed.toolbox.util.*;
@@ -13,6 +14,7 @@ import java.util.*;
 import java.util.regex.*;
 
 public abstract class AbstractDeclReader<K extends AssetID, V extends Asset> implements AssetReader.Binary<JsonObject, V> {
+    private static final Logger log = LoggerFactory.getLogger(AbstractDeclReader.class);
     private static final Pattern ItemPattern = Pattern.compile("^\\w+\\[(\\d+)]$");
     private static final CharsetDecoder Utf8Decoder = StandardCharsets.UTF_8.newDecoder();
     private static final CharsetDecoder Iso88591Decoder = StandardCharsets.ISO_8859_1.newDecoder();
@@ -55,6 +57,12 @@ public abstract class AbstractDeclReader<K extends AssetID, V extends Asset> imp
         var inherit = declCache.get(inheritID);
         if (inherit != null) {
             return merge(inherit, object);
+        }
+
+        if (!context.exists(inheritID)) {
+            // Dangling inherit reference in the game data; proceed with the child only.
+            log.warn("Missing inherited decl: '{}'", inheritName);
+            return object;
         }
 
         var bytes = context.load(inheritID, Bytes.class);
