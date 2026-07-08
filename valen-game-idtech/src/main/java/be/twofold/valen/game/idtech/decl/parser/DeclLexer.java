@@ -130,6 +130,13 @@ public final class DeclLexer {
         if (peek() == ' ') {
             skip();
         }
+        if (peek() == '0' && index + 1 < source.length() && (peekNext() == 'x' || peekNext() == 'X')) {
+            skip(2);
+            while (isHexDigit(peek())) {
+                skip();
+            }
+            return source.substring(start, index).replace(" ", "");
+        }
         digits();
         if (peek() == '.') {
             skip();
@@ -212,6 +219,10 @@ public final class DeclLexer {
 
     private boolean isDigit(char ch) {
         return (ch >= '0' && ch <= '9');
+    }
+
+    private boolean isHexDigit(char ch) {
+        return isDigit(ch) || (ch >= 'a' && ch <= 'f') || (ch >= 'A' && ch <= 'F');
     }
 
     private boolean isIdentifier(char ch) {

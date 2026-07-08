@@ -106,7 +106,7 @@ public abstract class AbstractRenderParmReader<V extends Asset> implements Asset
             switch (name) {
                 case "writable" -> flags.add(BufferViewFlag.BVF_WRITABLE);
                 case "coherent" -> flags.add(BufferViewFlag.BVF_COHERENT);
-                case "instancedescriptorsetlayout", "surfacedescriptorsetlayout" -> {
+                case "instancedescriptorsetlayout", "surfacedescriptorsetlayout", "skipoobchecks" -> {
                     // Just ignore these
                 }
                 default -> {
