@@ -9,11 +9,15 @@ import be.twofold.valen.game.darkages.reader.decl.*;
 import be.twofold.valen.game.darkages.reader.decl.material2.*;
 import be.twofold.valen.game.darkages.reader.decl.renderparm.*;
 import be.twofold.valen.game.darkages.reader.image.*;
+import be.twofold.valen.game.darkages.reader.mask.*;
 import be.twofold.valen.game.darkages.reader.model.*;
 import be.twofold.valen.game.darkages.reader.packagemapspec.*;
+import be.twofold.valen.game.darkages.reader.resources.*;
 import be.twofold.valen.game.darkages.reader.skeleton.*;
 import be.twofold.valen.game.darkages.reader.strandshair.*;
 import be.twofold.valen.game.darkages.reader.vegetation.*;
+import wtf.reversed.toolbox.collect.*;
+import wtf.reversed.toolbox.hash.*;
 import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
@@ -42,13 +46,27 @@ public final class DarkAgesGame implements Game {
     private final StreamDbIndex streamDbIndex;
     private final ResourcesIndex commonResources;
     private final Decompressors decompressors;
+    private final ContainerMask masks;
 
     DarkAgesGame(Path path) throws IOException {
         this.base = path.resolve("base");
         this.spec = PackageMapSpecReader.read(base.resolve("packagemapspec.json"));
-        this.streamDbIndex = loadStreamDbIndex(base, spec);
-        this.commonResources = ResourcesIndex.build(filterResources(spec, "common", "warehouse", "init"));
         this.decompressors = new Decompressors(null);
+        this.masks = readMasks();
+        this.streamDbIndex = loadStreamDbIndex(base, spec);
+        this.commonResources = ResourcesIndex.build(filterResources(spec, "common", "warehouse", "init"), masks);
+    }
+
+    private ContainerMask readMasks() throws IOException {
+        try (var source = BinarySource.open(base.resolve("meta.resources"))) {
+            var resources = Resources.read(source);
+            var entry = resources.entries().getFirst();
+
+            source.position(entry.dataOffset());
+            var compressed = source.readBytes(Math.toIntExact(entry.dataSize()));
+            var decompressed = decompressors.get(CompressionType.OODLE).decompress(compressed, Math.toIntExact(entry.uncompressedSize()));
+            return ContainerMask.read(BinarySource.wrap(decompressed));
+        }
     }
 
     @Override
@@ -60,7 +78,7 @@ public final class DarkAgesGame implements Game {
     }
 
     public AssetLoader open(String name) throws IOException {
-        var loadedResources = ResourcesIndex.build(filterResources(spec, name));
+        var loadedResources = ResourcesIndex.build(filterResources(spec, name), masks);
 
         var archive = Archive.layered(
             Archive.of(loadedResources.assets()),

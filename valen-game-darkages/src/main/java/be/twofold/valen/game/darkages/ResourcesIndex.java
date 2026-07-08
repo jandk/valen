@@ -1,6 +1,7 @@
 package be.twofold.valen.game.darkages;
 
 import be.twofold.valen.core.game.*;
+import be.twofold.valen.game.darkages.reader.mask.*;
 import be.twofold.valen.game.darkages.reader.resources.*;
 import org.slf4j.*;
 import wtf.reversed.toolbox.io.*;
@@ -20,7 +21,7 @@ record ResourcesIndex(
         assets = List.copyOf(assets);
     }
 
-    static ResourcesIndex build(List<Path> paths) throws IOException {
+    static ResourcesIndex build(List<Path> paths, ContainerMask masks) throws IOException {
         var sources = new HashMap<Path, BinarySource>();
         var assets = new ArrayList<DarkAgesAsset>();
         for (var path : paths) {
@@ -30,9 +31,17 @@ record ResourcesIndex(
             sources.put(path, source);
 
             var resources = Resources.read(source);
+            // When no mask entry is present, all resources are valid.
+            var maskBytes = masks.masks().get(resources.hash());
+            log.warn("No mask entry for {}", resources.hash());
+            var mask = maskBytes == null ? null : BitSource.little(BinarySource.wrap(maskBytes));
             for (var entry : resources.entries()) {
+                if (mask != null && !mask.readFlag()) {
+                    continue;
+                }
                 if (entry.uncompressedSize() > 0) {
-                    assets.add(mapResourceEntry(resources, entry, path));
+                    var mappedEntry = mapResourceEntry(resources, entry, path);
+                    assets.add(mappedEntry);
                 }
             }
         }

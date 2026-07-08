@@ -54,6 +54,7 @@ public enum ResourcesType implements ValueEnum<String> {
     RsStreamFile("rs_streamfile"),
     RwKdTree("rwkdtree"),
     SectorRemeshModel("sectorremeshmodel"),
+    SgSnapshot("sgsnapshot"),
     SkelMap("skelMap"),
     Skeleton("skeleton"),
     SkeletonModifiedHash("skeletonmodifiedhash"),
@@ -66,6 +67,7 @@ public enum ResourcesType implements ValueEnum<String> {
     Ui_shape_pool_data("ui_shape_pool_data"),
     Ui_type_data("ui_type_data"),
     Vegetation("vegetation"),
+    VulkanPipeLines("vulkanpipelines"),
     ;
 
     private final String value;
