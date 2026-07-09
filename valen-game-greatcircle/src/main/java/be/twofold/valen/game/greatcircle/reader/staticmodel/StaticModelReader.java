@@ -2,6 +2,7 @@ package be.twofold.valen.game.greatcircle.reader.staticmodel;
 
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.geometry.*;
+import be.twofold.valen.core.util.*;
 import be.twofold.valen.game.greatcircle.*;
 import be.twofold.valen.game.greatcircle.reader.geometry.*;
 import be.twofold.valen.game.greatcircle.resource.*;
@@ -10,6 +11,7 @@ import wtf.reversed.toolbox.io.*;
 import wtf.reversed.toolbox.util.*;
 
 import java.io.*;
+import java.lang.invoke.*;
 import java.util.*;
 
 public final class StaticModelReader implements AssetReader.Binary<Model, GreatCircleAsset> {
@@ -33,6 +35,14 @@ public final class StaticModelReader implements AssetReader.Binary<Model, GreatC
             Materials.apply(context, meshes, model.meshInfos(), StaticModelMeshInfo::mtlDecl, _ -> null);
         }
         return new Model(meshes, Optional.empty(), Optional.of(asset.id().fullName()), Optional.empty(), Axis.Z);
+    }
+
+    @Override
+    public Optional<Meta.Node> readMetadata(GreatCircleAsset asset, LoadingContext context) throws IOException {
+        try (var source = BinarySource.wrap(context.open(asset.location()))) {
+            var model = StaticModel.read(source, asset.version());
+            return Optional.of(Meta.build(MethodHandles.lookup(), model));
+        }
     }
 
     private List<Mesh> readMeshes(StaticModel model, BinarySource source, LoadingContext context) throws IOException {

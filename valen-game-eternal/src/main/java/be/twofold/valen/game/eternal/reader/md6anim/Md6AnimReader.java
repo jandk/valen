@@ -3,6 +3,7 @@ package be.twofold.valen.game.eternal.reader.md6anim;
 import be.twofold.valen.core.animation.*;
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.geometry.*;
+import be.twofold.valen.core.util.*;
 import be.twofold.valen.game.eternal.*;
 import be.twofold.valen.game.eternal.resource.*;
 import org.slf4j.*;
@@ -10,6 +11,7 @@ import wtf.reversed.toolbox.collect.*;
 import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
+import java.lang.invoke.*;
 import java.util.*;
 import java.util.function.*;
 import java.util.stream.*;
@@ -44,6 +46,14 @@ public final class Md6AnimReader implements AssetReader.Binary<Animation, Eterna
         tracks.addAll(mapAnimated(animMap.animS(), anim.frameSets(), FrameSet::bitsS, FrameSet::firstS, FrameSet::rangeS, Track.Scale::new));
         tracks.addAll(mapAnimated(animMap.animT(), anim.frameSets(), FrameSet::bitsT, FrameSet::firstT, FrameSet::rangeT, Track.Translation::new));
         return new Animation(skeleton, anim.data().frameRate(), tracks);
+    }
+
+    @Override
+    public Optional<Meta.Node> readMetadata(EternalAsset asset, LoadingContext context) throws IOException {
+        try (var source = BinarySource.wrap(context.open(asset.location()))) {
+            var anim = Md6Anim.read(source);
+            return Optional.of(Meta.build(MethodHandles.lookup(), anim));
+        }
     }
 
     private <T> List<Track<T>> mapConstant(

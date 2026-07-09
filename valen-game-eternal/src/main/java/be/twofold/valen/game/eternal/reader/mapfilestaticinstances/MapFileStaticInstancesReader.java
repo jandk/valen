@@ -9,6 +9,7 @@ import be.twofold.valen.game.eternal.resource.*;
 import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
+import java.lang.invoke.*;
 import java.util.*;
 
 public final class MapFileStaticInstancesReader implements AssetReader.Binary<Scene, EternalAsset> {
@@ -31,6 +32,16 @@ public final class MapFileStaticInstancesReader implements AssetReader.Binary<Sc
         }
         return new Scene(instances);
     }
+
+    /* TODO: Skip this one for now as the data is too big
+    @Override
+    public Optional<Meta.Node> readMetadata(EternalAsset asset, LoadingContext context) throws IOException {
+        try (var source = BinarySource.wrap(context.open(asset.location()))) {
+            var staticInstances = MapFileStaticInstances.read(source);
+            return Optional.of(Meta.build(MethodHandles.lookup(), staticInstances));
+        }
+    }
+    */
 
     private Optional<Instance> mapToInstance(String modelName, String instanceName, MapFileStaticInstancesModelGeometry geometry, LoadingContext context) {
         var resourceKey = EternalAssetID.from(modelName, ResourceType.Model);

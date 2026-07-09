@@ -3,12 +3,14 @@ package be.twofold.valen.game.greatcircle.reader.image;
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.texture.*;
 import be.twofold.valen.core.texture.shader.node.*;
+import be.twofold.valen.core.util.*;
 import be.twofold.valen.game.greatcircle.*;
 import be.twofold.valen.game.greatcircle.resource.*;
 import be.twofold.valen.game.idtech.defines.*;
 import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
+import java.lang.invoke.*;
 import java.util.*;
 import java.util.function.*;
 
@@ -45,6 +47,14 @@ public final class ImageReader implements AssetReader.Binary<Texture, GreatCircl
         }
 
         return map(image);
+    }
+
+    @Override
+    public Optional<Meta.Node> readMetadata(GreatCircleAsset asset, LoadingContext context) throws IOException {
+        try (var source = BinarySource.wrap(context.open(asset.location()))) {
+            var image = Image.read(source);
+            return Optional.of(Meta.build(MethodHandles.lookup(), image));
+        }
     }
 
     private void readSingleStream(Image image, long hash) throws IOException {

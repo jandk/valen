@@ -2,11 +2,14 @@ package be.twofold.valen.game.darkages.reader.skeleton;
 
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.geometry.*;
+import be.twofold.valen.core.util.*;
 import be.twofold.valen.game.darkages.*;
 import be.twofold.valen.game.darkages.reader.resources.*;
 import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
+import java.lang.invoke.*;
+import java.util.*;
 import java.util.stream.*;
 
 public final class Md6SkelReader implements AssetReader.Binary<Skeleton, DarkAgesAsset> {
@@ -24,6 +27,18 @@ public final class Md6SkelReader implements AssetReader.Binary<Skeleton, DarkAge
 
         Md6Skel skeleton = Md6Skel.read(source);
         return map(skeleton);
+    }
+
+    @Override
+    public Optional<Meta.Node> readMetadata(DarkAgesAsset asset, LoadingContext context) throws IOException {
+        try (var source = BinarySource.wrap(context.open(asset.location()))) {
+            int size = source.readInt();
+            if (size == 0) {
+                throw new UnsupportedOperationException();
+            }
+            var skeleton = Md6Skel.read(source);
+            return Optional.of(Meta.build(MethodHandles.lookup(), skeleton));
+        }
     }
 
     public Skeleton map(Md6Skel skeleton) {
