@@ -58,13 +58,17 @@ public final class DarkAgesGame implements Game {
     }
 
     private ContainerMask readMasks() throws IOException {
-        try (var source = BinarySource.open(base.resolve("meta.resources"))) {
-            var resources = Resources.read(source);
-            var entry = resources.entries().getFirst();
+        var metaResources = ResourcesIndex.build(List.of(base.resolve("meta.resources")), new ContainerMask(Map.of()));
+        var metaArchive = Archive.of(metaResources.assets());
+        var metaSources = metaResources.sources();
+        try (var metaStorageManager = new StorageManager(metaSources, Set.of(), decompressors)) {
+            var metaLoader = new AssetLoader(metaArchive, metaStorageManager, List.of());
+            var asset = metaLoader.all()
+                .filter(a -> a.id().fullName().equals("generated/buildgame/container.mask"))
+                .findFirst()
+                .orElseThrow(() -> new IOException("Could not find container.mask"));
 
-            source.position(entry.dataOffset());
-            var compressed = source.readBytes(Math.toIntExact(entry.dataSize()));
-            var decompressed = decompressors.get(CompressionType.OODLE).decompress(compressed, Math.toIntExact(entry.uncompressedSize()));
+            var decompressed = metaLoader.load(asset.id(), Bytes.class);
             return ContainerMask.read(BinarySource.wrap(decompressed));
         }
     }
