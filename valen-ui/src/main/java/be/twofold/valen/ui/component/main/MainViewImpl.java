@@ -38,7 +38,7 @@ public final class MainViewImpl extends AbstractView<MainView.Listener> implemen
     @Inject
     MainViewImpl(PreviewTabPane tabPane, ViewLoader viewLoader) {
         this.tabPane = tabPane;
-        this.settingsPresenter = viewLoader.loadPresenter(SettingsPresenter.class, "/fxml/Settings.fxml");
+        this.settingsPresenter = viewLoader.loadPresenter(SettingsPresenter.class);
 
         buildUI();
     }

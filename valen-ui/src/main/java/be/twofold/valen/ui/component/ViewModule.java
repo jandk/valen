@@ -37,7 +37,7 @@ public final class ViewModule {
     }
 
     @Provides
-    public SettingsView bindSettingsView(SettingsController settingsView) {
+    public SettingsView bindSettingsView(SettingsViewImpl settingsView) {
         return settingsView;
     }
 

@@ -3,10 +3,11 @@ package be.twofold.valen.ui.component.settings;
 import be.twofold.valen.ui.common.*;
 import be.twofold.valen.ui.common.settings.*;
 import jakarta.inject.*;
-import javafx.fxml.*;
+import javafx.geometry.*;
 import javafx.scene.*;
 import javafx.scene.Node;
 import javafx.scene.control.*;
+import javafx.scene.control.ScrollPane.*;
 import javafx.scene.layout.*;
 import javafx.stage.*;
 import org.jetbrains.annotations.*;
@@ -18,23 +19,19 @@ import java.util.function.*;
 import java.util.stream.*;
 
 @Singleton
-public final class SettingsController extends AbstractView<SettingsView.Listener> implements SettingsView {
+public final class SettingsViewImpl extends AbstractView<SettingsView.Listener> implements SettingsView {
 
-    private @FXML Parent root;
-    private @FXML VBox container;
+    private final VBox root = new VBox();
+    private final VBox container = new VBox(20.0);
 
     @Inject
-    public SettingsController() {
+    public SettingsViewImpl() {
+        buildUI();
     }
 
     @Override
     public Parent getFXNode() {
         return root;
-    }
-
-    @FXML
-    public void handleSave() {
-        getListener().onSave();
     }
 
     @Override
@@ -68,7 +65,30 @@ public final class SettingsController extends AbstractView<SettingsView.Listener
         }
     }
 
-    // region UI Factory
+    // region UI
+
+    private void buildUI() {
+        container.setStyle("-fx-border-style: none;");
+
+        var scrollPane = new ScrollPane(container);
+        scrollPane.setFitToWidth(true);
+        scrollPane.setHbarPolicy(ScrollBarPolicy.NEVER);
+        scrollPane.setPadding(new Insets(10.0));
+        VBox.setVgrow(scrollPane, Priority.ALWAYS);
+
+        var saveButton = new Button("Save");
+        saveButton.setMinWidth(80);
+        saveButton.setOnAction(_ -> getListener().onSave());
+
+        var buttonBar = new HBox(saveButton);
+        VBox.setMargin(buttonBar, new Insets(10.0));
+
+        root.getChildren().setAll(scrollPane, new Separator(), buttonBar);
+    }
+
+    // endregion
+
+    // region Control Factory
 
     private Node createControl(SettingDescriptor<?, ?> descriptor) {
         return switch (descriptor.type()) {
