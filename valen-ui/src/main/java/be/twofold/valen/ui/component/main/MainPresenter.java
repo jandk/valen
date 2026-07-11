@@ -31,6 +31,7 @@ public final class MainPresenter extends AbstractPresenter<MainView> implements 
     private @Nullable Game game;
     private AssetLoader loader;
     private @Nullable Asset lastAsset;
+    private SidePanel sidePanel = SidePanel.NONE;
     private String query = "";
 
     @Inject
@@ -66,13 +67,12 @@ public final class MainPresenter extends AbstractPresenter<MainView> implements 
     }
 
     @Override
-    public void onPreviewVisibilityChanged(boolean visible) {
-        showPreview(visible);
-    }
-
-    @Override
-    public void onSettingsVisibilityChanged(boolean visible) {
-        showSettings(visible);
+    public void onSidePanelToggled(SidePanel panel) {
+        sidePanel = panel;
+        getView().showSidePanel(panel);
+        if (panel == SidePanel.PREVIEW && lastAsset != null) {
+            selectAsset(lastAsset, false);
+        }
     }
 
     @Override
@@ -107,9 +107,10 @@ public final class MainPresenter extends AbstractPresenter<MainView> implements 
 
     private void selectAsset(Asset asset, boolean forced) {
         if (forced) {
-            getView().showPreview(true);
+            sidePanel = SidePanel.PREVIEW;
+            getView().showSidePanel(SidePanel.PREVIEW);
         }
-        if (getView().isSidePaneVisible() && loader != null) {
+        if (sidePanel == SidePanel.PREVIEW && loader != null) {
             try {
                 var type = switch (asset.type()) {
                     case MODEL, TEXTURE -> asset.type().type();
@@ -124,15 +125,6 @@ public final class MainPresenter extends AbstractPresenter<MainView> implements 
             }
         }
         lastAsset = asset;
-    }
-
-    private void showPreview(boolean visible) {
-        if (visible && lastAsset != null) {
-            selectAsset(lastAsset, false);
-        }
-    }
-
-    private void showSettings(boolean visible) {
     }
 
     private void exportSelectedAssets() {
