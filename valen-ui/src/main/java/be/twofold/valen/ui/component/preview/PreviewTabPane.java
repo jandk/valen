@@ -20,7 +20,7 @@ public final class PreviewTabPane extends TabPane {
     PreviewTabPane(ViewLoader viewLoader) {
         this.viewers = Stream.of(
                 viewLoader.loadPresenter(ModelPresenter.class),
-                viewLoader.loadPresenter(TexturePresenter.class, "/fxml/Texture.fxml"),
+                viewLoader.loadPresenter(TexturePresenter.class),
                 viewLoader.loadPresenter(MetaPresenter.class),
                 viewLoader.loadPresenter(RawPresenter.class))
             .map(PreviewTab::new)

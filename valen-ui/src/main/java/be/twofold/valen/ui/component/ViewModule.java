@@ -48,7 +48,7 @@ public final class ViewModule {
     }
 
     @Provides
-    public TextureView bindTextureView(TextureController textureView) {
+    public TextureView bindTextureView(TextureViewImpl textureView) {
         return textureView;
     }
 
