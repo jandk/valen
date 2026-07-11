@@ -13,7 +13,7 @@ import be.twofold.valen.ui.component.textureviewer.*;
 public final class ViewModule {
 
     @Provides
-    public FileListView bindFileListView(FileListController fileListView) {
+    public FileListView bindFileListView(FileListViewImpl fileListView) {
         return fileListView;
     }
 

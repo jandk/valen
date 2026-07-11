@@ -8,33 +8,29 @@ import javafx.application.*;
 import javafx.beans.property.*;
 import javafx.beans.value.*;
 import javafx.collections.*;
-import javafx.fxml.*;
+import javafx.geometry.*;
 import javafx.scene.*;
 import javafx.scene.control.*;
+import javafx.scene.layout.*;
 
 import java.util.*;
 import java.util.stream.*;
 
 @Singleton
-public final class FileListController extends AbstractView<FileListView.Listener> implements FileListView {
-    private static final String SPACE = "\u2009";
+public final class FileListViewImpl extends AbstractView<FileListView.Listener> implements FileListView {
+    private static final String SPACE = " ";
     private static final String SEPARATOR = SPACE + "/" + SPACE;
 
-    private @FXML SplitPane splitPane;
-    private @FXML TreeView<PathCombo> treeView;
-    private @FXML TableView<Asset> tableView;
-    private @FXML TableColumn<Asset, String> nameColumn;
-    private @FXML TableColumn<Asset, String> typeColumn;
-    private @FXML TableColumn<Asset, String> propertiesColumn;
+    private final SplitPane splitPane = new SplitPane();
+    private final TreeView<PathCombo> treeView = new TreeView<>();
+    private final TableView<Asset> tableView = new TableView<>();
+    private final TableColumn<Asset, String> nameColumn = new TableColumn<>("Name");
+    private final TableColumn<Asset, String> typeColumn = new TableColumn<>("Type");
+    private final TableColumn<Asset, String> propertiesColumn = new TableColumn<>("Properties");
 
     @Inject
-    FileListController() {
-    }
-
-    @FXML
-    private void initialize() {
-        setupTreeView();
-        setupTableView();
+    FileListViewImpl() {
+        buildUI();
     }
 
     @Override
@@ -127,7 +123,35 @@ public final class FileListController extends AbstractView<FileListView.Listener
         return item;
     }
 
-    // region UI Setup
+    // region UI
+
+    private void buildUI() {
+        SplitPane.setResizableWithParent(treeView, false);
+
+        nameColumn.setPrefWidth(200);
+        typeColumn.setPrefWidth(120);
+        propertiesColumn.setPrefWidth(250);
+        propertiesColumn.setSortable(false);
+
+        tableView.setTableMenuButtonVisible(true);
+        tableView.getColumns().addAll(List.of(nameColumn, typeColumn, propertiesColumn));
+        tableView.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
+        tableView.setPlaceholder(buildPlaceholder());
+
+        splitPane.getItems().setAll(treeView, tableView);
+        splitPane.setDividerPositions(0.25);
+
+        setupTreeView();
+        setupTableView();
+    }
+
+    private Node buildPlaceholder() {
+        var placeholder = new VBox(10,
+            new Label("No assets to display"),
+            new Label("Select a folder from the tree"));
+        placeholder.setAlignment(Pos.CENTER);
+        return placeholder;
+    }
 
     private void setupTreeView() {
         treeView.getSelectionModel().selectedItemProperty().addListener((_, _, newValue) -> selectPath(newValue));

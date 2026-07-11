@@ -43,10 +43,7 @@ public final class MainPresenter extends AbstractPresenter<MainView> implements 
     ) {
         super(view);
 
-        this.fileList = viewLoader.loadPresenter(
-            FileListPresenter.class,
-            "/fxml/FileList.fxml"
-        );
+        this.fileList = viewLoader.loadPresenter(FileListPresenter.class);
         this.settings = settings;
         this.exportService = exportService;
         this.eventBus = eventBus;
