@@ -74,7 +74,7 @@ public final class TexturePresenter extends AbstractPresenter<TextureView> imple
             return;
         }
         filterImage(channel);
-        getView().setImage(decoded.width(), decoded.height(), imagePixels, false);
+        getView().setImage(new DecodedImage(decoded.width(), decoded.height(), imagePixels), false);
     }
 
     @Override
@@ -113,7 +113,7 @@ public final class TexturePresenter extends AbstractPresenter<TextureView> imple
         }
 
         filterImage(channel);
-        getView().setImage(decoded.width(), decoded.height(), imagePixels, resetZoom);
+        getView().setImage(new DecodedImage(decoded.width(), decoded.height(), imagePixels), resetZoom);
         if (!resetZoom && oldWidth > 0) {
             getView().adjustScale((double) oldWidth / decoded.width());
         }

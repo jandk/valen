@@ -1,7 +1,7 @@
 package be.twofold.valen.ui.component.modelviewer;
 
 import be.twofold.valen.core.geometry.*;
-import wtf.reversed.toolbox.collect.*;
+import be.twofold.valen.ui.component.*;
 
 import java.util.*;
 
@@ -14,18 +14,7 @@ public interface ModelView {
      */
     record MeshMaterial(
         Mesh mesh,
-        Optional<DiffuseMap> diffuse
-    ) {
-    }
-
-    /**
-     * A decoded albedo image: BGRA pixels with premultiplied alpha, stride
-     * {@code width * 4}.
-     */
-    record DiffuseMap(
-        int width,
-        int height,
-        Bytes.Mutable pixels
+        Optional<DecodedImage> diffuse
     ) {
     }
 }

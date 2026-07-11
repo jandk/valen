@@ -3,12 +3,12 @@ package be.twofold.valen.ui.component.modelviewer;
 import be.twofold.valen.core.geometry.*;
 import be.twofold.valen.core.geometry.Mesh;
 import be.twofold.valen.ui.common.*;
+import be.twofold.valen.ui.component.*;
 import jakarta.inject.*;
 import javafx.collections.*;
 import javafx.geometry.*;
 import javafx.scene.*;
 import javafx.scene.control.*;
-import javafx.scene.image.*;
 import javafx.scene.layout.*;
 import javafx.scene.paint.*;
 import javafx.scene.shape.*;
@@ -88,16 +88,9 @@ public final class ModelViewImpl extends AbstractView<View.Listener> implements 
         return result;
     }
 
-    private Material buildMaterial(ModelView.DiffuseMap diffuse) {
-        var diffuseMap = new WritableImage(new PixelBuffer<>(
-            diffuse.width(),
-            diffuse.height(),
-            diffuse.pixels().asMutableBuffer(),
-            PixelFormat.getByteBgraPreInstance()
-        ));
-
+    private Material buildMaterial(DecodedImage diffuse) {
         var material = new PhongMaterial();
-        material.setDiffuseMap(diffuseMap);
+        material.setDiffuseMap(FxUtils.toWritableImage(diffuse));
         return material;
     }
 

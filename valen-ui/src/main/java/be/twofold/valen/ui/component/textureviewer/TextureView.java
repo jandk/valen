@@ -1,15 +1,11 @@
 package be.twofold.valen.ui.component.textureviewer;
 
 import be.twofold.valen.ui.common.*;
-import wtf.reversed.toolbox.collect.*;
+import be.twofold.valen.ui.component.*;
 
 public interface TextureView extends View<TextureView.Listener> {
 
-    /**
-     * Displays a decoded image. The pixels are BGRA with premultiplied alpha,
-     * laid out top-to-bottom with a stride of {@code width * 4} bytes.
-     */
-    void setImage(int width, int height, Bytes.Mutable pixels, boolean resetZoom);
+    void setImage(DecodedImage image, boolean resetZoom);
 
     void clearImage();
 

@@ -1,13 +1,13 @@
 package be.twofold.valen.ui.component.textureviewer;
 
 import be.twofold.valen.ui.common.*;
+import be.twofold.valen.ui.component.*;
 import jakarta.inject.*;
 import javafx.scene.*;
 import javafx.scene.control.*;
 import javafx.scene.image.*;
 import javafx.scene.layout.*;
 import javafx.util.*;
-import wtf.reversed.toolbox.collect.*;
 
 import java.util.*;
 
@@ -47,7 +47,9 @@ public final class TextureViewImpl extends AbstractView<TextureView.Listener> im
     }
 
     @Override
-    public void setImage(int width, int height, Bytes.Mutable pixels, boolean resetZoom) {
+    public void setImage(DecodedImage decoded, boolean resetZoom) {
+        int width = decoded.width();
+        int height = decoded.height();
         if (image == null || (int) image.getWidth() != width || (int) image.getHeight() != height) {
             image = new WritableImage(width, height);
             imageView.setImage(image);
@@ -55,7 +57,7 @@ public final class TextureViewImpl extends AbstractView<TextureView.Listener> im
         image.getPixelWriter().setPixels(
             0, 0, width, height,
             PixelFormat.getByteBgraPreInstance(),
-            pixels.asMutableBuffer(), width * 4
+            decoded.pixels().asMutableBuffer(), width * 4
         );
         if (resetZoom) {
             scrollPane.lockZoomToFit();

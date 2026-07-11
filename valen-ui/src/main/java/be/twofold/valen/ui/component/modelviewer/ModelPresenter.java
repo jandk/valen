@@ -61,7 +61,7 @@ public final class ModelPresenter extends AbstractPresenter<ModelView> implement
         return new ModelView.MeshMaterial(mesh, diffuse);
     }
 
-    private Optional<ModelView.DiffuseMap> loadDiffuse(Material material) {
+    private Optional<DecodedImage> loadDiffuse(Material material) {
         var property = material.properties().stream()
             .filter(prop -> prop.type() == MaterialPropertyType.Albedo)
             .findFirst();
@@ -81,7 +81,7 @@ public final class ModelPresenter extends AbstractPresenter<ModelView> implement
             int mip = chooseMip(texture);
             var converted = texture.convertSurface(mip, 0, TextureFormat.B8G8R8A8_SRGB, true);
 
-            return Optional.of(new ModelView.DiffuseMap(
+            return Optional.of(new DecodedImage(
                 converted.width(),
                 converted.height(),
                 (Bytes.Mutable) converted.surfaces().getFirst().data()
