@@ -7,6 +7,7 @@ import javafx.scene.control.*;
 import javafx.scene.image.*;
 import javafx.scene.layout.*;
 import javafx.util.*;
+import wtf.reversed.toolbox.collect.*;
 
 import java.util.*;
 
@@ -33,6 +34,7 @@ public final class TextureViewImpl extends AbstractView<TextureView.Listener> im
 
     private final ImageView imageView = new ImageView();
     private ZoomableScrollPane scrollPane;
+    private WritableImage image;
 
     @Inject
     TextureViewImpl() {
@@ -45,11 +47,25 @@ public final class TextureViewImpl extends AbstractView<TextureView.Listener> im
     }
 
     @Override
-    public void setImage(Image image, boolean resetZoom) {
-        imageView.setImage(image);
+    public void setImage(int width, int height, Bytes.Mutable pixels, boolean resetZoom) {
+        if (image == null || (int) image.getWidth() != width || (int) image.getHeight() != height) {
+            image = new WritableImage(width, height);
+            imageView.setImage(image);
+        }
+        image.getPixelWriter().setPixels(
+            0, 0, width, height,
+            PixelFormat.getByteBgraPreInstance(),
+            pixels.asMutableBuffer(), width * 4
+        );
         if (resetZoom) {
             scrollPane.lockZoomToFit();
         }
+    }
+
+    @Override
+    public void clearImage() {
+        image = null;
+        imageView.setImage(null);
     }
 
     @Override
