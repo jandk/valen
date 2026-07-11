@@ -9,6 +9,17 @@ import java.io.*;
 
 public final class FxUtils {
 
+    /**
+     * Runs the given action on the JavaFX Application Thread.
+     */
+    public static void runOnFxThread(Runnable action) {
+        if (Platform.isFxApplicationThread()) {
+            action.run();
+        } else {
+            Platform.runLater(action);
+        }
+    }
+
     public static void showExceptionDialog(Throwable throwable, String text) {
         Platform.runLater(() -> {
             var alert = new Alert(Alert.AlertType.ERROR, "An error occurred");

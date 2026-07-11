@@ -9,7 +9,6 @@ import be.twofold.valen.ui.component.preview.*;
 import be.twofold.valen.ui.component.settings.*;
 import jakarta.inject.*;
 import javafx.animation.*;
-import javafx.application.Platform;
 import javafx.geometry.*;
 import javafx.scene.*;
 import javafx.scene.control.*;
@@ -71,7 +70,7 @@ public final class MainViewImpl extends AbstractView<MainView.Listener> implemen
 
     @Override
     public void setupPreview(Asset asset, Object assetData, Meta.Node metadata) {
-        tabPane.setData(asset.type(), assetData, metadata);
+        FxUtils.runOnFxThread(() -> tabPane.setData(asset.type(), assetData, metadata));
     }
 
     @Override
@@ -81,7 +80,7 @@ public final class MainViewImpl extends AbstractView<MainView.Listener> implemen
 
     @Override
     public void setExporting(boolean exporting) {
-        Platform.runLater(() -> {
+        FxUtils.runOnFxThread(() -> {
             log.info("Exporting: {} at {}", exporting, System.currentTimeMillis());
             view.setDisable(exporting);
         });
@@ -89,8 +88,10 @@ public final class MainViewImpl extends AbstractView<MainView.Listener> implemen
 
     @Override
     public void showPreview(boolean enabled) {
-        setSidePanelEnabled(enabled, tabPane);
-        setToggleSelected(previewButton, enabled);
+        FxUtils.runOnFxThread(() -> {
+            setSidePanelEnabled(enabled, tabPane);
+            setToggleSelected(previewButton, enabled);
+        });
     }
 
     @Override

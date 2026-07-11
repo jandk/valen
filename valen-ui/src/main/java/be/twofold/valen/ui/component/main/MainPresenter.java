@@ -10,7 +10,6 @@ import be.twofold.valen.ui.component.*;
 import be.twofold.valen.ui.component.filelist.*;
 import be.twofold.valen.ui.events.*;
 import jakarta.inject.*;
-import javafx.application.*;
 import javafx.concurrent.*;
 import org.jetbrains.annotations.*;
 import org.slf4j.*;
@@ -108,7 +107,7 @@ public final class MainPresenter extends AbstractPresenter<MainView> implements 
 
     private void selectAsset(Asset asset, boolean forced) {
         if (forced) {
-            Platform.runLater(() -> getView().showPreview(true));
+            getView().showPreview(true);
         }
         if (getView().isSidePaneVisible() && loader != null) {
             try {
@@ -118,7 +117,7 @@ public final class MainPresenter extends AbstractPresenter<MainView> implements 
                 };
                 var assetData = loader.load(asset.id(), type);
                 var metadata = loader.loadMetadata(asset.id()).orElse(null);
-                Platform.runLater(() -> getView().setupPreview(asset, assetData, metadata));
+                getView().setupPreview(asset, assetData, metadata);
             } catch (IOException e) {
                 log.error("Could not load asset {}", asset.id().fileName(), e);
                 FxUtils.showExceptionDialog(e, "Could not load asset " + asset.id().fileName());
@@ -155,11 +154,7 @@ public final class MainPresenter extends AbstractPresenter<MainView> implements 
             return;
         }
 
-        Platform.runLater(() -> {
-            exportService.setLoader(loader);
-            exportService.setAssets(assets);
-            exportService.restart();
-        });
+        exportService.export(loader, assets);
     }
 
     private void updateFileList() {

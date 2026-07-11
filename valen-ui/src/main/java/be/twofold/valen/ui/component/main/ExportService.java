@@ -56,12 +56,12 @@ final class ExportService extends Service<Void> {
         return stage;
     }
 
-    public void setLoader(AssetLoader loader) {
-        this.loader = loader;
-    }
-
-    public void setAssets(List<? extends Asset> assets) {
-        this.assets = assets;
+    void export(AssetLoader loader, List<? extends Asset> assets) {
+        FxUtils.runOnFxThread(() -> {
+            this.loader = loader;
+            this.assets = assets;
+            restart();
+        });
     }
 
     @Override

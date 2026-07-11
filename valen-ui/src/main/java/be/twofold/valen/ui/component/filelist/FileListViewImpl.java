@@ -2,9 +2,9 @@ package be.twofold.valen.ui.component.filelist;
 
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.ui.common.*;
+import be.twofold.valen.ui.component.*;
 import be.twofold.valen.ui.component.utils.*;
 import jakarta.inject.*;
-import javafx.application.*;
 import javafx.beans.property.*;
 import javafx.beans.value.*;
 import javafx.collections.*;
@@ -41,7 +41,7 @@ public final class FileListViewImpl extends AbstractView<FileListView.Listener> 
     @Override
     public void setFileTree(PathNode<PathCombo> tree) {
         var root = convert(tree);
-        Platform.runLater(() -> {
+        FxUtils.runOnFxThread(() -> {
             var selectedItem = treeView.getSelectionModel().getSelectedItem();
             var selectedValue = selectedItem != null ? selectedItem.getValue() : null;
             var selectedTreeItem = findSelected(root, selectedValue);
@@ -75,7 +75,7 @@ public final class FileListViewImpl extends AbstractView<FileListView.Listener> 
 
     @Override
     public void setFilteredAssets(List<Asset> assets) {
-        Platform.runLater(() -> tableView.getItems().setAll(assets));
+        FxUtils.runOnFxThread(() -> tableView.getItems().setAll(assets));
     }
 
     @Override
