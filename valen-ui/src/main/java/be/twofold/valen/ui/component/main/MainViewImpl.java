@@ -33,8 +33,6 @@ public final class MainViewImpl extends AbstractView<MainView.Listener> implemen
     private final PreviewTabPane tabPane;
     private final SettingsPresenter settingsPresenter;
 
-    private boolean suppressToggleEvents;
-
     @Inject
     MainViewImpl(PreviewTabPane tabPane, Feather feather) {
         this.tabPane = tabPane;
@@ -55,11 +53,6 @@ public final class MainViewImpl extends AbstractView<MainView.Listener> implemen
     @Override
     public Parent getFXNode() {
         return view;
-    }
-
-    @Override
-    public boolean isSidePaneVisible() {
-        return splitPane.getItems().size() == 2;
     }
 
     @Override
@@ -87,17 +80,12 @@ public final class MainViewImpl extends AbstractView<MainView.Listener> implemen
     }
 
     @Override
-    public void showPreview(boolean enabled) {
+    public void showSidePanel(SidePanel panel) {
         FxUtils.runOnFxThread(() -> {
-            setSidePanelEnabled(enabled, tabPane);
-            setToggleSelected(previewButton, enabled);
+            previewButton.setSelected(panel == SidePanel.PREVIEW);
+            settingsButton.setSelected(panel == SidePanel.SETTINGS);
+            setSidePanelContent(panel);
         });
-    }
-
-    @Override
-    public void showSettings(boolean enabled) {
-        setSidePanelEnabled(enabled, settingsPresenter.getView().getFXNode());
-        setToggleSelected(settingsButton, enabled);
     }
 
     private void selectArchive(String archiveName) {
@@ -107,33 +95,35 @@ public final class MainViewImpl extends AbstractView<MainView.Listener> implemen
         getListener().onArchiveSelected(archiveName);
     }
 
-    private void setSidePanelEnabled(boolean enabled, Node node) {
+    private void setSidePanelContent(SidePanel panel) {
+        var node = switch (panel) {
+            case PREVIEW -> tabPane;
+            case SETTINGS -> settingsPresenter.getView().getFXNode();
+            case NONE -> null;
+        };
+
+        var items = splitPane.getItems();
         if (node == null) {
-            log.error("setSidePanelEnabled called with null node");
-            return;
-        }
-        if (enabled) {
-            if (isSidePaneVisible()) {
-                return;
+            if (items.size() == 2) {
+                items.remove(1);
+                splitPane.setDividerPositions();
             }
-            splitPane.getItems().add(node);
-            splitPane.setDividerPositions(0.60);
+        } else if (items.size() == 2) {
+            items.set(1, node);
         } else {
-            if (!isSidePaneVisible()) {
-                return;
-            }
-            splitPane.getItems().remove(1);
-            splitPane.setDividerPositions();
+            items.add(node);
+            splitPane.setDividerPositions(0.60);
         }
     }
 
-    private void setToggleSelected(ToggleButton button, boolean selected) {
-        suppressToggleEvents = true;
-        try {
-            button.setSelected(selected);
-        } finally {
-            suppressToggleEvents = false;
+    private SidePanel selectedPanel() {
+        if (previewButton.isSelected()) {
+            return SidePanel.PREVIEW;
         }
+        if (settingsButton.isSelected()) {
+            return SidePanel.SETTINGS;
+        }
+        return SidePanel.NONE;
     }
 
     // region UI
@@ -196,10 +186,10 @@ public final class MainViewImpl extends AbstractView<MainView.Listener> implemen
         var sidePane = new ToggleGroup();
 
         previewButton.setToggleGroup(sidePane);
-        previewButton.selectedProperty().addListener((_, _, newValue) -> showPreview(newValue));
+        previewButton.setOnAction(_ -> getListener().onSidePanelToggled(selectedPanel()));
 
         settingsButton.setToggleGroup(sidePane);
-        settingsButton.selectedProperty().addListener((_, _, newValue) -> showSettings(newValue));
+        settingsButton.setOnAction(_ -> getListener().onSidePanelToggled(selectedPanel()));
 
         return new ToolBar(
             loadGame, archiveChooser,
@@ -208,22 +198,6 @@ public final class MainViewImpl extends AbstractView<MainView.Listener> implemen
             new Separator(),
             previewButton, settingsButton
         );
-    }
-
-    private void showPreview(Boolean newValue) {
-        if (suppressToggleEvents) {
-            return;
-        }
-        setSidePanelEnabled(newValue, tabPane);
-        getListener().onPreviewVisibilityChanged(newValue);
-    }
-
-    private void showSettings(Boolean newValue) {
-        if (suppressToggleEvents) {
-            return;
-        }
-        setSidePanelEnabled(newValue, settingsPresenter.getView().getFXNode());
-        getListener().onSettingsVisibilityChanged(newValue);
     }
 
     // endregion
