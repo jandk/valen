@@ -1,15 +1,19 @@
 package be.twofold.valen.ui.component.modelviewer;
 
 import be.twofold.valen.core.geometry.*;
+import be.twofold.valen.core.geometry.Mesh;
 import be.twofold.valen.ui.common.*;
 import jakarta.inject.*;
+import javafx.collections.*;
 import javafx.geometry.*;
 import javafx.scene.*;
 import javafx.scene.control.*;
+import javafx.scene.image.*;
 import javafx.scene.layout.*;
 import javafx.scene.paint.*;
 import javafx.scene.shape.*;
 import javafx.scene.transform.*;
+import wtf.reversed.toolbox.collect.*;
 
 import java.util.*;
 import java.util.stream.*;
@@ -59,18 +63,66 @@ public final class ModelViewImpl extends AbstractView<View.Listener> implements 
         center(meshViews, upAxis);
         cameraSystem.reset();
 
-        var numVertices = meshesAndMaterials.stream().mapToInt(mm -> mm.mesh().getPoints().size()).sum() / 3;
-        var numFaces = meshesAndMaterials.stream().mapToInt(mm -> mm.mesh().getFaces().size()).sum() / 9;
+        var numVertices = meshViews.stream().mapToInt(mv -> ((TriangleMesh) mv.getMesh()).getPoints().size()).sum() / 3;
+        var numFaces = meshViews.stream().mapToInt(mv -> ((TriangleMesh) mv.getMesh()).getFaces().size()).sum() / 9;
         statusLabel.setText("Meshes: " + meshViews.size() + ", Vertices: " + numVertices + ", Faces: " + numFaces);
 
         root.getChildren().addAll(meshViews);
     }
 
-    private MeshView toMeshView(MeshMaterial mesh) {
-        var meshView = new MeshView(mesh.mesh());
-        mesh.material().ifPresent(meshView::setMaterial);
+    private MeshView toMeshView(MeshMaterial meshMaterial) {
+        var meshView = new MeshView(buildMesh(meshMaterial.mesh()));
+        meshMaterial.diffuse()
+            .map(this::buildMaterial)
+            .ifPresent(meshView::setMaterial);
         meshView.setCullFace(CullFace.NONE);
         return meshView;
+    }
+
+    private TriangleMesh buildMesh(Mesh mesh) {
+        var result = new TriangleMesh(VertexFormat.POINT_NORMAL_TEXCOORD);
+        copyIndices(mesh.indices(), result.getFaces());
+        copyPoints(mesh.positions(), result.getPoints());
+        copy(mesh.normals().orElseThrow(), result.getNormals());
+        copy(mesh.texCoords().getFirst(), result.getTexCoords());
+        return result;
+    }
+
+    private Material buildMaterial(ModelView.DiffuseMap diffuse) {
+        var diffuseMap = new WritableImage(new PixelBuffer<>(
+            diffuse.width(),
+            diffuse.height(),
+            diffuse.pixels().asMutableBuffer(),
+            PixelFormat.getByteBgraPreInstance()
+        ));
+
+        var material = new PhongMaterial();
+        material.setDiffuseMap(diffuseMap);
+        return material;
+    }
+
+    private void copy(Floats floats, ObservableFloatArray floatArray) {
+        floatArray.setAll(floats.toArray());
+    }
+
+    private void copyPoints(Floats floats, ObservableFloatArray floatArray) {
+        var array = floats.toArray();
+        for (var i = 0; i < array.length; i++) {
+            array[i] *= 100;
+        }
+        floatArray.setAll(array);
+    }
+
+    private void copyIndices(Ints buffer, ObservableFaceArray faces) {
+        var capacity = buffer.length();
+        var indices = new int[capacity * 3];
+        for (int i = 0, o = 0; i < capacity; i++) {
+            var index = buffer.get(i);
+            indices[o++] = index;
+            indices[o++] = index;
+            indices[o++] = index;
+        }
+        faces.addAll(indices);
     }
 
     private void center(List<MeshView> meshViews, Axis upAxis) {
