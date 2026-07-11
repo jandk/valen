@@ -1,5 +1,6 @@
 package be.twofold.valen.ui.component.main;
 
+import backbonefx.di.*;
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.util.*;
 import be.twofold.valen.ui.common.*;
@@ -36,9 +37,9 @@ public final class MainViewImpl extends AbstractView<MainView.Listener> implemen
     private boolean suppressToggleEvents;
 
     @Inject
-    MainViewImpl(PreviewTabPane tabPane, ViewLoader viewLoader) {
+    MainViewImpl(PreviewTabPane tabPane, Feather feather) {
         this.tabPane = tabPane;
-        this.settingsPresenter = viewLoader.loadPresenter(SettingsPresenter.class);
+        this.settingsPresenter = feather.instance(SettingsPresenter.class);
 
         buildUI();
     }

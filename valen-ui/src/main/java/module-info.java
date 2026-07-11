@@ -3,7 +3,6 @@ module valen.ui {
     requires com.google.gson;
     requires jakarta.inject;
     requires javafx.controls;
-    requires javafx.fxml;
     requires javafx.graphics;
     requires org.jetbrains.annotations;
     requires org.slf4j;

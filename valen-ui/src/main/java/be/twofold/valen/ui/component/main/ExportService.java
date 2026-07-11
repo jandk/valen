@@ -1,5 +1,6 @@
 package be.twofold.valen.ui.component.main;
 
+import backbonefx.di.*;
 import be.twofold.valen.core.export.*;
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.ui.common.settings.*;
@@ -27,9 +28,9 @@ final class ExportService extends Service<Void> {
     private List<? extends Asset> assets;
 
     @Inject
-    ExportService(Settings settings, ViewLoader viewLoader) {
+    ExportService(Settings settings, Feather feather) {
         this.settings = settings;
-        this.presenter = viewLoader.loadPresenter(ProgressPresenter.class);
+        this.presenter = feather.instance(ProgressPresenter.class);
         this.stage = createStage(presenter.getView().getFXNode());
 
         presenter.setCancelHandler(this::cancel);

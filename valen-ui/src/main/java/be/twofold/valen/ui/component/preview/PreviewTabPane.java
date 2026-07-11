@@ -1,5 +1,6 @@
 package be.twofold.valen.ui.component.preview;
 
+import backbonefx.di.*;
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.util.*;
 import be.twofold.valen.ui.component.*;
@@ -17,12 +18,12 @@ public final class PreviewTabPane extends TabPane {
     private final List<PreviewTab> viewers;
 
     @Inject
-    PreviewTabPane(ViewLoader viewLoader) {
+    PreviewTabPane(Feather feather) {
         this.viewers = Stream.of(
-                viewLoader.loadPresenter(ModelPresenter.class),
-                viewLoader.loadPresenter(TexturePresenter.class),
-                viewLoader.loadPresenter(MetaPresenter.class),
-                viewLoader.loadPresenter(RawPresenter.class))
+                feather.instance(ModelPresenter.class),
+                feather.instance(TexturePresenter.class),
+                feather.instance(MetaPresenter.class),
+                feather.instance(RawPresenter.class))
             .map(PreviewTab::new)
             .toList();
     }

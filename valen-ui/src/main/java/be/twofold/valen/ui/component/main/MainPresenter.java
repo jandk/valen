@@ -1,5 +1,6 @@
 package be.twofold.valen.ui.component.main;
 
+import backbonefx.di.*;
 import backbonefx.event.*;
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.ui.*;
@@ -39,11 +40,11 @@ public final class MainPresenter extends AbstractPresenter<MainView> implements 
         EventBus eventBus,
         Settings settings,
         ExportService exportService,
-        ViewLoader viewLoader
+        Feather feather
     ) {
         super(view);
 
-        this.fileList = viewLoader.loadPresenter(FileListPresenter.class);
+        this.fileList = feather.instance(FileListPresenter.class);
         this.settings = settings;
         this.exportService = exportService;
         this.eventBus = eventBus;
