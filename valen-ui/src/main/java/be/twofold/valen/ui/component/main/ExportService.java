@@ -29,7 +29,7 @@ final class ExportService extends Service<Void> {
     @Inject
     ExportService(Settings settings, ViewLoader viewLoader) {
         this.settings = settings;
-        this.presenter = viewLoader.loadPresenter(ProgressPresenter.class, "/fxml/Progress.fxml");
+        this.presenter = viewLoader.loadPresenter(ProgressPresenter.class);
         this.stage = createStage(presenter.getView().getFXNode());
 
         presenter.setCancelHandler(this::cancel);
