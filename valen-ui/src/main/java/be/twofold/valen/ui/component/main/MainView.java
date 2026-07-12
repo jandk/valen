@@ -17,6 +17,8 @@ public interface MainView extends View<MainView.Listener> {
 
     void setExporting(boolean exporting);
 
+    void setPreviewLoading(boolean loading);
+
     void showSidePanel(SidePanel panel);
 
     void setFileListView(Node node);
