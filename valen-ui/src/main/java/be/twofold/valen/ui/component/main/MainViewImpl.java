@@ -13,6 +13,7 @@ import javafx.geometry.*;
 import javafx.scene.*;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
+import javafx.util.*;
 import org.slf4j.*;
 
 import java.util.*;
@@ -29,6 +30,10 @@ public final class MainViewImpl extends AbstractView<MainView.Listener> implemen
 
     private final ComboBox<String> archiveChooser = new ComboBox<>();
     private final TextField searchTextField = new TextField();
+
+    private final StackPane previewPane = new StackPane();
+    private final ProgressIndicator previewSpinner = new ProgressIndicator();
+    private final PauseTransition spinnerDelay = new PauseTransition(Duration.millis(200));
 
     private final PreviewTabPane tabPane;
     private final SettingsPresenter settingsPresenter;
@@ -77,6 +82,19 @@ public final class MainViewImpl extends AbstractView<MainView.Listener> implemen
     }
 
     @Override
+    public void setPreviewLoading(boolean loading) {
+        FxUtils.runOnFxThread(() -> {
+            if (loading) {
+                // Delay showing the spinner so quick loads don't flash it.
+                spinnerDelay.playFromStart();
+            } else {
+                spinnerDelay.stop();
+                previewSpinner.setVisible(false);
+            }
+        });
+    }
+
+    @Override
     public void showSidePanel(SidePanel panel) {
         FxUtils.runOnFxThread(() -> {
             previewButton.setSelected(panel == SidePanel.PREVIEW);
@@ -94,7 +112,7 @@ public final class MainViewImpl extends AbstractView<MainView.Listener> implemen
 
     private void setSidePanelContent(SidePanel panel) {
         var node = switch (panel) {
-            case PREVIEW -> tabPane;
+            case PREVIEW -> previewPane;
             case SETTINGS -> settingsPresenter.getView().getFXNode();
             case NONE -> null;
         };
@@ -126,10 +144,20 @@ public final class MainViewImpl extends AbstractView<MainView.Listener> implemen
     // region UI
 
     private void buildUI() {
+        buildPreviewPane();
+
         view.setPrefSize(1250, 666);
         view.setTop(buildToolBar());
         view.setCenter(buildMainContent());
         view.setBottom(buildStatusBar());
+    }
+
+    private void buildPreviewPane() {
+        previewSpinner.setVisible(false);
+        previewSpinner.setMaxSize(60, 60);
+        previewSpinner.setMouseTransparent(true);
+        spinnerDelay.setOnFinished(_ -> previewSpinner.setVisible(true));
+        previewPane.getChildren().setAll(tabPane, previewSpinner);
     }
 
     private SplitPane buildMainContent() {

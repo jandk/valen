@@ -17,6 +17,8 @@ import wtf.reversed.toolbox.collect.*;
 
 import java.io.*;
 import java.util.*;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.*;
 import java.util.function.*;
 import java.util.stream.*;
 
@@ -27,6 +29,15 @@ public final class MainPresenter extends AbstractPresenter<MainView> implements 
     private final FileListPresenter fileList;
     private final Settings settings;
     private final EventBus eventBus;
+
+    // Loads run off the FX thread so browsing stays responsive. A single thread
+    // serializes loads; loadSeq makes the latest selection win (see selectAsset).
+    private final ExecutorService loadExecutor = Executors.newSingleThreadExecutor(runnable -> {
+        var thread = new Thread(runnable, "asset-loader");
+        thread.setDaemon(true);
+        return thread;
+    });
+    private final AtomicLong loadSequence = new AtomicLong();
 
     private @Nullable Game game;
     private AssetLoader loader;
@@ -70,8 +81,13 @@ public final class MainPresenter extends AbstractPresenter<MainView> implements 
     public void onSidePanelToggled(SidePanel panel) {
         sidePanel = panel;
         getView().showSidePanel(panel);
-        if (panel == SidePanel.PREVIEW && lastAsset != null) {
-            selectAsset(lastAsset, false);
+        if (panel == SidePanel.PREVIEW) {
+            if (lastAsset != null) {
+                selectAsset(lastAsset, false);
+            }
+        } else {
+            // Leaving the preview: drop any in-flight load and its spinner.
+            cancelPreviewLoad();
         }
     }
 
@@ -98,6 +114,7 @@ public final class MainPresenter extends AbstractPresenter<MainView> implements 
         try {
             // This cast is safe here, we don't care about the actual types
             loader = game.open(archiveName);
+            cancelPreviewLoad();
             updateFileList();
         } catch (IOException e) {
             log.error("Could not load archive {}", archiveName, e);
@@ -110,21 +127,54 @@ public final class MainPresenter extends AbstractPresenter<MainView> implements 
             sidePanel = SidePanel.PREVIEW;
             getView().showSidePanel(SidePanel.PREVIEW);
         }
-        if (sidePanel == SidePanel.PREVIEW && loader != null) {
-            try {
-                var type = switch (asset.type()) {
-                    case MODEL, TEXTURE -> asset.type().type();
-                    default -> Bytes.class;
-                };
-                var assetData = loader.load(asset.id(), type);
-                var metadata = loader.loadMetadata(asset.id()).orElse(null);
-                getView().setupPreview(asset, assetData, metadata);
-            } catch (IOException e) {
-                log.error("Could not load asset {}", asset.id().fileName(), e);
-                FxUtils.showExceptionDialog(e, "Could not load asset " + asset.id().fileName());
-            }
-        }
         lastAsset = asset;
+
+        // Bump the sequence so any in-flight load is superseded, even if we
+        // don't start a new one (e.g. the preview panel is hidden).
+        var seq = loadSequence.incrementAndGet();
+        if (sidePanel != SidePanel.PREVIEW || loader == null) {
+            return;
+        }
+
+        var currentLoader = loader;
+        getView().setPreviewLoading(true);
+        loadExecutor.submit(() -> loadAsset(seq, currentLoader, asset));
+    }
+
+    private void loadAsset(long seq, AssetLoader loader, Asset asset) {
+        try {
+            var type = switch (asset.type()) {
+                case MODEL, TEXTURE -> asset.type().type();
+                default -> Bytes.class;
+            };
+            var assetData = loader.load(asset.id(), type);
+            var metadata = loader.loadMetadata(asset.id()).orElse(null);
+            if (isStale(seq)) {
+                return;
+            }
+            getView().setupPreview(asset, assetData, metadata);
+            getView().setPreviewLoading(false);
+        } catch (IOException e) {
+            if (isStale(seq)) {
+                return;
+            }
+            log.error("Could not load asset {}", asset.id().fileName(), e);
+            getView().setPreviewLoading(false);
+            FxUtils.showExceptionDialog(e, "Could not load asset " + asset.id().fileName());
+        }
+    }
+
+    /**
+     * A newer selection has superseded this load, so its result should be
+     * dropped. The superseding selection owns the spinner from here on.
+     */
+    private boolean isStale(long seq) {
+        return seq != loadSequence.get();
+    }
+
+    private void cancelPreviewLoad() {
+        loadSequence.incrementAndGet();
+        getView().setPreviewLoading(false);
     }
 
     private void exportSelectedAssets() {
