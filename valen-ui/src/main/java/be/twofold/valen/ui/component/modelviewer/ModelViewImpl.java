@@ -124,7 +124,6 @@ public final class ModelViewImpl extends AbstractView<View.Listener> implements 
             .reduce(this::combine)
             .orElseThrow();
 
-        System.out.println("Bounds " + bounds);
         double max = DoubleStream
             .of(bounds.getWidth(), bounds.getHeight(), bounds.getDepth())
             .max().getAsDouble();
