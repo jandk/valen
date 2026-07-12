@@ -6,13 +6,11 @@ import be.twofold.valen.ui.common.*;
 import be.twofold.valen.ui.common.settings.*;
 import be.twofold.valen.ui.component.*;
 import jakarta.inject.*;
-import org.slf4j.*;
 import wtf.reversed.toolbox.collect.*;
 
 import java.util.function.*;
 
 public final class TexturePresenter extends AbstractPresenter<TextureView> implements TextureView.Listener, Viewer {
-    private static final Logger log = LoggerFactory.getLogger(TexturePresenter.class);
     private final Settings settings;
 
     private Texture texture;
@@ -26,8 +24,7 @@ public final class TexturePresenter extends AbstractPresenter<TextureView> imple
     private Channel channel = Channel.ALL;
 
     @Inject
-    public TexturePresenter(TextureView view, Settings settings) {
-        // TODO: Make package-private
+    TexturePresenter(TextureView view, Settings settings) {
         super(view);
         this.settings = settings;
 
@@ -97,15 +94,11 @@ public final class TexturePresenter extends AbstractPresenter<TextureView> imple
     }
 
     private void decodeAndDisplay(boolean resetZoom) {
-        long t0 = System.nanoTime();
-
         var oldWidth = decoded != null ? decoded.width() : 0;
         decoded = texture
             .convertSurface(currentMip, currentSlice, TextureFormat.B8G8R8A8_SRGB, settings.isReconstructZ())
             .getSurface(0, 0);
         premultiplied = null;
-
-        long t1 = System.nanoTime();
 
         int byteCount = decoded.width() * decoded.height() * 4;
         if (imagePixels == null || imagePixels.length() != byteCount) {
@@ -119,9 +112,6 @@ public final class TexturePresenter extends AbstractPresenter<TextureView> imple
         }
 
         getView().setStatus(buildStatus());
-
-        long t2 = System.nanoTime();
-        log.info("Decode: {}, Filter: {}", (t1 - t0) / 1e6, (t2 - t1) / 1e6);
     }
 
     private String buildStatus() {

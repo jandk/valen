@@ -73,10 +73,7 @@ public final class MainViewImpl extends AbstractView<MainView.Listener> implemen
 
     @Override
     public void setExporting(boolean exporting) {
-        FxUtils.runOnFxThread(() -> {
-            log.info("Exporting: {} at {}", exporting, System.currentTimeMillis());
-            view.setDisable(exporting);
-        });
+        FxUtils.runOnFxThread(() -> view.setDisable(exporting));
     }
 
     @Override

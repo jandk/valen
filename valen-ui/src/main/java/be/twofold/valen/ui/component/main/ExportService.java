@@ -123,7 +123,6 @@ final class ExportService extends Service<Void> {
 
                 var targetPath = findTargetPath(exporter, asset);
                 if (Files.exists(targetPath)) {
-                    // log.warn("Target already exists at {}", targetPath);
                     return;
                 }
 
