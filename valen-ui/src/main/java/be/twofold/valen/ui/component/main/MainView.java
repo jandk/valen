@@ -11,7 +11,9 @@ public interface MainView extends View<MainView.Listener> {
 
     void setArchives(List<String> archives);
 
-    void setupPreview(Asset asset, Object assetData, Meta.Node metadata);
+    Object decodePreview(AssetType type, Object assetData, Meta.Node metadata);
+
+    void displayPreview(Object preview);
 
     void focusOnSearch();
 

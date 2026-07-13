@@ -28,29 +28,45 @@ public final class PreviewTabPane extends TabPane {
             .toList();
     }
 
-    public void setData(AssetType type, Object assetData, Meta.Node metaNode) {
-        getTabs().removeIf(tab -> {
-            var viewer = ((PreviewTab) tab).getViewer();
-            if (!canShow(viewer, type, metaNode)) {
-                viewer.display(null);
-                return true;
-            }
-            return false;
-        });
-
+    public PreviewData decode(AssetType type, Object assetData, Meta.Node metaNode) {
+        var items = new ArrayList<Decoded>();
         for (PreviewTab tab : viewers) {
             var viewer = tab.getViewer();
             if (!canShow(viewer, type, metaNode)) {
                 continue;
             }
-            if (!getTabs().contains(tab)) {
-                getTabs().add(tab);
-            }
             var input = viewer instanceof MetaPresenter ? metaNode : assetData;
-            viewer.display(viewer.decode(input));
+            items.add(new Decoded(tab, viewer.decode(input)));
+        }
+        return new PreviewData(items);
+    }
+
+    public void display(PreviewData data) {
+        var wanted = data.items().stream()
+            .map(Decoded::tab)
+            .collect(Collectors.toSet());
+
+        // Remove tabs that are no longer shown, clearing their viewers.
+        getTabs().removeIf(t -> {
+            var tab = (PreviewTab) t;
+            if (!wanted.contains(tab)) {
+                tab.getViewer().display(null);
+                return true;
+            }
+            return false;
+        });
+
+        // Insert newly-shown tabs at their position in viewer order. Existing
+        // tabs stay in place, so they don't replay the add/remove animation.
+        var items = data.items();
+        for (int i = 0; i < items.size(); i++) {
+            var item = items.get(i);
+            if (!getTabs().contains(item.tab())) {
+                getTabs().add(i, item.tab());
+            }
+            item.tab().getViewer().display(item.payload());
         }
 
-        getTabs().sort(Comparator.comparingInt(viewers::indexOf));
         getSelectionModel().selectFirst();
     }
 
@@ -59,5 +75,11 @@ public final class PreviewTabPane extends TabPane {
             return metaNode != null;
         }
         return viewer.canPreview(type);
+    }
+
+    public record PreviewData(List<Decoded> items) {
+    }
+
+    private record Decoded(PreviewTab tab, Object payload) {
     }
 }
