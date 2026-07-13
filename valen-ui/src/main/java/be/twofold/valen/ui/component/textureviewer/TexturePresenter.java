@@ -42,8 +42,22 @@ public final class TexturePresenter extends AbstractPresenter<TextureView> imple
     }
 
     @Override
-    public void display(Object data) {
+    public Object decode(Object data) {
         if (data == null) {
+            return null;
+        }
+
+        texture = (Texture) data;
+        currentSlice = 0;
+        currentMip = 0;
+
+        var image = renderCurrent();
+        return new TexturePayload(texture.depthOrLayers(), texture.mipCount(), image, buildStatus());
+    }
+
+    @Override
+    public void display(Object payload) {
+        if (payload == null) {
             getView().clearImage();
             getView().setSliceCount(1);
             getView().setMipCount(1);
@@ -55,14 +69,11 @@ public final class TexturePresenter extends AbstractPresenter<TextureView> imple
             return;
         }
 
-        texture = (Texture) data;
-        currentSlice = 0;
-        currentMip = 0;
-
-        getView().setSliceCount(texture.depthOrLayers());
-        getView().setMipCount(texture.mipCount());
-
-        decodeAndDisplay(true);
+        var p = (TexturePayload) payload;
+        getView().setSliceCount(p.sliceCount());
+        getView().setMipCount(p.mipCount());
+        getView().setImage(p.image(), true);
+        getView().setStatus(p.status());
     }
 
     @Override
@@ -95,6 +106,20 @@ public final class TexturePresenter extends AbstractPresenter<TextureView> imple
 
     private void decodeAndDisplay(boolean resetZoom) {
         var oldWidth = decoded != null ? decoded.width() : 0;
+        var image = renderCurrent();
+        getView().setImage(image, resetZoom);
+        if (!resetZoom && oldWidth > 0) {
+            getView().adjustScale((double) oldWidth / decoded.width());
+        }
+
+        getView().setStatus(buildStatus());
+    }
+
+    /**
+     * Decodes the current mip/slice into {@link #imagePixels} and wraps it. Pure
+     * CPU work with no scene-graph access, so it is safe to run off the FX thread.
+     */
+    private DecodedImage renderCurrent() {
         decoded = texture
             .convertSurface(currentMip, currentSlice, TextureFormat.B8G8R8A8_SRGB, settings.isReconstructZ())
             .getSurface(0, 0);
@@ -106,12 +131,7 @@ public final class TexturePresenter extends AbstractPresenter<TextureView> imple
         }
 
         filterImage(channel);
-        getView().setImage(new DecodedImage(decoded.width(), decoded.height(), imagePixels), resetZoom);
-        if (!resetZoom && oldWidth > 0) {
-            getView().adjustScale((double) oldWidth / decoded.width());
-        }
-
-        getView().setStatus(buildStatus());
+        return new DecodedImage(decoded.width(), decoded.height(), imagePixels);
     }
 
     private String buildStatus() {

@@ -34,15 +34,23 @@ public final class ModelPresenter extends AbstractPresenter<ModelView> implement
     }
 
     @Override
-    public void display(Object data) {
+    public Object decode(Object data) {
         if (data == null) {
-            getView().setMeshes(List.of(), null);
-            return;
+            return null;
         }
 
         var model = (Model) data;
-        var meshes = mapMeshMaterials(model);
-        getView().setMeshes(meshes, model.upAxis());
+        return new ModelPayload(mapMeshMaterials(model), model.upAxis());
+    }
+
+    @Override
+    public void display(Object payload) {
+        if (payload == null) {
+            getView().setMeshes(new ModelPayload(List.of(), null));
+            return;
+        }
+
+        getView().setMeshes((ModelPayload) payload);
     }
 
     @Override
@@ -50,15 +58,15 @@ public final class ModelPresenter extends AbstractPresenter<ModelView> implement
         return "Model";
     }
 
-    private List<ModelView.MeshMaterial> mapMeshMaterials(Model model) {
+    private List<ModelPayload.MeshMaterial> mapMeshMaterials(Model model) {
         return model.meshes().stream()
             .map(this::mapMeshMaterial)
             .toList();
     }
 
-    private ModelView.MeshMaterial mapMeshMaterial(Mesh mesh) {
+    private ModelPayload.MeshMaterial mapMeshMaterial(Mesh mesh) {
         var diffuse = mesh.material().flatMap(this::loadDiffuse);
-        return new ModelView.MeshMaterial(mesh, diffuse);
+        return new ModelPayload.MeshMaterial(mesh, diffuse);
     }
 
     private Optional<DecodedImage> loadDiffuse(Material material) {
