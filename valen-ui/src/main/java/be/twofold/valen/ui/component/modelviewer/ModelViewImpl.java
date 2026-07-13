@@ -50,17 +50,17 @@ public final class ModelViewImpl extends AbstractView<View.Listener> implements 
     }
 
     @Override
-    public void setMeshes(List<MeshMaterial> meshesAndMaterials, Axis upAxis) {
+    public void setMeshes(ModelPayload payload) {
         root.getChildren().subList(1, root.getChildren().size()).clear();
-        if (meshesAndMaterials.isEmpty()) {
+        if (payload.meshes().isEmpty()) {
             return;
         }
 
-        var meshViews = meshesAndMaterials.stream()
+        var meshViews = payload.meshes().stream()
             .map(this::toMeshView)
             .toList();
 
-        center(meshViews, upAxis);
+        center(meshViews, payload.upAxis());
         cameraSystem.reset();
 
         var numVertices = meshViews.stream().mapToInt(mv -> ((TriangleMesh) mv.getMesh()).getPoints().size()).sum() / 3;
@@ -70,7 +70,7 @@ public final class ModelViewImpl extends AbstractView<View.Listener> implements 
         root.getChildren().addAll(meshViews);
     }
 
-    private MeshView toMeshView(MeshMaterial meshMaterial) {
+    private MeshView toMeshView(ModelPayload.MeshMaterial meshMaterial) {
         var meshView = new MeshView(buildMesh(meshMaterial.mesh()));
         meshMaterial.diffuse()
             .map(this::buildMaterial)
