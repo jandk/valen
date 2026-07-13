@@ -42,7 +42,7 @@ public final class TexturePresenter extends AbstractPresenter<TextureView> imple
     }
 
     @Override
-    public void setData(Object data) {
+    public void display(Object data) {
         if (data == null) {
             getView().clearImage();
             getView().setSliceCount(1);

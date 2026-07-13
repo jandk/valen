@@ -34,7 +34,7 @@ public final class ModelPresenter extends AbstractPresenter<ModelView> implement
     }
 
     @Override
-    public void setData(Object data) {
+    public void display(Object data) {
         if (data == null) {
             getView().setMeshes(List.of(), null);
             return;
