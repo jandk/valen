@@ -25,7 +25,7 @@ public final class RawPresenter extends AbstractPresenter<RawView> implements Vi
     }
 
     @Override
-    public void setData(Object data) {
+    public void display(Object data) {
         if (data == null) {
             getView().clear();
             return;
