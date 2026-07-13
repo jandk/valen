@@ -33,6 +33,7 @@ public final class MainViewImpl extends AbstractView<MainView.Listener> implemen
 
     private final StackPane previewPane = new StackPane();
     private final ProgressIndicator previewSpinner = new ProgressIndicator();
+    private final StackPane previewVeil = new StackPane(previewSpinner);
     private final PauseTransition spinnerDelay = new PauseTransition(Duration.millis(200));
 
     private final PreviewTabPane tabPane;
@@ -67,8 +68,14 @@ public final class MainViewImpl extends AbstractView<MainView.Listener> implemen
     }
 
     @Override
-    public void setupPreview(Asset asset, Object assetData, Meta.Node metadata) {
-        FxUtils.runOnFxThread(() -> tabPane.setData(asset.type(), assetData, metadata));
+    public Object decodePreview(AssetType type, Object assetData, Meta.Node metadata) {
+        // Runs on the caller's (loader) thread: decode is pure, no scene graph.
+        return tabPane.decode(type, assetData, metadata);
+    }
+
+    @Override
+    public void displayPreview(Object preview) {
+        FxUtils.runOnFxThread(() -> tabPane.display((PreviewTabPane.PreviewData) preview));
     }
 
     @Override
@@ -89,7 +96,7 @@ public final class MainViewImpl extends AbstractView<MainView.Listener> implemen
                 spinnerDelay.playFromStart();
             } else {
                 spinnerDelay.stop();
-                previewSpinner.setVisible(false);
+                previewVeil.setVisible(false);
             }
         });
     }
@@ -153,11 +160,14 @@ public final class MainViewImpl extends AbstractView<MainView.Listener> implemen
     }
 
     private void buildPreviewPane() {
-        previewSpinner.setVisible(false);
         previewSpinner.setMaxSize(60, 60);
-        previewSpinner.setMouseTransparent(true);
-        spinnerDelay.setOnFinished(_ -> previewSpinner.setVisible(true));
-        previewPane.getChildren().setAll(tabPane, previewSpinner);
+
+        // Block interaction while loading
+        previewVeil.setVisible(false);
+        previewVeil.setPickOnBounds(true);
+        spinnerDelay.setOnFinished(_ -> previewVeil.setVisible(true));
+
+        previewPane.getChildren().setAll(tabPane, previewVeil);
     }
 
     private SplitPane buildMainContent() {

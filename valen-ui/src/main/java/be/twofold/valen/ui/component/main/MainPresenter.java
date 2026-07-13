@@ -152,7 +152,11 @@ public final class MainPresenter extends AbstractPresenter<MainView> implements 
             if (isStale(seq)) {
                 return;
             }
-            getView().setupPreview(asset, assetData, metadata);
+            var preview = getView().decodePreview(asset.type(), assetData, metadata);
+            if (isStale(seq)) {
+                return;
+            }
+            getView().displayPreview(preview);
             getView().setPreviewLoading(false);
         } catch (IOException e) {
             if (isStale(seq)) {
