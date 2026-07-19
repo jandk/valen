@@ -47,15 +47,15 @@ public record PakEntry(
         var lastModFileTime = buffer.getShort(12);
         var lastModFileDate = buffer.getShort(14);
         var crc32 = buffer.getInt(16);
-        var compressedSize = buffer.getInt(20);
-        var uncompressedSize = buffer.getInt(24);
+        var compressedSize = Integer.toUnsignedLong(buffer.getInt(20));
+        var uncompressedSize = Integer.toUnsignedLong(buffer.getInt(24));
         var fileNameLength = buffer.getShort(28);
         var extraFieldLength = buffer.getShort(30);
         var fileCommentLength = buffer.getShort(32);
         var diskNumberStart = buffer.getShort(34);
         var internalFileAttributes = buffer.getShort(36);
         var externalFileAttributes = buffer.getInt(38);
-        var relativeOffsetOfLocalHeader = buffer.getInt(42);
+        var relativeOffsetOfLocalHeader = Integer.toUnsignedLong(buffer.getInt(42));
 
         buffer = (Bytes.Mutable) source.readBytes(fileNameLength); // Ew
         cipher.decrypt(buffer);
@@ -110,13 +110,13 @@ public record PakEntry(
                 var headerId = source.readShort();
                 var dataSize = source.readShort();
                 if (headerId == 0x0001) {
-                    if (uncompressedSize == -1) {
+                    if (uncompressedSize == 0xFFFF_FFFFL) {
                         uncompressedSize = source.readLong();
                     }
-                    if (compressedSize == -1) {
+                    if (compressedSize == 0xFFFF_FFFFL) {
                         compressedSize = source.readLong();
                     }
-                    if (relativeOffsetOfLocalHeader == -1) {
+                    if (relativeOffsetOfLocalHeader == 0xFFFF_FFFFL) {
                         relativeOffsetOfLocalHeader = source.readLong();
                     }
                 } else {

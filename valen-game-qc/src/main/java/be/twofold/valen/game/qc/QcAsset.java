@@ -10,7 +10,10 @@ public record QcAsset(
 ) implements Asset {
     @Override
     public AssetType type() {
-        return AssetType.RAW;
+        return switch (id.extension()) {
+            case "pct" -> AssetType.TEXTURE;
+            default -> AssetType.RAW;
+        };
     }
 
     @Override
