@@ -11,75 +11,104 @@ import be.twofold.valen.ui.component.textureviewer.*;
 import jakarta.inject.*;
 import javafx.scene.control.*;
 
-import java.util.*;
-import java.util.stream.*;
-
+/**
+ * A fixed strip of preview tabs. The tabs never come and go — so the strip
+ * doesn't animate on every asset change — instead, tabs that can't show the
+ * current asset are disabled. The single {@code Preview} tab swaps its content
+ * between the model and texture viewers depending on the asset.
+ */
 public final class PreviewTabPane extends TabPane {
-    private final List<PreviewTab> viewers;
+    private final ModelPresenter model;
+    private final TexturePresenter texture;
+    private final MetaPresenter meta;
+    private final RawPresenter raw;
+
+    private final Tab previewTab = new Tab("Preview");
+    private final Tab metaTab = new Tab("Metadata");
+    private final Tab rawTab = new Tab("Raw");
 
     @Inject
     PreviewTabPane(Feather feather) {
-        this.viewers = Stream.of(
-                feather.instance(ModelPresenter.class),
-                feather.instance(TexturePresenter.class),
-                feather.instance(MetaPresenter.class),
-                feather.instance(RawPresenter.class))
-            .map(PreviewTab::new)
-            .toList();
+        this.model = feather.instance(ModelPresenter.class);
+        this.texture = feather.instance(TexturePresenter.class);
+        this.meta = feather.instance(MetaPresenter.class);
+        this.raw = feather.instance(RawPresenter.class);
+
+        for (Tab tab : new Tab[]{previewTab, metaTab, rawTab}) {
+            tab.setClosable(false);
+            tab.setDisable(true);
+        }
+        metaTab.setContent(meta.getFXNode());
+        rawTab.setContent(raw.getFXNode());
+
+        getTabs().setAll(previewTab, metaTab, rawTab);
     }
 
+    /**
+     * Decodes the viewers that apply to this asset. Pure CPU/IO work with no
+     * scene-graph access, so it is safe to run off the FX thread; hand the
+     * result to {@link #display} on the FX thread.
+     */
     public PreviewData decode(AssetType type, Object assetData, Meta.Node metaNode) {
-        var items = new ArrayList<Decoded>();
-        for (PreviewTab tab : viewers) {
-            var viewer = tab.getViewer();
-            if (!canShow(viewer, type, metaNode)) {
-                continue;
-            }
-            var input = viewer instanceof MetaPresenter ? metaNode : assetData;
-            items.add(new Decoded(tab, viewer.decode(input)));
-        }
-        return new PreviewData(items);
+        Viewer renderer = switch (type) {
+            case MODEL -> model;
+            case TEXTURE -> texture;
+            default -> null;
+        };
+
+        return new PreviewData(
+            renderer,
+            renderer != null ? renderer.decode(assetData) : null,
+            metaNode != null ? meta.decode(metaNode) : null,
+            raw.canPreview(type) ? raw.decode(assetData) : null);
     }
 
     public void display(PreviewData data) {
-        var wanted = data.items().stream()
-            .map(Decoded::tab)
-            .collect(Collectors.toSet());
+        showRenderer(data.renderer(), data.renderPayload());
+        show(metaTab, meta, data.metaPayload());
+        show(rawTab, raw, data.rawPayload());
+        selectFirstEnabled();
+    }
 
-        // Remove tabs that are no longer shown, clearing their viewers.
-        getTabs().removeIf(t -> {
-            var tab = (PreviewTab) t;
-            if (!wanted.contains(tab)) {
-                tab.getViewer().display(null);
-                return true;
-            }
-            return false;
-        });
-
-        // Insert newly-shown tabs at their position in viewer order. Existing
-        // tabs stay in place, so they don't replay the add/remove animation.
-        var items = data.items();
-        for (int i = 0; i < items.size(); i++) {
-            var item = items.get(i);
-            if (!getTabs().contains(item.tab())) {
-                getTabs().add(i, item.tab());
-            }
-            item.tab().getViewer().display(item.payload());
+    private void showRenderer(Viewer renderer, Object payload) {
+        if (renderer == null) {
+            model.display(null);
+            texture.display(null);
+            previewTab.setContent(null);
+            previewTab.setDisable(true);
+            return;
         }
 
-        getSelectionModel().selectFirst();
+        // Release the renderer that isn't shown, then swap in the one that is.
+        (renderer == model ? texture : model).display(null);
+        previewTab.setContent(renderer.getFXNode());
+        renderer.display(payload);
+        previewTab.setDisable(false);
     }
 
-    private boolean canShow(Viewer viewer, AssetType type, Meta.Node metaNode) {
-        if (viewer instanceof MetaPresenter) {
-            return metaNode != null;
+    private void show(Tab tab, Viewer viewer, Object payload) {
+        viewer.display(payload);
+        tab.setDisable(payload == null);
+    }
+
+    private void selectFirstEnabled() {
+        var selected = getSelectionModel().getSelectedItem();
+        if (selected != null && !selected.isDisable()) {
+            return;
         }
-        return viewer.canPreview(type);
+        for (Tab tab : getTabs()) {
+            if (!tab.isDisable()) {
+                getSelectionModel().select(tab);
+                return;
+            }
+        }
     }
 
-    public record PreviewData(List<Decoded> items) {
-    }
-
-    private record Decoded(PreviewTab tab, Object payload) {
+    public record PreviewData(
+        Viewer renderer,
+        Object renderPayload,
+        Object metaPayload,
+        Object rawPayload
+    ) {
     }
 }
