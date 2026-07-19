@@ -3,6 +3,7 @@ package be.twofold.valen.game.qc;
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.util.*;
 import be.twofold.valen.game.qc.reader.pak.*;
+import be.twofold.valen.game.qc.reader.pct.*;
 import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
@@ -10,6 +11,10 @@ import java.nio.file.*;
 import java.util.*;
 
 public class QcGame implements Game {
+    private static final List<AssetReader<?, ?>> READERS = List.of(
+        new PctReader()
+    );
+
     private final Path paksPath;
     private final List<String> archiveNames;
 
@@ -43,7 +48,7 @@ public class QcGame implements Game {
         var archive = Archive.of(assets);
         var storageManager = new StorageManager(Map.of(resolved, source), Set.of(), new Decompressors(null));
 
-        return new AssetLoader(archive, storageManager, List.of());
+        return new AssetLoader(archive, storageManager, READERS);
     }
 
     private QcAsset mapEntry(PakEntry entry, Path path) {
