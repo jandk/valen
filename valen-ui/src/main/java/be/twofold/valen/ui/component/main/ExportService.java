@@ -117,7 +117,9 @@ final class ExportService extends Service<Void> {
             updateMessage("Exporting " + asset.id().fullName());
 
             try {
-                Exporter<T> exporter = findExporter(asset);
+                var type = settings.isTreatAsRaw() ? AssetType.RAW : asset.type();
+
+                Exporter<T> exporter = findExporter(type);
                 exporter.setProperty("reconstructZ", settings.isReconstructZ());
                 exporter.setProperty("gltf.mode", settings.getModelExporter());
 
@@ -127,7 +129,7 @@ final class ExportService extends Service<Void> {
                 }
 
                 @SuppressWarnings("unchecked")
-                T rawAsset = (T) loader.load(asset.id(), asset.type().type());
+                T rawAsset = (T) loader.load(asset.id(), type.type());
                 Files.createDirectories(targetPath.getParent());
                 exporter.export(rawAsset, targetPath);
             } catch (Exception e) {
@@ -137,9 +139,9 @@ final class ExportService extends Service<Void> {
         }
 
         @SuppressWarnings("unchecked")
-        private <T> Exporter<T> findExporter(Asset asset) {
+        private <T> Exporter<T> findExporter(AssetType type) {
             boolean isGltf = Set.of("glb", "gltf").contains(settings.getModelExporter());
-            var exporterId = switch (asset.type()) {
+            var exporterId = switch (type) {
                 case ANIMATION -> "animation." + (isGltf ? "gltf" : "cast");
                 case MATERIAL -> "material." + (isGltf ? "gltf" : "cast");
                 case MODEL -> "model." + (isGltf ? "gltf" : "cast");
@@ -147,8 +149,8 @@ final class ExportService extends Service<Void> {
                 case RAW -> "binary.raw";
             };
             var exporter = exporterId != null
-                ? Exporter.forTypeAndId(asset.type().type(), exporterId)
-                : Exporter.forType(asset.type().type()).findFirst().orElseThrow();
+                ? Exporter.forTypeAndId(type.type(), exporterId)
+                : Exporter.forType(type.type()).findFirst().orElseThrow();
             return (Exporter<T>) exporter;
         }
 

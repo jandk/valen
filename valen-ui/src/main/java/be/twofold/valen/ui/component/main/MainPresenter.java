@@ -13,7 +13,6 @@ import jakarta.inject.*;
 import javafx.concurrent.*;
 import org.jetbrains.annotations.*;
 import org.slf4j.*;
-import wtf.reversed.toolbox.collect.*;
 
 import java.io.*;
 import java.util.*;
@@ -64,7 +63,7 @@ public final class MainPresenter extends AbstractPresenter<MainView> implements 
         view.setFileListView(fileList.getView().getFXNode());
 
         eventBus.subscribe(AssetSelected.class, event -> selectAsset(event.asset(), event.forced()));
-        eventBus.subscribe(SettingsApplied.class, _ -> updateFileList());
+        eventBus.subscribe(SettingsApplied.class, _ -> applySettings());
         eventBus.subscribe(ExportRequested.class, event -> exportPath(event.path(), event.recursive()));
 
         exportService.stateProperty().addListener((_, _, newValue) -> {
@@ -143,16 +142,13 @@ public final class MainPresenter extends AbstractPresenter<MainView> implements 
 
     private void loadAsset(long seq, AssetLoader loader, Asset asset) {
         try {
-            var type = switch (asset.type()) {
-                case MODEL, TEXTURE -> asset.type().type();
-                default -> Bytes.class;
-            };
-            var assetData = loader.load(asset.id(), type);
+            var type = previewType(asset);
+            var assetData = loader.load(asset.id(), type.type());
             var metadata = loader.loadMetadata(asset.id()).orElse(null);
             if (isStale(seq)) {
                 return;
             }
-            var preview = getView().decodePreview(asset.type(), assetData, metadata);
+            var preview = getView().decodePreview(type, assetData, metadata);
             if (isStale(seq)) {
                 return;
             }
@@ -166,6 +162,16 @@ public final class MainPresenter extends AbstractPresenter<MainView> implements 
             getView().setPreviewLoading(false);
             FxUtils.showExceptionDialog(e, "Could not load asset " + asset.id().fileName());
         }
+    }
+
+    private AssetType previewType(Asset asset) {
+        if (settings.isTreatAsRaw()) {
+            return AssetType.RAW;
+        }
+        return switch (asset.type()) {
+            case MODEL, TEXTURE -> asset.type();
+            default -> AssetType.RAW;
+        };
     }
 
     /**
@@ -203,6 +209,15 @@ public final class MainPresenter extends AbstractPresenter<MainView> implements 
         exportService.export(loader, assets);
     }
 
+    private void applySettings() {
+        updateFileList();
+
+        // "Treat as raw" changes how the current asset decodes, so reload it.
+        if (lastAsset != null && sidePanel == SidePanel.PREVIEW) {
+            selectAsset(lastAsset, false);
+        }
+    }
+
     private void updateFileList() {
         fileList.setAssets(filteredAssets());
     }
@@ -211,7 +226,10 @@ public final class MainPresenter extends AbstractPresenter<MainView> implements 
         if (loader == null) {
             return Stream.empty();
         }
-        var predicate = buildPredicate(query, settings.getAssetTypes());
+
+        // Nothing is decoded in raw mode, so the type filter doesn't apply: list everything.
+        var assetTypes = settings.isTreatAsRaw() ? Set.<AssetType>of() : settings.getAssetTypes();
+        var predicate = buildPredicate(query, assetTypes);
         return loader.all().filter(predicate);
     }
 

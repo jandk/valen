@@ -34,9 +34,17 @@ public final class SettingsPresenter extends AbstractPresenter<SettingsView> imp
                 "Show Asset Types",
                 "Select which types of assets to show in the file browser",
                 settings::getAssetTypes,
-                settings::setAssetTypes,
-                List.of(AssetType.values()),
-                AssetType::displayName
+                settings::setAssetTypes
+            )
+                .withOptions(List.of(AssetType.values()), AssetType::displayName)
+                .withDisabled(settings::isTreatAsRaw),
+            new SettingDescriptor<>(
+                SettingGroup.GENERAL,
+                SettingType.BOOLEAN,
+                "Treat as Raw",
+                "Preview and export every asset as raw bytes, without decoding it",
+                settings::isTreatAsRaw,
+                settings::setTreatAsRaw
             ),
             new SettingDescriptor<>(
                 SettingGroup.GENERAL,
@@ -52,13 +60,15 @@ public final class SettingsPresenter extends AbstractPresenter<SettingsView> imp
                 "Texture Format",
                 "Select which texture format to export as",
                 settings::getTextureExporter,
-                settings::setTextureExporter,
-                Exporter.forType(Texture.class)
-                    .map(e -> Map.entry(e.getID(), e.getName()))
-                    .sorted(Map.Entry.comparingByKey())
-                    .toList(),
-                Map.Entry::getValue
-            ),
+                settings::setTextureExporter
+            )
+                .withOptions(
+                    Exporter.forType(Texture.class)
+                        .map(e -> Map.entry(e.getID(), e.getName()))
+                        .sorted(Map.Entry.comparingByKey())
+                        .toList(),
+                    Map.Entry::getValue
+                ),
             new SettingDescriptor<>(
                 SettingGroup.TEXTURES,
                 SettingType.BOOLEAN,
@@ -73,14 +83,16 @@ public final class SettingsPresenter extends AbstractPresenter<SettingsView> imp
                 "Model Format",
                 "Select which model format to export as",
                 settings::getModelExporter,
-                settings::setModelExporter,
-                List.of(
-                    Map.entry("gltf", "GLTF, BIN and images"),
-                    Map.entry("glb", "GLB (single file)"),
-                    Map.entry("cast", "Cast (by Porter)")
-                ),
-                Map.Entry::getValue
+                settings::setModelExporter
             )
+                .withOptions(
+                    List.of(
+                        Map.entry("gltf", "GLTF, BIN and images"),
+                        Map.entry("glb", "GLB (single file)"),
+                        Map.entry("cast", "Cast (by Porter)")
+                    ),
+                    Map.Entry::getValue
+                )
         );
     }
 

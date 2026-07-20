@@ -24,6 +24,9 @@ public final class SettingsViewImpl extends AbstractView<SettingsView.Listener> 
     private final VBox root = new VBox();
     private final VBox container = new VBox(20.0);
 
+    // One per control, re-run after any change so settings can gate each other.
+    private final List<Runnable> disableRefreshers = new ArrayList<>();
+
     @Inject
     public SettingsViewImpl() {
         buildUI();
@@ -37,6 +40,7 @@ public final class SettingsViewImpl extends AbstractView<SettingsView.Listener> 
     @Override
     public void setDescriptors(SettingDescriptor<?, ?> @UnknownNullability ... descriptors) {
         container.getChildren().clear();
+        disableRefreshers.clear();
 
         var grouped = Arrays.stream(descriptors)
             .collect(Collectors.groupingBy(
@@ -54,7 +58,11 @@ public final class SettingsViewImpl extends AbstractView<SettingsView.Listener> 
             container.getChildren().add(title);
 
             for (var descriptor : groupDescriptors) {
-                container.getChildren().add(createControl(descriptor));
+                var control = createControl(descriptor);
+
+                // Disabling the wrapper greys the label and help text along with it.
+                disableRefreshers.add(() -> control.setDisable(descriptor.disabled().getAsBoolean()));
+                container.getChildren().add(control);
             }
 
             container.getChildren().add(new Separator());
@@ -63,6 +71,17 @@ public final class SettingsViewImpl extends AbstractView<SettingsView.Listener> 
         if (!container.getChildren().isEmpty()) {
             container.getChildren().removeLast();
         }
+
+        refreshDisabled();
+    }
+
+    private <T> void set(SettingDescriptor<T, ?> descriptor, T value) {
+        descriptor.setter().accept(value);
+        refreshDisabled();
+    }
+
+    private void refreshDisabled() {
+        disableRefreshers.forEach(Runnable::run);
     }
 
     // region UI
@@ -103,14 +122,14 @@ public final class SettingsViewImpl extends AbstractView<SettingsView.Listener> 
     private Node createBooleanControl(SettingDescriptor<Boolean, ?> descriptor) {
         CheckBox checkBox = new CheckBox(descriptor.label());
         checkBox.setSelected(descriptor.getter().get());
-        checkBox.selectedProperty().addListener((_, _, newValue) -> descriptor.setter().accept(newValue));
+        checkBox.selectedProperty().addListener((_, _, newValue) -> set(descriptor, newValue));
         return wrapWithLabelAndHelp(checkBox, descriptor.label(), descriptor.helpText());
     }
 
     private Node createStringControl(SettingDescriptor<String, ?> descriptor) {
         TextField textField = new TextField();
         textField.setText(descriptor.getter().get());
-        textField.textProperty().addListener((_, _, newValue) -> descriptor.setter().accept(newValue));
+        textField.textProperty().addListener((_, _, newValue) -> set(descriptor, newValue));
         return wrapWithLabelAndHelp(textField, descriptor.label(), descriptor.helpText());
     }
 
@@ -131,7 +150,7 @@ public final class SettingsViewImpl extends AbstractView<SettingsView.Listener> 
                 .map(File::toPath)
                 .ifPresent(newPath -> {
                     textField.setText(newPath.toString());
-                    descriptor.setter().accept(newPath);
+                    set(descriptor, newPath);
                 });
         });
 
@@ -159,9 +178,9 @@ public final class SettingsViewImpl extends AbstractView<SettingsView.Listener> 
         comboBox.getSelectionModel().selectedItemProperty().addListener((_, _, newValue) -> {
             if (newValue != null) {
                 if (newValue instanceof Map.Entry<?, ?> entry) {
-                    descriptor.setter().accept(entry.getKey());
+                    set(descriptor, entry.getKey());
                 } else {
-                    descriptor.setter().accept(newValue.toString());
+                    set(descriptor, newValue.toString());
                 }
             }
         });
@@ -182,7 +201,7 @@ public final class SettingsViewImpl extends AbstractView<SettingsView.Listener> 
                 } else {
                     currentValues.remove(option);
                 }
-                descriptor.setter().accept(new HashSet<>(currentValues));
+                set(descriptor, new HashSet<>(currentValues));
             });
             vBox.getChildren().add(checkBox);
         }

@@ -12,6 +12,7 @@ public final class Settings {
     private String textureExporter = "texture.png";
     private String modelExporter = "gltf";
     private Boolean reconstructZ = true;
+    private Boolean treatAsRaw = false;
     private Path exportPath = Path.of("exported").toAbsolutePath();
 
     public Set<AssetType> getAssetTypes() {
@@ -52,6 +53,14 @@ public final class Settings {
 
     public void setReconstructZ(Boolean reconstructZ) {
         this.reconstructZ = Check.nonNull(reconstructZ, "reconstructZ");
+    }
+
+    public Boolean isTreatAsRaw() {
+        return treatAsRaw;
+    }
+
+    public void setTreatAsRaw(Boolean treatAsRaw) {
+        this.treatAsRaw = Check.nonNull(treatAsRaw, "treatAsRaw");
     }
 
     public Path getExportPath() {
