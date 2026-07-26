@@ -8,4 +8,7 @@ module valen.game.eternal {
 
     provides be.twofold.valen.core.game.GameFactory
         with be.twofold.valen.game.eternal.EternalGameFactory;
+
+    opens be.twofold.valen.game.eternal.reader.md6anim to org.junit.platform.commons;
+
 }
