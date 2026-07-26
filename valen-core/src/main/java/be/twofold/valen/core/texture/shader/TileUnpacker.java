@@ -17,33 +17,48 @@ interface TileUnpacker {
             : source;
 
         return switch (decompressed.format()) {
-            case R8_UNORM, R8_SRGB ->
-                (ctx, dst) -> unpackR8(decompressed, ctx.x, ctx.y, ctx.z, ctx.width, ctx.height, dst);
-            case R8G8_UNORM -> (ctx, dst) -> unpackR8G8(decompressed, ctx.x, ctx.y, ctx.z, ctx.width, ctx.height, dst);
-            case R8G8B8_UNORM, R8G8B8_SRGB ->
-                (ctx, dst) -> unpackR8G8B8(decompressed, ctx.x, ctx.y, ctx.z, ctx.width, ctx.height, dst);
-            case R8G8B8A8_UNORM, R8G8B8A8_SRGB ->
-                (ctx, dst) -> unpackR8G8B8A8(decompressed, ctx.x, ctx.y, ctx.z, ctx.width, ctx.height, dst);
-            case B8G8R8_UNORM, B8G8R8_SRGB ->
-                (ctx, dst) -> unpackB8G8R8(decompressed, ctx.x, ctx.y, ctx.z, ctx.width, ctx.height, dst);
-            case B8G8R8A8_UNORM, B8G8R8A8_SRGB ->
-                (ctx, dst) -> unpackB8G8R8A8(decompressed, ctx.x, ctx.y, ctx.z, ctx.width, ctx.height, dst);
-            case R16_UNORM ->
-                (ctx, dst) -> unpackR16Unorm(decompressed, ctx.x, ctx.y, ctx.z, ctx.width, ctx.height, dst);
-            case R16G16B16A16_UNORM ->
-                (ctx, dst) -> unpackR16G16B16A16Unorm(decompressed, ctx.x, ctx.y, ctx.z, ctx.width, ctx.height, dst);
-            case R16_SFLOAT ->
-                (ctx, dst) -> unpackR16Sfloat(decompressed, ctx.x, ctx.y, ctx.z, ctx.width, ctx.height, dst);
-            case R16G16_SFLOAT ->
-                (ctx, dst) -> unpackR16G16Sfloat(decompressed, ctx.x, ctx.y, ctx.z, ctx.width, ctx.height, dst);
-            case R16G16B16_SFLOAT ->
-                (ctx, dst) -> unpackR16G16B16Sfloat(decompressed, ctx.x, ctx.y, ctx.z, ctx.width, ctx.height, dst);
-            case R16G16B16A16_SFLOAT ->
-                (ctx, dst) -> unpackR16G16B16A16Sfloat(decompressed, ctx.x, ctx.y, ctx.z, ctx.width, ctx.height, dst);
-            case R10G10B10A2_UNORM ->
-                (ctx, dst) -> unpackR10G10B10A2Unorm(decompressed, ctx.x, ctx.y, ctx.z, ctx.width, ctx.height, dst);
-            case R11G11B10_SFLOAT ->
-                (ctx, dst) -> unpackR11G11B10Sfloat(decompressed, ctx.x, ctx.y, ctx.z, ctx.width, ctx.height, dst);
+            case R8_UNORM, R8_SRGB -> (ctx, dst) -> {
+                unpackR8(decompressed, ctx.x, ctx.y, ctx.z, ctx.width, ctx.height, dst);
+            };
+            case R8G8_UNORM -> (ctx, dst) -> {
+                unpackR8G8(decompressed, ctx.x, ctx.y, ctx.z, ctx.width, ctx.height, dst);
+            };
+            case R8G8B8_UNORM, R8G8B8_SRGB -> (ctx, dst) -> {
+                unpackR8G8B8(decompressed, ctx.x, ctx.y, ctx.z, ctx.width, ctx.height, dst);
+            };
+            case R8G8B8A8_UNORM, R8G8B8A8_SRGB -> (ctx, dst) -> {
+                unpackR8G8B8A8(decompressed, ctx.x, ctx.y, ctx.z, ctx.width, ctx.height, dst);
+            };
+            case B8G8R8_UNORM, B8G8R8_SRGB -> (ctx, dst) -> {
+                unpackB8G8R8(decompressed, ctx.x, ctx.y, ctx.z, ctx.width, ctx.height, dst);
+            };
+            case B8G8R8A8_UNORM, B8G8R8A8_SRGB -> (ctx, dst) -> {
+                unpackB8G8R8A8(decompressed, ctx.x, ctx.y, ctx.z, ctx.width, ctx.height, dst);
+            };
+            case R16_UNORM -> (ctx, dst) -> {
+                unpackR16Unorm(decompressed, ctx.x, ctx.y, ctx.z, ctx.width, ctx.height, dst);
+            };
+            case R16G16B16A16_UNORM -> (ctx, dst) -> {
+                unpackR16G16B16A16Unorm(decompressed, ctx.x, ctx.y, ctx.z, ctx.width, ctx.height, dst);
+            };
+            case R16_SFLOAT -> (ctx, dst) -> {
+                unpackR16Sfloat(decompressed, ctx.x, ctx.y, ctx.z, ctx.width, ctx.height, dst);
+            };
+            case R16G16_SFLOAT -> (ctx, dst) -> {
+                unpackR16G16Sfloat(decompressed, ctx.x, ctx.y, ctx.z, ctx.width, ctx.height, dst);
+            };
+            case R16G16B16_SFLOAT -> (ctx, dst) -> {
+                unpackR16G16B16Sfloat(decompressed, ctx.x, ctx.y, ctx.z, ctx.width, ctx.height, dst);
+            };
+            case R16G16B16A16_SFLOAT -> (ctx, dst) -> {
+                unpackR16G16B16A16Sfloat(decompressed, ctx.x, ctx.y, ctx.z, ctx.width, ctx.height, dst);
+            };
+            case R10G10B10A2_UNORM -> (ctx, dst) -> {
+                unpackR10G10B10A2Unorm(decompressed, ctx.x, ctx.y, ctx.z, ctx.width, ctx.height, dst);
+            };
+            case R11G11B10_SFLOAT -> (ctx, dst) -> {
+                unpackR11G11B10Sfloat(decompressed, ctx.x, ctx.y, ctx.z, ctx.width, ctx.height, dst);
+            };
             default -> throw new UnsupportedOperationException("No unpacker for: " + decompressed.format());
         };
     }
@@ -54,9 +69,12 @@ interface TileUnpacker {
     private static Surface decompress(Surface source) {
         BlockDecoder decoder = decoderFor(source.format());
         TextureFormat format = formatFor(source.format());
-        byte[] data = new byte[source.width() * source.height() * format.blockSize()];
-        decoder.decode(source.data().toArray(), 0, source.width(), source.height(), data, 0);
-        return new Surface(format, source.width(), source.height(), 1, Bytes.Mutable.wrap(data));
+        Bytes.Mutable data = Bytes.allocate(source.width() * source.height() * format.blockSize());
+        decoder.decode(
+            source.data().asBuffer(), source.width(), source.height(),
+            data.asMutableBuffer(), source.width(), source.height()
+        );
+        return new Surface(format, source.width(), source.height(), 1, data);
     }
 
     private static BlockDecoder decoderFor(TextureFormat format) {
@@ -78,18 +96,17 @@ interface TileUnpacker {
 
     private static TextureFormat formatFor(TextureFormat format) {
         return switch (format) {
-            case BC1_UNORM,
-                 BC1A_UNORM,
+            case BC1_UNORM, BC1A_UNORM,
                  BC2_UNORM,
                  BC3_UNORM,
-                 BC7_UNORM -> TextureFormat.R8G8B8A8_UNORM;
+                 BC4_UNORM, BC4_SNORM,
+                 BC5_UNORM, BC5_SNORM,
+                 BC7_UNORM -> TextureFormat.B8G8R8A8_UNORM;
             case BC1_SRGB,
                  BC1A_SRGB,
                  BC2_SRGB,
                  BC3_SRGB,
-                 BC7_SRGB -> TextureFormat.R8G8B8A8_SRGB;
-            case BC4_UNORM, BC4_SNORM -> TextureFormat.R8_UNORM;
-            case BC5_UNORM, BC5_SNORM -> TextureFormat.R8G8_UNORM;
+                 BC7_SRGB -> TextureFormat.B8G8R8A8_SRGB;
             case BC6H_UFLOAT, BC6H_SFLOAT -> TextureFormat.R16G16B16_SFLOAT;
             default -> throw new UnsupportedOperationException("Not a compressed format: " + format);
         };
