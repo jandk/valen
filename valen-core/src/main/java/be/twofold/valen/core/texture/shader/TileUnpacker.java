@@ -6,109 +6,62 @@ import be.twofold.valen.core.util.*;
 import wtf.reversed.toolbox.collect.*;
 import wtf.reversed.toolbox.math.*;
 
+import java.nio.*;
+import java.util.function.*;
+
 @FunctionalInterface
 interface TileUnpacker {
     void unpack(Context ctx, float[] dst);
 
-    static TileUnpacker forSurface(Surface source) {
-        // TODO: Replace this with tile decompression (update tinybcdec to support it)
-        Surface decompressed = source.format().isCompressed()
-            ? decompress(source)
-            : source;
+    static TileUnpacker forSurface(Surface source, int tileSize) {
+        if (source.format().isCompressed()) {
+            return new Compressed(source, tileSize);
+        }
 
-        return switch (decompressed.format()) {
+        return switch (source.format()) {
             case R8_UNORM, R8_SRGB -> (ctx, dst) -> {
-                unpackR8(decompressed, ctx.x, ctx.y, ctx.z, ctx.width, ctx.height, dst);
+                unpackR8(source, ctx.x, ctx.y, ctx.z, ctx.width, ctx.height, dst);
             };
             case R8G8_UNORM -> (ctx, dst) -> {
-                unpackR8G8(decompressed, ctx.x, ctx.y, ctx.z, ctx.width, ctx.height, dst);
+                unpackR8G8(source, ctx.x, ctx.y, ctx.z, ctx.width, ctx.height, dst);
             };
             case R8G8B8_UNORM, R8G8B8_SRGB -> (ctx, dst) -> {
-                unpackR8G8B8(decompressed, ctx.x, ctx.y, ctx.z, ctx.width, ctx.height, dst);
+                unpackR8G8B8(source, ctx.x, ctx.y, ctx.z, ctx.width, ctx.height, dst);
             };
             case R8G8B8A8_UNORM, R8G8B8A8_SRGB -> (ctx, dst) -> {
-                unpackR8G8B8A8(decompressed, ctx.x, ctx.y, ctx.z, ctx.width, ctx.height, dst);
+                unpackR8G8B8A8(source, ctx.x, ctx.y, ctx.z, ctx.width, ctx.height, dst);
             };
             case B8G8R8_UNORM, B8G8R8_SRGB -> (ctx, dst) -> {
-                unpackB8G8R8(decompressed, ctx.x, ctx.y, ctx.z, ctx.width, ctx.height, dst);
+                unpackB8G8R8(source, ctx.x, ctx.y, ctx.z, ctx.width, ctx.height, dst);
             };
             case B8G8R8A8_UNORM, B8G8R8A8_SRGB -> (ctx, dst) -> {
-                unpackB8G8R8A8(decompressed, ctx.x, ctx.y, ctx.z, ctx.width, ctx.height, dst);
+                unpackB8G8R8A8(source, ctx.x, ctx.y, ctx.z, ctx.width, ctx.height, dst);
             };
             case R16_UNORM -> (ctx, dst) -> {
-                unpackR16Unorm(decompressed, ctx.x, ctx.y, ctx.z, ctx.width, ctx.height, dst);
+                unpackR16Unorm(source, ctx.x, ctx.y, ctx.z, ctx.width, ctx.height, dst);
             };
             case R16G16B16A16_UNORM -> (ctx, dst) -> {
-                unpackR16G16B16A16Unorm(decompressed, ctx.x, ctx.y, ctx.z, ctx.width, ctx.height, dst);
+                unpackR16G16B16A16Unorm(source, ctx.x, ctx.y, ctx.z, ctx.width, ctx.height, dst);
             };
             case R16_SFLOAT -> (ctx, dst) -> {
-                unpackR16Sfloat(decompressed, ctx.x, ctx.y, ctx.z, ctx.width, ctx.height, dst);
+                unpackR16Sfloat(source, ctx.x, ctx.y, ctx.z, ctx.width, ctx.height, dst);
             };
             case R16G16_SFLOAT -> (ctx, dst) -> {
-                unpackR16G16Sfloat(decompressed, ctx.x, ctx.y, ctx.z, ctx.width, ctx.height, dst);
+                unpackR16G16Sfloat(source, ctx.x, ctx.y, ctx.z, ctx.width, ctx.height, dst);
             };
             case R16G16B16_SFLOAT -> (ctx, dst) -> {
-                unpackR16G16B16Sfloat(decompressed, ctx.x, ctx.y, ctx.z, ctx.width, ctx.height, dst);
+                unpackR16G16B16Sfloat(source, ctx.x, ctx.y, ctx.z, ctx.width, ctx.height, dst);
             };
             case R16G16B16A16_SFLOAT -> (ctx, dst) -> {
-                unpackR16G16B16A16Sfloat(decompressed, ctx.x, ctx.y, ctx.z, ctx.width, ctx.height, dst);
+                unpackR16G16B16A16Sfloat(source, ctx.x, ctx.y, ctx.z, ctx.width, ctx.height, dst);
             };
             case R10G10B10A2_UNORM -> (ctx, dst) -> {
-                unpackR10G10B10A2Unorm(decompressed, ctx.x, ctx.y, ctx.z, ctx.width, ctx.height, dst);
+                unpackR10G10B10A2Unorm(source, ctx.x, ctx.y, ctx.z, ctx.width, ctx.height, dst);
             };
             case R11G11B10_SFLOAT -> (ctx, dst) -> {
-                unpackR11G11B10Sfloat(decompressed, ctx.x, ctx.y, ctx.z, ctx.width, ctx.height, dst);
+                unpackR11G11B10Sfloat(source, ctx.x, ctx.y, ctx.z, ctx.width, ctx.height, dst);
             };
-            default -> throw new UnsupportedOperationException("No unpacker for: " + decompressed.format());
-        };
-    }
-
-    // Decompress the entire surface into an intermediate uncompressed format,
-    // then delegate to the byte-based unpacker.
-    // TODO: replace with tile-level BC decoding once tinybcdec supports it.
-    private static Surface decompress(Surface source) {
-        BlockDecoder decoder = decoderFor(source.format());
-        TextureFormat format = formatFor(source.format());
-        Bytes.Mutable data = Bytes.allocate(source.width() * source.height() * format.blockSize());
-        decoder.decode(
-            source.data().asBuffer(), source.width(), source.height(),
-            data.asMutableBuffer(), source.width(), source.height()
-        );
-        return new Surface(format, source.width(), source.height(), 1, data);
-    }
-
-    private static BlockDecoder decoderFor(TextureFormat format) {
-        return switch (format) {
-            case BC1_UNORM, BC1_SRGB -> BlockDecoder.bc1(true);
-            case BC1A_UNORM, BC1A_SRGB -> BlockDecoder.bc1(false);
-            case BC2_UNORM, BC2_SRGB -> BlockDecoder.bc2();
-            case BC3_UNORM, BC3_SRGB -> BlockDecoder.bc3();
-            case BC4_UNORM -> BlockDecoder.bc4(false);
-            case BC4_SNORM -> BlockDecoder.bc4(true);
-            case BC5_UNORM -> BlockDecoder.bc5(false);
-            case BC5_SNORM -> BlockDecoder.bc5(true);
-            case BC6H_UFLOAT -> BlockDecoder.bc6h(false);
-            case BC6H_SFLOAT -> BlockDecoder.bc6h(true);
-            case BC7_UNORM, BC7_SRGB -> BlockDecoder.bc7();
-            default -> throw new UnsupportedOperationException("Not a compressed format: " + format);
-        };
-    }
-
-    private static TextureFormat formatFor(TextureFormat format) {
-        return switch (format) {
-            case BC1_UNORM, BC1A_UNORM,
-                 BC2_UNORM,
-                 BC3_UNORM,
-                 BC4_UNORM, BC4_SNORM,
-                 BC5_UNORM, BC5_SNORM,
-                 BC7_UNORM -> TextureFormat.B8G8R8A8_UNORM;
-            case BC1_SRGB,
-                 BC1A_SRGB,
-                 BC2_SRGB,
-                 BC3_SRGB,
-                 BC7_SRGB -> TextureFormat.B8G8R8A8_SRGB;
-            case BC6H_UFLOAT, BC6H_SFLOAT -> TextureFormat.R16G16B16_SFLOAT;
-            default -> throw new UnsupportedOperationException("Not a compressed format: " + format);
+            default -> throw new UnsupportedOperationException("No unpacker for: " + source.format());
         };
     }
 
@@ -318,5 +271,96 @@ interface TileUnpacker {
 
     private static float decode(byte b, boolean srgb) {
         return srgb ? Srgb.srgbByteToLinear(b) : FloatMath.unpackUNorm8(b);
+    }
+
+    final class Compressed implements TileUnpacker {
+        private static final int BYTES_PER_PIXEL = 4 * Float.BYTES;
+        private static final int BLOCK_HEIGHT = 4;
+        private static final int MAX_SCRATCH_SIZE = 64 * 1024;
+
+        private final ThreadLocal<Decoder> decoders;
+        private final Surface source;
+
+        Compressed(Surface source, int tileSize) {
+            this(source, tileSize, MAX_SCRATCH_SIZE);
+        }
+
+        Compressed(Surface source, int tileSize, int maxScratchSize) {
+            var factory = decoderFactory(source.format());
+            var maxWidth = Math.min(tileSize, source.width());
+            var maxHeight = Math.min(tileSize, source.height());
+            var bandHeight = Math.min(maxHeight, bandHeight(maxWidth, maxScratchSize));
+            this.decoders = ThreadLocal.withInitial(() -> new Decoder(factory.get(), source, maxWidth, bandHeight));
+            this.source = source;
+        }
+
+        private static int bandHeight(int width, int maxScratchSize) {
+            var rows = maxScratchSize / (width * BYTES_PER_PIXEL);
+            return rows < BLOCK_HEIGHT
+                ? Math.max(rows, 1)
+                : rows - rows % BLOCK_HEIGHT;
+        }
+
+        private static Supplier<BlockDecoder> decoderFactory(TextureFormat format) {
+            return switch (format) {
+                case BC1_UNORM, BC1_SRGB -> () -> BlockDecoder.bc1Float(true);
+                case BC1A_UNORM, BC1A_SRGB -> () -> BlockDecoder.bc1Float(false);
+                case BC2_UNORM, BC2_SRGB -> BlockDecoder::bc2Float;
+                case BC3_UNORM, BC3_SRGB -> BlockDecoder::bc3Float;
+                case BC4_UNORM -> () -> BlockDecoder.bc4Float(false);
+                case BC4_SNORM -> () -> BlockDecoder.bc4Float(true);
+                case BC5_UNORM -> () -> BlockDecoder.bc5Float(false);
+                case BC5_SNORM -> () -> BlockDecoder.bc5Float(true);
+                case BC6H_UFLOAT -> () -> BlockDecoder.bc6hFloat(false);
+                case BC6H_SFLOAT -> () -> BlockDecoder.bc6hFloat(true);
+                case BC7_UNORM, BC7_SRGB -> BlockDecoder::bc7Float;
+                default -> throw new UnsupportedOperationException("Not a compressed format: " + format);
+            };
+        }
+
+        @Override
+        public void unpack(Context ctx, float[] dst) {
+            decoders.get().decode(source, ctx, dst);
+            if (source.format().isSrgb()) {
+                for (var i = 0; i < ctx.pixelCount() * 4; i += 4) {
+                    dst[i/**/] = Srgb.srgbToLinear(dst[i/**/]);
+                    dst[i + 1] = Srgb.srgbToLinear(dst[i + 1]);
+                    dst[i + 2] = Srgb.srgbToLinear(dst[i + 2]);
+                    // alpha is always linear
+                }
+            }
+        }
+    }
+
+    final class Decoder {
+        private final BlockDecoder decoder;
+        private final ByteBuffer scratch;
+        private final ByteBuffer src;
+        private final int bandHeight;
+
+        Decoder(BlockDecoder decoder, Surface source, int maxWidth, int bandHeight) {
+            this.decoder = decoder;
+            this.scratch = ByteBuffer
+                .allocate(maxWidth * bandHeight * Compressed.BYTES_PER_PIXEL)
+                .order(ByteOrder.LITTLE_ENDIAN);
+            this.src = source.data() instanceof Bytes.Mutable mutable
+                ? mutable.asMutableBuffer()
+                : source.data().asBuffer();
+            this.bandHeight = bandHeight;
+        }
+
+        void decode(Surface source, Context ctx, float[] dst) {
+            src.position(source.sliceOffset(ctx.z));
+            for (var row = 0; row < ctx.height; row += bandHeight) {
+                var rows = Math.min(bandHeight, ctx.height - row);
+                decoder.decode(
+                    src, source.width(), source.height(),
+                    scratch, ctx.width, rows,
+                    ctx.x, ctx.y + row, 0, 0,
+                    ctx.width, rows
+                );
+                scratch.asFloatBuffer().get(0, dst, row * ctx.width * 4, rows * ctx.width * 4);
+            }
+        }
     }
 }

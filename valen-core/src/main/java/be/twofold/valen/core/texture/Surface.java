@@ -31,6 +31,11 @@ public record Surface(
         return ((z * height + y) * width + x) * format.blockSize();
     }
 
+    public int sliceOffset(int slice) {
+        Check.index(slice, depth);
+        return format.surfaceSize(width, height, slice);
+    }
+
     public Texture toTexture() {
         TextureKind kind = depth > 1 ? TextureKind.TEXTURE_3D : TextureKind.TEXTURE_2D;
         return new Texture(format, kind, width, height, depth, List.of(this), UnaryOperator.identity());
