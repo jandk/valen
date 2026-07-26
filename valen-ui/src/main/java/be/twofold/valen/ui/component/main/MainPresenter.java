@@ -154,7 +154,7 @@ public final class MainPresenter extends AbstractPresenter<MainView> implements 
             }
             getView().displayPreview(preview);
             getView().setPreviewLoading(false);
-        } catch (IOException e) {
+        } catch (Exception e) {
             if (isStale(seq)) {
                 return;
             }
