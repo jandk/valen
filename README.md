@@ -32,10 +32,15 @@ Right now, most of what is needed for general game support is available.
     * Skeletons: GLTF nodes, and automatically exported when the model is animated
     * Animations: GLTF exported separately, including the skeleton so they can be merged in Blender
     * Raw files: Exported as is
-* Previews for the following types
-    * Textures: Channel selection, with auto-detection of non-premultiplied alpha
+* Previews, shown side by side as Preview, Metadata and Raw tabs
+  * Textures: Channel selection, mip and slice selection, with auto-detection of non-premultiplied alpha
     * Models: 3d preview with albedo applied
+  * Metadata: Asset metadata as a tree
   * Raw files: Binary as hex, auto-analyzed to text, with support for huge files
+
+## Building
+
+Requires JDK 25. Build with `./mvnw package`.
 
 ## Why
 
@@ -76,8 +81,11 @@ absence of any existing libraries, so there are a few custom implementations in 
     * That, and it's written in Java itself, so there's no loss here, and I have more control
 * GLTF exporter — Unlike dotnet, there's only a very confusing library available for GLTF the last time I checked,
   needs to be spun off into its own project as well
-* CAST exporter — There wasn't any available for Java yet, so I made one. Planning on releasing it separately if I get
-  around to fixing the codegen. Still needs validation etc.
+* CAST exporter — There wasn't any available for Java yet, so I made one, since spun off into
+  [tinycast](https://github.com/jandk/tinycast).
+* reversed-toolbox — Buffers, binary IO, hashing and compression, built here under `lib/`. Developed together with
+  ([@ShadelessFox](https://github.com/ShadelessFox)), and lives at
+  [reversed-toolbox](https://github.com/reversed-wtf/reversed-toolbox)
 * There are some others planned...
 
 ## Todo
