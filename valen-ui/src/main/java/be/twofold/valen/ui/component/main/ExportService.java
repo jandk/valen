@@ -72,9 +72,13 @@ final class ExportService extends Service<Void> {
         Check.nonNull(this.assets, "assets");
 
         ExportTask exportTask = new ExportTask();
-        exportTask.setOnFailed(event -> Platform.runLater(() -> {
-            FxUtils.showExceptionDialog(event.getSource().getException(), "Exception while exporting assets");
-        }));
+        exportTask.setOnFailed(event -> {
+            // Explicitly log the exception, so it reaches the log file.
+            log.error("Export failed", event.getSource().getException());
+            Platform.runLater(() -> {
+                FxUtils.showExceptionDialog(event.getSource().getException(), "Exception while exporting assets");
+            });
+        });
         return exportTask;
     }
 

@@ -1,7 +1,8 @@
 package be.twofold.valen.ui.component;
 
+import be.twofold.valen.core.util.*;
 import be.twofold.valen.ui.*;
-import javafx.application.*;
+import javafx.application.Platform;
 import javafx.scene.control.*;
 import javafx.scene.image.*;
 import javafx.scene.layout.*;
@@ -53,9 +54,14 @@ public final class FxUtils {
 
             VBox.setVgrow(textArea, Priority.ALWAYS);
 
+            // Show log directory
+            var logHint = new Label("Full logs: " + AppDirectories.logs());
+            logHint.setStyle("-fx-font-size: 0.9em; -fx-text-fill: gray;");
+
             var content = new VBox();
             content.getChildren().add(label);
             content.getChildren().add(textArea);
+            content.getChildren().add(logHint);
 
             // Set expandable stacktrace into the dialog pane.
             alert.getDialogPane().setExpandableContent(content);
