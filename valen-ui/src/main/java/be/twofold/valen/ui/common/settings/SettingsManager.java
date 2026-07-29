@@ -32,7 +32,11 @@ public final class SettingsManager {
         }
 
         try {
-            return Optional.of(GSON.fromJson(Files.readString(path), Settings.class));
+            return Optional.ofNullable(GSON.fromJson(Files.readString(path), Settings.class))
+                .map(settings -> {
+                    settings.normalize();
+                    return settings;
+                });
         } catch (IOException | JsonParseException e) {
             return Optional.empty();
         }
