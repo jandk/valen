@@ -11,9 +11,11 @@ import javafx.application.*;
 import javafx.concurrent.*;
 import javafx.scene.*;
 import javafx.stage.*;
+import org.jetbrains.annotations.*;
 import org.slf4j.*;
 import wtf.reversed.toolbox.util.*;
 
+import java.io.*;
 import java.nio.file.*;
 import java.util.*;
 import java.util.stream.*;
@@ -93,16 +95,19 @@ final class ExportService extends Service<Void> {
                 stage.show();
             });
 
-            for (int i = 0; i < assets.size(); i++) {
-                updateProgress(i, assets.size());
-                exportAsset(assets.get(i));
-                if (isCancelled()) {
-                    break;
+            try {
+                for (int i = 0; i < assets.size(); i++) {
+                    updateProgress(i, assets.size());
+                    exportAsset(assets.get(i));
+                    if (isCancelled()) {
+                        break;
+                    }
                 }
+                updateProgress(assets.size(), assets.size());
+            } finally {
+                // We always need to hide the dialog
+                Platform.runLater(stage::hide);
             }
-            updateProgress(assets.size(), assets.size());
-
-            Platform.runLater(stage::hide);
 
             if (!failedAssets.isEmpty()) {
                 String text = failedAssets.stream()
@@ -116,6 +121,7 @@ final class ExportService extends Service<Void> {
         private <T> void exportAsset(Asset asset) {
             updateMessage("Exporting " + asset.id().fullName());
 
+            Path targetPath = null;
             try {
                 var type = settings.isTreatAsRaw() ? AssetType.RAW : asset.type();
 
@@ -123,7 +129,7 @@ final class ExportService extends Service<Void> {
                 exporter.setProperty("reconstructZ", settings.isReconstructZ());
                 exporter.setProperty("gltf.mode", settings.getModelExporter());
 
-                var targetPath = findTargetPath(exporter, asset);
+                targetPath = findTargetPath(exporter, asset);
                 if (Files.exists(targetPath)) {
                     return;
                 }
@@ -135,6 +141,19 @@ final class ExportService extends Service<Void> {
             } catch (Exception e) {
                 log.warn("Failed exporting asset", e);
                 failedAssets.add(asset.id());
+                discardPartialExport(targetPath);
+            }
+        }
+
+        // In case we fail, remove the file, so the next run writes it again
+        private void discardPartialExport(@Nullable Path targetPath) {
+            if (targetPath == null) {
+                return;
+            }
+            try {
+                Files.deleteIfExists(targetPath);
+            } catch (IOException e) {
+                log.warn("Could not delete partial export {}", targetPath, e);
             }
         }
 
