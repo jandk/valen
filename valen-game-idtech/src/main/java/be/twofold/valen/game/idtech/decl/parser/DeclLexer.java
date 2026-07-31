@@ -1,5 +1,6 @@
 package be.twofold.valen.game.idtech.decl.parser;
 
+import be.twofold.valen.core.util.*;
 import wtf.reversed.toolbox.util.*;
 
 public final class DeclLexer {
@@ -70,10 +71,10 @@ public final class DeclLexer {
             case '"':
                 return new DeclToken(DeclTokenType.String, parseString());
             default:
-                if (isAlpha(ch) || ch == '_' || ch == '#') {
+                if (ASCII.isAlpha(ch) || ch == '_' || ch == '#') {
                     return new DeclToken(DeclTokenType.Name, parseName());
                 }
-                if (isDigit(ch) || ch == '-' || ch == '.') {
+                if (ASCII.isDigit(ch) || ch == '-' || ch == '.') {
                     return new DeclToken(DeclTokenType.Number, parseNumber());
                 }
         }
@@ -132,7 +133,7 @@ public final class DeclLexer {
         }
         if (peek() == '0' && index + 1 < source.length() && (peekNext() == 'x' || peekNext() == 'X')) {
             skip(2);
-            while (isHexDigit(peek())) {
+            while (ASCII.isXDigit(peek())) {
                 skip();
             }
             return source.substring(start, index).replace(" ", "");
@@ -157,7 +158,7 @@ public final class DeclLexer {
     }
 
     private void digits() {
-        while (isDigit(peek())) {
+        while (ASCII.isDigit(peek())) {
             skip();
         }
     }
@@ -213,20 +214,8 @@ public final class DeclLexer {
 
     // Predicates
 
-    private boolean isAlpha(char ch) {
-        return (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z');
-    }
-
-    private boolean isDigit(char ch) {
-        return (ch >= '0' && ch <= '9');
-    }
-
-    private boolean isHexDigit(char ch) {
-        return isDigit(ch) || (ch >= 'a' && ch <= 'f') || (ch >= 'A' && ch <= 'F');
-    }
-
     private boolean isIdentifier(char ch) {
-        return isAlpha(ch) || isDigit(ch) || ch == '_' || ch == '#' ||
+        return ASCII.isAlNum(ch) || ch == '_' || ch == '#' ||
             lenient && (ch == '.' || ch == '/' || ch == ':' || ch == '\\');
     }
 
