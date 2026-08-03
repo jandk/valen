@@ -75,7 +75,8 @@ public abstract class AbstractMaterialReader<K extends AssetID, V extends Asset>
         )
     );
 
-    private static final Map<String, RenderParm> RenderParmCache = new HashMap<>();
+    private final Map<String, RenderParm> renderParmCache = Collections.synchronizedMap(new HashMap<>());
+
     private final Logger log;
 
     private final boolean idTech8;
@@ -113,7 +114,7 @@ public abstract class AbstractMaterialReader<K extends AssetID, V extends Asset>
 
         var allParms = Stream.of(renderLayerParms, standardParms)
             .flatMap(Collection::stream)
-            .collect(Collectors.toUnmodifiableMap(Parm::name, Function.identity(), (first, second) -> second));
+            .collect(Collectors.toUnmodifiableMap(Parm::name, Function.identity(), (_, second) -> second));
 
         var albedo = mapSimpleTexture(allParms, MaterialPropertyType.Albedo, context);
         var normal = mapSimpleTexture(allParms, MaterialPropertyType.Normal, context);
@@ -334,19 +335,19 @@ public abstract class AbstractMaterialReader<K extends AssetID, V extends Asset>
 
     private Optional<RenderParm> getRenderParm(String name, LoadingContext context) throws IOException {
         name = name.toLowerCase();
-        if (RenderParmCache.containsKey(name)) {
-            return Optional.ofNullable(RenderParmCache.get(name));
+        if (renderParmCache.containsKey(name)) {
+            return Optional.ofNullable(renderParmCache.get(name));
         }
 
         var renderParmAsset = renderParmAssetID(name);
         if (!context.exists(renderParmAsset)) {
-            RenderParmCache.put(name, null);
+            renderParmCache.put(name, null);
             log.warn("Could not load renderparm: '{}'", name);
             return Optional.empty();
         }
 
         var renderParm = context.load(renderParmAsset, RenderParm.class);
-        RenderParmCache.put(name, renderParm);
+        renderParmCache.put(name, renderParm);
         return Optional.of(renderParm);
     }
 
