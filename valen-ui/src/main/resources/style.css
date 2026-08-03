@@ -69,3 +69,23 @@
     -fx-font-size: 1em;
     -fx-wrap-text: true;
 }
+
+.code-area {
+    -fx-background-color: -fx-control-inner-background;
+    -fx-background-insets: 0;
+    -fx-background-radius: 0;
+}
+
+.code-area:focused {
+    -fx-background-color: -fx-control-inner-background;
+    -fx-background-insets: 0;
+    -fx-background-radius: 0;
+}
+
+.rich-text-area .caret {
+    -fx-stroke: -fx-light-text-color;
+}
+
+.find-error {
+    -fx-text-fill: rgb(230, 100, 100);
+}

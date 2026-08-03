@@ -25,20 +25,23 @@ public final class RawPresenter extends AbstractPresenter<RawView> implements Vi
     }
 
     @Override
+    public Object decode(Object data) {
+        if (!(data instanceof Bytes bytes)) {
+            return null;
+        }
+
+        return binaryToText.binaryToText(bytes)
+            .<RawPayload>map(RawPayload.Text::new)
+            .orElseGet(() -> new RawPayload.Binary(bytes));
+    }
+
+    @Override
     public void display(Object data) {
-        if (data == null) {
+        if (!(data instanceof RawPayload payload)) {
             getView().clear();
             return;
         }
-        if (!(data instanceof Bytes bytes)) {
-            throw new UnsupportedOperationException("Unsupported data type: " + data.getClass());
-        }
 
-        binaryToText
-            .binaryToText(bytes)
-            .ifPresentOrElse(
-                text -> getView().setText(text),
-                () -> getView().setBinary(bytes)
-            );
+        getView().setContent(payload);
     }
 }
