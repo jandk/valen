@@ -34,7 +34,8 @@ public final class Md6MeshReader implements AssetReader.Binary<Model, GreatCircl
         }
         var skeletonKey = GreatCircleAssetID.from(model.header().skeletonName(), ResourceType.skeleton);
         var skeleton = context.load(skeletonKey, Skeleton.class);
-        var meshes = new ArrayList<>(readMeshes(model, asset.hash(), context));
+        var boneCount = skeleton == null ? 0 : skeleton.bones().size();
+        var meshes = new ArrayList<>(readMeshes(model, asset.hash(), boneCount, context));
 
         if (readMaterials) {
             Materials.apply(context, meshes, model.meshInfos(), Md6MeshInfo::materialName, Md6MeshInfo::meshName);
@@ -50,9 +51,9 @@ public final class Md6MeshReader implements AssetReader.Binary<Model, GreatCircl
         }
     }
 
-    private List<Mesh> readMeshes(Md6Mesh md6, long hash, LoadingContext context) throws IOException {
+    private List<Mesh> readMeshes(Md6Mesh md6, long hash, int boneCount, LoadingContext context) throws IOException {
         var meshes = readStreamedGeometry(md6, 0, hash, context);
-        fixJointIndices(md6, meshes);
+        fixJointIndices(md6, meshes, boneCount);
         return meshes;
     }
 
@@ -86,7 +87,7 @@ public final class Md6MeshReader implements AssetReader.Binary<Model, GreatCircl
         }
     }
 
-    private void fixJointIndices(Md6Mesh md6, List<Mesh> meshes) {
+    private void fixJointIndices(Md6Mesh md6, List<Mesh> meshes, int boneCount) {
         var jointRemap = md6.boneInfo().jointRemap();
 
         // This lookup table is in reverse... Nice
@@ -98,14 +99,16 @@ public final class Md6MeshReader implements AssetReader.Binary<Model, GreatCircl
         for (var i = 0; i < meshes.size(); i++) {
             var meshInfo = md6.meshInfos().get(i);
 
-            // Rigidly attached meshes carry vertex paint instead of joints
             var joints = meshes.get(i).joints().map(Shorts.Mutable.class::cast).orElse(null);
             if (joints == null) {
                 continue;
             }
 
             for (var j = 0; j < joints.length(); j++) {
-                joints.set(j, lookup[joints.getUnsigned(j) + meshInfo.unknown2()]);
+                var index = joints.getUnsigned(j) + meshInfo.unknown2();
+                // abgal_wear_base made me do this
+                var joint = index < lookup.length ? lookup[index] : 0;
+                joints.set(j, boneCount == 0 || joint < boneCount ? joint : 0);
             }
         }
     }

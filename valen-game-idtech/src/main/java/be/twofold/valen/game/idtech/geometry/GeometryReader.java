@@ -28,7 +28,12 @@ public final class GeometryReader {
         offset += stride * (lodInfo.numVertices() - 1);
         builder.indices(offset, Short.BYTES, AttributeReader.readShortAsInts());
 
-        return new MeshReader(true).readMesh(source, builder.build());
+        // Accessor offsets are absolute, and embedded geometry starts wherever the header left
+        // off, so hand the reader a slice that begins at the vertex data.
+        var length = offset + lodInfo.numFaces() * 3L * Short.BYTES;
+        var mesh = new MeshReader(true).readMesh(source.slice(source.position(), length), builder.build());
+        source.skip(length);
+        return mesh;
     }
 
     public static List<Mesh> readStreamedMesh(
@@ -53,8 +58,7 @@ public final class GeometryReader {
 
                 var offsets = offsetsByLayout.get(layout.combinedVertexMask());
                 var builder = MeshFormat.builder(lodInfo.numFaces() * 3, lodInfo.numVertices());
-                var skinningMode = animated && (lodInfo.vertexMask() & GeometryVertexMask.LIGHTMAP_UV.mask()) == 0
-                    ? SkinningMode.Fixed4 : SkinningMode.None;
+                var skinningMode = animated ? SkinningMode.Fixed4 : SkinningMode.None;
                 for (var v = 0; v < layout.numVertexStreams(); v++) {
                     var mask = GeometryVertexMask.from(layout.vertexMasks().get(v));
                     buildAccessors(offsets.vertexOffsets[v], mask.size(), mask, lodInfo, skinningMode, builder);
@@ -141,14 +145,18 @@ public final class GeometryReader {
                     }
                 };
             }
-            case MATERIAL_UV, MATERIAL_UV1, LIGHTMAP_UV, MATERIAL_UV2 ->
+            case MATERIAL_UV, MATERIAL_UV1, MATERIAL_UV2 ->
                 builder.addTexCoords(offset, stride, AttributeReader.readVector2(lodInfo.uvScale(), lodInfo.uvOffset()));
+            case LIGHTMAP_UV -> skinningMode == SkinningMode.None
+                ? builder.addTexCoords(offset, stride, AttributeReader.readVector2(lodInfo.uvScale(), lodInfo.uvOffset()))
+                : builder;
             case MATERIAL_UV_SHORT, MATERIAL_UV1_SHORT, LIGHTMAP_UV_SHORT, MATERIAL_UV2_SHORT ->
                 builder.addTexCoords(offset, stride, IdTechGeoReader.readPackedUV(lodInfo.uvScale(), lodInfo.uvOffset()));
             case COLOR -> switch (skinningMode) {
                 case Fixed4 -> builder.joints(offset, stride, 4, AttributeReader.copyBytesAsShorts(4));
                 default -> builder.addColors(offset, stride, AttributeReader.copyBytes(4));
             };
+            case MATERIALS -> builder;
             case SKINNING_1 -> switch (skinningMode) {
                 case None -> builder;
                 default -> builder.weights(offset, stride, 1, (_, dst, offset0) -> dst.set(offset0, 1.0f));

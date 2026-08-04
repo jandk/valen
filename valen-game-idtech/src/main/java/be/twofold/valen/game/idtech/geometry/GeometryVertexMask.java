@@ -15,6 +15,7 @@ public enum GeometryVertexMask {
     MATERIAL_UV1_SHORT(0x20000000, 4),
     MATERIAL_UV2_SHORT(0x40000000, 4),
     COLOR(0x08, 4),
+    MATERIALS(0x010000, 8),
     // TODO: Check these
     SKINNING_8(0x80, 12),
     SKINNING_1(0x01000000, 0),
@@ -22,6 +23,9 @@ public enum GeometryVertexMask {
     SKINNING_6(0x04000000, 8),
     ;
 
+    /**
+     * The order attributes are interleaved in.
+     */
     public static final List<GeometryVertexMask> FixedOrder = List.of(
         POSITION_SHORT,
         POSITION,
@@ -30,7 +34,8 @@ public enum GeometryVertexMask {
         NORMAL_TANGENT,
         COLOR,
         MATERIAL_UV_SHORT,
-        MATERIAL_UV
+        MATERIAL_UV,
+        MATERIALS
     );
 
     private final int mask;
