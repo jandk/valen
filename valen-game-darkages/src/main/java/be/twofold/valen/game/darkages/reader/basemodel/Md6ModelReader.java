@@ -14,7 +14,7 @@ import java.io.*;
 import java.util.*;
 
 public final class Md6ModelReader implements AssetReader.Binary<Model, DarkAgesAsset> {
-    private static final int PACKED_WEIGHTS = 4;
+    private final int PACKED_WEIGHTS = 4;
 
     private final boolean readMaterials;
 
@@ -63,15 +63,15 @@ public final class Md6ModelReader implements AssetReader.Binary<Model, DarkAgesA
         try (var source = BinarySource.wrap(bytes)) {
             var meshes = GeometryReader.readStreamedMesh(source, lodInfos, true);
             meshes = meshes.stream()
-                .map(Md6ModelReader::mergeJointsAndWeights)
-                .map(Md6ModelReader::trimUnusedInfluences)
+                .map(this::mergeJointsAndWeights)
+                .map(this::trimUnusedInfluences)
                 .toList();
             fixJointIndices(md6Model, meshes);
             return meshes;
         }
     }
 
-    private static Mesh mergeJointsAndWeights(Mesh mesh) {
+    private Mesh mergeJointsAndWeights(Mesh mesh) {
         var joints = mesh.joints().orElse(null);
         if (joints == null || mesh.vertexCount() == 0) {
             return mesh;
@@ -95,7 +95,7 @@ public final class Md6ModelReader implements AssetReader.Binary<Model, DarkAgesA
             .build();
     }
 
-    private static Floats mergeWeights(Mesh mesh, int influence, Floats extra, Floats packed) {
+    private Floats mergeWeights(Mesh mesh, int influence, Floats extra, Floats packed) {
         var weights = Floats.Mutable.allocate(mesh.vertexCount() * influence);
 
         var packedPerVertex = GeometryReader.packedWeightCount(influence);
@@ -121,7 +121,7 @@ public final class Md6ModelReader implements AssetReader.Binary<Model, DarkAgesA
         return weights;
     }
 
-    private static Mesh trimUnusedInfluences(Mesh mesh) {
+    private Mesh trimUnusedInfluences(Mesh mesh) {
         var joints = mesh.joints().orElse(null);
         var weights = mesh.weights().orElse(null);
         if (joints == null || weights == null || mesh.vertexCount() == 0) {
@@ -158,9 +158,7 @@ public final class Md6ModelReader implements AssetReader.Binary<Model, DarkAgesA
     }
 
     private void fixJointIndices(Md6Model md6, List<Mesh> meshes) {
-        var skinnedJoints = md6.header().skinnedJoints();
-        var extraJoints = md6.header().extraJoints();
-        var skinnedJointsLen8 = (skinnedJoints.length() + 7) & ~7;
+        var joints = resolveJoints(md6.header());
 
         for (var i = 0; i < meshes.size(); i++) {
             var meshInfo = md6.meshInfos().get(i);
@@ -168,12 +166,26 @@ public final class Md6ModelReader implements AssetReader.Binary<Model, DarkAgesA
             var shorts = meshes.get(i).joints().map(Shorts.Mutable.class::cast).orElseThrow();
 
             for (var j = 0; j < shorts.length(); j++) {
-                var index = shorts.getUnsigned(j) + offset;
-                while (index >= skinnedJointsLen8) {
-                    index = extraJoints.getUnsigned(index - skinnedJointsLen8);
-                }
-                shorts.set(j, skinnedJoints.get(index));
+                shorts.set(j, joints[shorts.getUnsigned(j) + offset]);
             }
         }
+    }
+
+    /**
+     * Build a chain of joints from the skinned joints and extra joints.
+     */
+    private short[] resolveJoints(Md6ModelHeader header) {
+        var skinnedJoints = header.skinnedJoints();
+        var extraJoints = header.extraJoints();
+        var skinnedJointsLen8 = skinnedJoints.length() + 7 & ~7;
+
+        var resolved = new short[skinnedJointsLen8 + extraJoints.length()];
+        for (var i = 0; i < skinnedJoints.length(); i++) {
+            resolved[i] = skinnedJoints.get(i);
+        }
+        for (var i = 0; i < extraJoints.length(); i++) {
+            resolved[skinnedJointsLen8 + i] = resolved[extraJoints.getUnsigned(i)];
+        }
+        return resolved;
     }
 }
