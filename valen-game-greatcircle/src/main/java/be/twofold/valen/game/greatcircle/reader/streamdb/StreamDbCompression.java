@@ -36,6 +36,24 @@ public enum StreamDbCompression implements ValueEnum<Integer> {
         return ValueEnum.fromValue(StreamDbCompression.class, source.readInt());
     }
 
+    public boolean compressed() {
+        return switch (this) {
+            case STREAMER_COMPRESSION_KRAKEN_IMAGE,
+                 STREAMER_COMPRESSION_KRAKEN_MODEL,
+                 STREAMER_COMPRESSION_KRAKEN_TRIANGLEFAN,
+                 STREAMER_COMPRESSION_KRAKEN_DIRECT,
+                 STREAMER_COMPRESSION_KRAKEN_STAGE,
+                 STREAMER_COMPRESSION_KRAKEN_PROGRAM -> true;
+            case STREAMER_COMPRESSION_NONE_IMAGE,
+                 STREAMER_COMPRESSION_NONE_MODEL,
+                 STREAMER_COMPRESSION_NONE_TRIANGLEFAN,
+                 STREAMER_COMPRESSION_NONE_DIRECT,
+                 STREAMER_COMPRESSION_NONE_STAGE,
+                 STREAMER_COMPRESSION_RESOURCE_IMAGE -> false;
+            default -> throw new UnsupportedOperationException("Unsupported compression: " + this);
+        };
+    }
+
     @Override
     public Integer value() {
         return value;
