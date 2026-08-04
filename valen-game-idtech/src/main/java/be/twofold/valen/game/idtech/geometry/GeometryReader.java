@@ -8,6 +8,7 @@ import java.util.*;
 import java.util.stream.*;
 
 public final class GeometryReader {
+
     public static Mesh readEmbeddedMesh(BinarySource source, LodInfo lodInfo) {
         var masks = GeometryVertexMask.FixedOrder.stream()
             .filter(mask -> (lodInfo.vertexMask() & mask.mask()) == mask.mask())
@@ -52,7 +53,8 @@ public final class GeometryReader {
 
                 var offsets = offsetsByLayout.get(layout.combinedVertexMask());
                 var builder = MeshFormat.builder(lodInfo.numFaces() * 3, lodInfo.numVertices());
-                var skinningMode = animated ? SkinningMode.Fixed4 : SkinningMode.None;
+                var skinningMode = animated && (lodInfo.vertexMask() & GeometryVertexMask.LIGHTMAP_UV.mask()) == 0
+                    ? SkinningMode.Fixed4 : SkinningMode.None;
                 for (var v = 0; v < layout.numVertexStreams(); v++) {
                     var mask = GeometryVertexMask.from(layout.vertexMasks().get(v));
                     buildAccessors(offsets.vertexOffsets[v], mask.size(), mask, lodInfo, skinningMode, builder);

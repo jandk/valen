@@ -98,8 +98,12 @@ public final class Md6MeshReader implements AssetReader.Binary<Model, GreatCircl
         for (var i = 0; i < meshes.size(); i++) {
             var meshInfo = md6.meshInfos().get(i);
 
-            // Just assume it's a byte buffer, because we read it as such
-            var joints = meshes.get(i).joints().map(Shorts.Mutable.class::cast).orElseThrow();
+            // Rigidly attached meshes carry vertex paint instead of joints
+            var joints = meshes.get(i).joints().map(Shorts.Mutable.class::cast).orElse(null);
+            if (joints == null) {
+                continue;
+            }
+
             for (var j = 0; j < joints.length(); j++) {
                 joints.set(j, lookup[joints.getUnsigned(j) + meshInfo.unknown2()]);
             }
