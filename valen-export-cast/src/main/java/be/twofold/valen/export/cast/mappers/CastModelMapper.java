@@ -98,6 +98,6 @@ public final class CastModelMapper {
             absolutes.put(positions.get(index * 3 + 1) + relatives.get(o + 1));
             absolutes.put(positions.get(index * 3 + 2) + relatives.get(o + 2));
         }
-        return absolutes;
+        return absolutes.rewind();
     }
 }
