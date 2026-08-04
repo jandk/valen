@@ -11,7 +11,6 @@ import wtf.reversed.toolbox.collect.*;
 import wtf.reversed.toolbox.math.*;
 
 import java.io.*;
-import java.nio.*;
 import java.util.*;
 
 public abstract class GltfModelMapper {
@@ -66,10 +65,8 @@ public abstract class GltfModelMapper {
                     attributes.put("TANGENT", buildAccessor(buffer.array(), AccessorComponentType.FLOAT, AccessorType.VEC4, false));
                 case Semantic.TexCoord(int set) ->
                     attributes.put("TEXCOORD_" + set, buildAccessor(buffer.array(), AccessorComponentType.FLOAT, AccessorType.VEC2, false));
-                case Semantic.Joints ignored ->
-                    splitJoints((Shorts) buffer.array(), mesh.maxInfluence(), attributes);
-                case Semantic.Weights ignored ->
-                    splitWeights((Floats) buffer.array(), mesh.maxInfluence(), attributes);
+                case Semantic.Joints ignored -> splitJoints((Shorts) buffer.array(), mesh.maxInfluence(), attributes);
+                case Semantic.Weights ignored -> splitWeights((Floats) buffer.array(), mesh.maxInfluence(), attributes);
                 case Semantic.Custom(String name) -> {
                     var sanitizedName = "_" + name.toUpperCase(Locale.ROOT);
                     var componentType = mapComponentType(buffer.layout().componentType());
@@ -161,19 +158,19 @@ public abstract class GltfModelMapper {
     private List<Map<String, AccessorID>> buildMorphTargets(List<BlendShape> blendShapes, int count) throws IOException {
         var morphTargets = new ArrayList<Map<String, AccessorID>>();
         for (var blendShape : blendShapes) {
-            var indexBufferView = context.createBufferView(blendShape.indices(), null);
+            var indexBufferView = context.createBufferView(blendShape.indices().asBuffer(), null);
             var indices = ImmutableAccessorSparseIndices.builder()
                 .bufferView(indexBufferView)
                 .componentType(AccessorComponentType.UNSIGNED_SHORT)
                 .build();
 
-            var valuesBufferView = context.createBufferView(blendShape.values(), null);
+            var valuesBufferView = context.createBufferView(blendShape.values().asBuffer(), null);
             var values = ImmutableAccessorSparseValues.builder()
                 .bufferView(valuesBufferView)
                 .build();
 
             var accessorSparse = ImmutableAccessorSparse.builder()
-                .count(blendShape.indices().capacity())
+                .count(blendShape.indices().length())
                 .indices(indices)
                 .values(values)
                 .build();
@@ -215,7 +212,7 @@ public abstract class GltfModelMapper {
             .type(type);
 
         if (withBounds) {
-            Bounds bounds = calculateBounds(((Floats) slice).asBuffer());
+            Bounds bounds = calculateBounds((Floats) slice);
             builder
                 .min(GltfUtils.mapVector3(bounds.min()))
                 .max(GltfUtils.mapVector3(bounds.max()));
@@ -224,10 +221,14 @@ public abstract class GltfModelMapper {
         return context.addAccessor(builder.build());
     }
 
-    private Bounds calculateBounds(FloatBuffer buffer) {
+    private Bounds calculateBounds(Floats floats) {
+        if (floats.length() < 3) {
+            return Bounds.EMPTY;
+        }
+
         var builder = Bounds.builder();
-        for (int i = 0; i < buffer.remaining(); i += 3) {
-            builder.add(buffer.get(i), buffer.get(i + 1), buffer.get(i + 2));
+        for (var i = 0; i < floats.length(); i += 3) {
+            builder.add(floats.get(i), floats.get(i + 1), floats.get(i + 2));
         }
         return builder.build();
     }
