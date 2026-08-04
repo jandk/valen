@@ -90,9 +90,9 @@ public final class Md6MeshReader implements AssetReader.Binary<Model, GreatCircl
         var jointRemap = md6.boneInfo().jointRemap();
 
         // This lookup table is in reverse... Nice
-        var lookup = new byte[jointRemap.length()];
-        for (var i = 0; i < jointRemap.length(); i++) {
-            lookup[Short.toUnsignedInt(jointRemap.get(i))] = (byte) i;
+        var lookup = new short[jointRemap.length()];
+        for (short i = 0; i < jointRemap.length(); i++) {
+            lookup[jointRemap.getUnsigned(i)] = i;
         }
 
         for (var i = 0; i < meshes.size(); i++) {
