@@ -29,9 +29,6 @@ public final class Md6MeshReader implements AssetReader.Binary<Model, GreatCircl
     @Override
     public Model read(BinarySource source, GreatCircleAsset asset, LoadingContext context) throws IOException {
         var model = Md6Mesh.read(source);
-        if (model.header().skeletonName().equals("models/characters/abgal/abgal_wear_base.md6skl")) {
-            System.out.println("Fount it!");
-        }
         var skeletonKey = GreatCircleAssetID.from(model.header().skeletonName(), ResourceType.skeleton);
         var skeleton = context.load(skeletonKey, Skeleton.class);
         var boneCount = skeleton == null ? 0 : skeleton.bones().size();
