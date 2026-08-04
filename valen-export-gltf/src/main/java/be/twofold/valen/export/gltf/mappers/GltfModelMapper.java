@@ -42,7 +42,7 @@ public abstract class GltfModelMapper {
         var attributes = buildAttributes(mesh);
 
         var indices = buildAccessor(mesh.indices());
-        var morphTargets = buildMorphTargets(mesh.blendShapes(), mesh.faceCount());
+        var morphTargets = buildMorphTargets(mesh.blendShapes(), mesh.vertexCount());
 
         var meshPrimitive = ImmutableMeshPrimitive.builder()
             .attributes(attributes)
