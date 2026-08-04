@@ -31,7 +31,7 @@ public final class GeometryReader {
     }
 
     public static List<Mesh> readStreamedMesh(
-            BinarySource source,
+        BinarySource source,
         List<LodInfo> lods,
         List<? extends GeoMemoryLayout> layouts,
         boolean animated
@@ -70,7 +70,7 @@ public final class GeometryReader {
     }
 
     public static List<Mesh> readStreamedMesh(
-            BinarySource source,
+        BinarySource source,
         List<LodInfo> lods,
         boolean animated
     ) {
@@ -94,7 +94,7 @@ public final class GeometryReader {
             offset = (offset + lodOffset + 7) & ~7;
 
             meshes.add(new MeshReader(true)
-                    .readMesh(source, builder.build()));
+                .readMesh(source, builder.build()));
         }
 
         return meshes;
@@ -129,10 +129,14 @@ public final class GeometryReader {
                     .tangents(offset, stride, IdTechGeoReader.readPackedTangent());
                 yield switch (skinningMode) {
                     case None -> builder;
-                    case Fixed4, Skinning4 -> builder.weights(offset, stride, 4, IdTechGeoReader.readWeight4());
                     case Skinning1 -> builder.joints(offset, stride, 1, IdTechGeoReader.readBone1());
-                    case Skinning6 -> builder.weights(offset, stride, 4, IdTechGeoReader.readWeight6());
-                    case Skinning8 -> builder.weights(offset, stride, 4, IdTechGeoReader.readWeight8());
+                    case Fixed4 -> builder.weights(offset, stride, 4, IdTechGeoReader.readWeights(4));
+                    case Skinning4, Skinning6, Skinning8 -> {
+                        var influence = lodInfo.maxInfluence();
+                        yield packedWeightCount(influence) == 0
+                            ? builder
+                            : builder.weights(offset, stride, 4, IdTechGeoReader.readWeights(influence));
+                    }
                 };
             }
             case MATERIAL_UV, MATERIAL_UV1, LIGHTMAP_UV, MATERIAL_UV2 ->
@@ -147,14 +151,24 @@ public final class GeometryReader {
                 case None -> builder;
                 default -> builder.weights(offset, stride, 1, (_, dst, offset0) -> dst.set(offset0, 1.0f));
             };
-            case SKINNING_4 -> builder.joints(offset, stride, 4, AttributeReader.copyBytesAsShorts(4));
-            case SKINNING_6 -> builder
-                .joints(offset, stride, 6, AttributeReader.copyBytesAsShorts(6))
-                .custom("W", offset + 6, stride, 2, AttributeReader.copyBytesAsFloats(2), ComponentType.FLOAT, ElementType.SCALAR);
-            case SKINNING_8 -> builder
-                .joints(offset, stride, 8, AttributeReader.copyBytesAsShorts(8))
-                .custom("W", offset + 8, stride, 4, AttributeReader.copyBytesAsFloats(2), ComponentType.FLOAT, ElementType.SCALAR);
+            case SKINNING_4, SKINNING_6, SKINNING_8 -> {
+                var influence = lodInfo.maxInfluence();
+                var extra = extraWeightCount(influence);
+                builder.joints(offset, stride, influence, AttributeReader.copyBytesAsShorts(influence));
+                yield extra == 0 ? builder : builder.custom(
+                    "W", offset + influence, stride, extra,
+                    AttributeReader.copyBytesAsFloats(extra), ComponentType.FLOAT, ElementType.SCALAR);
+            }
         };
+    }
+
+    public static int packedWeightCount(int influence) {
+        return influence >= 4 && influence % 2 == 0 ? 3 : 0;
+    }
+
+    public static int extraWeightCount(int influence) {
+        var trailing = influence <= 2 ? 0 : (influence % 2 == 0 ? 3 : 1);
+        return Math.max(0, influence - 1 - trailing);
     }
 
     private static final class Offsets {

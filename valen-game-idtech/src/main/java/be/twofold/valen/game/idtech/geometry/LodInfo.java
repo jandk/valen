@@ -18,4 +18,8 @@ public interface LodInfo {
 
     float uvScale();
 
+    default int maxInfluence() {
+        return 4;
+    }
+
 }

@@ -14,6 +14,8 @@ import java.io.*;
 import java.util.*;
 
 public final class Md6ModelReader implements AssetReader.Binary<Model, DarkAgesAsset> {
+    private static final int PACKED_WEIGHTS = 4;
+
     private final boolean readMaterials;
 
     public Md6ModelReader(boolean readMaterials) {
@@ -59,79 +61,100 @@ public final class Md6ModelReader implements AssetReader.Binary<Model, DarkAgesA
         var bytes = context.open(new DarkAgesStreamLocation(identity, uncompressedSize));
 
         try (var source = BinarySource.wrap(bytes)) {
-            List<Mesh> meshes = GeometryReader.readStreamedMesh(source, lodInfos, true);
-            meshes = mergeJointsAndWeights(md6Model, meshes);
+            var meshes = GeometryReader.readStreamedMesh(source, lodInfos, true);
+            meshes = meshes.stream()
+                .map(Md6ModelReader::mergeJointsAndWeights)
+                .map(Md6ModelReader::trimUnusedInfluences)
+                .toList();
             fixJointIndices(md6Model, meshes);
             return meshes;
         }
     }
 
-    private ArrayList<Mesh> mergeJointsAndWeights(Md6Model md6, List<Mesh> meshes) {
-        var newMeshes = new ArrayList<Mesh>();
-        for (int m = 0; m < meshes.size(); m++) {
-            int realInfluence = md6.meshInfos().get(m).lodInfos().getFirst().influence();
-            newMeshes.add(mergeJointsAndWeights(meshes.get(m), realInfluence));
-        }
-        return newMeshes;
-    }
-
-    private static Mesh mergeJointsAndWeights(Mesh mesh, int realInfluence) {
-        if (realInfluence == 1) {
+    private static Mesh mergeJointsAndWeights(Mesh mesh) {
+        var joints = mesh.joints().orElse(null);
+        if (joints == null || mesh.vertexCount() == 0) {
             return mesh;
         }
 
-        var first = mesh.custom().get("W");
-        var influence = (first == null ? 0 : first.length()) + 4;
+        // A single influence is always a full weight, with nothing to merge
+        var influence = joints.length() / mesh.vertexCount();
+        if (influence <= 1) {
+            return mesh;
+        }
 
-        var joints = compactJoints(mesh, influence, realInfluence);
+        var extra = mesh.custom().get("W");
         var weights = mergeWeights(
-            mesh, influence, realInfluence,
-            first != null ? (Floats) first.array() : Floats.empty(),
-            mesh.weights().orElseThrow()
+            mesh, influence,
+            extra != null ? (Floats) extra.array() : Floats.empty(),
+            mesh.weights().orElse(Floats.empty())
         );
 
         return mesh.toBuilder()
-            .joints(joints)
             .weights(weights)
             .build();
     }
 
-    private static Floats mergeWeights(Mesh mesh, int influence, int realInfluence, Floats buffer1, Floats buffer2) {
-        var weights = Floats.Mutable.allocate(mesh.vertexCount() * realInfluence);
+    private static Floats mergeWeights(Mesh mesh, int influence, Floats extra, Floats packed) {
+        var weights = Floats.Mutable.allocate(mesh.vertexCount() * influence);
 
-        var localInfluence = new float[realInfluence];
-        for (int c = 0, i1 = 0, i2 = 0, o = 0; c < mesh.vertexCount(); c++) {
-            for (int i = 1; i < influence - 3; i++) {
-                localInfluence[i] = buffer1.get(i2++);
+        var packedPerVertex = GeometryReader.packedWeightCount(influence);
+        var extraPerVertex = GeometryReader.extraWeightCount(influence);
+        var localInfluence = new float[influence];
+
+        for (var c = 0; c < mesh.vertexCount(); c++) {
+            for (var i = 0; i < extraPerVertex; i++) {
+                localInfluence[1 + i] = extra.get(c * extraPerVertex + i);
             }
-            i1++; // skip calculated weight
-            for (int i = influence - 3; i < realInfluence; i++) {
-                localInfluence[i] = buffer2.get(i1++);
+            for (var i = 0; i < packedPerVertex; i++) {
+                localInfluence[1 + extraPerVertex + i] = packed.get(c * PACKED_WEIGHTS + 1 + i);
             }
-            float weight = 1.0f;
-            for (int i = 1; i < realInfluence; i++) {
+
+            var weight = 1.0f;
+            for (var i = 1; i < influence; i++) {
                 weight -= localInfluence[i];
             }
             localInfluence[0] = weight;
 
-            weights.slice(o).copyFrom(localInfluence);
-            o += localInfluence.length;
+            weights.slice(c * influence).copyFrom(localInfluence);
         }
         return weights;
     }
 
-    private static Shorts.Mutable compactJoints(Mesh mesh, int influence, int realInfluence) {
-        var joints = (Shorts.Mutable) mesh.joints().orElseThrow();
-        if (influence == realInfluence) {
-            return joints;
+    private static Mesh trimUnusedInfluences(Mesh mesh) {
+        var joints = mesh.joints().orElse(null);
+        var weights = mesh.weights().orElse(null);
+        if (joints == null || weights == null || mesh.vertexCount() == 0) {
+            return mesh;
         }
 
-        for (int i = 0, o = 0, lim = joints.length(); i < lim; i += influence, o += realInfluence) {
-            for (int j = 0; j < realInfluence; j++) {
-                joints.set(o + j, joints.get(i + j));
+        var influence = weights.length() / mesh.vertexCount();
+        var used = 1;
+        for (var c = 0; c < mesh.vertexCount() && used < influence; c++) {
+            for (var i = influence - 1; i >= used; i--) {
+                if (weights.get(c * influence + i) != 0.0f) {
+                    used = i + 1;
+                    break;
+                }
             }
         }
-        return joints.slice(0, mesh.vertexCount() * realInfluence);
+        if (used == influence) {
+            return mesh;
+        }
+
+        var newJoints = Shorts.Mutable.allocate(mesh.vertexCount() * used);
+        var newWeights = Floats.Mutable.allocate(mesh.vertexCount() * used);
+        for (var c = 0; c < mesh.vertexCount(); c++) {
+            for (var i = 0; i < used; i++) {
+                newJoints.set(c * used + i, joints.get(c * influence + i));
+                newWeights.set(c * used + i, weights.get(c * influence + i));
+            }
+        }
+
+        return mesh.toBuilder()
+            .joints(newJoints)
+            .weights(newWeights)
+            .build();
     }
 
     private void fixJointIndices(Md6Model md6, List<Mesh> meshes) {
@@ -145,7 +168,7 @@ public final class Md6ModelReader implements AssetReader.Binary<Model, DarkAgesA
             var shorts = meshes.get(i).joints().map(Shorts.Mutable.class::cast).orElseThrow();
 
             for (var j = 0; j < shorts.length(); j++) {
-                int index = shorts.getUnsigned(j) + offset;
+                var index = shorts.getUnsigned(j) + offset;
                 while (index >= skinnedJointsLen8) {
                     index = extraJoints.getUnsigned(index - skinnedJointsLen8);
                 }

@@ -49,4 +49,9 @@ public record Md6ModelLodInfo(
             unknown4
         );
     }
+
+    @Override
+    public int maxInfluence() {
+        return influence;
+    }
 }

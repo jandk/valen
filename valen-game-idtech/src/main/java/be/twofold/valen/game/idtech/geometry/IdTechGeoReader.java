@@ -49,16 +49,13 @@ public final class IdTechGeoReader {
         };
     }
 
-    public static AttributeReader<Floats.Mutable> readWeight4() {
-        return readNormalTangentWeights(45.0f, 60.0f);
-    }
-
-    public static AttributeReader<Floats.Mutable> readWeight6() {
-        return readNormalTangentWeights(75.0f, 89.0f);
-    }
-
-    public static AttributeReader<Floats.Mutable> readWeight8() {
-        return readNormalTangentWeights(104.0f, 120.0f);
+    public static AttributeReader<Floats.Mutable> readWeights(int influence) {
+        return switch (influence) {
+            case 4 -> readNormalTangentWeights(45.0f, 60.0f);
+            case 6 -> readNormalTangentWeights(75.0f, 89.0f);
+            case 8 -> readNormalTangentWeights(104.0f, 120.0f);
+            default -> throw new IllegalArgumentException("No packed weights for influence " + influence);
+        };
     }
 
     private static AttributeReader<Floats.Mutable> readNormalTangentWeights(float scale1, float scale2) {
@@ -70,7 +67,7 @@ public final class IdTechGeoReader {
             source.skip(3); // skip tangent
             byte wt = source.readByte();
 
-            float y = FloatMath.unpackUNorm8((byte) (wt & 0x7f));
+            float y = (wt & 0x7f) * (1.0f / 254.0f);
             float z = ((wn & 0xf0) >>> 4) * factor1;
             float w = ((wn & 0x0f)) * factor2;
 
