@@ -29,12 +29,12 @@ public final class Md6ModelReader implements AssetReader.Binary<Model, EternalAs
     @Override
     public Model read(BinarySource source, EternalAsset asset, LoadingContext context) throws IOException {
         var model = Md6Model.read(source);
-        var meshes = new ArrayList<>(readMeshes(model, asset.hash(), context));
+        var meshes = readMeshes(model, asset.hash(), context);
         var skeletonKey = EternalAssetID.from(model.header().md6SkelName(), ResourceType.Skeleton);
         var skeleton = context.load(skeletonKey, Skeleton.class);
 
         if (readMaterials) {
-            Materials.apply(context, meshes, model.meshInfos(), Md6ModelInfo::materialName, Md6ModelInfo::meshName);
+            meshes = Materials.apply(context, meshes, model.meshInfos(), Md6ModelInfo::materialName, Md6ModelInfo::meshName);
         }
         return new Model(meshes, Optional.of(skeleton), Optional.of(asset.id().fullName()), Optional.empty(), Axis.Z);
     }

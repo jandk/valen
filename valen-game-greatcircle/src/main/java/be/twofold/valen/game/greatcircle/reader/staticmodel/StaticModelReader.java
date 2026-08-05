@@ -29,10 +29,10 @@ public final class StaticModelReader implements AssetReader.Binary<Model, GreatC
     @Override
     public Model read(BinarySource source, GreatCircleAsset asset, LoadingContext context) throws IOException {
         var model = StaticModel.read(source, asset.version());
-        var meshes = new ArrayList<>(readMeshes(model, source, context));
+        var meshes = readMeshes(model, source, context);
 
         if (readMaterials) {
-            Materials.apply(context, meshes, model.meshInfos(), StaticModelMeshInfo::mtlDecl, _ -> null);
+            meshes = Materials.apply(context, meshes, model.meshInfos(), StaticModelMeshInfo::mtlDecl, _ -> null);
         }
         return new Model(meshes, Optional.empty(), Optional.of(asset.id().fullName()), Optional.empty(), Axis.Z);
     }

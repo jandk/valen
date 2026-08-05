@@ -17,7 +17,7 @@ public final class Materials {
     private Materials() {
     }
 
-    public static <T> void apply(
+    public static <T> List<Mesh> apply(
         LoadingContext context,
         List<Mesh> meshes,
         List<T> meshInfos,
@@ -25,7 +25,8 @@ public final class Materials {
         Function<T, String> meshNameMapper
     ) throws IOException {
         var materials = new HashMap<String, Material>();
-        for (int i = 0; i < meshes.size(); i++) {
+        var result = new ArrayList<>(meshes);
+        for (int i = 0; i < result.size(); i++) {
             var meshInfo = meshInfos.get(i);
             var materialName = materialNameMapper.apply(meshInfo);
             var meshName = meshNameMapper.apply(meshInfo);
@@ -38,10 +39,11 @@ public final class Materials {
                     LOG.warn("Could not load material {}", materialName);
                 }
             }
-            meshes.set(i, meshes.get(i).toBuilder()
+            result.set(i, result.get(i).toBuilder()
                 .name(meshName)
                 .material(materials.get(materialName))
                 .build());
         }
+        return List.copyOf(result);
     }
 }

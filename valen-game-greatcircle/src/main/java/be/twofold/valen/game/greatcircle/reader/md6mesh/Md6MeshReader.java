@@ -32,10 +32,10 @@ public final class Md6MeshReader implements AssetReader.Binary<Model, GreatCircl
         var skeletonKey = GreatCircleAssetID.from(model.header().skeletonName(), ResourceType.skeleton);
         var skeleton = context.load(skeletonKey, Skeleton.class);
         var boneCount = skeleton == null ? 0 : skeleton.bones().size();
-        var meshes = new ArrayList<>(readMeshes(model, asset.hash(), boneCount, context));
+        var meshes = readMeshes(model, asset.hash(), boneCount, context);
 
         if (readMaterials) {
-            Materials.apply(context, meshes, model.meshInfos(), Md6MeshInfo::materialName, Md6MeshInfo::meshName);
+            meshes = Materials.apply(context, meshes, model.meshInfos(), Md6MeshInfo::materialName, Md6MeshInfo::meshName);
         }
         return new Model(meshes, Optional.ofNullable(skeleton), Optional.of(asset.id().fullName()), Optional.empty(), Axis.Z);
     }

@@ -37,7 +37,7 @@ public final class Md6ModelReader implements AssetReader.Binary<Model, DarkAgesA
 
         var meshes = readMeshes(md6Model, 0, asset.hash(), context);
         if (readMaterials) {
-            Materials.apply(context, meshes, md6Model.meshInfos(), Md6ModelMeshInfo::materialName, Md6ModelMeshInfo::meshName);
+            meshes = Materials.apply(context, meshes, md6Model.meshInfos(), Md6ModelMeshInfo::materialName, Md6ModelMeshInfo::meshName);
         }
 
         return new Model(meshes, Optional.of(skeleton), Optional.of(asset.id().fullName()), Optional.empty(), Axis.Z);

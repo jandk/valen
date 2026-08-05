@@ -26,10 +26,10 @@ public final class DeformModelReader implements AssetReader.Binary<Model, GreatC
     @Override
     public Model read(BinarySource source, GreatCircleAsset asset, LoadingContext context) throws IOException {
         var deformModel = DeformModel.read(source);
-        var meshes = new ArrayList<>(readMeshes(deformModel, asset.hash(), context));
+        var meshes = readMeshes(deformModel, asset.hash(), context);
 
         if (readMaterials) {
-            Materials.apply(
+            meshes = Materials.apply(
                 context, meshes, deformModel.meshes(),
                 deformModelMesh -> deformModelMesh.lods().getFirst().materialName(),
                 _ -> null

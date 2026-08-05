@@ -31,7 +31,7 @@ public final class VegetationReader implements AssetReader.Binary<Model, DarkAge
 
         var meshes = readMeshes(vegetation, 0, asset.hash(), context);
         if (readMaterials) {
-            Materials.apply(context, meshes, vegetation.surfaces(), VegetationSurface::materialName, _ -> null);
+            meshes = Materials.apply(context, meshes, vegetation.surfaces(), VegetationSurface::materialName, _ -> null);
         }
 
         return new Model(meshes, Optional.empty(), Optional.of(asset.id().fullName()), Optional.empty(), Axis.Z);

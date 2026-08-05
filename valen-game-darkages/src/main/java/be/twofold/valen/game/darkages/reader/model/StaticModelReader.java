@@ -30,10 +30,10 @@ public final class StaticModelReader implements AssetReader.Binary<Model, DarkAg
     @Override
     public Model read(BinarySource source, DarkAgesAsset asset, LoadingContext context) throws IOException {
         var model = StaticModel.read(source);
-        var meshes = new ArrayList<>(readMeshes(model, source, asset.hash(), context));
+        var meshes = readMeshes(model, source, asset.hash(), context);
 
         if (readMaterials) {
-            Materials.apply(context, meshes, model.meshInfos(), StaticModelMeshInfo::mtlDecl, _ -> null);
+            meshes = Materials.apply(context, meshes, model.meshInfos(), StaticModelMeshInfo::mtlDecl, _ -> null);
         }
         return new Model(meshes, Optional.empty(), Optional.of(asset.id().fullName()), Optional.empty(), Axis.Z);
     }
