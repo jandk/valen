@@ -1,10 +1,8 @@
-package be.twofold.valen.game.darkages.reader.geometry;
+package be.twofold.valen.game.idtech.geometry;
 
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.geometry.*;
 import be.twofold.valen.core.material.*;
-import be.twofold.valen.game.darkages.*;
-import be.twofold.valen.game.darkages.reader.resources.*;
 import org.slf4j.*;
 
 import java.io.*;
@@ -17,10 +15,19 @@ public final class Materials {
     private Materials() {
     }
 
+    /**
+     * Returns the meshes with their material and name applied.
+     * <p>
+     * The meshes handed in may well be immutable, so this copies rather than assigning in place.
+     *
+     * @param materialAssetId Turns a material name into an asset ID, which is the only part of
+     *                        this that differs per game.
+     */
     public static <T> List<Mesh> apply(
         LoadingContext context,
         List<Mesh> meshes,
         List<T> meshInfos,
+        Function<String, AssetID> materialAssetId,
         Function<T, String> materialNameMapper,
         Function<T, String> meshNameMapper
     ) throws IOException {
@@ -31,8 +38,7 @@ public final class Materials {
             var materialName = materialNameMapper.apply(meshInfo);
             var meshName = meshNameMapper.apply(meshInfo);
             if (!materials.containsKey(materialName)) {
-                var materialFile = "generated/decls/material2/" + materialName + ".decl";
-                var assetId = DarkAgesAssetID.from(materialFile, ResourcesType.RsStreamFile);
+                var assetId = materialAssetId.apply(materialName);
                 if (context.exists(assetId)) {
                     var material = context.load(assetId, Material.class);
                     materials.put(materialName, material);

@@ -4,7 +4,6 @@ import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.geometry.*;
 import be.twofold.valen.game.darkages.*;
 import be.twofold.valen.game.darkages.reader.*;
-import be.twofold.valen.game.darkages.reader.geometry.*;
 import be.twofold.valen.game.darkages.reader.resources.*;
 import be.twofold.valen.game.idtech.geometry.*;
 import wtf.reversed.toolbox.collect.*;
@@ -37,7 +36,7 @@ public final class Md6ModelReader implements AssetReader.Binary<Model, DarkAgesA
 
         var meshes = readMeshes(md6Model, 0, asset.hash(), context);
         if (readMaterials) {
-            meshes = Materials.apply(context, meshes, md6Model.meshInfos(), Md6ModelMeshInfo::materialName, Md6ModelMeshInfo::meshName);
+            meshes = Materials.apply(context, meshes, md6Model.meshInfos(), DarkAgesAssetID::material, Md6ModelMeshInfo::materialName, Md6ModelMeshInfo::meshName);
         }
 
         return new Model(meshes, Optional.of(skeleton), Optional.of(asset.id().fullName()), Optional.empty(), Axis.Z);

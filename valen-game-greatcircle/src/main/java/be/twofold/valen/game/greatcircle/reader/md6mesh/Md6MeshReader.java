@@ -4,7 +4,6 @@ import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.geometry.*;
 import be.twofold.valen.core.util.*;
 import be.twofold.valen.game.greatcircle.*;
-import be.twofold.valen.game.greatcircle.reader.geometry.*;
 import be.twofold.valen.game.greatcircle.resource.*;
 import be.twofold.valen.game.idtech.geometry.*;
 import wtf.reversed.toolbox.collect.*;
@@ -35,7 +34,7 @@ public final class Md6MeshReader implements AssetReader.Binary<Model, GreatCircl
         var meshes = readMeshes(model, asset.hash(), boneCount, context);
 
         if (readMaterials) {
-            meshes = Materials.apply(context, meshes, model.meshInfos(), Md6MeshInfo::materialName, Md6MeshInfo::meshName);
+            meshes = Materials.apply(context, meshes, model.meshInfos(), GreatCircleAssetID::material, Md6MeshInfo::materialName, Md6MeshInfo::meshName);
         }
         return new Model(meshes, Optional.ofNullable(skeleton), Optional.of(asset.id().fullName()), Optional.empty(), Axis.Z);
     }

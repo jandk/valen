@@ -5,7 +5,6 @@ import be.twofold.valen.core.geometry.*;
 import be.twofold.valen.core.util.*;
 import be.twofold.valen.game.darkages.*;
 import be.twofold.valen.game.darkages.reader.*;
-import be.twofold.valen.game.darkages.reader.geometry.*;
 import be.twofold.valen.game.darkages.reader.resources.*;
 import be.twofold.valen.game.idtech.geometry.*;
 import wtf.reversed.toolbox.io.*;
@@ -33,7 +32,7 @@ public final class StaticModelReader implements AssetReader.Binary<Model, DarkAg
         var meshes = readMeshes(model, source, asset.hash(), context);
 
         if (readMaterials) {
-            meshes = Materials.apply(context, meshes, model.meshInfos(), StaticModelMeshInfo::mtlDecl, _ -> null);
+            meshes = Materials.apply(context, meshes, model.meshInfos(), DarkAgesAssetID::material, StaticModelMeshInfo::mtlDecl, _ -> null);
         }
         return new Model(meshes, Optional.empty(), Optional.of(asset.id().fullName()), Optional.empty(), Axis.Z);
     }

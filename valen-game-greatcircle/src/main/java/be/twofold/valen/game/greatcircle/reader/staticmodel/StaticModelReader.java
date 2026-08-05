@@ -4,7 +4,6 @@ import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.geometry.*;
 import be.twofold.valen.core.util.*;
 import be.twofold.valen.game.greatcircle.*;
-import be.twofold.valen.game.greatcircle.reader.geometry.*;
 import be.twofold.valen.game.greatcircle.resource.*;
 import be.twofold.valen.game.idtech.geometry.*;
 import wtf.reversed.toolbox.io.*;
@@ -32,7 +31,7 @@ public final class StaticModelReader implements AssetReader.Binary<Model, GreatC
         var meshes = readMeshes(model, source, context);
 
         if (readMaterials) {
-            meshes = Materials.apply(context, meshes, model.meshInfos(), StaticModelMeshInfo::mtlDecl, _ -> null);
+            meshes = Materials.apply(context, meshes, model.meshInfos(), GreatCircleAssetID::material, StaticModelMeshInfo::mtlDecl, _ -> null);
         }
         return new Model(meshes, Optional.empty(), Optional.of(asset.id().fullName()), Optional.empty(), Axis.Z);
     }

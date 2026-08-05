@@ -16,20 +16,6 @@ public record GreatCircleAssetID(
         .thenComparing(GreatCircleAssetID::type)
         .thenComparing(GreatCircleAssetID::variation);
 
-//    private static final Map<ResourceType, Set<ResourcesVariation>> Variations = new EnumMap<ResourceType, Set<ResourcesVariation>>(Map.of(
-
-    /// /        ResourceType.HavokShape, EnumSet.of(ResourcesVariation.HkMsvc64),
-    /// /        ResourceType.HkNavMesh, EnumSet.of(ResourcesVariation.HkMsvc64),
-    /// /        ResourceType.HkNavMeshMediator, EnumSet.of(ResourcesVariation.HkMsvc64),
-    /// /        ResourceType.HkNavVolume, EnumSet.of(ResourcesVariation.HkMsvc64),
-    /// /        ResourceType.HkNavVolumeMediator, EnumSet.of(ResourcesVariation.HkMsvc64),
-    /// /        ResourceType.RenderProgResource, EnumSet.of(
-    /// /            ResourcesVariation.RenderProgVulkanPcAmd,
-    /// /            ResourcesVariation.RenderProgVulkanPcAmdRetail,
-    /// /            ResourcesVariation.RenderProgVulkanPcBase,
-    /// /            ResourcesVariation.RenderProgVulkanPcBaseRetail
-    /// /        )
-//    ));
     public static GreatCircleAssetID from(String name, ResourceType type) {
         return new GreatCircleAssetID(
             new ResourceName(name),
@@ -37,17 +23,10 @@ public record GreatCircleAssetID(
             ResourcesVariation.RES_VAR_NONE
         );
     }
-    //
-    //    public static ResourceKey from(String name, String type, ResourcesVariation variation) {
-    //        if (!Variations.getOrDefault(type, Set.of(ResourcesVariation.RES_VAR_NONE)).contains(variation)) {
-    //            throw new IllegalArgumentException("Invalid variation for type: " + type + " (" + variation + ")");
-    //        }
-    //        return new ResourceKey(
-    //            new ResourceName(name),
-    //            type,
-    //            variation
-    //        );
-    //    }
+
+    public static GreatCircleAssetID material(String name) {
+        return from(name, ResourceType.material2);
+    }
 
     @Override
     public String fullName() {
