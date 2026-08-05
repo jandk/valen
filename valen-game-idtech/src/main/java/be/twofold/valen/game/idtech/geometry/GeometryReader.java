@@ -19,9 +19,10 @@ public final class GeometryReader {
             .sum();
 
         var offset = 0;
+        var texCoordSets = GeometryVertexMask.texCoordSets(masks);
         var builder = MeshFormat.builder(lodInfo.numFaces() * 3, lodInfo.numVertices());
         for (var mask : masks) {
-            buildAccessors(offset, stride, mask, lodInfo, SkinningMode.None, builder);
+            buildAccessors(offset, stride, mask, lodInfo, SkinningMode.None, texCoordSets, builder);
             offset += mask.size();
         }
 
@@ -57,11 +58,15 @@ public final class GeometryReader {
                 }
 
                 var offsets = offsetsByLayout.get(layout.combinedVertexMask());
-                var builder = MeshFormat.builder(lodInfo.numFaces() * 3, lodInfo.numVertices());
                 var skinningMode = animated ? SkinningMode.Fixed4 : SkinningMode.None;
-                for (var v = 0; v < layout.numVertexStreams(); v++) {
-                    var mask = GeometryVertexMask.from(layout.vertexMasks().get(v));
-                    buildAccessors(offsets.vertexOffsets[v], mask.size(), mask, lodInfo, skinningMode, builder);
+                var masks = IntStream.range(0, layout.numVertexStreams())
+                    .mapToObj(v -> GeometryVertexMask.from(layout.vertexMasks().get(v)))
+                    .toList();
+                var texCoordSets = GeometryVertexMask.texCoordSets(masks);
+                var builder = MeshFormat.builder(lodInfo.numFaces() * 3, lodInfo.numVertices());
+                for (var v = 0; v < masks.size(); v++) {
+                    var mask = masks.get(v);
+                    buildAccessors(offsets.vertexOffsets[v], mask.size(), mask, lodInfo, skinningMode, texCoordSets, builder);
                     offsets.vertexOffsets[v] += lodInfo.numVertices() * mask.size();
                 }
 
@@ -86,12 +91,13 @@ public final class GeometryReader {
             int lodOffset = 0;
             var masks = GeometryVertexMask.fromMultiple(lod.vertexMask());
             var skinningMode = mapSkinningMode(masks, animated);
+            var texCoordSets = GeometryVertexMask.texCoordSets(masks);
             var builder = MeshFormat.builder(lod.numFaces() * 3, lod.numVertices());
             for (var mask : masks) {
                 int maskSize = mask.size();
                 int aligner = maskSize == 0 ? 0 : (maskSize - lodOffset % maskSize) % maskSize;
                 int bufferOffset = aligner + lodOffset;
-                buildAccessors(offset + bufferOffset, maskSize, mask, lod, skinningMode, builder);
+                buildAccessors(offset + bufferOffset, maskSize, mask, lod, skinningMode, texCoordSets, builder);
                 lodOffset = lod.numVertices() * maskSize + bufferOffset;
             }
 
@@ -123,7 +129,7 @@ public final class GeometryReader {
     }
 
     @SuppressWarnings("SwitchStatementWithTooFewBranches")
-    private static MeshFormat.Builder buildAccessors(int offset, int stride, GeometryVertexMask mask, LodInfo lodInfo, SkinningMode skinningMode, MeshFormat.Builder builder) {
+    private static MeshFormat.Builder buildAccessors(int offset, int stride, GeometryVertexMask mask, LodInfo lodInfo, SkinningMode skinningMode, Map<GeometryVertexMask, Integer> texCoordSets, MeshFormat.Builder builder) {
         return switch (mask) {
             case POSITION_SHORT ->
                 builder.positions(offset, stride, IdTechGeoReader.readPackedPosition(lodInfo.vertexScale(), lodInfo.vertexOffset()));
@@ -146,15 +152,15 @@ public final class GeometryReader {
                 };
             }
             case MATERIAL_UV, MATERIAL_UV1, MATERIAL_UV2 ->
-                builder.addTexCoords(offset, stride, AttributeReader.readVector2(lodInfo.uvScale(), lodInfo.uvOffset()));
+                builder.texCoords(texCoordSets.get(mask), offset, stride, AttributeReader.readVector2(lodInfo.uvScale(), lodInfo.uvOffset()));
             case LIGHTMAP_UV -> skinningMode == SkinningMode.None
-                ? builder.addTexCoords(offset, stride, AttributeReader.readVector2(lodInfo.uvScale(), lodInfo.uvOffset()))
+                ? builder.texCoords(texCoordSets.get(mask), offset, stride, AttributeReader.readVector2(lodInfo.uvScale(), lodInfo.uvOffset()))
                 : builder;
             case MATERIAL_UV_SHORT, MATERIAL_UV1_SHORT, LIGHTMAP_UV_SHORT, MATERIAL_UV2_SHORT ->
-                builder.addTexCoords(offset, stride, IdTechGeoReader.readPackedUV(lodInfo.uvScale(), lodInfo.uvOffset()));
+                builder.texCoords(texCoordSets.get(mask), offset, stride, IdTechGeoReader.readPackedUV(lodInfo.uvScale(), lodInfo.uvOffset()));
             case COLOR -> switch (skinningMode) {
                 case Fixed4 -> builder.joints(offset, stride, 4, AttributeReader.copyBytesAsShorts(4));
-                default -> builder.addColors(offset, stride, AttributeReader.copyBytes(4));
+                default -> builder.colors(0, offset, stride, AttributeReader.copyBytes(4));
             };
             case MATERIALS -> builder;
             case SKINNING_1 -> switch (skinningMode) {

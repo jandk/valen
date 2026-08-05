@@ -33,8 +33,6 @@ public record MeshFormat(
         private final int vertexCount;
         private Accessor<Ints.Mutable> indices;
         private final Map<Semantic, Accessor<?>> accessors = new LinkedHashMap<>();
-        private int texCoordCount = 0;
-        private int colorCount = 0;
 
         private Builder(int indexCount, int vertexCount) {
             this.indexCount = Check.positiveOrZero(indexCount, "indexCount");
@@ -58,12 +56,12 @@ public record MeshFormat(
             return accessor(Semantic.TANGENT, offset, stride, reader, 1, ElementType.VECTOR4, ComponentType.FLOAT);
         }
 
-        public Builder addTexCoords(int offset, int stride, AttributeReader<Floats.Mutable> reader) {
-            return accessor(new Semantic.TexCoord(texCoordCount++), offset, stride, reader, 1, ElementType.VECTOR2, ComponentType.FLOAT);
+        public Builder texCoords(int set, int offset, int stride, AttributeReader<Floats.Mutable> reader) {
+            return accessor(new Semantic.TexCoord(set), offset, stride, reader, 1, ElementType.VECTOR2, ComponentType.FLOAT);
         }
 
-        public Builder addColors(int offset, int stride, AttributeReader<Bytes.Mutable> reader) {
-            return accessor(new Semantic.Color(colorCount++), offset, stride, reader, 1, ElementType.VECTOR4, ComponentType.UNSIGNED_BYTE);
+        public Builder colors(int set, int offset, int stride, AttributeReader<Bytes.Mutable> reader) {
+            return accessor(new Semantic.Color(set), offset, stride, reader, 1, ElementType.VECTOR4, ComponentType.UNSIGNED_BYTE);
         }
 
         public Builder joints(int offset, int stride, int length, AttributeReader<Shorts.Mutable> reader) {
