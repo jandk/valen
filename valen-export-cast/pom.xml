@@ -20,5 +20,12 @@
             <groupId>be.twofold</groupId>
             <artifactId>tinycast</artifactId>
         </dependency>
+
+        <!-- Testing -->
+        <dependency>
+            <groupId>be.twofold</groupId>
+            <artifactId>valen-export-png</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 </project>
