@@ -4,6 +4,9 @@ import java.io.*;
 import java.nio.file.*;
 import java.util.*;
 
+/**
+ * A {@code .vmtr} manifest, listing every material packed into the virtual texture atlas.
+ */
 public record Vmtr(
     int version,
     List<VmtrEntry> entries
@@ -12,7 +15,7 @@ public record Vmtr(
         try (var reader = Files.newBufferedReader(path)) {
             int version = parseFirst(reader);
             int count = parseFirst(reader);
-            reader.readLine(); // skip empty line
+            reader.readLine(); // skip the column header
 
             List<VmtrEntry> entries = new ArrayList<>(count);
             for (int i = 0; i < count; i++) {

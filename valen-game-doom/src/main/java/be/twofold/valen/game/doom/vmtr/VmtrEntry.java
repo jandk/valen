@@ -3,6 +3,9 @@ package be.twofold.valen.game.doom.vmtr;
 import java.io.*;
 import java.util.*;
 
+/**
+ * One line of a {@code .vmtr} manifest: where a material sits in the virtual texture atlas.
+ */
 public record VmtrEntry(
     int x,
     int y,
@@ -28,7 +31,6 @@ public record VmtrEntry(
         var mtrCheck = Integer.parseInt(split.get(6));
         String name = split.get(7).substring(1, split.get(7).length() - 1);
 
-        //   x      y width  hght flags  timeStamp    mtrCheck
         return new VmtrEntry(
             x,
             y,
