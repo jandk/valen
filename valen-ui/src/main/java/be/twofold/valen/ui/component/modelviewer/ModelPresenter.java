@@ -9,10 +9,6 @@ import be.twofold.valen.core.texture.*;
 import be.twofold.valen.ui.common.*;
 import be.twofold.valen.ui.component.*;
 import jakarta.inject.*;
-import javafx.collections.*;
-import javafx.scene.image.*;
-import javafx.scene.paint.*;
-import javafx.scene.shape.*;
 import org.slf4j.*;
 import wtf.reversed.toolbox.collect.*;
 
@@ -38,15 +34,23 @@ public final class ModelPresenter extends AbstractPresenter<ModelView> implement
     }
 
     @Override
-    public void setData(Object data) {
+    public Object decode(Object data) {
         if (data == null) {
-            getView().setMeshes(List.of(), null);
-            return;
+            return null;
         }
 
         var model = (Model) data;
-        var meshes = mapMeshMaterials(model);
-        getView().setMeshes(meshes, model.upAxis());
+        return new ModelPayload(mapMeshMaterials(model), model.upAxis());
+    }
+
+    @Override
+    public void display(Object payload) {
+        if (payload == null) {
+            getView().setMeshes(new ModelPayload(List.of(), null));
+            return;
+        }
+
+        getView().setMeshes((ModelPayload) payload);
     }
 
     @Override
@@ -54,42 +58,30 @@ public final class ModelPresenter extends AbstractPresenter<ModelView> implement
         return "Model";
     }
 
-    private List<ModelView.MeshMaterial> mapMeshMaterials(Model model) {
+    private List<ModelPayload.MeshMaterial> mapMeshMaterials(Model model) {
         return model.meshes().stream()
             .map(this::mapMeshMaterial)
             .toList();
     }
 
-    private ModelView.MeshMaterial mapMeshMaterial(Mesh mesh) {
-        var triangleMesh = mapMesh(mesh);
-        var material = mesh.material().map(this::mapMaterial);
-        return new ModelView.MeshMaterial(triangleMesh, material);
+    private ModelPayload.MeshMaterial mapMeshMaterial(Mesh mesh) {
+        var diffuse = mesh.material().flatMap(this::loadDiffuse);
+        return new ModelPayload.MeshMaterial(mesh, diffuse);
     }
 
-    private TriangleMesh mapMesh(Mesh mesh) {
-
-        var result = new TriangleMesh(VertexFormat.POINT_NORMAL_TEXCOORD);
-        copyIndices(mesh.indices(), result.getFaces());
-
-        copyPoints(mesh.positions(), result.getPoints());
-        copy(mesh.normals().orElseThrow(), result.getNormals());
-        copy(mesh.texCoords().getFirst(), result.getTexCoords());
-        return result;
-    }
-
-    private javafx.scene.paint.Material mapMaterial(Material material) {
+    private Optional<DecodedImage> loadDiffuse(Material material) {
         var property = material.properties().stream()
             .filter(prop -> prop.type() == MaterialPropertyType.Albedo)
             .findFirst();
 
         if (property.isEmpty()) {
-            return null;
+            return Optional.empty();
         }
 
         try {
             var reference = property.get().reference();
             if (reference == null) {
-                return null;
+                return Optional.empty();
             }
 
             var texture = reference.supplier().get();
@@ -97,19 +89,14 @@ public final class ModelPresenter extends AbstractPresenter<ModelView> implement
             int mip = chooseMip(texture);
             var converted = texture.convertSurface(mip, 0, TextureFormat.B8G8R8A8_SRGB, true);
 
-            var diffuseMap = new WritableImage(new PixelBuffer<>(
+            return Optional.of(new DecodedImage(
                 converted.width(),
                 converted.height(),
-                ((Bytes.Mutable) converted.surfaces().getFirst().data()).asMutableBuffer(), // Disgusting
-                PixelFormat.getByteBgraPreInstance()
+                (Bytes.Mutable) converted.surfaces().getFirst().data()
             ));
-
-            var result = new PhongMaterial();
-            result.setDiffuseMap(diffuseMap);
-            return result;
         } catch (IOException e) {
             log.warn("Failed to load texture", e);
-            return null;
+            return Optional.empty();
         }
     }
 
@@ -123,29 +110,5 @@ public final class ModelPresenter extends AbstractPresenter<ModelView> implement
             }
         }
         return lastMip;
-    }
-
-    private void copy(Floats floats, ObservableFloatArray floatArray) {
-        floatArray.setAll(floats.toArray());
-    }
-
-    private void copyPoints(Floats floats, ObservableFloatArray floatArray) {
-        var array = floats.toArray();
-        for (var i = 0; i < array.length; i++) {
-            array[i] *= 100;
-        }
-        floatArray.setAll(array);
-    }
-
-    private void copyIndices(Ints buffer, ObservableFaceArray faces) {
-        var capacity = buffer.length();
-        var indices = new int[capacity * 3];
-        for (int i = 0, o = 0; i < capacity; i++) {
-            var index = buffer.get(i);
-            indices[o++] = index;
-            indices[o++] = index;
-            indices[o++] = index;
-        }
-        faces.addAll(indices);
     }
 }

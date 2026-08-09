@@ -55,9 +55,14 @@ record ResourcesIndex(
         Location finalLocation = switch (entry.compMode()) {
             case RES_COMP_MODE_NONE -> location;
             case RES_COMP_MODE_KRAKEN,
-                 RES_COMP_MODE_KRAKEN_CHUNKED,
                  RES_COMP_MODE_LEVIATHAN -> new Location.Compressed(
                 location, CompressionType.OODLE, Math.toIntExact(entry.uncompressedSize())
+            );
+            case RES_COMP_MODE_KRAKEN_CHUNKED -> new Location.Compressed(
+                new Location.FileSlice(
+                    location.path(), location.offset() + 12, location.size() - 12
+                ),
+                CompressionType.OODLE, Math.toIntExact(entry.uncompressedSize())
             );
             default -> throw new UnsupportedOperationException(entry.compMode().toString());
         };

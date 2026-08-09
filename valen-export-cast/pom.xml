@@ -5,7 +5,7 @@
     <parent>
         <groupId>be.twofold</groupId>
         <artifactId>valen</artifactId>
-        <version>0.3.1-SNAPSHOT</version>
+        <version>0.3.3-SNAPSHOT</version>
     </parent>
 
     <artifactId>valen-export-cast</artifactId>
@@ -19,6 +19,13 @@
         <dependency>
             <groupId>be.twofold</groupId>
             <artifactId>tinycast</artifactId>
+        </dependency>
+
+        <!-- Testing -->
+        <dependency>
+            <groupId>be.twofold</groupId>
+            <artifactId>valen-export-png</artifactId>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 </project>

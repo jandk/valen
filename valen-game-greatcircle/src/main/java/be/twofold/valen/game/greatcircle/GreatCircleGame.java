@@ -35,13 +35,14 @@ public final class GreatCircleGame implements Game {
     private final PackageMapSpec spec;
     private final StreamDbIndex streamDbIndex;
     private final ResourcesIndex commonResources;
+    private final Decompressors decompressors;
 
     public GreatCircleGame(Path path) throws IOException {
         this.base = path.resolve("base");
         this.spec = PackageMapSpec.read(base.resolve("packagemapspec_pc.json"));
         this.streamDbIndex = loadStreamDbIndex(spec);
         this.commonResources = ResourcesIndex.build(filterResources(spec, "common"));
-        Decompressors.setOodlePath(path.resolve("oo2core_9_win64.dll"));
+        this.decompressors = new Decompressors(path.resolve("oo2core_9_win64.dll"));
     }
 
     @Override
@@ -67,7 +68,8 @@ public final class GreatCircleGame implements Game {
         var storageManager = new GreatCircleStorageManager(
             sources,
             streamDbIndex.sources().keySet(),
-            streamDbIndex.index()
+            streamDbIndex.index(),
+            decompressors
         );
 
         return new AssetLoader(archive, storageManager, List.copyOf(ASSET_READERS));
@@ -102,7 +104,6 @@ public final class GreatCircleGame implements Game {
     @Override
     public void close() {
         // Unload for the next game
-        Decompressors.resetOodle();
         DECL_READER.clearCache();
     }
 }

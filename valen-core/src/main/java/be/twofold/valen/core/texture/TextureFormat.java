@@ -27,6 +27,8 @@ public enum TextureFormat {
     // Compressed formats
     BC1_UNORM,
     BC1_SRGB,
+    BC1A_UNORM,
+    BC1A_SRGB,
     BC2_UNORM,
     BC2_SRGB,
     BC3_UNORM,
@@ -64,6 +66,7 @@ public enum TextureFormat {
             case R16G16B16_SFLOAT -> 6;
             case R16G16B16A16_UNORM, R16G16B16A16_SFLOAT,
                  BC1_UNORM, BC1_SRGB,
+                 BC1A_UNORM, BC1A_SRGB,
                  BC4_UNORM, BC4_SNORM -> 8;
             case BC2_UNORM, BC2_SRGB,
                  BC3_UNORM, BC3_SRGB,
@@ -91,6 +94,7 @@ public enum TextureFormat {
                  R10G10B10A2_UNORM,
                  R16G16B16A16_UNORM, R16G16B16A16_SFLOAT,
                  BC1_UNORM, BC1_SRGB,
+                 BC1A_UNORM, BC1A_SRGB,
                  BC2_UNORM, BC2_SRGB,
                  BC3_UNORM, BC3_SRGB,
                  BC7_UNORM, BC7_SRGB -> 4;
@@ -104,6 +108,7 @@ public enum TextureFormat {
                  R10G10B10A2_UNORM,
                  R16G16B16A16_UNORM, R16G16B16A16_SFLOAT,
                  BC1_UNORM, BC1_SRGB,
+                 BC1A_UNORM, BC1A_SRGB,
                  BC2_UNORM, BC2_SRGB,
                  BC3_UNORM, BC3_SRGB,
                  BC7_UNORM, BC7_SRGB -> true;
@@ -113,13 +118,14 @@ public enum TextureFormat {
 
     public boolean isCompressed() {
         return switch (this) {
-            case BC1_SRGB, BC1_UNORM,
-                 BC2_SRGB, BC2_UNORM,
-                 BC3_SRGB, BC3_UNORM,
-                 BC4_SNORM, BC4_UNORM,
-                 BC5_SNORM, BC5_UNORM,
-                 BC6H_SFLOAT, BC6H_UFLOAT,
-                 BC7_SRGB, BC7_UNORM -> true;
+            case BC1_UNORM, BC1_SRGB,
+                 BC1A_UNORM, BC1A_SRGB,
+                 BC2_UNORM, BC2_SRGB,
+                 BC3_UNORM, BC3_SRGB,
+                 BC4_UNORM, BC4_SNORM,
+                 BC5_UNORM, BC5_SNORM,
+                 BC6H_UFLOAT, BC6H_SFLOAT,
+                 BC7_UNORM, BC7_SRGB -> true;
             default -> false;
         };
     }
@@ -129,7 +135,7 @@ public enum TextureFormat {
             case R8_SRGB,
                  R8G8B8_SRGB, R8G8B8A8_SRGB,
                  B8G8R8_SRGB, B8G8R8A8_SRGB,
-                 BC1_SRGB, BC2_SRGB, BC3_SRGB, BC7_SRGB -> true;
+                 BC1_SRGB, BC1A_SRGB, BC2_SRGB, BC3_SRGB, BC7_SRGB -> true;
             default -> false;
         };
     }

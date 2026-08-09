@@ -76,7 +76,7 @@ public final class Shader {
 
         var unpackers = Arrays.stream(binds).collect(Collectors.toMap(
             SourceNode.Bind::source,
-            bind -> TileUnpacker.forSurface(bind.surface())
+            bind -> TileUnpacker.forSurface(bind.surface(), TILE_SIZE)
         ));
 
         var target = Surface.create(first.width(), first.height(), first.depth(), format);

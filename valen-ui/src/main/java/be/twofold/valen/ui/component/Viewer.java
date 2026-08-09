@@ -11,6 +11,14 @@ public interface Viewer {
 
     boolean canPreview(AssetType type);
 
-    void setData(Object data);
+    /**
+     * Transforms data for display in the UI. Does NOT run on the FX thread.
+     */
+    Object decode(Object data);
+
+    /**
+     * Displays decoded object in the UI. Runs on the FX thread.
+     */
+    void display(Object payload);
 
 }

@@ -6,14 +6,11 @@ import be.twofold.valen.ui.common.*;
 import be.twofold.valen.ui.common.settings.*;
 import be.twofold.valen.ui.component.*;
 import jakarta.inject.*;
-import javafx.scene.image.*;
-import org.slf4j.*;
 import wtf.reversed.toolbox.collect.*;
 
 import java.util.function.*;
 
 public final class TexturePresenter extends AbstractPresenter<TextureView> implements TextureView.Listener, Viewer {
-    private static final Logger log = LoggerFactory.getLogger(TexturePresenter.class);
     private final Settings settings;
 
     private Texture texture;
@@ -23,13 +20,11 @@ public final class TexturePresenter extends AbstractPresenter<TextureView> imple
     private Surface decoded;
     private Bytes.Mutable imagePixels;
     private Boolean premultiplied;
-    private WritableImage image;
 
     private Channel channel = Channel.ALL;
 
     @Inject
-    public TexturePresenter(TextureView view, Settings settings) {
-        // TODO: Make package-private
+    TexturePresenter(TextureView view, Settings settings) {
         super(view);
         this.settings = settings;
 
@@ -47,9 +42,23 @@ public final class TexturePresenter extends AbstractPresenter<TextureView> imple
     }
 
     @Override
-    public void setData(Object data) {
+    public Object decode(Object data) {
         if (data == null) {
-            getView().setImage(null, true);
+            return null;
+        }
+
+        texture = (Texture) data;
+        currentSlice = 0;
+        currentMip = 0;
+
+        var image = renderCurrent();
+        return new TexturePayload(texture.depthOrLayers(), texture.mipCount(), image, buildStatus());
+    }
+
+    @Override
+    public void display(Object payload) {
+        if (payload == null) {
+            getView().clearImage();
             getView().setSliceCount(1);
             getView().setMipCount(1);
 
@@ -57,23 +66,23 @@ public final class TexturePresenter extends AbstractPresenter<TextureView> imple
             decoded = null;
             imagePixels = null;
             premultiplied = null;
-            image = null;
             return;
         }
 
-        texture = (Texture) data;
-        currentSlice = 0;
-        currentMip = 0;
-
-        getView().setSliceCount(texture.depthOrLayers());
-        getView().setMipCount(texture.mipCount());
-
-        decodeAndDisplay(true);
+        var p = (TexturePayload) payload;
+        getView().setSliceCount(p.sliceCount());
+        getView().setMipCount(p.mipCount());
+        getView().setImage(p.image(), true);
+        getView().setStatus(p.status());
     }
 
     @Override
     public void onChannelSelected(Channel channel) {
+        if (decoded == null) {
+            return;
+        }
         filterImage(channel);
+        getView().setImage(new DecodedImage(decoded.width(), decoded.height(), imagePixels), false);
     }
 
     @Override
@@ -96,31 +105,33 @@ public final class TexturePresenter extends AbstractPresenter<TextureView> imple
     }
 
     private void decodeAndDisplay(boolean resetZoom) {
-        long t0 = System.nanoTime();
-
         var oldWidth = decoded != null ? decoded.width() : 0;
-        decoded = texture
-            .convertSurface(currentMip, currentSlice, TextureFormat.B8G8R8A8_SRGB, settings.isReconstructZ())
-            .getSurface(0, 0);
-        premultiplied = null;
-
-        long t1 = System.nanoTime();
-
-        if (image == null || (int) image.getWidth() != decoded.width() || (int) image.getHeight() != decoded.height()) {
-            image = new WritableImage(decoded.width(), decoded.height());
-            imagePixels = Bytes.allocate(decoded.width() * decoded.height() * 4);
-        }
-
-        filterImage(channel);
+        var image = renderCurrent();
         getView().setImage(image, resetZoom);
         if (!resetZoom && oldWidth > 0) {
             getView().adjustScale((double) oldWidth / decoded.width());
         }
 
         getView().setStatus(buildStatus());
+    }
 
-        long t2 = System.nanoTime();
-        log.info("Decode: {}, Filter: {}", (t1 - t0) / 1e6, (t2 - t1) / 1e6);
+    /**
+     * Decodes the current mip/slice into {@link #imagePixels} and wraps it. Pure
+     * CPU work with no scene-graph access, so it is safe to run off the FX thread.
+     */
+    private DecodedImage renderCurrent() {
+        decoded = texture
+            .convertSurface(currentMip, currentSlice, TextureFormat.B8G8R8A8_SRGB, settings.isReconstructZ())
+            .getSurface(0, 0);
+        premultiplied = null;
+
+        int byteCount = decoded.width() * decoded.height() * 4;
+        if (imagePixels == null || imagePixels.length() != byteCount) {
+            imagePixels = Bytes.allocate(byteCount);
+        }
+
+        filterImage(channel);
+        return new DecodedImage(decoded.width(), decoded.height(), imagePixels);
     }
 
     private String buildStatus() {
@@ -179,14 +190,6 @@ public final class TexturePresenter extends AbstractPresenter<TextureView> imple
             bgra = operator.applyAsInt(bgra);
             imagePixels.setInt(i, bgra);
         }
-
-        var width = (int) image.getWidth();
-        var height = (int) image.getHeight();
-        image.getPixelWriter().setPixels(
-            0, 0, width, height,
-            PixelFormat.getByteBgraPreInstance(),
-            imagePixels.asMutableBuffer(), width * 4
-        );
     }
 
     private int premultiply(int bgra) {

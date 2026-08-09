@@ -1,5 +1,6 @@
 package be.twofold.valen.ui.component.main;
 
+import backbonefx.di.*;
 import be.twofold.valen.core.export.*;
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.ui.common.settings.*;
@@ -10,9 +11,11 @@ import javafx.application.*;
 import javafx.concurrent.*;
 import javafx.scene.*;
 import javafx.stage.*;
+import org.jetbrains.annotations.*;
 import org.slf4j.*;
 import wtf.reversed.toolbox.util.*;
 
+import java.io.*;
 import java.nio.file.*;
 import java.util.*;
 import java.util.stream.*;
@@ -27,9 +30,9 @@ final class ExportService extends Service<Void> {
     private List<? extends Asset> assets;
 
     @Inject
-    ExportService(Settings settings, ViewLoader viewLoader) {
+    ExportService(Settings settings, Feather feather) {
         this.settings = settings;
-        this.presenter = viewLoader.loadPresenter(ProgressPresenter.class, "/fxml/Progress.fxml");
+        this.presenter = feather.instance(ProgressPresenter.class);
         this.stage = createStage(presenter.getView().getFXNode());
 
         presenter.setCancelHandler(this::cancel);
@@ -55,12 +58,12 @@ final class ExportService extends Service<Void> {
         return stage;
     }
 
-    public void setLoader(AssetLoader loader) {
-        this.loader = loader;
-    }
-
-    public void setAssets(List<? extends Asset> assets) {
-        this.assets = assets;
+    void export(AssetLoader loader, List<? extends Asset> assets) {
+        FxUtils.runOnFxThread(() -> {
+            this.loader = loader;
+            this.assets = assets;
+            restart();
+        });
     }
 
     @Override
@@ -69,9 +72,13 @@ final class ExportService extends Service<Void> {
         Check.nonNull(this.assets, "assets");
 
         ExportTask exportTask = new ExportTask();
-        exportTask.setOnFailed(event -> Platform.runLater(() -> {
-            FxUtils.showExceptionDialog(event.getSource().getException(), "Exception while exporting assets");
-        }));
+        exportTask.setOnFailed(event -> {
+            // Explicitly log the exception, so it reaches the log file.
+            log.error("Export failed", event.getSource().getException());
+            Platform.runLater(() -> {
+                FxUtils.showExceptionDialog(event.getSource().getException(), "Exception while exporting assets");
+            });
+        });
         return exportTask;
     }
 
@@ -92,16 +99,19 @@ final class ExportService extends Service<Void> {
                 stage.show();
             });
 
-            for (int i = 0; i < assets.size(); i++) {
-                updateProgress(i, assets.size());
-                exportAsset(assets.get(i));
-                if (isCancelled()) {
-                    break;
+            try {
+                for (int i = 0; i < assets.size(); i++) {
+                    updateProgress(i, assets.size());
+                    exportAsset(assets.get(i));
+                    if (isCancelled()) {
+                        break;
+                    }
                 }
+                updateProgress(assets.size(), assets.size());
+            } finally {
+                // We always need to hide the dialog
+                Platform.runLater(stage::hide);
             }
-            updateProgress(assets.size(), assets.size());
-
-            Platform.runLater(stage::hide);
 
             if (!failedAssets.isEmpty()) {
                 String text = failedAssets.stream()
@@ -115,31 +125,46 @@ final class ExportService extends Service<Void> {
         private <T> void exportAsset(Asset asset) {
             updateMessage("Exporting " + asset.id().fullName());
 
+            Path targetPath = null;
             try {
-                Exporter<T> exporter = findExporter(asset);
+                var type = settings.isTreatAsRaw() ? AssetType.RAW : asset.type();
+
+                Exporter<T> exporter = findExporter(type);
                 exporter.setProperty("reconstructZ", settings.isReconstructZ());
                 exporter.setProperty("gltf.mode", settings.getModelExporter());
 
-                var targetPath = findTargetPath(exporter, asset);
+                targetPath = findTargetPath(exporter, asset);
                 if (Files.exists(targetPath)) {
-                    // log.warn("Target already exists at {}", targetPath);
                     return;
                 }
 
                 @SuppressWarnings("unchecked")
-                T rawAsset = (T) loader.load(asset.id(), asset.type().type());
+                T rawAsset = (T) loader.load(asset.id(), type.type());
                 Files.createDirectories(targetPath.getParent());
                 exporter.export(rawAsset, targetPath);
             } catch (Exception e) {
                 log.warn("Failed exporting asset", e);
                 failedAssets.add(asset.id());
+                discardPartialExport(targetPath);
+            }
+        }
+
+        // In case we fail, remove the file, so the next run writes it again
+        private void discardPartialExport(@Nullable Path targetPath) {
+            if (targetPath == null) {
+                return;
+            }
+            try {
+                Files.deleteIfExists(targetPath);
+            } catch (IOException e) {
+                log.warn("Could not delete partial export {}", targetPath, e);
             }
         }
 
         @SuppressWarnings("unchecked")
-        private <T> Exporter<T> findExporter(Asset asset) {
+        private <T> Exporter<T> findExporter(AssetType type) {
             boolean isGltf = Set.of("glb", "gltf").contains(settings.getModelExporter());
-            var exporterId = switch (asset.type()) {
+            var exporterId = switch (type) {
                 case ANIMATION -> "animation." + (isGltf ? "gltf" : "cast");
                 case MATERIAL -> "material." + (isGltf ? "gltf" : "cast");
                 case MODEL -> "model." + (isGltf ? "gltf" : "cast");
@@ -147,8 +172,8 @@ final class ExportService extends Service<Void> {
                 case RAW -> "binary.raw";
             };
             var exporter = exporterId != null
-                ? Exporter.forTypeAndId(asset.type().type(), exporterId)
-                : Exporter.forType(asset.type().type()).findFirst().orElseThrow();
+                ? Exporter.forTypeAndId(type.type(), exporterId)
+                : Exporter.forType(type.type()).findFirst().orElseThrow();
             return (Exporter<T>) exporter;
         }
 

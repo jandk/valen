@@ -12,14 +12,34 @@ public final class Settings {
     private String textureExporter = "texture.png";
     private String modelExporter = "gltf";
     private Boolean reconstructZ = true;
+    private Boolean treatAsRaw = false;
     private Path exportPath = Path.of("exported").toAbsolutePath();
 
     public Set<AssetType> getAssetTypes() {
-        return EnumSet.copyOf(assetTypes);
+        return copyOf(assetTypes);
     }
 
     public void setAssetTypes(Set<AssetType> assetTypes) {
-        this.assetTypes = EnumSet.copyOf(assetTypes);
+        this.assetTypes = copyOf(Check.nonNull(assetTypes, "assetTypes"));
+    }
+
+    private static Set<AssetType> copyOf(Collection<AssetType> assetTypes) {
+        // EnumSet.copyOf can't have an empty one, also fixes a stacktrace
+        var result = EnumSet.noneOf(AssetType.class);
+        assetTypes.stream()
+            .filter(Objects::nonNull)
+            .forEach(result::add);
+        return result;
+    }
+
+    void normalize() {
+        var defaults = new Settings();
+        assetTypes = copyOf(Objects.requireNonNullElse(assetTypes, defaults.assetTypes));
+        textureExporter = Objects.requireNonNullElse(textureExporter, defaults.textureExporter);
+        modelExporter = Objects.requireNonNullElse(modelExporter, defaults.modelExporter);
+        reconstructZ = Objects.requireNonNullElse(reconstructZ, defaults.reconstructZ);
+        treatAsRaw = Objects.requireNonNullElse(treatAsRaw, defaults.treatAsRaw);
+        exportPath = Objects.requireNonNullElse(exportPath, defaults.exportPath);
     }
 
     public Optional<Path> getGameExecutable() {
@@ -52,6 +72,14 @@ public final class Settings {
 
     public void setReconstructZ(Boolean reconstructZ) {
         this.reconstructZ = Check.nonNull(reconstructZ, "reconstructZ");
+    }
+
+    public Boolean isTreatAsRaw() {
+        return treatAsRaw;
+    }
+
+    public void setTreatAsRaw(Boolean treatAsRaw) {
+        this.treatAsRaw = Check.nonNull(treatAsRaw, "treatAsRaw");
     }
 
     public Path getExportPath() {

@@ -6,15 +6,16 @@ public enum GeometryVertexMask {
     POSITION_SHORT(0x20, 8),
     POSITION(0x01, 12),
     NORMAL_TANGENT(0x14, 8),
-    LIGHTMAP_UV_SHORT(0x40, 4),
-    LIGHTMAP_UV(0x02, 8),
-    MATERIAL_UV_SHORT(0x020000, 4),
-    MATERIAL_UV(0x8000, 8),
-    MATERIAL_UV1(0x08000000, 8),
-    MATERIAL_UV2(0x10000000, 8),
-    MATERIAL_UV1_SHORT(0x20000000, 4),
-    MATERIAL_UV2_SHORT(0x40000000, 4),
+    LIGHTMAP_UV_SHORT(0x40, 4, 3),
+    LIGHTMAP_UV(0x02, 8, 4),
+    MATERIAL_UV_SHORT(0x020000, 4, 0),
+    MATERIAL_UV(0x8000, 8, 0),
+    MATERIAL_UV1(0x08000000, 8, 1),
+    MATERIAL_UV2(0x10000000, 8, 2),
+    MATERIAL_UV1_SHORT(0x20000000, 4, 1),
+    MATERIAL_UV2_SHORT(0x40000000, 4, 2),
     COLOR(0x08, 4),
+    MATERIALS(0x010000, 8),
     // TODO: Check these
     SKINNING_8(0x80, 12),
     SKINNING_1(0x01000000, 0),
@@ -22,6 +23,9 @@ public enum GeometryVertexMask {
     SKINNING_6(0x04000000, 8),
     ;
 
+    /**
+     * The order attributes are interleaved in.
+     */
     public static final List<GeometryVertexMask> FixedOrder = List.of(
         POSITION_SHORT,
         POSITION,
@@ -30,15 +34,34 @@ public enum GeometryVertexMask {
         NORMAL_TANGENT,
         COLOR,
         MATERIAL_UV_SHORT,
-        MATERIAL_UV
+        MATERIAL_UV,
+        MATERIALS
     );
 
     private final int mask;
     private final int size;
+    private final int texCoordRank;
 
     GeometryVertexMask(int mask, int size) {
+        this(mask, size, -1);
+    }
+
+    GeometryVertexMask(int mask, int size, int texCoordRank) {
         this.mask = mask;
         this.size = size;
+        this.texCoordRank = texCoordRank;
+    }
+
+    /**
+     * Have to make sure the material UV goes first.
+     */
+    public static Map<GeometryVertexMask, Integer> texCoordSets(Collection<GeometryVertexMask> masks) {
+        var sets = new EnumMap<GeometryVertexMask, Integer>(GeometryVertexMask.class);
+        masks.stream()
+            .filter(mask -> mask.texCoordRank >= 0)
+            .sorted(Comparator.comparingInt(mask -> mask.texCoordRank))
+            .forEach(mask -> sets.put(mask, sets.size()));
+        return sets;
     }
 
     public static GeometryVertexMask from(int mask) {

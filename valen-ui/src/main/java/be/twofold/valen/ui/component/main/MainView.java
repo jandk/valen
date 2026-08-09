@@ -9,19 +9,19 @@ import java.util.*;
 
 public interface MainView extends View<MainView.Listener> {
 
-    boolean isSidePaneVisible();
-
     void setArchives(List<String> archives);
 
-    void setupPreview(Asset asset, Object assetData, Meta.Node metadata);
+    Object decodePreview(AssetType type, Object assetData, Meta.Node metadata);
+
+    void displayPreview(Object preview);
 
     void focusOnSearch();
 
     void setExporting(boolean exporting);
 
-    void showPreview(boolean enabled);
+    void setPreviewLoading(boolean loading);
 
-    void showSettings(boolean enabled);
+    void showSidePanel(SidePanel panel);
 
     void setFileListView(Node node);
 
@@ -29,9 +29,7 @@ public interface MainView extends View<MainView.Listener> {
 
         void onArchiveSelected(String name);
 
-        void onPreviewVisibilityChanged(boolean visible);
-
-        void onSettingsVisibilityChanged(boolean visible);
+        void onSidePanelToggled(SidePanel panel);
 
         void onLoadGameClicked();
 

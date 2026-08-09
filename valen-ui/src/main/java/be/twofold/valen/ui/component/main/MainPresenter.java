@@ -1,5 +1,6 @@
 package be.twofold.valen.ui.component.main;
 
+import backbonefx.di.*;
 import backbonefx.event.*;
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.ui.*;
@@ -9,14 +10,14 @@ import be.twofold.valen.ui.component.*;
 import be.twofold.valen.ui.component.filelist.*;
 import be.twofold.valen.ui.events.*;
 import jakarta.inject.*;
-import javafx.application.*;
 import javafx.concurrent.*;
 import org.jetbrains.annotations.*;
 import org.slf4j.*;
-import wtf.reversed.toolbox.collect.*;
 
 import java.io.*;
 import java.util.*;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.*;
 import java.util.function.*;
 import java.util.stream.*;
 
@@ -28,9 +29,19 @@ public final class MainPresenter extends AbstractPresenter<MainView> implements 
     private final Settings settings;
     private final EventBus eventBus;
 
+    // Loads run off the FX thread so browsing stays responsive. A single thread
+    // serializes loads; loadSeq makes the latest selection win (see selectAsset).
+    private final ExecutorService loadExecutor = Executors.newSingleThreadExecutor(runnable -> {
+        var thread = new Thread(runnable, "asset-loader");
+        thread.setDaemon(true);
+        return thread;
+    });
+    private final AtomicLong loadSequence = new AtomicLong();
+
     private @Nullable Game game;
     private AssetLoader loader;
     private @Nullable Asset lastAsset;
+    private SidePanel sidePanel = SidePanel.NONE;
     private String query = "";
 
     @Inject
@@ -39,14 +50,11 @@ public final class MainPresenter extends AbstractPresenter<MainView> implements 
         EventBus eventBus,
         Settings settings,
         ExportService exportService,
-        ViewLoader viewLoader
+        Feather feather
     ) {
         super(view);
 
-        this.fileList = viewLoader.loadPresenter(
-            FileListPresenter.class,
-            "/fxml/FileList.fxml"
-        );
+        this.fileList = feather.instance(FileListPresenter.class);
         this.settings = settings;
         this.exportService = exportService;
         this.eventBus = eventBus;
@@ -55,7 +63,7 @@ public final class MainPresenter extends AbstractPresenter<MainView> implements 
         view.setFileListView(fileList.getView().getFXNode());
 
         eventBus.subscribe(AssetSelected.class, event -> selectAsset(event.asset(), event.forced()));
-        eventBus.subscribe(SettingsApplied.class, _ -> updateFileList());
+        eventBus.subscribe(SettingsApplied.class, _ -> applySettings());
         eventBus.subscribe(ExportRequested.class, event -> exportPath(event.path(), event.recursive()));
 
         exportService.stateProperty().addListener((_, _, newValue) -> {
@@ -69,13 +77,17 @@ public final class MainPresenter extends AbstractPresenter<MainView> implements 
     }
 
     @Override
-    public void onPreviewVisibilityChanged(boolean visible) {
-        showPreview(visible);
-    }
-
-    @Override
-    public void onSettingsVisibilityChanged(boolean visible) {
-        showSettings(visible);
+    public void onSidePanelToggled(SidePanel panel) {
+        sidePanel = panel;
+        getView().showSidePanel(panel);
+        if (panel == SidePanel.PREVIEW) {
+            if (lastAsset != null) {
+                selectAsset(lastAsset, false);
+            }
+        } else {
+            // Leaving the preview: drop any in-flight load and its spinner.
+            cancelPreviewLoad();
+        }
     }
 
     @Override
@@ -101,6 +113,7 @@ public final class MainPresenter extends AbstractPresenter<MainView> implements 
         try {
             // This cast is safe here, we don't care about the actual types
             loader = game.open(archiveName);
+            cancelPreviewLoad();
             updateFileList();
         } catch (IOException e) {
             log.error("Could not load archive {}", archiveName, e);
@@ -110,32 +123,68 @@ public final class MainPresenter extends AbstractPresenter<MainView> implements 
 
     private void selectAsset(Asset asset, boolean forced) {
         if (forced) {
-            Platform.runLater(() -> getView().showPreview(true));
-        }
-        if (getView().isSidePaneVisible() && loader != null) {
-            try {
-                var type = switch (asset.type()) {
-                    case MODEL, TEXTURE -> asset.type().type();
-                    default -> Bytes.class;
-                };
-                var assetData = loader.load(asset.id(), type);
-                var metadata = loader.loadMetadata(asset.id()).orElse(null);
-                Platform.runLater(() -> getView().setupPreview(asset, assetData, metadata));
-            } catch (IOException e) {
-                log.error("Could not load asset {}", asset.id().fileName(), e);
-                FxUtils.showExceptionDialog(e, "Could not load asset " + asset.id().fileName());
-            }
+            sidePanel = SidePanel.PREVIEW;
+            getView().showSidePanel(SidePanel.PREVIEW);
         }
         lastAsset = asset;
+
+        // Bump the sequence so any in-flight load is superseded, even if we
+        // don't start a new one (e.g. the preview panel is hidden).
+        var seq = loadSequence.incrementAndGet();
+        if (sidePanel != SidePanel.PREVIEW || loader == null) {
+            return;
+        }
+
+        var currentLoader = loader;
+        getView().setPreviewLoading(true);
+        loadExecutor.submit(() -> loadAsset(seq, currentLoader, asset));
     }
 
-    private void showPreview(boolean visible) {
-        if (visible && lastAsset != null) {
-            selectAsset(lastAsset, false);
+    private void loadAsset(long seq, AssetLoader loader, Asset asset) {
+        try {
+            var type = previewType(asset);
+            var assetData = loader.load(asset.id(), type.type());
+            var metadata = loader.loadMetadata(asset.id()).orElse(null);
+            if (isStale(seq)) {
+                return;
+            }
+            var preview = getView().decodePreview(type, assetData, metadata);
+            if (isStale(seq)) {
+                return;
+            }
+            getView().displayPreview(preview);
+            getView().setPreviewLoading(false);
+        } catch (Exception e) {
+            if (isStale(seq)) {
+                return;
+            }
+            log.error("Could not load asset {}", asset.id().fileName(), e);
+            getView().setPreviewLoading(false);
+            FxUtils.showExceptionDialog(e, "Could not load asset " + asset.id().fileName());
         }
     }
 
-    private void showSettings(boolean visible) {
+    private AssetType previewType(Asset asset) {
+        if (settings.isTreatAsRaw()) {
+            return AssetType.RAW;
+        }
+        return switch (asset.type()) {
+            case MODEL, TEXTURE -> asset.type();
+            default -> AssetType.RAW;
+        };
+    }
+
+    /**
+     * A newer selection has superseded this load, so its result should be
+     * dropped. The superseding selection owns the spinner from here on.
+     */
+    private boolean isStale(long seq) {
+        return seq != loadSequence.get();
+    }
+
+    private void cancelPreviewLoad() {
+        loadSequence.incrementAndGet();
+        getView().setPreviewLoading(false);
     }
 
     private void exportSelectedAssets() {
@@ -157,11 +206,16 @@ public final class MainPresenter extends AbstractPresenter<MainView> implements 
             return;
         }
 
-        Platform.runLater(() -> {
-            exportService.setLoader(loader);
-            exportService.setAssets(assets);
-            exportService.restart();
-        });
+        exportService.export(loader, assets);
+    }
+
+    private void applySettings() {
+        updateFileList();
+
+        // "Treat as raw" changes how the current asset decodes, so reload it.
+        if (lastAsset != null && sidePanel == SidePanel.PREVIEW) {
+            selectAsset(lastAsset, false);
+        }
     }
 
     private void updateFileList() {
@@ -172,7 +226,10 @@ public final class MainPresenter extends AbstractPresenter<MainView> implements 
         if (loader == null) {
             return Stream.empty();
         }
-        var predicate = buildPredicate(query, settings.getAssetTypes());
+
+        // Nothing is decoded in raw mode, so the type filter doesn't apply: list everything.
+        var assetTypes = settings.isTreatAsRaw() ? Set.<AssetType>of() : settings.getAssetTypes();
+        var predicate = buildPredicate(query, assetTypes);
         return loader.all().filter(predicate);
     }
 

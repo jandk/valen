@@ -26,7 +26,11 @@ final class StringNumber extends Number {
         try {
             return Long.parseLong(value);
         } catch (NumberFormatException e) {
-            return new BigDecimal(value).longValue();
+            try {
+                return Long.decode(value); // Handles 0x
+            } catch (NumberFormatException e2) {
+                return new BigDecimal(value).longValue();
+            }
         }
     }
 

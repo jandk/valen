@@ -22,7 +22,7 @@ public final class GltfSceneExporter extends GltfExporter<Scene> {
 
     @Override
     void doExport(Scene scene, GltfWriter writer) throws IOException {
-        var modelMapper = new GltfModelSingleMapper(writer, null);
+        var modelMapper = new GltfModelSingleMapper(writer);
         var instanceNodes = new ArrayList<NodeID>();
         for (var instance : scene.instances()) {
             modelMapper.map(instance.modelReference())

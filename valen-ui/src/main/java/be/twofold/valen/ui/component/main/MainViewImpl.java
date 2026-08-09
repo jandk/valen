@@ -1,5 +1,6 @@
 package be.twofold.valen.ui.component.main;
 
+import backbonefx.di.*;
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.util.*;
 import be.twofold.valen.ui.common.*;
@@ -8,11 +9,11 @@ import be.twofold.valen.ui.component.preview.*;
 import be.twofold.valen.ui.component.settings.*;
 import jakarta.inject.*;
 import javafx.animation.*;
-import javafx.application.Platform;
 import javafx.geometry.*;
 import javafx.scene.*;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
+import javafx.util.*;
 import org.slf4j.*;
 
 import java.util.*;
@@ -30,15 +31,18 @@ public final class MainViewImpl extends AbstractView<MainView.Listener> implemen
     private final ComboBox<String> archiveChooser = new ComboBox<>();
     private final TextField searchTextField = new TextField();
 
+    private final StackPane previewPane = new StackPane();
+    private final ProgressIndicator previewSpinner = new ProgressIndicator();
+    private final StackPane previewVeil = new StackPane(previewSpinner);
+    private final PauseTransition spinnerDelay = new PauseTransition(Duration.millis(200));
+
     private final PreviewTabPane tabPane;
     private final SettingsPresenter settingsPresenter;
 
-    private boolean suppressToggleEvents;
-
     @Inject
-    MainViewImpl(PreviewTabPane tabPane, ViewLoader viewLoader) {
+    MainViewImpl(PreviewTabPane tabPane, Feather feather) {
         this.tabPane = tabPane;
-        this.settingsPresenter = viewLoader.loadPresenter(SettingsPresenter.class, "/fxml/Settings.fxml");
+        this.settingsPresenter = feather.instance(SettingsPresenter.class);
 
         buildUI();
     }
@@ -58,19 +62,20 @@ public final class MainViewImpl extends AbstractView<MainView.Listener> implemen
     }
 
     @Override
-    public boolean isSidePaneVisible() {
-        return splitPane.getItems().size() == 2;
-    }
-
-    @Override
     public void setArchives(List<String> archives) {
         archiveChooser.getItems().setAll(archives);
         // archiveChooser.getSelectionModel().select(0);
     }
 
     @Override
-    public void setupPreview(Asset asset, Object assetData, Meta.Node metadata) {
-        tabPane.setData(asset.type(), assetData, metadata);
+    public Object decodePreview(AssetType type, Object assetData, Meta.Node metadata) {
+        // Runs on the caller's (loader) thread: decode is pure, no scene graph.
+        return tabPane.decode(type, assetData, metadata);
+    }
+
+    @Override
+    public void displayPreview(Object preview) {
+        FxUtils.runOnFxThread(() -> tabPane.display((PreviewTabPane.PreviewData) preview));
     }
 
     @Override
@@ -80,22 +85,29 @@ public final class MainViewImpl extends AbstractView<MainView.Listener> implemen
 
     @Override
     public void setExporting(boolean exporting) {
-        Platform.runLater(() -> {
-            log.info("Exporting: {} at {}", exporting, System.currentTimeMillis());
-            view.setDisable(exporting);
+        FxUtils.runOnFxThread(() -> view.setDisable(exporting));
+    }
+
+    @Override
+    public void setPreviewLoading(boolean loading) {
+        FxUtils.runOnFxThread(() -> {
+            if (loading) {
+                // Delay showing the spinner so quick loads don't flash it.
+                spinnerDelay.playFromStart();
+            } else {
+                spinnerDelay.stop();
+                previewVeil.setVisible(false);
+            }
         });
     }
 
     @Override
-    public void showPreview(boolean enabled) {
-        setSidePanelEnabled(enabled, tabPane);
-        setToggleSelected(previewButton, enabled);
-    }
-
-    @Override
-    public void showSettings(boolean enabled) {
-        setSidePanelEnabled(enabled, settingsPresenter.getView().getFXNode());
-        setToggleSelected(settingsButton, enabled);
+    public void showSidePanel(SidePanel panel) {
+        FxUtils.runOnFxThread(() -> {
+            previewButton.setSelected(panel == SidePanel.PREVIEW);
+            settingsButton.setSelected(panel == SidePanel.SETTINGS);
+            setSidePanelContent(panel);
+        });
     }
 
     private void selectArchive(String archiveName) {
@@ -105,42 +117,57 @@ public final class MainViewImpl extends AbstractView<MainView.Listener> implemen
         getListener().onArchiveSelected(archiveName);
     }
 
-    private void setSidePanelEnabled(boolean enabled, Node node) {
+    private void setSidePanelContent(SidePanel panel) {
+        var node = switch (panel) {
+            case PREVIEW -> previewPane;
+            case SETTINGS -> settingsPresenter.getView().getFXNode();
+            case NONE -> null;
+        };
+
+        var items = splitPane.getItems();
         if (node == null) {
-            log.error("setSidePanelEnabled called with null node");
-            return;
-        }
-        if (enabled) {
-            if (isSidePaneVisible()) {
-                return;
+            if (items.size() == 2) {
+                items.remove(1);
+                splitPane.setDividerPositions();
             }
-            splitPane.getItems().add(node);
-            splitPane.setDividerPositions(0.60);
+        } else if (items.size() == 2) {
+            items.set(1, node);
         } else {
-            if (!isSidePaneVisible()) {
-                return;
-            }
-            splitPane.getItems().remove(1);
-            splitPane.setDividerPositions();
+            items.add(node);
+            splitPane.setDividerPositions(0.60);
         }
     }
 
-    private void setToggleSelected(ToggleButton button, boolean selected) {
-        suppressToggleEvents = true;
-        try {
-            button.setSelected(selected);
-        } finally {
-            suppressToggleEvents = false;
+    private SidePanel selectedPanel() {
+        if (previewButton.isSelected()) {
+            return SidePanel.PREVIEW;
         }
+        if (settingsButton.isSelected()) {
+            return SidePanel.SETTINGS;
+        }
+        return SidePanel.NONE;
     }
 
     // region UI
 
     private void buildUI() {
+        buildPreviewPane();
+
         view.setPrefSize(1250, 666);
         view.setTop(buildToolBar());
         view.setCenter(buildMainContent());
         view.setBottom(buildStatusBar());
+    }
+
+    private void buildPreviewPane() {
+        previewSpinner.setMaxSize(60, 60);
+
+        // Block interaction while loading
+        previewVeil.setVisible(false);
+        previewVeil.setPickOnBounds(true);
+        spinnerDelay.setOnFinished(_ -> previewVeil.setVisible(true));
+
+        previewPane.getChildren().setAll(tabPane, previewVeil);
     }
 
     private SplitPane buildMainContent() {
@@ -194,10 +221,10 @@ public final class MainViewImpl extends AbstractView<MainView.Listener> implemen
         var sidePane = new ToggleGroup();
 
         previewButton.setToggleGroup(sidePane);
-        previewButton.selectedProperty().addListener((_, _, newValue) -> showPreview(newValue));
+        previewButton.setOnAction(_ -> getListener().onSidePanelToggled(selectedPanel()));
 
         settingsButton.setToggleGroup(sidePane);
-        settingsButton.selectedProperty().addListener((_, _, newValue) -> showSettings(newValue));
+        settingsButton.setOnAction(_ -> getListener().onSidePanelToggled(selectedPanel()));
 
         return new ToolBar(
             loadGame, archiveChooser,
@@ -206,22 +233,6 @@ public final class MainViewImpl extends AbstractView<MainView.Listener> implemen
             new Separator(),
             previewButton, settingsButton
         );
-    }
-
-    private void showPreview(Boolean newValue) {
-        if (suppressToggleEvents) {
-            return;
-        }
-        setSidePanelEnabled(newValue, tabPane);
-        getListener().onPreviewVisibilityChanged(newValue);
-    }
-
-    private void showSettings(Boolean newValue) {
-        if (suppressToggleEvents) {
-            return;
-        }
-        setSidePanelEnabled(newValue, settingsPresenter.getView().getFXNode());
-        getListener().onSettingsVisibilityChanged(newValue);
     }
 
     // endregion

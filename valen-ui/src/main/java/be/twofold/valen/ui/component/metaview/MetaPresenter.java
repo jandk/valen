@@ -23,7 +23,15 @@ public final class MetaPresenter extends AbstractPresenter<MetaView> implements 
     }
 
     @Override
-    public void setData(Object data) {
+    public Object decode(Object data) {
+        if (!(data instanceof Meta.Node)) {
+            return null;
+        }
+        return data;
+    }
+
+    @Override
+    public void display(Object data) {
         if (data instanceof Meta.Node node) {
             getView().setRoot(node);
         } else {

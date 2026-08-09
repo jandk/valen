@@ -54,6 +54,10 @@ public record EternalAssetID(
         );
     }
 
+    public static EternalAssetID material(String name) {
+        return from("generated/decls/material2/" + name + ".decl", ResourceType.RsStreamFile);
+    }
+
     @Override
     public String fullName() {
         return name.name();

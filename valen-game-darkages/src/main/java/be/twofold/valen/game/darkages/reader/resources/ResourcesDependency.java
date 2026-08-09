@@ -11,6 +11,8 @@ public record ResourcesDependency(
     int depSubType,
     long hashOrTimestamp
 ) {
+    public static final long BYTES = 32;
+
     public static ResourcesDependency read(BinarySource source) throws IOException {
         var type = source.readLong();
         var name = source.readLong();

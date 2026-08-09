@@ -114,8 +114,8 @@ public final class DdsExporter extends TextureExporter {
                  R16G16B16A16_SFLOAT -> DxgiFormat.R16G16B16A16_FLOAT;
             case R10G10B10A2_UNORM -> DxgiFormat.R10G10B10A2_UNORM;
             case R11G11B10_SFLOAT -> DxgiFormat.R11G11B10_FLOAT;
-            case BC1_UNORM -> DxgiFormat.BC1_UNORM;
-            case BC1_SRGB -> DxgiFormat.BC1_UNORM_SRGB;
+            case BC1_UNORM, BC1A_UNORM -> DxgiFormat.BC1_UNORM;
+            case BC1_SRGB, BC1A_SRGB -> DxgiFormat.BC1_UNORM_SRGB;
             case BC2_UNORM -> DxgiFormat.BC2_UNORM;
             case BC2_SRGB -> DxgiFormat.BC2_UNORM_SRGB;
             case BC3_UNORM -> DxgiFormat.BC3_UNORM;

@@ -3,6 +3,7 @@ package be.twofold.valen.game.darkages.reader.image;
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.texture.*;
 import be.twofold.valen.core.texture.shader.node.*;
+import be.twofold.valen.core.util.*;
 import be.twofold.valen.game.darkages.*;
 import be.twofold.valen.game.darkages.reader.*;
 import be.twofold.valen.game.darkages.reader.resources.*;
@@ -10,6 +11,7 @@ import be.twofold.valen.game.idtech.defines.*;
 import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
+import java.lang.invoke.*;
 import java.util.*;
 import java.util.function.*;
 
@@ -29,6 +31,14 @@ public final class ImageReader implements AssetReader.Binary<Texture, DarkAgesAs
     public Texture read(BinarySource source, DarkAgesAsset asset, LoadingContext context) throws IOException {
         var image = read(source, asset.hash(), context);
         return map(image);
+    }
+
+    @Override
+    public Optional<Meta.Node> readMetadata(DarkAgesAsset asset, LoadingContext context) throws IOException {
+        try (var source = BinarySource.wrap(context.open(asset.location()))) {
+            var image = Image.read(source);
+            return Optional.of(Meta.build(MethodHandles.lookup(), image));
+        }
     }
 
     public Image read(BinarySource source, long hash, LoadingContext context) throws IOException {

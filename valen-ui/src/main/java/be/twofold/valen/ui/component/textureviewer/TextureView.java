@@ -1,11 +1,13 @@
 package be.twofold.valen.ui.component.textureviewer;
 
 import be.twofold.valen.ui.common.*;
-import javafx.scene.image.*;
+import be.twofold.valen.ui.component.*;
 
 public interface TextureView extends View<TextureView.Listener> {
 
-    void setImage(Image image, boolean resetZoom);
+    void setImage(DecodedImage image, boolean resetZoom);
+
+    void clearImage();
 
     void adjustScale(double factor);
 

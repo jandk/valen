@@ -67,6 +67,10 @@ public record DarkAgesAssetID(
         );
     }
 
+    public static DarkAgesAssetID material(String name) {
+        return from("generated/decls/material2/" + name + ".decl", ResourcesType.RsStreamFile);
+    }
+
     @Override
     public String fullName() {
         return name.name();

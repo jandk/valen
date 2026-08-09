@@ -6,6 +6,7 @@ module valen.app {
     requires valen.ui;
 
     // Exporters
+    requires valen.export.cast;
     requires valen.export.dds;
     requires valen.export.gltf;
     requires valen.export.png;

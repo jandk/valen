@@ -29,48 +29,47 @@ public final class GltfModelMultiMapper extends GltfModelMapper {
     }
 
     public NodeID map(Model model) throws IOException {
-        var meshIDs = mapModel(model).stream()
-            .map(context::addMesh)
-            .toList();
+        var meshes = mapMeshes(model);
 
-        var nodeIDs = model.skeleton().isPresent()
-            ? mapAnimatedModel(meshIDs, model.skeleton().get())
-            : mapStaticModel(meshIDs, model.upAxis());
-
-        return context.addNode(
-            ImmutableNode.builder()
-                .name(model.name())
-                .children(nodeIDs)
-                .build());
-    }
-
-    private List<NodeID> mapStaticModel(List<MeshID> meshIDs, Axis axis) {
-        return meshIDs.stream()
-            .map(meshID -> context.addNode(ImmutableNode.builder()
-                .rotation(GltfUtils.mapQuaternion(axis.rotateTo(Axis.Y)))
-                .mesh(meshID)
-                .build()))
-            .toList();
-    }
-
-    private List<NodeID> mapAnimatedModel(List<MeshID> meshIDs, Skeleton skeleton) throws IOException {
-        var skeletonMapper = new GltfSkeletonMapper(context);
-        var skinID = skeletonMapper.map(skeleton);
-
-        return meshIDs.stream()
-            .map(meshID -> context.addNode(ImmutableNode.builder()
-                .mesh(meshID)
-                .skin(skinID)
-                .build()))
-            .toList();
-    }
-
-    private List<MeshSchema> mapModel(Model model) throws IOException {
-        var meshSchemas = new ArrayList<MeshSchema>();
-        for (var mesh : model.meshes()) {
-            mapMesh(mesh).ifPresent(meshSchemas::add);
+        // Everything hangs under a single model root that carries the up-axis rotation: the joints
+        // (so their world transforms pick it up) and the mesh nodes (so static meshes are oriented
+        // too). The mesh nodes themselves carry no rotation.
+        var children = new ArrayList<NodeID>();
+        if (model.skeleton().isPresent()) {
+            var skeletonMapper = new GltfSkeletonMapper(context);
+            var mappedSkin = skeletonMapper.mapSkin(model.skeleton().get());
+            children.add(mappedSkin.rootJoint());
+            for (var mesh : meshes) {
+                var node = ImmutableNode.builder().mesh(mesh.meshID());
+                // A skin may only be attached to a mesh that actually carries JOINTS_n/WEIGHTS_n; an
+                // unskinned mesh in a rigged model stays a plain child of the model root.
+                if (mesh.skinned()) {
+                    node.skin(mappedSkin.skin());
+                }
+                children.add(context.addNode(node.build()));
+            }
+        } else {
+            for (var mesh : meshes) {
+                children.add(context.addNode(ImmutableNode.builder()
+                    .mesh(mesh.meshID())
+                    .build()));
+            }
         }
-        return meshSchemas;
+
+        return context.addNode(ImmutableNode.builder()
+            .name(model.name())
+            .rotation(GltfUtils.mapQuaternion(model.upAxis().rotateTo(Axis.Y)))
+            .children(children)
+            .build());
+    }
+
+    private List<MappedMesh> mapMeshes(Model model) throws IOException {
+        var meshes = new ArrayList<MappedMesh>();
+        for (var mesh : model.meshes()) {
+            mapMesh(mesh).ifPresent(schema ->
+                meshes.add(new MappedMesh(context.addMesh(schema), mesh.maxInfluence() != 0)));
+        }
+        return meshes;
     }
 
     private Optional<MeshSchema> mapMesh(Mesh mesh) throws IOException {
@@ -91,5 +90,11 @@ public final class GltfModelMultiMapper extends GltfModelMapper {
             builder.extras(Map.of("targetNames", morphTargetNames));
         }
         return Optional.of(builder.build());
+    }
+
+    private record MappedMesh(
+        MeshID meshID,
+        boolean skinned
+    ) {
     }
 }

@@ -5,7 +5,7 @@
     <parent>
         <groupId>be.twofold</groupId>
         <artifactId>valen</artifactId>
-        <version>0.3.1-SNAPSHOT</version>
+        <version>0.3.3-SNAPSHOT</version>
     </parent>
 
     <artifactId>valen-core</artifactId>
@@ -22,12 +22,6 @@
         <dependency>
             <groupId>wtf.reversed</groupId>
             <artifactId>reversed-toolbox</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>com.squareup</groupId>
-            <artifactId>javapoet</artifactId>
-            <scope>test</scope>
         </dependency>
     </dependencies>
 

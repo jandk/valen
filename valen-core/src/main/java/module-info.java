@@ -12,6 +12,7 @@ module valen.core {
     exports be.twofold.valen.core.export;
     exports be.twofold.valen.core.game;
     exports be.twofold.valen.core.geometry;
+    exports be.twofold.valen.core.geometry.read;
     exports be.twofold.valen.core.material;
     exports be.twofold.valen.core.scene;
     exports be.twofold.valen.core.texture.shader.node;

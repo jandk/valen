@@ -1,13 +1,39 @@
 package be.twofold.valen.ui.component;
 
+import be.twofold.valen.core.util.*;
 import be.twofold.valen.ui.*;
-import javafx.application.*;
+import javafx.application.Platform;
 import javafx.scene.control.*;
+import javafx.scene.image.*;
 import javafx.scene.layout.*;
 
 import java.io.*;
 
 public final class FxUtils {
+
+    /**
+     * Runs the given action on the JavaFX Application Thread.
+     */
+    public static void runOnFxThread(Runnable action) {
+        if (Platform.isFxApplicationThread()) {
+            action.run();
+        } else {
+            Platform.runLater(action);
+        }
+    }
+
+    /**
+     * Wraps a {@link DecodedImage} in a JavaFX image without copying: the image
+     * reads directly from the decoded buffer.
+     */
+    public static WritableImage toWritableImage(DecodedImage image) {
+        return new WritableImage(new PixelBuffer<>(
+            image.width(),
+            image.height(),
+            image.pixels().asMutableBuffer(),
+            PixelFormat.getByteBgraPreInstance()
+        ));
+    }
 
     public static void showExceptionDialog(Throwable throwable, String text) {
         Platform.runLater(() -> {
@@ -28,9 +54,14 @@ public final class FxUtils {
 
             VBox.setVgrow(textArea, Priority.ALWAYS);
 
+            // Show log directory
+            var logHint = new Label("Full logs: " + AppDirectories.logs());
+            logHint.setStyle("-fx-font-size: 0.9em; -fx-text-fill: gray;");
+
             var content = new VBox();
             content.getChildren().add(label);
             content.getChildren().add(textArea);
+            content.getChildren().add(logHint);
 
             // Set expandable stacktrace into the dialog pane.
             alert.getDialogPane().setExpandableContent(content);

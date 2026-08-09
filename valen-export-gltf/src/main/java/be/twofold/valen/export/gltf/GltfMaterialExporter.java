@@ -25,7 +25,8 @@ public final class GltfMaterialExporter extends GltfExporter<Material> {
     void doExport(Material material, GltfWriter writer) throws IOException {
         var mesh = MeshGenerator
             .createSphere(16, 16)
-            .withMaterial(Optional.of(material));
+            .material(material)
+            .build();
         var model = new Model(List.of(mesh), Axis.Y);
 
         modelExporter.doExport(model, writer);
