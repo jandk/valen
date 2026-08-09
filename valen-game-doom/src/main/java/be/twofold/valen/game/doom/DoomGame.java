@@ -4,6 +4,7 @@ import be.twofold.valen.core.game.*;
 import be.twofold.valen.game.doom.readers.image.*;
 import be.twofold.valen.game.doom.readers.model.*;
 import be.twofold.valen.game.doom.resources.*;
+import be.twofold.valen.game.doom.vmtr.*;
 import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
@@ -24,16 +25,20 @@ public final class DoomGame implements Game {
         new ModelReader()
     );
 
+    private static final String COMMON_ARCHIVE = "gameresources";
+
     private final Path base;
+    private final Path virtualTextures;
 
     DoomGame(Path path) {
         this.base = path.resolve("base");
+        this.virtualTextures = path.resolve("virtualtextures");
     }
 
     @Override
     public List<String> archiveNames() {
         return List.of(
-            "gameresources",
+            COMMON_ARCHIVE,
             "snap_gameresources"
         );
     }
@@ -60,20 +65,38 @@ public final class DoomGame implements Game {
             assets.add(mapResourceEntry(entry, fileName, resourcesPath));
         }
 
+        // Materials point into the atlas from every archive, but only the common one lists it.
+        var vmtr = VmtrIndex.build(virtualTextures);
+        var vmtrAssets = vmtr.entries().stream()
+            .flatMap(entry -> Arrays.stream(VmtrLayer.values())
+                .map(layer -> new DoomAsset.Vmtr(entry, layer)))
+            .toList();
+
+        var archive = name.equals(COMMON_ARCHIVE)
+            ? Archive.combine(List.of(Archive.of(assets), Archive.of(vmtrAssets)))
+            : Archive.layered(Archive.of(assets), Archive.of(vmtrAssets));
+
+        // The mega2 sources are only handed over so the storage manager closes them.
+        var sources = new HashMap<>(vmtr.sources());
+        sources.put(resourcesPath, resources);
+
         var storageManager = new StorageManager(
-            Map.of(resourcesPath, resources),
+            sources,
             Set.of(),
             new Decompressors(null)
         );
 
+        var readers = new ArrayList<AssetReader<?, DoomAsset>>(READERS);
+        readers.addFirst(new VmtrReader(vmtr.atlas()));
+
         return new AssetLoader(
-            Archive.of(assets),
+            archive,
             storageManager,
-            List.copyOf(READERS)
+            List.copyOf(readers)
         );
     }
 
-    private DoomAsset mapResourceEntry(ResourcesIndexEntry entry, String fileName, Path path) {
+    private DoomAsset.Resource mapResourceEntry(ResourcesIndexEntry entry, String fileName, Path path) {
         var id = new DoomAssetID(fileName);
 
         Location location = new Location.FileSlice(path, entry.offset(), entry.sizeCompressed());
@@ -81,6 +104,6 @@ public final class DoomGame implements Game {
             location = new Location.Compressed(location, CompressionType.DEFLATE_RAW, entry.size());
         }
 
-        return new DoomAsset(id, entry.typeName(), location);
+        return new DoomAsset.Resource(id, entry.typeName(), location);
     }
 }

@@ -4,8 +4,10 @@ import wtf.reversed.toolbox.io.*;
 import wtf.reversed.toolbox.util.*;
 
 import java.io.*;
-import java.nio.file.*;
 
+/**
+ * A single {@code .mega2} file, holding one rectangle of the virtual texture atlas as pages.
+ */
 public final class Mega2File {
     private final BinarySource source;
     private final Mega2 mega;
@@ -15,8 +17,7 @@ public final class Mega2File {
         this.mega = Check.nonNull(mega, "mega2");
     }
 
-    public static Mega2File open(Path path) throws IOException {
-        BinarySource source = BinarySource.open(path);
+    public static Mega2File open(BinarySource source) throws IOException {
         var mega2 = Mega2.read(source);
         return new Mega2File(source, mega2);
     }

@@ -12,7 +12,8 @@ import java.util.function.*;
 public final class ImageReader implements AssetReader.Binary<Texture, DoomAsset> {
     @Override
     public boolean canRead(DoomAsset asset) {
-        return asset.rawType().equals("image");
+        return asset instanceof DoomAsset.Resource resource
+            && resource.rawType().equals("image");
     }
 
     @Override

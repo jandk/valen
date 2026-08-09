@@ -23,7 +23,8 @@ public final class ModelReader implements AssetReader.Binary<Model, DoomAsset> {
 
     @Override
     public boolean canRead(DoomAsset asset) {
-        return asset.rawType().equals("model");
+        return asset instanceof DoomAsset.Resource resource
+            && resource.rawType().equals("model");
     }
 
     @Override

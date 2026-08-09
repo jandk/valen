@@ -8,6 +8,10 @@ import java.io.*;
 import java.nio.*;
 import java.util.*;
 
+/**
+ * The geometry of a single model surface. Vertices and indices are kept as one blob, so a
+ * {@code MeshReader} can address both.
+ */
 public record Triangles(
     int numVerts,
     int numIndices,
