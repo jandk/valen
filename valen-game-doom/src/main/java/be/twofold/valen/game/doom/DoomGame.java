@@ -1,12 +1,9 @@
 package be.twofold.valen.game.doom;
 
 import be.twofold.valen.core.game.*;
-import be.twofold.valen.core.util.*;
 import be.twofold.valen.game.doom.readers.image.*;
 import be.twofold.valen.game.doom.readers.model.*;
 import be.twofold.valen.game.doom.resources.*;
-import wtf.reversed.toolbox.collect.*;
-import wtf.reversed.toolbox.compress.*;
 import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
@@ -63,11 +60,15 @@ public final class DoomGame implements Game {
             assets.add(mapResourceEntry(entry, fileName, resourcesPath));
         }
 
+        var storageManager = new StorageManager(
+            Map.of(resourcesPath, resources),
+            Set.of(),
+            new Decompressors(null)
+        );
+
         return new AssetLoader(
             Archive.of(assets),
-            new StorageManager(Map.of(
-                resourcesPath, resources
-            ), Set.of()),
+            storageManager,
             List.copyOf(READERS)
         );
     }

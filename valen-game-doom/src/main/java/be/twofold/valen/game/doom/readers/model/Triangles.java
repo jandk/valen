@@ -16,11 +16,12 @@ public record Triangles(
     Vector3 xyzBias,
     Vector2 stScale,
     Vector2 stBias,
-    Bytes vertexBuffer,
-    Shorts indexBuffer,
+    Bytes buffer,
     Bounds bounds,
     int detailOffset
 ) {
+    public static final int VERTEX_SIZE = 48;
+
     public static Triangles read(BinarySource source) throws IOException {
         source.order(ByteOrder.BIG_ENDIAN);
 
@@ -36,8 +37,7 @@ public record Triangles(
         var xyzBias = Vector3.read(source);
         var stScale = Vector2.read(source);
         var stBias = Vector2.read(source);
-        var vertexBuffer = source.readBytes(numVerts * 48);
-        var indexBuffer = source.readShorts(numIndices);
+        var buffer = source.readBytes(numVerts * VERTEX_SIZE + numIndices * Short.BYTES);
         var bounds = Bounds.read(source);
         var detailOffset = source.readInt();
 
@@ -49,8 +49,7 @@ public record Triangles(
             xyzBias,
             stScale,
             stBias,
-            vertexBuffer,
-            indexBuffer,
+            buffer,
             bounds,
             detailOffset
         );
