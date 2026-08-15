@@ -1,4 +1,6 @@
-package be.twofold.valen.game.doom.vmtr;
+package be.twofold.valen.game.doom.megatexture.vmtr;
+
+import be.twofold.valen.game.doom.mega2.*;
 
 import java.io.*;
 import java.util.*;
@@ -41,5 +43,25 @@ public record VmtrEntry(
             mtrCheck,
             name
         );
+    }
+
+    public int tileX() {
+        return x / Mega2Layout.TILE_USABLE;
+    }
+
+    public int tileY() {
+        return y / Mega2Layout.TILE_USABLE;
+    }
+
+    public int tilesW() {
+        return Math.ceilDiv(width, Mega2Layout.TILE_USABLE);
+    }
+
+    public int tilesH() {
+        return Math.ceilDiv(height, Mega2Layout.TILE_USABLE);
+    }
+
+    public int coarsestLevel() {
+        return Integer.numberOfTrailingZeros(tileX() | tileY() | tilesW() | tilesH());
     }
 }

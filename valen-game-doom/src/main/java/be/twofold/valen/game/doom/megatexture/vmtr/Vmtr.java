@@ -1,4 +1,4 @@
-package be.twofold.valen.game.doom.vmtr;
+package be.twofold.valen.game.doom.megatexture.vmtr;
 
 import java.io.*;
 import java.nio.file.*;

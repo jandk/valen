@@ -1,7 +1,7 @@
 package be.twofold.valen.game.doom.vmtr;
 
 import be.twofold.valen.core.texture.*;
-import be.twofold.valen.game.doom.mega2.*;
+import be.twofold.valen.game.doom.megatexture.mega2.*;
 
 /**
  * The layers a virtual texture page carries, in the order {@code Mega2PageHeader} stores them.
@@ -10,7 +10,7 @@ public enum VmtrLayer {
     DIFFUSE("_c", TextureFormat.R8G8B8A8_SRGB),
     SPECULAR("_s", TextureFormat.R8G8B8A8_SRGB),
     LIGHTMAP("_g", TextureFormat.R8G8B8A8_UNORM),
-    COLOR_MASK("_m", TextureFormat.BC7_UNORM);
+    COLORMASK("_m", TextureFormat.BC7_UNORM);
 
     private final String suffix;
     private final TextureFormat format;
@@ -36,7 +36,7 @@ public enum VmtrLayer {
             case DIFFUSE -> header.diffuseSize();
             case SPECULAR -> header.specularSize();
             case LIGHTMAP -> header.lightmapSize();
-            case COLOR_MASK -> header.colorMaskSize();
+            case COLORMASK -> header.colormaskSize();
         });
     }
 
@@ -54,15 +54,4 @@ public enum VmtrLayer {
         throw new IllegalStateException();
     }
 
-    /**
-     * Selects how the payload is encoded.
-     */
-    public int qualityIn(Mega2PageHeader header) {
-        return Byte.toUnsignedInt(switch (this) {
-            case DIFFUSE -> header.qualityDiffuse();
-            case SPECULAR -> header.qualitySpecular();
-            case LIGHTMAP -> header.qualityLightmap();
-            case COLOR_MASK -> header.qualityColorMask();
-        });
-    }
 }

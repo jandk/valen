@@ -1,5 +1,6 @@
 package be.twofold.valen.game.doom.mega2;
 
+import be.twofold.valen.game.doom.megatexture.mega2.*;
 import wtf.reversed.toolbox.io.*;
 import wtf.reversed.toolbox.util.*;
 
@@ -26,9 +27,9 @@ public final class Mega2File {
         return mega;
     }
 
-    public BinarySource forTile(int level, int x, int y) {
+    public BinarySource findPage(int level, int x, int y) {
         var megaLevel = mega.levels().get(level);
-        var offset = mega.offsets().get(megaLevel.treeIndex() + y * megaLevel.blockXCount() + x);
+        var offset = mega.offsets().get(megaLevel.quadtreeIndex() + y * megaLevel.xBlockCount() + x);
         if (offset < 0) {
             return null;
         }

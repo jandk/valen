@@ -1,4 +1,4 @@
-package be.twofold.valen.game.doom.mega2;
+package be.twofold.valen.game.doom.megatexture.mega2;
 
 import wtf.reversed.toolbox.io.*;
 

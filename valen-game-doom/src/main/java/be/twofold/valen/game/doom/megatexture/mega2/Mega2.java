@@ -1,4 +1,4 @@
-package be.twofold.valen.game.doom.mega2;
+package be.twofold.valen.game.doom.megatexture.mega2;
 
 import wtf.reversed.toolbox.collect.*;
 import wtf.reversed.toolbox.io.*;
@@ -28,5 +28,11 @@ public record Mega2(
             offsets,
             pointers
         );
+    }
+
+    public Optional<Mega2Entry> findPage(int level, int x, int y) {
+        var mega2Level = levels.get(level);
+        var offset = offsets.get(mega2Level.quadtreeIndex() + y * mega2Level.xBlockCount() + x);
+        return offset < 0 ? Optional.empty() : Optional.of(pointers.get(offset));
     }
 }

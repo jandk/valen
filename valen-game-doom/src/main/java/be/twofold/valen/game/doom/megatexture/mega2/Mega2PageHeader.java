@@ -1,4 +1,4 @@
-package be.twofold.valen.game.doom.mega2;
+package be.twofold.valen.game.doom.megatexture.mega2;
 
 import wtf.reversed.toolbox.io.*;
 
@@ -9,14 +9,14 @@ public record Mega2PageHeader(
     byte qualityDiffuse,
     byte qualitySpecular,
     byte qualityLightmap,
-    byte qualityColorMask,
+    byte flags,
     short diffuseSize,
     short specularSize,
     short lightmapSize,
-    short colorMaskSize,
-    short unknownSize,
-    byte flags,
-    byte reserved
+    short colormaskSize,
+    short unusedSize,
+    byte zeroFlags,
+    byte coverFill
 ) {
     public static Mega2PageHeader read(BinarySource source) throws IOException {
         source.order(ByteOrder.BIG_ENDIAN);
@@ -24,27 +24,27 @@ public record Mega2PageHeader(
         byte qualityDiffuse = source.readByte();
         byte qualitySpecular = source.readByte();
         byte qualityLightmap = source.readByte();
-        byte qualityColorMask = source.readByte();
+        byte flags = source.readByte();
         short diffuseSize = source.readShort();
         short specularSize = source.readShort();
         short lightmapSize = source.readShort();
-        short colorMaskSize = source.readShort();
-        short unknownSize = source.readShort();
-        byte flags = source.readByte();
-        byte reserved = source.readByte();
+        short colormaskSize = source.readShort();
+        short unusedSize = source.readShort();
+        byte zeroFlags = source.readByte();
+        byte coverFill = source.readByte();
 
         return new Mega2PageHeader(
             qualityDiffuse,
             qualitySpecular,
             qualityLightmap,
-            qualityColorMask,
+            flags,
             diffuseSize,
             specularSize,
             lightmapSize,
-            colorMaskSize,
-            unknownSize,
-            flags,
-            reserved
+            colormaskSize,
+            unusedSize,
+            zeroFlags,
+            coverFill
         );
     }
 }
