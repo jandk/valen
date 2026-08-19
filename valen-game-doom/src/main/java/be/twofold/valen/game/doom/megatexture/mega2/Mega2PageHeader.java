@@ -18,6 +18,9 @@ public record Mega2PageHeader(
     byte zeroFlags,
     byte coverFill
 ) {
+    public static final int BYTES = 16;
+    public static final int COVER_SIZE = 2048;
+
     public static Mega2PageHeader read(BinarySource source) throws IOException {
         source.order(ByteOrder.BIG_ENDIAN);
 
@@ -46,5 +49,29 @@ public record Mega2PageHeader(
             zeroFlags,
             coverFill
         );
+    }
+
+    // The flag marks the cover missing, so a clear bit means present.
+    public boolean hasCover() {
+        return (zeroFlags & 0x20) == 0;
+    }
+
+    public int offset(int layer) {
+        var offset = 0;
+        for (var before = 0; before < layer; before++) {
+            offset += size(before);
+        }
+        return offset;
+    }
+
+    public int size(int layer) {
+        return switch (layer) {
+            case 0 -> Short.toUnsignedInt(diffuseSize);
+            case 1 -> Short.toUnsignedInt(specularSize);
+            case 2 -> Short.toUnsignedInt(lightmapSize);
+            case 3 -> Short.toUnsignedInt(colormaskSize);
+            case 4 -> hasCover() ? COVER_SIZE : 0;
+            default -> throw new IllegalArgumentException("Invalid layer");
+        };
     }
 }

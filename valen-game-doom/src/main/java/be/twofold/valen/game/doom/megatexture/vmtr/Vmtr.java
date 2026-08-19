@@ -11,6 +11,22 @@ public record Vmtr(
     int version,
     List<VmtrEntry> entries
 ) {
+    public static List<VmtrEntry> readAll(Path directory) throws IOException {
+        List<Path> paths;
+        try (var stream = Files.list(directory)) {
+            paths = stream
+                .filter(path -> path.getFileName().toString().endsWith(".vmtr"))
+                .sorted()
+                .toList();
+        }
+
+        var entries = new ArrayList<VmtrEntry>();
+        for (var path : paths) {
+            entries.addAll(read(path).entries());
+        }
+        return List.copyOf(entries);
+    }
+
     public static Vmtr read(Path path) throws IOException {
         try (var reader = Files.newBufferedReader(path)) {
             int version = parseFirst(reader);

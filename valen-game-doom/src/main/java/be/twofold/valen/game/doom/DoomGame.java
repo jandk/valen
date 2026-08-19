@@ -1,6 +1,8 @@
 package be.twofold.valen.game.doom;
 
 import be.twofold.valen.core.game.*;
+import be.twofold.valen.game.doom.megatexture.*;
+import be.twofold.valen.game.doom.megatexture.vmtr.*;
 import be.twofold.valen.game.doom.readers.image.*;
 import be.twofold.valen.game.doom.readers.model.*;
 import be.twofold.valen.game.doom.resources.*;
@@ -25,20 +27,25 @@ public final class DoomGame implements Game {
         new ModelReader()
     );
 
-    private static final String COMMON_ARCHIVE = "gameresources";
-
     private final Path base;
-    private final Path virtualTextures;
+    private final List<VmtrEntry> vmtrEntries;
+    private final Mega2Grid pages;
+    private final PageStitcher stitcher;
 
-    DoomGame(Path path) {
+    DoomGame(Path path) throws IOException {
         this.base = path.resolve("base");
-        this.virtualTextures = path.resolve("virtualtextures");
+
+        // The grid goes last, so nothing that can fail comes after the one thing that must be closed.
+        var virtualTextures = path.resolve("virtualtextures");
+        this.vmtrEntries = Vmtr.readAll(virtualTextures);
+        this.pages = Mega2Grid.open(virtualTextures);
+        this.stitcher = new PageStitcher(pages);
     }
 
     @Override
     public List<String> archiveNames() {
         return List.of(
-            COMMON_ARCHIVE,
+            "gameresources",
             "snap_gameresources"
         );
     }
@@ -65,29 +72,23 @@ public final class DoomGame implements Game {
             assets.add(mapResourceEntry(entry, fileName, resourcesPath));
         }
 
-        // Materials point into the atlas from every archive, but only the common one lists it.
-        var vmtr = VmtrIndex.build(virtualTextures);
-        var vmtrAssets = vmtr.entries().stream()
+        var vmtrAssets = vmtrEntries.stream()
             .flatMap(entry -> Arrays.stream(VmtrLayer.values())
                 .map(layer -> new DoomAsset.Vmtr(entry, layer)))
             .toList();
 
-        var archive = name.equals(COMMON_ARCHIVE)
-            ? Archive.combine(List.of(Archive.of(assets), Archive.of(vmtrAssets)))
-            : Archive.layered(Archive.of(assets), Archive.of(vmtrAssets));
-
-        // The mega2 sources are only handed over so the storage manager closes them.
-        var sources = new HashMap<>(vmtr.sources());
-        sources.put(resourcesPath, resources);
+        var archive = Archive.combine(List.of(
+            Archive.of(assets),
+            Archive.of(vmtrAssets)));
 
         var storageManager = new StorageManager(
-            sources,
+            Map.of(resourcesPath, resources),
             Set.of(),
             new Decompressors(null)
         );
 
-        var readers = new ArrayList<AssetReader<?, DoomAsset>>(READERS);
-        readers.addFirst(new VmtrReader(vmtr.atlas()));
+        var readers = new ArrayList<>(READERS);
+        readers.addFirst(new VmtrReader(stitcher));
 
         return new AssetLoader(
             archive,
@@ -105,5 +106,10 @@ public final class DoomGame implements Game {
         }
 
         return new DoomAsset.Resource(id, entry.typeName(), location);
+    }
+
+    @Override
+    public void close() throws IOException {
+        pages.close();
     }
 }

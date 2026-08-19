@@ -59,4 +59,19 @@ public record Mega2Header(
             quadtreeCount
         );
     }
+
+    public boolean equalGeometry(Mega2Header other) {
+        return levelCount == other.levelCount
+            && virtualXResolution == other.virtualXResolution
+            && virtualYResolution == other.virtualYResolution
+            && virtualXBlockCount == other.virtualXBlockCount
+            && virtualYBlockCount == other.virtualYBlockCount
+            && xResolution == other.xResolution
+            && yResolution == other.yResolution
+            && xBlockCount == other.xBlockCount
+            && yBlockCount == other.yBlockCount
+            && gridLog2 == other.gridLog2
+            && quadtreeLevelCount == other.quadtreeLevelCount
+            && quadtreeCount == other.quadtreeCount;
+    }
 }

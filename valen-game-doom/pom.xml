@@ -15,10 +15,9 @@
             <groupId>be.twofold</groupId>
             <artifactId>valen-core</artifactId>
         </dependency>
-
         <dependency>
             <groupId>be.twofold</groupId>
-            <artifactId>valen-export-png</artifactId>
+            <artifactId>valen-game-idtech</artifactId>
         </dependency>
     </dependencies>
 

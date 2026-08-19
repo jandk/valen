@@ -2,6 +2,7 @@ module valen.game.doom
 {
     requires org.slf4j;
     requires valen.core;
+    requires valen.game.idtech;
 
     opens be.twofold.valen.game.doom.readers.image;
     opens be.twofold.valen.game.doom.resources;

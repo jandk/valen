@@ -10,7 +10,7 @@ public record Mega2(
     Mega2Header header,
     List<Mega2Level> levels,
     Ints offsets,
-    List<Mega2Entry> pointers
+    List<Mega2Pointer> pointers
 ) {
     public static Mega2 read(BinarySource source) throws IOException {
         var header = Mega2Header.read(source);
@@ -20,7 +20,7 @@ public record Mega2(
         var offsets = source.readInts(header.quadtreeCount());
 
         source.position(header.pointerOffset());
-        var pointers = source.readObjects(header.pointerCount(), Mega2Entry::read);
+        var pointers = source.readObjects(header.pointerCount(), Mega2Pointer::read);
 
         return new Mega2(
             header,
@@ -30,7 +30,7 @@ public record Mega2(
         );
     }
 
-    public Optional<Mega2Entry> findPage(int level, int x, int y) {
+    public Optional<Mega2Pointer> findPage(int level, int x, int y) {
         var mega2Level = levels.get(level);
         var offset = offsets.get(mega2Level.quadtreeIndex() + y * mega2Level.xBlockCount() + x);
         return offset < 0 ? Optional.empty() : Optional.of(pointers.get(offset));

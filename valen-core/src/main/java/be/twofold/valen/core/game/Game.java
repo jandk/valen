@@ -10,7 +10,7 @@ public interface Game extends Closeable {
     AssetLoader open(String name) throws IOException;
 
     @Override
-    default void close() {
+    default void close() throws IOException {
         // do nothing
     }
 }

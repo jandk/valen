@@ -4,15 +4,15 @@ import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 
-public record Mega2Entry(
+public record Mega2Pointer(
     long offset,
     int length
 ) {
-    public static Mega2Entry read(BinarySource source) throws IOException {
+    public static Mega2Pointer read(BinarySource source) throws IOException {
         long offset = source.readLong();
         int length = source.readLongAsInt();
 
-        return new Mega2Entry(
+        return new Mega2Pointer(
             offset,
             length
         );

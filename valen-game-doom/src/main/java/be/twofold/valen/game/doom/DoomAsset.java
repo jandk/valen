@@ -1,6 +1,7 @@
 package be.twofold.valen.game.doom;
 
 import be.twofold.valen.core.game.*;
+import be.twofold.valen.game.doom.megatexture.vmtr.*;
 import be.twofold.valen.game.doom.vmtr.*;
 import wtf.reversed.toolbox.util.*;
 

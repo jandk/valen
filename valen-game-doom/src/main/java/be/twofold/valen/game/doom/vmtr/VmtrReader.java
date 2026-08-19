@@ -7,14 +7,11 @@ import wtf.reversed.toolbox.util.*;
 
 import java.io.*;
 
-/**
- * Reads virtual texture assets, by handing them to the {@link VmtrAtlas}.
- */
 public final class VmtrReader implements AssetReader<Texture, DoomAsset> {
-    private final VmtrAtlas atlas;
+    private final PageStitcher stitcher;
 
-    public VmtrReader(VmtrAtlas atlas) {
-        this.atlas = Check.nonNull(atlas, "atlas");
+    public VmtrReader(PageStitcher stitcher) {
+        this.stitcher = Check.nonNull(stitcher, "stitcher");
     }
 
     @Override
@@ -24,10 +21,10 @@ public final class VmtrReader implements AssetReader<Texture, DoomAsset> {
 
     @Override
     public Texture read(DoomAsset asset, LoadingContext context) throws IOException {
-        if (!(asset instanceof DoomAsset.Vmtr vmtr)) {
+        if (!(asset instanceof DoomAsset.Vmtr(var id, var entry))) {
             throw new IllegalArgumentException("Not a vmtr asset: " + asset);
         }
 
-        return atlas.read(vmtr.entry(), vmtr.id().layer());
+        return stitcher.read(entry, id.layer());
     }
 }
