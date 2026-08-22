@@ -71,10 +71,10 @@ public final class DeclLexer {
             case '"':
                 return new DeclToken(DeclTokenType.String, parseString());
             default:
-                if (ASCII.isAlpha(ch) || ch == '_' || ch == '#') {
+                if (Ascii.isAlpha(ch) || ch == '_' || ch == '#') {
                     return new DeclToken(DeclTokenType.Name, parseName());
                 }
-                if (ASCII.isDigit(ch) || ch == '-' || ch == '.') {
+                if (Ascii.isDigit(ch) || ch == '-' || ch == '.') {
                     return new DeclToken(DeclTokenType.Number, parseNumber());
                 }
         }
@@ -133,7 +133,7 @@ public final class DeclLexer {
         }
         if (peek() == '0' && index + 1 < source.length() && (peekNext() == 'x' || peekNext() == 'X')) {
             skip(2);
-            while (ASCII.isXDigit(peek())) {
+            while (Ascii.isHexDigit(peek())) {
                 skip();
             }
             return source.substring(start, index).replace(" ", "");
@@ -158,7 +158,7 @@ public final class DeclLexer {
     }
 
     private void digits() {
-        while (ASCII.isDigit(peek())) {
+        while (Ascii.isDigit(peek())) {
             skip();
         }
     }
@@ -215,7 +215,7 @@ public final class DeclLexer {
     // Predicates
 
     private boolean isIdentifier(char ch) {
-        return ASCII.isAlNum(ch) || ch == '_' || ch == '#' ||
+        return Ascii.isAlNum(ch) || ch == '_' || ch == '#' ||
             lenient && (ch == '.' || ch == '/' || ch == ':' || ch == '\\');
     }
 
