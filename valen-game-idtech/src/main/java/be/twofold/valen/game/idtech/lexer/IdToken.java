@@ -12,6 +12,11 @@ public record IdToken(
     int line,
     int column
 ) {
+    public IdToken {
+        Check.nonNull(type, "type");
+        Check.nonNull(value, "value");
+    }
+
     public int getIntValue() {
         return Math.toIntExact(getLongValue());
     }
