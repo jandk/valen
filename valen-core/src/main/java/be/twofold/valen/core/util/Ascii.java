@@ -259,6 +259,13 @@ public final class Ascii {
     // Non ctype.h functions
 
     /**
+     * Whether the character is a binary digit, {@code 0} or {@code 1}.
+     */
+    public static boolean isBinDigit(int cp) {
+        return isRange(cp, '0', '1');
+    }
+
+    /**
      * Whether the character is an octal digit, {@code 0-7}.
      */
     public static boolean isOctDigit(int cp) {
@@ -270,6 +277,13 @@ public final class Ascii {
      */
     public static boolean isWord(int cp) {
         return is(cp, ALPHA | UNDER | XDIGIT);
+    }
+
+    /**
+     * Whether the character can appear at the start of an identifier, so a letter or {@code _}.
+     */
+    public static boolean isWordStart(int cp) {
+        return is(cp, ALPHA | UNDER);
     }
 
     /**
