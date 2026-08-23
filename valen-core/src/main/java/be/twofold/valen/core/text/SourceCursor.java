@@ -53,6 +53,10 @@ public final class SourceCursor {
         current = mark;
     }
 
+    public void skip(int count) {
+        current = Math.min(current + count, source.length());
+    }
+
     // Matching
 
     public boolean match(char c) {

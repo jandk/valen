@@ -6,6 +6,7 @@ import be.twofold.valen.core.util.*;
 import java.util.*;
 
 import static be.twofold.valen.game.idtech.lexer.LexerFlags.*;
+import static be.twofold.valen.game.idtech.lexer.LexerPunctuation.*;
 import static be.twofold.valen.game.idtech.lexer.NumberType.*;
 
 public final class IdLexer {
@@ -229,6 +230,92 @@ public final class IdLexer {
             line,
             column
         );
+    }
+
+    IdToken readPunctuation() {
+        int line = cursor.line();
+        int column = cursor.column();
+
+        var punctuation = matchPunctuation();
+        if (punctuation == null) {
+            error("unknown punctuation");
+            return null;
+        }
+
+        cursor.skip(punctuation.text().length());
+        return new IdToken(
+            TokenType.TT_PUNCTUATION,
+            punctuation.ordinal(),
+            punctuation.text(),
+            line,
+            column
+        );
+    }
+
+    private LexerPunctuation matchPunctuation() {
+        // @formatter:off
+        return switch (cursor.peek()) {
+            // 5 alternatives
+            case '-' -> cursor.check("->*") ? P_POINTER_TO_MEMBER_POINTER
+                      : cursor.check("->")  ? P_MEMBER_SELECTION_POINTER
+                      : cursor.check("-=")  ? P_SUB_ASSIGN
+                      : cursor.check("--")  ? P_DEC
+                      : P_SUB;
+
+            // 4 alternatives
+            case '<' -> cursor.check("<<=") ? P_LSHIFT_ASSIGN
+                      : cursor.check("<<")  ? P_LSHIFT
+                      : cursor.check("<=")  ? P_LOGIC_LEQ
+                      : P_LOGIC_LESS;
+            case '>' -> cursor.check(">>=") ? P_RSHIFT_ASSIGN
+                      : cursor.check(">>")  ? P_RSHIFT
+                      : cursor.check(">=")  ? P_LOGIC_GEQ
+                      : P_LOGIC_GREATER;
+
+            // 3 alternatives
+            case '&' -> cursor.check("&&")  ? P_LOGIC_AND
+                      : cursor.check("&=")  ? P_BIN_AND_ASSIGN
+                      : P_BIN_AND;
+            case '+' -> cursor.check("+=")  ? P_ADD_ASSIGN
+                      : cursor.check("++")  ? P_INC
+                      : P_ADD;
+            case '.' -> cursor.check("...") ? P_PARMS
+                      : cursor.check(".*")  ? P_POINTER_TO_MEMBER_OBJECT
+                      : P_MEMBER_SELECTION_OBJECT;
+            case '|' -> cursor.check("||")  ? P_LOGIC_OR
+                      : cursor.check("|=")  ? P_BIN_OR_ASSIGN
+                      : P_BIN_OR;
+
+            // 2 alternatives
+            case '!' -> cursor.check("!=") ? P_LOGIC_UNEQ       : P_LOGIC_NOT;
+            case '#' -> cursor.check("##") ? P_PRECOMPMERGE     : P_PRECOMP;
+            case '%' -> cursor.check("%=") ? P_MOD_ASSIGN       : P_MOD;
+            case '*' -> cursor.check("*=") ? P_MUL_ASSIGN       : P_MUL;
+            case '/' -> cursor.check("/=") ? P_DIV_ASSIGN       : P_DIV;
+            case ':' -> cursor.check("::") ? P_SCOPE_RESOLUTION : P_COLON;
+            case '=' -> cursor.check("==") ? P_LOGIC_EQ         : P_ASSIGN;
+            case '^' -> cursor.check("^=") ? P_BIN_XOR_ASSIGN   : P_BIN_XOR;
+
+            // 1 alternative
+            case '"'  -> P_QUOTE;
+            case '$'  -> P_DOLLAR;
+            case '\'' -> P_APOSTROPHE;
+            case '('  -> P_PARENTHESESOPEN;
+            case ')'  -> P_PARENTHESESCLOSE;
+            case ','  -> P_COMMA;
+            case ';'  -> P_SEMICOLON;
+            case '?'  -> P_QUESTIONMARK;
+            case '@'  -> P_AT;
+            case '['  -> P_SQBRACKETOPEN;
+            case '\\' -> P_BACKSLASH;
+            case ']'  -> P_SQBRACKETCLOSE;
+            case '{'  -> P_BRACEOPEN;
+            case '}'  -> P_BRACECLOSE;
+            case '~'  -> P_BIN_NOT;
+
+            default -> null;
+        };
+        // @formatter:on
     }
 
     boolean readWhiteSpace() {
