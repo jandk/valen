@@ -1,6 +1,6 @@
 package be.twofold.valen.game.idtech.lexer;
 
-enum LexerPunctuation {
+public enum LexerPunctuation {
     P_RSHIFT_ASSIGN(">>="),
     P_LSHIFT_ASSIGN("<<="),
     P_PARMS("..."),

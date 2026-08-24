@@ -29,6 +29,55 @@ public final class IdLexer {
         this.flags.addAll(Arrays.asList(flags));
     }
 
+    public boolean checkTokenType(TokenType type, int subtype) {
+        var token = peekToken();
+        if (token == null || token.type() != type) {
+            return false;
+        }
+
+        // MISSING: BFG consumes after match
+        return switch (type) {
+            case TT_NUMBER -> (token.subtype() & subtype) == subtype;
+            case TT_PUNCTUATION -> token.subtype() == subtype;
+            default -> true;
+        };
+    }
+
+    public boolean checkPunctuation(LexerPunctuation punctuation) {
+        return checkTokenType(TokenType.TT_PUNCTUATION, punctuation.ordinal());
+    }
+
+    public IdToken expectTokenType(TokenType type, int subtype) {
+        IdToken token = readToken();
+        if (token == null) {
+            throw error("couldn't read expected token");
+        }
+
+        if (token.type() != type) {
+            throw error("expected type " + type + " but found '" + token.value() + "'");
+        } else if (token.type() == TokenType.TT_NUMBER) {
+            if ((token.subtype() & subtype) != subtype) {
+                throw error("expected subtype " + subtype + " but found '" + token.value() + "'");
+            }
+        } else if (token.type() == TokenType.TT_PUNCTUATION) {
+            if (token.subtype() != subtype) {
+                throw error("expected subtype " + subtype + " but found '" + token.value() + "'");
+            }
+        }
+        return token;
+    }
+
+    public IdToken expectPunctuation(LexerPunctuation punctuation) {
+        return expectTokenType(TokenType.TT_PUNCTUATION, punctuation.ordinal());
+    }
+
+    public IdToken peekToken() {
+        int mark = cursor.mark();
+        IdToken token = readToken();
+        cursor.reset(mark);
+        return token;
+    }
+
     public IdToken readToken() {
         if (cursor.isAtEnd()) {
             return null;
