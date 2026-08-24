@@ -120,6 +120,32 @@ public final class IdLexer {
         };
     }
 
+    IdToken readName() {
+        cursor.startLexeme();
+        int line = cursor.line();
+        int column = cursor.column();
+
+        cursor.advance();
+        cursor.skipWhile(this::isNameChar);
+
+        String lexeme = cursor.lexeme();
+        return new IdToken(
+            TokenType.TT_NAME,
+            lexeme.length(),
+            lexeme,
+            line,
+            column
+        );
+    }
+
+    private boolean isNameChar(int c) {
+        return Ascii.isWord(c)
+            || (flags.contains(LEXFL_ONLYSTRINGS) && c == '-')
+            // MISSING: '@' for idTech 5
+            || (flags.contains(LEXFL_ALLOWPATHNAMES) && (c == '/' || c == '\\' || c == ':' || c == '.' || c == '$'))
+            || (flags.contains(LEXFL_ALLOWWILDCARD) && c == '*');
+    }
+
     IdToken readNumber() {
         cursor.startLexeme();
         int line = cursor.line();
