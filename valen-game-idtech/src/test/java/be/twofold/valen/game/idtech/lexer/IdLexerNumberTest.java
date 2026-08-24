@@ -222,12 +222,16 @@ class IdLexerNumberTest {
 
     @Test
     void testRejectsTwoDotsWithoutIpAddresses() {
-        assertThat(number("1.2.3")).isNull();
+        assertThatThrownBy(() -> number("1.2.3"))
+            .isInstanceOf(LexerException.class)
+            .hasMessageContaining("more than one dot in number");
     }
 
     @Test
     void testRejectsIpAddressWithoutThreeDots() {
-        assertThat(number("1.2.3.4.5", LEXFL_ALLOWIPADDRESSES)).isNull();
+        assertThatThrownBy(() -> number("1.2.3.4.5", LEXFL_ALLOWIPADDRESSES))
+            .isInstanceOf(LexerException.class)
+            .hasMessageContaining("ip address should have three dots");
     }
 
     @Test

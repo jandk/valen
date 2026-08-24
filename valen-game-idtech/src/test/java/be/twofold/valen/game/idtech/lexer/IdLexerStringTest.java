@@ -16,8 +16,7 @@ class IdLexerStringTest {
     }
 
     private static String string(String source, LexerFlags... flags) {
-        var token = token(source, flags);
-        return token == null ? null : token.value();
+        return token(source, flags).value();
     }
 
     @Test
@@ -164,12 +163,16 @@ class IdLexerStringTest {
 
     @Test
     void testRejectsUnterminatedString() {
-        assertThat(string("\"foo")).isNull();
+        assertThatThrownBy(() -> string("\"foo"))
+            .isInstanceOf(LexerException.class)
+            .hasMessageContaining("missing trailing quote");
     }
 
     @Test
     void testRejectsNewlineInsideString() {
-        assertThat(string("\"foo\nbar\"")).isNull();
+        assertThatThrownBy(() -> string("\"foo\nbar\""))
+            .isInstanceOf(LexerException.class)
+            .hasMessageContaining("newline inside string");
     }
 
     @Test
@@ -184,5 +187,21 @@ class IdLexerStringTest {
         var lexer = lexer("\"abc\"123");
         assertThat(lexer.readString('"').value()).isEqualTo("abc");
         assertThat(lexer.readNumber().value()).isEqualTo("123");
+    }
+
+    @Test
+    void testRejectsUnknownEscapeCharacter() {
+        assertThatThrownBy(() -> string("\"a\\qb\""))
+            .isInstanceOf(LexerException.class)
+            .hasMessageContaining("unknown escape char");
+    }
+
+    @Test
+    void testErrorMessageCarriesNameAndPosition() {
+        var lexer = new IdLexer("test.decl", "\n\"foo");
+        lexer.readWhiteSpace();
+        assertThatThrownBy(() -> lexer.readString('"'))
+            .isInstanceOf(LexerException.class)
+            .hasMessageContaining("test.decl(2:");
     }
 }

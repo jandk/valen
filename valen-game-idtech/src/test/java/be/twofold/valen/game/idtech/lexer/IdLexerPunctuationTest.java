@@ -37,8 +37,12 @@ class IdLexerPunctuationTest {
 
     @Test
     void testRejectsUnknownPunctuation() {
-        assertThat(punctuation("a")).isNull();
-        assertThat(punctuation("")).isNull();
+        assertThatThrownBy(() -> punctuation("a"))
+            .isInstanceOf(LexerException.class)
+            .hasMessageContaining("unknown punctuation");
+        assertThatThrownBy(() -> punctuation(""))
+            .isInstanceOf(LexerException.class)
+            .hasMessageContaining("unknown punctuation");
     }
 
     @Test

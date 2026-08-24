@@ -150,7 +150,6 @@ class IdLexerNameTest {
     }
 
     private String name(String source, LexerFlags... flags) {
-        var token = token(source, flags);
-        return token == null ? null : token.value();
+        return token(source, flags).value();
     }
 }

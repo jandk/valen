@@ -2,6 +2,8 @@ package be.twofold.valen.game.idtech.lexer;
 
 import be.twofold.valen.core.text.*;
 import be.twofold.valen.core.util.*;
+import org.slf4j.*;
+import wtf.reversed.toolbox.util.*;
 
 import java.util.*;
 
@@ -10,10 +12,18 @@ import static be.twofold.valen.game.idtech.lexer.LexerPunctuation.*;
 import static be.twofold.valen.game.idtech.lexer.NumberType.*;
 
 public final class IdLexer {
+    private static final Logger log = LoggerFactory.getLogger(IdLexer.class);
+
+    private final String name;
     private final SourceCursor cursor;
     private final Set<LexerFlags> flags;
 
     public IdLexer(String source, LexerFlags... flags) {
+        this("<memory>", source, flags);
+    }
+
+    public IdLexer(String name, String source, LexerFlags... flags) {
+        this.name = Check.nonNull(name, "name");
         this.cursor = new SourceCursor(source);
         this.flags = EnumSet.noneOf(LexerFlags.class);
         this.flags.addAll(Arrays.asList(flags));
@@ -21,22 +31,20 @@ public final class IdLexer {
 
     IdToken readString(char quote) {
         var type = quote == '"' ? TokenType.TT_STRING : TokenType.TT_LITERAL;
-        int line = cursor.line();
-        int column = cursor.column();
 
         var sb = new StringBuilder();
         cursor.advance(); // skip leading quote
 
         while (true) {
             char c = cursor.peek();
-            if (c == '\\' && !flags.contains(LEXFL_NOSTRINGESCAPECHARS)) {
-                if (flags.contains(LEXFL_NOEMITSTRINGESCAPECHARS)) {
+            if (c == '\\' && !has(LEXFL_NOSTRINGESCAPECHARS)) {
+                if (has(LEXFL_NOEMITSTRINGESCAPECHARS)) {
                     sb.append('\\');
                 }
                 sb.append(readEscapeCharacter());
             } else if (c == quote) {
                 cursor.advance(); // step over the quote
-                if (flags.contains(LEXFL_NOSTRINGCONCAT)) {
+                if (has(LEXFL_NOSTRINGCONCAT)) {
                     // MISSING: backslash string concat
                     break;
                 }
@@ -49,11 +57,9 @@ public final class IdLexer {
                 }
                 cursor.advance();
             } else if (c == SourceCursor.EOF) {
-                error("missing trailing quote");
-                return null;
+                throw error("missing trailing quote");
             } else if (c == '\n') {
-                error("newline inside string");
-                return null;
+                throw error("newline inside string");
             } else {
                 sb.append(cursor.advance());
             }
@@ -63,18 +69,25 @@ public final class IdLexer {
         var value = sb.toString();
         int subtype = 0;
         if (type == TokenType.TT_LITERAL) {
-            if (!flags.contains(LEXFL_ALLOWMULTICHARLITERALS) && value.length() != 1) {
+            if (!has(LEXFL_ALLOWMULTICHARLITERALS) && value.length() != 1) {
                 warning("literal is not one character long");
             }
             subtype = value.isEmpty() ? 0 : value.charAt(0);
         }
-        return new IdToken(type, subtype, value, line, column);
+
+        return new IdToken(
+            type,
+            subtype,
+            value,
+            cursor.lexemeLine(),
+            cursor.lexemeColumn()
+        );
     }
 
     char readEscapeCharacter() {
         cursor.advance(); // skip leading '\\'
 
-        if (flags.contains(LexerFlags.LEXFL_NOEMITSTRINGESCAPECHARS)) {
+        if (has(LEXFL_NOEMITSTRINGESCAPECHARS)) {
             return cursor.advance();
         }
 
@@ -113,17 +126,12 @@ public final class IdLexer {
                 }
                 yield (char) val;
             }
-            default -> {
-                error("unknown escape char");
-                yield 0;
-            }
+            default -> throw error("unknown escape char");
         };
     }
 
     IdToken readName() {
         cursor.startLexeme();
-        int line = cursor.line();
-        int column = cursor.column();
 
         cursor.advance();
         cursor.skipWhile(this::isNameChar);
@@ -133,23 +141,21 @@ public final class IdLexer {
             TokenType.TT_NAME,
             lexeme.length(),
             lexeme,
-            line,
-            column
+            cursor.lexemeLine(),
+            cursor.lexemeColumn()
         );
     }
 
     private boolean isNameChar(int c) {
         return Ascii.isWord(c)
-            || (flags.contains(LEXFL_ONLYSTRINGS) && c == '-')
+            || (has(LEXFL_ONLYSTRINGS) && c == '-')
             // MISSING: '@' for idTech 5
-            || (flags.contains(LEXFL_ALLOWPATHNAMES) && (c == '/' || c == '\\' || c == ':' || c == '.' || c == '$'))
-            || (flags.contains(LEXFL_ALLOWWILDCARD) && c == '*');
+            || (has(LEXFL_ALLOWPATHNAMES) && (c == '/' || c == '\\' || c == ':' || c == '.' || c == '$'))
+            || (has(LEXFL_ALLOWWILDCARD) && c == '*');
     }
 
     IdToken readNumber() {
         cursor.startLexeme();
-        int line = cursor.line();
-        int column = cursor.column();
 
         int subtype;
         if (cursor.peek() == '0' && cursor.peek(1) != '.') {
@@ -200,18 +206,16 @@ public final class IdLexer {
                         subtype |= TT_NAN;
                     }
                     cursor.skipWhile(Ascii::isDigit);
-                    if (!flags.contains(LEXFL_ALLOWFLOATEXCEPTIONS)) {
-                        error("parsed " + cursor.lexeme());
+                    if (!has(LEXFL_ALLOWFLOATEXCEPTIONS)) {
+                        throw error("parsed " + cursor.lexeme());
                     }
                 }
             } else if (dot > 1) {
-                if (!flags.contains(LEXFL_ALLOWIPADDRESSES)) {
-                    error("more than one dot in number");
-                    return null;
+                if (!has(LEXFL_ALLOWIPADDRESSES)) {
+                    throw error("more than one dot in number");
                 }
                 if (dot != 3) {
-                    error("ip address should have three dots");
-                    return null;
+                    throw error("ip address should have three dots");
                 }
                 subtype = TT_IPADDRESS;
             } else {
@@ -253,19 +257,15 @@ public final class IdLexer {
             TokenType.TT_NUMBER,
             subtype,
             value,
-            line,
-            column
+            cursor.lexemeLine(),
+            cursor.lexemeColumn()
         );
     }
 
     IdToken readPunctuation() {
-        int line = cursor.line();
-        int column = cursor.column();
-
         var punctuation = matchPunctuation();
         if (punctuation == null) {
-            error("unknown punctuation");
-            return null;
+            throw error("unknown punctuation");
         }
 
         cursor.skip(punctuation.text().length());
@@ -273,8 +273,8 @@ public final class IdLexer {
             TokenType.TT_PUNCTUATION,
             punctuation.ordinal(),
             punctuation.text(),
-            line,
-            column
+            cursor.lexemeLine(),
+            cursor.lexemeColumn()
         );
     }
 
@@ -385,14 +385,23 @@ public final class IdLexer {
         }
     }
 
-    private static boolean isWhitespace(int cp) {
+    private boolean has(LexerFlags flag) {
+        return flags.contains(flag);
+    }
+
+    private boolean isWhitespace(int cp) {
         return cp != '\0' && (cp <= 0x20 || cp >= 0x80);
     }
 
-
     private void warning(String message) {
+        if (!has(LEXFL_NOWARNINGS)) {
+            log.warn("{} ({}:{}): {}", name, cursor.line(), cursor.column(), message);
+        }
     }
 
-    private void error(String message) {
+    private LexerException error(String message) {
+        // MISSING: LEXFL_NOFATALERRORS handling
+        // MISSING: LEXFL_REPORT_MULTIPLE_ERRORS handling
+        return new LexerException(name + " (" + cursor.line() + ":" + cursor.column() + "): " + message);
     }
 }

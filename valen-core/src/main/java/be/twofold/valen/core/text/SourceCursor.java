@@ -99,6 +99,14 @@ public final class SourceCursor {
         return source.substring(start, current);
     }
 
+    public int lexemeLine() {
+        return lineIndexAt(start) + 1;
+    }
+
+    public int lexemeColumn() {
+        return columnAt(start);
+    }
+
     // Scanning
 
     public void skipWhile(IntPredicate predicate) {
