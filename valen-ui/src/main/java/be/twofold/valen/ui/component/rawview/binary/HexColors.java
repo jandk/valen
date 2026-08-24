@@ -91,10 +91,10 @@ final class HexColors {
             case 0x00 -> BYTE_00;
             case 0xFF -> BYTE_FF;
             default -> {
-                if (ASCII.isGraph((char) value) || ASCII.isSpace((char) value)) {
+                if (Ascii.isGraph((char) value) || Ascii.isSpace((char) value)) {
                     yield RED;
                 }
-                if (ASCII.isAscii((char) value)) {
+                if (Ascii.isAscii((char) value)) {
                     yield GREEN;
                 }
                 yield YELLOW;
