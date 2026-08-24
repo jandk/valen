@@ -202,6 +202,6 @@ class IdLexerStringTest {
         lexer.readWhiteSpace();
         assertThatThrownBy(() -> lexer.readString('"'))
             .isInstanceOf(LexerException.class)
-            .hasMessageContaining("test.decl(2:");
+            .hasMessageContaining("test.decl (2:");
     }
 }

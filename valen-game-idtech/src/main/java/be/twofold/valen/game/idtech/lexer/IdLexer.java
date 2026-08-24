@@ -29,10 +29,47 @@ public final class IdLexer {
         this.flags.addAll(Arrays.asList(flags));
     }
 
+    public IdToken readToken() {
+        if (cursor.isAtEnd()) {
+            return null;
+        }
+
+        int lastLine = cursor.line();
+        if (!skipWhiteSpace(false) || cursor.isAtEnd()) {
+            return null;
+        }
+        int linesCrossed = cursor.line() - lastLine;
+
+        char c = cursor.peek();
+        if (has(LEXFL_ONLYSTRINGS)) {
+            if (c == '"' || c == '\'') {
+                return readString(c);
+            }
+            return readName();
+        } else if (Ascii.isDigit(c) || (c == '.' && Ascii.isDigit(cursor.peek(1)))) {
+            // MISSING: LEXFL_ALLOWNUMBERNAMES logic
+            // MISSING: LEXFL_SKIPNUMBERS logic
+            return readNumber();
+        } else if (has(LEXFL_ALLOWWILDCARD) && c == '*') {
+            return readName();
+        } else if (!has(LEXFL_NOSTRINGS) && (c == '"' || c == '\'')) {
+            return readString(c);
+        } else if (Ascii.isWordStart(c)) {
+            return readName();
+        } else if (has(LEXFL_ALLOWPATHNAMES) && c == '.') {
+            return readName();
+        } else if (has(LEXFL_ALLOWRAWSTRINGBLOCKS) && c == '<' && cursor.peek(1) == '%') {
+            return readRawStringBlock();
+        } else {
+            return readPunctuation();
+        }
+    }
+
     IdToken readString(char quote) {
         var type = quote == '"' ? TokenType.TT_STRING : TokenType.TT_LITERAL;
-
         var sb = new StringBuilder();
+
+        cursor.startLexeme();
         cursor.advance(); // skip leading quote
 
         while (true) {
@@ -84,7 +121,7 @@ public final class IdLexer {
         );
     }
 
-    char readEscapeCharacter() {
+    private char readEscapeCharacter() {
         cursor.advance(); // skip leading '\\'
 
         if (has(LEXFL_NOEMITSTRINGESCAPECHARS)) {
@@ -262,7 +299,30 @@ public final class IdLexer {
         );
     }
 
+    private IdToken readRawStringBlock() {
+        cursor.skip(2); // skip leading <%
+        cursor.startLexeme();
+
+        while (!cursor.check("%>")) {
+            if (cursor.isAtEnd()) {
+                throw error("missing trailing identifier");
+            }
+            cursor.advance();
+        }
+
+        var value = cursor.lexeme();
+        cursor.skip(2);
+        return new IdToken(
+            TokenType.TT_STRING,
+            0x40000,
+            value,
+            cursor.lexemeLine(),
+            cursor.lexemeColumn()
+        );
+    }
+
     IdToken readPunctuation() {
+        cursor.startLexeme();
         var punctuation = matchPunctuation();
         if (punctuation == null) {
             throw error("unknown punctuation");
@@ -348,7 +408,7 @@ public final class IdLexer {
         return skipWhiteSpace(false);
     }
 
-    boolean skipWhiteSpace(boolean currentLine) {
+    private boolean skipWhiteSpace(boolean currentLine) {
         while (true) {
             // whitespace
             while (isWhitespace(cursor.peek())) {
