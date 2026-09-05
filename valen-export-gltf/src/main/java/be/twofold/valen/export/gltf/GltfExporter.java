@@ -3,35 +3,26 @@ package be.twofold.valen.export.gltf;
 import be.twofold.valen.core.export.*;
 import be.twofold.valen.core.util.*;
 import be.twofold.valen.format.gltf.*;
+import wtf.reversed.toolbox.util.*;
 
 import java.io.*;
 import java.nio.file.*;
 
 public abstract class GltfExporter<T> implements Exporter<T> {
-    private GltfExportMode mode;
+    private final GltfExportMode mode;
 
-    @Override
-    public String getName() {
-        return "glTF/GLB (GL Transmission Format)";
+    protected GltfExporter(GltfExportMode mode) {
+        this.mode = Check.nonNull(mode, "mode");
     }
 
     @Override
-    public String getExtension() {
-        return switch (mode) {
-            case GLB -> "glb";
-            case GLTF_SPLIT -> "gltf";
-        };
+    public final String getName() {
+        return mode.displayName();
     }
 
     @Override
-    public void setProperty(String key, Object value) {
-        if (key.equals("gltf.mode")) {
-            mode = switch (value.toString()) {
-                case "glb" -> GltfExportMode.GLB;
-                case "gltf" -> GltfExportMode.GLTF_SPLIT;
-                default -> throw new UnsupportedOperationException("Unsupported value: " + value);
-            };
-        }
+    public final String getExtension() {
+        return mode.extension();
     }
 
     @Override

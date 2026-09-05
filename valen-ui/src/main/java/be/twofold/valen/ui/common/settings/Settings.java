@@ -7,10 +7,19 @@ import java.nio.file.*;
 import java.util.*;
 
 public final class Settings {
+    private static final Map<AssetType, String> DEFAULTS = Map.of(
+        AssetType.ANIMATION, "animation.gltf",
+        AssetType.MATERIAL, "material.gltf",
+        AssetType.MODEL, "model.gltf",
+        AssetType.TEXTURE, "texture.png",
+        AssetType.RAW, "binary.raw"
+    );
+
     private Set<AssetType> assetTypes = AssetType.ALL_NO_RAW;
+    private Map<AssetType, String> exporters = new EnumMap<>(AssetType.class);
     private Path gameExecutable = null;
-    private String textureExporter = "texture.png";
-    private String modelExporter = "gltf";
+    private String textureExporter;
+    private String modelExporter;
     private Boolean reconstructZ = true;
     private Boolean treatAsRaw = false;
     private Path exportPath = Path.of("exported").toAbsolutePath();
@@ -35,11 +44,23 @@ public final class Settings {
     void normalize() {
         var defaults = new Settings();
         assetTypes = copyOf(Objects.requireNonNullElse(assetTypes, defaults.assetTypes));
-        textureExporter = Objects.requireNonNullElse(textureExporter, defaults.textureExporter);
-        modelExporter = Objects.requireNonNullElse(modelExporter, defaults.modelExporter);
         reconstructZ = Objects.requireNonNullElse(reconstructZ, defaults.reconstructZ);
         treatAsRaw = Objects.requireNonNullElse(treatAsRaw, defaults.treatAsRaw);
         exportPath = Objects.requireNonNullElse(exportPath, defaults.exportPath);
+        migrate();
+    }
+
+    private void migrate() {
+        if (textureExporter != null) {
+            exporters.put(AssetType.TEXTURE, textureExporter);
+            textureExporter = null;
+        }
+        if (modelExporter != null) {
+            exporters.put(AssetType.ANIMATION, "animation." + modelExporter);
+            exporters.put(AssetType.MATERIAL, "material." + modelExporter);
+            exporters.put(AssetType.MODEL, "model." + modelExporter);
+            modelExporter = null;
+        }
     }
 
     public Optional<Path> getGameExecutable() {
@@ -48,22 +69,6 @@ public final class Settings {
 
     public void setGameExecutable(Path gameExecutable) {
         this.gameExecutable = gameExecutable;
-    }
-
-    public String getTextureExporter() {
-        return textureExporter;
-    }
-
-    public void setTextureExporter(String textureExporter) {
-        this.textureExporter = Check.nonNull(textureExporter, "textureExporter");
-    }
-
-    public String getModelExporter() {
-        return modelExporter;
-    }
-
-    public void setModelExporter(String modelExporter) {
-        this.modelExporter = Check.nonNull(modelExporter, "modelExporter");
     }
 
     public Boolean isReconstructZ() {
@@ -88,5 +93,16 @@ public final class Settings {
 
     public void setExportPath(Path exportPath) {
         this.exportPath = Check.nonNull(exportPath, "exportPath");
+    }
+
+    public String getExporter(AssetType type) {
+        Check.nonNull(type, "type");
+        return exporters.getOrDefault(type, DEFAULTS.get(type));
+    }
+
+    public void setExporter(AssetType type, String exporter) {
+        Check.nonNull(type, "type");
+        Check.nonNull(exporter, "exporter");
+        exporters.put(type, exporter);
     }
 }

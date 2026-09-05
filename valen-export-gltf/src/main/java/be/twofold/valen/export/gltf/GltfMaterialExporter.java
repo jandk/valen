@@ -8,12 +8,9 @@ import be.twofold.valen.format.gltf.*;
 import java.io.*;
 import java.util.*;
 
-public final class GltfMaterialExporter extends GltfExporter<Material> {
-    private final GltfModelExporter modelExporter = new GltfModelExporter();
-
-    @Override
-    public String getID() {
-        return "material.gltf";
+public abstract class GltfMaterialExporter extends GltfExporter<Material> {
+    GltfMaterialExporter(GltfExportMode mode) {
+        super(mode);
     }
 
     @Override
@@ -29,6 +26,28 @@ public final class GltfMaterialExporter extends GltfExporter<Material> {
             .build();
         var model = new Model(List.of(mesh), Axis.Y);
 
-        modelExporter.doExport(model, writer);
+        GltfModelExporter.writeModel(model, writer);
+    }
+
+    public static final class Binary extends GltfMaterialExporter {
+        public Binary() {
+            super(GltfExportMode.GLB);
+        }
+
+        @Override
+        public String getID() {
+            return "material.glb";
+        }
+    }
+
+    public static final class Split extends GltfMaterialExporter {
+        public Split() {
+            super(GltfExportMode.GLTF_SPLIT);
+        }
+
+        @Override
+        public String getID() {
+            return "material.gltf";
+        }
     }
 }

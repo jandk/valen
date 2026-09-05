@@ -9,10 +9,9 @@ import be.twofold.valen.format.gltf.model.node.*;
 import java.io.*;
 import java.util.*;
 
-public final class GltfAnimationExporter extends GltfExporter<Animation> {
-    @Override
-    public String getID() {
-        return "animation.gltf";
+public abstract class GltfAnimationExporter extends GltfExporter<Animation> {
+    GltfAnimationExporter(GltfExportMode mode) {
+        super(mode);
     }
 
     @Override
@@ -39,5 +38,27 @@ public final class GltfAnimationExporter extends GltfExporter<Animation> {
         var animationMapper = new GltfAnimationMapper(writer);
         var animationSchema = animationMapper.map(animation, mappedSkin.jointNodeIDs());
         writer.addAnimation(animationSchema);
+    }
+
+    public static final class Binary extends GltfAnimationExporter {
+        public Binary() {
+            super(GltfExportMode.GLB);
+        }
+
+        @Override
+        public String getID() {
+            return "animation.glb";
+        }
+    }
+
+    public static final class Split extends GltfAnimationExporter {
+        public Split() {
+            super(GltfExportMode.GLTF_SPLIT);
+        }
+
+        @Override
+        public String getID() {
+            return "animation.gltf";
+        }
     }
 }

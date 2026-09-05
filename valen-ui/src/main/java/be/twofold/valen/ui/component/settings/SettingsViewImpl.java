@@ -10,7 +10,6 @@ import javafx.scene.control.*;
 import javafx.scene.control.ScrollPane.*;
 import javafx.scene.layout.*;
 import javafx.stage.*;
-import org.jetbrains.annotations.*;
 
 import java.io.*;
 import java.nio.file.*;
@@ -38,11 +37,11 @@ public final class SettingsViewImpl extends AbstractView<SettingsView.Listener> 
     }
 
     @Override
-    public void setDescriptors(SettingDescriptor<?, ?> @UnknownNullability ... descriptors) {
+    public void setDescriptors(List<SettingDescriptor<?, ?>> descriptors) {
         container.getChildren().clear();
         disableRefreshers.clear();
 
-        var grouped = Arrays.stream(descriptors)
+        var grouped = descriptors.stream()
             .collect(Collectors.groupingBy(
                 SettingDescriptor::group,
                 LinkedHashMap::new,

@@ -3,7 +3,6 @@ package be.twofold.valen.ui.component.settings;
 import backbonefx.event.*;
 import be.twofold.valen.core.export.*;
 import be.twofold.valen.core.game.*;
-import be.twofold.valen.core.texture.*;
 import be.twofold.valen.ui.common.*;
 import be.twofold.valen.ui.common.settings.*;
 import be.twofold.valen.ui.events.*;
@@ -27,7 +26,7 @@ public final class SettingsPresenter extends AbstractPresenter<SettingsView> imp
     }
 
     private void initialize() {
-        getView().setDescriptors(
+        var descriptors = new ArrayList<SettingDescriptor<?, ?>>(List.of(
             new SettingDescriptor<>(
                 SettingGroup.GENERAL,
                 SettingType.MULTI_MULTIPLE,
@@ -56,44 +55,34 @@ public final class SettingsPresenter extends AbstractPresenter<SettingsView> imp
             ),
             new SettingDescriptor<>(
                 SettingGroup.TEXTURES,
-                SettingType.MULTI_SINGLE,
-                "Texture Format",
-                "Select which texture format to export as",
-                settings::getTextureExporter,
-                settings::setTextureExporter
-            )
-                .withOptions(
-                    Exporter.forType(Texture.class)
-                        .map(e -> Map.entry(e.getID(), e.getName()))
-                        .sorted(Map.Entry.comparingByKey())
-                        .toList(),
-                    Map.Entry::getValue
-                ),
-            new SettingDescriptor<>(
-                SettingGroup.TEXTURES,
                 SettingType.BOOLEAN,
                 "Reconstruct Z",
                 "Reconstruct the blue channel from the red and green channels of the texture",
                 settings::isReconstructZ,
                 settings::setReconstructZ
-            ),
-            new SettingDescriptor<>(
-                SettingGroup.MODELS,
-                SettingType.MULTI_SINGLE,
-                "Model Format",
-                "Select which model format to export as",
-                settings::getModelExporter,
-                settings::setModelExporter
             )
-                .withOptions(
-                    List.of(
-                        Map.entry("gltf", "GLTF, BIN and images"),
-                        Map.entry("glb", "GLB (single file)"),
-                        Map.entry("cast", "Cast (by Porter)")
-                    ),
-                    Map.Entry::getValue
-                )
-        );
+        ));
+
+        for (var type : AssetType.values()) {
+            var options = Exporter.forType(type.type())
+                .map(e -> Map.entry(e.getID(), e.getName()))
+                .sorted(Map.Entry.comparingByKey())
+                .toList();
+            if (options.size() < 2) {
+                continue;
+            }
+            descriptors.add(new SettingDescriptor<>(
+                SettingGroup.EXPORT,
+                SettingType.MULTI_SINGLE,
+                type.displayName() + " Format",
+                null,
+                () -> settings.getExporter(type),
+                id -> settings.setExporter(type, id))
+                .withOptions(options, Map.Entry::getValue)
+            );
+        }
+
+        getView().setDescriptors(descriptors);
     }
 
     @Override
