@@ -9,6 +9,7 @@ module valen.core {
     requires static java.compiler;
 
     exports be.twofold.valen.core.animation;
+    exports be.twofold.valen.core.audio;
     exports be.twofold.valen.core.export;
     exports be.twofold.valen.core.game;
     exports be.twofold.valen.core.geometry.read;
@@ -23,6 +24,7 @@ module valen.core {
     exports be.twofold.valen.core.util.logging;
     exports be.twofold.valen.core.util;
 
+    uses be.twofold.valen.core.audio.AudioDecoder;
     uses be.twofold.valen.core.export.Exporter;
     uses be.twofold.valen.core.game.GameFactory;
 
