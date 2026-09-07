@@ -12,7 +12,7 @@ public record ImageHeader(
     int pixelHeight,
     int depth,
     int mipCount,
-    int unkFlags,
+    int unknown,
     float albedoSpecularBias,
     float albedoSpecularScale,
     TextureFormat textureFormat,
@@ -33,14 +33,14 @@ public record ImageHeader(
         var pixelHeight = source.readInt();
         var depth = source.readInt();
         var mipCount = source.readInt();
-        var unkFlags = source.readInt();
+        var unknown = source.readInt();
         var albedoSpecularBias = source.readFloat();
         var albedoSpecularScale = source.readFloat();
-        source.expectByte((byte) 0x0); // padding1
+        source.expectByte((byte) 0x0); // environment
         var textureFormat = TextureFormat.read(source);
         source.expectInt(0x7); // always7
-        source.expectInt(0x0); // padding2
-        source.expectShort((short) 0x0); // padding3
+        source.expectInt(0x0); // padding
+        source.expectShort((short) 0x0); // atlasPadding
         var streamed = source.readBool(BoolFormat.BYTE);
         var singleStream = source.readBool(BoolFormat.BYTE);
         var noMips = source.readBool(BoolFormat.BYTE);
@@ -55,7 +55,7 @@ public record ImageHeader(
             pixelHeight,
             depth,
             mipCount,
-            unkFlags,
+            unknown,
             albedoSpecularBias,
             albedoSpecularScale,
             textureFormat,
@@ -67,21 +67,19 @@ public record ImageHeader(
         );
     }
 
-    int startMip() {
-        var mask = switch (textureType()) {
-            case TT_2D -> 0x0f;
-            case TT_CUBIC -> 0xff;
-            default -> throw new UnsupportedOperationException("Unsupported texture type: " + textureType());
+    int streamedMipCount() {
+        int mask = switch (textureType) {
+            case TT_2D -> 0x0F;
+            case TT_3D, TT_CUBIC -> 0xFFFF;
         };
-        return streamDbMipCount() & mask;
+        return streamDbMipCount & mask;
     }
 
     int totalMipCount() {
-        var faces = switch (textureType()) {
-            case TT_2D -> 1;
+        var faces = switch (textureType) {
+            case TT_2D, TT_3D -> 1;
             case TT_CUBIC -> 6;
-            default -> throw new UnsupportedOperationException("Unsupported texture type: " + textureType());
         };
-        return mipCount() * faces;
+        return mipCount * faces;
     }
 }

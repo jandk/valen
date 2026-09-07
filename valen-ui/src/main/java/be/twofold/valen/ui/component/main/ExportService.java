@@ -162,7 +162,7 @@ final class ExportService extends Service<Void> {
 
         @SuppressWarnings("unchecked")
         private <T> Exporter<T> findExporter(AssetType type) {
-            var exporterId = settings.getExporter(AssetType.RAW);
+            var exporterId = settings.getExporter(type);
             var exporter = exporterId != null
                 ? Exporter.forTypeAndId(type.type(), exporterId)
                 : Exporter.forType(type.type()).findFirst().orElseThrow();
