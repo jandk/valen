@@ -108,23 +108,23 @@ struct ImageHeader {
     uint  pixelHeight;
     uint  depth;
     uint  mipCount;
-    uint  unkFlags;
+    uint  unknown;
     float albedoSpecularBias;
     float albedoSpecularScale;
-    ubyte padding1;
+    ubyte environment;
     TextureFormat textureFormat;
     uint   always7;
-    uint   padding2;
-    ushort padding3;
+    uint   padding;
+    ushort atlasPadding;
     bool8  streamed;
     bool8  singleStream;
     bool8  noMips;
     bool8  fftBloom;
     uint   streamDbMipCount;
-    Assert(padding1 == 0);
-    Assert(always7  == 7);
-    Assert(padding2 == 0);
-    Assert(padding3 == 0);
+    Assert(environment  == 0);
+    Assert(always7      == 7);
+    Assert(padding      == 0);
+    Assert(atlasPadding == 0);
 };
 
 struct ImageMipInfo {

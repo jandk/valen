@@ -89,3 +89,7 @@
 .find-error {
     -fx-text-fill: rgb(230, 100, 100);
 }
+
+.transport-icon {
+    -fx-fill: -fx-light-text-color;
+}

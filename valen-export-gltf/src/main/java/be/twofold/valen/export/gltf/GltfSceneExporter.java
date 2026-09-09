@@ -9,10 +9,9 @@ import be.twofold.valen.format.gltf.model.node.*;
 import java.io.*;
 import java.util.*;
 
-public final class GltfSceneExporter extends GltfExporter<Scene> {
-    @Override
-    public String getID() {
-        return "scene.gltf";
+public abstract class GltfSceneExporter extends GltfExporter<Scene> {
+    GltfSceneExporter(GltfExportMode mode) {
+        super(mode);
     }
 
     @Override
@@ -40,5 +39,27 @@ public final class GltfSceneExporter extends GltfExporter<Scene> {
             .scale(GltfUtils.mapVector3(instance.scale()))
             .mesh(meshID)
             .build());
+    }
+
+    public static final class Binary extends GltfSceneExporter {
+        public Binary() {
+            super(GltfExportMode.GLB);
+        }
+
+        @Override
+        public String getID() {
+            return "scene.glb";
+        }
+    }
+
+    public static final class Split extends GltfSceneExporter {
+        public Split() {
+            super(GltfExportMode.GLTF_SPLIT);
+        }
+
+        @Override
+        public String getID() {
+            return "scene.gltf";
+        }
     }
 }

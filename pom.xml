@@ -16,6 +16,7 @@
         <module>valen-export-dds</module>
         <module>valen-export-gltf</module>
         <module>valen-export-png</module>
+        <module>valen-export-wav</module>
         <module>valen-format-gltf</module>
         <module>valen-format-png</module>
         <module>valen-game-darkages</module>
@@ -23,6 +24,7 @@
         <module>valen-game-eternal</module>
         <module>valen-game-greatcircle</module>
         <module>valen-game-idtech</module>
+        <module>valen-middleware-wwise</module>
         <module>valen-ui</module>
     </modules>
 
@@ -111,9 +113,9 @@
         <dependencies>
             <!-- Project -->
             <dependency>
-                <groupId>wtf.reversed</groupId>
-                <artifactId>reversed-toolbox</artifactId>
-                <version>1.0-SNAPSHOT</version>
+                <groupId>be.twofold</groupId>
+                <artifactId>valen-app</artifactId>
+                <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>be.twofold</groupId>
@@ -138,6 +140,11 @@
             <dependency>
                 <groupId>be.twofold</groupId>
                 <artifactId>valen-export-png</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>be.twofold</groupId>
+                <artifactId>valen-export-wav</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -177,11 +184,21 @@
             </dependency>
             <dependency>
                 <groupId>be.twofold</groupId>
+                <artifactId>valen-middleware-wwise</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>be.twofold</groupId>
                 <artifactId>valen-ui</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
             <!-- External -->
+            <dependency>
+                <groupId>wtf.reversed</groupId>
+                <artifactId>reversed-toolbox</artifactId>
+                <version>1.0-SNAPSHOT</version>
+            </dependency>
             <dependency>
                 <groupId>be.twofold</groupId>
                 <artifactId>tinybcdec</artifactId>

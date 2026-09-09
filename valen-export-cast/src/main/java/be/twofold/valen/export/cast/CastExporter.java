@@ -9,7 +9,7 @@ import java.nio.file.*;
 public abstract class CastExporter<T> implements Exporter<T> {
     @Override
     public String getName() {
-        return "Cast";
+        return "Cast (by DTZxPorter)";
     }
 
     @Override

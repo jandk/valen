@@ -65,8 +65,7 @@ class BlendShapeExportTest {
             Optional.of("test"), Optional.empty(), Axis.Z);
 
         var path = dir.resolve("test.gltf");
-        var exporter = new GltfModelExporter();
-        exporter.setProperty("gltf.mode", "gltf");
+        var exporter = new GltfModelExporter.Split();
         exporter.export(model, path);
 
         return JsonParser.parseString(Files.readString(path, StandardCharsets.UTF_8)).getAsJsonObject();

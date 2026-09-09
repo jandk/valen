@@ -33,7 +33,7 @@ public final class ImageReader implements AssetReader.Binary<Texture, EternalAss
         var image = Image.read(source);
 
         var mipData = new Bytes[image.header().totalMipCount()];
-        for (var i = image.header().startMip(); i < image.header().totalMipCount(); i++) {
+        for (var i = image.header().streamedMipCount(); i < image.header().totalMipCount(); i++) {
             mipData[i] = source.readBytes(image.mipInfos().get(i).decompressedSize());
         }
         source.expectEnd();
@@ -74,7 +74,7 @@ public final class ImageReader implements AssetReader.Binary<Texture, EternalAss
     }
 
     private void readMultiStream(Image image, long hash, Bytes[] mipData, LoadingContext context) throws IOException {
-        for (var i = 0; i < image.header().startMip(); i++) {
+        for (var i = 0; i < image.header().streamedMipCount(); i++) {
             var mipInfo = image.mipInfos().get(i);
             var mipHash = hash << 4 | (image.header().mipCount() - mipInfo.mipLevel());
             var mip = context.open(new EternalStreamLocation(mipHash, mipInfo.decompressedSize()));

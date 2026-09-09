@@ -131,7 +131,6 @@ final class ExportService extends Service<Void> {
 
                 Exporter<T> exporter = findExporter(type);
                 exporter.setProperty("reconstructZ", settings.isReconstructZ());
-                exporter.setProperty("gltf.mode", settings.getModelExporter());
 
                 targetPath = findTargetPath(exporter, asset);
                 if (Files.exists(targetPath)) {
@@ -163,14 +162,7 @@ final class ExportService extends Service<Void> {
 
         @SuppressWarnings("unchecked")
         private <T> Exporter<T> findExporter(AssetType type) {
-            boolean isGltf = Set.of("glb", "gltf").contains(settings.getModelExporter());
-            var exporterId = switch (type) {
-                case ANIMATION -> "animation." + (isGltf ? "gltf" : "cast");
-                case MATERIAL -> "material." + (isGltf ? "gltf" : "cast");
-                case MODEL -> "model." + (isGltf ? "gltf" : "cast");
-                case TEXTURE -> settings.getTextureExporter();
-                case RAW -> "binary.raw";
-            };
+            var exporterId = settings.getExporter(type);
             var exporter = exporterId != null
                 ? Exporter.forTypeAndId(type.type(), exporterId)
                 : Exporter.forType(type.type()).findFirst().orElseThrow();

@@ -9,9 +9,6 @@ import javafx.scene.layout.*;
 
 @Singleton
 public final class ProgressViewImpl extends AbstractView<ProgressView.Listener> implements ProgressView {
-    private static final String SPACE = "\u2009";
-    private static final String SEPARATOR = SPACE + "/" + SPACE;
-
     private final VBox root = new VBox(10.0);
     private final ProgressBar progressBar = new ProgressBar(0.0);
     private final Label messageText = new Label("Exporting");
@@ -33,7 +30,7 @@ public final class ProgressViewImpl extends AbstractView<ProgressView.Listener> 
         progressBar.setProgress(progress.progress());
         messageText.setText(progress.message());
         percentageText.setText((int) (progress.progress() * 100.0 + 0.5) + "%");
-        countText.setText((int) progress.workDone() + SEPARATOR + (int) progress.totalWork());
+        countText.setText((int) progress.workDone() + Constants.TS_SLASH + (int) progress.totalWork());
     }
 
     // region UI
