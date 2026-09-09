@@ -4,6 +4,7 @@ import backbonefx.di.*;
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.util.*;
 import be.twofold.valen.ui.component.*;
+import be.twofold.valen.ui.component.audioviewer.*;
 import be.twofold.valen.ui.component.metaview.*;
 import be.twofold.valen.ui.component.modelviewer.*;
 import be.twofold.valen.ui.component.rawview.*;
@@ -11,17 +12,15 @@ import be.twofold.valen.ui.component.textureviewer.*;
 import jakarta.inject.*;
 import javafx.scene.control.*;
 
-/**
- * A fixed strip of preview tabs. The tabs never come and go — so the strip
- * doesn't animate on every asset change — instead, tabs that can't show the
- * current asset are disabled. The single {@code Preview} tab swaps its content
- * between the model and texture viewers depending on the asset.
- */
+import java.util.*;
+
 public final class PreviewTabPane extends TabPane {
     private final ModelPresenter model;
     private final TexturePresenter texture;
+    private final AudioPresenter audio;
     private final MetaPresenter meta;
     private final RawPresenter raw;
+    private final List<Viewer> renderers;
 
     private final Tab previewTab = new Tab("Preview");
     private final Tab metaTab = new Tab("Metadata");
@@ -31,8 +30,10 @@ public final class PreviewTabPane extends TabPane {
     PreviewTabPane(Feather feather) {
         this.model = feather.instance(ModelPresenter.class);
         this.texture = feather.instance(TexturePresenter.class);
+        this.audio = feather.instance(AudioPresenter.class);
         this.meta = feather.instance(MetaPresenter.class);
         this.raw = feather.instance(RawPresenter.class);
+        this.renderers = List.of(model, texture, audio);
 
         for (Tab tab : new Tab[]{previewTab, metaTab, rawTab}) {
             tab.setClosable(false);
@@ -53,6 +54,7 @@ public final class PreviewTabPane extends TabPane {
         Viewer renderer = switch (type) {
             case MODEL -> model;
             case TEXTURE -> texture;
+            case AUDIO -> audio;
             default -> null;
         };
 
@@ -71,16 +73,18 @@ public final class PreviewTabPane extends TabPane {
     }
 
     private void showRenderer(Viewer renderer, Object payload) {
+        for (var other : renderers) {
+            if (other != renderer) {
+                other.display(null);
+            }
+        }
+
         if (renderer == null) {
-            model.display(null);
-            texture.display(null);
             previewTab.setContent(null);
             previewTab.setDisable(true);
             return;
         }
 
-        // Release the renderer that isn't shown, then swap in the one that is.
-        (renderer == model ? texture : model).display(null);
         previewTab.setContent(renderer.getFXNode());
         renderer.display(payload);
         previewTab.setDisable(false);

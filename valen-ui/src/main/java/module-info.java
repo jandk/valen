@@ -2,6 +2,7 @@ module valen.ui {
     requires backbonefx;
     requires com.google.gson;
     requires jakarta.inject;
+    requires java.desktop;
     requires javafx.controls;
     requires javafx.graphics;
     requires jfx.incubator.richtext;
@@ -13,6 +14,7 @@ module valen.ui {
 
     opens be.twofold.valen.ui.common.settings to backbonefx, com.google.gson;
     opens be.twofold.valen.ui.component to backbonefx;
+    opens be.twofold.valen.ui.component.audioviewer to backbonefx;
     opens be.twofold.valen.ui.component.filelist to backbonefx;
     opens be.twofold.valen.ui.component.main to backbonefx;
     opens be.twofold.valen.ui.component.metaview to backbonefx;
