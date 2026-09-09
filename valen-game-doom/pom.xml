@@ -19,6 +19,10 @@
             <groupId>be.twofold</groupId>
             <artifactId>valen-game-idtech</artifactId>
         </dependency>
+        <dependency>
+            <groupId>be.twofold</groupId>
+            <artifactId>valen-middleware-wwise</artifactId>
+        </dependency>
     </dependencies>
 
 </project>

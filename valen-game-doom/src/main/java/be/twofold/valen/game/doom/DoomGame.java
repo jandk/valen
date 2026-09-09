@@ -26,6 +26,7 @@ public final class DoomGame implements Game {
         new ImageReader(),
         new ModelReader()
     );
+    public static final String SOUND_SOUNDBANKS_PC = "sound/soundbanks/pc";
 
     private final Path base;
     private final List<VmtrEntry> vmtrEntries;
@@ -46,12 +47,17 @@ public final class DoomGame implements Game {
     public List<String> archiveNames() {
         return List.of(
             "gameresources",
-            "snap_gameresources"
+            "snap_gameresources",
+            SOUND_SOUNDBANKS_PC
         );
     }
 
     @Override
     public AssetLoader open(String name) throws IOException {
+        if (name.equals(SOUND_SOUNDBANKS_PC)) {
+            return WwiseLoader.load(base.resolve(SOUND_SOUNDBANKS_PC));
+        }
+
         var index = ResourcesIndex.read(base.resolve(name + ".index"));
         var resourcesPath = base.resolve(name + ".resources");
         var resources = BinarySource.open(resourcesPath);

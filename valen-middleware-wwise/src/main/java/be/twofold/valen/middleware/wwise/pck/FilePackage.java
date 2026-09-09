@@ -1,5 +1,6 @@
 package be.twofold.valen.middleware.wwise.pck;
 
+import be.twofold.valen.middleware.wwise.shared.*;
 import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
@@ -8,15 +9,15 @@ import java.util.*;
 public record FilePackage(
     FilePackageHeader header,
     LanguageMap languages,
-    List<FileEntry> soundBanks,
-    List<FileEntry> streams,
+    List<FileEntry<BankId>> soundBanks,
+    List<FileEntry<MediaId>> streams,
     List<ExternalEntry> externals
 ) {
     public static FilePackage read(BinarySource source) throws IOException {
         var header = FilePackageHeader.read(source);
         var languages = LanguageMap.read(source, header.languageMapSize());
-        var soundBanks = readTable(source, header.soundBanksLutSize(), FileEntry.BYTES, FileEntry::read);
-        var streams = readTable(source, header.stmFilesLutSize(), FileEntry.BYTES, FileEntry::read);
+        var soundBanks = readTable(source, header.soundBanksLutSize(), FileEntry.BYTES, s -> FileEntry.read(s, BankId::of));
+        var streams = readTable(source, header.stmFilesLutSize(), FileEntry.BYTES, s -> FileEntry.read(s, MediaId::of));
         var externals = readTable(source, header.externalsLutSize(), ExternalEntry.BYTES, ExternalEntry::read);
 
         if (source.position() != header.dataOffset()) {

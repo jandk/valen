@@ -1,10 +1,12 @@
 package be.twofold.valen.middleware.wwise.info;
 
+import be.twofold.valen.middleware.wwise.shared.*;
+
 import javax.xml.stream.*;
 import java.util.*;
 
 public record SoundBank(
-    int id,
+    BankId id,
     String language,
     String shortName,
     String path,
@@ -14,7 +16,7 @@ public record SoundBank(
     List<MediaFile> excludedMemoryFiles
 ) {
     public static SoundBank read(XMLStreamReader reader) throws XMLStreamException {
-        var id = Integer.parseUnsignedInt(reader.getAttributeValue(null, "Id"));
+        var id = BankId.parse(reader.getAttributeValue(null, "Id"));
         var language = reader.getAttributeValue(null, "Language");
 
         var shortName = (String) null;
@@ -31,13 +33,13 @@ public record SoundBank(
                     case "ShortName" -> shortName = reader.getElementText();
                     case "Path" -> path = reader.getElementText();
                     case "IncludedEvents" ->
-                        includedEvents = XmlReader.readList(reader, "IncludedEvents", "Event", Event::read);
+                        includedEvents = InfoXmlReader.readList(reader, "IncludedEvents", "Event", Event::read);
                     case "ReferencedStreamedFiles" ->
-                        referencedStreamedFiles = XmlReader.readList(reader, "ReferencedStreamedFiles", "File", MediaFile::readId);
+                        referencedStreamedFiles = InfoXmlReader.readList(reader, "ReferencedStreamedFiles", "File", MediaFile::readId);
                     case "IncludedMemoryFiles" ->
-                        includedMemoryFiles = XmlReader.readList(reader, "IncludedMemoryFiles", "File", MediaFile::read);
+                        includedMemoryFiles = InfoXmlReader.readList(reader, "IncludedMemoryFiles", "File", MediaFile::read);
                     case "ExcludedMemoryFiles" ->
-                        excludedMemoryFiles = XmlReader.readList(reader, "ExcludedMemoryFiles", "File", MediaFile::read);
+                        excludedMemoryFiles = InfoXmlReader.readList(reader, "ExcludedMemoryFiles", "File", MediaFile::read);
                     default -> throw new XMLStreamException("Unknown element in SoundBank: " + reader.getLocalName());
                 }
             } else if (event == XMLStreamConstants.END_ELEMENT && reader.getLocalName().equals("SoundBank")) {
