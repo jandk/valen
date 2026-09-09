@@ -137,7 +137,7 @@ public final class TexturePresenter extends AbstractPresenter<TextureView> imple
     private String buildStatus() {
         StringBuilder builder = new StringBuilder()
             .append(texture.format())
-            .append("\u2009-\u2009")
+            .append(Constants.TS_DASH)
             .append(Math.max(1, texture.width() >> currentMip));
 
         if (texture.kind() != TextureKind.TEXTURE_1D) {
