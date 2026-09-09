@@ -1,6 +1,7 @@
 package be.twofold.valen.ui.component;
 
 import backbonefx.di.*;
+import be.twofold.valen.ui.component.audioviewer.*;
 import be.twofold.valen.ui.component.filelist.*;
 import be.twofold.valen.ui.component.main.*;
 import be.twofold.valen.ui.component.metaview.*;
@@ -11,6 +12,11 @@ import be.twofold.valen.ui.component.settings.*;
 import be.twofold.valen.ui.component.textureviewer.*;
 
 public final class ViewModule {
+
+    @Provides
+    public AudioView bindAudioView(AudioViewImpl audioView) {
+        return audioView;
+    }
 
     @Provides
     public FileListView bindFileListView(FileListViewImpl fileListView) {
