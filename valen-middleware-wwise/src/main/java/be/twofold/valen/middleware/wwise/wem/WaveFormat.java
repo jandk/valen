@@ -12,7 +12,7 @@ public record WaveFormat(
     short blockAlign,
     short bitsPerSample,
     short cbSize,
-    short unknown,
+    short samplesPerBlock,
     int channelConfig
 ) {
     public static WaveFormat read(BinarySource source, int size) throws IOException {
@@ -23,7 +23,7 @@ public record WaveFormat(
         short blockAlign = source.readShort();
         short bitsPerSample = source.readShort();
         short cbSize = source.readShort();
-        short unknown = source.readShort();
+        short samplesPerBlock = source.readShort();
         int channelConfig = source.readInt();
 
         return new WaveFormat(
@@ -34,7 +34,7 @@ public record WaveFormat(
             blockAlign,
             bitsPerSample,
             cbSize,
-            unknown,
+            samplesPerBlock,
             channelConfig
         );
     }
