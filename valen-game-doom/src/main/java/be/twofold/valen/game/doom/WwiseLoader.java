@@ -36,8 +36,13 @@ final class WwiseLoader {
                 soundBanksInfo.soundBanks().stream().flatMap(b -> b.includedMemoryFiles().stream()))
             .collect(Collectors.toMap(MediaFile::id, Function.identity(), (a, _) -> a));
 
+        Set<MediaId> excluded = soundBanksInfo.soundBanks().stream()
+            .flatMap(b -> b.excludedMemoryFiles().stream())
+            .map(MediaFile::id)
+            .collect(Collectors.toSet());
+
         loadPackages(); // Packages go first, they contain whole files
-        loadBanks(soundBanksInfo.soundBanks());
+        loadBanks(soundBanksInfo.soundBanks(), excluded);
 
         var storageManager = new StorageManager(sources, Set.of(), new Decompressors(null));
 
@@ -48,19 +53,22 @@ final class WwiseLoader {
         );
     }
 
-    private void loadBanks(List<SoundBank> soundBanks) throws IOException {
+    private void loadBanks(List<SoundBank> soundBanks, Set<MediaId> excluded) throws IOException {
         for (var soundBank : soundBanks) {
             var resolved = root.resolve(soundBank.path());
             var source = BinarySource.open(resolved);
             sources.put(resolved, source);
 
             var bank = Bank.read(source);
-            loadBank(bank, resolved);
+            loadBank(bank, resolved, excluded);
         }
     }
 
-    private void loadBank(Bank bank, Path resolved) {
+    private void loadBank(Bank bank, Path resolved, Set<MediaId> excluded) {
         for (var header : bank.index().headers()) {
+            if (excluded.contains(header.id())) {
+                continue;
+            }
             var name = nameOf(header.id());
             var location = new Location.FileSlice(resolved, bank.offsetOf(header), header.size());
             assets.put(header.id(), new WwiseAsset(new WwiseAssetId(header.id(), name), location));

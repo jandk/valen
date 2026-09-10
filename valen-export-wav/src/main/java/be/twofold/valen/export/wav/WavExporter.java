@@ -47,7 +47,8 @@ public final class WavExporter implements Exporter<Audio> {
             new Chunk.Data("fmt ", fmt),
             new Chunk.Data("data", pcm),
             new Chunk.Group("LIST", "INFO", List.of(
-                new Chunk.Data("ISFT", Bytes.wrap("Exported with Valen\0".getBytes(StandardCharsets.US_ASCII)))
+                new Chunk.Data("ICMT", Bytes.wrap("Exported with Valen\0".getBytes(StandardCharsets.US_ASCII))),
+                new Chunk.Data("ISFT", Bytes.wrap("Valen\0".getBytes(StandardCharsets.US_ASCII)))
             ))
         ));
 
