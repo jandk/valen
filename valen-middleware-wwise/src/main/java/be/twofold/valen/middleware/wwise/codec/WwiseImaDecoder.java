@@ -36,18 +36,18 @@ public final class WwiseImaDecoder implements AudioDecoder {
 
     @Override
     public Audio decode(Audio audio, AudioCodec target) {
-        int channels = audio.channels();
+        int numChannels = audio.channels().size();
         int frameCount = audio.frameCount();
-        int stride = channels * Short.BYTES;
+        int stride = numChannels * Short.BYTES;
 
         var src = audio.data();
-        var dst = Bytes.allocate(frameCount * channels * Short.BYTES);
+        var dst = Bytes.allocate(frameCount * numChannels * Short.BYTES);
 
         int numBlocks = frameCount / SAMPLES;
         for (int b = 0; b < numBlocks; b++) {
-            int srcOff = b * channels * BLOCK;
-            int dstOff = b * channels * SAMPLES * Short.BYTES;
-            for (int i = 0; i < channels; i++) {
+            int srcOff = b * numChannels * BLOCK;
+            int dstOff = b * numChannels * SAMPLES * Short.BYTES;
+            for (int i = 0; i < numChannels; i++) {
                 decodeBlock(
                     src, srcOff + i * BLOCK,
                     dst, dstOff + i * Short.BYTES,
@@ -59,7 +59,7 @@ public final class WwiseImaDecoder implements AudioDecoder {
         return new Audio(
             AudioCodec.PCM_S16_LE,
             audio.sampleRate(),
-            channels,
+            audio.channels(),
             frameCount,
             dst
         );

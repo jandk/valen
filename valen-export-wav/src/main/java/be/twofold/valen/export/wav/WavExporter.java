@@ -9,6 +9,11 @@ import java.nio.charset.*;
 import java.util.*;
 
 public final class WavExporter implements Exporter<Audio> {
+    private static final byte[] SUBFORMAT = new byte[]{
+        0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00,
+        (byte) 0x80, 0x00, 0x00, (byte) 0xAA, 0x00, 0x38, (byte) 0x9B, 0x71
+    };
+
     @Override
     public String getID() {
         return "audio.wav";
@@ -49,14 +54,40 @@ public final class WavExporter implements Exporter<Audio> {
         writeChunk(wav, out);
     }
 
-    private Bytes buildFormat(Audio value) {
-        return Bytes.allocate(16)
-            .setShort(0, (short) 1)
-            .setShort(2, (short) value.channels())
-            .setInt(4, value.sampleRate())
-            .setInt(8, value.sampleRate() * value.channels() * Short.BYTES)
-            .setShort(12, (short) (value.channels() * Short.BYTES))
+    private Bytes buildFormat(Audio audio) {
+        boolean extendedHeader = !audio.channels().equals(Channel.MONO)
+            && !audio.channels().equals(Channel.STEREO);
+
+        Bytes.Mutable format = Bytes.allocate(extendedHeader ? 40 : 16);
+        standardHeader(audio, format, extendedHeader);
+        if (extendedHeader) {
+            extendedHeader(audio, format);
+        }
+        return format;
+    }
+
+    private void standardHeader(Audio audio, Bytes.Mutable bytes, boolean extendedHeader) {
+        bytes
+            .setShort(0, (short) (extendedHeader ? 0xFFFE : 0x0001))
+            .setShort(2, (short) audio.channels().size())
+            .setInt(4, audio.sampleRate())
+            .setInt(8, audio.sampleRate() * audio.channels().size() * Short.BYTES)
+            .setShort(12, (short) (audio.channels().size() * Short.BYTES))
             .setShort(14, (short) 16);
+    }
+
+    private void extendedHeader(Audio audio, Bytes.Mutable bytes) {
+        bytes
+            .setShort(16, (short) 22)
+            .setShort(18, (short) 16)
+            .setInt(20, toChannelMask(audio.channels()));
+        Bytes.wrap(SUBFORMAT).copyTo(bytes, 24);
+    }
+
+    private int toChannelMask(List<Channel> channels) {
+        return channels.stream()
+            .mapToInt(c -> 1 << c.ordinal())
+            .reduce(0, (a, b) -> a | b);
     }
 
     private void writeChunk(Chunk chunk, OutputStream out) throws IOException {

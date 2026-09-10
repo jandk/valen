@@ -3,6 +3,8 @@ package be.twofold.valen.core.audio;
 import wtf.reversed.toolbox.collect.*;
 import wtf.reversed.toolbox.util.*;
 
+import java.util.*;
+
 /**
  * Represents a piece of audio
  *
@@ -15,14 +17,14 @@ import wtf.reversed.toolbox.util.*;
 public record Audio(
     AudioCodec codec,
     int sampleRate,
-    int channels,
+    List<Channel> channels,
     int frameCount,
     Bytes data
 ) {
     public Audio {
         Check.nonNull(codec, "codec");
         Check.positive(sampleRate, "sampleRate");
-        Check.positive(channels, "channels");
+        Check.positive(channels.size(), "channels is empty");
         Check.positiveOrZero(frameCount, "frameCount");
         Check.nonNull(data, "data");
     }

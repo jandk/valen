@@ -1,6 +1,9 @@
 package be.twofold.valen.ui.component.audioviewer;
 
 import be.twofold.valen.core.audio.*;
+import wtf.reversed.toolbox.collect.*;
+
+import static be.twofold.valen.core.audio.Channel.*;
 
 final class Downmix {
     private static final float UNIT = 1.0f;
@@ -56,10 +59,63 @@ final class Downmix {
     };
 
     static Audio downmix(Audio source, int channels) {
-        // TODO: Fill this in
-        if (channels != 1 && channels != 2) {
-            throw new UnsupportedOperationException("Number of channels: " + channels);
+        if (source.codec() != AudioCodec.PCM_S16_LE) {
+            throw new UnsupportedOperationException("Unsupported codec: " + source.codec());
         }
-        return source;
+
+        int[] indices = source.channels().stream()
+            .mapToInt(Channel::ordinal)
+            .toArray();
+
+        var target = Bytes.allocate(source.frameCount() * channels * Short.BYTES);
+        switch (channels) {
+            case 1 -> downmixMono(source, target, indices);
+            case 2 -> downmixStereo(source, target, indices);
+            default -> throw new UnsupportedOperationException("Unsupported number of channels: " + channels);
+        }
+
+        return new Audio(
+            source.codec(),
+            source.sampleRate(),
+            channels == 1 ? MONO : STEREO,
+            source.frameCount(),
+            target
+        );
+    }
+
+    private static void downmixMono(Audio src, Bytes.Mutable dst, int[] channels) {
+        var source = src.data().asShorts();
+        var target = dst.asShorts();
+        int channelCount = channels.length;
+        for (int i = 0, lim = src.frameCount(); i < lim; i++) {
+            float sum = 0.0f;
+            for (int c = 0; c < channelCount; c++) {
+                int sample = source.get(i * channelCount + c);
+                sum += sample * TO_MONO[channels[c]];
+            }
+            target.set(i, (short) packSample(sum));
+        }
+    }
+
+    private static void downmixStereo(Audio src, Bytes.Mutable dst, int[] channels) {
+        var source = src.data().asShorts();
+        var target = dst.asShorts();
+        int channelCount = channels.length;
+        for (int i = 0, lim = src.frameCount(); i < lim; i++) {
+            float sumL = 0.0f;
+            float sumR = 0.0f;
+            for (int c = 0; c < channelCount; c++) {
+                int sample = source.get(i * channelCount + c);
+                sumL += sample * TO_STEREO[channels[c] * 2/**/];
+                sumR += sample * TO_STEREO[channels[c] * 2 + 1];
+            }
+            target.set(i * 2/**/, (short) packSample(sumL));
+            target.set(i * 2 + 1, (short) packSample(sumR));
+        }
+    }
+
+    private static int packSample(float sample) {
+        int s = (int) (sample + Math.copySign(0.5f, sample));
+        return Math.clamp(s, Short.MIN_VALUE, Short.MAX_VALUE);
     }
 }

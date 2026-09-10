@@ -6,6 +6,8 @@ import be.twofold.valen.middleware.wwise.shared.*;
 import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
+import java.util.*;
+import java.util.stream.*;
 
 public final class WemReader implements AssetReader.Binary<Audio, Asset> {
     private static final int WAVE = 'W' | 'A' << 8 | 'V' << 16 | 'E' << 24;
@@ -36,7 +38,7 @@ public final class WemReader implements AssetReader.Binary<Audio, Asset> {
                     return new Audio(
                         mapCodec(format.codec()),
                         format.samplesPerSec(),
-                        format.channels(),
+                        mapChannels(format.channelConfig()),
                         mapFrameCount(format, source.remaining()),
                         source.readBytes(Math.toIntExact(source.remaining()))
                     );
@@ -63,5 +65,12 @@ public final class WemReader implements AssetReader.Binary<Audio, Asset> {
             case OPUS, WEM_OPUS, PT_ADPCM, PCM_EX, VORBIS ->
                 throw new UnsupportedOperationException("Unsupported codec: " + format.codec());
         };
+    }
+
+    private List<Channel> mapChannels(int channelMask) {
+        return IntStream.range(0, Channel.VALUES.size())
+            .filter(i -> (channelMask & (1 << i)) != 0)
+            .mapToObj(Channel.VALUES::get)
+            .toList();
     }
 }
