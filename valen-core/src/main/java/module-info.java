@@ -2,7 +2,6 @@ module valen.core {
     requires be.twofold.tinybcdec;
     requires java.logging;
     requires java.net.http;
-    requires org.jetbrains.annotations;
     requires org.slf4j;
     requires transitive wtf.reversed.toolbox;
 

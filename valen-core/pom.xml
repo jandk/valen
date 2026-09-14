@@ -16,10 +16,6 @@
             <artifactId>tinybcdec</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.jetbrains</groupId>
-            <artifactId>annotations</artifactId>
-        </dependency>
-        <dependency>
             <groupId>wtf.reversed</groupId>
             <artifactId>reversed-toolbox</artifactId>
         </dependency>

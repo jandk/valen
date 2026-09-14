@@ -11,7 +11,6 @@ import be.twofold.valen.ui.component.filelist.*;
 import be.twofold.valen.ui.events.*;
 import jakarta.inject.*;
 import javafx.concurrent.*;
-import org.jetbrains.annotations.*;
 import org.slf4j.*;
 
 import java.io.*;
@@ -38,9 +37,9 @@ public final class MainPresenter extends AbstractPresenter<MainView> implements 
     });
     private final AtomicLong loadSequence = new AtomicLong();
 
-    private @Nullable Game game;
+    private Game game;
     private AssetLoader loader;
-    private @Nullable Asset lastAsset;
+    private Asset lastAsset;
     private SidePanel sidePanel = SidePanel.NONE;
     private String query = "";
 

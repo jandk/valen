@@ -11,7 +11,6 @@ import javafx.application.*;
 import javafx.concurrent.*;
 import javafx.scene.*;
 import javafx.stage.*;
-import org.jetbrains.annotations.*;
 import org.slf4j.*;
 import wtf.reversed.toolbox.util.*;
 
@@ -149,7 +148,7 @@ final class ExportService extends Service<Void> {
         }
 
         // In case we fail, remove the file, so the next run writes it again
-        private void discardPartialExport(@Nullable Path targetPath) {
+        private void discardPartialExport(Path targetPath) {
             if (targetPath == null) {
                 return;
             }
