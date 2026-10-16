@@ -83,6 +83,11 @@ public final class AudioViewImpl extends AbstractView<AudioView.Listener> implem
         }
     }
 
+    @Override
+    public void setPlayable(boolean playable) {
+        playPauseButton.setDisable(!playable);
+    }
+
     private void updateTime() {
         timeLabel.setText(format(position * duration) + Constants.TS_SLASH + format(duration));
     }

@@ -37,14 +37,11 @@ public final class AudioPresenter extends AbstractPresenter<AudioView> implement
             return null;
         }
 
-        var pcm = AudioDecoder.convert(audio, AudioCodec.PCM_S16_LE);
-        if (pcm.isEmpty()) {
-            return null;
-        }
-
         var status = describe(audio);
-        var waveform = Waveform.of(pcm.get());
-        return new AudioPayload(pcm.get(), waveform, status, null);
+        return AudioDecoder
+            .convert(audio, AudioCodec.PCM_S16_LE)
+            .map(value -> AudioPayload.decoded(value, status))
+            .orElseGet(() -> AudioPayload.undecoded(audio, status));
     }
 
     @Override
@@ -56,24 +53,21 @@ public final class AudioPresenter extends AbstractPresenter<AudioView> implement
             return;
         }
 
-        int playbackChannels = channelsFor(audioPayload.pcmAudio().channels());
-        var audio = Downmix.downmix(audioPayload.pcmAudio(), playbackChannels);
-        var format = new AudioFormat(audio.sampleRate(), 16, playbackChannels, true, false);
-        try {
-            var newClip = (Clip) AudioSystem.getLine(new DataLine.Info(Clip.class, format));
-            newClip.open(new AudioInputStream(audio.data().asInputStream(), format, audio.frameCount()));
-            clip = newClip; // if it fails on open, it's still null
-        } catch (LineUnavailableException | IOException e) {
-            clear("Error: " + e.getMessage());
-            getView().setMessage("Error: " + e.getMessage());
-            return;
+        if (audioPayload.pcmAudio() != null) {
+            int playbackChannels = channelsFor(audioPayload.pcmAudio().channels());
+            var audio = Downmix.downmix(audioPayload.pcmAudio(), playbackChannels);
+            var format = new AudioFormat(audio.sampleRate(), 16, playbackChannels, true, false);
+            try {
+                var newClip = (Clip) AudioSystem.getLine(new DataLine.Info(Clip.class, format));
+                newClip.open(new AudioInputStream(audio.data().asInputStream(), format, audio.frameCount()));
+                clip = newClip; // if it fails on open, it's still null
+            } catch (LineUnavailableException | IOException e) {
+                clear("Error: " + e.getMessage());
+                return;
+            }
         }
 
-        getView().setWaveform(audioPayload.waveform());
-        getView().setStatus(audioPayload.status());
-        getView().setMessage(audioPayload.message());
-        getView().setDuration(audio.duration());
-        getView().setPosition(0);
+        show(audioPayload.waveform(), audioPayload.status(), audioPayload.message(), audioPayload.duration());
     }
 
     private int channelsFor(List<Channel> channels) {
@@ -84,11 +78,16 @@ public final class AudioPresenter extends AbstractPresenter<AudioView> implement
     }
 
     private void clear(String message) {
-        getView().setWaveform(null);
-        getView().setStatus(null);
+        show(null, null, message, 0);
+    }
+
+    private void show(Waveform waveform, String status, String message, double duration) {
+        getView().setWaveform(waveform);
+        getView().setStatus(status);
         getView().setMessage(message);
-        getView().setDuration(0);
+        getView().setDuration(duration);
         getView().setPosition(0);
+        getView().setPlayable(clip != null);
     }
 
     @Override

@@ -15,6 +15,8 @@ public interface AudioView extends View<AudioView.Listener> {
 
     void setPlaying(boolean playing);
 
+    void setPlayable(boolean playable);
+
     interface Listener extends View.Listener {
 
         void onPlayPause();
