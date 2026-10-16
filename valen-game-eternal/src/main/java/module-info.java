@@ -5,8 +5,6 @@ module valen.game.eternal {
     requires valen.game.idtech;
     requires valen.middleware.wwise;
 
-    requires static java.sql; // For import only
-
     provides be.twofold.valen.core.game.GameFactory
         with be.twofold.valen.game.eternal.EternalGameFactory;
 
