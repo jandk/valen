@@ -19,11 +19,6 @@ public record SoundContainer(
         var headers = source.readBytes(source.readInt() - 4);
         var entries = source.readObjects(source.readInt(), SoundEntry::read);
 
-        for (SoundEntry entry : entries) {
-            var slice = headers.slice(entry.headerOffset(), entry.headerSize());
-            WEM_READER.read(BinarySource.wrap(slice), null, null);
-        }
-
         return new SoundContainer(
             headers,
             entries

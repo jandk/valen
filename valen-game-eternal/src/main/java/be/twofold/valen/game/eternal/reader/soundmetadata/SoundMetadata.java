@@ -4,6 +4,7 @@ import wtf.reversed.toolbox.collect.*;
 import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
+import java.nio.file.*;
 import java.util.*;
 
 public record SoundMetadata(
@@ -18,6 +19,12 @@ public record SoundMetadata(
     List<Event> events,
     Ints prefetches
 ) {
+    public static SoundMetadata load(Path path) throws IOException {
+        try (var source = BinarySource.open(path)) {
+            return read(source);
+        }
+    }
+
     public static SoundMetadata read(BinarySource source) throws IOException {
         source.expectInt(23); // version
         var packages = source.readObjects(source.readInt(), NameId::read);

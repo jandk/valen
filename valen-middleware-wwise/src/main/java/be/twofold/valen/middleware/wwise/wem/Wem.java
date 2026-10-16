@@ -1,10 +1,13 @@
 package be.twofold.valen.middleware.wwise.wem;
 
+import be.twofold.valen.core.audio.*;
 import be.twofold.valen.middleware.wwise.shared.*;
 import wtf.reversed.toolbox.io.*;
 import wtf.reversed.toolbox.util.*;
 
 import java.io.*;
+import java.util.*;
+import java.util.stream.*;
 
 public record Wem(
     WaveFormat format,
@@ -54,5 +57,42 @@ public record Wem(
             source.position(start + chunk.size());
         }
         throw new IOException("Expected data chunk");
+    }
+
+    public AudioCodec toAudioCodec() {
+        return switch (format.codec()) {
+            case PCM, PCM_EX -> AudioCodec.PCM_S16_LE;
+            case IMA_ADPCM -> AudioCodec.WWISE_IMA_ADPCM;
+            case VORBIS -> AudioCodec.WWISE_VORBIS;
+            case OPUS, WEM_OPUS, PT_ADPCM ->
+                throw new UnsupportedOperationException("Unsupported codec: " + format.codec());
+        };
+    }
+
+    public List<Channel> toChannels() {
+        int channelConfig = format.channelConfig();
+        int channels = format.channels();
+
+        int type = (channelConfig >>> 8) & 0x0F;
+        int mask = type == 1 && Integer.bitCount(channelConfig >>> 12) == channels
+            ? channelConfig >>> 12
+            : channelConfig;
+        if (Integer.bitCount(mask) != channels) {
+            throw new UnsupportedOperationException("Unsupported channel mask: 0x" + Integer.toHexString(channelConfig));
+        }
+        return IntStream.range(0, Channel.VALUES.size())
+            .filter(i -> (mask & (1 << i)) != 0)
+            .mapToObj(Channel.VALUES::get)
+            .toList();
+    }
+
+    public int toFrameCount() {
+        return switch (format.codec()) {
+            case PCM, PCM_EX -> dataSize / format.blockAlign();
+            case IMA_ADPCM -> 64 * (dataSize / format.blockAlign());
+            case VORBIS -> ((AkVorbisHeader) format.codecHeader().orElseThrow()).totalPCMFrames();
+            case OPUS, WEM_OPUS, PT_ADPCM ->
+                throw new UnsupportedOperationException("Unsupported codec: " + format.codec());
+        };
     }
 }

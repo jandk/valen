@@ -20,6 +20,7 @@ import wtf.reversed.toolbox.io.*;
 import java.io.*;
 import java.nio.file.*;
 import java.util.*;
+import java.util.stream.*;
 
 public final class EternalGame implements Game {
     private static final DeclReader DECL_READER = new DeclReader();
@@ -41,6 +42,7 @@ public final class EternalGame implements Game {
         new RenderParmReader(),
         new StaticModelReader(true)
     );
+    public static final String SOUNDBANK_NAME = "sound/soundbanks/pc";
 
     private final Path base;
     private final PackageMapSpec spec;
@@ -58,13 +60,24 @@ public final class EternalGame implements Game {
 
     @Override
     public List<String> archiveNames() {
-        return spec.maps().stream()
+        var names = spec.maps().stream()
             .filter(map -> spec.mapFiles().get(map).stream()
                 .anyMatch(file -> file.endsWith(".resources")))
-            .toList();
+            .collect(Collectors.toList());
+        names.add(SOUNDBANK_NAME);
+        return names;
     }
 
+    @Override
     public AssetLoader open(String name) throws IOException {
+        if (!name.equals(SOUNDBANK_NAME)) {
+            return openArchive(name);
+        } else {
+            return openSoundbank();
+        }
+    }
+
+    private AssetLoader openArchive(String name) throws IOException {
         var loadedResources = ResourcesIndex.build(filterResources(spec, name));
 
         var archive = Archive.layered(
@@ -84,6 +97,11 @@ public final class EternalGame implements Game {
         );
 
         return new AssetLoader(archive, storageManager, List.copyOf(ASSET_READERS));
+    }
+
+    private AssetLoader openSoundbank() throws IOException {
+        var path = base.resolve(SOUNDBANK_NAME);
+        return SoundbankIndex.build(path, decompressors);
     }
 
     private StreamDbIndex loadStreamDbIndex(Path base, PackageMapSpec spec) throws IOException {

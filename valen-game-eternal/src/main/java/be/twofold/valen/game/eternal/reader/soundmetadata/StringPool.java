@@ -6,18 +6,17 @@ import wtf.reversed.toolbox.io.*;
 import java.io.*;
 
 public record StringPool(
-    String value,
+    Bytes value,
     Ints indices
 ) {
     public static StringPool read(BinarySource source) throws IOException {
-        var value = source.readString(StringFormat.INT_LENGTH);
-        var nullCount = (int) value.chars()
-            .filter(ch -> ch == 0)
-            .count();
+        var value = source.readBytes(source.readInt());
+        var count = (int) value.stream().filter(b -> b == 0).count();
 
-        var indices = new int[nullCount + 1];
+        var indices = new int[count + 1];
+
         for (int i = 0, o = 0; i < value.length(); i++) {
-            if (value.charAt(i) == 0) {
+            if (value.get(i) == 0) {
                 indices[o++] = i;
             }
         }
