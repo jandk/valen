@@ -3,6 +3,7 @@ module valen.game.eternal {
     requires org.slf4j;
     requires valen.core;
     requires valen.game.idtech;
+    requires valen.middleware.wwise;
 
     requires static java.sql; // For import only
 
