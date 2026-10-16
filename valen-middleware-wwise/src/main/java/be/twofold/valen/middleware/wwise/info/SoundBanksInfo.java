@@ -28,9 +28,9 @@ public record SoundBanksInfo(
                 switch (reader.getLocalName()) {
                     case "RootPaths" -> rootPaths = RootPaths.read(reader);
                     case "StreamedFiles" ->
-                        streamedFiles = XmlReader.readList(reader, "StreamedFiles", "File", MediaFile::read);
+                        streamedFiles = InfoXmlReader.readList(reader, "StreamedFiles", "File", MediaFile::read);
                     case "SoundBanks" ->
-                        soundBanks = XmlReader.readList(reader, "SoundBanks", "SoundBank", SoundBank::read);
+                        soundBanks = InfoXmlReader.readList(reader, "SoundBanks", "SoundBank", SoundBank::read);
                     case "DialogueEvents", "MediaFilesNotInAnyBank" -> {
                     }
                     default ->

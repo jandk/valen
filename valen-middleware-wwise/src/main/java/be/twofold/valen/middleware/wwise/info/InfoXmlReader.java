@@ -2,10 +2,17 @@ package be.twofold.valen.middleware.wwise.info;
 
 import javax.xml.stream.*;
 import java.io.*;
+import java.nio.file.*;
 import java.util.*;
 
-public final class XmlReader {
-    private XmlReader() {
+public final class InfoXmlReader {
+    private InfoXmlReader() {
+    }
+
+    public static SoundBanksInfo load(Path path) throws IOException {
+        try (InputStream in = new BufferedInputStream(Files.newInputStream(path))) {
+            return load(in);
+        }
     }
 
     public static SoundBanksInfo load(InputStream input) throws IOException {

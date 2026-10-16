@@ -17,7 +17,7 @@ public record Wem(
     public Wem {
         Check.nonNull(format, "format");
         Check.positive(dataOffset, "dataOffset");
-        Check.positive(dataSize, "dataSize");
+        Check.positiveOrZero(dataSize, "dataSize");
     }
 
     public static Wem read(BinarySource source) throws IOException {
@@ -43,8 +43,10 @@ public record Wem(
                         source.remaining() < chunk.size()
                     );
                 }
-                default -> source.skip(chunk.size());
+                default -> {
+                }
             }
+            source.position(start + chunk.size());
         }
         throw new IOException("Expected data chunk");
     }

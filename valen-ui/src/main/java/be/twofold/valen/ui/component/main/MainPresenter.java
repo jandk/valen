@@ -168,7 +168,7 @@ public final class MainPresenter extends AbstractPresenter<MainView> implements 
             return AssetType.RAW;
         }
         return switch (asset.type()) {
-            case MODEL, TEXTURE -> asset.type();
+            case AUDIO, MODEL, TEXTURE -> asset.type();
             default -> AssetType.RAW;
         };
     }

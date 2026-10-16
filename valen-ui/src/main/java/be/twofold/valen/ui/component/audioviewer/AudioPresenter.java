@@ -8,6 +8,8 @@ import jakarta.inject.*;
 
 import javax.sound.sampled.*;
 import java.io.*;
+import java.util.*;
+import java.util.stream.*;
 
 public final class AudioPresenter extends AbstractPresenter<AudioView> implements AudioView.Listener, Viewer {
     private Clip clip;
@@ -54,8 +56,9 @@ public final class AudioPresenter extends AbstractPresenter<AudioView> implement
             return;
         }
 
-        var audio = audioPayload.pcmAudio();
-        var format = new AudioFormat(audio.sampleRate(), 16, audio.channels(), true, false);
+        int playbackChannels = channelsFor(audioPayload.pcmAudio().channels());
+        var audio = Downmix.downmix(audioPayload.pcmAudio(), playbackChannels);
+        var format = new AudioFormat(audio.sampleRate(), 16, playbackChannels, true, false);
         try {
             var newClip = (Clip) AudioSystem.getLine(new DataLine.Info(Clip.class, format));
             newClip.open(new AudioInputStream(audio.data().asInputStream(), format, audio.frameCount()));
@@ -71,6 +74,13 @@ public final class AudioPresenter extends AbstractPresenter<AudioView> implement
         getView().setMessage(audioPayload.message());
         getView().setDuration(audio.duration());
         getView().setPosition(0);
+    }
+
+    private int channelsFor(List<Channel> channels) {
+        var allChannels = new ArrayList<>(channels);
+        allChannels.remove(Channel.LOW_FREQUENCY);
+        return allChannels.size() == 1
+            && allChannels.equals(Channel.MONO) ? 1 : 2;
     }
 
     private void clear(String message) {
@@ -134,16 +144,23 @@ public final class AudioPresenter extends AbstractPresenter<AudioView> implement
     }
 
     private String describe(Audio audio) {
-        // TODO: Deal with funky channel ordering
-        var channels = switch (audio.channels()) {
-            case 1 -> "mono";
-            case 2 -> "stereo";
-            default -> throw new UnsupportedOperationException("Too many channels: " + audio.channels());
-        };
+        var channels = channelNames(audio.channels());
 
         return audio.sampleRate() + " Hz" + Constants.TS_DASH +
             channels + Constants.TS_DASH +
             audio.codec();
+    }
+
+    private String channelNames(List<Channel> channels) {
+        if (channels.equals(Channel.MONO)) {
+            return "mono";
+        } else if (channels.equals(Channel.STEREO)) {
+            return "stereo";
+        } else {
+            return channels.stream()
+                .map(Channel::shortName)
+                .collect(Collectors.joining(Constants.TS + "+" + Constants.TS));
+        }
     }
 
     private void resetClip() {

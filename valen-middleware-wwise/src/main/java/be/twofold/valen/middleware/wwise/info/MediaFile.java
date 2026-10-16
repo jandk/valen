@@ -1,10 +1,12 @@
 package be.twofold.valen.middleware.wwise.info;
 
+import be.twofold.valen.middleware.wwise.shared.*;
+
 import javax.xml.stream.*;
 import java.util.*;
 
 public record MediaFile(
-    int id,
+    MediaId id,
     String language,
     boolean usingReferenceLanguageAsStandIn,
     String shortName,
@@ -12,7 +14,7 @@ public record MediaFile(
     OptionalInt prefetchSize
 ) {
     static MediaFile read(XMLStreamReader reader) throws XMLStreamException {
-        var id = Integer.parseUnsignedInt(reader.getAttributeValue(null, "Id"));
+        var id = MediaId.parse(reader.getAttributeValue(null, "Id"));
         var language = reader.getAttributeValue(null, "Language");
         var usingReferenceLanguageAsStandIn = Boolean.parseBoolean(reader.getAttributeValue(null, "UsingReferenceLanguageAsStandIn"));
 
