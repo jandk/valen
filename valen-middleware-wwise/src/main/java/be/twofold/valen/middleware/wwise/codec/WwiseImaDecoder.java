@@ -31,7 +31,7 @@ public final class WwiseImaDecoder implements AudioDecoder {
 
     @Override
     public boolean canDecode(Audio audio, AudioCodec target) {
-        return audio.codec() == AudioCodec.ADPCM_IMA_WWISE;
+        return audio.codec() == AudioCodec.WWISE_IMA_ADPCM;
     }
 
     @Override

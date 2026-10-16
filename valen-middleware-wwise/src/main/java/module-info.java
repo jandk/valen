@@ -1,6 +1,7 @@
 module valen.middleware.wwise {
     requires valen.core;
     requires java.xml;
+    requires org.slf4j;
 
     exports be.twofold.valen.middleware.wwise.bnk;
     exports be.twofold.valen.middleware.wwise.info;

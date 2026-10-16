@@ -3,6 +3,7 @@ package be.twofold.valen.middleware.wwise.wem;
 import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
+import java.util.*;
 
 public record WaveFormat(
     CodecId codec,
@@ -13,10 +14,13 @@ public record WaveFormat(
     short bitsPerSample,
     short cbSize,
     short samplesPerBlock,
-    int channelConfig
+    int channelConfig,
+    Optional<CodecHeader> codecHeader
 ) {
     public static WaveFormat read(BinarySource source, int size) throws IOException {
-        CodecId codec = CodecId.fromValue(source.readShort());
+        long start = source.position();
+
+        CodecId codec = CodecId.read(source);
         short channels = source.readShort();
         int samplesPerSec = source.readInt();
         int avgBytesPerSec = source.readInt();
@@ -25,6 +29,15 @@ public record WaveFormat(
         short cbSize = source.readShort();
         short samplesPerBlock = source.readShort();
         int channelConfig = source.readInt();
+
+        CodecHeader codecHeader;
+        if (codec == CodecId.VORBIS && size >= 66) {
+            codecHeader = AkVorbisHeader.read(source);
+        } else if (codec == CodecId.OPUS && size >= 36) {
+            codecHeader = AkOpusHeader.read(source);
+        } else {
+            codecHeader = null;
+        }
 
         return new WaveFormat(
             codec,
@@ -35,7 +48,8 @@ public record WaveFormat(
             bitsPerSample,
             cbSize,
             samplesPerBlock,
-            channelConfig
+            channelConfig,
+            Optional.ofNullable(codecHeader)
         );
     }
 }

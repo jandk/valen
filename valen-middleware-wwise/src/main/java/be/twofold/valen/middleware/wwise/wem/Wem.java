@@ -10,7 +10,7 @@ public record Wem(
     WaveFormat format,
     int dataOffset,
     int dataSize,
-    boolean truncated
+    int declaredDataSize
 ) {
     private static final int WAVE = 'W' | 'A' << 8 | 'V' << 16 | 'E' << 24;
 
@@ -18,10 +18,11 @@ public record Wem(
         Check.nonNull(format, "format");
         Check.positive(dataOffset, "dataOffset");
         Check.positiveOrZero(dataSize, "dataSize");
+        Check.positiveOrZero(declaredDataSize, "declaredDataSize");
     }
 
     public static Wem read(BinarySource source) throws IOException {
-        var riff = ChunkHeader.read(source);
+        ChunkHeader riff = ChunkHeader.read(source);
         if (riff.tag() != ChunkTag.RIFF) {
             throw new IOException("Expected RIFF chunk");
         }
@@ -30,17 +31,21 @@ public record Wem(
         WaveFormat format = null;
 
         while (source.remaining() > 0) {
-            var chunk = ChunkHeader.read(source);
-            var start = source.position();
+            ChunkHeader chunk = ChunkHeader.read(source);
+            int start = Math.toIntExact(source.position());
 
             switch (chunk.tag()) {
                 case fmt_ -> format = WaveFormat.read(source, chunk.size());
                 case data -> {
+                    if (format == null) {
+                        throw new IOException("Expected fmt_ chunk");
+                    }
+
                     return new Wem(
                         format,
-                        Math.toIntExact(start),
-                        Math.toIntExact(Math.min(source.remaining(), chunk.size())),
-                        source.remaining() < chunk.size()
+                        start,
+                        Math.min(Math.toIntExact(source.remaining()), chunk.size()),
+                        chunk.size()
                     );
                 }
                 default -> {
