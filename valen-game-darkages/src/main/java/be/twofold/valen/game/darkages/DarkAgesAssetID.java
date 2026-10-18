@@ -7,10 +7,10 @@ import wtf.reversed.toolbox.util.*;
 import java.util.*;
 
 public record DarkAgesAssetID(
-    ResourceName name,
+    String name,
     ResourcesType type,
     ResourcesVariation variation
-) implements Comparable<AssetID>, AssetID {
+) implements AssetID {
     private static final Comparator<DarkAgesAssetID> COMPARATOR = Comparator
         .comparing(DarkAgesAssetID::name)
         .thenComparing(DarkAgesAssetID::type)
@@ -45,26 +45,20 @@ public record DarkAgesAssetID(
     );
 
     public static DarkAgesAssetID from(String name, ResourcesType type) {
-        var resourceName = new ResourceName(name);
         var variations = Variations
             .getOrDefault(type, Set.of(ResourcesVariation.RES_VAR_NONE));
 
         Check.state(variations.size() == 1, "Multiple variations found");
-
-        return new DarkAgesAssetID(
-            resourceName,
-            type,
-            variations.iterator().next()
-        );
+        return new DarkAgesAssetID(name, type, variations.iterator().next());
     }
 
     public static DarkAgesAssetID from(String name, ResourcesType type, ResourcesVariation variation) {
-        Check.argument(Variations.getOrDefault(type, Set.of(ResourcesVariation.RES_VAR_NONE)).contains(variation), "Invalid variation for type: " + type + " (" + variation + ")");
-        return new DarkAgesAssetID(
-            new ResourceName(name),
-            type,
-            variation
-        );
+        var variationValid = Variations
+            .getOrDefault(type, Set.of(ResourcesVariation.RES_VAR_NONE))
+            .contains(variation);
+
+        Check.argument(variationValid, "Invalid variation for type: " + type + " (" + variation + ")");
+        return new DarkAgesAssetID(name, type, variation);
     }
 
     public static DarkAgesAssetID material(String name) {
@@ -73,22 +67,13 @@ public record DarkAgesAssetID(
 
     @Override
     public String fullName() {
-        return name.name();
+        return name;
     }
 
     @Override
-    public String displayName() {
-        return name.filename();
-    }
-
-    @Override
-    public String pathName() {
-        return name.pathname();
-    }
-
-    @Override
-    public String fileName() {
-        return name.filenameWithoutProperties();
+    public AssetPath path() {
+        var index = name.indexOf('$');
+        return new AssetPath(index < 0 ? name : name.substring(0, index));
     }
 
     @Override

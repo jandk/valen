@@ -13,7 +13,7 @@ public final class MaterialReader extends AbstractMaterialReader<DarkAgesAssetID
     @Override
     public boolean canRead(DarkAgesAsset asset) {
         return asset.id().type() == ResourcesType.RsStreamFile
-            && asset.id().name().name().startsWith("generated/decls/material2/");
+            && asset.id().name().startsWith("generated/decls/material2/");
     }
 
     @Override

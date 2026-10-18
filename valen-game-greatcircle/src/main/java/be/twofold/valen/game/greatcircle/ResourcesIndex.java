@@ -45,9 +45,8 @@ record ResourcesIndex(
         var name = getString(resources, entry.strings() + entry.nameString());
         var type = getString(resources, entry.strings()/* + entry.typeString()*/);
 
-        var resourceName = new ResourceName(name);
         var resourceType = ResourceType.fromValue(type);
-        var resourceKey = new GreatCircleAssetID(resourceName, resourceType, entry.variation());
+        var resourceKey = new GreatCircleAssetID(name, resourceType, entry.variation());
 
         var location = new Location.FileSlice(
             path, entry.dataOffset(), Math.toIntExact(entry.dataSize())

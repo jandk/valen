@@ -13,7 +13,7 @@ public final class EntityDefReader implements AssetReader.Binary<JsonObject, Ete
     @Override
     public boolean canRead(EternalAsset asset) {
         return asset.id().type() == ResourceType.RsStreamFile
-            && asset.id().name().name().startsWith("generated/decls/entitydef/");
+            && asset.id().name().startsWith("generated/decls/entitydef/");
     }
 
     @Override

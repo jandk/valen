@@ -19,6 +19,6 @@ public final class DeclReader extends AbstractDeclReader<GreatCircleAssetID, Gre
 
     @Override
     public GreatCircleAssetID getAssetID(String name, GreatCircleAssetID baseAssetID) {
-        return new GreatCircleAssetID(new ResourceName(name), baseAssetID.type(), ResourcesVariation.RES_VAR_NONE);
+        return new GreatCircleAssetID(name, baseAssetID.type(), ResourcesVariation.RES_VAR_NONE);
     }
 }

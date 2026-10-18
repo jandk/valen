@@ -13,7 +13,7 @@ public final class MaterialReader extends AbstractMaterialReader<EternalAssetID,
     @Override
     public boolean canRead(EternalAsset asset) {
         return asset.id().type() == ResourceType.RsStreamFile
-            && asset.id().name().name().startsWith("generated/decls/material2/");
+            && asset.id().name().startsWith("generated/decls/material2/");
     }
 
     @Override

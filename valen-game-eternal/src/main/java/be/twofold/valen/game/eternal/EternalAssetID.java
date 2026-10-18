@@ -8,10 +8,10 @@ import wtf.reversed.toolbox.util.*;
 import java.util.*;
 
 public record EternalAssetID(
-    ResourceName name,
+    String name,
     ResourceType type,
     ResourcesVariation variation
-) implements Comparable<AssetID>, AssetID {
+) implements AssetID {
     private static final Comparator<EternalAssetID> COMPARATOR = Comparator
         .comparing(EternalAssetID::name)
         .thenComparing(EternalAssetID::type)
@@ -32,26 +32,25 @@ public record EternalAssetID(
     );
 
     public static EternalAssetID from(String name, ResourceType type) {
-        var resourceName = new ResourceName(name);
         var variations = Variations
             .getOrDefault(type, Set.of(ResourcesVariation.RES_VAR_NONE));
 
         Check.state(variations.size() == 1, "Multiple variations found");
 
         return new EternalAssetID(
-            resourceName,
+            name,
             type,
             variations.iterator().next()
         );
     }
 
     public static EternalAssetID from(String name, ResourceType type, ResourcesVariation variation) {
-        Check.argument(Variations.getOrDefault(type, Set.of(ResourcesVariation.RES_VAR_NONE)).contains(variation), "Invalid variation for type: " + type + " (" + variation + ")");
-        return new EternalAssetID(
-            new ResourceName(name),
-            type,
-            variation
-        );
+        var variationValid = Variations
+            .getOrDefault(type, Set.of(ResourcesVariation.RES_VAR_NONE))
+            .contains(variation);
+
+        Check.argument(variationValid, "Invalid variation for type: " + type + " (" + variation + ")");
+        return new EternalAssetID(name, type, variation);
     }
 
     public static EternalAssetID material(String name) {
@@ -60,22 +59,13 @@ public record EternalAssetID(
 
     @Override
     public String fullName() {
-        return name.name();
+        return name;
     }
 
     @Override
-    public String displayName() {
-        return name.filename();
-    }
-
-    @Override
-    public String pathName() {
-        return name.pathname();
-    }
-
-    @Override
-    public String fileName() {
-        return name.filenameWithoutProperties();
+    public AssetPath path() {
+        int index = name.indexOf('$');
+        return new AssetPath(index < 0 ? name : name.substring(0, index));
     }
 
     @Override

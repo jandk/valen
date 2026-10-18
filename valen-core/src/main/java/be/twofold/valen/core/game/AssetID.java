@@ -1,29 +1,31 @@
 package be.twofold.valen.core.game;
 
-import be.twofold.valen.core.util.*;
-
 public interface AssetID extends Comparable<AssetID> {
 
     String fullName();
+
+    default AssetPath path() {
+        return new AssetPath(fullName());
+    }
 
     default String displayName() {
         return fileName();
     }
 
-    default String pathName() {
-        return Filenames.getPath(fullName());
-    }
-
     default String fileName() {
-        return Filenames.getName(fullName());
+        return path().fileName();
     }
 
-    default String fileNameWithoutExtension() {
-        return Filenames.removeExtension(fileName());
+    default String pathName() {
+        return path().parent().toString();
     }
 
     default String extension() {
-        return Filenames.getExtension(fileName());
+        return path().extension();
+    }
+
+    default String fileNameWithoutExtension() {
+        return path().baseName();
     }
 
     @Override

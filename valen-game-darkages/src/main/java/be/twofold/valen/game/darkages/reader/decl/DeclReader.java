@@ -28,7 +28,7 @@ public final class DeclReader extends AbstractDeclReader<DarkAgesAssetID, DarkAg
             return false;
         }
 
-        var name = asset.id().name().name();
+        var name = asset.id().name();
         if (!name.startsWith(RootPrefix)) {
             return false;
         }

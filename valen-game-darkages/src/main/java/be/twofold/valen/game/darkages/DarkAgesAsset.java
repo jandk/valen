@@ -14,7 +14,7 @@ public record DarkAgesAsset(
 ) implements Asset {
     @Override
     public AssetType type() {
-        if (id.name().name().startsWith("generated/decls/material2/")) {
+        if (id.name().startsWith("generated/decls/material2/")) {
             return AssetType.MATERIAL;
         }
         return switch (id.type()) {

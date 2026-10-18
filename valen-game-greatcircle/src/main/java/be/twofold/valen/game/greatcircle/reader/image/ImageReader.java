@@ -24,7 +24,7 @@ public final class ImageReader implements AssetReader.Binary<Texture, GreatCircl
     @Override
     public boolean canRead(GreatCircleAsset asset) {
         return asset.id().type() == ResourceType.image
-            && !asset.id().name().filename().endsWith(".bimage");
+            && !asset.id().path().fileName().endsWith(".bimage");
     }
 
     @Override

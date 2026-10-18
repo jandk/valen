@@ -12,7 +12,7 @@ public final class RenderParmReader extends AbstractRenderParmReader<DarkAgesAss
     @Override
     public boolean canRead(DarkAgesAsset asset) {
         return asset.id().type() == ResourcesType.RsStreamFile
-            && asset.id().name().name().startsWith("generated/decls/renderparm/");
+            && asset.id().name().startsWith("generated/decls/renderparm/");
     }
 
     @Override

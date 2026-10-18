@@ -7,21 +7,17 @@ import be.twofold.valen.game.greatcircle.resource.*;
 import java.util.*;
 
 public record GreatCircleAssetID(
-    ResourceName name,
+    String name,
     ResourceType type,
     ResourcesVariation variation
-) implements Comparable<AssetID>, AssetID {
+) implements AssetID {
     private static final Comparator<GreatCircleAssetID> COMPARATOR = Comparator
         .comparing(GreatCircleAssetID::name)
         .thenComparing(GreatCircleAssetID::type)
         .thenComparing(GreatCircleAssetID::variation);
 
     public static GreatCircleAssetID from(String name, ResourceType type) {
-        return new GreatCircleAssetID(
-            new ResourceName(name),
-            type,
-            ResourcesVariation.RES_VAR_NONE
-        );
+        return new GreatCircleAssetID(name, type, ResourcesVariation.RES_VAR_NONE);
     }
 
     public static GreatCircleAssetID material(String name) {
@@ -30,22 +26,13 @@ public record GreatCircleAssetID(
 
     @Override
     public String fullName() {
-        return name.name();
+        return name;
     }
 
     @Override
-    public String displayName() {
-        return name.filename();
-    }
-
-    @Override
-    public String pathName() {
-        return name.pathname();
-    }
-
-    @Override
-    public String fileName() {
-        return name.filenameWithoutProperties();
+    public AssetPath path() {
+        int index = name.indexOf('$');
+        return new AssetPath(index < 0 ? name : name.substring(0, index));
     }
 
     @Override
