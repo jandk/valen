@@ -1,7 +1,8 @@
-package be.twofold.valen.export.wav;
+package be.twofold.valen.core.audio.export;
 
 import be.twofold.valen.core.audio.*;
 import be.twofold.valen.core.export.*;
+import be.twofold.valen.core.util.*;
 import wtf.reversed.toolbox.collect.*;
 
 import java.io.*;
@@ -9,10 +10,7 @@ import java.nio.charset.*;
 import java.util.*;
 
 public final class WavExporter implements Exporter<Audio> {
-    private static final byte[] SUBFORMAT = new byte[]{
-        0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00,
-        (byte) 0x80, 0x00, 0x00, (byte) 0xAA, 0x00, 0x38, (byte) 0x9B, 0x71
-    };
+    private static final UUID KSDATAFORMAT_SUBTYPE_PCM = UUID.fromString("00000001-0000-0010-8000-00AA00389B71");
 
     @Override
     public String getID() {
@@ -82,7 +80,7 @@ public final class WavExporter implements Exporter<Audio> {
             .setShort(16, (short) 22)
             .setShort(18, (short) 16)
             .setInt(20, toChannelMask(audio.channels()));
-        Bytes.wrap(SUBFORMAT).copyTo(bytes, 24);
+        Guids.toBytes(KSDATAFORMAT_SUBTYPE_PCM).copyTo(bytes, 24);
     }
 
     private int toChannelMask(List<Channel> channels) {

@@ -16,7 +16,6 @@
         <module>valen-export-dds</module>
         <module>valen-export-gltf</module>
         <module>valen-export-png</module>
-        <module>valen-export-wav</module>
         <module>valen-format-gltf</module>
         <module>valen-format-png</module>
         <module>valen-game-darkages</module>
@@ -139,11 +138,6 @@
             <dependency>
                 <groupId>be.twofold</groupId>
                 <artifactId>valen-export-png</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>be.twofold</groupId>
-                <artifactId>valen-export-wav</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

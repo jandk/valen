@@ -27,6 +27,7 @@ module valen.core {
     uses be.twofold.valen.core.export.Exporter;
     uses be.twofold.valen.core.game.GameFactory;
 
-    provides be.twofold.valen.core.export.Exporter
-        with be.twofold.valen.core.export.RawExporter;
+    provides be.twofold.valen.core.export.Exporter with
+        be.twofold.valen.core.export.RawExporter,
+        be.twofold.valen.core.audio.export.WavExporter;
 }
