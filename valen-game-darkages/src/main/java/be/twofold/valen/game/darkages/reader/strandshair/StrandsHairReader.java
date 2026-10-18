@@ -28,7 +28,7 @@ public final class StrandsHairReader implements AssetReader.Binary<Model, DarkAg
             strandsHair.header().compressionPosBias()
         );
 
-        var hair = new Hair(asset.id().fileName(), segments, positions);
+        var hair = new Hair(asset.id().path().fileName(), segments, positions);
         return new Model(List.of(), Axis.Z)
             .withHair(Optional.of(hair));
     }

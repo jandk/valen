@@ -21,7 +21,7 @@ public final class EntityReader implements AssetReader.Binary<EntityFile, Eterna
     @Override
     public boolean canRead(EternalAsset asset) {
         return asset.id().type() == ResourceType.CompFile
-            && asset.id().extension().equals("entities");
+            && asset.id().path().extension().equals("entities");
     }
 
     @Override

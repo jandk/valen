@@ -186,12 +186,12 @@ public abstract class AbstractMaterialReader<K extends AssetID, V extends Asset>
         }
 
         // Dark ages doesn't seem to add an extension in their decls
-        String extension = Filenames.getExtension(filePath);
-        if (extension.isEmpty()) {
-            filePath = filePath + ".tga";
+        var assetPath = AssetPath.of(filePath);
+        if (assetPath.extension().isEmpty()) {
+            assetPath = assetPath.withExtension("tga");
         }
 
-        var builder = new StringBuilder(filePath.toLowerCase());
+        var builder = new StringBuilder(assetPath.toString().toLowerCase());
         if (idTech8 && parm.renderParm().materialKind == TextureMaterialKind.TMK_SMOOTHNESS) {
             var smoothnessNormal = allParms.entrySet().stream()
                 .filter(rlp -> rlp.getValue().renderParm().materialKind == parm.renderParm().smoothnessNormalParm)
@@ -211,7 +211,7 @@ public abstract class AbstractMaterialReader<K extends AssetID, V extends Asset>
         }
 
         var supplier = ThrowingSupplier.lazy(() -> context.load(imageAssetID, Texture.class));
-        return new TextureReference(name, imageAssetID.fileNameWithoutExtension(), supplier);
+        return new TextureReference(name, imageAssetID.path().baseName(), supplier);
     }
 
     private List<Parm> parseRenderLayerParms(JsonArray array, LoadingContext context) throws IOException {

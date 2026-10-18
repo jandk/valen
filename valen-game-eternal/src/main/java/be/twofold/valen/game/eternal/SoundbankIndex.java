@@ -11,12 +11,14 @@ import java.io.*;
 import java.nio.file.*;
 import java.util.*;
 
-record SoundbankIndex(
-) {
+final class SoundbankIndex {
     private static final List<AssetReader<?, ?>> READERS = List.of(
         new SoundReader(),
         new WemReader()
     );
+
+    private SoundbankIndex() {
+    }
 
     public static AssetLoader build(Path path, Decompressors decompressors) throws IOException {
         var metadata = SoundMetadata.load(path.resolve("soundmetadata.bin"));
@@ -25,16 +27,15 @@ record SoundbankIndex(
         var sources = new HashMap<Path, BinarySource>();
 
         for (var container : metadata.containers()) {
-            var containerName = container.name();
-            var dot = containerName.lastIndexOf('.');
+            var containerName = AssetPath.of(container.name());
 
             for (var i = 0; i < container.files().size(); i++) {
                 var containerFile = container.files().get(i);
                 var fileName = i == 0
                     ? containerName
-                    : containerName.substring(0, dot) + "_patch_" + i + containerName.substring(dot);
+                    : containerName.withSuffix("_patch_" + i);
 
-                var filePath = path.resolve(fileName);
+                var filePath = fileName.toPath(path);
                 var source = BinarySource.open(filePath);
                 sources.put(filePath, source);
 
@@ -55,7 +56,7 @@ record SoundbankIndex(
         for (var sound : sounds.values()) {
             var mediaId = sound.entry().mediaId();
             var name = names.getOrDefault(mediaId, mediaId.toString() + ".wem");
-            assets.add(mapSoundEntry(sound, sound.containerName().replace(".snd", "") + "/" + name));
+            assets.add(mapSoundEntry(sound, sound.containerName().withoutExtension().resolve(name).toString()));
         }
 
         return new AssetLoader(Archive.of(assets), new StorageManager(sources, Set.of(), decompressors), READERS);
@@ -77,7 +78,7 @@ record SoundbankIndex(
     private static Map<MediaId, String> buildNames(SoundMetadata metadata, Map<MediaId, ContainerSound> sounds) {
         var names = new HashMap<MediaId, String>();
         for (var event : metadata.events()) {
-            var idsByContainer = new LinkedHashMap<String, List<MediaId>>();
+            var idsByContainer = new LinkedHashMap<AssetPath, List<MediaId>>();
             for (var i = 0; i < event.mediaIds().length(); i++) {
                 var mediaId = MediaId.of(event.mediaIds().get(i));
                 var sound = sounds.get(mediaId);
@@ -101,7 +102,7 @@ record SoundbankIndex(
     }
 
     private record ContainerSound(
-        String containerName,
+        AssetPath containerName,
         Path path,
         SoundContainer soundContainer,
         SoundEntry entry

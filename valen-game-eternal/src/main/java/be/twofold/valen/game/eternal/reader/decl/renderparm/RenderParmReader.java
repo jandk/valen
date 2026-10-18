@@ -12,7 +12,7 @@ public final class RenderParmReader extends AbstractRenderParmReader<EternalAsse
     @Override
     public boolean canRead(EternalAsset asset) {
         return asset.id().type() == ResourceType.RsStreamFile
-            && asset.id().name().startsWith("generated/decls/renderparm/");
+            && asset.id().path().startsWith(AssetPaths.RENDER_PARM);
     }
 
     @Override

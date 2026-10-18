@@ -14,7 +14,7 @@ public record EternalAsset(
 ) implements Asset {
     @Override
     public AssetType type() {
-        if (id.name().startsWith("generated/decls/material2/")) {
+        if (id.path().startsWith(AssetPaths.MATERIAL2)) {
             return AssetType.MATERIAL;
         }
         return switch (id.type()) {
@@ -40,9 +40,9 @@ public record EternalAsset(
     public String exportName() {
         if (id.type() == ResourceType.Image) {
             var hashString = HexFormat.of().toHexDigits(hash);
-            return id.fileNameWithoutExtension() + "@" + hashString;
+            return id.path().baseName() + "@" + hashString;
         }
-        return id.fileNameWithoutExtension();
+        return id.path().baseName();
     }
 
     @Override

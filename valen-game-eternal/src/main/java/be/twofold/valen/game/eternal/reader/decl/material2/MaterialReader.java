@@ -13,14 +13,15 @@ public final class MaterialReader extends AbstractMaterialReader<EternalAssetID,
     @Override
     public boolean canRead(EternalAsset asset) {
         return asset.id().type() == ResourceType.RsStreamFile
-            && asset.id().name().startsWith("generated/decls/material2/");
+            && asset.id().path().startsWith(AssetPaths.MATERIAL2);
     }
 
     @Override
     public String materialName(EternalAsset asset) {
-        return asset.id().fullName()
-            .replace("generated/decls/material2/", "")
-            .replace(".decl", "");
+        return asset.id().path()
+            .relativize(AssetPaths.MATERIAL2)
+            .withoutExtension()
+            .toString();
     }
 
     @Override
@@ -30,7 +31,7 @@ public final class MaterialReader extends AbstractMaterialReader<EternalAssetID,
 
     @Override
     public EternalAssetID renderParmAssetID(String name) {
-        var fullName = "generated/decls/renderparm/" + name + ".decl";
+        var fullName = AssetPaths.RENDER_PARM.resolve(name + ".decl").toString();
         return EternalAssetID.from(fullName, ResourceType.RsStreamFile);
     }
 }

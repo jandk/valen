@@ -54,7 +54,7 @@ public record EternalAssetID(
     }
 
     public static EternalAssetID material(String name) {
-        return from("generated/decls/material2/" + name + ".decl", ResourceType.RsStreamFile);
+        return from(AssetPaths.MATERIAL2.resolve(name + ".decl").toString(), ResourceType.RsStreamFile);
     }
 
     @Override
@@ -65,7 +65,7 @@ public record EternalAssetID(
     @Override
     public AssetPath path() {
         int index = name.indexOf('$');
-        return new AssetPath(index < 0 ? name : name.substring(0, index));
+        return AssetPath.of(index < 0 ? name : name.substring(0, index));
     }
 
     @Override

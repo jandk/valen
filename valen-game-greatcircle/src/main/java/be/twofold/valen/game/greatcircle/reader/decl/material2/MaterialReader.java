@@ -17,7 +17,7 @@ public final class MaterialReader extends AbstractMaterialReader<GreatCircleAsse
 
     @Override
     public String materialName(GreatCircleAsset asset) {
-        return asset.id().fullName().replace(".decl", "");
+        return asset.id().path().withoutExtension().toString();
     }
 
     @Override

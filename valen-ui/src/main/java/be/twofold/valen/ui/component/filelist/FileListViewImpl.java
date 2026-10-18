@@ -10,6 +10,7 @@ import javafx.beans.value.*;
 import javafx.collections.*;
 import javafx.geometry.*;
 import javafx.scene.*;
+import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 
@@ -85,7 +86,7 @@ public final class FileListViewImpl extends AbstractView<FileListView.Listener> 
 
     private void selectPath(TreeItem<PathCombo> treeItem) {
         if (treeItem != null) {
-            getListener().onPathSelected(treeItem.getValue().full());
+            getListener().onPathSelected(treeItem.getValue().path());
         }
     }
 
@@ -105,7 +106,7 @@ public final class FileListViewImpl extends AbstractView<FileListView.Listener> 
         if (node.children().size() == 1 && !node.hasFiles()) {
             var child = convert(node.children().values().iterator().next());
             child.setValue(new PathCombo(
-                child.getValue().full(),
+                child.getValue().path(),
                 node.name().name() + SEPARATOR + child.getValue().name())
             );
             return child;
@@ -199,12 +200,12 @@ public final class FileListViewImpl extends AbstractView<FileListView.Listener> 
         private FileListTreeCell() {
             var exportAll = new MenuItem("Export");
             exportAll.setOnAction(_ -> {
-                getListener().onPathExportRequested(getItem().full(), false);
+                getListener().onPathExportRequested(getItem().path(), false);
             });
 
             var exportAllSub = new MenuItem("Export recursively");
             exportAllSub.setOnAction(_ -> {
-                getListener().onPathExportRequested(getItem().full(), true);
+                getListener().onPathExportRequested(getItem().path(), true);
             });
 
             contextMenu = new ContextMenu(exportAll, exportAllSub);

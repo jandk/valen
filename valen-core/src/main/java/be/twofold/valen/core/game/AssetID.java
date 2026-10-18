@@ -5,27 +5,11 @@ public interface AssetID extends Comparable<AssetID> {
     String fullName();
 
     default AssetPath path() {
-        return new AssetPath(fullName());
+        return AssetPath.of(fullName());
     }
 
     default String displayName() {
-        return fileName();
-    }
-
-    default String fileName() {
         return path().fileName();
-    }
-
-    default String pathName() {
-        return path().parent().toString();
-    }
-
-    default String extension() {
-        return path().extension();
-    }
-
-    default String fileNameWithoutExtension() {
-        return path().baseName();
     }
 
     @Override

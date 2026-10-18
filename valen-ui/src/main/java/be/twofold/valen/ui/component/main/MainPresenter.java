@@ -157,9 +157,9 @@ public final class MainPresenter extends AbstractPresenter<MainView> implements 
             if (isStale(seq)) {
                 return;
             }
-            log.error("Could not load asset {}", asset.id().fileName(), e);
+            log.error("Could not load asset {}", asset.id().path().fileName(), e);
             getView().setPreviewLoading(false);
-            FxUtils.showExceptionDialog(e, "Could not load asset " + asset.id().fileName());
+            FxUtils.showExceptionDialog(e, "Could not load asset " + asset.id().path().fileName());
         }
     }
 
@@ -191,10 +191,10 @@ public final class MainPresenter extends AbstractPresenter<MainView> implements 
         exportAssets(assets);
     }
 
-    private void exportPath(String path, boolean recursive) {
-        Predicate<String> predicate = recursive ? s -> s.startsWith(path) : s -> s.equals(path);
+    private void exportPath(AssetPath path, boolean recursive) {
+        Predicate<AssetPath> predicate = recursive ? s -> s.startsWith(path) : s -> s.equals(path);
         var assets = filteredAssets()
-            .filter(asset -> predicate.test(asset.id().pathName()))
+            .filter(asset -> predicate.test(asset.id().path().parent()))
             .toList();
 
         exportAssets(assets);

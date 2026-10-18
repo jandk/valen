@@ -169,13 +169,11 @@ final class ExportService extends Service<Void> {
         }
 
         private Path findTargetPath(Exporter<?> exporter, Asset asset) {
-            var basePath = settings.getExportPath();
-            var filename = exporter.getExtension().isEmpty()
-                ? asset.id().fileName()
-                : asset.exportName() + "." + exporter.getExtension();
-            return basePath
-                .resolve(asset.id().pathName())
-                .resolve(filename);
+            var path = asset.id().path();
+            if (!exporter.getExtension().isEmpty()) {
+                path = path.parent().resolve(asset.exportName() + "." + exporter.getExtension());
+            }
+            return path.toPath(settings.getExportPath());
         }
     }
 }

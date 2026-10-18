@@ -32,7 +32,7 @@ public record GreatCircleAssetID(
     @Override
     public AssetPath path() {
         int index = name.indexOf('$');
-        return new AssetPath(index < 0 ? name : name.substring(0, index));
+        return AssetPath.of(index < 0 ? name : name.substring(0, index));
     }
 
     @Override

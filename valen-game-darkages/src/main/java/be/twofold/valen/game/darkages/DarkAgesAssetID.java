@@ -62,7 +62,7 @@ public record DarkAgesAssetID(
     }
 
     public static DarkAgesAssetID material(String name) {
-        return from("generated/decls/material2/" + name + ".decl", ResourcesType.RsStreamFile);
+        return from(AssetPaths.MATERIAL2.resolve(name + ".decl").toString(), ResourcesType.RsStreamFile);
     }
 
     @Override
@@ -73,7 +73,7 @@ public record DarkAgesAssetID(
     @Override
     public AssetPath path() {
         var index = name.indexOf('$');
-        return new AssetPath(index < 0 ? name : name.substring(0, index));
+        return AssetPath.of(index < 0 ? name : name.substring(0, index));
     }
 
     @Override

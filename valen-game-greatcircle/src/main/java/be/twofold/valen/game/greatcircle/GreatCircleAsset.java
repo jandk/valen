@@ -44,9 +44,9 @@ public record GreatCircleAsset(
     public String exportName() {
         if (id.type() == ResourceType.image) {
             var hashString = HexFormat.of().toHexDigits(hash);
-            return id.fileNameWithoutExtension() + "@" + hashString;
+            return id.path().baseName() + "@" + hashString;
         }
-        return id.fileNameWithoutExtension();
+        return id.path().baseName();
     }
 
     @Override
