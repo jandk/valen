@@ -138,14 +138,14 @@ final class ExportService extends Service<Void> {
                 Files.createDirectories(targetPath.getParent());
                 exporter.export(rawAsset, targetPath);
             } catch (Exception e) {
-                var root = Throwables.rootCause(e);
+                var root = Throwables.getRootCause(e);
                 var failed = failures.computeIfAbsent(failureKey(root), _ -> new ArrayList<>());
                 if (failed.isEmpty()) {
                     log.warn("Failed exporting {}", asset.id().fullName(), e);
                 } else {
                     log.debug("Failed exporting {}: {}", asset.id().fullName(), root.toString());
                 }
-                failed.add(new ExportFailure(asset.id(), root.getMessage()));
+                failed.add(new ExportFailure(asset.id(), Throwables.getMessage(root)));
                 discardPartialExport(targetPath);
             }
         }

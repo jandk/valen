@@ -1,6 +1,7 @@
 package be.twofold.valen.core.util.logging;
 
-import java.io.*;
+import be.twofold.valen.core.util.*;
+
 import java.time.*;
 import java.time.format.*;
 import java.util.*;
@@ -28,15 +29,9 @@ abstract class AbstractFormatter extends Formatter {
         // Shorten logger name
         logger = LOGGER_NAMES.computeIfAbsent(logger, s -> shorten(s, 40));
 
-        var throwable = "";
-        if (record.getThrown() != null) {
-            var sw = new StringWriter();
-            var pw = new PrintWriter(sw);
-            pw.println();
-            record.getThrown().printStackTrace(pw);
-            pw.close();
-            throwable = sw.toString();
-        }
+        var throwable = record.getThrown() != null
+            ? Throwables.getStackTrace(record.getThrown())
+            : "";
 
         return String.format("%s %s%-5s%s --- [%15.15s] %s%-40s%s : %s%s%n",
             time,

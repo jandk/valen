@@ -2,6 +2,7 @@ package be.twofold.valen.ui.component.audioviewer;
 
 import be.twofold.valen.core.audio.*;
 import be.twofold.valen.core.game.*;
+import be.twofold.valen.core.util.*;
 import be.twofold.valen.ui.common.*;
 import be.twofold.valen.ui.component.*;
 import jakarta.inject.*;
@@ -62,7 +63,7 @@ public final class AudioPresenter extends AbstractPresenter<AudioView> implement
                 newClip.open(new AudioInputStream(audio.data().asInputStream(), format, audio.frameCount()));
                 clip = newClip; // if it fails on open, it's still null
             } catch (LineUnavailableException | IOException e) {
-                clear("Error: " + e.getMessage());
+                clear("Error: " + Throwables.getMessage(e));
                 return;
             }
         }
