@@ -2,17 +2,17 @@ package be.twofold.valen.core.audio;
 
 import java.util.*;
 
-public interface AudioDecoder {
+public interface AudioConverter {
 
     boolean canDecode(Audio audio, AudioCodec target);
 
     Audio decode(Audio audio, AudioCodec target);
 
-    static Optional<AudioDecoder> forTarget(Audio audio, AudioCodec target) {
+    static Optional<AudioConverter> forTarget(Audio audio, AudioCodec target) {
         if (audio.codec() == target) {
             return Optional.empty();
         }
-        return ServiceLoader.load(AudioDecoder.class).stream()
+        return ServiceLoader.load(AudioConverter.class).stream()
             .map(ServiceLoader.Provider::get)
             .filter(d -> d.canDecode(audio, target))
             .findFirst();

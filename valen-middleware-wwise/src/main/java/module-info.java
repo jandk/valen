@@ -9,6 +9,7 @@ module valen.middleware.wwise {
     exports be.twofold.valen.middleware.wwise.shared;
     exports be.twofold.valen.middleware.wwise.wem;
 
-    provides be.twofold.valen.core.audio.AudioDecoder
-        with be.twofold.valen.middleware.wwise.codec.WwiseImaDecoder;
+    provides be.twofold.valen.core.audio.AudioConverter with
+        be.twofold.valen.middleware.wwise.converter.WwiseImaConverter,
+        be.twofold.valen.middleware.wwise.converter.WwiseVorbisConverter;
 }

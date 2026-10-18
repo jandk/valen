@@ -34,7 +34,7 @@ public final class WavExporter implements Exporter<Audio> {
 
     @Override
     public void export(Audio value, OutputStream out) throws IOException {
-        var pcmAudio = AudioDecoder.convert(value, AudioCodec.PCM_S16_LE);
+        var pcmAudio = AudioConverter.convert(value, AudioCodec.PCM_S16_LE);
         if (pcmAudio.isEmpty()) {
             throw new IllegalArgumentException("Unsupported audio format");
         }

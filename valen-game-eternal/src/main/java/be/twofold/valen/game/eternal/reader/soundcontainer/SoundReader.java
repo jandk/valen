@@ -21,7 +21,7 @@ public final class SoundReader implements AssetReader.Binary<Audio, Asset> {
         var format = wem.format();
 
         return new Audio(
-            AudioCodec.OPUS,
+            AudioCodec.OGG_OPUS,
             format.samplesPerSec(),
             wem.toChannels(),
             wem.declaredDataSize() / format.blockAlign(),
