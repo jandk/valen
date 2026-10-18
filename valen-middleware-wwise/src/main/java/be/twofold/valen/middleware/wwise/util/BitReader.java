@@ -1,3 +1,7 @@
+package be.twofold.valen.middleware.wwise.util;
+
+import wtf.reversed.toolbox.util.*;
+
 import java.lang.invoke.*;
 import java.nio.*;
 import java.util.*;
@@ -132,6 +136,17 @@ public final class BitReader {
         }
         refill(count);
         consume(count);
+    }
+
+    public void copyTo(BitWriter writer, int count) {
+        Check.argument(bigEndian == writer.bigEndian,
+            "BitReader and BitWriter must have the same endianness");
+
+        while (count > 0) {
+            int amount = Math.min(count, 57);
+            writer.write(amount, readLong(amount));
+            count -= amount;
+        }
     }
 
     private long peekBits(int count) {

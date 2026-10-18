@@ -1,6 +1,3 @@
-import java.io.*;
-import java.util.*;
-
 //final class SetupHeaderWriter {
 //    void write(SetupHeader header, BitOutputStream bits, int audioChannels) throws IOException {
 //        writeList(bits, 8, header.codebooks(), this::writeCodebook);
@@ -14,39 +11,6 @@ import java.util.*;
 //        bits.write(1, 1);
 //    }
 //
-//    void writeCodebook(Codebook codebook, BitOutputStream bits) throws IOException {
-//        bits.write(24, Codebook.MAGIC);
-//        bits.write(16, codebook.dimensions());
-//        bits.write(24, codebook.codewordLengths().length);
-//
-//        bits.writeBool(codebook.ordered());
-//        if (codebook.ordered()) {
-//            writeCodebookOrdered(bits, codebook.codewordLengths());
-//        } else {
-//            bits.writeBool(codebook.sparse());
-//            for (int codewordLength : codebook.codewordLengths()) {
-//                boolean used = codewordLength != 0;
-//                if (codebook.sparse()) {
-//                    bits.writeBool(used);
-//                }
-//                if (used) {
-//                    bits.write(5, codewordLength - 1);
-//                }
-//            }
-//        }
-//
-//        bits.write(4, codebook.lookupType());
-//        if (codebook.lookupType() == 1 || codebook.lookupType() == 2) {
-//            bits.write(32, codebook.minimumValue());
-//            bits.write(32, codebook.deltaValue());
-//            bits.write(4, codebook.valueBits() - 1);
-//            bits.writeBool(codebook.sequenceP());
-//
-//            for (int multiplicand : codebook.multiplicands()) {
-//                bits.write(codebook.valueBits(), multiplicand);
-//            }
-//        }
-//    }
 //
 //    private void writeCodebookOrdered(BitOutputStream bits, int[] codewordLengths) throws IOException {
 //        int entries = codewordLengths.length;

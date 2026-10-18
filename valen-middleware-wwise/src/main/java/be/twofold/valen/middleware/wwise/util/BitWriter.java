@@ -1,17 +1,20 @@
-import java.io.*;
+package be.twofold.valen.middleware.wwise.util;
+
 import java.nio.*;
 import java.util.*;
 
-public final class BitWriter implements Closeable, Flushable {
-    private final OutputStream out;
-    private final boolean bigEndian;
+public final class BitWriter {
+    final boolean bigEndian;
 
     private long bitBuf;
     private int bitCount;
     private int bitsWritten;
 
-    public BitWriter(OutputStream out, ByteOrder order) {
-        this.out = Objects.requireNonNull(out);
+    private byte[] buffer;
+    private int bufferPos = 0;
+
+    public BitWriter(ByteOrder order) {
+        this.buffer = new byte[1024];
         this.bigEndian = Objects.requireNonNull(order) == ByteOrder.BIG_ENDIAN;
     }
 
@@ -19,14 +22,14 @@ public final class BitWriter implements Closeable, Flushable {
         return bitsWritten;
     }
 
-    public void write(int count, int value) throws IOException {
+    public void write(int count, int value) {
         if (count < 0 || count > 32) {
             throw new IllegalArgumentException("count must be between 0 and 32 inclusive");
         }
         write(count, (long) value);
     }
 
-    public void write(int count, long value) throws IOException {
+    public void write(int count, long value) {
         if (count < 0 || count > 57) {
             throw new IllegalArgumentException("count must be between 0 and 57 inclusive");
         }
@@ -35,17 +38,29 @@ public final class BitWriter implements Closeable, Flushable {
         advance(count);
     }
 
-    public void writeBool(boolean value) throws IOException {
+    public void writeBool(boolean value) {
         write(1, value ? 1 : 0);
     }
 
-    private void drain(int count) throws IOException {
+    public byte[] toByteArray() {
+        while (bitCount >= 8) {
+            writeByte();
+        }
+        if (bitCount > 0) {
+            writeByte();
+            bitCount = 0;
+        }
+        bitBuf = 0;
+        return Arrays.copyOf(buffer, bufferPos);
+    }
+
+    private void drain(int count) {
         while (bitCount + count > 64) {
             writeByte();
         }
     }
 
-    private void writeByte() throws IOException {
+    private void writeByte() {
         byte write;
         if (bigEndian) {
             write = (byte) (bitBuf >>> 56);
@@ -54,7 +69,11 @@ public final class BitWriter implements Closeable, Flushable {
             write = (byte) (bitBuf);
             bitBuf >>>= 8;
         }
-        out.write(write);
+
+        if (bufferPos >= buffer.length) {
+            buffer = Arrays.copyOf(buffer, buffer.length * 2);
+        }
+        buffer[bufferPos++] = write;
         bitCount -= 8;
     }
 
@@ -74,22 +93,4 @@ public final class BitWriter implements Closeable, Flushable {
         bitsWritten += count;
     }
 
-    @Override
-    public void flush() throws IOException {
-        while (bitCount >= 8) {
-            writeByte();
-        }
-        if (bitCount > 0) {
-            writeByte();
-            bitCount = 0;
-        }
-        bitBuf = 0;
-        out.flush();
-    }
-
-    @Override
-    public void close() throws IOException {
-        flush();
-        out.close();
-    }
 }

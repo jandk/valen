@@ -1,3 +1,4 @@
+import be.twofold.valen.middleware.wwise.util.*;
 import wtf.reversed.toolbox.collect.*;
 
 import java.io.*;
@@ -86,7 +87,7 @@ final class CodebookMerger {
         BitReader reader = new BitReader(bytes.toArray(), ByteOrder.LITTLE_ENDIAN);
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        BitWriter writer = new BitWriter(out, ByteOrder.LITTLE_ENDIAN);
+        BitWriter writer = new BitWriter(ByteOrder.LITTLE_ENDIAN);
 
         int dimensions = reader.read(4);
         int entries = reader.read(14);
