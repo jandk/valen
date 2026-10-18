@@ -43,11 +43,18 @@ public final class NativeAudioExporter implements Exporter<Audio> {
 
     @Override
     public void export(Audio value, Path path) throws IOException {
-        var converted = TARGETS.stream()
-            .flatMap(target -> AudioConverter.convert(value, target).stream())
-            .findFirst()
-            .orElseThrow(() -> new IOException("No conversion for " + value.codec()));
+        for (AudioCodec target : TARGETS) {
+            var converted = AudioConverter.convert(value, target);
+            if (converted.isPresent()) {
+                write(converted.get(), path);
+                return;
+            }
+        }
 
+        throw new IOException("No conversion for " + value.codec());
+    }
+
+    private static void write(Audio converted, Path path) throws IOException {
         String extension = switch (converted.codec()) {
             case OGG_OPUS -> "opus";
             case OGG_VORBIS -> "ogg";

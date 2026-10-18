@@ -1,6 +1,7 @@
 package be.twofold.valen.game.darkages;
 
 import be.twofold.valen.core.game.*;
+import be.twofold.valen.core.util.*;
 import be.twofold.valen.game.darkages.reader.resources.*;
 import wtf.reversed.toolbox.util.*;
 
@@ -12,7 +13,7 @@ public record DarkAgesAssetID(
     ResourcesVariation variation
 ) implements AssetID {
     private static final Comparator<DarkAgesAssetID> COMPARATOR = Comparator
-        .comparing(DarkAgesAssetID::name)
+        .comparing(DarkAgesAssetID::name, AlphanumericComparator.instance())
         .thenComparing(DarkAgesAssetID::type)
         .thenComparing(DarkAgesAssetID::variation);
 

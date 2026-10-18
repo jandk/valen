@@ -1,6 +1,7 @@
 package be.twofold.valen.game.greatcircle;
 
 import be.twofold.valen.core.game.*;
+import be.twofold.valen.core.util.*;
 import be.twofold.valen.game.greatcircle.reader.resources.*;
 import be.twofold.valen.game.greatcircle.resource.*;
 
@@ -12,7 +13,7 @@ public record GreatCircleAssetID(
     ResourcesVariation variation
 ) implements AssetID {
     private static final Comparator<GreatCircleAssetID> COMPARATOR = Comparator
-        .comparing(GreatCircleAssetID::name)
+        .comparing(GreatCircleAssetID::name, AlphanumericComparator.instance())
         .thenComparing(GreatCircleAssetID::type)
         .thenComparing(GreatCircleAssetID::variation);
 

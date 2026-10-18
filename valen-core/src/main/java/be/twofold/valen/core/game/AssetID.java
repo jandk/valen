@@ -1,5 +1,7 @@
 package be.twofold.valen.core.game;
 
+import be.twofold.valen.core.util.*;
+
 public interface AssetID extends Comparable<AssetID> {
 
     String fullName();
@@ -14,7 +16,8 @@ public interface AssetID extends Comparable<AssetID> {
 
     @Override
     default int compareTo(AssetID o) {
-        return fullName().compareTo(o.fullName());
+        return AlphanumericComparator.instance()
+            .compare(fullName(), o.fullName());
     }
 
 }

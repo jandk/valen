@@ -3,11 +3,12 @@ package be.twofold.valen.ui.component.main;
 import backbonefx.di.*;
 import be.twofold.valen.core.export.*;
 import be.twofold.valen.core.game.*;
+import be.twofold.valen.core.util.*;
 import be.twofold.valen.ui.common.settings.*;
 import be.twofold.valen.ui.component.*;
 import be.twofold.valen.ui.component.progress.*;
 import jakarta.inject.*;
-import javafx.application.*;
+import javafx.application.Platform;
 import javafx.concurrent.*;
 import javafx.scene.*;
 import javafx.stage.*;
@@ -17,7 +18,6 @@ import wtf.reversed.toolbox.util.*;
 import java.io.*;
 import java.nio.file.*;
 import java.util.*;
-import java.util.stream.*;
 
 final class ExportService extends Service<Void> {
     private static final Logger log = LoggerFactory.getLogger(ExportService.class);
@@ -60,7 +60,7 @@ final class ExportService extends Service<Void> {
     void export(AssetLoader loader, List<? extends Asset> assets) {
         FxUtils.runOnFxThread(() -> {
             this.loader = loader;
-            this.assets = assets;
+            this.assets = assets.stream().sorted().toList();
             restart();
         });
     }
@@ -82,7 +82,7 @@ final class ExportService extends Service<Void> {
     }
 
     private final class ExportTask extends Task<Void> {
-        private final List<AssetID> failedAssets = new ArrayList<>();
+        private final Map<String, List<ExportFailure>> failures = new LinkedHashMap<>();
 
         @Override
         protected Void call() {
@@ -112,11 +112,8 @@ final class ExportService extends Service<Void> {
                 Platform.runLater(stage::hide);
             }
 
-            if (!failedAssets.isEmpty()) {
-                String text = failedAssets.stream()
-                    .map(AssetID::fullName)
-                    .collect(Collectors.joining("\n"));
-                FxUtils.showExceptionDialog(new Exception("Failed exporting some assets"), text);
+            if (!failures.isEmpty()) {
+                ExportFailuresDialog.show(assets.size(), failures);
             }
             return null;
         }
@@ -141,10 +138,28 @@ final class ExportService extends Service<Void> {
                 Files.createDirectories(targetPath.getParent());
                 exporter.export(rawAsset, targetPath);
             } catch (Exception e) {
-                log.warn("Failed exporting asset", e);
-                failedAssets.add(asset.id());
+                var root = Throwables.rootCause(e);
+                var failed = failures.computeIfAbsent(failureKey(root), _ -> new ArrayList<>());
+                if (failed.isEmpty()) {
+                    log.warn("Failed exporting {}", asset.id().fullName(), e);
+                } else {
+                    log.debug("Failed exporting {}: {}", asset.id().fullName(), root.toString());
+                }
+                failed.add(new ExportFailure(asset.id(), root.getMessage()));
                 discardPartialExport(targetPath);
             }
+        }
+
+        private String failureKey(Throwable root) {
+            for (StackTraceElement frame : root.getStackTrace()) {
+                String className = frame.getClassName();
+                if (className.startsWith("be.twofold.") || className.startsWith("wtf.reversed.")) {
+                    return root.getClass().getSimpleName() + " at "
+                        + className.substring(className.lastIndexOf('.') + 1) + "." + frame.getMethodName()
+                        + ":" + frame.getLineNumber();
+                }
+            }
+            return root.getClass().getSimpleName();
         }
 
         // In case we fail, remove the file, so the next run writes it again

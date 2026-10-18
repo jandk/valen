@@ -1,6 +1,7 @@
 package be.twofold.valen.game.eternal;
 
 import be.twofold.valen.core.game.*;
+import be.twofold.valen.core.util.*;
 import be.twofold.valen.game.eternal.reader.resources.*;
 import be.twofold.valen.game.eternal.resource.*;
 import wtf.reversed.toolbox.util.*;
@@ -13,7 +14,7 @@ public record EternalAssetID(
     ResourcesVariation variation
 ) implements AssetID {
     private static final Comparator<EternalAssetID> COMPARATOR = Comparator
-        .comparing(EternalAssetID::name)
+        .comparing(EternalAssetID::name, AlphanumericComparator.instance())
         .thenComparing(EternalAssetID::type)
         .thenComparing(EternalAssetID::variation);
 
