@@ -44,12 +44,8 @@ public abstract class GltfExporter<T> implements Exporter<T> {
     }
 
     private static GltfWriter createSplitWriter(Path path) throws IOException {
-        var outputDirectory = path.getParent();
-        var fileName = path.getFileName().toString();
-        var fileNameWithoutExtension = Filenames.removeExtension(fileName);
-
-        var binPath = outputDirectory.resolve(fileNameWithoutExtension + ".bin");
-        var imagePath = outputDirectory.resolve("_images");
+        var binPath = PathUtils.replaceExtension(path, "bin");
+        var imagePath = path.getParent().resolve("_images");
         if (!Files.exists(imagePath)) {
             Files.createDirectories(imagePath);
         }

@@ -189,7 +189,7 @@ public final class GltfWriter implements Closeable, GltfContext {
             var outPath = imagePath.resolve(filename + extension);
             Files.write(outPath, buffer.array());
             return addImage(builder
-                .uri(URI.create(gltfPath.getParent().relativize(outPath).toString().replace('\\', '/')))
+                .uri(relativeUri(outPath))
                 .build());
         } else {
             var bufferViewID = createBufferView(buffer, null);
@@ -229,13 +229,9 @@ public final class GltfWriter implements Closeable, GltfContext {
     // region Finishing
 
     private void finish() throws IOException {
-        var relativeBinPath = binPath != null
-            ? gltfPath.getParent().relativize(binPath)
-            : null;
-
         var buffer = ImmutableBuffer.builder()
             .byteLength(buffersLength)
-            .uri(Optional.ofNullable(relativeBinPath).map(path -> URI.create(path.toString().replace('\\', '/'))))
+            .uri(Optional.ofNullable(binPath).map(this::relativeUri))
             .build();
 
         buffers.clear();
@@ -363,6 +359,15 @@ public final class GltfWriter implements Closeable, GltfContext {
         extensionsUsed.add(extension.getName());
         if (extension.isRequired()) {
             extensionsRequired.add(extension.getName());
+        }
+    }
+
+    private URI relativeUri(Path target) {
+        var relative = gltfPath.getParent().relativize(target).toString().replace('\\', '/');
+        try {
+            return new URI(null, null, relative, null);
+        } catch (URISyntaxException e) {
+            throw new IllegalArgumentException(e);
         }
     }
 
