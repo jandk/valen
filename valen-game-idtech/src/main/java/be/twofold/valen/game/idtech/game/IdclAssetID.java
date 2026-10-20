@@ -11,6 +11,7 @@ public abstract class IdclAssetID<
     T extends Comparable<T> & ValueEnum<String>,
     V extends Enum<V> & ValueEnum<Integer>
     > implements AssetID {
+    private static final HashFunction HASH = HashFunction.farmHashFingerprint64();
     private static final Comparator<IdclAssetID<?, ?>> COMPARATOR = Comparator
         .<IdclAssetID<?, ?>, String>comparing(IdclAssetID::name, AlphanumericComparator.instance())
         .thenComparing(IdclAssetID::type)
@@ -39,13 +40,12 @@ public abstract class IdclAssetID<
     }
 
     public final long resourceId() {
-        return resourceId(type.toString(), name);
+        return resourceId(type.value(), name);
     }
 
     private long resourceId(String type, String name) {
-        var hash = HashFunction.farmHashFingerprint64();
-        long lo = hash.hash(type).asLong();
-        long hi = hash.hash(name).asLong();
+        long lo = HASH.hash(type).asLong();
+        long hi = HASH.hash(name).asLong();
         return fingerprint(lo, hi);
     }
 
@@ -58,12 +58,20 @@ public abstract class IdclAssetID<
         b *= kMul;
         b ^= (b >>> 41);
         b *= kMul;
-        return b;
+        return b == 0 ? 1 : b;
     }
 
     @Override
     public final String fullName() {
         return name;
+    }
+
+    @Override
+    public String displayName() {
+        int dollarIndex = name.indexOf('$');
+        int end = dollarIndex < 0 ? name.length() : dollarIndex;
+        int slashIndex = name.lastIndexOf('/', end - 1);
+        return name.substring(slashIndex + 1);
     }
 
     @Override
