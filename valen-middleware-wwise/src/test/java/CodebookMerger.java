@@ -156,7 +156,6 @@ final class CodebookMerger {
             throw new IOException("Packed codebook used " + used + " of " + bytes.length() + " bytes");
         }
 
-        writer.flush();
         return new Bits(
             out.toByteArray(),
             writer.bitsWritten()

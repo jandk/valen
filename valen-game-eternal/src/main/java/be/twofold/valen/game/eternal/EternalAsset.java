@@ -1,58 +1,23 @@
 package be.twofold.valen.game.eternal;
 
 import be.twofold.valen.core.game.*;
-import be.twofold.valen.game.eternal.reader.resources.*;
-import be.twofold.valen.game.eternal.resource.*;
+import be.twofold.valen.game.idtech.game.*;
 
-import java.util.*;
+public final class EternalAsset extends IdclAsset<EternalAssetID> {
+    EternalAsset(EternalAssetID id, Location location, long hash, int version) {
+        super(id, location, hash, version);
+    }
 
-public record EternalAsset(
-    EternalAssetID id,
-    Location location,
-    long hash,
-    long checksum
-) implements Asset {
     @Override
     public AssetType type() {
-        if (id.path().startsWith(AssetPaths.MATERIAL2)) {
+        if (id().path().startsWith(AssetPaths.MATERIAL2)) {
             return AssetType.MATERIAL;
         }
-        return switch (id.type()) {
+        return switch (id().type()) {
             case Anim -> AssetType.ANIMATION;
             case BaseModel, Model -> AssetType.MODEL;
             case Image -> AssetType.TEXTURE;
             default -> AssetType.RAW;
         };
-    }
-
-    @Override
-    public Map<String, Object> properties() {
-        var properties = new HashMap<String, Object>();
-        properties.put("hash", hash);
-        properties.put("Type", id.type().toString());
-        if (id.variation() != ResourcesVariation.RES_VAR_NONE) {
-            properties.put("Variation", id.variation());
-        }
-        return properties;
-    }
-
-    @Override
-    public String exportName() {
-        if (id.type() == ResourceType.Image) {
-            var hashString = HexFormat.of().toHexDigits(hash);
-            return id.path().baseName() + "@" + hashString;
-        }
-        return id.path().baseName();
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        return obj instanceof EternalAsset other
-            && id.equals(other.id);
-    }
-
-    @Override
-    public int hashCode() {
-        return id.hashCode();
     }
 }

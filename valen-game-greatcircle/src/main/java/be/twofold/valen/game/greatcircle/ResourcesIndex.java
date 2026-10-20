@@ -70,7 +70,6 @@ record ResourcesIndex(
             resourceKey,
             finalLocation,
             entry.defaultHash(),
-            entry.dataCheckSum(),
             entry.version()
         );
     }
