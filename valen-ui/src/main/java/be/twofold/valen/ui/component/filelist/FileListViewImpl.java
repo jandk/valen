@@ -12,9 +12,11 @@ import javafx.geometry.*;
 import javafx.scene.*;
 import javafx.scene.Node;
 import javafx.scene.control.*;
+import javafx.scene.input.*;
 import javafx.scene.layout.*;
 
 import java.util.*;
+import java.util.function.*;
 import java.util.stream.*;
 
 @Singleton
@@ -102,6 +104,19 @@ public final class FileListViewImpl extends AbstractView<FileListView.Listener> 
         }
     }
 
+    private void copySelected(Function<Asset, String> mapper) {
+        var text = getSelectedAssets().stream()
+            .map(mapper)
+            .collect(Collectors.joining("\n"));
+        if (text.isEmpty()) {
+            return;
+        }
+
+        var content = new ClipboardContent();
+        content.putString(text);
+        Clipboard.getSystemClipboard().setContent(content);
+    }
+
     private TreeItem<PathCombo> convert(PathNode<PathCombo> node) {
         if (node.children().size() == 1 && !node.hasFiles()) {
             var child = convert(node.children().values().iterator().next());
@@ -162,6 +177,13 @@ public final class FileListViewImpl extends AbstractView<FileListView.Listener> 
     private void setupTableView() {
         tableView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         tableView.getSelectionModel().getSelectedItems().addListener((ListChangeListener<Asset>) c -> selectAssets(c.getList()));
+
+        var copyFilename = new MenuItem("Copy filename");
+        copyFilename.setOnAction(_ -> copySelected(asset -> asset.id().path().fileName()));
+        var copyFullPath = new MenuItem("Copy full path");
+        copyFullPath.setOnAction(_ -> copySelected(asset -> asset.id().fullName()));
+        var rowContextMenu = new ContextMenu(copyFilename, copyFullPath);
+
         tableView.setRowFactory(_ -> {
             var row = new TableRow<Asset>();
             row.setOnMouseClicked(event -> {
@@ -169,6 +191,7 @@ public final class FileListViewImpl extends AbstractView<FileListView.Listener> 
                     getListener().onAssetSelected(row.getItem(), true);
                 }
             });
+            row.emptyProperty().addListener((_, _, empty) -> row.setContextMenu(empty ? null : rowContextMenu));
             return row;
         });
 
