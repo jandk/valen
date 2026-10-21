@@ -11,13 +11,14 @@ public record Event(
     OptionalDouble durationMax,
     OptionalDouble maxAttenuation
 ) {
-    public static Event read(XMLStreamReader reader) {
+    public static Event read(XMLStreamReader reader) throws XMLStreamException {
         var id = Integer.parseUnsignedInt(reader.getAttributeValue(null, "Id"));
         var name = reader.getAttributeValue(null, "Name");
         var durationType = DurationType.fromString(reader.getAttributeValue(null, "DurationType"));
         var durationMin = readDouble(reader, "DurationMin");
         var durationMax = readDouble(reader, "DurationMax");
         var maxAttenuation = readDouble(reader, "MaxAttenuation");
+        InfoXmlReader.skipElement(reader);
 
         return new Event(
             id,
