@@ -23,6 +23,7 @@ final class MediaNamesExporter {
         for (var file : info.streamedFiles()) {
             var shortName = file.shortName()
                 .replace('\\', '/')
+                .replaceFirst("^music/", "")
                 .replaceFirst("\\.wav$", ".wem");
             var existing = files.putIfAbsent(file.id(), shortName);
             if (existing != null && !existing.equals(shortName)) {

@@ -5,11 +5,13 @@ import be.twofold.valen.game.eternal.reader.soundcontainer.*;
 import be.twofold.valen.game.eternal.reader.soundmetadata.*;
 import be.twofold.valen.middleware.wwise.shared.*;
 import be.twofold.valen.middleware.wwise.wem.*;
+import com.google.gson.*;
 import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 import java.nio.file.*;
 import java.util.*;
+import java.util.stream.*;
 
 final class SoundbankIndex {
     private static final List<AssetReader<?, ?>> READERS = List.of(
@@ -51,6 +53,7 @@ final class SoundbankIndex {
         }
 
         var names = buildNames(metadata, sounds);
+        names.putAll(loadMediaNames()); // Just override
 
         var assets = new ArrayList<Asset>();
         for (var sound : sounds.values()) {
@@ -60,6 +63,17 @@ final class SoundbankIndex {
         }
 
         return new AssetLoader(Archive.of(assets), new StorageManager(sources, Set.of(), decompressors), READERS);
+    }
+
+    @SuppressWarnings("DataFlowIssue")
+    private static Map<MediaId, String> loadMediaNames() throws IOException {
+        try (var reader = new InputStreamReader(SoundbankIndex.class.getResourceAsStream("/MediaNames.json"))) {
+            var json = JsonParser.parseReader(reader).getAsJsonObject();
+            return json.entrySet().stream().collect(Collectors.toUnmodifiableMap(
+                e -> MediaId.parse(e.getKey()),
+                e -> e.getValue().getAsString()
+            ));
+        }
     }
 
     private static Asset mapSoundEntry(ContainerSound sound, String name) {
