@@ -3,6 +3,7 @@ package be.twofold.valen.game.eternal;
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.game.eternal.reader.soundcontainer.*;
 import be.twofold.valen.game.eternal.reader.soundmetadata.*;
+import be.twofold.valen.game.idtech.reader.soundcontainer.*;
 import be.twofold.valen.middleware.wwise.shared.*;
 import be.twofold.valen.middleware.wwise.wem.*;
 import com.google.gson.*;
@@ -46,7 +47,10 @@ final class SoundbankIndex {
                     var entry = soundContainer.entries().get(j);
                     var isEnabled = ((containerFile.mask().get(j / 32) >>> (j % 32)) & 1) != 0;
                     if (isEnabled && entry.sizeOnDisk() != 0) {
-                        sounds.putIfAbsent(entry.mediaId(), new ContainerSound(containerName, filePath, soundContainer, entry));
+                        sounds.putIfAbsent(
+                            MediaId.of(entry.mediaId()),
+                            new ContainerSound(containerName, filePath, soundContainer, entry)
+                        );
                     }
                 }
             }
@@ -57,8 +61,8 @@ final class SoundbankIndex {
 
         var assets = new ArrayList<Asset>();
         for (var sound : sounds.values()) {
-            var mediaId = sound.entry().mediaId();
-            var name = names.getOrDefault(mediaId, mediaId.toString() + ".wem");
+            var mediaId = MediaId.of(sound.entry().mediaId());
+            var name = names.getOrDefault(mediaId, mediaId + ".wem");
             assets.add(mapSoundEntry(sound, sound.containerName().withoutExtension().resolve(name).toString()));
         }
 
@@ -78,7 +82,7 @@ final class SoundbankIndex {
 
     private static Asset mapSoundEntry(ContainerSound sound, String name) {
         var entry = sound.entry();
-        var assetId = new WwiseAssetId(entry.mediaId(), name);
+        var assetId = new WwiseAssetId(MediaId.of(entry.mediaId()), name);
         var location = new Location.FileSlice(sound.path(), entry.offset(), entry.sizeOnDisk());
         return switch (entry.type()) {
             case WEM -> new WwiseAsset(assetId, location);

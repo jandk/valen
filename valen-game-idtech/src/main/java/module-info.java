@@ -11,4 +11,6 @@ module valen.game.idtech {
     exports be.twofold.valen.game.idtech.reader.decl.renderparm;
     exports be.twofold.valen.game.idtech.reader.decl;
     exports be.twofold.valen.game.idtech.reader.image;
+    exports be.twofold.valen.game.idtech.reader.soundcontainer;
+    exports be.twofold.valen.game.idtech.reader.soundmetadata;
 }

@@ -1,13 +1,12 @@
-package be.twofold.valen.game.eternal.reader.soundcontainer;
+package be.twofold.valen.game.idtech.reader.soundcontainer;
 
-import be.twofold.valen.middleware.wwise.shared.*;
 import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 
 public record SoundEntry(
     long hash,
-    MediaId mediaId,
+    int mediaId,
     int sizeOnDisk,
     int offset,
     int size,
@@ -17,7 +16,7 @@ public record SoundEntry(
 ) {
     public static SoundEntry read(BinarySource source) throws IOException {
         var hash = source.readLong();
-        var mediaId = MediaId.of(source.readInt());
+        var mediaId = source.readInt();
         var sizeOnDisk = source.readInt();
         var offset = source.readInt();
         var size = source.readInt();

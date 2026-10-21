@@ -1,4 +1,4 @@
-package be.twofold.valen.game.eternal.reader.soundmetadata;
+package be.twofold.valen.game.idtech.reader.soundmetadata;
 
 import wtf.reversed.toolbox.collect.*;
 import wtf.reversed.toolbox.io.*;
