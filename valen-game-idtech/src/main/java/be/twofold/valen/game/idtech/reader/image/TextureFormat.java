@@ -1,4 +1,4 @@
-package be.twofold.valen.game.idtech.defines;
+package be.twofold.valen.game.idtech.reader.image;
 
 public enum TextureFormat {
     FMT_NONE,

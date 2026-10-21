@@ -6,7 +6,8 @@ import be.twofold.valen.core.texture.shader.node.*;
 import be.twofold.valen.core.util.*;
 import be.twofold.valen.game.greatcircle.*;
 import be.twofold.valen.game.greatcircle.resource.*;
-import be.twofold.valen.game.idtech.defines.*;
+import be.twofold.valen.game.idtech.reader.image.*;
+import be.twofold.valen.game.idtech.reader.image.TextureFormat;
 import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
@@ -126,7 +127,7 @@ public final class ImageReader implements AssetReader.Binary<Texture, GreatCircl
         return List.copyOf(surfaces);
     }
 
-    private be.twofold.valen.core.texture.TextureFormat toImageFormat(be.twofold.valen.game.idtech.defines.TextureFormat format) {
+    private be.twofold.valen.core.texture.TextureFormat toImageFormat(TextureFormat format) {
         // I might not be sure about all these mappings, but it's a start
         return switch (format) {
             case FMT_BC1, FMT_BC1_ZERO_ALPHA -> be.twofold.valen.core.texture.TextureFormat.BC1_UNORM;

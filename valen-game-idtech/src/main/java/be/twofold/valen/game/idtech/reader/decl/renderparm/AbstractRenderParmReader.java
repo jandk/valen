@@ -1,8 +1,8 @@
-package be.twofold.valen.game.idtech.renderparm;
+package be.twofold.valen.game.idtech.reader.decl.renderparm;
 
 import be.twofold.valen.core.game.*;
-import be.twofold.valen.game.idtech.decl.parser.*;
-import be.twofold.valen.game.idtech.defines.*;
+import be.twofold.valen.game.idtech.reader.decl.parser.*;
+import be.twofold.valen.game.idtech.reader.image.*;
 import wtf.reversed.toolbox.io.*;
 import wtf.reversed.toolbox.math.*;
 

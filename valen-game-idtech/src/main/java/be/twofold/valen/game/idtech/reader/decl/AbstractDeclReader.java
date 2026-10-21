@@ -1,7 +1,7 @@
-package be.twofold.valen.game.idtech.decl;
+package be.twofold.valen.game.idtech.reader.decl;
 
 import be.twofold.valen.core.game.*;
-import be.twofold.valen.game.idtech.decl.parser.*;
+import be.twofold.valen.game.idtech.reader.decl.parser.*;
 import com.google.gson.*;
 import org.slf4j.*;
 import wtf.reversed.toolbox.collect.*;

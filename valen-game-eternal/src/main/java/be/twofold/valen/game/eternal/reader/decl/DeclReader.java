@@ -3,7 +3,7 @@ package be.twofold.valen.game.eternal.reader.decl;
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.game.eternal.*;
 import be.twofold.valen.game.eternal.resource.*;
-import be.twofold.valen.game.idtech.decl.*;
+import be.twofold.valen.game.idtech.reader.decl.*;
 import wtf.reversed.toolbox.util.*;
 
 import java.util.*;

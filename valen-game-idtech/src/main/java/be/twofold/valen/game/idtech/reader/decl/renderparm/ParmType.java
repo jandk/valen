@@ -1,4 +1,4 @@
-package be.twofold.valen.game.idtech.defines;
+package be.twofold.valen.game.idtech.reader.decl.renderparm;
 
 public enum ParmType {
     PT_F32_VEC4,

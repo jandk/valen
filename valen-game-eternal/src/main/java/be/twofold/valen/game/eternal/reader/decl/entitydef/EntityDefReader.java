@@ -3,7 +3,7 @@ package be.twofold.valen.game.eternal.reader.decl.entitydef;
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.game.eternal.*;
 import be.twofold.valen.game.eternal.resource.*;
-import be.twofold.valen.game.idtech.decl.parser.*;
+import be.twofold.valen.game.idtech.reader.decl.parser.*;
 import com.google.gson.*;
 import wtf.reversed.toolbox.io.*;
 

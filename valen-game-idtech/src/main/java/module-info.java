@@ -3,12 +3,12 @@ module valen.game.idtech {
     requires org.slf4j;
     requires valen.core;
 
-    exports be.twofold.valen.game.idtech.decl.parser;
-    exports be.twofold.valen.game.idtech.decl;
-    exports be.twofold.valen.game.idtech.defines;
     exports be.twofold.valen.game.idtech.game;
     exports be.twofold.valen.game.idtech.geometry;
     exports be.twofold.valen.game.idtech.lexer;
-    exports be.twofold.valen.game.idtech.material;
-    exports be.twofold.valen.game.idtech.renderparm;
+    exports be.twofold.valen.game.idtech.reader.decl.material2;
+    exports be.twofold.valen.game.idtech.reader.decl.parser;
+    exports be.twofold.valen.game.idtech.reader.decl.renderparm;
+    exports be.twofold.valen.game.idtech.reader.decl;
+    exports be.twofold.valen.game.idtech.reader.image;
 }

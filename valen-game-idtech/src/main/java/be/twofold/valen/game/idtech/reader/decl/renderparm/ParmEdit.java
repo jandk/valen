@@ -1,4 +1,4 @@
-package be.twofold.valen.game.idtech.renderparm;
+package be.twofold.valen.game.idtech.reader.decl.renderparm;
 
 public sealed interface ParmEdit {
     record NoEdit() implements ParmEdit {

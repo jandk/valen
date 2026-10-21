@@ -1,6 +1,6 @@
 package be.twofold.valen.game.darkages.reader.image;
 
-import be.twofold.valen.game.idtech.defines.*;
+import be.twofold.valen.game.idtech.reader.image.*;
 import wtf.reversed.toolbox.io.*;
 
 import java.io.*;

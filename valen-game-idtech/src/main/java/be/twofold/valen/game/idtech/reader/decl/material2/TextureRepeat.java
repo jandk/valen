@@ -1,4 +1,4 @@
-package be.twofold.valen.game.idtech.defines;
+package be.twofold.valen.game.idtech.reader.decl.material2;
 
 import wtf.reversed.toolbox.util.*;
 

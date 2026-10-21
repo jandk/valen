@@ -1,4 +1,4 @@
-package be.twofold.valen.game.idtech.decl.parser;
+package be.twofold.valen.game.idtech.reader.decl.parser;
 
 public enum DeclTokenType {
     // Punctuation

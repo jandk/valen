@@ -1,6 +1,4 @@
-package be.twofold.valen.game.idtech.renderparm;
-
-import be.twofold.valen.game.idtech.defines.*;
+package be.twofold.valen.game.idtech.reader.decl.renderparm;
 
 import java.util.*;
 

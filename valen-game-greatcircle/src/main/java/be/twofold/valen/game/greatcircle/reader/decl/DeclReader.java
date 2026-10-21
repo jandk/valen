@@ -2,7 +2,7 @@ package be.twofold.valen.game.greatcircle.reader.decl;
 
 import be.twofold.valen.game.greatcircle.*;
 import be.twofold.valen.game.greatcircle.resource.*;
-import be.twofold.valen.game.idtech.decl.*;
+import be.twofold.valen.game.idtech.reader.decl.*;
 
 import java.util.*;
 

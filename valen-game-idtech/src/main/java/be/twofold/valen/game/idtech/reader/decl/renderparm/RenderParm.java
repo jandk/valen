@@ -1,6 +1,6 @@
-package be.twofold.valen.game.idtech.renderparm;
+package be.twofold.valen.game.idtech.reader.decl.renderparm;
 
-import be.twofold.valen.game.idtech.defines.*;
+import be.twofold.valen.game.idtech.reader.image.*;
 
 public final class RenderParm {
 

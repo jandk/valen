@@ -1,6 +1,6 @@
-package be.twofold.valen.game.idtech.material;
+package be.twofold.valen.game.idtech.reader.decl.material2;
 
-import be.twofold.valen.game.idtech.defines.*;
+import be.twofold.valen.game.idtech.reader.image.*;
 
 public record MaterialImageOpts(
     TextureType type,

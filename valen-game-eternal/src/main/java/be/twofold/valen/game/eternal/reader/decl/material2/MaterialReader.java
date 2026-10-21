@@ -3,7 +3,7 @@ package be.twofold.valen.game.eternal.reader.decl.material2;
 import be.twofold.valen.game.eternal.*;
 import be.twofold.valen.game.eternal.reader.decl.*;
 import be.twofold.valen.game.eternal.resource.*;
-import be.twofold.valen.game.idtech.material.*;
+import be.twofold.valen.game.idtech.reader.decl.material2.*;
 
 public final class MaterialReader extends AbstractMaterialReader<EternalAssetID, EternalAsset> {
     public MaterialReader(DeclReader declReader) {

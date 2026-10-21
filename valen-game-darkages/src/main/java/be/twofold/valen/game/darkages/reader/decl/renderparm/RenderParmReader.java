@@ -3,7 +3,7 @@ package be.twofold.valen.game.darkages.reader.decl.renderparm;
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.game.darkages.*;
 import be.twofold.valen.game.darkages.reader.resources.*;
-import be.twofold.valen.game.idtech.renderparm.*;
+import be.twofold.valen.game.idtech.reader.decl.renderparm.*;
 import wtf.reversed.toolbox.io.*;
 
 import java.io.*;

@@ -1,13 +1,13 @@
-package be.twofold.valen.game.idtech.material;
+package be.twofold.valen.game.idtech.reader.decl.material2;
 
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.material.*;
 import be.twofold.valen.core.texture.*;
 import be.twofold.valen.core.util.*;
-import be.twofold.valen.game.idtech.decl.*;
-import be.twofold.valen.game.idtech.defines.*;
-import be.twofold.valen.game.idtech.defines.TextureFormat;
-import be.twofold.valen.game.idtech.renderparm.*;
+import be.twofold.valen.game.idtech.reader.decl.*;
+import be.twofold.valen.game.idtech.reader.decl.renderparm.*;
+import be.twofold.valen.game.idtech.reader.image.*;
+import be.twofold.valen.game.idtech.reader.image.TextureFormat;
 import com.google.gson.*;
 import org.slf4j.*;
 import wtf.reversed.toolbox.io.*;

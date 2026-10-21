@@ -1,4 +1,4 @@
-package be.twofold.valen.game.idtech.decl.parser;
+package be.twofold.valen.game.idtech.reader.decl.parser;
 
 import be.twofold.valen.core.util.*;
 import wtf.reversed.toolbox.util.*;
