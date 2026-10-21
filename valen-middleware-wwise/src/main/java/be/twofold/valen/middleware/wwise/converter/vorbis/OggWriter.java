@@ -8,7 +8,7 @@ import java.io.*;
 import java.util.*;
 import java.util.concurrent.*;
 
-final class OggWriter {
+public final class OggWriter {
     private static final CRCAlgorithm CRC_ALGORITHM = new CRCAlgorithm(32, 0x04C11DB7, 0, false, false, 0);
     private static final HashFunction CRC = HashFunction.crc(CRC_ALGORITHM);
 
@@ -23,7 +23,7 @@ final class OggWriter {
     private int pendingBytes = 0;
     private int pendingSegments = 0;
 
-    OggWriter(OutputStream out) {
+    public OggWriter(OutputStream out) {
         this.out = Check.nonNull(out, "out");
     }
 

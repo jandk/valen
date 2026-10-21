@@ -12,17 +12,16 @@ import be.twofold.valen.game.darkages.reader.image.*;
 import be.twofold.valen.game.darkages.reader.mask.*;
 import be.twofold.valen.game.darkages.reader.model.*;
 import be.twofold.valen.game.darkages.reader.packagemapspec.*;
-import be.twofold.valen.game.darkages.reader.resources.*;
 import be.twofold.valen.game.darkages.reader.skeleton.*;
 import be.twofold.valen.game.darkages.reader.strandshair.*;
 import be.twofold.valen.game.darkages.reader.vegetation.*;
 import wtf.reversed.toolbox.collect.*;
-import wtf.reversed.toolbox.hash.*;
 import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 import java.nio.file.*;
 import java.util.*;
+import java.util.stream.*;
 
 public final class DarkAgesGame implements Game {
     private static final DeclReader DECL_READER = new DeclReader();
@@ -40,6 +39,9 @@ public final class DarkAgesGame implements Game {
         new StrandsHairReader(),
         new VegetationReader(true)
     );
+    private static final String SOUNDBANK_PREFIX = "sound/soundbanks/";
+    private static final String SOUNDBANK1_NAME = SOUNDBANK_PREFIX + "pc";
+    private static final String SOUNDBANK2_NAME = SOUNDBANK_PREFIX + "hhpc";
 
     private final Path base;
     private final PackageMapSpec spec;
@@ -75,13 +77,24 @@ public final class DarkAgesGame implements Game {
 
     @Override
     public List<String> archiveNames() {
-        return spec.maps().stream()
+        var names = spec.maps().stream()
             .filter(map -> spec.mapFiles().get(map).stream()
                 .anyMatch(file -> file.endsWith(".resources")))
-            .toList();
+            .collect(Collectors.toList());
+        names.add(SOUNDBANK1_NAME);
+        names.add(SOUNDBANK2_NAME);
+        return names;
     }
 
     public AssetLoader open(String name) throws IOException {
+        if (!name.startsWith(SOUNDBANK_PREFIX)) {
+            return openArchive(name);
+        } else {
+            return openSoundbank(name);
+        }
+    }
+
+    private AssetLoader openArchive(String name) throws IOException {
         var loadedResources = ResourcesIndex.build(filterResources(spec, name), masks);
 
         var archive = Archive.layered(
@@ -101,6 +114,11 @@ public final class DarkAgesGame implements Game {
         );
 
         return new AssetLoader(archive, storageManager, List.copyOf(ASSET_READERS));
+    }
+
+    private AssetLoader openSoundbank(String name) throws IOException {
+        var path = base.resolve(name);
+        return SoundbankIndex.build(path, decompressors);
     }
 
     private StreamDbIndex loadStreamDbIndex(Path base, PackageMapSpec spec) throws IOException {

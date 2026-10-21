@@ -11,5 +11,7 @@ module valen.middleware.wwise {
 
     provides be.twofold.valen.core.audio.AudioConverter with
         be.twofold.valen.middleware.wwise.converter.WwiseImaConverter,
+        be.twofold.valen.middleware.wwise.converter.WwiseOpusConverter,
+        be.twofold.valen.middleware.wwise.converter.WwisePtAdpcmConverter,
         be.twofold.valen.middleware.wwise.converter.WwiseVorbisConverter;
 }

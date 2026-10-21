@@ -6,6 +6,7 @@ import wtf.reversed.toolbox.util.*;
 import java.io.*;
 
 public enum SoundEntryType implements ValueEnum<Short> {
+    NONE((short) 0),
     OPUS((short) 2),
     WEM((short) 3),
     ;

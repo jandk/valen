@@ -1,8 +1,9 @@
-package be.twofold.valen.middleware.wwise.converter.vorbis;
+package be.twofold.valen.middleware.wwise.converter;
 
 import be.twofold.valen.core.audio.*;
 import be.twofold.valen.core.util.*;
 import be.twofold.valen.middleware.wwise.codebook.*;
+import be.twofold.valen.middleware.wwise.converter.vorbis.*;
 import be.twofold.valen.middleware.wwise.util.*;
 import be.twofold.valen.middleware.wwise.wem.*;
 import wtf.reversed.toolbox.collect.*;
@@ -13,7 +14,7 @@ import java.nio.*;
 import java.nio.charset.*;
 import java.util.*;
 
-public final class VorbisConverter {
+final class VorbisConverter {
     private static final byte[] MAGIC = {'v', 'o', 'r', 'b', 'i', 's'};
 
     private static final ThrowingSupplier<List<Codebook>, IOException> LIBRARY = ThrowingSupplier.lazy(() -> {
@@ -38,7 +39,7 @@ public final class VorbisConverter {
     private int modeBits;
     private boolean previousBlockFlag;
 
-    public VorbisConverter(Audio audio) throws IOException {
+    VorbisConverter(Audio audio) throws IOException {
         this.source = BinarySource.wrap(audio.data());
         this.wem = Wem.read(source);
         this.vorbisHeader = (AkVorbisHeader) wem.format().codecHeader().orElseThrow();
@@ -46,7 +47,7 @@ public final class VorbisConverter {
         this.sampleRate = audio.sampleRate();
     }
 
-    public Bytes convert() throws IOException {
+    Bytes convert() throws IOException {
         oggWriter.addPacket(rebuildIdentPacket(), 0);
         oggWriter.flushPage();
 
@@ -136,9 +137,9 @@ public final class VorbisConverter {
         BitWriter writer = new BitWriter(ByteOrder.LITTLE_ENDIAN);
         writeHeader(writer, 3);
 
-        writeString(writer, "Exported by Valen");
+        writeString(writer, "valen " + Valen.version());
         writer.write(32, 1);
-        writeString(writer, "COMMENT=Exported by Valen");
+        writeString(writer, "COMMENT=Exported by Valen " + Valen.version());
         writer.writeBool(true);
 
         return Bytes.wrap(writer.toByteArray());

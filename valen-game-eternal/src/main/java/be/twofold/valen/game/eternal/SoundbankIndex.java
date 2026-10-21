@@ -42,7 +42,7 @@ final class SoundbankIndex {
                 var source = BinarySource.open(filePath);
                 sources.put(filePath, source);
 
-                var soundContainer = SoundContainer.read(source);
+                var soundContainer = SoundContainer.read(source, SoundFormat.ETERNAL);
                 for (var j = 0; j < soundContainer.entries().size(); j++) {
                     var entry = soundContainer.entries().get(j);
                     var isEnabled = ((containerFile.mask().get(j / 32) >>> (j % 32)) & 1) != 0;
@@ -62,7 +62,7 @@ final class SoundbankIndex {
         var assets = new ArrayList<Asset>();
         for (var sound : sounds.values()) {
             var mediaId = MediaId.of(sound.entry().mediaId());
-            var name = names.getOrDefault(mediaId, mediaId + ".wem");
+            var name = names.getOrDefault(mediaId, mediaId.toString()) + ".wem";
             assets.add(mapSoundEntry(sound, sound.containerName().withoutExtension().resolve(name).toString()));
         }
 
@@ -83,13 +83,14 @@ final class SoundbankIndex {
     private static Asset mapSoundEntry(ContainerSound sound, String name) {
         var entry = sound.entry();
         var assetId = new WwiseAssetId(MediaId.of(entry.mediaId()), name);
-        var location = new Location.FileSlice(sound.path(), entry.offset(), entry.sizeOnDisk());
+        var location = new Location.FileSlice(sound.path(), Integer.toUnsignedLong(entry.offset()), entry.sizeOnDisk());
         return switch (entry.type()) {
             case WEM -> new WwiseAsset(assetId, location);
             case OPUS -> {
                 var header = sound.soundContainer().headers().slice(entry.headerOffset(), entry.headerSize());
                 yield new SoundAsset(assetId, location, header);
             }
+            default -> throw new UnsupportedOperationException("Unsupported sound type: " + entry.type());
         };
     }
 

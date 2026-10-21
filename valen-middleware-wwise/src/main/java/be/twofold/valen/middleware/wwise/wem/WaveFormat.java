@@ -18,8 +18,6 @@ public record WaveFormat(
     Optional<CodecHeader> codecHeader
 ) {
     public static WaveFormat read(BinarySource source, int size) throws IOException {
-        long start = source.position();
-
         CodecId codec = CodecId.read(source);
         short channels = source.readShort();
         int samplesPerSec = source.readInt();
@@ -35,6 +33,8 @@ public record WaveFormat(
             codecHeader = AkVorbisHeader.read(source);
         } else if (codec == CodecId.OPUS && size >= 36) {
             codecHeader = AkOpusHeader.read(source);
+        } else if (codec == CodecId.WEM_OPUS && size >= 36) {
+            codecHeader = AkOpusWemHeader.read(source);
         } else {
             codecHeader = null;
         }

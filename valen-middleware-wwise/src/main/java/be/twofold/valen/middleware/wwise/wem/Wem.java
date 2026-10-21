@@ -83,9 +83,10 @@ public record Wem(
         return switch (format.codec()) {
             case PCM, PCM_EX -> AudioCodec.PCM_S16_LE;
             case IMA_ADPCM -> AudioCodec.WWISE_IMA_ADPCM;
+            case PT_ADPCM -> AudioCodec.WWISE_PTADPCM;
             case VORBIS -> AudioCodec.WWISE_VORBIS;
-            case OPUS, WEM_OPUS, PT_ADPCM ->
-                throw new UnsupportedOperationException("Unsupported codec: " + format.codec());
+            case WEM_OPUS -> AudioCodec.WWISE_OPUS;
+            case OPUS -> throw new UnsupportedOperationException("Unsupported codec: " + format.codec());
         };
     }
 
@@ -109,10 +110,10 @@ public record Wem(
     public int toFrameCount() {
         return switch (format.codec()) {
             case PCM, PCM_EX -> dataSize / format.blockAlign();
-            case IMA_ADPCM -> 64 * (dataSize / format.blockAlign());
+            case IMA_ADPCM, PT_ADPCM -> 64 * (dataSize / format.blockAlign());
             case VORBIS -> ((AkVorbisHeader) format.codecHeader().orElseThrow()).totalPCMFrames();
-            case OPUS, WEM_OPUS, PT_ADPCM ->
-                throw new UnsupportedOperationException("Unsupported codec: " + format.codec());
+            case WEM_OPUS -> ((AkOpusWemHeader) format.codecHeader().orElseThrow()).sampleCount();
+            case OPUS -> throw new UnsupportedOperationException("Unsupported codec: " + format.codec());
         };
     }
 }

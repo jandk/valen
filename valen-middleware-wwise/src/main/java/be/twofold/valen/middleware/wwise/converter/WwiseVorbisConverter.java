@@ -1,7 +1,6 @@
 package be.twofold.valen.middleware.wwise.converter;
 
 import be.twofold.valen.core.audio.*;
-import be.twofold.valen.middleware.wwise.converter.vorbis.*;
 import wtf.reversed.toolbox.collect.*;
 
 import java.io.*;

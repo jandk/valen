@@ -11,17 +11,30 @@ public record SoundEntry(
     int offset,
     int size,
     SoundEntryType type,
-    short headerSize,
+    int headerSize,
     int headerOffset
 ) {
-    public static SoundEntry read(BinarySource source) throws IOException {
+    public static SoundEntry read(BinarySource source, SoundFormat format) throws IOException {
         var hash = source.readLong();
         var mediaId = source.readInt();
         var sizeOnDisk = source.readInt();
         var offset = source.readInt();
         var size = source.readInt();
-        var type = SoundEntryType.read(source);
-        var headerSize = source.readShort();
+
+        SoundEntryType type;
+        int headerSize;
+        switch (format) {
+            case ETERNAL -> {
+                type = SoundEntryType.read(source);
+                headerSize = Short.toUnsignedInt(source.readShort());
+            }
+            case DARK_AGES -> {
+                type = SoundEntryType.NONE;
+                headerSize = source.readInt();
+            }
+            default -> throw new UnsupportedOperationException("Unsupported sound format: " + format);
+        }
+
         var headerOffset = source.readInt();
 
         return new SoundEntry(

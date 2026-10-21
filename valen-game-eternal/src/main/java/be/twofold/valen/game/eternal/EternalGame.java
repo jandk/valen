@@ -42,7 +42,7 @@ public final class EternalGame implements Game {
         new RenderParmReader(),
         new StaticModelReader(true)
     );
-    public static final String SOUNDBANK_NAME = "sound/soundbanks/pc";
+    private static final String SOUNDBANK_NAME = "sound/soundbanks/pc";
 
     private final Path base;
     private final PackageMapSpec spec;
