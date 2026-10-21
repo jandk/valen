@@ -1,6 +1,5 @@
 package be.twofold.valen.game.eternal.reader.soundcontainer;
 
-import be.twofold.valen.middleware.wwise.wem.*;
 import wtf.reversed.toolbox.collect.*;
 import wtf.reversed.toolbox.io.*;
 
@@ -11,8 +10,6 @@ public record SoundContainer(
     Bytes headers,
     List<SoundEntry> entries
 ) {
-    private static final WemReader WEM_READER = new WemReader();
-
     public static SoundContainer read(BinarySource source) throws IOException {
         source.expectInt(6); // version
         source.skip(4); // indexSize

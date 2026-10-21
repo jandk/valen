@@ -2,6 +2,7 @@ package be.twofold.valen.middleware.wwise.wem;
 
 import be.twofold.valen.core.audio.*;
 import be.twofold.valen.middleware.wwise.shared.*;
+import wtf.reversed.toolbox.collect.*;
 import wtf.reversed.toolbox.io.*;
 import wtf.reversed.toolbox.util.*;
 
@@ -13,7 +14,9 @@ public record Wem(
     WaveFormat format,
     int dataOffset,
     int dataSize,
-    int declaredDataSize
+    int declaredDataSize,
+    Optional<String> label,
+    Optional<Shorts> seek
 ) {
     private static final int WAVE = 'W' | 'A' << 8 | 'V' << 16 | 'E' << 24;
 
@@ -32,6 +35,8 @@ public record Wem(
         source.expectInt(WAVE);
 
         WaveFormat format = null;
+        String label = null;
+        Shorts seek = null;
 
         while (source.remaining() > 0) {
             ChunkHeader chunk = ChunkHeader.read(source);
@@ -39,6 +44,19 @@ public record Wem(
 
             switch (chunk.tag()) {
                 case fmt_ -> format = WaveFormat.read(source, chunk.size());
+                case LIST -> {
+                    source.skip(4); // type
+                    continue;
+                }
+                case labl -> {
+                    if (label == null) {
+                        source.skip(4); // cueId
+                        var text = source.readString(chunk.size() - 4);
+                        int end = text.indexOf('\0');
+                        label = end < 0 ? text : text.substring(0, end);
+                    }
+                }
+                case seek -> seek = source.readShorts(chunk.size() / 2);
                 case data -> {
                     if (format == null) {
                         throw new IOException("Expected fmt_ chunk");
@@ -48,13 +66,15 @@ public record Wem(
                         format,
                         start,
                         Math.min(Math.toIntExact(source.remaining()), chunk.size()),
-                        chunk.size()
+                        chunk.size(),
+                        Optional.ofNullable(label),
+                        Optional.ofNullable(seek)
                     );
                 }
                 default -> {
                 }
             }
-            source.position(start + chunk.size());
+            source.position(start + chunk.size() + (chunk.size() & 1));
         }
         throw new IOException("Expected data chunk");
     }
