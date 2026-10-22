@@ -2,6 +2,7 @@ module valen.app {
     requires java.logging;
     requires javafx.graphics;
     requires org.slf4j;
+    requires org.slf4j.jul;
     requires valen.core;
     requires valen.ui;
 
