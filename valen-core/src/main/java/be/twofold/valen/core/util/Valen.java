@@ -27,4 +27,8 @@ public final class Valen {
     public static String version() {
         return VERSION;
     }
+
+    public static String software() {
+        return "valen-" + VERSION;
+    }
 }

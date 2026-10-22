@@ -34,7 +34,7 @@ public abstract class GltfExporter<T> implements Exporter<T> {
     @Override
     public void export(T value, Path path) throws IOException {
         var writer = switch (mode) {
-            case GLB -> GltfWriter.createGlbWriter(path);
+            case GLB -> GltfWriter.createGlbWriter(path, Valen.software());
             case GLTF_SPLIT -> createSplitWriter(path);
         };
 
@@ -50,7 +50,7 @@ public abstract class GltfExporter<T> implements Exporter<T> {
             Files.createDirectories(imagePath);
         }
 
-        return GltfWriter.createSplitWriter(path, binPath, imagePath);
+        return GltfWriter.createSplitWriter(path, binPath, imagePath, Valen.software());
     }
 
     abstract void doExport(T object, GltfWriter writer) throws IOException;

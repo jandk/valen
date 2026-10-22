@@ -137,9 +137,9 @@ final class VorbisConverter {
         BitWriter writer = new BitWriter(ByteOrder.LITTLE_ENDIAN);
         writeHeader(writer, 3);
 
-        writeString(writer, "valen " + Valen.version());
+        writeString(writer, Valen.software());
         writer.write(32, 1);
-        writeString(writer, "COMMENT=Exported by Valen " + Valen.version());
+        writeString(writer, "COMMENT=Exported with Valen " + Valen.version());
         writer.writeBool(true);
 
         return Bytes.wrap(writer.toByteArray());

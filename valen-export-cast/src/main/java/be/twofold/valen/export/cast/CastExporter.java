@@ -2,6 +2,7 @@ package be.twofold.valen.export.cast;
 
 import be.twofold.tinycast.*;
 import be.twofold.valen.core.export.*;
+import be.twofold.valen.core.util.*;
 
 import java.io.*;
 import java.nio.file.*;
@@ -33,8 +34,7 @@ public abstract class CastExporter<T> implements Exporter<T> {
         var cast = Cast.create(0x5A4C524E454C4156L);
         var root = cast.createRoot();
         root.createMetadata()
-            .setAuthor("JanDK")
-            .setSoftware("Valen");
+            .setSoftware(Valen.software());
 
         doExport(value, root, path, imagePath);
 

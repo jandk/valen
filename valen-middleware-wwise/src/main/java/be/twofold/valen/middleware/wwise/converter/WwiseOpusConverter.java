@@ -114,8 +114,8 @@ public final class WwiseOpusConverter implements AudioConverter {
     }
 
     private Bytes rebuildOpusTags() {
-        var vendor = ("valen " + Valen.version()).getBytes(StandardCharsets.UTF_8);
-        var comment = ("COMMENT=Exported by Valen " + Valen.version()).getBytes(StandardCharsets.UTF_8);
+        var vendor = Valen.software().getBytes(StandardCharsets.UTF_8);
+        var comment = ("COMMENT=Exported with Valen " + Valen.version()).getBytes(StandardCharsets.UTF_8);
 
         var tags = ByteBuffer.allocate(8 + 4 + vendor.length + 4 + 4 + comment.length)
             .order(ByteOrder.LITTLE_ENDIAN)
