@@ -75,7 +75,7 @@ final class SoundbankIndex {
             var json = JsonParser.parseReader(reader).getAsJsonObject();
             return json.entrySet().stream().collect(Collectors.toUnmodifiableMap(
                 e -> MediaId.parse(e.getKey()),
-                e -> e.getValue().getAsString()
+                e -> AssetPath.of(e.getValue().getAsString()).withoutExtension() + "#" + MediaId.parse(e.getKey())
             ));
         }
     }
@@ -97,23 +97,10 @@ final class SoundbankIndex {
     private static Map<MediaId, String> buildNames(SoundMetadata metadata, Map<MediaId, ContainerSound> sounds) {
         var names = new HashMap<MediaId, String>();
         for (var event : metadata.events()) {
-            var idsByContainer = new LinkedHashMap<AssetPath, List<MediaId>>();
             for (var i = 0; i < event.mediaIds().length(); i++) {
                 var mediaId = MediaId.of(event.mediaIds().get(i));
-                var sound = sounds.get(mediaId);
-                if (sound == null) {
-                    continue;
-                }
-                var mediaIds = idsByContainer.computeIfAbsent(sound.containerName(), _ -> new ArrayList<>());
-                if (!mediaIds.contains(mediaId)) {
-                    mediaIds.add(mediaId);
-                }
-            }
-
-            for (var mediaIds : idsByContainer.values()) {
-                for (var i = 0; i < mediaIds.size(); i++) {
-                    var name = mediaIds.size() == 1 ? event.name() : event.name() + "_" + i;
-                    names.putIfAbsent(mediaIds.get(i), name);
+                if (sounds.containsKey(mediaId)) {
+                    names.putIfAbsent(mediaId, event.name() + "#" + mediaId);
                 }
             }
         }

@@ -3,7 +3,6 @@ package be.twofold.valen.game.darkages;
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.game.darkages.reader.soundmetadata.*;
 import be.twofold.valen.game.idtech.reader.soundcontainer.*;
-import be.twofold.valen.game.idtech.reader.soundmetadata.*;
 import be.twofold.valen.middleware.wwise.shared.*;
 import be.twofold.valen.middleware.wwise.wem.*;
 import wtf.reversed.toolbox.io.*;
@@ -76,26 +75,10 @@ final class SoundbankIndex {
     private static Map<MediaId, String> buildNames(SoundMetadata metadata, Map<MediaId, ContainerSound> sounds) {
         var names = new HashMap<MediaId, String>();
         for (var event : metadata.events()) {
-            var idsByContainer = new LinkedHashMap<AssetPath, List<MediaId>>();
-            for (var i = 0; i < event.mediaIds().size(); i++) {
-                NameId nameId = event.mediaIds().get(i);
+            for (var nameId : event.mediaIds()) {
                 var mediaId = MediaId.of(nameId.id());
-                var sound = sounds.get(mediaId);
-                if (sound == null) {
-                    continue;
-                }
-                var mediaIds = idsByContainer.computeIfAbsent(sound.containerName(), _ -> new ArrayList<>());
-                if (!mediaIds.contains(mediaId)) {
-                    mediaIds.add(mediaId);
-                }
-            }
-
-            for (var mediaIds : idsByContainer.values()) {
-                for (var i = 0; i < mediaIds.size(); i++) {
-                    var name = mediaIds.size() == 1
-                        ? event.name()
-                        : event.name() + "@" + mediaIds.get(i);
-                    names.putIfAbsent(mediaIds.get(i), name);
+                if (sounds.containsKey(mediaId)) {
+                    names.putIfAbsent(mediaId, event.name() + "#" + mediaId);
                 }
             }
         }
@@ -110,8 +93,9 @@ final class SoundbankIndex {
             }
             var entry = sound.entry();
             var header = sound.soundContainer().headers().slice(entry.headerOffset(), entry.headerSize());
+            var mediaId = MediaId.of(entry.mediaId());
             Wem.read(BinarySource.wrap(header)).label()
-                .ifPresent(s -> names.put(MediaId.of(entry.mediaId()), s));
+                .ifPresent(label -> names.put(mediaId, label + "#" + mediaId));
         }
         return names;
     }
