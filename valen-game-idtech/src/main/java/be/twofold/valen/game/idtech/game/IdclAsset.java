@@ -51,7 +51,7 @@ public abstract class IdclAsset<I extends IdclAssetID<?, ?>> implements Asset {
     public String exportName() {
         if (id.type().value().equals("image")) {
             var hashString = HexFormat.of().toHexDigits(id.resourceId());
-            return id.path().baseName() + "@" + hashString;
+            return id.path().baseName() + "#" + hashString;
         }
         return id.path().baseName();
     }
