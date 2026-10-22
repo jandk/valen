@@ -87,7 +87,7 @@ public final class ImageReader implements AssetReader.Binary<Texture, GreatCircl
         };
         var width = minMip < 0 ? image.header().width() : image.sliceInfos().get(minMip).width();
         var height = minMip < 0 ? image.header().height() : image.sliceInfos().get(minMip).height();
-        var depth = minMip < 0 ? image.header().depth() : image.sliceInfos().get(minMip).decompressedSize();
+        var depth = minMip < 0 ? image.header().depth() : image.sliceInfos().get(minMip).depth();
         var depthOrLayers = switch (image.header().type()) {
             case TT_2D -> 1;
             case TT_3D -> depth;

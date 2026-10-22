@@ -57,7 +57,12 @@ public final class GltfWriter implements Closeable, GltfContext {
 
     private GltfWriter(Path gltfPath, Path binPath, Path imagePath, String generator) throws IOException {
         this.gltfOut = Files.newOutputStream(gltfPath);
-        this.binOut = binPath == null ? null : Files.newOutputStream(binPath);
+        try {
+            this.binOut = binPath == null ? null : Files.newOutputStream(binPath);
+        } catch (IOException e) {
+            gltfOut.close();
+            throw e;
+        }
 
         this.gltfPath = gltfPath;
         this.binPath = binPath;
@@ -377,11 +382,8 @@ public final class GltfWriter implements Closeable, GltfContext {
 
     @Override
     public void close() throws IOException {
-        finish();
-
-        gltfOut.close();
-        if (binOut != null) {
-            binOut.close();
+        try (gltfOut; binOut) {
+            finish();
         }
     }
 }

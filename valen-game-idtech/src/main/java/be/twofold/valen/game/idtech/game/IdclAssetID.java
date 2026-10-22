@@ -43,6 +43,10 @@ public abstract class IdclAssetID<
         return resourceId(type.value(), name);
     }
 
+    public final String hashedBaseName() {
+        return path().baseName() + "#" + HexFormat.of().toHexDigits(resourceId());
+    }
+
     private long resourceId(String type, String name) {
         long lo = HASH.hash(type).asLong();
         long hi = HASH.hash(name).asLong();

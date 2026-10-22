@@ -118,8 +118,7 @@ public final class WavExporter implements Exporter<Audio> {
         record Data(String id, Bytes payload) implements Chunk {
             @Override
             public int size() {
-                int length = payload().length();
-                return length + (length & 1);
+                return payload().length();
             }
         }
 
@@ -128,7 +127,7 @@ public final class WavExporter implements Exporter<Audio> {
             public int size() {
                 int size = 4;
                 for (Chunk chunk : chunks) {
-                    size += 8 + chunk.size();
+                    size += 8 + chunk.size() + (chunk.size() & 1);
                 }
                 return size;
             }

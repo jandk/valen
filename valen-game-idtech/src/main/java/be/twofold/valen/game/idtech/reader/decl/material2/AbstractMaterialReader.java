@@ -4,6 +4,7 @@ import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.material.*;
 import be.twofold.valen.core.texture.*;
 import be.twofold.valen.core.util.*;
+import be.twofold.valen.game.idtech.game.*;
 import be.twofold.valen.game.idtech.reader.decl.*;
 import be.twofold.valen.game.idtech.reader.decl.renderparm.*;
 import be.twofold.valen.game.idtech.reader.image.*;
@@ -19,7 +20,7 @@ import java.util.*;
 import java.util.function.*;
 import java.util.stream.*;
 
-public abstract class AbstractMaterialReader<K extends AssetID, V extends Asset> implements AssetReader.Binary<Material, V> {
+public abstract class AbstractMaterialReader<K extends IdclAssetID<?, ?>, V extends Asset> implements AssetReader.Binary<Material, V> {
     private static final Map<MaterialPropertyType, List<String>> ParmTextures = Map.of(
         MaterialPropertyType.Albedo, List.of(
             "albedo",
@@ -138,13 +139,13 @@ public abstract class AbstractMaterialReader<K extends AssetID, V extends Asset>
 
     private MaterialProperty mapEmissive(Map<String, Parm> allParms, LoadingContext context) {
         var emissive = mapSimpleTexture(allParms, MaterialPropertyType.Emissive, context);
+        if (emissive == null) {
+            return null;
+        }
+
         var emissiveColor = allParms.get("surfaceemissivecolor") != null ? (Vector3) allParms.get("surfaceemissivecolor").value() : Vector3.ONE;
         var emissiveScale = allParms.get("surfaceemissivescale") != null ? (Float) allParms.get("surfaceemissivescale").value() : 1.0f;
         var emissiveFactor = new Vector4(emissiveColor, emissiveScale);
-
-        if (emissive == null) {
-            return new MaterialProperty(MaterialPropertyType.Specular, null, emissiveFactor);
-        }
         return emissive.withFactor(emissiveFactor);
     }
 
@@ -211,7 +212,7 @@ public abstract class AbstractMaterialReader<K extends AssetID, V extends Asset>
         }
 
         var supplier = ThrowingSupplier.lazy(() -> context.load(imageAssetID, Texture.class));
-        return new TextureReference(name, imageAssetID.path().baseName(), supplier);
+        return new TextureReference(name, imageAssetID.hashedBaseName(), supplier);
     }
 
     private List<Parm> parseRenderLayerParms(JsonArray array, LoadingContext context) throws IOException {

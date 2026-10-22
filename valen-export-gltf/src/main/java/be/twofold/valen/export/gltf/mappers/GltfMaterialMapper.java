@@ -38,6 +38,9 @@ public final class GltfMaterialMapper {
         var builder = ImmutableMaterial.builder().name(material.name());
         var pbrBuilder = ImmutableMaterialPbrMetallicRoughness.builder();
         for (var property : material.properties()) {
+            if (property.reference() == null && (property.type() == MaterialPropertyType.Normal || property.type() == MaterialPropertyType.Unknown)) {
+                continue;
+            }
             switch (property.type()) {
                 case Albedo -> mapProperty(property, pbrBuilder::baseColorTexture,
                     v -> pbrBuilder.baseColorFactor(GltfUtils.mapVector4(v)));
@@ -57,9 +60,11 @@ public final class GltfMaterialMapper {
         }
 
         // TODO: Check this code
-        if (groups.containsKey(MaterialPropertyType.Smoothness)) {
-            var property = groups.get(MaterialPropertyType.Smoothness).getFirst();
-            var reference = property.reference();
+        var smoothness = groups.getOrDefault(MaterialPropertyType.Smoothness, List.of()).stream()
+            .filter(property -> property.reference() != null)
+            .findFirst();
+        if (smoothness.isPresent()) {
+            var reference = smoothness.get().reference();
             var metalRoughnessTexture = mapSmoothness(reference.supplier().get());
             var roughnessReference = new TextureReference(reference.name(), reference.filename() + ".mr", () -> metalRoughnessTexture);
 
