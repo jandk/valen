@@ -81,7 +81,11 @@ public abstract class IdclAssetID<
     @Override
     public final AssetPath path() {
         int index = name.indexOf('$');
-        return AssetPath.of(index < 0 ? name : name.substring(0, index));
+        var path = index < 0 ? name : name.substring(0, index);
+        if (path.contains("//")) { // Dark ages is being funny
+            path = path.replace("//", "/");
+        }
+        return AssetPath.of(path);
     }
 
     @Override
