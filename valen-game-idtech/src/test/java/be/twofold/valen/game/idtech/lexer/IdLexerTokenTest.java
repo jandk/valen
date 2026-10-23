@@ -219,43 +219,43 @@ class IdLexerTokenTest {
     }
 
     @Test
-    void testCheckPunctuationMatchesWithoutConsuming() {
+    void testCheckPunctuationConsumesOnMatch() {
         var lexer = lexer("{}");
-        assertThat(lexer.checkPunctuation(LexerPunctuation.P_BRACEOPEN)).isNotNull();
-        assertThat(lexer.checkPunctuation(LexerPunctuation.P_BRACEOPEN)).isNotNull();
+        assertThat(lexer.checkPunctuation(LexerPunctuation.P_BRACEOPEN)).isTrue();
+        assertThat(lexer.readToken().value()).isEqualTo("}");
+    }
+
+    @Test
+    void testCheckPunctuationMismatchDoesNotConsume() {
+        var lexer = lexer("{}");
+        assertThat(lexer.checkPunctuation(LexerPunctuation.P_BRACECLOSE)).isFalse();
         assertThat(lexer.readToken().value()).isEqualTo("{");
     }
 
     @Test
-    void testCheckPunctuationMismatchIsNull() {
-        var lexer = lexer("{}");
-        assertThat(lexer.checkPunctuation(LexerPunctuation.P_BRACECLOSE)).isNull();
-        assertThat(lexer.readToken().value()).isEqualTo("{");
+    void testCheckWrongTypeDoesNotConsume() {
+        var lexer = lexer("foo");
+        assertThat(lexer.checkPunctuation(LexerPunctuation.P_BRACEOPEN)).isFalse();
+        assertThat(lexer.readToken().value()).isEqualTo("foo");
     }
 
     @Test
-    void testCheckWrongTypeIsNull() {
-        assertThat(lexer("foo").checkPunctuation(LexerPunctuation.P_BRACEOPEN)).isNull();
-    }
-
-    @Test
-    void testCheckAtEndOfInputIsNull() {
-        assertThat(lexer("").checkPunctuation(LexerPunctuation.P_BRACEOPEN)).isNull();
+    void testCheckAtEndOfInputIsFalse() {
+        assertThat(lexer("").checkPunctuation(LexerPunctuation.P_BRACEOPEN)).isFalse();
     }
 
     @Test
     void testCheckNumberSubtypeIsAMask() {
-        var lexer = lexer("0x1F");
-        assertThat(lexer.checkTokenType(TT_NUMBER, TT_INTEGER)).isNotNull();
-        assertThat(lexer.checkTokenType(TT_NUMBER, TT_INTEGER | TT_HEX)).isNotNull();
-        assertThat(lexer.checkTokenType(TT_NUMBER, TT_DECIMAL)).isNull();
+        assertThat(lexer("0x1F").checkTokenType(TT_NUMBER, TT_INTEGER)).isTrue();
+        assertThat(lexer("0x1F").checkTokenType(TT_NUMBER, TT_INTEGER | TT_HEX)).isTrue();
+        assertThat(lexer("0x1F").checkTokenType(TT_NUMBER, TT_DECIMAL)).isFalse();
     }
 
     @Test
     void testCheckIgnoresSubtypeForOtherTypes() {
-        var lexer = lexer("foo");
-        assertThat(lexer.checkTokenType(TT_NAME, 12345)).isNotNull();
-        assertThat(lexer.readToken().value()).isEqualTo("foo");
+        var lexer = lexer("foo bar");
+        assertThat(lexer.checkTokenType(TT_NAME, 12345)).isTrue();
+        assertThat(lexer.readToken().value()).isEqualTo("bar");
     }
 
     @Test

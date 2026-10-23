@@ -30,17 +30,22 @@ public final class IdLexer {
     }
 
     public boolean checkTokenType(TokenType type, int subtype) {
-        var token = peekToken();
+        int mark = cursor.mark();
+        IdToken token = readToken();
         if (token == null || token.type() != type) {
+            cursor.reset(mark);
             return false;
         }
 
-        // MISSING: BFG consumes after match
-        return switch (type) {
+        boolean matches = switch (type) {
             case TT_NUMBER -> (token.subtype() & subtype) == subtype;
             case TT_PUNCTUATION -> token.subtype() == subtype;
             default -> true;
         };
+        if (!matches) {
+            cursor.reset(mark);
+        }
+        return matches;
     }
 
     public boolean checkPunctuation(LexerPunctuation punctuation) {
@@ -115,8 +120,8 @@ public final class IdLexer {
     }
 
     IdToken readString(char quote) {
-        var type = quote == '"' ? TokenType.TT_STRING : TokenType.TT_LITERAL;
-        var sb = new StringBuilder();
+        TokenType type = quote == '"' ? TokenType.TT_STRING : TokenType.TT_LITERAL;
+        StringBuilder sb = new StringBuilder();
 
         cursor.startLexeme();
         cursor.advance(); // skip leading quote
@@ -152,7 +157,7 @@ public final class IdLexer {
         }
 
         // strings keep subtype 0 since Dark Ages, earlier engines store the length there
-        var value = sb.toString();
+        String value = sb.toString();
         int subtype = 0;
         if (type == TokenType.TT_LITERAL) {
             if (!has(LEXFL_ALLOWMULTICHARLITERALS) && value.length() != 1) {
@@ -359,7 +364,7 @@ public final class IdLexer {
             cursor.advance();
         }
 
-        var value = cursor.lexeme();
+        String value = cursor.lexeme();
         cursor.skip(2);
         return new IdToken(
             TokenType.TT_STRING,
@@ -372,7 +377,7 @@ public final class IdLexer {
 
     IdToken readPunctuation() {
         cursor.startLexeme();
-        var punctuation = matchPunctuation();
+        LexerPunctuation punctuation = matchPunctuation();
         if (punctuation == null) {
             throw error("unknown punctuation");
         }
