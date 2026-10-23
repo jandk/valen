@@ -12,7 +12,6 @@ import wtf.reversed.toolbox.io.*;
 import java.io.*;
 import java.lang.invoke.*;
 import java.util.*;
-import java.util.function.*;
 import java.util.stream.*;
 
 public final class ImageReader implements AssetReader.Binary<Texture, EternalAsset> {
@@ -94,7 +93,7 @@ public final class ImageReader implements AssetReader.Binary<Texture, EternalAss
 
         var scale = image.header().albedoSpecularScale();
         var bias = image.header().albedoSpecularBias();
-        UnaryOperator<ShaderNode> scaleAndBias = node -> ShaderNode.scaleAndBias(node, scale, bias);
+        var scaleAndBias = ShaderNode.scaleAndBias(scale, bias);
 
         return new Texture(format, kind, width, height, depthOrLayers, surfaces, scaleAndBias);
     }

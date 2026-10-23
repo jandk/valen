@@ -3,9 +3,6 @@ package be.twofold.valen.core.texture;
 import wtf.reversed.toolbox.collect.*;
 import wtf.reversed.toolbox.util.*;
 
-import java.util.*;
-import java.util.function.*;
-
 public record Surface(
     TextureFormat format,
     int width,
@@ -18,6 +15,7 @@ public record Surface(
         Check.positive(width, "width");
         Check.positive(height, "height");
         Check.positive(depth, "depth");
+        Check.nonNull(data, "data");
         int expectedSize = format.surfaceSize(width, height, depth);
         Check.argument(data.length() == expectedSize,
             () -> String.format("Expected %d bytes, got %d", expectedSize, data.length()));
@@ -36,20 +34,13 @@ public record Surface(
         return format.surfaceSize(width, height, slice);
     }
 
-    public Texture toTexture() {
-        TextureKind kind = depth > 1 ? TextureKind.TEXTURE_3D : TextureKind.TEXTURE_2D;
-        return new Texture(format, kind, width, height, depth, List.of(this), UnaryOperator.identity());
-    }
-
     public static void copy(
         Surface src, int srcX, int srcY,
         Surface dst, int dstX, int dstY,
         int width, int height
     ) {
-        Check.fromIndexSize(srcX, width, src.width);
-        Check.fromIndexSize(srcY, height, src.height);
-        Check.fromIndexSize(dstX, width, dst.width);
-        Check.fromIndexSize(dstY, height, dst.height);
+        copyCheck(src, srcX, srcY, width, height);
+        copyCheck(dst, dstX, dstY, width, height);
         Check.argument(src.format == dst.format, "format mismatch");
 
         var format = src.format;
@@ -60,21 +51,27 @@ public record Surface(
         Check.argument(dstX % blockWidth == 0, "dstX must be a multiple of " + blockWidth);
         Check.argument(dstY % blockHeight == 0, "dstY must be a multiple of " + blockHeight);
 
-        var srcTileX = srcX / blockWidth;
-        var srcTileY = srcY / blockHeight;
+        var srcTileX = Math.ceilDiv(srcX, blockWidth);
+        var srcTileY = Math.ceilDiv(srcY, blockHeight);
         var srcTileWidth = src.width / blockWidth;
 
-        var dstTileX = dstX / blockWidth;
-        var dstTileY = dstY / blockHeight;
+        var dstTileX = Math.ceilDiv(dstX, blockWidth);
+        var dstTileY = Math.ceilDiv(dstY, blockHeight);
         var dstTileWidth = dst.width / blockWidth;
 
-        var tileHeight = height / blockHeight;
-        var tileStride = width / blockWidth * format.blockSize();
+        var tileStride = Math.ceilDiv(width, blockWidth) * format.blockSize();
+        var tileHeight = Math.ceilDiv(height, blockHeight);
 
         for (var ty = 0; ty < tileHeight; ty++) {
             var srcIndex = ((srcTileY + ty) * srcTileWidth + srcTileX) * format.blockSize();
             var dstIndex = ((dstTileY + ty) * dstTileWidth + dstTileX) * format.blockSize();
             src.data.slice(srcIndex, tileStride).copyTo((Bytes.Mutable) dst.data, dstIndex);
         }
+    }
+
+    private static void copyCheck(Surface surface, int x, int y, int w, int h) {
+        Check.fromIndexSize(x, w, surface.width);
+        Check.fromIndexSize(y, h, surface.height);
+        Check.argument(surface.depth == 1, "depth must be 1");
     }
 }

@@ -7,11 +7,13 @@ import java.util.*;
 
 record Splat(
     Channel source,
-    List<Channel> targets
+    Set<Channel> targets
 ) implements OperationInPlace {
     Splat {
         Check.nonNull(source, "source");
-        targets = List.copyOf(targets);
+        var targetsCopy = EnumSet.noneOf(Channel.class);
+        targetsCopy.addAll(targets);
+        targets = Collections.unmodifiableSet(targetsCopy);
     }
 
     @Override

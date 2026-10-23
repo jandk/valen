@@ -13,7 +13,6 @@ import wtf.reversed.toolbox.io.*;
 import java.io.*;
 import java.lang.invoke.*;
 import java.util.*;
-import java.util.function.*;
 
 public final class ImageReader implements AssetReader.Binary<Texture, GreatCircleAsset> {
     private final boolean readStreams;
@@ -97,7 +96,7 @@ public final class ImageReader implements AssetReader.Binary<Texture, GreatCircl
 
         var scale = image.header().scale();
         var bias = image.header().bias();
-        UnaryOperator<ShaderNode> scaleAndBias = node -> ShaderNode.scaleAndBias(node, scale, bias);
+        var scaleAndBias = ShaderNode.scaleAndBias(scale, bias);
 
         return new Texture(format, kind, width, height, depthOrLayers, surfaces, scaleAndBias);
     }
