@@ -3,6 +3,7 @@ package be.twofold.valen.game.eternal;
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.game.eternal.reader.soundcontainer.*;
 import be.twofold.valen.game.eternal.reader.soundmetadata.*;
+import be.twofold.valen.game.idtech.game.*;
 import be.twofold.valen.game.idtech.reader.soundcontainer.*;
 import be.twofold.valen.middleware.wwise.shared.*;
 import be.twofold.valen.middleware.wwise.wem.*;
@@ -42,7 +43,7 @@ final class SoundbankIndex {
                 var source = BinarySource.open(filePath);
                 sources.put(filePath, source);
 
-                var soundContainer = SoundContainer.read(source, SoundFormat.ETERNAL);
+                var soundContainer = SoundContainer.read(source, IdTechGame.ETERNAL);
                 for (var j = 0; j < soundContainer.entries().size(); j++) {
                     var entry = soundContainer.entries().get(j);
                     var isEnabled = ((containerFile.mask().get(j / 32) >>> (j % 32)) & 1) != 0;

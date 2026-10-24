@@ -60,7 +60,6 @@ public abstract class AbstractDeclReader<K extends IdclAssetID<?, ?>, V extends 
         }
 
         if (!context.exists(inheritID)) {
-            // Dangling inherit reference in the game data; proceed with the child only.
             log.warn("Missing inherited decl: '{}'", inheritName);
             return object;
         }
@@ -96,7 +95,9 @@ public abstract class AbstractDeclReader<K extends IdclAssetID<?, ?>, V extends 
             var oldEntry = result.entrySet().stream()
                 .filter(e -> e.getKey().equalsIgnoreCase(key))
                 .findFirst().orElse(null);
-            // var oldValue = result.get(key);
+            if (oldEntry != null && key.equals("filePath") && value.isJsonPrimitive() && value.getAsString().isEmpty()) {
+                continue; // engine skips empty filePath, and uses the parent
+            }
             if (oldEntry != null && oldEntry.getValue().isJsonObject() && value.isJsonObject()) {
                 value = merge(oldEntry.getValue().getAsJsonObject(), value.getAsJsonObject());
                 result.add(entry.getKey(), value);

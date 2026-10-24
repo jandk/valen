@@ -77,16 +77,14 @@ public abstract class AbstractMaterialReader<K extends IdclAssetID<?, ?>, V exte
     );
 
     private final Map<String, RenderParm> renderParmCache = Collections.synchronizedMap(new HashMap<>());
-
     private final Logger log;
+    private final IdTechGame game;
+    private final AbstractDeclReader<K, V> declReader;
 
-    private final boolean idTech8;
-    protected final AbstractDeclReader<K, V> declReader;
-
-    protected AbstractMaterialReader(AbstractDeclReader<K, V> declReader, boolean idTech8) {
+    protected AbstractMaterialReader(AbstractDeclReader<K, V> declReader, IdTechGame game) {
         this.log = LoggerFactory.getLogger(getClass());
         this.declReader = Check.nonNull(declReader, "declReader");
-        this.idTech8 = idTech8;
+        this.game = Check.nonNull(game, "game");
     }
 
     @Override
@@ -115,7 +113,7 @@ public abstract class AbstractMaterialReader<K extends IdclAssetID<?, ?>, V exte
 
         var allParms = Stream.of(renderLayerParms, standardParms)
             .flatMap(Collection::stream)
-            .collect(Collectors.toUnmodifiableMap(Parm::name, Function.identity(), (_, second) -> second));
+            .collect(Collectors.toUnmodifiableMap(MaterialParm::name, Function.identity(), (_, second) -> second));
 
         var albedo = mapSimpleTexture(allParms, MaterialPropertyType.Albedo, context);
         var normal = mapSimpleTexture(allParms, MaterialPropertyType.Normal, context);
@@ -125,7 +123,7 @@ public abstract class AbstractMaterialReader<K extends IdclAssetID<?, ?>, V exte
         var emissive = mapEmissive(allParms, context);
 
         var other = allParms.values().stream()
-            .filter(parm -> parm.value() instanceof Tex)
+            .filter(parm -> parm.value() instanceof MaterialTex)
             .map(parm -> mapTex2D(parm, allParms, context))
             .filter(Objects::nonNull)
             .map(reference -> new MaterialProperty(MaterialPropertyType.Unknown, reference, null));
@@ -137,7 +135,7 @@ public abstract class AbstractMaterialReader<K extends IdclAssetID<?, ?>, V exte
         return new Material(materialName, properties);
     }
 
-    private MaterialProperty mapEmissive(Map<String, Parm> allParms, LoadingContext context) {
+    private MaterialProperty mapEmissive(Map<String, MaterialParm> allParms, LoadingContext context) {
         var emissive = mapSimpleTexture(allParms, MaterialPropertyType.Emissive, context);
         if (emissive == null) {
             return null;
@@ -149,7 +147,7 @@ public abstract class AbstractMaterialReader<K extends IdclAssetID<?, ?>, V exte
         return emissive.withFactor(emissiveFactor);
     }
 
-    private MaterialProperty mapSimpleTexture(Map<String, Parm> parms, MaterialPropertyType propertyType, LoadingContext context) {
+    private MaterialProperty mapSimpleTexture(Map<String, MaterialParm> parms, MaterialPropertyType propertyType, LoadingContext context) {
         var textureParm = ParmTextures.getOrDefault(propertyType, List.of()).stream()
             .map(parms::get)
             .filter(Objects::nonNull)
@@ -180,29 +178,25 @@ public abstract class AbstractMaterialReader<K extends IdclAssetID<?, ?>, V exte
         return new MaterialProperty(propertyType, reference, factor);
     }
 
-    private TextureReference mapTex2D(Parm parm, Map<String, Parm> allParms, LoadingContext context) {
-        var filePath = ((Tex) parm.value()).filePath();
-        if (filePath == null || filePath.isEmpty() || filePath.equals("_default")) {
-            return null;
+    private TextureReference mapTex2D(MaterialParm parm, Map<String, MaterialParm> allParms, LoadingContext context) {
+        var filePath = ((MaterialTex) parm.value()).filePath();
+        if (filePath == null || filePath.isEmpty() || filePath.startsWith("_")) {
+            return null; // Runtime images
         }
 
-        // Dark ages doesn't seem to add an extension in their decls
         var assetPath = AssetPath.of(filePath);
-        if (assetPath.extension().isEmpty()) {
+        if (game == IdTechGame.DARK_AGES && assetPath.extension().isEmpty()) {
             assetPath = assetPath.withExtension("tga");
         }
 
         var builder = new StringBuilder(assetPath.toString().toLowerCase(Locale.ROOT));
         var smoothnessNormalParm = parm.renderParm().smoothnessNormalParm();
-        if (idTech8 && parm.renderParm().materialKind() == TextureMaterialKind.TMK_SMOOTHNESS && smoothnessNormalParm != null) {
-            // Renderparm names are case-insensitive in the engine
-            var smoothnessNormal = allParms.entrySet().stream()
-                .filter(entry -> entry.getKey().equalsIgnoreCase(smoothnessNormalParm))
-                .findFirst();
+        var materialKind = parm.renderParm().materialKind();
 
-            smoothnessNormal.ifPresent(entry -> builder
+        if (game != IdTechGame.DARK_AGES && materialKind != null && materialKind.isSmoothness() && smoothnessNormalParm != null) {
+            builder
                 .append("$smoothnessnormal=")
-                .append(((Tex) entry.getValue().value()).filePath()));
+                .append(smoothnessNormalPath(smoothnessNormalParm, allParms, context));
         }
         mapOptions(builder, parm);
 
@@ -217,7 +211,36 @@ public abstract class AbstractMaterialReader<K extends IdclAssetID<?, ?>, V exte
         return new TextureReference(name, imageAssetID.hashedBaseName(), supplier);
     }
 
-    private List<Parm> parseRenderLayerParms(JsonArray array, LoadingContext context) throws IOException {
+    private String smoothnessNormalPath(String smoothnessNormalParm, Map<String, MaterialParm> allParms, LoadingContext context) {
+        for (var entry : allParms.entrySet()) {
+            if (entry.getKey().equalsIgnoreCase(smoothnessNormalParm)
+                && entry.getValue().value() instanceof MaterialTex tex
+                && tex.filePath() != null
+                && !tex.filePath().isEmpty()
+            ) {
+                return tex.filePath();
+            }
+        }
+        return defaultSmoothnessNormal(smoothnessNormalParm, context);
+    }
+
+    private String defaultSmoothnessNormal(String smoothnessNormalParm, LoadingContext context) {
+        Optional<RenderParm> renderParm;
+        try {
+            renderParm = getRenderParm(smoothnessNormalParm, context);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+        if (renderParm.isEmpty() || !(renderParm.get().declaredValue() instanceof ImageProperties image)) {
+            return "";
+        }
+        var index = image.name().indexOf('$');
+        return index >= 0
+            ? image.name().substring(0, index)
+            : image.name();
+    }
+
+    private List<MaterialParm> parseRenderLayerParms(JsonArray array, LoadingContext context) throws IOException {
         if (array == null) {
             return List.of();
         }
@@ -228,7 +251,7 @@ public abstract class AbstractMaterialReader<K extends IdclAssetID<?, ?>, V exte
         if (parms == null) {
             return List.of();
         }
-        var renderLayerParms = new ArrayList<Parm>();
+        var renderLayerParms = new ArrayList<MaterialParm>();
         for (var entry : parms.entrySet()) {
             var renderParm = getRenderParm(entry.getKey(), context);
             if (renderParm.isEmpty()) {
@@ -236,104 +259,23 @@ public abstract class AbstractMaterialReader<K extends IdclAssetID<?, ?>, V exte
                 continue;
             }
 
-            var tex2d = parseTex(entry.getValue());
-            renderLayerParms.add(new Parm(entry.getKey(), renderParm.get(), tex2d));
+            var tex2d = MaterialTex.parse(entry.getValue(), renderParm.get());
+            renderLayerParms.add(new MaterialParm(entry.getKey(), renderParm.get(), tex2d));
         }
         return renderLayerParms;
     }
 
-    private List<Parm> parseParms(JsonObject object, LoadingContext context) throws IOException {
+    private List<MaterialParm> parseParms(JsonObject object, LoadingContext context) throws IOException {
         if (object == null) {
             return List.of();
         }
 
-        var result = new ArrayList<Parm>();
+        var result = new ArrayList<MaterialParm>();
         for (var entry : object.entrySet()) {
-            var parm = parseParm(object, entry.getKey(), context);
-            parm.ifPresent(result::add);
+            getRenderParm(entry.getKey(), context)
+                .ifPresent(parm -> result.add(MaterialParm.parse(entry.getKey(), entry.getValue(), parm)));
         }
         return result;
-    }
-
-    private Optional<Parm> parseParm(JsonObject parms, String name, LoadingContext context) throws IOException {
-        if (!parms.has(name)) {
-            return Optional.empty();
-        }
-
-        var renderParm = getRenderParm(name, context);
-        if (renderParm.isEmpty()) {
-            return Optional.empty();
-        }
-
-        var element = parms.get(name);
-        var value = switch (renderParm.get().parmType()) {
-            case PT_BOOL -> {
-                if (element.isJsonObject()) {
-                    // TODO: Should we look at X or W?
-                    var object = element.getAsJsonObject();
-                    if (!object.has("w")) {
-                        yield renderParm.get().declaredValue();
-                    }
-                    yield object.getAsJsonPrimitive("w").getAsInt() != 0;
-                }
-                yield element.getAsString();
-            }
-            case PT_F32, PT_F16 -> {
-                if (element.isJsonObject()) {
-                    var object = element.getAsJsonObject();
-                    if (!object.has("x")) {
-                        yield renderParm.get().declaredValue();
-                    }
-                    yield object.get("x").getAsFloat();
-                }
-                yield element.getAsFloat();
-            }
-            case PT_F32_VEC2, PT_F16_VEC2 -> parseVector2(element, renderParm.get());
-            case PT_F32_VEC3, PT_F16_VEC3 -> parseVector3(element, renderParm.get());
-            case PT_F32_VEC4, PT_F16_VEC4 -> parseVector4(element, renderParm.get());
-            case PT_COLOR_LUT, PT_STRING -> element.getAsString();
-            case PT_TEXTURE_2D, PT_TEXTURE_2D_HALF, PT_TEXTURE_3D, PT_TEXTURE_CUBE -> parseTex(element);
-            case PT_SI32, PT_UI32 -> element.getAsInt();
-            default -> throw new UnsupportedOperationException(renderParm.get().parmType().toString());
-        };
-
-        return Optional.of(new Parm(name, renderParm.get(), value));
-    }
-
-    private Vector2 parseVector2(JsonElement element, RenderParm renderParm) {
-        var object = element.getAsJsonObject();
-        var defaultValue = (Vector2) renderParm.declaredValue();
-        var x = object.has("x") ? object.getAsJsonPrimitive("x").getAsFloat() : defaultValue.x();
-        var y = object.has("y") ? object.getAsJsonPrimitive("y").getAsFloat() : defaultValue.y();
-        var result = new Vector2(x, y);
-        return renderParm.parmEdit() instanceof ParmEdit.Srgba
-            ? new Vector2(Srgb.srgbToLinear(result.x()), Srgb.srgbToLinear(result.y()))
-            : result;
-    }
-
-    private Vector3 parseVector3(JsonElement element, RenderParm renderParm) {
-        var object = element.getAsJsonObject();
-        var defaultValue = (Vector3) renderParm.declaredValue();
-        var x = object.has("x") ? object.getAsJsonPrimitive("x").getAsFloat() : defaultValue.x();
-        var y = object.has("y") ? object.getAsJsonPrimitive("y").getAsFloat() : defaultValue.y();
-        var z = object.has("z") ? object.getAsJsonPrimitive("z").getAsFloat() : defaultValue.z();
-        var result = new Vector3(x, y, z);
-        return renderParm.parmEdit() instanceof ParmEdit.Srgba
-            ? new Vector3(Srgb.srgbToLinear(result.x()), Srgb.srgbToLinear(result.y()), Srgb.srgbToLinear(result.z()))
-            : result;
-    }
-
-    private Vector4 parseVector4(JsonElement element, RenderParm renderParm) {
-        var object = element.getAsJsonObject();
-        var defaultValue = (Vector4) renderParm.declaredValue();
-        var x = object.has("x") ? object.getAsJsonPrimitive("x").getAsFloat() : defaultValue.x();
-        var y = object.has("y") ? object.getAsJsonPrimitive("y").getAsFloat() : defaultValue.y();
-        var z = object.has("z") ? object.getAsJsonPrimitive("z").getAsFloat() : defaultValue.z();
-        var w = object.has("w") ? object.getAsJsonPrimitive("w").getAsFloat() : defaultValue.w();
-        var result = new Vector4(x, y, z, w);
-        return renderParm.parmEdit() instanceof ParmEdit.Srgba
-            ? new Vector4(Srgb.srgbToLinear(result.x()), Srgb.srgbToLinear(result.y()), Srgb.srgbToLinear(result.z()), result.w())
-            : result;
     }
 
     private Optional<RenderParm> getRenderParm(String name, LoadingContext context) throws IOException {
@@ -344,8 +286,8 @@ public abstract class AbstractMaterialReader<K extends IdclAssetID<?, ?>, V exte
 
         var renderParmAsset = renderParmAssetID(name);
         if (!context.exists(renderParmAsset)) {
-            renderParmCache.put(name, null);
             log.warn("Could not load renderparm: '{}'", name);
+            renderParmCache.put(name, null);
             return Optional.empty();
         }
 
@@ -354,66 +296,51 @@ public abstract class AbstractMaterialReader<K extends IdclAssetID<?, ?>, V exte
         return Optional.of(renderParm);
     }
 
-    private Tex parseTex(JsonElement element) {
-        var object = element.getAsJsonObject();
-        var filePath = object.has("filePath") ? object.get("filePath").getAsString() : null;
-        var options = parseOptions(object.getAsJsonObject("options"));
-
-        return new Tex(filePath, options);
-    }
-
-    private void mapOptions(StringBuilder builder, Parm parm) {
-        var tex2d = (Tex) parm.value();
+    private void mapOptions(StringBuilder builder, MaterialParm parm) {
+        var tex2d = (MaterialTex) parm.value();
         var opts = tex2d.options();
         var kind = parm.renderParm().materialKind();
 
-        if (opts != null) {
-            addTextureFormat(builder, kind, opts.format());
-            if (opts.atlasPadding() != null && opts.atlasPadding() != 0) {
-                builder.append(formatAtlasPadding(opts.atlasPadding()));
-            }
-            if (idTech8 && opts.minMip() != 0) {
-                builder.append("$minmip=").append(opts.minMip());
-            }
-            if (opts.fullScaleBias()) {
-                builder.append("$fullscalebias");
-            }
-            if (parm.renderParm().flags().contains(RenderParm.Flags.STREAMED)) {
-                builder.append("$streamed");
-            }
-            if (opts.noMips()) {
-                builder.append("$nomips");
-            }
-            if (opts.fftBloom()) {
-                builder.append("$fftbloom");
-            }
-            if (kind != null) {
-                builder.append(formatTextureMaterialKind(kind));
-            }
+        addTextureFormat(builder, kind, opts.format());
+        if (opts.atlasPadding() != 0) {
+            builder.append(formatAtlasPadding(opts.atlasPadding()));
+        }
+        if (game != IdTechGame.DARK_AGES && opts.minMip() != 0) {
+            builder.append("$minmip=").append(opts.minMip());
+        }
+        if (opts.fullScaleBias()) {
+            builder.append("$fullscalebias");
+        }
+        if (parm.renderParm().flags().contains(RenderParm.Flags.STREAMED)) {
+            builder.append("$streamed");
+        }
+        if (opts.noMips()) {
+            builder.append("$nomips");
+        }
+        if (opts.type() == TextureType.TT_3D) {
+            builder.append(game == IdTechGame.DARK_AGES
+                ? "$volume=" + opts.width3D() + "x" + opts.height3D() + "x" + opts.depth3D()
+                : "$volume=0");
+        }
+        if (game != IdTechGame.DARK_AGES && opts.fftBloom()) {
+            builder.append("$fftbloom");
+        }
+        if (game == IdTechGame.DARK_AGES && opts.prefilterMips()) {
+            builder.append("$prefiltermips");
+        }
+        if (kind != null && kind.suffix() != null) {
+            builder.append("$mtlkind=").append(kind.suffix());
         }
     }
 
-    private void addTextureFormat(StringBuilder builder, TextureMaterialKind kind, TextureFormat format) {
+    private void addTextureFormat(StringBuilder builder, MaterialKind kind, TextureFormat format) {
         if (format == null || format == TextureFormat.FMT_NONE) {
             return;
         }
-
-        var addFormat = switch (kind) {
-            case TMK_ALBEDO,
-                 TMK_SPECULAR,
-                 TMK_SMOOTHNESS,
-                 TMK_COVER,
-                 TMK_SSSMASK,
-                 TMK_COLORMASK,
-                 TMK_BLENDMASK,
-                 TMK_AO -> false;
-            case TMK_NORMAL -> format == TextureFormat.FMT_BC7;
-            case null, default -> true;
-        };
-
-        if (addFormat) {
-            builder.append(formatTextureFormat(format));
+        if (kind != null && kind.skipsFormat(format)) {
+            return;
         }
+        builder.append(formatTextureFormat(format));
     }
 
     private String formatTextureFormat(TextureFormat format) {
@@ -441,7 +368,7 @@ public abstract class AbstractMaterialReader<K extends IdclAssetID<?, ?>, V exte
         };
     }
 
-    private String formatAtlasPadding(short atlasPadding) {
+    private String formatAtlasPadding(int atlasPadding) {
         return switch (atlasPadding) {
             case 1, 2 -> "$pad2";
             case 3, 4 -> "$pad4";
@@ -449,79 +376,5 @@ public abstract class AbstractMaterialReader<K extends IdclAssetID<?, ?>, V exte
             case 9, 10, 11, 12, 13, 14, 15, 16 -> "$pad16";
             default -> throw new IllegalArgumentException("Unknown atlas padding: " + atlasPadding);
         };
-    }
-
-    private String formatTextureMaterialKind(TextureMaterialKind materialKind) {
-        return switch (materialKind) {
-            case TMK_NONE, TMK_PAINTEDDATAGRID -> "";
-            case TMK_ALBEDO -> "$mtlkind=albedo";
-            case TMK_SPECULAR -> "$mtlkind=specular";
-            case TMK_NORMAL -> "$mtlkind=normal";
-            case TMK_SMOOTHNESS -> "$mtlkind=smoothness";
-            case TMK_COVER -> "$mtlkind=cover";
-            case TMK_SSSMASK -> "$mtlkind=sssmask";
-            case TMK_COLORMASK -> "$mtlkind=colormask";
-            case TMK_BLOOMMASK -> "$mtlkind=bloommask";
-            case TMK_HEIGHTMAP -> "$mtlkind=heightmap";
-            case TMK_DECALALBEDO -> "$mtlkind=decalalbedo";
-            case TMK_DECALNORMAL -> "$mtlkind=decalnormal";
-            case TMK_DECALSPECULAR -> "$mtlkind=decalspecular";
-            case TMK_LIGHTPROJECT -> "$mtlkind=lightproject";
-            case TMK_PARTICLE -> "$mtlkind=particle";
-            case TMK_LIGHTMAP -> "$mtlkind=lightmap";
-            case TMK_UI -> "$mtlkind=ui";
-            case TMK_FONT -> "$mtlkind=font";
-            case TMK_LEGACY_FLASH_UI -> "$mtlkind=legacyflashui";
-            case TMK_LIGHTMAP_DIRECTIONAL -> "$mtlkind=lightmapdir";
-            case TMK_BLENDMASK -> "$mtlkind=blendmask";
-            case TMK_TINTMASK -> "$mtlkind=tintmask";
-            case TMK_TERRAIN_SPLATMAP -> "$mtlkind=terrainsplatmap";
-            case TMK_ECOTOPE_LAYER -> "$mtlkind=ecotopelayer";
-            case TMK_DECALHEIGHTMAP -> "$mtlkind=decalheight";
-            case TMK_ALBEDO_UNSCALED -> "$mtlkind=albedounscaled";
-            case TMK_ALBEDO_DETAILS -> "$mtlkind=albedodetails";
-            case TMK_AO -> "$mtlkind=ao";
-        };
-    }
-
-    private MaterialImageOpts parseOptions(JsonObject options) {
-        if (options == null) {
-            return null;
-        }
-
-        var type = options.has("type") ? TextureType.valueOf(options.get("type").getAsString()) : null;
-        var filter = options.has("filter") ? TextureFilter.valueOf(options.get("filter").getAsString()) : null;
-        var repeat = options.has("repeat") ? TextureRepeat.valueOf(options.get("repeat").getAsString()) : null;
-        var format = options.has("format") ? TextureFormat.valueOf(options.get("format").getAsString()) : null;
-        var atlasPadding = options.has("atlasPadding") ? options.get("atlasPadding").getAsShort() : null;
-        var minMip = options.has("minMip") ? options.get("minMip").getAsInt() : 0;
-        var fullScaleBias = options.has("fullScaleBias") && options.get("fullScaleBias").getAsBoolean();
-        var noMips = options.has("noMips") && options.get("noMips").getAsBoolean();
-        var fftBloom = options.has("fftBloom") && options.get("fftBloom").getAsBoolean();
-
-        return new MaterialImageOpts(
-            type,
-            filter,
-            repeat,
-            format,
-            atlasPadding,
-            minMip,
-            fullScaleBias,
-            noMips,
-            fftBloom
-        );
-    }
-
-    public record Parm(
-        String name,
-        RenderParm renderParm,
-        Object value
-    ) {
-    }
-
-    public record Tex(
-        String filePath,
-        MaterialImageOpts options
-    ) {
     }
 }

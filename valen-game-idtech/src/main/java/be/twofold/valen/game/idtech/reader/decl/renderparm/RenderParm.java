@@ -6,13 +6,14 @@ import wtf.reversed.toolbox.math.*;
 import wtf.reversed.toolbox.util.*;
 
 import java.util.*;
+import java.util.function.*;
 
 public record RenderParm(
     ParmType parmType,
     Object declaredValue,
     ParmEdit parmEdit,
     ParmScope parmScope,
-    TextureMaterialKind materialKind,
+    MaterialKind materialKind,
     String smoothnessNormalParm,
     Set<Flags> flags
 ) {
@@ -23,7 +24,7 @@ public record RenderParm(
         flags = Collections.unmodifiableSet(flagsCopy);
     }
 
-    public static RenderParm parse(IdLexer lexer) {
+    public static RenderParm parse(IdLexer lexer, Function<String, Optional<? extends MaterialKind>> materialKindParser) {
         lexer.expectPunctuation(LexerPunctuation.P_BRACEOPEN);
         var flags = EnumSet.noneOf(Flags.class);
         var typeName = lexer.expectName().value();
@@ -41,7 +42,7 @@ public record RenderParm(
 
         ParmEdit parmEdit = null;
         ParmScope parmScope = null;
-        TextureMaterialKind materialKind = null;
+        MaterialKind materialKind = null;
         String smoothnessNormalParm = null;
         while (!lexer.peekPunctuation(LexerPunctuation.P_BRACECLOSE)) {
             var edit = parseParmEdit(lexer);
@@ -60,7 +61,6 @@ public record RenderParm(
             var flag = parseFlag(lexer);
             if (flag != null) {
                 flags.add(flag);
-                // Eternal and Great Circle set both bits for the streamed keyword
                 if (flag == Flags.STREAMED) {
                     flags.add(Flags.GLOBALLY_INDEXED);
                 }
@@ -71,7 +71,7 @@ public record RenderParm(
             switch (token) {
                 case "materialkind" -> {
                     lexer.expectPunctuation(LexerPunctuation.P_ASSIGN);
-                    materialKind = TextureMaterialKind.parse(lexer.expectName().value());
+                    materialKind = materialKindParser.apply(lexer.expectName().value()).orElse(null);
                     continue;
                 }
                 case "smoothnessnormalparm" -> {
@@ -270,7 +270,6 @@ public record RenderParm(
                 continue;
             }
             builder.append(token.value());
-            // The engine glues '#' to the next token, so '#define' stays intact
             if (!token.isPunctuation(LexerPunctuation.P_PRECOMP)) {
                 builder.append(" ");
             }
@@ -301,7 +300,6 @@ public record RenderParm(
         return values;
     }
 
-    // Named after the bools in the engine's idDeclRenderParm
     public enum Flags {
         CUBE_FILTER_TEXTURE,
         DIVERGENT,

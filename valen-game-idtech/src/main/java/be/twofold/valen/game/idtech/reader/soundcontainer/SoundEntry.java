@@ -1,5 +1,6 @@
 package be.twofold.valen.game.idtech.reader.soundcontainer;
 
+import be.twofold.valen.game.idtech.game.*;
 import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
@@ -14,7 +15,7 @@ public record SoundEntry(
     int headerSize,
     int headerOffset
 ) {
-    public static SoundEntry read(BinarySource source, SoundFormat format) throws IOException {
+    public static SoundEntry read(BinarySource source, IdTechGame game) throws IOException {
         var hash = source.readLong();
         var mediaId = source.readInt();
         var sizeOnDisk = source.readInt();
@@ -23,7 +24,7 @@ public record SoundEntry(
 
         SoundEntryType type;
         int headerSize;
-        switch (format) {
+        switch (game) {
             case ETERNAL -> {
                 type = SoundEntryType.read(source);
                 headerSize = Short.toUnsignedInt(source.readShort());
@@ -32,7 +33,7 @@ public record SoundEntry(
                 type = SoundEntryType.NONE;
                 headerSize = source.readInt();
             }
-            default -> throw new UnsupportedOperationException("Unsupported sound format: " + format);
+            default -> throw new UnsupportedOperationException("Unsupported sound format for " + game);
         }
 
         var headerOffset = source.readInt();

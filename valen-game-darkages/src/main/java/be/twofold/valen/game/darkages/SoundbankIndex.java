@@ -2,6 +2,7 @@ package be.twofold.valen.game.darkages;
 
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.game.darkages.reader.soundmetadata.*;
+import be.twofold.valen.game.idtech.game.*;
 import be.twofold.valen.game.idtech.reader.soundcontainer.*;
 import be.twofold.valen.middleware.wwise.shared.*;
 import be.twofold.valen.middleware.wwise.wem.*;
@@ -38,7 +39,7 @@ final class SoundbankIndex {
                 var source = BinarySource.open(filePath);
                 sources.put(filePath, source);
 
-                var soundContainer = SoundContainer.read(source, SoundFormat.DARK_AGES);
+                var soundContainer = SoundContainer.read(source, IdTechGame.DARK_AGES);
                 for (var j = 0; j < soundContainer.entries().size(); j++) {
                     var entry = soundContainer.entries().get(j);
                     var isEnabled = ((containerFile.mask().get(j / 32) >>> (j % 32)) & 1) != 0;

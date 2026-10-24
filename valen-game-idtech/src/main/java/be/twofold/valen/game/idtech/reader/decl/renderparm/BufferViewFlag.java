@@ -6,6 +6,7 @@ public enum BufferViewFlag {
     BVF_WRITABLE,
     BVF_COHERENT,
     BVF_WRITEONLY,
+
     // Dark Ages
     BVF_DEBUG_SKIP_OOB_CHECKS,
     ;

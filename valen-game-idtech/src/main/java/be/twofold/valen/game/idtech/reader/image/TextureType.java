@@ -1,6 +1,9 @@
 package be.twofold.valen.game.idtech.reader.image;
 
+import wtf.reversed.toolbox.io.*;
 import wtf.reversed.toolbox.util.*;
+
+import java.io.*;
 
 public enum TextureType implements ValueEnum<Integer> {
     TT_2D(0),
@@ -14,7 +17,8 @@ public enum TextureType implements ValueEnum<Integer> {
         this.value = value;
     }
 
-    public static TextureType fromValue(int value) {
+    public static TextureType read(BinarySource source) throws IOException {
+        int value = source.readInt();
         return ValueEnum.fromValue(TextureType.class, value);
     }
 
