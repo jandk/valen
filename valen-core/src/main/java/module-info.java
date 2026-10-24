@@ -2,7 +2,6 @@ module valen.core {
     requires be.twofold.tinybcdec;
     requires java.logging;
     requires java.net.http;
-    requires org.jetbrains.annotations;
     requires org.slf4j;
     requires transitive wtf.reversed.toolbox;
 
@@ -24,10 +23,12 @@ module valen.core {
     exports be.twofold.valen.core.util.logging;
     exports be.twofold.valen.core.util;
 
-    uses be.twofold.valen.core.audio.AudioDecoder;
+    uses be.twofold.valen.core.audio.AudioConverter;
     uses be.twofold.valen.core.export.Exporter;
     uses be.twofold.valen.core.game.GameFactory;
 
-    provides be.twofold.valen.core.export.Exporter
-        with be.twofold.valen.core.export.RawExporter;
+    provides be.twofold.valen.core.export.Exporter with
+        be.twofold.valen.core.export.RawExporter,
+        be.twofold.valen.core.audio.export.NativeAudioExporter,
+        be.twofold.valen.core.audio.export.WavExporter;
 }

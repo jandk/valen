@@ -107,7 +107,6 @@ public enum TextureFormat {
                  B8G8R8A8_UNORM, B8G8R8A8_SRGB,
                  R10G10B10A2_UNORM,
                  R16G16B16A16_UNORM, R16G16B16A16_SFLOAT,
-                 BC1_UNORM, BC1_SRGB,
                  BC1A_UNORM, BC1A_SRGB,
                  BC2_UNORM, BC2_SRGB,
                  BC3_UNORM, BC3_SRGB,

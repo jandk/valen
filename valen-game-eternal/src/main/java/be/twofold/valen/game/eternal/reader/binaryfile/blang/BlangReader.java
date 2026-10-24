@@ -21,7 +21,7 @@ public final class BlangReader implements AssetReader.Binary<Blang, EternalAsset
     @Override
     public boolean canRead(EternalAsset asset) {
         return asset.id().type() == ResourceType.BinaryFile
-            && asset.id().extension().equals("blang");
+            && asset.id().path().extension().equals("blang");
     }
 
     @Override

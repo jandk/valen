@@ -15,11 +15,14 @@ import be.twofold.valen.game.eternal.reader.md6model.*;
 import be.twofold.valen.game.eternal.reader.md6skel.*;
 import be.twofold.valen.game.eternal.reader.packagemapspec.*;
 import be.twofold.valen.game.eternal.reader.staticmodel.*;
+import be.twofold.valen.game.idtech.game.*;
+import be.twofold.valen.game.idtech.reader.mask.*;
 import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 import java.nio.file.*;
 import java.util.*;
+import java.util.stream.*;
 
 public final class EternalGame implements Game {
     private static final DeclReader DECL_READER = new DeclReader();
@@ -41,31 +44,53 @@ public final class EternalGame implements Game {
         new RenderParmReader(),
         new StaticModelReader(true)
     );
+    private static final String SOUNDBANK_NAME = "sound/soundbanks/pc";
 
     private final Path base;
     private final PackageMapSpec spec;
     private final StreamDbIndex streamDbIndex;
     private final ResourcesIndex commonResources;
     private final Decompressors decompressors;
+    private final ContainerMask masks;
 
     EternalGame(Path path) throws IOException {
         this.base = path.resolve("base");
         this.spec = PackageMapSpecReader.read(base.resolve("packagemapspec.json"));
-        this.streamDbIndex = loadStreamDbIndex(base, spec);
-        this.commonResources = ResourcesIndex.build(filterResources(spec, "common", "warehouse"));
         this.decompressors = new Decompressors(path.resolve("oo2core_8_win64.dll"));
+        this.masks = readMasks();
+        this.streamDbIndex = loadStreamDbIndex(base, spec);
+        this.commonResources = ResourcesIndex.build(filterResources(spec, "common", "warehouse"), masks);
+    }
+
+    private ContainerMask readMasks() throws IOException {
+        var metaResources = ResourcesIndex.build(List.of(base.resolve("meta.resources")), ContainerMask.empty());
+        try (var metaStorageManager = new StorageManager(metaResources.sources(), Set.of(), decompressors)) {
+            var metaLoader = new AssetLoader(Archive.of(metaResources.assets()), metaStorageManager, List.of());
+            return ContainerMask.load(metaLoader, IdTechGame.ETERNAL);
+        }
     }
 
     @Override
     public List<String> archiveNames() {
-        return spec.maps().stream()
+        var names = spec.maps().stream()
             .filter(map -> spec.mapFiles().get(map).stream()
                 .anyMatch(file -> file.endsWith(".resources")))
-            .toList();
+            .collect(Collectors.toList());
+        names.add(SOUNDBANK_NAME);
+        return names;
     }
 
+    @Override
     public AssetLoader open(String name) throws IOException {
-        var loadedResources = ResourcesIndex.build(filterResources(spec, name));
+        if (!name.equals(SOUNDBANK_NAME)) {
+            return openArchive(name);
+        } else {
+            return openSoundbank();
+        }
+    }
+
+    private AssetLoader openArchive(String name) throws IOException {
+        var loadedResources = ResourcesIndex.build(filterResources(spec, name), masks);
 
         var archive = Archive.layered(
             Archive.of(loadedResources.assets()),
@@ -84,6 +109,11 @@ public final class EternalGame implements Game {
         );
 
         return new AssetLoader(archive, storageManager, List.copyOf(ASSET_READERS));
+    }
+
+    private AssetLoader openSoundbank() throws IOException {
+        var path = base.resolve(SOUNDBANK_NAME);
+        return SoundbankIndex.build(path, decompressors);
     }
 
     private StreamDbIndex loadStreamDbIndex(Path base, PackageMapSpec spec) throws IOException {

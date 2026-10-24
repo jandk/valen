@@ -11,7 +11,7 @@ import java.util.stream.*;
 
 public final class FileListPresenter extends AbstractPresenter<FileListView> implements FileListView.Listener {
 
-    private Map<String, List<Asset>> assetIndex = Map.of();
+    private Map<AssetPath, List<Asset>> assetIndex = Map.of();
     private final EventBus eventBus;
 
     @Inject
@@ -23,7 +23,7 @@ public final class FileListPresenter extends AbstractPresenter<FileListView> imp
     }
 
     @Override
-    public void onPathSelected(String path) {
+    public void onPathSelected(AssetPath path) {
         var assets = assetIndex.getOrDefault(path, List.of()).stream().sorted().toList();
         getView().setFilteredAssets(assets);
     }
@@ -34,12 +34,12 @@ public final class FileListPresenter extends AbstractPresenter<FileListView> imp
     }
 
     @Override
-    public void onPathExportRequested(String path, boolean recursive) {
+    public void onPathExportRequested(AssetPath path, boolean recursive) {
         eventBus.publish(new ExportRequested(path, recursive));
     }
 
     public void setAssets(Stream<? extends Asset> assets) {
-        assetIndex = assets.collect(Collectors.groupingBy(asset -> asset.id().pathName()));
+        assetIndex = assets.collect(Collectors.groupingBy(asset -> asset.id().path().parent()));
 
         getView().setFileTree(buildPathTree());
     }
@@ -48,28 +48,15 @@ public final class FileListPresenter extends AbstractPresenter<FileListView> imp
         var paths = new ArrayList<>(assetIndex.keySet());
         paths.sort(Comparator.naturalOrder());
 
-        var root = new PathNode<>(new PathCombo("", "root"), true);
+        var root = new PathNode<>(new PathCombo(AssetPath.ROOT, "root"), true);
         for (var path : paths) {
-            if (path.isBlank()) {
-                continue;
-            }
-
-            var indices = new ArrayList<Integer>();
-            indices.add(-1);
-            for (int i = 0; i < path.length(); i++) {
-                if (path.charAt(i) == '/') {
-                    indices.add(i);
-                }
-            }
-            indices.add(path.length());
+            var segments = path.segments();
 
             var node = root;
-            for (var i = 0; i < indices.size() - 1; i++) {
-                var part = path.substring(indices.get(i) + 1, indices.get(i + 1));
-                node = node.get(
-                    new PathCombo(path.substring(0, indices.get(i + 1)), part),
-                    i == indices.size() - 2
-                );
+            var current = AssetPath.ROOT;
+            for (var i = 0; i < segments.size(); i++) {
+                current = current.resolve(segments.get(i));
+                node = node.get(new PathCombo(current, segments.get(i)), i == segments.size() - 1);
             }
         }
         return root;

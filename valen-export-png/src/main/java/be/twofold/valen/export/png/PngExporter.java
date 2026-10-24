@@ -2,6 +2,7 @@ package be.twofold.valen.export.png;
 
 import be.twofold.valen.core.export.*;
 import be.twofold.valen.core.texture.*;
+import be.twofold.valen.core.util.*;
 import be.twofold.valen.format.png.*;
 
 import java.io.*;
@@ -88,7 +89,7 @@ public final class PngExporter extends TextureExporter {
         }
 
         // TODO: How to handle closing the output stream?
-        new PngOutputStream(out, format).writeImage(data);
+        new PngOutputStream(out, format, Valen.software()).writeImage(data);
     }
 
     private PngFormat mapPngFormat(Texture texture) {

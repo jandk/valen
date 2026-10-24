@@ -6,7 +6,6 @@ module valen.ui {
     requires javafx.controls;
     requires javafx.graphics;
     requires jfx.incubator.richtext;
-    requires org.jetbrains.annotations;
     requires org.slf4j;
     requires valen.core;
 

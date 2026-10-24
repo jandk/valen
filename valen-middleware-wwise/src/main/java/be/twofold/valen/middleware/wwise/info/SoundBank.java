@@ -40,7 +40,7 @@ public record SoundBank(
                         includedMemoryFiles = InfoXmlReader.readList(reader, "IncludedMemoryFiles", "File", MediaFile::read);
                     case "ExcludedMemoryFiles" ->
                         excludedMemoryFiles = InfoXmlReader.readList(reader, "ExcludedMemoryFiles", "File", MediaFile::read);
-                    default -> throw new XMLStreamException("Unknown element in SoundBank: " + reader.getLocalName());
+                    default -> InfoXmlReader.skipElement(reader);
                 }
             } else if (event == XMLStreamConstants.END_ELEMENT && reader.getLocalName().equals("SoundBank")) {
                 break;

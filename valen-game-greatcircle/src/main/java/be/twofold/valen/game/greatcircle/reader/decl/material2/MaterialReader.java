@@ -2,12 +2,13 @@ package be.twofold.valen.game.greatcircle.reader.decl.material2;
 
 import be.twofold.valen.game.greatcircle.*;
 import be.twofold.valen.game.greatcircle.reader.decl.*;
-import be.twofold.valen.game.greatcircle.resource.*;
-import be.twofold.valen.game.idtech.material.*;
+import be.twofold.valen.game.greatcircle.resource.ResourceType;
+import be.twofold.valen.game.idtech.game.*;
+import be.twofold.valen.game.idtech.reader.decl.material2.*;
 
 public final class MaterialReader extends AbstractMaterialReader<GreatCircleAssetID, GreatCircleAsset> {
     public MaterialReader(DeclReader declReader) {
-        super(declReader, true);
+        super(declReader, IdTechGame.GREAT_CIRCLE);
     }
 
     @Override
@@ -17,7 +18,7 @@ public final class MaterialReader extends AbstractMaterialReader<GreatCircleAsse
 
     @Override
     public String materialName(GreatCircleAsset asset) {
-        return asset.id().fullName().replace(".decl", "");
+        return asset.id().path().withoutExtension().toString();
     }
 
     @Override

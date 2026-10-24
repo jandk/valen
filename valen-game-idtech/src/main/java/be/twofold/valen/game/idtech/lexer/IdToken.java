@@ -83,6 +83,10 @@ public record IdToken(
         }
     }
 
+    public boolean isPunctuation(LexerPunctuation punctuation) {
+        return type == TT_PUNCTUATION && subtype == punctuation.ordinal();
+    }
+
     private long parseIpAddress() {
         int p = 0;
         int c = 0;

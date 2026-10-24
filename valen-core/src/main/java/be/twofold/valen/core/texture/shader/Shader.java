@@ -69,15 +69,14 @@ public final class Shader {
         for (int i = 1; i < binds.length; i++) {
             var s = binds[i].surface();
             Check.argument(
-                first.width() == s.width() && first.height() == s.height() &&
-                    first.depth() == s.depth() && first.format() == s.format(),
-                "All surfaces must be the same size and format");
+                first.width() == s.width() && first.height() == s.height() && first.depth() == s.depth(),
+                "All surfaces must be the same size");
         }
 
-        var unpackers = Arrays.stream(binds).collect(Collectors.toMap(
-            SourceNode.Bind::source,
-            bind -> TileUnpacker.forSurface(bind.surface(), TILE_SIZE)
-        ));
+        var unpackers = new IdentityHashMap<SourceNode, TileUnpacker>();
+        for (var bind : binds) {
+            unpackers.put(bind.source(), TileUnpacker.forSurface(bind.surface(), TILE_SIZE));
+        }
 
         var target = Surface.create(first.width(), first.height(), first.depth(), format);
         var packer = TilePacker.forSurface(target);

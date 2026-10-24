@@ -1,0 +1,31 @@
+//------------------------------------------------
+//--- 010 Editor v16.0.4 Binary Template
+//
+//      File: codebooks.bin.bt
+//   Authors: Jan DK
+//   Version: 0.1
+//   Purpose: Format for merged codebooks.bin file
+//  Category: Misc
+// File Mask: *.bin
+//  ID Bytes: 43 44 42 4B
+//------------------------------------------------
+BigEndian();
+struct Header {
+    char   magic[4];
+    Assert(magic == "CDBK");
+    ushort version <format=hex>;
+    ushort libraryCount;
+    ushort codebookCount;
+} header <style=sHeading1>;
+
+struct Library {
+    ushort nameLength;
+    char   name[nameLength];
+    ushort indexCount;
+    ushort index[indexCount] <style=sData>;
+} libraries[header.libraryCount] <style=sHeading2, optimize=false>;
+
+struct Codebook {
+    ushort bitCount;
+    ubyte  data[(bitCount + 7) / 8] <style=sData>;
+} codebooks[header.codebookCount] <style=sHeading3, optimize=false>;

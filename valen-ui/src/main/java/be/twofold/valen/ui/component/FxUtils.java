@@ -7,8 +7,6 @@ import javafx.scene.control.*;
 import javafx.scene.image.*;
 import javafx.scene.layout.*;
 
-import java.io.*;
-
 public final class FxUtils {
 
     /**
@@ -40,15 +38,11 @@ public final class FxUtils {
             var alert = new Alert(Alert.AlertType.ERROR, "An error occurred");
             alert.getDialogPane().getStylesheets().add(MainWindow.class.getResource("/style.css").toExternalForm());
             alert.setHeaderText(text);
-            alert.setContentText(throwable.getMessage());
-
-            var sw = new StringWriter();
-            var pw = new PrintWriter(sw);
-            throwable.printStackTrace(pw);
+            alert.setContentText(Throwables.getMessage(throwable));
 
             var label = new Label("This is the stacktrace");
 
-            var textArea = new TextArea(sw.toString());
+            var textArea = new TextArea(Throwables.getStackTrace(throwable));
             textArea.setEditable(false);
             textArea.setWrapText(false);
 

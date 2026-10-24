@@ -5,7 +5,7 @@
     <parent>
         <groupId>be.twofold</groupId>
         <artifactId>valen</artifactId>
-        <version>0.3.3-SNAPSHOT</version>
+        <version>0.3.4-SNAPSHOT</version>
     </parent>
 
     <artifactId>valen-app</artifactId>
@@ -38,10 +38,6 @@
         </dependency>
         <dependency>
             <groupId>be.twofold</groupId>
-            <artifactId>valen-export-wav</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>be.twofold</groupId>
             <artifactId>valen-game-darkages</artifactId>
         </dependency>
         <dependency>
@@ -66,12 +62,6 @@
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-jdk14</artifactId>
             <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.postgresql</groupId>
-            <artifactId>postgresql</artifactId>
-            <version>42.7.9</version>
-            <scope>provided</scope>
         </dependency>
     </dependencies>
 
@@ -108,8 +98,7 @@
                 <configuration>
                     <!-- Generic options -->
                     <type>APP_IMAGE</type>
-                    <!-- <appVersion>${project.version}</appVersion> -->
-                    <appVersion>1.0</appVersion>
+                    <appVersion>${project.version}</appVersion>
                     <!-- TODO: copyright? -->
                     <description>A video game resource extractor</description>
                     <icon>valen.ico</icon>

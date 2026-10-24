@@ -1,9 +1,8 @@
 package be.twofold.valen.game.greatcircle.reader.decl;
 
 import be.twofold.valen.game.greatcircle.*;
-import be.twofold.valen.game.greatcircle.reader.resources.*;
 import be.twofold.valen.game.greatcircle.resource.*;
-import be.twofold.valen.game.idtech.decl.*;
+import be.twofold.valen.game.idtech.reader.decl.*;
 
 import java.util.*;
 
@@ -19,6 +18,6 @@ public final class DeclReader extends AbstractDeclReader<GreatCircleAssetID, Gre
 
     @Override
     public GreatCircleAssetID getAssetID(String name, GreatCircleAssetID baseAssetID) {
-        return new GreatCircleAssetID(new ResourceName(name), baseAssetID.type(), ResourcesVariation.RES_VAR_NONE);
+        return GreatCircleAssetID.from(name, baseAssetID.type());
     }
 }

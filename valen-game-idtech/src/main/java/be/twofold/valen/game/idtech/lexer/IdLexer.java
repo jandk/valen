@@ -17,6 +17,7 @@ public final class IdLexer {
     private final String name;
     private final SourceCursor cursor;
     private final Set<LexerFlags> flags;
+    private int lastMark;
 
     public IdLexer(String source, LexerFlags... flags) {
         this("<memory>", source, flags);
@@ -29,22 +30,59 @@ public final class IdLexer {
         this.flags.addAll(Arrays.asList(flags));
     }
 
-    public boolean checkTokenType(TokenType type, int subtype) {
-        var token = peekToken();
-        if (token == null || token.type() != type) {
-            return false;
-        }
-
-        // MISSING: BFG consumes after match
-        return switch (type) {
-            case TT_NUMBER -> (token.subtype() & subtype) == subtype;
-            case TT_PUNCTUATION -> token.subtype() == subtype;
-            default -> true;
-        };
-    }
-
     public boolean checkPunctuation(LexerPunctuation punctuation) {
         return checkTokenType(TokenType.TT_PUNCTUATION, punctuation.ordinal());
+    }
+
+    public boolean checkTokenString(String string) {
+        IdToken token = readToken();
+        if (token == null) {
+            return false;
+        }
+        if (!token.value().equals(string)) {
+            unreadToken();
+            return false;
+        }
+        return true;
+    }
+
+    public boolean checkTokenType(TokenType type, int subtype) {
+        IdToken token = readToken();
+        if (token == null) {
+            return false;
+        }
+        if (!matches(token, type, subtype)) {
+            unreadToken();
+            return false;
+        }
+        return true;
+    }
+
+    public IdToken expectAnyToken() {
+        var token = readToken();
+        if (token == null) {
+            throw error("couldn't read expected token");
+        }
+        return token;
+    }
+
+    public IdToken expectName() {
+        return expectTokenType(TokenType.TT_NAME, 0);
+    }
+
+    public IdToken expectPunctuation(LexerPunctuation punctuation) {
+        return expectTokenType(TokenType.TT_PUNCTUATION, punctuation.ordinal());
+    }
+
+    public IdToken expectTokenString(String string) {
+        IdToken token = readToken();
+        if (token == null) {
+            throw error("couldn't find expected '" + string + "'");
+        }
+        if (!token.value().equals(string)) {
+            throw error("expected '" + string + "' but found '" + token.value() + "'");
+        }
+        return token;
     }
 
     public IdToken expectTokenType(TokenType type, int subtype) {
@@ -67,18 +105,89 @@ public final class IdLexer {
         return token;
     }
 
-    public IdToken expectPunctuation(LexerPunctuation punctuation) {
-        return expectTokenType(TokenType.TT_PUNCTUATION, punctuation.ordinal());
+    public boolean parseBool() {
+        IdToken token = readToken();
+        if (token != null) {
+            if (token.type() == TokenType.TT_NUMBER) {
+                return token.getLongValue() != 0;
+            }
+            if (token.type() == TokenType.TT_NAME) {
+                if (token.value().equals("false")) {
+                    return false;
+                }
+                if (token.value().equals("true")) {
+                    return true;
+                }
+            }
+        }
+        throw error("couldn't read expected boolean");
+    }
+
+    public float parseFloat() {
+        IdToken token = readToken();
+        if (token == null) {
+            throw error("couldn't read expected floating point number");
+        }
+        if (token.isPunctuation(P_DOLLAR)) {
+            // '$' is followed by the raw bits of a double, and then a readable value that is skipped
+            long bits = expectTokenType(TokenType.TT_NUMBER, 0).getLongValue();
+            IdToken readable = readToken();
+            if (readable == null) {
+                throw error("couldn't read expected floating point number");
+            }
+            if (readable.isPunctuation(P_SUB)) {
+                expectTokenType(TokenType.TT_NUMBER, 0);
+            } else if (readable.type() != TokenType.TT_NUMBER) {
+                throw error("expected float value, found '" + readable.value() + "'");
+            }
+            return (float) Double.longBitsToDouble(bits);
+        }
+        if (token.isPunctuation(P_SUB)) {
+            return -expectTokenType(TokenType.TT_NUMBER, 0).getFloatValue();
+        }
+        if (token.type() != TokenType.TT_NUMBER) {
+            throw error("expected float value, found '" + token.value() + "'");
+        }
+        return token.getFloatValue();
+    }
+
+    public int parseInt() {
+        IdToken token = readToken();
+        if (token == null) {
+            throw error("couldn't read expected integer");
+        }
+        if (token.isPunctuation(P_SUB)) {
+            return -expectTokenType(TokenType.TT_NUMBER, TT_INTEGER).getIntValue();
+        }
+        // The engine only rejects a plain TT_FLOAT subtype, so other floats are truncated
+        if (token.type() != TokenType.TT_NUMBER || token.subtype() == TT_FLOAT) {
+            throw error("expected integer value, found '" + token.value() + "'");
+        }
+        return token.getIntValue();
+    }
+
+    public boolean peekPunctuation(LexerPunctuation punctuation) {
+        return peekTokenType(TokenType.TT_PUNCTUATION, punctuation.ordinal());
     }
 
     public IdToken peekToken() {
-        int mark = cursor.mark();
         IdToken token = readToken();
-        cursor.reset(mark);
+        unreadToken();
         return token;
     }
 
+    public boolean peekTokenString(String string) {
+        IdToken token = peekToken();
+        return token != null && token.value().equals(string);
+    }
+
+    public boolean peekTokenType(TokenType type, int subtype) {
+        IdToken token = peekToken();
+        return token != null && matches(token, type, subtype);
+    }
+
     public IdToken readToken() {
+        lastMark = cursor.mark();
         if (cursor.isAtEnd()) {
             return null;
         }
@@ -114,106 +223,8 @@ public final class IdLexer {
         }
     }
 
-    IdToken readString(char quote) {
-        var type = quote == '"' ? TokenType.TT_STRING : TokenType.TT_LITERAL;
-        var sb = new StringBuilder();
-
-        cursor.startLexeme();
-        cursor.advance(); // skip leading quote
-
-        while (true) {
-            char c = cursor.peek();
-            if (c == '\\' && !has(LEXFL_NOSTRINGESCAPECHARS)) {
-                if (has(LEXFL_NOEMITSTRINGESCAPECHARS)) {
-                    sb.append('\\');
-                }
-                sb.append(readEscapeCharacter());
-            } else if (c == quote) {
-                cursor.advance(); // step over the quote
-                if (has(LEXFL_NOSTRINGCONCAT)) {
-                    // MISSING: backslash string concat
-                    break;
-                }
-
-                // consecutive strings are yuck
-                int mark = cursor.mark();
-                if (!skipWhiteSpace(false) || cursor.peek() != quote) {
-                    cursor.reset(mark);
-                    break;
-                }
-                cursor.advance();
-            } else if (c == SourceCursor.EOF) {
-                throw error("missing trailing quote");
-            } else if (c == '\n') {
-                throw error("newline inside string");
-            } else {
-                sb.append(cursor.advance());
-            }
-        }
-
-        // strings keep subtype 0 since Dark Ages, earlier engines store the length there
-        var value = sb.toString();
-        int subtype = 0;
-        if (type == TokenType.TT_LITERAL) {
-            if (!has(LEXFL_ALLOWMULTICHARLITERALS) && value.length() != 1) {
-                warning("literal is not one character long");
-            }
-            subtype = value.isEmpty() ? 0 : value.charAt(0);
-        }
-
-        return new IdToken(
-            type,
-            subtype,
-            value,
-            cursor.lexemeLine(),
-            cursor.lexemeColumn()
-        );
-    }
-
-    private char readEscapeCharacter() {
-        cursor.advance(); // skip leading '\\'
-
-        if (has(LEXFL_NOEMITSTRINGESCAPECHARS)) {
-            return cursor.advance();
-        }
-
-        if (Ascii.isDigit(cursor.peek())) {
-            int value = 0;
-            while (Ascii.isDigit(cursor.peek())) {
-                value = value * 10 + Ascii.toDigit(cursor.advance());
-            }
-            if (value > 0xFF) {
-                warning("too large value in escape character");
-                value = 0xFF;
-            }
-            return (char) value;
-        }
-
-        return switch (cursor.advance()) {
-            case '\\' -> '\\';
-            case 'n' -> '\n';
-            case 'r' -> '\r';
-            case 't' -> '\t';
-            case 'v' -> '\u000B';
-            case 'b' -> '\b';
-            case 'f' -> '\f';
-            case 'a' -> '\u0007';
-            case '\'' -> '\'';
-            case '\"' -> '\"';
-            case '?' -> '?';
-            case 'x' -> {
-                int val = 0;
-                while (Ascii.isAlNum(cursor.peek())) { // Yuck
-                    val = val * 16 + Ascii.toDigit(cursor.advance());
-                }
-                if (val > 0xFF) {
-                    warning("too large value in escape character");
-                    val = 0xFF;
-                }
-                yield (char) val;
-            }
-            default -> throw error("unknown escape char");
-        };
+    public void unreadToken() {
+        cursor.reset(lastMark);
     }
 
     IdToken readName() {
@@ -230,14 +241,6 @@ public final class IdLexer {
             cursor.lexemeLine(),
             cursor.lexemeColumn()
         );
-    }
-
-    private boolean isNameChar(int c) {
-        return Ascii.isWord(c)
-            || (has(LEXFL_ONLYSTRINGS) && c == '-')
-            // MISSING: '@' for idTech 5
-            || (has(LEXFL_ALLOWPATHNAMES) && (c == '/' || c == '\\' || c == ':' || c == '.' || c == '$'))
-            || (has(LEXFL_ALLOWWILDCARD) && c == '*');
     }
 
     IdToken readNumber() {
@@ -348,31 +351,9 @@ public final class IdLexer {
         );
     }
 
-    private IdToken readRawStringBlock() {
-        cursor.skip(2); // skip leading <%
-        cursor.startLexeme();
-
-        while (!cursor.check("%>")) {
-            if (cursor.isAtEnd()) {
-                throw error("missing trailing identifier");
-            }
-            cursor.advance();
-        }
-
-        var value = cursor.lexeme();
-        cursor.skip(2);
-        return new IdToken(
-            TokenType.TT_STRING,
-            0x40000,
-            value,
-            cursor.lexemeLine(),
-            cursor.lexemeColumn()
-        );
-    }
-
     IdToken readPunctuation() {
         cursor.startLexeme();
-        var punctuation = matchPunctuation();
+        LexerPunctuation punctuation = matchPunctuation();
         if (punctuation == null) {
             throw error("unknown punctuation");
         }
@@ -385,6 +366,99 @@ public final class IdLexer {
             cursor.lexemeLine(),
             cursor.lexemeColumn()
         );
+    }
+
+    IdToken readString(char quote) {
+        TokenType type = quote == '"' ? TokenType.TT_STRING : TokenType.TT_LITERAL;
+        StringBuilder sb = new StringBuilder();
+
+        cursor.startLexeme();
+        cursor.advance(); // skip leading quote
+
+        while (true) {
+            char c = cursor.peek();
+            if (c == '\\' && !has(LEXFL_NOSTRINGESCAPECHARS)) {
+                if (has(LEXFL_NOEMITSTRINGESCAPECHARS)) {
+                    sb.append('\\');
+                }
+                sb.append(readEscapeCharacter());
+            } else if (c == quote) {
+                cursor.advance(); // step over the quote
+                if (has(LEXFL_NOSTRINGCONCAT)) {
+                    // MISSING: backslash string concat
+                    break;
+                }
+
+                // consecutive strings are yuck
+                int mark = cursor.mark();
+                if (!skipWhiteSpace(false) || cursor.peek() != quote) {
+                    cursor.reset(mark);
+                    break;
+                }
+                cursor.advance();
+            } else if (c == SourceCursor.EOF) {
+                throw error("missing trailing quote");
+            } else if (c == '\n') {
+                throw error("newline inside string");
+            } else {
+                sb.append(cursor.advance());
+            }
+        }
+
+        // strings keep subtype 0 since Dark Ages, earlier engines store the length there
+        String value = sb.toString();
+        int subtype = 0;
+        if (type == TokenType.TT_LITERAL) {
+            if (!has(LEXFL_ALLOWMULTICHARLITERALS) && value.length() != 1) {
+                warning("literal is not one character long");
+            }
+            subtype = value.isEmpty() ? 0 : value.charAt(0);
+        }
+
+        return new IdToken(
+            type,
+            subtype,
+            value,
+            cursor.lexemeLine(),
+            cursor.lexemeColumn()
+        );
+    }
+
+    boolean readWhiteSpace() {
+        return skipWhiteSpace(false);
+    }
+
+    private LexerException error(String message) {
+        // MISSING: LEXFL_NOFATALERRORS handling
+        // MISSING: LEXFL_REPORT_MULTIPLE_ERRORS handling
+        return new LexerException(name + " (" + cursor.line() + ":" + cursor.column() + "): " + message);
+    }
+
+    private boolean has(LexerFlags flag) {
+        return flags.contains(flag);
+    }
+
+    private boolean isNameChar(int c) {
+        return Ascii.isWord(c)
+            || (has(LEXFL_ONLYSTRINGS) && c == '-')
+            // MISSING: '@' for idTech 5
+            || (has(LEXFL_ALLOWPATHNAMES) && (c == '/' || c == '\\' || c == ':' || c == '.' || c == '$'))
+            || (has(LEXFL_ALLOWWILDCARD) && c == '*');
+    }
+
+    private boolean isWhitespace(int cp) {
+        return cp != '\0' && (cp <= 0x20 || cp >= 0x80);
+    }
+
+    private boolean matches(IdToken token, TokenType type, int subtype) {
+        if (token.type() != type) {
+            return false;
+        }
+        return switch (type) {
+            case TT_NUMBER -> (token.subtype() & subtype) == subtype;
+            case TT_PUNCTUATION -> token.subtype() == subtype;
+            default -> true;
+        };
     }
 
     private LexerPunctuation matchPunctuation() {
@@ -453,8 +527,72 @@ public final class IdLexer {
         // @formatter:on
     }
 
-    boolean readWhiteSpace() {
-        return skipWhiteSpace(false);
+    private char readEscapeCharacter() {
+        cursor.advance(); // skip leading '\\'
+
+        if (has(LEXFL_NOEMITSTRINGESCAPECHARS)) {
+            return cursor.advance();
+        }
+
+        if (Ascii.isDigit(cursor.peek())) {
+            int value = 0;
+            while (Ascii.isDigit(cursor.peek())) {
+                value = value * 10 + Ascii.toDigit(cursor.advance());
+            }
+            if (value > 0xFF) {
+                warning("too large value in escape character");
+                value = 0xFF;
+            }
+            return (char) value;
+        }
+
+        return switch (cursor.advance()) {
+            case '\\' -> '\\';
+            case 'n' -> '\n';
+            case 'r' -> '\r';
+            case 't' -> '\t';
+            case 'v' -> '\u000B';
+            case 'b' -> '\b';
+            case 'f' -> '\f';
+            case 'a' -> '\u0007';
+            case '\'' -> '\'';
+            case '\"' -> '\"';
+            case '?' -> '?';
+            case 'x' -> {
+                int val = 0;
+                while (Ascii.isAlNum(cursor.peek())) { // Yuck
+                    val = val * 16 + Ascii.toDigit(cursor.advance());
+                }
+                if (val > 0xFF) {
+                    warning("too large value in escape character");
+                    val = 0xFF;
+                }
+                yield (char) val;
+            }
+            default -> throw error("unknown escape char");
+        };
+    }
+
+    private IdToken readRawStringBlock() {
+        cursor.skip(2); // skip leading <%
+        cursor.startLexeme();
+
+        while (!cursor.check("%>")) {
+            if (cursor.isAtEnd()) {
+                throw error("missing trailing identifier");
+            }
+            cursor.advance();
+        }
+
+        String value = cursor.lexeme();
+        cursor.skip(2);
+        return new IdToken(
+            TokenType.TT_STRING,
+            0x40000,
+            value,
+            cursor.lexemeLine(),
+            cursor.lexemeColumn()
+        );
     }
 
     private boolean skipWhiteSpace(boolean currentLine) {
@@ -494,23 +632,9 @@ public final class IdLexer {
         }
     }
 
-    private boolean has(LexerFlags flag) {
-        return flags.contains(flag);
-    }
-
-    private boolean isWhitespace(int cp) {
-        return cp != '\0' && (cp <= 0x20 || cp >= 0x80);
-    }
-
     private void warning(String message) {
         if (!has(LEXFL_NOWARNINGS)) {
             log.warn("{} ({}:{}): {}", name, cursor.line(), cursor.column(), message);
         }
-    }
-
-    private LexerException error(String message) {
-        // MISSING: LEXFL_NOFATALERRORS handling
-        // MISSING: LEXFL_REPORT_MULTIPLE_ERRORS handling
-        return new LexerException(name + " (" + cursor.line() + ":" + cursor.column() + "): " + message);
     }
 }

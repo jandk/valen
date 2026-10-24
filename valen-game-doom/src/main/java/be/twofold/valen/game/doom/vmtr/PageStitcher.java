@@ -38,9 +38,7 @@ public final class PageStitcher {
         if (layer != VmtrLayer.COLORMASK && layer != VmtrLayer.COVER) {
             throw new IOException("No level holds the " + layer + " layer of " + entry.name());
         }
-        return Surface
-            .create(rect.width(), rect.height(), 1, layer.format())
-            .toTexture();
+        return Texture.fromSurface(Surface.create(rect.width(), rect.height(), 1, layer.format()));
     }
 
     private OptionalInt finestLevel(Rect rect, VmtrLayer layer) throws IOException {
@@ -78,7 +76,7 @@ public final class PageStitcher {
         } catch (UncheckedIOException e) {
             throw e.getCause();
         }
-        return target.toTexture();
+        return Texture.fromSurface(target);
     }
 
     private void copyTile(Rect rect, VmtrLayer layer, int level, int index, Surface target) {

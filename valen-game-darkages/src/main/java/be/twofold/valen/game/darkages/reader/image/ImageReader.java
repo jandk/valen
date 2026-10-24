@@ -7,13 +7,13 @@ import be.twofold.valen.core.util.*;
 import be.twofold.valen.game.darkages.*;
 import be.twofold.valen.game.darkages.reader.*;
 import be.twofold.valen.game.darkages.reader.resources.*;
-import be.twofold.valen.game.idtech.defines.*;
+import be.twofold.valen.game.idtech.reader.image.*;
+import be.twofold.valen.game.idtech.reader.image.TextureFormat;
 import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 import java.lang.invoke.*;
 import java.util.*;
-import java.util.function.*;
 
 public final class ImageReader implements AssetReader.Binary<Texture, DarkAgesAsset> {
     private final boolean readStreams;
@@ -103,7 +103,7 @@ public final class ImageReader implements AssetReader.Binary<Texture, DarkAgesAs
 
         var scale = image.header().albedoSpecularScale();
         var bias = image.header().albedoSpecularBias();
-        UnaryOperator<ShaderNode> scaleAndBias = node -> ShaderNode.scaleAndBias(node, scale, bias);
+        var scaleAndBias = ShaderNode.scaleAndBias(scale, bias);
 
         return new Texture(format, kind, width, height, depthOrLayers, surfaces, scaleAndBias);
     }
@@ -129,7 +129,7 @@ public final class ImageReader implements AssetReader.Binary<Texture, DarkAgesAs
         return List.copyOf(surfaces);
     }
 
-    private be.twofold.valen.core.texture.TextureFormat toImageFormat(be.twofold.valen.game.idtech.defines.TextureFormat format) {
+    private be.twofold.valen.core.texture.TextureFormat toImageFormat(TextureFormat format) {
         // I might not be sure about all these mappings, but it's a start
         return switch (format) {
             case FMT_ALPHA, FMT_R8 -> be.twofold.valen.core.texture.TextureFormat.R8_UNORM;

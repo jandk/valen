@@ -5,7 +5,7 @@
     <parent>
         <groupId>be.twofold</groupId>
         <artifactId>valen</artifactId>
-        <version>0.3.3-SNAPSHOT</version>
+        <version>0.3.4-SNAPSHOT</version>
     </parent>
 
     <artifactId>valen-ui</artifactId>
@@ -33,10 +33,6 @@
         <dependency>
             <groupId>jakarta.inject</groupId>
             <artifactId>jakarta.inject-api</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.jetbrains</groupId>
-            <artifactId>annotations</artifactId>
         </dependency>
         <dependency>
             <groupId>org.openjfx</groupId>

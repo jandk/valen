@@ -30,6 +30,13 @@ public sealed interface ShaderNode permits MergeNode, OperationNode, SourceNode 
         return new OperationNode(input, Operation.scaleAndBias(scale, bias));
     }
 
+    static UnaryOperator<ShaderNode> scaleAndBias(float scale, float bias) {
+        if (scale == 1.0f && bias == 0.0f) {
+            return UnaryOperator.identity();
+        }
+        return node -> scaleAndBias(node, scale, bias);
+    }
+
     static ShaderNode reconstructZ(ShaderNode input) {
         return new OperationNode(input, Operation.reconstructZ());
     }

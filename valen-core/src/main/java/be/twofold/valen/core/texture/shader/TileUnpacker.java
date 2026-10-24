@@ -7,6 +7,8 @@ import wtf.reversed.toolbox.collect.*;
 import wtf.reversed.toolbox.math.*;
 
 import java.nio.*;
+import java.util.*;
+import java.util.concurrent.*;
 import java.util.function.*;
 
 @FunctionalInterface
@@ -277,25 +279,22 @@ interface TileUnpacker {
         private static final int BYTES_PER_PIXEL = 4 * Float.BYTES;
         private static final int BLOCK_HEIGHT = 4;
         private static final int MAX_SCRATCH_SIZE = 64 * 1024;
+        private static final Queue<ByteBuffer> SCRATCH = new ConcurrentLinkedQueue<>();
 
-        private final ThreadLocal<Decoder> decoders;
+        private final Supplier<BlockDecoder> factory;
         private final Surface source;
+        private final int bandHeight;
 
         Compressed(Surface source, int tileSize) {
-            this(source, tileSize, MAX_SCRATCH_SIZE);
-        }
-
-        Compressed(Surface source, int tileSize, int maxScratchSize) {
-            var factory = decoderFactory(source.format());
             var maxWidth = Math.min(tileSize, source.width());
             var maxHeight = Math.min(tileSize, source.height());
-            var bandHeight = Math.min(maxHeight, bandHeight(maxWidth, maxScratchSize));
-            this.decoders = ThreadLocal.withInitial(() -> new Decoder(factory.get(), source, maxWidth, bandHeight));
+            this.factory = decoderFactory(source.format());
             this.source = source;
+            this.bandHeight = Math.min(maxHeight, bandHeight(maxWidth));
         }
 
-        private static int bandHeight(int width, int maxScratchSize) {
-            var rows = maxScratchSize / (width * BYTES_PER_PIXEL);
+        private static int bandHeight(int width) {
+            var rows = MAX_SCRATCH_SIZE / (width * BYTES_PER_PIXEL);
             return rows < BLOCK_HEIGHT
                 ? Math.max(rows, 1)
                 : rows - rows % BLOCK_HEIGHT;
@@ -320,7 +319,19 @@ interface TileUnpacker {
 
         @Override
         public void unpack(Context ctx, float[] dst) {
-            decoders.get().decode(source, ctx, dst);
+            var scratch = SCRATCH.poll();
+            if (scratch == null) {
+                scratch = ByteBuffer
+                    .allocate(MAX_SCRATCH_SIZE)
+                    .order(ByteOrder.LITTLE_ENDIAN);
+            }
+            try {
+                new Decoder(factory.get(), source, scratch, bandHeight)
+                    .decode(source, ctx, dst);
+            } finally {
+                SCRATCH.offer(scratch);
+            }
+
             if (source.format().isSrgb()) {
                 for (var i = 0; i < ctx.pixelCount() * 4; i += 4) {
                     dst[i/**/] = Srgb.srgbToLinear(dst[i/**/]);
@@ -332,17 +343,16 @@ interface TileUnpacker {
         }
     }
 
+    // TODO: Decode straight into the tile once tinybcdec takes a FloatBuffer, and drop the scratch and banding
     final class Decoder {
         private final BlockDecoder decoder;
         private final ByteBuffer scratch;
         private final ByteBuffer src;
         private final int bandHeight;
 
-        Decoder(BlockDecoder decoder, Surface source, int maxWidth, int bandHeight) {
+        Decoder(BlockDecoder decoder, Surface source, ByteBuffer scratch, int bandHeight) {
             this.decoder = decoder;
-            this.scratch = ByteBuffer
-                .allocate(maxWidth * bandHeight * Compressed.BYTES_PER_PIXEL)
-                .order(ByteOrder.LITTLE_ENDIAN);
+            this.scratch = scratch;
             this.src = source.data() instanceof Bytes.Mutable mutable
                 ? mutable.asMutableBuffer()
                 : source.data().asBuffer();

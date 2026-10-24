@@ -57,6 +57,18 @@ public final class InfoXmlReader {
         return List.copyOf(items);
     }
 
+    static void skipElement(XMLStreamReader reader) throws XMLStreamException {
+        var depth = 1;
+        while (depth > 0) {
+            var event = reader.next();
+            if (event == XMLStreamConstants.START_ELEMENT) {
+                depth++;
+            } else if (event == XMLStreamConstants.END_ELEMENT) {
+                depth--;
+            }
+        }
+    }
+
     @FunctionalInterface
     interface ElementReader<T> {
         T read(XMLStreamReader reader) throws XMLStreamException;

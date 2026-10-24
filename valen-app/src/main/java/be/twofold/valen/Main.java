@@ -1,5 +1,6 @@
 package be.twofold.valen;
 
+import be.twofold.valen.core.util.*;
 import be.twofold.valen.core.util.Platform;
 import be.twofold.valen.core.util.logging.*;
 import be.twofold.valen.ui.*;
@@ -40,15 +41,10 @@ public final class Main {
     }
 
     private static void logStartup(Logger log, Path logDirectory) {
-        log.info("Valen {} starting up", version());
+        log.info("Valen {} starting up", Valen.version());
         log.info("  Platform : {} ({})", Platform.current(), System.getProperty("os.name"));
         log.info("  Java     : {} ({})", System.getProperty("java.version"), System.getProperty("java.vendor"));
         log.info("  Max heap : {} MiB", Runtime.getRuntime().maxMemory() >> 20);
         log.info("  Logs     : {}", logDirectory != null ? logDirectory : "(console only)");
-    }
-
-    private static String version() {
-        var version = Main.class.getPackage().getImplementationVersion();
-        return version != null ? version : "(development build)";
     }
 }

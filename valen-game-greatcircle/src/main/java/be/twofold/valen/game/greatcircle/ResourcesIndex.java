@@ -3,6 +3,7 @@ package be.twofold.valen.game.greatcircle;
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.game.greatcircle.reader.resources.*;
 import be.twofold.valen.game.greatcircle.resource.*;
+import be.twofold.valen.game.idtech.reader.mask.*;
 import org.slf4j.*;
 import wtf.reversed.toolbox.io.*;
 
@@ -21,7 +22,7 @@ record ResourcesIndex(
         assets = List.copyOf(assets);
     }
 
-    static ResourcesIndex build(List<Path> paths) throws IOException {
+    static ResourcesIndex build(List<Path> paths, ContainerMask masks) throws IOException {
         var sources = new HashMap<Path, BinarySource>();
         var assets = new ArrayList<GreatCircleAsset>();
         for (var path : paths) {
@@ -31,8 +32,11 @@ record ResourcesIndex(
             sources.put(path, source);
 
             var resources = Resources.read(source);
-            for (var entry : resources.entries()) {
-                if (entry.uncompressedSize() > 0) {
+            var entries = resources.entries();
+            var mask = masks.get(resources.hash(), entries.size());
+            for (var i = 0; i < entries.size(); i++) {
+                var entry = entries.get(i);
+                if (mask.get(i) && entry.uncompressedSize() > 0) {
                     assets.add(mapResourceEntry(resources, entry, path));
                 }
             }
@@ -45,9 +49,8 @@ record ResourcesIndex(
         var name = getString(resources, entry.strings() + entry.nameString());
         var type = getString(resources, entry.strings()/* + entry.typeString()*/);
 
-        var resourceName = new ResourceName(name);
         var resourceType = ResourceType.fromValue(type);
-        var resourceKey = new GreatCircleAssetID(resourceName, resourceType, entry.variation());
+        var resourceKey = new GreatCircleAssetID(name, resourceType, entry.variation());
 
         var location = new Location.FileSlice(
             path, entry.dataOffset(), Math.toIntExact(entry.dataSize())
@@ -71,7 +74,6 @@ record ResourcesIndex(
             resourceKey,
             finalLocation,
             entry.defaultHash(),
-            entry.dataCheckSum(),
             entry.version()
         );
     }

@@ -24,7 +24,7 @@ public final class Context {
         int x, int y, int z, int width, int height
     ) {
         this.pool = Check.nonNull(pool, "pool");
-        this.consumers = Map.copyOf(consumers);
+        this.consumers = new IdentityHashMap<>(consumers);
         this.unpackers = Map.copyOf(unpackers);
         this.x = x;
         this.y = y;

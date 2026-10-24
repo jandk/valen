@@ -4,12 +4,15 @@ import be.twofold.valen.middleware.wwise.shared.*;
 import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
+import java.util.*;
 
 public record BankHeader(
     int bankGeneratorVersion,
     BankId soundBankId,
     int languageId,
-    boolean bFeedbackInBank,
+    Optional<Boolean> bFeedbackInBank,
+    Optional<Short> alignment,
+    Optional<Short> deviceAllocated,
     int projectId
 ) {
     private static final int BYTES = 20;
@@ -18,7 +21,22 @@ public record BankHeader(
         var bankGeneratorVersion = source.readInt();
         var soundBankId = BankId.of(source.readInt());
         var languageId = source.readInt();
-        var bFeedbackInBank = source.readBool(BoolFormat.INT);
+
+        Optional<Boolean> feedbackInBankOptional = Optional.empty();
+        Optional<Short> alignment = Optional.empty();
+        Optional<Short> deviceAllocated = Optional.empty();
+        switch (bankGeneratorVersion) {
+            case 113:
+                feedbackInBankOptional = Optional.of(source.readBool(BoolFormat.INT));
+                break;
+            case 135:
+                alignment = Optional.of(source.readShort());
+                deviceAllocated = Optional.of(source.readShort());
+                break;
+            default:
+                throw new IOException("Unsupported bank generator version: " + bankGeneratorVersion);
+        }
+
         var projectId = source.readInt();
         source.skip(size - BYTES);
 
@@ -26,7 +44,9 @@ public record BankHeader(
             bankGeneratorVersion,
             soundBankId,
             languageId,
-            bFeedbackInBank,
+            feedbackInBankOptional,
+            alignment,
+            deviceAllocated,
             projectId
         );
     }

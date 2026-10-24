@@ -11,7 +11,6 @@ import be.twofold.valen.ui.component.filelist.*;
 import be.twofold.valen.ui.events.*;
 import jakarta.inject.*;
 import javafx.concurrent.*;
-import org.jetbrains.annotations.*;
 import org.slf4j.*;
 
 import java.io.*;
@@ -38,9 +37,9 @@ public final class MainPresenter extends AbstractPresenter<MainView> implements 
     });
     private final AtomicLong loadSequence = new AtomicLong();
 
-    private @Nullable Game game;
+    private Game game;
     private AssetLoader loader;
-    private @Nullable Asset lastAsset;
+    private Asset lastAsset;
     private SidePanel sidePanel = SidePanel.NONE;
     private String query = "";
 
@@ -137,7 +136,7 @@ public final class MainPresenter extends AbstractPresenter<MainView> implements 
 
         var currentLoader = loader;
         getView().setPreviewLoading(true);
-        loadExecutor.submit(() -> loadAsset(seq, currentLoader, asset));
+        loadExecutor.execute(() -> loadAsset(seq, currentLoader, asset));
     }
 
     private void loadAsset(long seq, AssetLoader loader, Asset asset) {
@@ -158,9 +157,9 @@ public final class MainPresenter extends AbstractPresenter<MainView> implements 
             if (isStale(seq)) {
                 return;
             }
-            log.error("Could not load asset {}", asset.id().fileName(), e);
+            log.error("Could not load asset {}", asset.id().path().fileName(), e);
             getView().setPreviewLoading(false);
-            FxUtils.showExceptionDialog(e, "Could not load asset " + asset.id().fileName());
+            FxUtils.showExceptionDialog(e, "Could not load asset " + asset.id().path().fileName());
         }
     }
 
@@ -192,10 +191,10 @@ public final class MainPresenter extends AbstractPresenter<MainView> implements 
         exportAssets(assets);
     }
 
-    private void exportPath(String path, boolean recursive) {
-        Predicate<String> predicate = recursive ? s -> s.startsWith(path) : s -> s.equals(path);
+    private void exportPath(AssetPath path, boolean recursive) {
+        Predicate<AssetPath> predicate = recursive ? s -> s.startsWith(path) : s -> s.equals(path);
         var assets = filteredAssets()
-            .filter(asset -> predicate.test(asset.id().pathName()))
+            .filter(asset -> predicate.test(asset.id().path().parent()))
             .toList();
 
         exportAssets(assets);

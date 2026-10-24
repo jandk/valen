@@ -6,13 +6,13 @@ import be.twofold.valen.core.texture.shader.node.*;
 import be.twofold.valen.core.util.*;
 import be.twofold.valen.game.greatcircle.*;
 import be.twofold.valen.game.greatcircle.resource.*;
-import be.twofold.valen.game.idtech.defines.*;
+import be.twofold.valen.game.idtech.reader.image.*;
+import be.twofold.valen.game.idtech.reader.image.TextureFormat;
 import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 import java.lang.invoke.*;
 import java.util.*;
-import java.util.function.*;
 
 public final class ImageReader implements AssetReader.Binary<Texture, GreatCircleAsset> {
     private final boolean readStreams;
@@ -24,7 +24,7 @@ public final class ImageReader implements AssetReader.Binary<Texture, GreatCircl
     @Override
     public boolean canRead(GreatCircleAsset asset) {
         return asset.id().type() == ResourceType.image
-            && !asset.id().name().filename().endsWith(".bimage");
+            && !asset.id().path().extension().equals("bimage");
     }
 
     @Override
@@ -86,7 +86,7 @@ public final class ImageReader implements AssetReader.Binary<Texture, GreatCircl
         };
         var width = minMip < 0 ? image.header().width() : image.sliceInfos().get(minMip).width();
         var height = minMip < 0 ? image.header().height() : image.sliceInfos().get(minMip).height();
-        var depth = minMip < 0 ? image.header().depth() : image.sliceInfos().get(minMip).decompressedSize();
+        var depth = minMip < 0 ? image.header().depth() : image.sliceInfos().get(minMip).depth();
         var depthOrLayers = switch (image.header().type()) {
             case TT_2D -> 1;
             case TT_3D -> depth;
@@ -96,7 +96,7 @@ public final class ImageReader implements AssetReader.Binary<Texture, GreatCircl
 
         var scale = image.header().scale();
         var bias = image.header().bias();
-        UnaryOperator<ShaderNode> scaleAndBias = node -> ShaderNode.scaleAndBias(node, scale, bias);
+        var scaleAndBias = ShaderNode.scaleAndBias(scale, bias);
 
         return new Texture(format, kind, width, height, depthOrLayers, surfaces, scaleAndBias);
     }
@@ -126,7 +126,7 @@ public final class ImageReader implements AssetReader.Binary<Texture, GreatCircl
         return List.copyOf(surfaces);
     }
 
-    private be.twofold.valen.core.texture.TextureFormat toImageFormat(be.twofold.valen.game.idtech.defines.TextureFormat format) {
+    private be.twofold.valen.core.texture.TextureFormat toImageFormat(TextureFormat format) {
         // I might not be sure about all these mappings, but it's a start
         return switch (format) {
             case FMT_BC1, FMT_BC1_ZERO_ALPHA -> be.twofold.valen.core.texture.TextureFormat.BC1_UNORM;

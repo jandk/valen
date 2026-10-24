@@ -21,7 +21,7 @@ public final class MapResourcesReader implements AssetReader.Binary<MapResources
     @Override
     public boolean canRead(EternalAsset asset) {
         return asset.id().type() == ResourceType.File
-            && asset.id().extension().equals("mapresources");
+            && asset.id().path().extension().equals("mapresources");
     }
 
     @Override

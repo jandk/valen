@@ -5,7 +5,7 @@
 
     <groupId>be.twofold</groupId>
     <artifactId>valen</artifactId>
-    <version>0.3.3-SNAPSHOT</version>
+    <version>0.3.4-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <modules>
@@ -16,7 +16,6 @@
         <module>valen-export-dds</module>
         <module>valen-export-gltf</module>
         <module>valen-export-png</module>
-        <module>valen-export-wav</module>
         <module>valen-format-gltf</module>
         <module>valen-format-png</module>
         <module>valen-game-darkages</module>
@@ -144,11 +143,6 @@
             </dependency>
             <dependency>
                 <groupId>be.twofold</groupId>
-                <artifactId>valen-export-wav</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>be.twofold</groupId>
                 <artifactId>valen-game-doom</artifactId>
                 <version>${project.version}</version>
             </dependency>
@@ -267,11 +261,6 @@
                 <artifactId>value-annotations</artifactId>
                 <version>${immutables.version}</version>
                 <scope>provided</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.jetbrains</groupId>
-                <artifactId>annotations</artifactId>
-                <version>26.1.0</version>
             </dependency>
 
             <!-- Testing -->
