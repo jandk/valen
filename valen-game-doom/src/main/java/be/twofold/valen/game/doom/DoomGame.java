@@ -58,9 +58,21 @@ public final class DoomGame implements Game {
             return WwiseLoader.load(base.resolve(SOUND_SOUNDBANKS_PC));
         }
 
-        var index = ResourcesIndex.read(base.resolve(name + ".index"));
-        var resourcesPath = base.resolve(name + ".resources");
-        var resources = BinarySource.open(resourcesPath);
+        var pindexPath = base.resolve(name + ".pindex");
+        var index = Files.exists(pindexPath)
+            ? ResourcesIndex.read(pindexPath)
+            : ResourcesIndex.read(base.resolve(name + ".index"));
+        var dataPaths = List.of(
+            base.resolve(name + ".resources"),
+            base.resolve(name + ".patch")
+        );
+
+        var sources = new HashMap<Path, BinarySource>();
+        for (var dataPath : dataPaths) {
+            if (Files.exists(dataPath)) {
+                sources.put(dataPath, BinarySource.open(dataPath));
+            }
+        }
 
         var uniqueNames = new HashSet<String>(index.entries().size());
         var assets = new ArrayList<DoomAsset>();
@@ -75,7 +87,7 @@ public final class DoomGame implements Game {
                 continue;
             }
 
-            assets.add(mapResourceEntry(entry, fileName, resourcesPath));
+            assets.add(mapResourceEntry(entry, fileName, dataPaths.get(entry.fileId())));
         }
 
         var vmtrAssets = vmtrEntries.stream()
@@ -88,7 +100,7 @@ public final class DoomGame implements Game {
             Archive.of(vmtrAssets)));
 
         var storageManager = new StorageManager(
-            Map.of(resourcesPath, resources),
+            sources,
             Set.of(),
             new Decompressors(null)
         );
