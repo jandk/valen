@@ -66,6 +66,10 @@ public final class IdLexer {
         return token;
     }
 
+    public IdToken expectName() {
+        return expectTokenType(TokenType.TT_NAME, 0);
+    }
+
     public IdToken expectPunctuation(LexerPunctuation punctuation) {
         return expectTokenType(TokenType.TT_PUNCTUATION, punctuation.ordinal());
     }
@@ -124,21 +128,21 @@ public final class IdLexer {
         if (token == null) {
             throw error("couldn't read expected floating point number");
         }
-        if (token.type() == TokenType.TT_PUNCTUATION && token.value().equals("$")) {
+        if (token.isPunctuation(P_DOLLAR)) {
             // '$' is followed by the raw bits of a double, and then a readable value that is skipped
             long bits = expectTokenType(TokenType.TT_NUMBER, 0).getLongValue();
             IdToken readable = readToken();
             if (readable == null) {
                 throw error("couldn't read expected floating point number");
             }
-            if (readable.type() == TokenType.TT_PUNCTUATION && readable.value().equals("-")) {
+            if (readable.isPunctuation(P_SUB)) {
                 expectTokenType(TokenType.TT_NUMBER, 0);
             } else if (readable.type() != TokenType.TT_NUMBER) {
                 throw error("expected float value, found '" + readable.value() + "'");
             }
             return (float) Double.longBitsToDouble(bits);
         }
-        if (token.type() == TokenType.TT_PUNCTUATION && token.value().equals("-")) {
+        if (token.isPunctuation(P_SUB)) {
             return -expectTokenType(TokenType.TT_NUMBER, 0).getFloatValue();
         }
         if (token.type() != TokenType.TT_NUMBER) {
@@ -152,7 +156,7 @@ public final class IdLexer {
         if (token == null) {
             throw error("couldn't read expected integer");
         }
-        if (token.type() == TokenType.TT_PUNCTUATION && token.value().equals("-")) {
+        if (token.isPunctuation(P_SUB)) {
             return -expectTokenType(TokenType.TT_NUMBER, TT_INTEGER).getIntValue();
         }
         // The engine only rejects a plain TT_FLOAT subtype, so other floats are truncated
@@ -160,6 +164,10 @@ public final class IdLexer {
             throw error("expected integer value, found '" + token.value() + "'");
         }
         return token.getIntValue();
+    }
+
+    public boolean peekPunctuation(LexerPunctuation punctuation) {
+        return peekTokenType(TokenType.TT_PUNCTUATION, punctuation.ordinal());
     }
 
     public IdToken peekToken() {

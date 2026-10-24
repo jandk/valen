@@ -1,7 +1,7 @@
 package be.twofold.valen.game.idtech.reader.decl.renderparm;
 
 import be.twofold.valen.core.game.*;
-import be.twofold.valen.game.idtech.reader.decl.parser.*;
+import be.twofold.valen.game.idtech.lexer.*;
 import be.twofold.valen.game.idtech.reader.image.*;
 import wtf.reversed.toolbox.io.*;
 import wtf.reversed.toolbox.math.*;
@@ -20,25 +20,21 @@ public abstract class AbstractRenderParmReader<V extends Asset> implements Asset
         "nearest"
     );
 
-    protected Object parseValue(DeclParser parser, RenderParm renderParm) {
+    protected Object parseValue(IdLexer lexer, RenderParm renderParm) {
         switch (renderParm.parmType) {
             case PT_F32_VEC4, PT_F16_VEC4:
-                return readVector4(parser);
+                return readVector4(lexer);
             case PT_F32_VEC3, PT_F16_VEC3:
-                return readVector3(parser);
+                return readVector3(lexer);
             case PT_F32_VEC2, PT_F16_VEC2:
-                return readVector2(parser);
+                return readVector2(lexer);
             case PT_F32, PT_F16:
-                return parser.expectNumber().floatValue();
+                return lexer.parseFloat();
             case PT_UI32:
             case PT_SI32:
-                return parser.expectNumber().intValue();
+                return readInt(lexer);
             case PT_BOOL:
-                if (parser.peek().type() == DeclTokenType.Name) {
-                    return parser.expectBoolean();
-                } else {
-                    return parser.expectNumber().intValue() != 0;
-                }
+                return readBool(lexer);
             case PT_TEXTURE_2D:
             case PT_TEXTURE_2D_HALF:
             case PT_TEXTURE_2D_UI:
@@ -48,37 +44,39 @@ public abstract class AbstractRenderParmReader<V extends Asset> implements Asset
             case PT_TEXTURE_ARRAY_CUBE:
             case PT_TEXTURE_MULTISAMPLE_2D:
             case PT_TEXTURE_STENCIL:
-                var props = parseImageProperties(parser);
-                props.name = parser.expectNameOrString();
+                var props = parseImageProperties(lexer);
+                props.name = expectNameOrString(lexer);
                 return props;
             case PT_SAMPLER:
             case PT_SAMPLER_SHADOW_2D:
             case PT_SAMPLER_SHADOW_3D:
             case PT_SAMPLER_SHADOW_CUBE:
             case PT_PROGRAM: {
-                var value = parser.next().value();
+                var value = lexer.expectAnyToken().value();
                 return value.equals("0") ? null : value;
             }
             case PT_STRING:
-                DeclToken token = parser.peek();
+                IdToken token = lexer.expectAnyToken();
                 return switch (token.type()) {
-                    case String, Name -> {
-                        String result = token.value();
-                        parser.next();
-                        yield result;
+                    case TT_STRING, TT_NAME -> token.value();
+                    case TT_PUNCTUATION -> {
+                        if (!token.isPunctuation(LexerPunctuation.P_BRACECLOSE)) {
+                            throw new UnsupportedOperationException();
+                        }
+                        lexer.unreadToken();
+                        yield null;
                     }
-                    case CloseBrace -> null;
                     default -> throw new UnsupportedOperationException();
                 };
             case PT_STORAGE_BUFFER:
             case PT_BUFFER_REFERENCE:
-                Set<BufferViewFlag> flags = readStorageBufferFlags(parser);
-                String name = parser.expectName();
+                Set<BufferViewFlag> flags = readStorageBufferFlags(lexer);
+                String name = lexer.expectName().value();
                 return new RenderParmStorageBuffer(flags, name);
             case PT_TYPE:
-                return parseType(parser);
+                return parseType(lexer);
             case PT_UNIFORM_BUFFER:
-                return parser.expectNumber().intValue();
+                return readInt(lexer);
             case PT_IMAGE2D_STORE_BUFFER:
             case PT_IMAGE2D_STORE_ARRAY_BUFFER:
             case PT_IMAGE3D_STORE_BUFFER:
@@ -89,9 +87,9 @@ public abstract class AbstractRenderParmReader<V extends Asset> implements Asset
             case PT_IMAGECUBE_BUFFER:
             case PT_UNIFORM_TEXEL_BUFFER:
             case PT_STORAGE_TEXEL_BUFFER:
-                return ImageBufferFormat.parse(parser.expectName());
+                return ImageBufferFormat.parse(lexer.expectName().value());
             case PT_COLOR_LUT:
-                return parser.next().value();
+                return lexer.expectAnyToken().value();
             case PT_ACCELERATION_STRUCTURE:
                 return null;
             default:
@@ -99,75 +97,79 @@ public abstract class AbstractRenderParmReader<V extends Asset> implements Asset
         }
     }
 
-    protected Set<BufferViewFlag> readStorageBufferFlags(DeclParser parser) {
+    protected Set<BufferViewFlag> readStorageBufferFlags(IdLexer lexer) {
         var flags = EnumSet.noneOf(BufferViewFlag.class);
         while (true) {
-            var name = parser.peekName().toLowerCase();
+            var name = peekValue(lexer).toLowerCase();
             switch (name) {
                 case "writable" -> flags.add(BufferViewFlag.BVF_WRITABLE);
                 case "coherent" -> flags.add(BufferViewFlag.BVF_COHERENT);
                 case "instancedescriptorsetlayout", "surfacedescriptorsetlayout", "skipoobchecks" -> {
-                    // Just ignore these
+                    // ignore
                 }
                 default -> {
                     return flags;
                 }
             }
-            parser.expectName();
+            lexer.expectName();
         }
     }
 
-    private Vector2 readVector2(DeclParser parser) {
-        var floats = readVector(parser, 2);
+    private Vector2 readVector2(IdLexer lexer) {
+        var floats = readVector(lexer, 2);
         return new Vector2(floats[0], floats[1]);
     }
 
-    private Vector3 readVector3(DeclParser parser) {
-        var floats = readVector(parser, 3);
+    private Vector3 readVector3(IdLexer lexer) {
+        var floats = readVector(lexer, 3);
         return new Vector3(floats[0], floats[1], floats[2]);
     }
 
-    private Vector4 readVector4(DeclParser parser) {
-        var floats = readVector(parser, 4);
+    private Vector4 readVector4(IdLexer lexer) {
+        var floats = readVector(lexer, 4);
         return new Vector4(floats[0], floats[1], floats[2], floats[3]);
     }
 
-    protected float[] readVector(DeclParser parser, int n) {
+    protected float[] readVector(IdLexer lexer, int n) {
         var values = new float[n];
-        if (!parser.match(DeclTokenType.OpenBrace)) {
-            var number = parser.expectNumber().floatValue();
+        if (!lexer.checkPunctuation(LexerPunctuation.P_BRACEOPEN)) {
+            var number = lexer.parseFloat();
             Arrays.fill(values, number);
             return values;
         }
 
-        values[0] = parser.expectNumber().floatValue();
-        while (!parser.match(DeclTokenType.CloseBrace)) {
+        values[0] = lexer.parseFloat();
+        while (!lexer.checkPunctuation(LexerPunctuation.P_BRACECLOSE)) {
             for (var i = 1; i < n; i++) {
-                if (parser.peek().type() == DeclTokenType.CloseBrace) {
+                if (lexer.peekPunctuation(LexerPunctuation.P_BRACECLOSE)) {
                     break;
                 }
-                parser.expect(DeclTokenType.Comma);
-                values[i] = parser.expectNumber().floatValue();
+                lexer.expectPunctuation(LexerPunctuation.P_COMMA);
+                values[i] = lexer.parseFloat();
             }
         }
         return values;
     }
 
-    protected String parseType(DeclParser parser) {
-        parser.expect(DeclTokenType.OpenBrace);
+    protected String parseType(IdLexer lexer) {
+        lexer.expectPunctuation(LexerPunctuation.P_BRACEOPEN);
 
         var builder = new StringBuilder("struct\n{\n\t");
         while (true) {
-            var token = parser.next();
-            if (token.type() == DeclTokenType.CloseBrace) {
+            var token = lexer.expectAnyToken();
+            if (token.isPunctuation(LexerPunctuation.P_BRACECLOSE)) {
                 break;
             }
-            if (token.type() == DeclTokenType.Semicolon) {
+            if (token.isPunctuation(LexerPunctuation.P_SEMICOLON)) {
                 builder.setLength(builder.length() - 1);
                 builder.append(";\n\t");
                 continue;
             }
-            builder.append(token.value()).append(" ");
+            builder.append(token.value());
+            // The engine glues '#' to the next token, so '#define' stays intact
+            if (!token.isPunctuation(LexerPunctuation.P_PRECOMP)) {
+                builder.append(" ");
+            }
         }
         builder.setLength(builder.length() - 1);
         builder.append("}");
@@ -184,53 +186,52 @@ public abstract class AbstractRenderParmReader<V extends Asset> implements Asset
         };
     }
 
-    protected ImageProperties parseImageProperties(DeclParser parser) {
+    protected ImageProperties parseImageProperties(IdLexer lexer) {
         var result = new ImageProperties();
         while (true) {
-            DeclToken peek = parser.peek();
-            if (peek.type() != DeclTokenType.Name) {
+            IdToken peek = lexer.peekToken();
+            if (peek == null || peek.type() != TokenType.TT_NAME) {
                 return result;
             }
             String name = peek.value();
             if (Skipped.contains(name)) {
-                parser.expectName();
+                lexer.expectName();
                 continue;
             }
-
 
             TextureFormat textureFormat = TextureFormat.parse(name);
             if (textureFormat != null) {
                 result.format = textureFormat;
-                parser.expectName();
+                lexer.expectName();
                 continue;
             }
 
             Integer padding = parsePadding(name);
             if (padding != null) {
                 result.padding = padding;
-                parser.expectName();
+                lexer.expectName();
                 continue;
             }
 
             switch (name) {
                 case "fullscalebias" -> {
                     result.fullScaleBias = true;
-                    parser.expectName();
+                    lexer.expectName();
                     continue;
                 }
                 case "fftbloom" -> {
                     result.fftBloom = true;
-                    parser.expectName();
+                    lexer.expectName();
                     continue;
                 }
                 case "nomips" -> {
                     result.noMips = true;
-                    parser.expectName();
+                    lexer.expectName();
                     continue;
                 }
                 case "streamed" -> {
                     result.streamed = true;
-                    parser.expectName();
+                    lexer.expectName();
                     continue;
                 }
             }
@@ -240,8 +241,8 @@ public abstract class AbstractRenderParmReader<V extends Asset> implements Asset
         return result;
     }
 
-    protected ParmScope parseParmScope(DeclParser parser) {
-        var token = parser.peekName().toLowerCase();
+    protected ParmScope parseParmScope(IdLexer lexer) {
+        var token = peekValue(lexer).toLowerCase();
         var parmScope = switch (token) {
             case "view" -> ParmScope.PSCP_VIEW;
             case "instance" -> ParmScope.PSCP_INSTANCE;
@@ -249,39 +250,38 @@ public abstract class AbstractRenderParmReader<V extends Asset> implements Asset
             default -> null;
         };
         if (parmScope != null) {
-            parser.expectName();
+            lexer.expectName();
         }
         return parmScope;
     }
 
-    protected ParmEdit parseParmEdit(DeclParser parser) {
-        String token = parser.peekName().toLowerCase();
+    protected ParmEdit parseParmEdit(IdLexer lexer) {
+        String token = peekValue(lexer).toLowerCase();
         var parmEdit = switch (token) {
             case "bool" -> new ParmEdit.Bool();
             case "srgb", "srgba" -> new ParmEdit.Srgba();
             case "color" -> new ParmEdit.Color();
             case "range" -> {
-                parser.expectName();
-                Number min = parser.expectNumber();
-                parser.expect(DeclTokenType.Comma);
-                Number max = parser.expectNumber();
+                lexer.expectName();
+                Number min = lexer.parseFloat();
+                lexer.expectPunctuation(LexerPunctuation.P_COMMA);
+                Number max = lexer.parseFloat();
                 yield new ParmEdit.Range(min, max);
             }
             default -> null;
         };
         if (parmEdit != null && !(parmEdit instanceof ParmEdit.Range)) {
-            parser.expectName();
+            lexer.expectName();
         }
         return parmEdit;
     }
 
-    protected boolean parseFlags(DeclParser parser, RenderParm result) {
-        var token = parser.peek();
-        if (token.type() == DeclTokenType.CloseBrace) {
+    protected boolean parseFlags(IdLexer lexer, RenderParm result) {
+        if (lexer.peekPunctuation(LexerPunctuation.P_BRACECLOSE)) {
             return false;
         }
 
-        var read = switch (token.value().toLowerCase()) {
+        var read = switch (peekValue(lexer).toLowerCase()) {
             case "streamed" -> result.streamed = true;
             case "globallyindexed" -> result.globallyIndexed = true;
             case "material", "edit" -> result.editable = true;
@@ -294,56 +294,52 @@ public abstract class AbstractRenderParmReader<V extends Asset> implements Asset
         };
 
         if (read) {
-            parser.expectName();
+            lexer.expectName();
         }
         return read;
     }
 
-    protected void parseExtras(DeclParser parser, RenderParm result) {
-        if (parser.peek().type() == DeclTokenType.CloseBrace) {
-            return;
-        }
-
-        while (parser.peek().type() != DeclTokenType.CloseBrace) {
-            var edit = parseParmEdit(parser);
+    protected void parseExtras(IdLexer lexer, RenderParm result) {
+        while (!lexer.peekPunctuation(LexerPunctuation.P_BRACECLOSE)) {
+            var edit = parseParmEdit(lexer);
             if (edit != null) {
                 result.parmEdit = edit;
                 continue;
             }
 
-            var scope = parseParmScope(parser);
+            var scope = parseParmScope(lexer);
             if (scope != null) {
                 result.parmScope = scope;
                 continue;
             }
 
-            var flags = parseFlags(parser, result);
+            var flags = parseFlags(lexer, result);
             if (flags) {
                 continue;
             }
 
-            var token = parser.expectName().toLowerCase();
+            var token = lexer.expectName().value().toLowerCase();
             switch (token) {
                 case "materialkind" -> {
-                    parser.expect(DeclTokenType.Assign);
-                    result.materialKind = TextureMaterialKind.parse(parser.expectName());
+                    lexer.expectPunctuation(LexerPunctuation.P_ASSIGN);
+                    result.materialKind = TextureMaterialKind.parse(lexer.expectName().value());
                     continue;
                 }
                 case "smoothnessnormalparm" -> {
-                    parser.expect(DeclTokenType.Assign);
-                    result.smoothnessNormalParm = TextureMaterialKind.parse(parser.expectName());
+                    lexer.expectPunctuation(LexerPunctuation.P_ASSIGN);
+                    result.smoothnessNormalParm = TextureMaterialKind.parse(lexer.expectName().value());
                     continue;
                 }
                 case "autobind" -> {
-                    // Just ignore this one
-                    if (parser.match(DeclTokenType.OpenBrace)) {
-                        parser.expectName();
-                        parser.expect(DeclTokenType.CloseBrace);
+                    // ignore
+                    if (lexer.checkPunctuation(LexerPunctuation.P_BRACEOPEN)) {
+                        lexer.expectName();
+                        lexer.expectPunctuation(LexerPunctuation.P_BRACECLOSE);
                     }
                     continue;
                 }
                 case "cvar", "const", "coherent" -> {
-                    // Just ignore these ones
+                    // ignore
                     continue;
                 }
             }
@@ -354,19 +350,62 @@ public abstract class AbstractRenderParmReader<V extends Asset> implements Asset
 
     protected RenderParm read(BinarySource source) throws IOException {
         var string = source.readString(Math.toIntExact(source.size()));
-        var parser = new DeclParser(string, true);
+        var lexer = new IdLexer(string,
+            LexerFlags.LEXFL_NOSTRINGCONCAT,
+            LexerFlags.LEXFL_NOSTRINGESCAPECHARS,
+            LexerFlags.LEXFL_ALLOWPATHNAMES,
+            LexerFlags.LEXFL_ALLOWMULTICHARLITERALS,
+            LexerFlags.LEXFL_ALLOWBACKSLASHSTRINGCONCAT,
+            LexerFlags.LEXFL_ALLOWRAWSTRINGBLOCKS
+        );
 
         var result = new RenderParm();
-        parser.expect(DeclTokenType.OpenBrace);
-        result.parmType = ParmType.parse(parser.expectName());
+        lexer.expectPunctuation(LexerPunctuation.P_BRACEOPEN);
+        result.parmType = ParmType.parse(lexer.expectName().value());
 
-        result.declaredValue = parseValue(parser, result);
+        result.declaredValue = parseValue(lexer, result);
         if (result.declaredValue instanceof ImageProperties imageProperties) {
             result.streamed = imageProperties.streamed;
         }
 
-        parseExtras(parser, result);
-        parser.expect(DeclTokenType.CloseBrace);
+        parseExtras(lexer, result);
+        lexer.expectPunctuation(LexerPunctuation.P_BRACECLOSE);
         return result;
+    }
+
+    private String expectNameOrString(IdLexer lexer) {
+        var token = lexer.expectAnyToken();
+        if (token.type() != TokenType.TT_NAME && token.type() != TokenType.TT_STRING) {
+            throw new IllegalArgumentException("Expected a name or string, but got " + token.value());
+        }
+        return token.value();
+    }
+
+    private String peekValue(IdLexer lexer) {
+        var token = lexer.peekToken();
+        return token != null ? token.value() : "";
+    }
+
+    private boolean readBool(IdLexer lexer) {
+        var value = lexer.expectAnyToken().value();
+        if (value.equalsIgnoreCase("true") || value.equals("1")) {
+            return true;
+        }
+        if (value.equalsIgnoreCase("false") || value.equals("0")) {
+            return false;
+        }
+        throw new IllegalArgumentException("Expected a boolean, but got " + value);
+    }
+
+    private int readInt(IdLexer lexer) {
+        var token = lexer.expectAnyToken();
+        boolean negative = token.isPunctuation(LexerPunctuation.P_SUB);
+        if (negative) {
+            token = lexer.expectTokenType(TokenType.TT_NUMBER, 0);
+        } else if (token.type() != TokenType.TT_NUMBER) {
+            throw new IllegalArgumentException("Expected a number, but got " + token.value());
+        }
+        int value = (int) token.getLongValue();
+        return negative ? -value : value;
     }
 }
