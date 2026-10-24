@@ -50,6 +50,8 @@ public final class FileListViewImpl extends AbstractView<FileListView.Listener> 
             var selectedTreeItem = findSelected(root, selectedValue);
 
             treeView.setRoot(root);
+            treeView.refresh();
+
             if (selectedTreeItem != null) {
                 selectedTreeItem.setExpanded(selectedItem != null && selectedItem.isExpanded());
                 treeView.getSelectionModel().select(selectedTreeItem);

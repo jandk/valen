@@ -62,6 +62,7 @@ public final class MetaViewImpl extends AbstractView<View.Listener> implements M
         var rootItem = new MetaTreeItem(new Meta.Item(name, root));
         rootItem.setExpanded(true);
         treeTableView.setRoot(rootItem);
+        treeTableView.refresh();
     }
 
     @Override
