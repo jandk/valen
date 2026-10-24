@@ -1,182 +1,82 @@
 package be.twofold.valen.game.idtech.reader.decl.parser;
 
+import be.twofold.valen.game.idtech.lexer.*;
 import com.google.gson.*;
-
-import java.util.*;
+import wtf.reversed.toolbox.util.*;
 
 public final class DeclParser {
-    private final DeclLexer lexer;
-    private final boolean lenient;
+    private final IdLexer lexer;
 
-    public DeclParser(String source) {
-        this(source, false);
+    public DeclParser(IdLexer lexer) {
+        this.lexer = Check.nonNull(lexer, "lexer");
     }
 
-    public DeclParser(String source, boolean lenient) {
-        this.lexer = new DeclLexer(source, lenient);
-        this.lenient = lenient;
+    public static IdLexer createLexer(String source) {
+        return new IdLexer(source,
+            LexerFlags.LEXFL_NOFATALERRORS,
+            LexerFlags.LEXFL_NOSTRINGCONCAT,
+            LexerFlags.LEXFL_ALLOWFLOATEXCEPTIONS,
+            LexerFlags.LEXFL_ALLOWRAWSTRINGBLOCKS
+        );
     }
 
     public static JsonObject parse(String source) {
-        return new DeclParser(source).parse();
-    }
-
-
-    public DeclToken expect(DeclTokenType type) {
-        var token = lexer.nextToken();
-        if (token.type() != type) {
-            throw new DeclParseException("Expected " + type + ", got " + token);
-        }
-        return token;
-    }
-
-    public String expectName() {
-        return expect(DeclTokenType.Name).value();
-    }
-
-    public void expectName(String value) {
-        var token = lexer.nextToken();
-        if (token.type() != DeclTokenType.Name || !token.value().equals(value)) {
-            throw new DeclParseException("Expected " + DeclTokenType.Name + " " + value + ", got " + token);
-        }
-    }
-
-    public String expectNameOrString() {
-        var token = lexer.nextToken();
-        return switch (token.type()) {
-            case Name, String -> token.value();
-            default ->
-                throw new DeclParseException("Expected " + DeclTokenType.Name + " or " + DeclTokenType.String + ", got " + token);
-        };
-    }
-
-    public boolean expectBoolean() {
-        var name = expectName().toLowerCase(Locale.ROOT);
-        return switch (name) {
-            case "true" -> true;
-            case "false" -> false;
-            default -> throw new DeclParseException("Expected boolean, got " + name);
-        };
-    }
-
-    public Number expectNumber() {
-        var value = expect(DeclTokenType.Number).value();
-        return new StringNumber(value);
-    }
-
-    public String expectString() {
-        return expect(DeclTokenType.String).value();
-    }
-
-
-    public boolean match(DeclTokenType type) {
-        if (lexer.peekToken().type() == type) {
-            lexer.nextToken();
-            return true;
-        }
-        return false;
-    }
-
-    public boolean matchName(String value) {
-        var token = lexer.peekToken();
-        if (token.type() == DeclTokenType.Name && token.value().equals(value)) {
-            lexer.nextToken();
-            return true;
-        }
-        return false;
-    }
-
-    public DeclToken next() {
-        return lexer.nextToken();
-    }
-
-    public DeclToken peek() {
-        return lexer.peekToken();
-    }
-
-    public String peekName() {
-        var token = lexer.peekToken();
-        if (token.type() != DeclTokenType.Name) {
-            throw new DeclParseException("Expected " + DeclTokenType.Name + ", got " + token);
-        }
-        return token.value();
-    }
-
-
-    public JsonObject parse() {
-        JsonObject result;
-        try {
-            expect(DeclTokenType.OpenBrace);
-            result = parseObject();
-        } catch (StackOverflowError e) {
-            throw new DeclParseException("Stack overflow");
-        }
-        var token = lexer.nextToken();
-        if (token.type() != DeclTokenType.Eof) {
-            throw new DeclParseException("Not a single DECL document");
+        var lexer = createLexer(source);
+        lexer.expectPunctuation(LexerPunctuation.P_BRACEOPEN);
+        var result = new DeclParser(lexer).parseObject();
+        var token = lexer.readToken();
+        if (token != null) {
+            throw new DeclParseException("Not a single DECL document, found '" + token.value() + "'");
         }
         return result;
     }
 
-    public JsonElement parseValue() {
-        DeclToken token = lexer.nextToken();
-        return switch (token.type()) {
-            case OpenBrace -> parseObject();
-            case OpenParen -> parseArray();
-            case String -> new JsonPrimitive(token.value());
-            case Number -> new JsonPrimitive(new StringNumber(token.value()));
-            case Name -> switch (token.value()) {
-                case "true" -> new JsonPrimitive(true);
-                case "false" -> new JsonPrimitive(false);
-                case "NULL" -> JsonNull.INSTANCE;
-                default -> new JsonPrimitive(token.value());
-            };
-            default -> throw new DeclParseException("Unexpected " + token);
-        };
-    }
-
-    private JsonObject parseObject() {
+    public JsonObject parseObject() {
         var object = new JsonObject();
-        while (!match(DeclTokenType.CloseBrace)) {
-            var key = expectName();
-            if (match(DeclTokenType.OpenBracket)) {
-                var index = expectNumber().intValue();
+        while (!lexer.checkPunctuation(LexerPunctuation.P_BRACECLOSE)) {
+            var key = lexer.expectAnyToken().value();
+            if (lexer.checkPunctuation(LexerPunctuation.P_SQBRACKETOPEN)) {
+                var index = lexer.parseInt();
+                lexer.expectPunctuation(LexerPunctuation.P_SQBRACKETCLOSE);
                 key += "[" + index + "]";
-                expect(DeclTokenType.CloseBracket);
             }
-
-            if (lenient) {
-                match(DeclTokenType.Assign);
-            } else {
-                expect(DeclTokenType.Assign);
-            }
+            lexer.expectPunctuation(LexerPunctuation.P_ASSIGN);
 
             var value = parseValue();
-
             if (value instanceof JsonObject) {
-                var token = lexer.peekToken();
-                if (token.type() == DeclTokenType.Semicolon || token.type() == DeclTokenType.Comma) {
-                    lexer.nextToken();
+                if (!lexer.checkPunctuation(LexerPunctuation.P_SEMICOLON)) {
+                    lexer.checkPunctuation(LexerPunctuation.P_COMMA);
                 }
             } else {
-                expect(DeclTokenType.Semicolon);
+                lexer.expectPunctuation(LexerPunctuation.P_SEMICOLON);
             }
             object.add(key, value);
         }
         return object;
     }
 
-    private JsonArray parseArray() {
-        if (!lenient) {
-            throw new DeclParseException("Arrays are not allowed in strict mode");
-        }
-        var array = new JsonArray();
-        while (!match(DeclTokenType.CloseParen)) {
-            if (!array.isEmpty()) {
-                expect(DeclTokenType.Comma);
+    public JsonElement parseValue() {
+        var token = lexer.expectAnyToken();
+        return switch (token.type()) {
+            case TT_STRING, TT_LITERAL -> new JsonPrimitive(token.value());
+            case TT_NUMBER -> new JsonPrimitive(new StringNumber(token.value()));
+            case TT_NAME -> switch (token.value()) {
+                case "true" -> new JsonPrimitive(true);
+                case "false" -> new JsonPrimitive(false);
+                case "NULL" -> JsonNull.INSTANCE;
+                default -> new JsonPrimitive(token.value());
+            };
+            case TT_PUNCTUATION -> {
+                if (token.isPunctuation(LexerPunctuation.P_BRACEOPEN)) {
+                    yield parseObject();
+                }
+
+                if (token.isPunctuation(LexerPunctuation.P_SUB)) {
+                    var number = lexer.expectTokenType(TokenType.TT_NUMBER, 0);
+                    yield new JsonPrimitive(new StringNumber("-" + number.value()));
+                }
+                throw new DeclParseException("Unexpected '" + token.value() + "'");
             }
-            array.add(parseValue());
-        }
-        return array;
+        };
     }
 }
