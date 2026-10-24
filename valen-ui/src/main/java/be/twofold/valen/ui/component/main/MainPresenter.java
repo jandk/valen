@@ -136,7 +136,7 @@ public final class MainPresenter extends AbstractPresenter<MainView> implements 
 
         var currentLoader = loader;
         getView().setPreviewLoading(true);
-        loadExecutor.submit(() -> loadAsset(seq, currentLoader, asset));
+        loadExecutor.execute(() -> loadAsset(seq, currentLoader, asset));
     }
 
     private void loadAsset(long seq, AssetLoader loader, Asset asset) {
