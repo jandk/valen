@@ -15,6 +15,8 @@ import be.twofold.valen.game.eternal.reader.md6model.*;
 import be.twofold.valen.game.eternal.reader.md6skel.*;
 import be.twofold.valen.game.eternal.reader.packagemapspec.*;
 import be.twofold.valen.game.eternal.reader.staticmodel.*;
+import be.twofold.valen.game.idtech.game.*;
+import be.twofold.valen.game.idtech.reader.mask.*;
 import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
@@ -49,13 +51,23 @@ public final class EternalGame implements Game {
     private final StreamDbIndex streamDbIndex;
     private final ResourcesIndex commonResources;
     private final Decompressors decompressors;
+    private final ContainerMask masks;
 
     EternalGame(Path path) throws IOException {
         this.base = path.resolve("base");
         this.spec = PackageMapSpecReader.read(base.resolve("packagemapspec.json"));
-        this.streamDbIndex = loadStreamDbIndex(base, spec);
-        this.commonResources = ResourcesIndex.build(filterResources(spec, "common", "warehouse"));
         this.decompressors = new Decompressors(path.resolve("oo2core_8_win64.dll"));
+        this.masks = readMasks();
+        this.streamDbIndex = loadStreamDbIndex(base, spec);
+        this.commonResources = ResourcesIndex.build(filterResources(spec, "common", "warehouse"), masks);
+    }
+
+    private ContainerMask readMasks() throws IOException {
+        var metaResources = ResourcesIndex.build(List.of(base.resolve("meta.resources")), ContainerMask.empty());
+        try (var metaStorageManager = new StorageManager(metaResources.sources(), Set.of(), decompressors)) {
+            var metaLoader = new AssetLoader(Archive.of(metaResources.assets()), metaStorageManager, List.of());
+            return ContainerMask.load(metaLoader, IdTechGame.ETERNAL);
+        }
     }
 
     @Override
@@ -78,7 +90,7 @@ public final class EternalGame implements Game {
     }
 
     private AssetLoader openArchive(String name) throws IOException {
-        var loadedResources = ResourcesIndex.build(filterResources(spec, name));
+        var loadedResources = ResourcesIndex.build(filterResources(spec, name), masks);
 
         var archive = Archive.layered(
             Archive.of(loadedResources.assets()),

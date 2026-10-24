@@ -1,6 +1,7 @@
 package be.twofold.valen.game.greatcircle.reader.resources;
 
 import wtf.reversed.toolbox.collect.*;
+import wtf.reversed.toolbox.hash.*;
 import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
@@ -13,7 +14,8 @@ public record Resources(
     List<ResourcesDependency> dependencies,
     List<ResourcesSpecialHash> specialHashes,
     Ints dependencyIndex,
-    Longs stringIndex
+    Longs stringIndex,
+    long hash
 ) {
     public static Resources read(BinarySource source) throws IOException {
         var header = ResourcesHeader.read(source);
@@ -30,6 +32,11 @@ public record Resources(
         var dependencyIndex = source.readInts(header.numDepIndices());
         var stringIndex = source.readLongs(header.numStringIndices());
 
+        var end = source.position();
+        source.position(Math.toIntExact(header.resourceEntriesOffset()));
+        var toHash = source.readBytes(Math.toIntExact(end - source.position() + 4));
+        var hash = HashFunction.farmHashFingerprint64().hash(toHash).asLong();
+
         return new Resources(
             header,
             entries,
@@ -37,7 +44,8 @@ public record Resources(
             dependencies,
             specialHashes,
             dependencyIndex,
-            stringIndex
+            stringIndex,
+            hash
         );
     }
 }

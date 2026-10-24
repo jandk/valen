@@ -30,12 +30,8 @@ public record Resources(
         var dependencyIndex = source.readInts(header.numDepIndices());
         var stringIndex = source.readLongs(header.numStringIndices());
 
+        var end = source.position();
         source.position(Math.toIntExact(header.resourceEntriesOffset()));
-        var end = header.resourceDepsOffset()
-            + header.numDependencies() * ResourcesDependency.BYTES
-            + header.numDepIndices() * 4L
-            + header.numStringIndices() * 8L;
-
         var toHash = source.readBytes(Math.toIntExact(end - source.position() + 4));
         var hash = HashFunction.farmHashFingerprint64().hash(toHash).asLong();
 

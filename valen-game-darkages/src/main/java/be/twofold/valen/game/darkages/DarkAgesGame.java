@@ -9,13 +9,13 @@ import be.twofold.valen.game.darkages.reader.decl.*;
 import be.twofold.valen.game.darkages.reader.decl.material2.*;
 import be.twofold.valen.game.darkages.reader.decl.renderparm.*;
 import be.twofold.valen.game.darkages.reader.image.*;
-import be.twofold.valen.game.darkages.reader.mask.*;
 import be.twofold.valen.game.darkages.reader.model.*;
 import be.twofold.valen.game.darkages.reader.packagemapspec.*;
 import be.twofold.valen.game.darkages.reader.skeleton.*;
 import be.twofold.valen.game.darkages.reader.strandshair.*;
 import be.twofold.valen.game.darkages.reader.vegetation.*;
-import wtf.reversed.toolbox.collect.*;
+import be.twofold.valen.game.idtech.game.*;
+import be.twofold.valen.game.idtech.reader.mask.*;
 import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
@@ -60,18 +60,10 @@ public final class DarkAgesGame implements Game {
     }
 
     private ContainerMask readMasks() throws IOException {
-        var metaResources = ResourcesIndex.build(List.of(base.resolve("meta.resources")), new ContainerMask(Map.of()));
-        var metaArchive = Archive.of(metaResources.assets());
-        var metaSources = metaResources.sources();
-        try (var metaStorageManager = new StorageManager(metaSources, Set.of(), decompressors)) {
-            var metaLoader = new AssetLoader(metaArchive, metaStorageManager, List.of());
-            var asset = metaLoader.all()
-                .filter(a -> a.id().fullName().equals("generated/buildgame/container.mask"))
-                .findFirst()
-                .orElseThrow(() -> new IOException("Could not find container.mask"));
-
-            var decompressed = metaLoader.load(asset.id(), Bytes.class);
-            return ContainerMask.read(BinarySource.wrap(decompressed));
+        var metaResources = ResourcesIndex.build(List.of(base.resolve("meta.resources")), ContainerMask.empty());
+        try (var metaStorageManager = new StorageManager(metaResources.sources(), Set.of(), decompressors)) {
+            var metaLoader = new AssetLoader(Archive.of(metaResources.assets()), metaStorageManager, List.of());
+            return ContainerMask.load(metaLoader, IdTechGame.DARK_AGES);
         }
     }
 
