@@ -1,5 +1,7 @@
 package be.twofold.valen.game.idtech.reader.image;
 
+import java.util.*;
+
 public enum TextureFormat {
     FMT_NONE,
     FMT_RGBA32F,
@@ -74,7 +76,7 @@ public enum TextureFormat {
     ;
 
     public static TextureFormat parse(String textureFormat) {
-        return switch (textureFormat.toLowerCase()) {
+        return switch (textureFormat.toLowerCase(Locale.ROOT)) {
             case "alpha" -> TextureFormat.FMT_ALPHA;
             case "bc4" -> TextureFormat.FMT_BC4;
             case "bc5" -> TextureFormat.FMT_BC5;

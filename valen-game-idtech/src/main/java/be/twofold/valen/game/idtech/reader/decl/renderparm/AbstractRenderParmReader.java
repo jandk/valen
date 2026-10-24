@@ -8,7 +8,7 @@ import java.io.*;
 
 public abstract class AbstractRenderParmReader<V extends Asset> implements AssetReader.Binary<RenderParm, V> {
     protected RenderParm read(BinarySource source) throws IOException {
-        var string = source.readString(Math.toIntExact(source.size()));
+        var string = source.readString(Math.toIntExact(source.remaining()));
         var lexer = new IdLexer(string,
             LexerFlags.LEXFL_NOSTRINGCONCAT,
             LexerFlags.LEXFL_NOSTRINGESCAPECHARS,

@@ -192,15 +192,17 @@ public abstract class AbstractMaterialReader<K extends IdclAssetID<?, ?>, V exte
             assetPath = assetPath.withExtension("tga");
         }
 
-        var builder = new StringBuilder(assetPath.toString().toLowerCase());
-        if (idTech8 && parm.renderParm().materialKind() == TextureMaterialKind.TMK_SMOOTHNESS) {
+        var builder = new StringBuilder(assetPath.toString().toLowerCase(Locale.ROOT));
+        var smoothnessNormalParm = parm.renderParm().smoothnessNormalParm();
+        if (idTech8 && parm.renderParm().materialKind() == TextureMaterialKind.TMK_SMOOTHNESS && smoothnessNormalParm != null) {
+            // Renderparm names are case-insensitive in the engine
             var smoothnessNormal = allParms.entrySet().stream()
-                .filter(rlp -> rlp.getValue().renderParm().materialKind() == parm.renderParm().smoothnessNormalParm())
-                .findFirst().orElseThrow();
+                .filter(entry -> entry.getKey().equalsIgnoreCase(smoothnessNormalParm))
+                .findFirst();
 
-            builder
+            smoothnessNormal.ifPresent(entry -> builder
                 .append("$smoothnessnormal=")
-                .append(((Tex) smoothnessNormal.getValue().value()).filePath());
+                .append(((Tex) entry.getValue().value()).filePath()));
         }
         mapOptions(builder, parm);
 
@@ -335,7 +337,7 @@ public abstract class AbstractMaterialReader<K extends IdclAssetID<?, ?>, V exte
     }
 
     private Optional<RenderParm> getRenderParm(String name, LoadingContext context) throws IOException {
-        name = name.toLowerCase();
+        name = name.toLowerCase(Locale.ROOT);
         if (renderParmCache.containsKey(name)) {
             return Optional.ofNullable(renderParmCache.get(name));
         }

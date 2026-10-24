@@ -39,7 +39,8 @@ public record ImageProperties(
             if (peek == null || peek.type() != TokenType.TT_NAME) {
                 break;
             }
-            var option = peek.value();
+
+            var option = peek.value().toLowerCase(Locale.ROOT);
             if (SKIPPED.contains(option)) {
                 lexer.expectName();
                 continue;
@@ -87,6 +88,7 @@ public record ImageProperties(
             case "fftbloom" -> Flags.FFT_BLOOM;
             case "fullscalebias" -> Flags.FULL_SCALE_BIAS;
             case "nomips" -> Flags.NO_MIPS;
+            case "prefiltermips" -> Flags.PREFILTER_MIPS;
             case "streamed" -> Flags.STREAMED;
             default -> null;
         };
@@ -104,6 +106,7 @@ public record ImageProperties(
         FFT_BLOOM,
         FULL_SCALE_BIAS,
         NO_MIPS,
+        PREFILTER_MIPS,
         STREAMED,
     }
 }

@@ -2,6 +2,8 @@ package be.twofold.valen.game.idtech.reader.decl.parser;
 
 import com.google.gson.*;
 
+import java.util.*;
+
 public final class DeclParser {
     private final DeclLexer lexer;
     private final boolean lenient;
@@ -49,7 +51,7 @@ public final class DeclParser {
     }
 
     public boolean expectBoolean() {
-        var name = expectName().toLowerCase();
+        var name = expectName().toLowerCase(Locale.ROOT);
         return switch (name) {
             case "true" -> true;
             case "false" -> false;

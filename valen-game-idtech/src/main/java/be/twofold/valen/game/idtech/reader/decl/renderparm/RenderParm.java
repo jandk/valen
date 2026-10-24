@@ -13,7 +13,7 @@ public record RenderParm(
     ParmEdit parmEdit,
     ParmScope parmScope,
     TextureMaterialKind materialKind,
-    TextureMaterialKind smoothnessNormalParm,
+    String smoothnessNormalParm,
     Set<Flags> flags
 ) {
     public RenderParm {
@@ -42,7 +42,7 @@ public record RenderParm(
         ParmEdit parmEdit = null;
         ParmScope parmScope = null;
         TextureMaterialKind materialKind = null;
-        TextureMaterialKind smoothnessNormalParm = null;
+        String smoothnessNormalParm = null;
         while (!lexer.peekPunctuation(LexerPunctuation.P_BRACECLOSE)) {
             var edit = parseParmEdit(lexer);
             if (edit != null) {
@@ -50,19 +50,24 @@ public record RenderParm(
                 continue;
             }
 
-            var scope = parseParmScope(lexer);
-            if (scope != null) {
-                parmScope = scope;
+            var scope = ParmScope.parse(peekValue(lexer));
+            if (scope.isPresent()) {
+                lexer.expectName();
+                parmScope = scope.get();
                 continue;
             }
 
             var flag = parseFlag(lexer);
             if (flag != null) {
                 flags.add(flag);
+                // Eternal and Great Circle set both bits for the streamed keyword
+                if (flag == Flags.STREAMED) {
+                    flags.add(Flags.GLOBALLY_INDEXED);
+                }
                 continue;
             }
 
-            var token = lexer.expectName().value().toLowerCase();
+            var token = lexer.expectName().value().toLowerCase(Locale.ROOT);
             switch (token) {
                 case "materialkind" -> {
                     lexer.expectPunctuation(LexerPunctuation.P_ASSIGN);
@@ -71,7 +76,7 @@ public record RenderParm(
                 }
                 case "smoothnessnormalparm" -> {
                     lexer.expectPunctuation(LexerPunctuation.P_ASSIGN);
-                    smoothnessNormalParm = TextureMaterialKind.parse(lexer.expectName().value());
+                    smoothnessNormalParm = lexer.expectName().value();
                     continue;
                 }
                 case "autobind" -> {
@@ -82,7 +87,7 @@ public record RenderParm(
                     }
                     continue;
                 }
-                case "cvar", "const", "coherent" -> {
+                case "cvar", "coherent" -> {
                     // ignore
                     continue;
                 }
@@ -142,9 +147,7 @@ public record RenderParm(
                 };
             case PT_STORAGE_BUFFER:
             case PT_BUFFER_REFERENCE:
-                Set<BufferViewFlag> flags = readStorageBufferFlags(lexer);
-                String name = lexer.expectName().value();
-                return new RenderParmStorageBuffer(flags, name);
+                return RenderParmStorageBuffer.parse(lexer);
             case PT_TYPE:
                 return parseType(lexer);
             case PT_UNIFORM_BUFFER:
@@ -170,7 +173,7 @@ public record RenderParm(
     }
 
     private static ParmEdit parseParmEdit(IdLexer lexer) {
-        var token = peekValue(lexer).toLowerCase();
+        var token = peekValue(lexer).toLowerCase(Locale.ROOT);
         var parmEdit = switch (token) {
             case "bool" -> new ParmEdit.Bool();
             case "srgb", "srgba" -> new ParmEdit.Srgba();
@@ -190,22 +193,13 @@ public record RenderParm(
         return parmEdit;
     }
 
-    private static ParmScope parseParmScope(IdLexer lexer) {
-        var token = peekValue(lexer).toLowerCase();
-        var parmScope = switch (token) {
-            case "view" -> ParmScope.PSCP_VIEW;
-            case "instance" -> ParmScope.PSCP_INSTANCE;
-            case "surface" -> ParmScope.PSCP_SURFACE;
-            default -> null;
-        };
-        if (parmScope != null) {
-            lexer.expectName();
-        }
-        return parmScope;
+    private static String peekValue(IdLexer lexer) {
+        var token = lexer.peekToken();
+        return token != null ? token.value() : "";
     }
 
     private static Flags parseFlag(IdLexer lexer) {
-        var flag = switch (peekValue(lexer).toLowerCase()) {
+        var flag = switch (peekValue(lexer).toLowerCase(Locale.ROOT)) {
             case "divergent" -> Flags.DIVERGENT;
             case "env_nointerp" -> Flags.ENV_NO_INTERPOLATION;
             case "fftbloom" -> Flags.FFT_BLOOM;
@@ -261,24 +255,6 @@ public record RenderParm(
         throw new IllegalArgumentException("Expected a boolean, but got " + value);
     }
 
-    private static Set<BufferViewFlag> readStorageBufferFlags(IdLexer lexer) {
-        var flags = EnumSet.noneOf(BufferViewFlag.class);
-        while (true) {
-            var name = peekValue(lexer).toLowerCase();
-            switch (name) {
-                case "writable" -> flags.add(BufferViewFlag.BVF_WRITABLE);
-                case "coherent" -> flags.add(BufferViewFlag.BVF_COHERENT);
-                case "instancedescriptorsetlayout", "surfacedescriptorsetlayout", "skipoobchecks" -> {
-                    // ignore
-                }
-                default -> {
-                    return flags;
-                }
-            }
-            lexer.expectName();
-        }
-    }
-
     private static String parseType(IdLexer lexer) {
         lexer.expectPunctuation(LexerPunctuation.P_BRACEOPEN);
 
@@ -302,11 +278,6 @@ public record RenderParm(
         builder.setLength(builder.length() - 1);
         builder.append("}");
         return builder.toString();
-    }
-
-    private static String peekValue(IdLexer lexer) {
-        var token = lexer.peekToken();
-        return token != null ? token.value() : "";
     }
 
     private static float[] readVector(IdLexer lexer, int n) {

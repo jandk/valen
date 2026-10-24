@@ -1,5 +1,7 @@
 package be.twofold.valen.game.idtech.reader.image;
 
+import java.util.*;
+
 public enum TextureMaterialKind {
     TMK_NONE,
     TMK_ALBEDO,
@@ -37,23 +39,32 @@ public enum TextureMaterialKind {
     ;
 
     public static TextureMaterialKind parse(String textureMaterialKind) {
-        return switch (textureMaterialKind.toLowerCase()) {
+        return switch (textureMaterialKind.toLowerCase(Locale.ROOT)) {
             case "albedo" -> TextureMaterialKind.TMK_ALBEDO;
-            case "specular" -> TextureMaterialKind.TMK_SPECULAR;
-            case "normal" -> TextureMaterialKind.TMK_NORMAL;
-            case "smoothness" -> TextureMaterialKind.TMK_SMOOTHNESS;
-            case "cover" -> TextureMaterialKind.TMK_COVER;
-            case "colormask" -> TextureMaterialKind.TMK_COLORMASK;
+            case "albedodetails" -> TextureMaterialKind.TMK_ALBEDO_DETAILS;
+            case "albedounscaled" -> TextureMaterialKind.TMK_ALBEDO_UNSCALED;
+            case "ao" -> TextureMaterialKind.TMK_AO;
+            case "blendmask" -> TextureMaterialKind.TMK_BLENDMASK;
             case "bloommask" -> TextureMaterialKind.TMK_BLOOMMASK;
-            case "sssmask" -> TextureMaterialKind.TMK_SSSMASK;
-            case "heightmap" -> TextureMaterialKind.TMK_HEIGHTMAP;
+            case "colormask" -> TextureMaterialKind.TMK_COLORMASK;
+            case "cover" -> TextureMaterialKind.TMK_COVER;
             case "decalalbedo" -> TextureMaterialKind.TMK_DECALALBEDO;
+            case "decalheightmap" -> TextureMaterialKind.TMK_DECALHEIGHTMAP;
             case "decalnormal" -> TextureMaterialKind.TMK_DECALNORMAL;
             case "decalspecular" -> TextureMaterialKind.TMK_DECALSPECULAR;
+            case "font" -> TextureMaterialKind.TMK_FONT;
+            case "heightmap" -> TextureMaterialKind.TMK_HEIGHTMAP;
+            case "legacyflashui" -> TextureMaterialKind.TMK_LEGACY_FLASH_UI;
+            case "lightmap" -> TextureMaterialKind.TMK_LIGHTMAP;
+            case "lightmapdir" -> TextureMaterialKind.TMK_LIGHTMAP_DIRECTIONAL;
             case "lightproject" -> TextureMaterialKind.TMK_LIGHTPROJECT;
+            case "normal" -> TextureMaterialKind.TMK_NORMAL;
             case "particle" -> TextureMaterialKind.TMK_PARTICLE;
-            case "blendmask" -> TextureMaterialKind.TMK_BLENDMASK;
-            case "ao" -> TextureMaterialKind.TMK_AO;
+            case "smoothness" -> TextureMaterialKind.TMK_SMOOTHNESS;
+            case "specular" -> TextureMaterialKind.TMK_SPECULAR;
+            case "sssmask" -> TextureMaterialKind.TMK_SSSMASK;
+            case "tintmask" -> TextureMaterialKind.TMK_TINTMASK;
+            case "ui" -> TextureMaterialKind.TMK_UI;
             default -> TextureMaterialKind.TMK_NONE;
         };
     }

@@ -1,5 +1,7 @@
 package be.twofold.valen.game.idtech.reader.decl.renderparm;
 
+import java.util.*;
+
 public enum ImageBufferFormat {
     IBF_FLOAT,
     IBF_INT,
@@ -51,7 +53,7 @@ public enum ImageBufferFormat {
     ;
 
     public static ImageBufferFormat parse(String format) {
-        return switch (format.toLowerCase()) {
+        return switch (format.toLowerCase(Locale.ROOT)) {
             case "float" -> ImageBufferFormat.IBF_FLOAT;
             case "uint" -> ImageBufferFormat.IBF_UINT;
             case "int" -> ImageBufferFormat.IBF_INT;

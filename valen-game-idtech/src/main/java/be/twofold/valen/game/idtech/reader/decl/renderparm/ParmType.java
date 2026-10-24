@@ -1,5 +1,7 @@
 package be.twofold.valen.game.idtech.reader.decl.renderparm;
 
+import java.util.*;
+
 public enum ParmType {
     PT_F32_VEC4,
     PT_F32_VEC3,
@@ -53,7 +55,7 @@ public enum ParmType {
     ;
 
     public static ParmType parse(String parmType) {
-        return switch (parmType.toLowerCase()) {
+        return switch (parmType.toLowerCase(Locale.ROOT)) {
             case "tex", "tex2d" -> ParmType.PT_TEXTURE_2D;
             case "tex2dhalf" -> ParmType.PT_TEXTURE_2D_HALF;
             case "tex2du" -> ParmType.PT_TEXTURE_2D_UI;
@@ -85,6 +87,7 @@ public enum ParmType {
             case "imagebuffer2d" -> ParmType.PT_IMAGE2D_BUFFER;
             case "imagebuffer2darray" -> ParmType.PT_IMAGE2D_ARRAY_BUFFER;
             case "imagebuffer3d" -> ParmType.PT_IMAGE3D_BUFFER;
+            case "imagebuffercube" -> ParmType.PT_IMAGECUBE_BUFFER;
             case "imagestorebuffer2d" -> ParmType.PT_IMAGE2D_STORE_BUFFER;
             case "imagestorebuffer2darray" -> ParmType.PT_IMAGE2D_STORE_ARRAY_BUFFER;
             case "imagestorebuffer3d" -> ParmType.PT_IMAGE3D_STORE_BUFFER;

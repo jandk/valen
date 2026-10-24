@@ -51,7 +51,7 @@ public abstract class AbstractDeclReader<K extends AssetID, V extends Asset> imp
             return object;
         }
 
-        var inheritName = object.getAsJsonPrimitive("inherit").getAsString().toLowerCase();
+        var inheritName = object.getAsJsonPrimitive("inherit").getAsString().toLowerCase(Locale.ROOT);
         K inheritID = getAssetID(inheritName, baseAssetID);
 
         var inherit = declCache.get(inheritID);
