@@ -10,16 +10,6 @@ import java.io.*;
 import java.util.*;
 
 public abstract class AbstractRenderParmReader<V extends Asset> implements AssetReader.Binary<RenderParm, V> {
-    private static final Set<String> Skipped = Set.of(
-        "borderclamp",
-        "clamp",
-        "clamps",
-        "clampt",
-        "linear",
-        "mirror",
-        "nearest"
-    );
-
     protected Object parseValue(IdLexer lexer, RenderParm renderParm) {
         switch (renderParm.parmType) {
             case PT_F32_VEC4, PT_F16_VEC4:
@@ -44,9 +34,7 @@ public abstract class AbstractRenderParmReader<V extends Asset> implements Asset
             case PT_TEXTURE_ARRAY_CUBE:
             case PT_TEXTURE_MULTISAMPLE_2D:
             case PT_TEXTURE_STENCIL:
-                var props = parseImageProperties(lexer);
-                props.name = expectNameOrString(lexer);
-                return props;
+                return ImageProperties.parse(lexer);
             case PT_SAMPLER:
             case PT_SAMPLER_SHADOW_2D:
             case PT_SAMPLER_SHADOW_3D:
@@ -176,71 +164,6 @@ public abstract class AbstractRenderParmReader<V extends Asset> implements Asset
         return builder.toString();
     }
 
-    protected Integer parsePadding(String token) {
-        return switch (token) {
-            case "pad2" -> 2;
-            case "pad4" -> 4;
-            case "pad8" -> 8;
-            case "pad16" -> 16;
-            default -> null;
-        };
-    }
-
-    protected ImageProperties parseImageProperties(IdLexer lexer) {
-        var result = new ImageProperties();
-        while (true) {
-            IdToken peek = lexer.peekToken();
-            if (peek == null || peek.type() != TokenType.TT_NAME) {
-                return result;
-            }
-            String name = peek.value();
-            if (Skipped.contains(name)) {
-                lexer.expectName();
-                continue;
-            }
-
-            TextureFormat textureFormat = TextureFormat.parse(name);
-            if (textureFormat != null) {
-                result.format = textureFormat;
-                lexer.expectName();
-                continue;
-            }
-
-            Integer padding = parsePadding(name);
-            if (padding != null) {
-                result.padding = padding;
-                lexer.expectName();
-                continue;
-            }
-
-            switch (name) {
-                case "fullscalebias" -> {
-                    result.fullScaleBias = true;
-                    lexer.expectName();
-                    continue;
-                }
-                case "fftbloom" -> {
-                    result.fftBloom = true;
-                    lexer.expectName();
-                    continue;
-                }
-                case "nomips" -> {
-                    result.noMips = true;
-                    lexer.expectName();
-                    continue;
-                }
-                case "streamed" -> {
-                    result.streamed = true;
-                    lexer.expectName();
-                    continue;
-                }
-            }
-
-            break;
-        }
-        return result;
-    }
-
     protected ParmScope parseParmScope(IdLexer lexer) {
         var token = peekValue(lexer).toLowerCase();
         var parmScope = switch (token) {
@@ -365,20 +288,12 @@ public abstract class AbstractRenderParmReader<V extends Asset> implements Asset
 
         result.declaredValue = parseValue(lexer, result);
         if (result.declaredValue instanceof ImageProperties imageProperties) {
-            result.streamed = imageProperties.streamed;
+            result.streamed = imageProperties.flags().contains(ImageProperties.Flags.STREAMED);
         }
 
         parseExtras(lexer, result);
         lexer.expectPunctuation(LexerPunctuation.P_BRACECLOSE);
         return result;
-    }
-
-    private String expectNameOrString(IdLexer lexer) {
-        var token = lexer.expectAnyToken();
-        if (token.type() != TokenType.TT_NAME && token.type() != TokenType.TT_STRING) {
-            throw new IllegalArgumentException("Expected a name or string, but got " + token.value());
-        }
-        return token.value();
     }
 
     private String peekValue(IdLexer lexer) {
