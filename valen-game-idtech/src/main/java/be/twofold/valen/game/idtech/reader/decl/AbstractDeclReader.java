@@ -1,6 +1,7 @@
 package be.twofold.valen.game.idtech.reader.decl;
 
 import be.twofold.valen.core.game.*;
+import be.twofold.valen.game.idtech.game.*;
 import be.twofold.valen.game.idtech.reader.decl.parser.*;
 import com.google.gson.*;
 import org.slf4j.*;
@@ -13,7 +14,7 @@ import java.nio.charset.*;
 import java.util.*;
 import java.util.regex.*;
 
-public abstract class AbstractDeclReader<K extends AssetID, V extends Asset> implements AssetReader.Binary<JsonObject, V> {
+public abstract class AbstractDeclReader<K extends IdclAssetID<?, ?>, V extends IdclAsset<K>> implements AssetReader.Binary<JsonObject, V> {
     private static final Logger log = LoggerFactory.getLogger(AbstractDeclReader.class);
     private static final Pattern ItemPattern = Pattern.compile("^\\w+\\[(\\d+)]$");
     private static final CharsetDecoder Utf8Decoder = StandardCharsets.UTF_8.newDecoder();
@@ -31,8 +32,7 @@ public abstract class AbstractDeclReader<K extends AssetID, V extends Asset> imp
         var bytes = source.readBytes(Math.toIntExact(source.size()));
         var object = DeclParser.parse(decode(bytes));
 
-        @SuppressWarnings("unchecked")
-        var result = loadInherit(object, (K) asset.id(), context);
+        var result = loadInherit(object, asset.id(), context);
         result = result.deepCopy();
         postProcessArrays(result);
 
