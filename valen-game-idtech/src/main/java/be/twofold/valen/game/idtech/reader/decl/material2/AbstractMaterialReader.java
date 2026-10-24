@@ -165,7 +165,7 @@ public abstract class AbstractMaterialReader<K extends IdclAssetID<?, ?>, V exte
         }
 
         var reference = textureParm.map(parm -> mapTex2D(parm, parms, context)).orElse(null);
-        var factor = factorParm.map(parm -> switch (parm.renderParm().parmType) {
+        var factor = factorParm.map(parm -> switch (parm.renderParm().parmType()) {
             case PT_F32_VEC4, PT_F16_VEC4 -> (Vector4) parm.value();
             case PT_F32_VEC3, PT_F16_VEC3 -> new Vector4((Vector3) parm.value(), 0.0f);
             case PT_F32_VEC2, PT_F16_VEC2 -> new Vector4((Vector2) parm.value(), 0.0f, 0.0f);
@@ -193,9 +193,9 @@ public abstract class AbstractMaterialReader<K extends IdclAssetID<?, ?>, V exte
         }
 
         var builder = new StringBuilder(assetPath.toString().toLowerCase());
-        if (idTech8 && parm.renderParm().materialKind == TextureMaterialKind.TMK_SMOOTHNESS) {
+        if (idTech8 && parm.renderParm().materialKind() == TextureMaterialKind.TMK_SMOOTHNESS) {
             var smoothnessNormal = allParms.entrySet().stream()
-                .filter(rlp -> rlp.getValue().renderParm().materialKind == parm.renderParm().smoothnessNormalParm)
+                .filter(rlp -> rlp.getValue().renderParm().materialKind() == parm.renderParm().smoothnessNormalParm())
                 .findFirst().orElseThrow();
 
             builder
@@ -264,13 +264,13 @@ public abstract class AbstractMaterialReader<K extends IdclAssetID<?, ?>, V exte
         }
 
         var element = parms.get(name);
-        var value = switch (renderParm.get().parmType) {
+        var value = switch (renderParm.get().parmType()) {
             case PT_BOOL -> {
                 if (element.isJsonObject()) {
                     // TODO: Should we look at X or W?
                     var object = element.getAsJsonObject();
                     if (!object.has("w")) {
-                        yield renderParm.get().declaredValue;
+                        yield renderParm.get().declaredValue();
                     }
                     yield object.getAsJsonPrimitive("w").getAsInt() != 0;
                 }
@@ -280,7 +280,7 @@ public abstract class AbstractMaterialReader<K extends IdclAssetID<?, ?>, V exte
                 if (element.isJsonObject()) {
                     var object = element.getAsJsonObject();
                     if (!object.has("x")) {
-                        yield renderParm.get().declaredValue;
+                        yield renderParm.get().declaredValue();
                     }
                     yield object.get("x").getAsFloat();
                 }
@@ -292,7 +292,7 @@ public abstract class AbstractMaterialReader<K extends IdclAssetID<?, ?>, V exte
             case PT_COLOR_LUT, PT_STRING -> element.getAsString();
             case PT_TEXTURE_2D, PT_TEXTURE_2D_HALF, PT_TEXTURE_3D, PT_TEXTURE_CUBE -> parseTex(element);
             case PT_SI32, PT_UI32 -> element.getAsInt();
-            default -> throw new UnsupportedOperationException(renderParm.get().parmType.toString());
+            default -> throw new UnsupportedOperationException(renderParm.get().parmType().toString());
         };
 
         return Optional.of(new Parm(name, renderParm.get(), value));
@@ -300,36 +300,36 @@ public abstract class AbstractMaterialReader<K extends IdclAssetID<?, ?>, V exte
 
     private Vector2 parseVector2(JsonElement element, RenderParm renderParm) {
         var object = element.getAsJsonObject();
-        var defaultValue = (Vector2) renderParm.declaredValue;
+        var defaultValue = (Vector2) renderParm.declaredValue();
         var x = object.has("x") ? object.getAsJsonPrimitive("x").getAsFloat() : defaultValue.x();
         var y = object.has("y") ? object.getAsJsonPrimitive("y").getAsFloat() : defaultValue.y();
         var result = new Vector2(x, y);
-        return renderParm.parmEdit instanceof ParmEdit.Srgba
+        return renderParm.parmEdit() instanceof ParmEdit.Srgba
             ? new Vector2(Srgb.srgbToLinear(result.x()), Srgb.srgbToLinear(result.y()))
             : result;
     }
 
     private Vector3 parseVector3(JsonElement element, RenderParm renderParm) {
         var object = element.getAsJsonObject();
-        var defaultValue = (Vector3) renderParm.declaredValue;
+        var defaultValue = (Vector3) renderParm.declaredValue();
         var x = object.has("x") ? object.getAsJsonPrimitive("x").getAsFloat() : defaultValue.x();
         var y = object.has("y") ? object.getAsJsonPrimitive("y").getAsFloat() : defaultValue.y();
         var z = object.has("z") ? object.getAsJsonPrimitive("z").getAsFloat() : defaultValue.z();
         var result = new Vector3(x, y, z);
-        return renderParm.parmEdit instanceof ParmEdit.Srgba
+        return renderParm.parmEdit() instanceof ParmEdit.Srgba
             ? new Vector3(Srgb.srgbToLinear(result.x()), Srgb.srgbToLinear(result.y()), Srgb.srgbToLinear(result.z()))
             : result;
     }
 
     private Vector4 parseVector4(JsonElement element, RenderParm renderParm) {
         var object = element.getAsJsonObject();
-        var defaultValue = (Vector4) renderParm.declaredValue;
+        var defaultValue = (Vector4) renderParm.declaredValue();
         var x = object.has("x") ? object.getAsJsonPrimitive("x").getAsFloat() : defaultValue.x();
         var y = object.has("y") ? object.getAsJsonPrimitive("y").getAsFloat() : defaultValue.y();
         var z = object.has("z") ? object.getAsJsonPrimitive("z").getAsFloat() : defaultValue.z();
         var w = object.has("w") ? object.getAsJsonPrimitive("w").getAsFloat() : defaultValue.w();
         var result = new Vector4(x, y, z, w);
-        return renderParm.parmEdit instanceof ParmEdit.Srgba
+        return renderParm.parmEdit() instanceof ParmEdit.Srgba
             ? new Vector4(Srgb.srgbToLinear(result.x()), Srgb.srgbToLinear(result.y()), Srgb.srgbToLinear(result.z()), result.w())
             : result;
     }
@@ -363,7 +363,7 @@ public abstract class AbstractMaterialReader<K extends IdclAssetID<?, ?>, V exte
     private void mapOptions(StringBuilder builder, Parm parm) {
         var tex2d = (Tex) parm.value();
         var opts = tex2d.options();
-        var kind = parm.renderParm().materialKind;
+        var kind = parm.renderParm().materialKind();
 
         if (opts != null) {
             addTextureFormat(builder, kind, opts.format());
@@ -376,7 +376,7 @@ public abstract class AbstractMaterialReader<K extends IdclAssetID<?, ?>, V exte
             if (opts.fullScaleBias()) {
                 builder.append("$fullscalebias");
             }
-            if (parm.renderParm().streamed) {
+            if (parm.renderParm().flags().contains(RenderParm.Flags.STREAMED)) {
                 builder.append("$streamed");
             }
             if (opts.noMips()) {
