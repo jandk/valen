@@ -6,14 +6,12 @@ import be.twofold.valen.game.source.*;
 import java.io.*;
 import java.nio.file.*;
 import java.util.*;
-import java.util.function.*;
-import java.util.stream.*;
 
 public record FolderIndex(
-    Map<SourceAssetID, SourceAsset> index
+    List<SourceAsset> assets
 ) {
     public FolderIndex {
-        index = Map.copyOf(index);
+        assets = List.copyOf(assets);
     }
 
     public static FolderIndex build(Path root) throws IOException {
@@ -21,7 +19,7 @@ public record FolderIndex(
             var assets = stream
                 .filter(path -> Files.isRegularFile(path) && !path.getFileName().toString().endsWith(".vpk"))
                 .map(path -> mapToAsset(root, path))
-                .collect(Collectors.toUnmodifiableMap(SourceAsset::id, Function.identity()));
+                .toList();
 
             return new FolderIndex(assets);
         }

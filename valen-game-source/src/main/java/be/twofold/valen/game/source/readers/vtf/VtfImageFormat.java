@@ -52,27 +52,23 @@ public enum VtfImageFormat {
         throw new UnsupportedOperationException("Unknown image format: " + value);
     }
 
-    public TextureFormat toTextureFormat() {
+    public TextureFormat toTextureFormat(boolean srgb) {
         return switch (this) {
-            case RGBA8888, UVWQ8888, UVLX8888 -> TextureFormat.R8G8B8A8_UNORM;
-            case RGB888, RGB888_BLUESCREEN -> TextureFormat.R8G8B8_UNORM;
-            case BGR888, BGR888_BLUESCREEN -> TextureFormat.B8G8R8_UNORM;
-            case I8, A8 -> TextureFormat.R8_UNORM;
-            case BGRA8888, BGRX8888 -> TextureFormat.B8G8R8A8_UNORM;
-            case DXT1, DXT1_ONEBITALPHA -> TextureFormat.BC1_UNORM;
-            case DXT3 -> TextureFormat.BC2_UNORM;
-            case DXT5 -> TextureFormat.BC3_UNORM;
+            case RGBA8888 -> srgb ? TextureFormat.R8G8B8A8_SRGB : TextureFormat.R8G8B8A8_UNORM;
+            case RGB888, RGB888_BLUESCREEN -> srgb ? TextureFormat.R8G8B8_SRGB : TextureFormat.R8G8B8_UNORM;
+            case BGR888, BGR888_BLUESCREEN -> srgb ? TextureFormat.B8G8R8_SRGB : TextureFormat.B8G8R8_UNORM;
+            case I8 -> srgb ? TextureFormat.R8_SRGB : TextureFormat.R8_UNORM;
+            case A8 -> TextureFormat.R8_UNORM;
+            case BGRA8888, BGRX8888 -> srgb ? TextureFormat.B8G8R8A8_SRGB : TextureFormat.B8G8R8A8_UNORM;
+            case DXT1 -> srgb ? TextureFormat.BC1_SRGB : TextureFormat.BC1_UNORM;
+            case DXT3 -> srgb ? TextureFormat.BC2_SRGB : TextureFormat.BC2_UNORM;
+            case DXT5 -> srgb ? TextureFormat.BC3_SRGB : TextureFormat.BC3_UNORM;
+            case DXT1_ONEBITALPHA -> srgb ? TextureFormat.BC1A_SRGB : TextureFormat.BC1A_UNORM;
             case UV88 -> TextureFormat.R8G8_UNORM;
+            case UVWQ8888, UVLX8888 -> TextureFormat.R8G8B8A8_UNORM;
             case RGBA16161616F -> TextureFormat.R16G16B16A16_SFLOAT;
             case RGBA16161616 -> TextureFormat.R16G16B16A16_UNORM;
             default -> throw new UnsupportedOperationException("VTF texture format not supported: " + name());
-        };
-    }
-
-    public boolean isBlockCompressed() {
-        return switch (this) {
-            case DXT1, DXT3, DXT5, DXT1_ONEBITALPHA -> true;
-            default -> false;
         };
     }
 

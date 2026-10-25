@@ -47,7 +47,7 @@ public final class SourceGame implements Game {
             .toList();
 
         var sources = new HashMap<Path, BinarySource>();
-        var index = new HashMap<SourceAssetID, SourceAsset>();
+        var assets = new ArrayList<SourceAsset>();
         for (var searchPath : searchPaths) {
             if (searchPath.getFileName().toString().endsWith(".vpk")) {
                 if (Files.notExists(searchPath)) {
@@ -58,15 +58,15 @@ public final class SourceGame implements Game {
                 if (Files.exists(searchPath)) {
                     VpkIndex vpkIndex = VpkIndex.build(searchPath);
                     sources.putAll(vpkIndex.sources());
-                    index.putAll(vpkIndex.index());
+                    assets.addAll(vpkIndex.assets());
                 }
             } else {
-                index.putAll(FolderIndex.build(searchPath).index());
+                assets.addAll(FolderIndex.build(searchPath).assets());
             }
         }
 
-        var archive = Archive.simple(index);
-        var storageManager = new StorageManager(sources, Set.of());
+        var archive = Archive.of(assets);
+        var storageManager = new StorageManager(sources, Set.of(), new Decompressors(null));
         return new AssetLoader(archive, storageManager, List.copyOf(READERS));
     }
 

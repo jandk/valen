@@ -10,19 +10,17 @@ import java.io.*;
 import java.nio.file.*;
 import java.text.*;
 import java.util.*;
-import java.util.function.*;
-import java.util.stream.*;
 
 public record VpkIndex(
     Map<Path, BinarySource> sources,
-    Map<SourceAssetID, SourceAsset> index
+    List<SourceAsset> assets
 ) {
     private static final Logger LOGGER = LoggerFactory.getLogger(VpkIndex.class);
     private static final DecimalFormat FORMAT = new DecimalFormat("000");
 
     public VpkIndex {
         sources = Map.copyOf(sources);
-        index = Map.copyOf(index);
+        assets = List.copyOf(assets);
     }
 
     public static VpkIndex build(Path path) throws IOException {
@@ -47,11 +45,11 @@ public record VpkIndex(
             sources.put(vpkPath, BinarySource.open(vpkPath));
         }
 
-        var index = directory.entries().stream()
+        var assets = directory.entries().stream()
             .map(entry -> mapEntry(entry, entry.archiveIndex() == 0x7FFF ? path : vpkPaths.get(entry.archiveIndex())))
-            .collect(Collectors.toUnmodifiableMap(SourceAsset::id, Function.identity()));
+            .toList();
 
-        return new VpkIndex(sources, index);
+        return new VpkIndex(sources, assets);
     }
 
     private static SourceAsset mapEntry(VpkEntry entry, Path path) {
