@@ -3,35 +3,26 @@ package be.twofold.valen.export.gltf;
 import be.twofold.valen.core.export.*;
 import be.twofold.valen.core.util.*;
 import be.twofold.valen.format.gltf.*;
+import wtf.reversed.toolbox.util.*;
 
 import java.io.*;
 import java.nio.file.*;
 
 public abstract class GltfExporter<T> implements Exporter<T> {
-    private GltfExportMode mode;
+    private final GltfExportMode mode;
 
-    @Override
-    public String getName() {
-        return "glTF/GLB (GL Transmission Format)";
+    protected GltfExporter(GltfExportMode mode) {
+        this.mode = Check.nonNull(mode, "mode");
     }
 
     @Override
-    public String getExtension() {
-        return switch (mode) {
-            case GLB -> "glb";
-            case GLTF_SPLIT -> "gltf";
-        };
+    public final String getName() {
+        return mode.displayName();
     }
 
     @Override
-    public void setProperty(String key, Object value) {
-        if (key.equals("gltf.mode")) {
-            mode = switch (value.toString()) {
-                case "glb" -> GltfExportMode.GLB;
-                case "gltf" -> GltfExportMode.GLTF_SPLIT;
-                default -> throw new UnsupportedOperationException("Unsupported value: " + value);
-            };
-        }
+    public final String getExtension() {
+        return mode.extension();
     }
 
     @Override
@@ -43,27 +34,33 @@ public abstract class GltfExporter<T> implements Exporter<T> {
     @Override
     public void export(T value, Path path) throws IOException {
         var writer = switch (mode) {
-            case GLB -> GltfWriter.createGlbWriter(path);
+            case GLB -> GltfWriter.createGlbWriter(path, Valen.software());
             case GLTF_SPLIT -> createSplitWriter(path);
         };
 
         try (writer) {
             doExport(value, writer);
+        } catch (IOException | RuntimeException e) {
+            // Images are left alone, as they can be shared by other exports in the same folder
+            if (mode == GltfExportMode.GLTF_SPLIT) {
+                Files.deleteIfExists(binPath(path));
+            }
+            throw e;
         }
     }
 
     private static GltfWriter createSplitWriter(Path path) throws IOException {
-        var outputDirectory = path.getParent();
-        var fileName = path.getFileName().toString();
-        var fileNameWithoutExtension = Filenames.removeExtension(fileName);
-
-        var binPath = outputDirectory.resolve(fileNameWithoutExtension + ".bin");
-        var imagePath = outputDirectory.resolve("_images");
+        var binPath = binPath(path);
+        var imagePath = path.getParent().resolve("_images");
         if (!Files.exists(imagePath)) {
             Files.createDirectories(imagePath);
         }
 
-        return GltfWriter.createSplitWriter(path, binPath, imagePath);
+        return GltfWriter.createSplitWriter(path, binPath, imagePath, Valen.software());
+    }
+
+    private static Path binPath(Path path) {
+        return PathUtils.replaceExtension(path, "bin");
     }
 
     abstract void doExport(T object, GltfWriter writer) throws IOException;

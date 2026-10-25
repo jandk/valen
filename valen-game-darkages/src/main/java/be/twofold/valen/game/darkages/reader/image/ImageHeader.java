@@ -1,6 +1,6 @@
 package be.twofold.valen.game.darkages.reader.image;
 
-import be.twofold.valen.game.idtech.defines.*;
+import be.twofold.valen.game.idtech.reader.image.*;
 import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
@@ -30,8 +30,8 @@ public record ImageHeader(
         source.expectByte((byte) 'M');
         var version = source.readByte();
 
-        var textureType = TextureType.fromValue(source.readInt());
-        var textureMaterialKind = toMaterialKind(source.readInt());
+        var textureType = TextureType.read(source);
+        var textureMaterialKind = TextureMaterialKind.read(source);
         var pixelWidth = source.readInt();
         var pixelHeight = source.readInt();
         var depth = source.readInt();
@@ -88,33 +88,6 @@ public record ImageHeader(
         return mipCount * faces;
     }
 
-    private static TextureMaterialKind toMaterialKind(int value) {
-        return switch (value) {
-            case +0 -> TextureMaterialKind.TMK_NONE;
-            case +1 -> TextureMaterialKind.TMK_ALBEDO;
-            case +2 -> TextureMaterialKind.TMK_SPECULAR;
-            case +3 -> TextureMaterialKind.TMK_NORMAL;
-            case +4 -> TextureMaterialKind.TMK_SMOOTHNESS;
-            case +5 -> TextureMaterialKind.TMK_COVER;
-            case +6 -> TextureMaterialKind.TMK_SSSMASK;
-            case +7 -> TextureMaterialKind.TMK_COLORMASK;
-            case +8 -> TextureMaterialKind.TMK_BLOOMMASK;
-            case +9 -> TextureMaterialKind.TMK_HEIGHTMAP;
-            case 10 -> TextureMaterialKind.TMK_DECALALBEDO;
-            case 11 -> TextureMaterialKind.TMK_DECALNORMAL;
-            case 12 -> TextureMaterialKind.TMK_DECALSPECULAR;
-            case 13 -> TextureMaterialKind.TMK_LIGHTPROJECT;
-            case 14 -> TextureMaterialKind.TMK_PARTICLE;
-            case 15 -> TextureMaterialKind.TMK_DECALHEIGHTMAP;
-            case 16 -> TextureMaterialKind.TMK_AO;
-            case 18 -> TextureMaterialKind.TMK_UI;
-            case 19 -> TextureMaterialKind.TMK_FONT;
-            case 20 -> TextureMaterialKind.TMK_LEGACY_FLASH_UI;
-            case 22 -> TextureMaterialKind.TMK_BLENDMASK;
-            case 23 -> TextureMaterialKind.TMK_PAINTEDDATAGRID;
-            default -> throw new UnsupportedOperationException("Unsupported texture material kind value " + value);
-        };
-    }
 
     private static TextureFormat toTextureFormat(int value) {
         return switch (value) {

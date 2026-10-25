@@ -26,7 +26,6 @@ public final class FileCompressedReader implements AssetReader.Binary<Bytes, Ete
         }
 
         var compressed = source.readBytes(header.compressedSize());
-        return Decompressors.getOodle()
-            .decompress(compressed, header.uncompressedSize());
+        return context.decompress(CompressionType.OODLE, compressed, header.uncompressedSize());
     }
 }

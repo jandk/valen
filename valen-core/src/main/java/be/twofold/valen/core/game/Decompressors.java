@@ -9,12 +9,14 @@ import java.nio.file.*;
 public final class Decompressors {
     private static final Logger log = LoggerFactory.getLogger(Decompressors.class);
 
-    private static Decompressor oodleDecompressor;
+    private final Path oodlePath;
+    private Decompressor oodle;
 
-    private Decompressors() {
+    public Decompressors(Path oodlePath) {
+        this.oodlePath = oodlePath;
     }
 
-    public static Decompressor get(CompressionType type) {
+    public Decompressor get(CompressionType type) {
         return switch (type) {
             case NONE -> Decompressor.none();
             case DEFLATE_RAW -> Decompressor.deflate(true);
@@ -27,27 +29,21 @@ public final class Decompressors {
         };
     }
 
-    public static Decompressor getOodle() {
-        if (oodleDecompressor == null) {
+    private Decompressor getOodle() {
+        if (oodle == null) {
+            oodle = Decompressor.oodle(resolveOodlePath());
+        }
+        return oodle;
+    }
+
+    private Path resolveOodlePath() {
+        if (oodlePath != null) {
             if (Platform.current().os() == Platform.OS.WINDOWS &&
                 Platform.current().arch() == Platform.Arch.X86_64) {
-                log.warn("Oodle decompressor not initialized for Windows x64");
+                return oodlePath;
             }
-            oodleDecompressor = Decompressor.oodle(OodleDownloader.download());
+            log.warn("Ignoring Oodle path {} on non-Windows-x64 platform, downloading instead", oodlePath);
         }
-        return oodleDecompressor;
-    }
-
-    public static void setOodlePath(Path path) {
-        if (Platform.current().os() != Platform.OS.WINDOWS ||
-            Platform.current().arch() != Platform.Arch.X86_64) {
-            log.warn("Can't set oodle for non Windows x64 platforms");
-            return;
-        }
-        oodleDecompressor = Decompressor.oodle(path);
-    }
-
-    public static void resetOodle() {
-        oodleDecompressor = null;
+        return OodleDownloader.download();
     }
 }

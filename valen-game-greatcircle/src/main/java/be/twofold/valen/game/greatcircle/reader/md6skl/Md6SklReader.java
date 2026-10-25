@@ -2,11 +2,14 @@ package be.twofold.valen.game.greatcircle.reader.md6skl;
 
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.geometry.*;
+import be.twofold.valen.core.util.*;
 import be.twofold.valen.game.greatcircle.*;
 import be.twofold.valen.game.greatcircle.resource.*;
 import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
+import java.lang.invoke.*;
+import java.util.*;
 import java.util.stream.*;
 
 public final class Md6SklReader implements AssetReader.Binary<Skeleton, GreatCircleAsset> {
@@ -32,6 +35,18 @@ public final class Md6SklReader implements AssetReader.Binary<Skeleton, GreatCir
             throw new IOException("No skeleton found");
         }
         return map(md6Skl1);
+    }
+
+    @Override
+    public Optional<Meta.Node> readMetadata(GreatCircleAsset asset, LoadingContext context) throws IOException {
+        try (var source = BinarySource.wrap(context.open(asset.location()))) {
+            int skeleton1Length = source.readInt();
+            if (skeleton1Length == 0) {
+                throw new IOException("No skeleton found");
+            }
+            var md6Skl = Md6Skl.read(source);
+            return Optional.of(Meta.build(MethodHandles.lookup(), md6Skl));
+        }
     }
 
     public Skeleton map(Md6Skl md6Skl) {

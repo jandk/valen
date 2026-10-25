@@ -1,22 +1,15 @@
 package be.twofold.valen.game.darkages;
 
-import be.twofold.valen.core.game.*;
 import be.twofold.valen.game.darkages.reader.resources.*;
+import be.twofold.valen.game.idtech.game.*;
 import wtf.reversed.toolbox.util.*;
 
 import java.util.*;
 
-public record DarkAgesAssetID(
-    ResourceName name,
-    ResourcesType type,
-    ResourcesVariation variation
-) implements Comparable<AssetID>, AssetID {
-    private static final Comparator<DarkAgesAssetID> COMPARATOR = Comparator
-        .comparing(DarkAgesAssetID::name)
-        .thenComparing(DarkAgesAssetID::type)
-        .thenComparing(DarkAgesAssetID::variation);
+public final class DarkAgesAssetID extends IdclAssetID<ResourcesType, ResourcesVariation> {
+    private static final Set<ResourcesVariation> NONE_SET = EnumSet.of(ResourcesVariation.RES_VAR_NONE);
 
-    private static final Map<ResourcesType, Set<ResourcesVariation>> Variations = Map.ofEntries(
+    private static final Map<ResourcesType, Set<ResourcesVariation>> VARIATIONS = Map.ofEntries(
         // Binary decls
         Map.entry(ResourcesType.EntityDef, Set.of(ResourcesVariation.RES_VAR_DECLS_NO_SANITYCHECKS)),
         Map.entry(ResourcesType.LogicClass, Set.of(ResourcesVariation.RES_VAR_DECLS_NO_SANITYCHECKS)),
@@ -44,51 +37,19 @@ public record DarkAgesAssetID(
         ))
     );
 
+    DarkAgesAssetID(String name, ResourcesType type, ResourcesVariation variation) {
+        super(name, type, variation);
+    }
+
     public static DarkAgesAssetID from(String name, ResourcesType type) {
-        var resourceName = new ResourceName(name);
-        var variations = Variations
-            .getOrDefault(type, Set.of(ResourcesVariation.RES_VAR_NONE));
+        var variations = VARIATIONS
+            .getOrDefault(type, NONE_SET);
 
-        Check.state(variations.size() == 1, "Multiple variations found");
-
-        return new DarkAgesAssetID(
-            resourceName,
-            type,
-            variations.iterator().next()
-        );
+        Check.argument(variations.size() == 1, "Multiple variations found");
+        return new DarkAgesAssetID(name, type, variations.iterator().next());
     }
 
-    public static DarkAgesAssetID from(String name, ResourcesType type, ResourcesVariation variation) {
-        Check.argument(Variations.getOrDefault(type, Set.of(ResourcesVariation.RES_VAR_NONE)).contains(variation), "Invalid variation for type: " + type + " (" + variation + ")");
-        return new DarkAgesAssetID(
-            new ResourceName(name),
-            type,
-            variation
-        );
-    }
-
-    @Override
-    public String fullName() {
-        return name.name();
-    }
-
-    @Override
-    public String displayName() {
-        return name.filename();
-    }
-
-    @Override
-    public String pathName() {
-        return name.pathname();
-    }
-
-    @Override
-    public String fileName() {
-        return name.filenameWithoutProperties();
-    }
-
-    @Override
-    public int compareTo(AssetID o) {
-        return COMPARATOR.compare(this, (DarkAgesAssetID) o);
+    public static DarkAgesAssetID material(String name) {
+        return from(AssetPaths.MATERIAL2.resolve(name + ".decl").toString(), ResourcesType.RsStreamFile);
     }
 }

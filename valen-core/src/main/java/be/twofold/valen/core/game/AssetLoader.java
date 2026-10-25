@@ -1,10 +1,12 @@
 package be.twofold.valen.core.game;
 
+import be.twofold.valen.core.util.*;
 import wtf.reversed.toolbox.collect.*;
 import wtf.reversed.toolbox.util.*;
 
 import java.io.*;
 import java.util.*;
+import java.util.stream.*;
 
 public final class AssetLoader implements LoadingContext, Closeable {
     private final Archive archive;
@@ -25,8 +27,8 @@ public final class AssetLoader implements LoadingContext, Closeable {
         this.readers = List.copyOf(readers);
     }
 
-    public Archive archive() {
-        return archive;
+    public Stream<? extends Asset> all() {
+        return archive.all();
     }
 
     @Override
@@ -37,13 +39,22 @@ public final class AssetLoader implements LoadingContext, Closeable {
     @Override
     public <T> T load(AssetID id, Class<T> clazz) throws IOException {
         Asset asset = archive.get(id).orElseThrow();
-        AssetReader<T, Asset> reader = findReader(asset, clazz);
-        return reader.read(asset, this);
+        return findReader(asset, clazz).read(asset, this);
+    }
+
+    public Optional<Meta.Node> loadMetadata(AssetID id) throws IOException {
+        Asset asset = archive.get(id).orElseThrow();
+        return findReader(asset, Object.class).readMetadata(asset, this);
     }
 
     @Override
     public Bytes open(Location location) throws IOException {
         return storage.open(location);
+    }
+
+    @Override
+    public Bytes decompress(CompressionType type, Bytes data, int uncompressedSize) {
+        return storage.decompress(type, data, uncompressedSize);
     }
 
     @Override

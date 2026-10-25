@@ -2,10 +2,10 @@ package be.twofold.valen.game.greatcircle.reader.md6mesh;
 
 import be.twofold.valen.core.geometry.*;
 import be.twofold.valen.game.idtech.geometry.*;
+import wtf.reversed.toolbox.collect.*;
 import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
-import java.nio.*;
 import java.util.*;
 
 final class BlendShapeReader {
@@ -47,7 +47,7 @@ final class BlendShapeReader {
         var blendShapes = new ArrayList<BlendShape>(md6MeshBlendShapes.size());
         for (var i = 0; i < md6MeshBlendShapes.size(); i++) {
             var result = readBlendShape(source, md6MeshBlendShapes, i, numDeltaIndices, deltaIndices, bufferOffset);
-            if (result.indices().capacity() > 0) {
+            if (result.indices().length() > 0) {
                 blendShapes.add(result);
             }
         }
@@ -65,39 +65,48 @@ final class BlendShapeReader {
             numDisplacements += cardinality;
         }
 
-        var indexBuffer = ShortBuffer.allocate(numDisplacements);
-        var valueBuffer = FloatBuffer.allocate(numDisplacements * 3);
-        var index = 0;
+        var indexBuffer = Shorts.Mutable.allocate(numDisplacements);
+        var valueBuffer = Floats.Mutable.allocate(numDisplacements * 3);
+        var vertex = 0;
+        var slot = 0;
         for (var idx = start; idx < end; idx++) {
             var deltaIndex = indices.get(idx);
             source.position(bufferOffset + deltaIndex.offset() * 16L);
-            index = decode(deltaIndex.occupied1(), source, indexBuffer, index, valueBuffer, deltaIndex.hasOrientation());
-            index = decode(deltaIndex.occupied2(), source, indexBuffer, index, valueBuffer, deltaIndex.hasOrientation());
+            slot = decode(deltaIndex.occupied1(), source, indexBuffer, valueBuffer, vertex, slot, deltaIndex.hasOrientation());
+            vertex += Integer.SIZE;
+            slot = decode(deltaIndex.occupied2(), source, indexBuffer, valueBuffer, vertex, slot, deltaIndex.hasOrientation());
+            vertex += Integer.SIZE;
         }
 
-        return new BlendShape(shape.name(), valueBuffer.flip(), indexBuffer.flip());
+        return new BlendShape(shape.name(), valueBuffer, indexBuffer);
     }
 
-    private static int decode(int mask, BinarySource source, ShortBuffer indexBuffer, int index, FloatBuffer displacementBuffer, boolean hasOrientation) throws IOException {
-        for (var i = 0; i < 32; i++) {
-            var set = (mask & 1) != 0;
-            mask >>>= 1;
-
-            if (set) {
-                indexBuffer.put((short) index);
-                readHalf4(source, displacementBuffer);
+    private static int decode(
+        int mask,
+        BinarySource source,
+        Shorts.Mutable indices,
+        Floats.Mutable values,
+        int vertex,
+        int slot,
+        boolean hasOrientation
+    ) throws IOException {
+        for (var i = 0; i < Integer.SIZE; i++) {
+            if ((mask & 1) != 0) {
+                indices.set(slot, (short) (vertex + i));
+                readHalf3(source, values, slot * 3);
                 if (hasOrientation) {
                     source.skip(8);
                 }
+                slot++;
             }
-            index++;
+            mask >>>= 1;
         }
-        return index;
+        return slot;
     }
 
-    private static void readHalf4(BinarySource source, FloatBuffer buffer) throws IOException {
+    private static void readHalf3(BinarySource source, Floats.Mutable values, int offset) throws IOException {
         for (var i = 0; i < 3; i++) {
-            buffer.put(Float.float16ToFloat(source.readShort()));
+            values.set(offset + i, Float.float16ToFloat(source.readShort()));
         }
         source.skip(2);
     }

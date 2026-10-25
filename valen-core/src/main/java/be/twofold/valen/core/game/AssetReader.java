@@ -1,16 +1,22 @@
 package be.twofold.valen.core.game;
 
+import be.twofold.valen.core.util.*;
 import wtf.reversed.toolbox.collect.*;
 import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 import java.lang.reflect.*;
+import java.util.*;
 
 public interface AssetReader<R, A extends Asset> {
 
     boolean canRead(A asset);
 
     R read(A asset, LoadingContext context) throws IOException;
+
+    default Optional<Meta.Node> readMetadata(A asset, LoadingContext context) throws IOException {
+        return Optional.empty();
+    }
 
     default Class<?> getReturnType() {
         return getReturnType(getClass());

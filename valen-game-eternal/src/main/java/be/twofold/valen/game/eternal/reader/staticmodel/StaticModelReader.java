@@ -2,14 +2,15 @@ package be.twofold.valen.game.eternal.reader.staticmodel;
 
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.geometry.*;
+import be.twofold.valen.core.util.*;
 import be.twofold.valen.game.eternal.*;
-import be.twofold.valen.game.eternal.reader.geometry.*;
 import be.twofold.valen.game.eternal.resource.*;
 import be.twofold.valen.game.idtech.geometry.*;
 import wtf.reversed.toolbox.io.*;
 import wtf.reversed.toolbox.util.*;
 
 import java.io.*;
+import java.lang.invoke.*;
 import java.util.*;
 
 public final class StaticModelReader implements AssetReader.Binary<Model, EternalAsset> {
@@ -27,12 +28,20 @@ public final class StaticModelReader implements AssetReader.Binary<Model, Eterna
     @Override
     public Model read(BinarySource source, EternalAsset asset, LoadingContext context) throws IOException {
         var model = StaticModel.read(source);
-        var meshes = new ArrayList<>(readMeshes(model, source, asset.hash(), context));
+        var meshes = readMeshes(model, source, asset.hash(), context);
 
         if (readMaterials) {
-            Materials.apply(context, meshes, model.meshInfos(), StaticModelMeshInfo::mtlDecl, _ -> null);
+            meshes = Materials.apply(context, meshes, model.meshInfos(), EternalAssetID::material, StaticModelMeshInfo::mtlDecl, _ -> null);
         }
         return new Model(meshes, Optional.empty(), Optional.of(asset.id().fullName()), Optional.empty(), Axis.Z);
+    }
+
+    @Override
+    public Optional<Meta.Node> readMetadata(EternalAsset asset, LoadingContext context) throws IOException {
+        try (var source = BinarySource.wrap(context.open(asset.location()))) {
+            var model = StaticModel.read(source);
+            return Optional.of(Meta.build(MethodHandles.lookup(), model));
+        }
     }
 
     private List<Mesh> readMeshes(StaticModel model, BinarySource source, long hash, LoadingContext context) throws IOException {

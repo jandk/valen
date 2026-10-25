@@ -70,7 +70,7 @@ public final class CastAnimationMapper {
     private static FloatBuffer rotation(Track<Quaternion> rotation) {
         var result = FloatBuffer.allocate(rotation.keyFrames().size() * 4);
         rotation.keyFrames().forEach(frame -> frame.value().toBuffer(result));
-        return result;
+        return result.rewind();
     }
 
     private static FloatBuffer translationScale(Track<Vector3> track, Function<Vector3, Float> mapper) {

@@ -46,6 +46,12 @@ final class ZoomableScrollPane extends ScrollPane {
         target.setScaleY(this.scaleValue);
     }
 
+    void adjustScale(double factor) {
+        if (!lockZoomToFit) {
+            setScaleValue(scaleValue * factor);
+        }
+    }
+
     private void zoomToFit(Bounds targetBounds) {
         if (!lockZoomToFit) {
             return;

@@ -6,35 +6,25 @@ import be.twofold.valen.ui.common.*;
 import be.twofold.valen.ui.common.settings.*;
 import be.twofold.valen.ui.component.*;
 import jakarta.inject.*;
-import javafx.scene.image.*;
-import org.slf4j.*;
 import wtf.reversed.toolbox.collect.*;
 
-import java.util.*;
 import java.util.function.*;
 
 public final class TexturePresenter extends AbstractPresenter<TextureView> implements TextureView.Listener, Viewer {
-    private static final Logger log = LoggerFactory.getLogger(TexturePresenter.class);
-    private static final Set<TextureFormat> GRAY = Set.of(
-        TextureFormat.R8_UNORM,
-        TextureFormat.R16_UNORM,
-        TextureFormat.R16_SFLOAT,
-        TextureFormat.BC4_UNORM,
-        TextureFormat.BC4_SNORM
-    );
-
     private final Settings settings;
 
+    private Texture texture;
+    private int currentSlice;
+    private int currentMip;
+
+    private Surface decoded;
     private Bytes.Mutable imagePixels;
-    private Texture decoded;
-    private boolean premultiplied;
-    private WritableImage image;
+    private Boolean premultiplied;
 
     private Channel channel = Channel.ALL;
 
     @Inject
-    public TexturePresenter(TextureView view, Settings settings) {
-        // TODO: Make package-private
+    TexturePresenter(TextureView view, Settings settings) {
         super(view);
         this.settings = settings;
 
@@ -52,67 +42,123 @@ public final class TexturePresenter extends AbstractPresenter<TextureView> imple
     }
 
     @Override
-    public void setData(Object data) {
+    public Object decode(Object data) {
         if (data == null) {
-            getView().setImage(null);
-            image = null;
+            return null;
+        }
+
+        texture = (Texture) data;
+        currentSlice = 0;
+        currentMip = 0;
+
+        var image = renderCurrent();
+        return new TexturePayload(texture.depthOrLayers(), texture.mipCount(), image, buildStatus());
+    }
+
+    @Override
+    public void display(Object payload) {
+        if (payload == null) {
+            getView().clearImage();
+            getView().setSliceCount(1);
+            getView().setMipCount(1);
+
+            texture = null;
             decoded = null;
             imagePixels = null;
+            premultiplied = null;
             return;
         }
 
-        // Let's try our new ops
-        long t0 = System.nanoTime();
-        Texture texture = ((Texture) data).firstOnly();
-        decoded = texture.convert(TextureFormat.B8G8R8A8_UNORM, settings.isReconstructZ());
-        if (GRAY.contains(texture.format())) {
-            splatGray();
-        }
-        premultiplied = !texture.format().hasAlpha() || detectPremultiplied();
-
-        long t1 = System.nanoTime();
-        image = new WritableImage(decoded.width(), decoded.height());
-        image.getPixelWriter().setPixels(
-            0, 0, decoded.width(), decoded.height(),
-            PixelFormat.getByteBgraPreInstance(),
-            decoded.surfaces().getFirst().data(), 0, decoded.width() * 4
-        );
-        imagePixels = null;
-
-        long t2 = System.nanoTime();
-        if (channel != Channel.ALL || !premultiplied) {
-            filterImage(channel);
-        }
-        getView().setImage(image);
-
-        var status = String.format("%s\u2009-\u2009%dx%d", texture.format(), texture.width(), texture.height());
-        getView().setStatus(status);
-
-        long t3 = System.nanoTime();
-        log.info("Decode: {}, Create: {}, Filter: {}", (t1 - t0) / 1e6, (t2 - t1) / 1e6, (t3 - t2) / 1e6);
+        var p = (TexturePayload) payload;
+        getView().setSliceCount(p.sliceCount());
+        getView().setMipCount(p.mipCount());
+        getView().setImage(p.image(), true);
+        getView().setStatus(p.status());
     }
 
     @Override
     public void onChannelSelected(Channel channel) {
+        if (decoded == null) {
+            return;
+        }
         filterImage(channel);
+        getView().setImage(new DecodedImage(decoded.width(), decoded.height(), imagePixels), false);
     }
 
-    private void splatGray() {
-        var data = Bytes.Mutable.wrap(decoded.surfaces().getFirst().data());
-        for (int i = 0; i < data.length(); i += 4) {
-            int bgra = data.getInt(i);
-            bgra = ((bgra >> 16) & 0xFF) * 0x010101 | (bgra & 0xFF000000);
-            data.setInt(i, bgra);
+    @Override
+    public void onSliceSelected(int slice) {
+        if (currentSlice == slice) {
+            return;
         }
+        currentSlice = slice;
+        decodeAndDisplay(false);
+    }
+
+    @Override
+    public void onMipSelected(int mip) {
+        currentMip = mip;
+        if (texture.kind() == TextureKind.TEXTURE_3D) {
+            currentSlice = 0;
+            getView().setSliceCount(texture.sliceCount(currentMip));
+        }
+        decodeAndDisplay(false);
+    }
+
+    private void decodeAndDisplay(boolean resetZoom) {
+        var oldWidth = decoded != null ? decoded.width() : 0;
+        var image = renderCurrent();
+        getView().setImage(image, resetZoom);
+        if (!resetZoom && oldWidth > 0) {
+            getView().adjustScale((double) oldWidth / decoded.width());
+        }
+
+        getView().setStatus(buildStatus());
+    }
+
+    /**
+     * Decodes the current mip/slice into {@link #imagePixels} and wraps it. Pure
+     * CPU work with no scene-graph access, so it is safe to run off the FX thread.
+     */
+    private DecodedImage renderCurrent() {
+        decoded = texture
+            .convertSurface(currentMip, currentSlice, TextureFormat.B8G8R8A8_SRGB, settings.isReconstructZ())
+            .getSurface(0, 0);
+        premultiplied = null;
+
+        int byteCount = decoded.width() * decoded.height() * 4;
+        if (imagePixels == null || imagePixels.length() != byteCount) {
+            imagePixels = Bytes.allocate(byteCount);
+        }
+
+        filterImage(channel);
+        return new DecodedImage(decoded.width(), decoded.height(), imagePixels);
+    }
+
+    private String buildStatus() {
+        StringBuilder builder = new StringBuilder()
+            .append(texture.format())
+            .append(Constants.TS_DASH)
+            .append(Math.max(1, texture.width() >> currentMip));
+
+        if (texture.kind() != TextureKind.TEXTURE_1D) {
+            builder.append("x")
+                .append(Math.max(1, texture.height() >> currentMip));
+        }
+        if (texture.kind() == TextureKind.TEXTURE_3D) {
+            builder.append("x")
+                .append(Math.max(1, texture.depthOrLayers() >> currentMip));
+        }
+
+        return builder.toString();
     }
 
     private boolean detectPremultiplied() {
-        var data = decoded.surfaces().getFirst().data();
-        for (int i = 0; i < data.length; i += 4) {
-            int b = Byte.toUnsignedInt(data[i]);
-            int g = Byte.toUnsignedInt(data[i + 1]);
-            int r = Byte.toUnsignedInt(data[i + 2]);
-            int a = Byte.toUnsignedInt(data[i + 3]);
+        var data = decoded.data();
+        for (int i = 0; i < data.length(); i += 4) {
+            int b = data.getUnsigned(i/**/);
+            int g = data.getUnsigned(i + 1);
+            int r = data.getUnsigned(i + 2);
+            int a = data.getUnsigned(i + 3);
             int max = Math.max(Math.max(r, g), b);
             if (max > a) {
                 return false;
@@ -124,8 +170,8 @@ public final class TexturePresenter extends AbstractPresenter<TextureView> imple
     private void filterImage(Channel channel) {
         this.channel = channel;
 
-        if (imagePixels == null) {
-            imagePixels = Bytes.Mutable.allocate(decoded.width() * decoded.height() * 4);
+        if (premultiplied == null) {
+            premultiplied = !texture.format().hasAlpha() || detectPremultiplied();
         }
 
         // B8G8R8A8
@@ -138,20 +184,12 @@ public final class TexturePresenter extends AbstractPresenter<TextureView> imple
             case ALL -> premultiplied ? IntUnaryOperator.identity() : this::premultiply;
         };
 
-        var data = Bytes.wrap(decoded.surfaces().getFirst().data());
+        var data = decoded.data();
         for (int i = 0; i < data.length(); i += 4) {
             int bgra = data.getInt(i);
             bgra = operator.applyAsInt(bgra);
             imagePixels.setInt(i, bgra);
         }
-
-        var width = (int) image.getWidth();
-        var height = (int) image.getHeight();
-        image.getPixelWriter().setPixels(
-            0, 0, width, height,
-            PixelFormat.getByteBgraPreInstance(),
-            imagePixels.asMutableBuffer(), width * 4
-        );
     }
 
     private int premultiply(int bgra) {

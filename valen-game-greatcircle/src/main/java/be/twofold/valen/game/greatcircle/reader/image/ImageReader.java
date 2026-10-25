@@ -2,12 +2,16 @@ package be.twofold.valen.game.greatcircle.reader.image;
 
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.texture.*;
+import be.twofold.valen.core.texture.shader.node.*;
+import be.twofold.valen.core.util.*;
 import be.twofold.valen.game.greatcircle.*;
 import be.twofold.valen.game.greatcircle.resource.*;
-import be.twofold.valen.game.idtech.defines.*;
+import be.twofold.valen.game.idtech.reader.image.*;
+import be.twofold.valen.game.idtech.reader.image.TextureFormat;
 import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
+import java.lang.invoke.*;
 import java.util.*;
 
 public final class ImageReader implements AssetReader.Binary<Texture, GreatCircleAsset> {
@@ -20,7 +24,7 @@ public final class ImageReader implements AssetReader.Binary<Texture, GreatCircl
     @Override
     public boolean canRead(GreatCircleAsset asset) {
         return asset.id().type() == ResourceType.image
-            && !asset.id().name().filename().endsWith(".bimage");
+            && !asset.id().path().extension().equals("bimage");
     }
 
     @Override
@@ -45,6 +49,14 @@ public final class ImageReader implements AssetReader.Binary<Texture, GreatCircl
         return map(image);
     }
 
+    @Override
+    public Optional<Meta.Node> readMetadata(GreatCircleAsset asset, LoadingContext context) throws IOException {
+        try (var source = BinarySource.wrap(context.open(asset.location()))) {
+            var image = Image.read(source);
+            return Optional.of(Meta.build(MethodHandles.lookup(), image));
+        }
+    }
+
     private void readSingleStream(Image image, long hash) throws IOException {
 //        var lastMip = image.sliceInfos().getLast();
 //        var uncompressedSize = lastMip.cumulativeSizeStreamDB() + lastMip.decompressedSize();
@@ -66,13 +78,27 @@ public final class ImageReader implements AssetReader.Binary<Texture, GreatCircl
 
     private Texture map(Image image) {
         var minMip = image.minMip();
+        var format = toImageFormat(image.header().textureFormat());
+        var kind = switch (image.header().type()) {
+            case TT_2D -> TextureKind.TEXTURE_2D;
+            case TT_3D -> TextureKind.TEXTURE_3D;
+            case TT_CUBIC -> TextureKind.CUBE_MAP;
+        };
         var width = minMip < 0 ? image.header().width() : image.sliceInfos().get(minMip).width();
         var height = minMip < 0 ? image.header().height() : image.sliceInfos().get(minMip).height();
-        var format = toImageFormat(image.header().textureFormat());
+        var depth = minMip < 0 ? image.header().depth() : image.sliceInfos().get(minMip).depth();
+        var depthOrLayers = switch (image.header().type()) {
+            case TT_2D -> 1;
+            case TT_3D -> depth;
+            case TT_CUBIC -> 6;
+        };
         var surfaces = convertMipMaps(image, format);
-        var isCubeMap = image.header().type() == TextureType.TT_CUBIC;
 
-        return new Texture(width, height, format, isCubeMap, surfaces, image.header().scale(), image.header().bias());
+        var scale = image.header().scale();
+        var bias = image.header().bias();
+        var scaleAndBias = ShaderNode.scaleAndBias(scale, bias);
+
+        return new Texture(format, kind, width, height, depthOrLayers, surfaces, scaleAndBias);
     }
 
     private List<Surface> convertMipMaps(Image image, be.twofold.valen.core.texture.TextureFormat format) {
@@ -89,17 +115,18 @@ public final class ImageReader implements AssetReader.Binary<Texture, GreatCircl
                     break;
                 }
                 surfaces.add(new Surface(
+                    format,
                     image.sliceInfos().get(mipIndex).width(),
                     image.sliceInfos().get(mipIndex).height(),
-                    format,
-                    image.slices()[mipIndex].toArray()
+                    image.sliceInfos().get(mipIndex).depth(),
+                    image.slices()[mipIndex]
                 ));
             }
         }
         return List.copyOf(surfaces);
     }
 
-    private be.twofold.valen.core.texture.TextureFormat toImageFormat(be.twofold.valen.game.idtech.defines.TextureFormat format) {
+    private be.twofold.valen.core.texture.TextureFormat toImageFormat(TextureFormat format) {
         // I might not be sure about all these mappings, but it's a start
         return switch (format) {
             case FMT_BC1, FMT_BC1_ZERO_ALPHA -> be.twofold.valen.core.texture.TextureFormat.BC1_UNORM;

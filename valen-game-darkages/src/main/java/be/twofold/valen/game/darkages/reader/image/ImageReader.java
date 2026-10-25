@@ -2,13 +2,17 @@ package be.twofold.valen.game.darkages.reader.image;
 
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.texture.*;
+import be.twofold.valen.core.texture.shader.node.*;
+import be.twofold.valen.core.util.*;
 import be.twofold.valen.game.darkages.*;
 import be.twofold.valen.game.darkages.reader.*;
 import be.twofold.valen.game.darkages.reader.resources.*;
-import be.twofold.valen.game.idtech.defines.*;
+import be.twofold.valen.game.idtech.reader.image.*;
+import be.twofold.valen.game.idtech.reader.image.TextureFormat;
 import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
+import java.lang.invoke.*;
 import java.util.*;
 
 public final class ImageReader implements AssetReader.Binary<Texture, DarkAgesAsset> {
@@ -27,6 +31,14 @@ public final class ImageReader implements AssetReader.Binary<Texture, DarkAgesAs
     public Texture read(BinarySource source, DarkAgesAsset asset, LoadingContext context) throws IOException {
         var image = read(source, asset.hash(), context);
         return map(image);
+    }
+
+    @Override
+    public Optional<Meta.Node> readMetadata(DarkAgesAsset asset, LoadingContext context) throws IOException {
+        try (var source = BinarySource.wrap(context.open(asset.location()))) {
+            var image = Image.read(source);
+            return Optional.of(Meta.build(MethodHandles.lookup(), image));
+        }
     }
 
     public Image read(BinarySource source, long hash, LoadingContext context) throws IOException {
@@ -73,15 +85,27 @@ public final class ImageReader implements AssetReader.Binary<Texture, DarkAgesAs
 
     private Texture map(Image image) {
         var minMip = image.minMip();
+        var kind = switch (image.header().textureType()) {
+            case TT_2D -> TextureKind.TEXTURE_2D;
+            case TT_3D -> TextureKind.TEXTURE_3D;
+            case TT_CUBIC -> TextureKind.CUBE_MAP;
+        };
+        var format = toImageFormat(image.header().textureFormat());
         var width = minMip < 0 ? image.header().pixelWidth() : image.mipInfos().get(minMip).mipPixelWidth();
         var height = minMip < 0 ? image.header().pixelHeight() : image.mipInfos().get(minMip).mipPixelHeight();
-        var format = toImageFormat(image.header().textureFormat());
+        var depth = minMip < 0 ? image.header().depth() : image.mipInfos().get(minMip).mipPixelDepth();
+        var depthOrLayers = switch (image.header().textureType()) {
+            case TT_2D -> 1;
+            case TT_3D -> depth;
+            case TT_CUBIC -> 6;
+        };
         var surfaces = convertMipMaps(image, format);
-        var isCubeMap = image.header().textureType() == TextureType.TT_CUBIC;
+
         var scale = image.header().albedoSpecularScale();
         var bias = image.header().albedoSpecularBias();
+        var scaleAndBias = ShaderNode.scaleAndBias(scale, bias);
 
-        return new Texture(width, height, format, isCubeMap, surfaces, scale, bias);
+        return new Texture(format, kind, width, height, depthOrLayers, surfaces, scaleAndBias);
     }
 
     private List<Surface> convertMipMaps(Image image, be.twofold.valen.core.texture.TextureFormat format) {
@@ -94,17 +118,18 @@ public final class ImageReader implements AssetReader.Binary<Texture, DarkAgesAs
             for (var mip = minMip; mip < mipCount; mip++) {
                 var mipIndex = mip * faces + face;
                 surfaces.add(new Surface(
+                    format,
                     image.mipInfos().get(mipIndex).mipPixelWidth(),
                     image.mipInfos().get(mipIndex).mipPixelHeight(),
-                    format,
-                    image.mipData()[mipIndex].toArray()
+                    image.mipInfos().get(mipIndex).mipPixelDepth(),
+                    image.mipData()[mipIndex]
                 ));
             }
         }
         return List.copyOf(surfaces);
     }
 
-    private be.twofold.valen.core.texture.TextureFormat toImageFormat(be.twofold.valen.game.idtech.defines.TextureFormat format) {
+    private be.twofold.valen.core.texture.TextureFormat toImageFormat(TextureFormat format) {
         // I might not be sure about all these mappings, but it's a start
         return switch (format) {
             case FMT_ALPHA, FMT_R8 -> be.twofold.valen.core.texture.TextureFormat.R8_UNORM;

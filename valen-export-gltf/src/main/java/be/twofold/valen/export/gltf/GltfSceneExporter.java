@@ -9,10 +9,9 @@ import be.twofold.valen.format.gltf.model.node.*;
 import java.io.*;
 import java.util.*;
 
-public final class GltfSceneExporter extends GltfExporter<Scene> {
-    @Override
-    public String getID() {
-        return "scene.gltf";
+public abstract class GltfSceneExporter extends GltfExporter<Scene> {
+    GltfSceneExporter(GltfExportMode mode) {
+        super(mode);
     }
 
     @Override
@@ -22,7 +21,7 @@ public final class GltfSceneExporter extends GltfExporter<Scene> {
 
     @Override
     void doExport(Scene scene, GltfWriter writer) throws IOException {
-        var modelMapper = new GltfModelSingleMapper(writer, null);
+        var modelMapper = new GltfModelSingleMapper(writer);
         var instanceNodes = new ArrayList<NodeID>();
         for (var instance : scene.instances()) {
             modelMapper.map(instance.modelReference())
@@ -40,5 +39,27 @@ public final class GltfSceneExporter extends GltfExporter<Scene> {
             .scale(GltfUtils.mapVector3(instance.scale()))
             .mesh(meshID)
             .build());
+    }
+
+    public static final class Binary extends GltfSceneExporter {
+        public Binary() {
+            super(GltfExportMode.GLB);
+        }
+
+        @Override
+        public String getID() {
+            return "scene.glb";
+        }
+    }
+
+    public static final class Split extends GltfSceneExporter {
+        public Split() {
+            super(GltfExportMode.GLTF_SPLIT);
+        }
+
+        @Override
+        public String getID() {
+            return "scene.gltf";
+        }
     }
 }

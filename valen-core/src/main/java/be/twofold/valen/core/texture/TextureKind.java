@@ -1,7 +1,8 @@
 package be.twofold.valen.core.texture;
 
 public enum TextureKind {
-    TEXTURE,
+    TEXTURE_1D,
+    TEXTURE_2D,
+    TEXTURE_3D,
     CUBE_MAP,
-    VOLUME
 }

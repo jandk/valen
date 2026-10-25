@@ -2,14 +2,15 @@ package be.twofold.valen.game.eternal.reader.md6model;
 
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.geometry.*;
+import be.twofold.valen.core.util.*;
 import be.twofold.valen.game.eternal.*;
-import be.twofold.valen.game.eternal.reader.geometry.*;
 import be.twofold.valen.game.eternal.resource.*;
 import be.twofold.valen.game.idtech.geometry.*;
 import wtf.reversed.toolbox.collect.*;
 import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
+import java.lang.invoke.*;
 import java.util.*;
 
 public final class Md6ModelReader implements AssetReader.Binary<Model, EternalAsset> {
@@ -27,14 +28,22 @@ public final class Md6ModelReader implements AssetReader.Binary<Model, EternalAs
     @Override
     public Model read(BinarySource source, EternalAsset asset, LoadingContext context) throws IOException {
         var model = Md6Model.read(source);
-        var meshes = new ArrayList<>(readMeshes(model, asset.hash(), context));
+        var meshes = readMeshes(model, asset.hash(), context);
         var skeletonKey = EternalAssetID.from(model.header().md6SkelName(), ResourceType.Skeleton);
         var skeleton = context.load(skeletonKey, Skeleton.class);
 
         if (readMaterials) {
-            Materials.apply(context, meshes, model.meshInfos(), Md6ModelInfo::materialName, Md6ModelInfo::meshName);
+            meshes = Materials.apply(context, meshes, model.meshInfos(), EternalAssetID::material, Md6ModelInfo::materialName, Md6ModelInfo::meshName);
         }
         return new Model(meshes, Optional.of(skeleton), Optional.of(asset.id().fullName()), Optional.empty(), Axis.Z);
+    }
+
+    @Override
+    public Optional<Meta.Node> readMetadata(EternalAsset asset, LoadingContext context) throws IOException {
+        try (var source = BinarySource.wrap(context.open(asset.location()))) {
+            var model = Md6Model.read(source);
+            return Optional.of(Meta.build(MethodHandles.lookup(), model));
+        }
     }
 
     private List<Mesh> readMeshes(Md6Model md6, long hash, LoadingContext context) throws IOException {
@@ -68,9 +77,9 @@ public final class Md6ModelReader implements AssetReader.Binary<Model, EternalAs
         var jointRemap = md6.boneInfo().jointRemap();
 
         // This lookup table is in reverse... Nice
-        var lookup = new byte[jointRemap.length()];
-        for (var i = 0; i < jointRemap.length(); i++) {
-            lookup[jointRemap.getUnsigned(i)] = (byte) i;
+        var lookup = new short[jointRemap.length()];
+        for (short i = 0; i < jointRemap.length(); i++) {
+            lookup[jointRemap.getUnsigned(i)] = i;
         }
 
         for (var i = 0; i < meshes.size(); i++) {

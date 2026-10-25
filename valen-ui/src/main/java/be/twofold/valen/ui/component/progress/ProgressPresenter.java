@@ -7,9 +7,9 @@ public class ProgressPresenter extends AbstractPresenter<ProgressView> implement
     private Runnable cancelHandler;
 
     @Inject
-    public ProgressPresenter(ProgressController controller) {
-        super(controller);
-        controller.setListener(this);
+    public ProgressPresenter(ProgressView view) {
+        super(view);
+        view.setListener(this);
     }
 
     @Override

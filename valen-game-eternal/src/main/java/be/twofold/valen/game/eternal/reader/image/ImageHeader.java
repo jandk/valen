@@ -1,5 +1,6 @@
 package be.twofold.valen.game.eternal.reader.image;
 
+import be.twofold.valen.game.idtech.reader.image.*;
 import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
@@ -12,7 +13,7 @@ public record ImageHeader(
     int pixelHeight,
     int depth,
     int mipCount,
-    int unkFlags,
+    int unknown,
     float albedoSpecularBias,
     float albedoSpecularScale,
     TextureFormat textureFormat,
@@ -33,14 +34,14 @@ public record ImageHeader(
         var pixelHeight = source.readInt();
         var depth = source.readInt();
         var mipCount = source.readInt();
-        var unkFlags = source.readInt();
+        var unknown = source.readInt();
         var albedoSpecularBias = source.readFloat();
         var albedoSpecularScale = source.readFloat();
-        source.expectByte((byte) 0x0); // padding1
-        var textureFormat = TextureFormat.read(source);
+        source.expectByte((byte) 0x0); // environment
+        var textureFormat = toTextureFormat(source.readInt());
         source.expectInt(0x7); // always7
-        source.expectInt(0x0); // padding2
-        source.expectShort((short) 0x0); // padding3
+        source.expectInt(0x0); // padding
+        source.expectShort((short) 0x0); // atlasPadding
         var streamed = source.readBool(BoolFormat.BYTE);
         var singleStream = source.readBool(BoolFormat.BYTE);
         var noMips = source.readBool(BoolFormat.BYTE);
@@ -55,7 +56,7 @@ public record ImageHeader(
             pixelHeight,
             depth,
             mipCount,
-            unkFlags,
+            unknown,
             albedoSpecularBias,
             albedoSpecularScale,
             textureFormat,
@@ -67,21 +68,81 @@ public record ImageHeader(
         );
     }
 
-    int startMip() {
-        var mask = switch (textureType()) {
-            case TT_2D -> 0x0f;
-            case TT_CUBIC -> 0xff;
-            default -> throw new UnsupportedOperationException("Unsupported texture type: " + textureType());
+    int streamedMipCount() {
+        int mask = switch (textureType) {
+            case TT_2D -> 0x0F;
+            case TT_3D, TT_CUBIC -> 0xFFFF;
         };
-        return streamDbMipCount() & mask;
+        return streamDbMipCount & mask;
     }
 
     int totalMipCount() {
-        var faces = switch (textureType()) {
-            case TT_2D -> 1;
+        var faces = switch (textureType) {
+            case TT_2D, TT_3D -> 1;
             case TT_CUBIC -> 6;
-            default -> throw new UnsupportedOperationException("Unsupported texture type: " + textureType());
         };
-        return mipCount() * faces;
+        return mipCount * faces;
+    }
+
+    private static TextureFormat toTextureFormat(int value) {
+        return switch (value) {
+            case +0 -> TextureFormat.FMT_NONE;
+            case +1 -> TextureFormat.FMT_RGBA32F;
+            case +2 -> TextureFormat.FMT_RGBA16F;
+            case +3 -> TextureFormat.FMT_RGBA8;
+            case +4 -> TextureFormat.FMT_ARGB8;
+            case +5 -> TextureFormat.FMT_ALPHA;
+            case +6 -> TextureFormat.FMT_L8A8_DEPRECATED;
+            case +7 -> TextureFormat.FMT_RG8;
+            case +8 -> TextureFormat.FMT_LUM8_DEPRECATED;
+            case +9 -> TextureFormat.FMT_INT8_DEPRECATED;
+            case 10 -> TextureFormat.FMT_BC1;
+            case 11 -> TextureFormat.FMT_BC3;
+            case 12 -> TextureFormat.FMT_DEPTH;
+            case 13 -> TextureFormat.FMT_DEPTH_STENCIL;
+            case 14 -> TextureFormat.FMT_X32F;
+            case 15 -> TextureFormat.FMT_Y16F_X16F;
+            case 16 -> TextureFormat.FMT_X16;
+            case 17 -> TextureFormat.FMT_Y16_X16;
+            case 18 -> TextureFormat.FMT_RGB565;
+            case 19 -> TextureFormat.FMT_R8;
+            case 20 -> TextureFormat.FMT_R11FG11FB10F;
+            case 21 -> TextureFormat.FMT_X16F;
+            case 22 -> TextureFormat.FMT_BC6H_UF16;
+            case 23 -> TextureFormat.FMT_BC7;
+            case 24 -> TextureFormat.FMT_BC4;
+            case 25 -> TextureFormat.FMT_BC5;
+            case 26 -> TextureFormat.FMT_RG16F;
+            case 27 -> TextureFormat.FMT_R10G10B10A2;
+            case 28 -> TextureFormat.FMT_RG32F;
+            case 29 -> TextureFormat.FMT_R32_UINT;
+            case 30 -> TextureFormat.FMT_R16_UINT;
+            case 31 -> TextureFormat.FMT_DEPTH16;
+            case 32 -> TextureFormat.FMT_RGBA8_SRGB;
+            case 33 -> TextureFormat.FMT_BC1_SRGB;
+            case 34 -> TextureFormat.FMT_BC3_SRGB;
+            case 35 -> TextureFormat.FMT_BC7_SRGB;
+            case 36 -> TextureFormat.FMT_BC6H_SF16;
+            case 37 -> TextureFormat.FMT_ASTC_4X4;
+            case 38 -> TextureFormat.FMT_ASTC_4X4_SRGB;
+            case 39 -> TextureFormat.FMT_ASTC_5X4;
+            case 40 -> TextureFormat.FMT_ASTC_5X4_SRGB;
+            case 41 -> TextureFormat.FMT_ASTC_5X5;
+            case 42 -> TextureFormat.FMT_ASTC_5X5_SRGB;
+            case 43 -> TextureFormat.FMT_ASTC_6X5;
+            case 44 -> TextureFormat.FMT_ASTC_6X5_SRGB;
+            case 45 -> TextureFormat.FMT_ASTC_6X6;
+            case 46 -> TextureFormat.FMT_ASTC_6X6_SRGB;
+            case 47 -> TextureFormat.FMT_ASTC_8X5;
+            case 48 -> TextureFormat.FMT_ASTC_8X5_SRGB;
+            case 49 -> TextureFormat.FMT_ASTC_8X6;
+            case 50 -> TextureFormat.FMT_ASTC_8X6_SRGB;
+            case 51 -> TextureFormat.FMT_ASTC_8X8;
+            case 52 -> TextureFormat.FMT_ASTC_8X8_SRGB;
+            case 53 -> TextureFormat.FMT_DEPTH32F;
+            case 54 -> TextureFormat.FMT_BC1_ZERO_ALPHA;
+            case 55 -> TextureFormat.FMT_R8_UINT;
+            default -> throw new UnsupportedOperationException("Unsupported texture format value " + value);
+        };
     }
 }

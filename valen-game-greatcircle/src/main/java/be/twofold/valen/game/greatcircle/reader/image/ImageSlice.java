@@ -9,7 +9,7 @@ public record ImageSlice(
     int slice,
     int width,
     int height,
-    int unknown1,
+    int depth,
     int decompressedSize,
     long hash,
     boolean streamed,
@@ -21,7 +21,7 @@ public record ImageSlice(
         var slice = source.readInt();
         var width = source.readInt();
         var height = source.readInt();
-        var unknown1 = source.readInt();
+        var depth = source.readInt();
         var decompressedSize = source.readInt();
         var hash = source.readLong();
         var streamed = source.readBool(BoolFormat.INT);
@@ -33,7 +33,7 @@ public record ImageSlice(
             slice,
             width,
             height,
-            unknown1,
+            depth,
             decompressedSize,
             hash,
             streamed,

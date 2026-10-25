@@ -9,17 +9,20 @@ import be.twofold.valen.core.texture.*;
 import be.twofold.valen.ui.common.*;
 import be.twofold.valen.ui.component.*;
 import jakarta.inject.*;
-import javafx.collections.*;
-import javafx.scene.image.*;
-import javafx.scene.paint.*;
-import javafx.scene.shape.*;
+import org.slf4j.*;
 import wtf.reversed.toolbox.collect.*;
 
 import java.io.*;
-import java.nio.*;
 import java.util.*;
 
 public final class ModelPresenter extends AbstractPresenter<ModelView> implements Viewer {
+    /**
+     * Largest diffuse-map dimension for JavaFX. This stops framerate tanking completely.
+     */
+    private static final int MAX_DIFFUSE_SIZE = 1024;
+
+    private static final Logger log = LoggerFactory.getLogger(ModelPresenter.class);
+
     @Inject
     public ModelPresenter(ModelView view) {
         super(view);
@@ -31,15 +34,23 @@ public final class ModelPresenter extends AbstractPresenter<ModelView> implement
     }
 
     @Override
-    public void setData(Object data) {
+    public Object decode(Object data) {
         if (data == null) {
-            getView().setMeshes(List.of(), null);
-            return;
+            return null;
         }
 
         var model = (Model) data;
-        var meshes = mapMeshMaterials(model);
-        getView().setMeshes(meshes, model.upAxis());
+        return new ModelPayload(mapMeshMaterials(model), model.upAxis());
+    }
+
+    @Override
+    public void display(Object payload) {
+        if (payload == null) {
+            getView().setMeshes(new ModelPayload(List.of(), null));
+            return;
+        }
+
+        getView().setMeshes((ModelPayload) payload);
     }
 
     @Override
@@ -47,100 +58,57 @@ public final class ModelPresenter extends AbstractPresenter<ModelView> implement
         return "Model";
     }
 
-    private List<ModelView.MeshMaterial> mapMeshMaterials(Model model) {
+    private List<ModelPayload.MeshMaterial> mapMeshMaterials(Model model) {
         return model.meshes().stream()
             .map(this::mapMeshMaterial)
             .toList();
     }
 
-    private ModelView.MeshMaterial mapMeshMaterial(Mesh mesh) {
-        var triangleMesh = mapMesh(mesh);
-        var material = mesh.material().map(this::mapMaterial);
-        return new ModelView.MeshMaterial(triangleMesh, material);
+    private ModelPayload.MeshMaterial mapMeshMaterial(Mesh mesh) {
+        var diffuse = mesh.material().flatMap(this::loadDiffuse);
+        return new ModelPayload.MeshMaterial(mesh, diffuse);
     }
 
-    private TriangleMesh mapMesh(Mesh mesh) {
-
-        var result = new TriangleMesh(VertexFormat.POINT_NORMAL_TEXCOORD);
-        copyIndices(mesh.indices(), result.getFaces());
-
-        copyPoints(mesh.positions(), result.getPoints());
-        copy(mesh.normals().orElseThrow(), result.getNormals());
-        copy(mesh.texCoords().getFirst(), result.getTexCoords());
-        return result;
-    }
-
-    private javafx.scene.paint.Material mapMaterial(Material material) {
+    private Optional<DecodedImage> loadDiffuse(Material material) {
         var property = material.properties().stream()
             .filter(prop -> prop.type() == MaterialPropertyType.Albedo)
             .findFirst();
 
         if (property.isEmpty()) {
-            return null;
+            return Optional.empty();
         }
 
         try {
             var reference = property.get().reference();
             if (reference == null) {
-                return null;
+                return Optional.empty();
             }
 
             var texture = reference.supplier().get();
 
-            // I have to limit this, because the performance absolutely tanks, not sure why yet...
-            var surface = texture.surfaces().stream()
-                // .filter(s -> s.width() <= 1024 && s.height() <= 1024)
-                .skip(2)
-                .findFirst();
-            if (surface.isEmpty()) {
-                return null;
-            }
+            int mip = chooseMip(texture);
+            var converted = texture.convertSurface(mip, 0, TextureFormat.B8G8R8A8_SRGB, true);
 
-            var converted = Texture.fromSurface(surface.get(), texture.format())
-                .convert(TextureFormat.B8G8R8A8_UNORM, true);
-
-            var pixelBuffer = new PixelBuffer<>(
+            return Optional.of(new DecodedImage(
                 converted.width(),
                 converted.height(),
-                ByteBuffer.wrap(converted.surfaces().getFirst().data()),
-                PixelFormat.getByteBgraPreInstance()
-            );
-
-            var image = new WritableImage(pixelBuffer);
-            var result = new PhongMaterial();
-            result.setDiffuseMap(image);
-            return result;
+                (Bytes.Mutable) converted.surfaces().getFirst().data()
+            ));
         } catch (IOException e) {
-            e.printStackTrace();
-            return null;
+            log.warn("Failed to load texture", e);
+            return Optional.empty();
         }
     }
 
-    private void copy(Floats floats, ObservableFloatArray floatArray) {
-        var array = new float[floats.length()];
-        floats.copyTo(Floats.Mutable.wrap(array), 0);
-        floatArray.setAll(array);
-    }
-
-    private void copyPoints(Floats floats, ObservableFloatArray floatArray) {
-        var array = new float[floats.length()];
-        floats.copyTo(Floats.Mutable.wrap(array), 0);
-
-        for (var i = 0; i < array.length; i++) {
-            array[i] *= 100;
+    private int chooseMip(Texture texture) {
+        int lastMip = texture.mipCount() - 1;
+        for (int mip = 0; mip < lastMip; mip++) {
+            var width = Math.max(1, texture.width() >> mip);
+            var height = Math.max(1, texture.height() >> mip);
+            if (Math.max(width, height) <= MAX_DIFFUSE_SIZE) {
+                return mip;
+            }
         }
-        floatArray.setAll(array);
-    }
-
-    private void copyIndices(Ints buffer, ObservableFaceArray faces) {
-        var capacity = buffer.length();
-        var indices = new int[capacity * 3];
-        for (int i = 0, o = 0; i < capacity; i++) {
-            var index = buffer.get(i);
-            indices[o++] = index;
-            indices[o++] = index;
-            indices[o++] = index;
-        }
-        faces.addAll(indices);
+        return lastMip;
     }
 }

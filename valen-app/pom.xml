@@ -5,13 +5,15 @@
     <parent>
         <groupId>be.twofold</groupId>
         <artifactId>valen</artifactId>
-        <version>0.3.1-SNAPSHOT</version>
+        <version>0.3.4-SNAPSHOT</version>
     </parent>
 
     <artifactId>valen-app</artifactId>
 
     <properties>
         <target.module.path>target/modules</target.module.path>
+        <app.main.module>valen.app/be.twofold.valen.Main</app.main.module>
+        <app.native.access>--enable-native-access=javafx.graphics,wtf.reversed.toolbox</app.native.access>
     </properties>
 
     <dependencies>
@@ -63,12 +65,6 @@
             <artifactId>slf4j-jdk14</artifactId>
             <scope>compile</scope>
         </dependency>
-        <dependency>
-            <groupId>org.postgresql</groupId>
-            <artifactId>postgresql</artifactId>
-            <version>42.7.9</version>
-            <scope>provided</scope>
-        </dependency>
     </dependencies>
 
     <build>
@@ -100,12 +96,11 @@
             <plugin>
                 <groupId>org.panteleyev</groupId>
                 <artifactId>jpackage-maven-plugin</artifactId>
-                <version>1.6.5</version>
+                <version>1.8.0</version>
                 <configuration>
                     <!-- Generic options -->
                     <type>APP_IMAGE</type>
-                    <!-- <appVersion>${project.version}</appVersion> -->
-                    <appVersion>1.0</appVersion>
+                    <appVersion>${project.version}</appVersion>
                     <!-- TODO: copyright? -->
                     <description>A video game resource extractor</description>
                     <icon>valen.ico</icon>
@@ -126,9 +121,25 @@
 
                     <!-- Options for creating the application launcher -->
                     <javaOptions>
-                        <javaOption>--enable-native-access=javafx.graphics,wtf.reversed.toolbox</javaOption>
+                        <javaOption>${app.native.access}</javaOption>
                     </javaOptions>
-                    <module>valen.app/be.twofold.valen.Main</module>
+                    <module>${app.main.module}</module>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>3.6.4</version>
+                <configuration>
+                    <executable>${java.home}/bin/java</executable>
+                    <longModulepath>false</longModulepath>
+                    <arguments>
+                        <argument>${app.native.access}</argument>
+                        <argument>--module-path</argument>
+                        <argument>${project.basedir}/${target.module.path}</argument>
+                        <argument>--module</argument>
+                        <argument>${app.main.module}</argument>
+                    </arguments>
                 </configuration>
             </plugin>
         </plugins>

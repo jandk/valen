@@ -2,6 +2,7 @@ package be.twofold.valen.format.png;
 
 import java.io.*;
 import java.nio.*;
+import java.nio.charset.*;
 import java.util.*;
 import java.util.zip.*;
 
@@ -17,6 +18,7 @@ public final class PngOutputStream implements Closeable {
     private static final int PLTE = 0x504c5445;
     private static final int IDAT = 0x49444154;
     private static final int IEND = 0x49454e44;
+    private static final int tEXt = 0x74455874;
 
     private final OutputStream output;
     private final PngFormat format;
@@ -30,6 +32,10 @@ public final class PngOutputStream implements Closeable {
     private int idatLength = 0;
 
     public PngOutputStream(OutputStream output, PngFormat format) {
+        this(output, format, null);
+    }
+
+    public PngOutputStream(OutputStream output, PngFormat format, String software) {
         this.output = Objects.requireNonNull(output, "output is null");
         this.format = Objects.requireNonNull(format, "format is null");
         this.filter = new PngFilter(format);
@@ -37,6 +43,9 @@ public final class PngOutputStream implements Closeable {
         try {
             output.write(Magic);
             writeIHDR();
+            if (software != null) {
+                writeText("Software", software);
+            }
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
@@ -75,6 +84,11 @@ public final class PngOutputStream implements Closeable {
             .put((byte) 0)
             .array();
         writeChunk(IHDR, chunk);
+    }
+
+    private void writeText(String keyword, String text) throws IOException {
+        byte[] chunk = (keyword + "\0" + text).getBytes(StandardCharsets.ISO_8859_1);
+        writeChunk(tEXt, chunk);
     }
 
     private void writeIDAT() throws IOException {

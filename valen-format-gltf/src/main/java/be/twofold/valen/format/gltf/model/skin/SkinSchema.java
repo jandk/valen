@@ -27,7 +27,6 @@ public interface SkinSchema extends GltfChildOfRootProperty {
     /**
      * Indices of skeleton nodes, used as joints in this skin. (Required)
      */
-    @Value.NaturalOrder
-    SortedSet<NodeID> getJoints();
+    List<NodeID> getJoints();
 
 }

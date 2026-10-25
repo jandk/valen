@@ -1,76 +1,19 @@
 package be.twofold.valen.game.greatcircle;
 
-import be.twofold.valen.core.game.*;
 import be.twofold.valen.game.greatcircle.reader.resources.*;
-import be.twofold.valen.game.greatcircle.resource.*;
+import be.twofold.valen.game.greatcircle.resource.ResourceType;
+import be.twofold.valen.game.idtech.game.*;
 
-import java.util.*;
+public final class GreatCircleAssetID extends IdclAssetID<ResourceType, ResourcesVariation> {
+    GreatCircleAssetID(String name, ResourceType type, ResourcesVariation variation) {
+        super(name, type, variation);
+    }
 
-public record GreatCircleAssetID(
-    ResourceName name,
-    ResourceType type,
-    ResourcesVariation variation
-) implements Comparable<AssetID>, AssetID {
-    private static final Comparator<GreatCircleAssetID> COMPARATOR = Comparator
-        .comparing(GreatCircleAssetID::name)
-        .thenComparing(GreatCircleAssetID::type)
-        .thenComparing(GreatCircleAssetID::variation);
-
-//    private static final Map<ResourceType, Set<ResourcesVariation>> Variations = new EnumMap<ResourceType, Set<ResourcesVariation>>(Map.of(
-
-    /// /        ResourceType.HavokShape, EnumSet.of(ResourcesVariation.HkMsvc64),
-    /// /        ResourceType.HkNavMesh, EnumSet.of(ResourcesVariation.HkMsvc64),
-    /// /        ResourceType.HkNavMeshMediator, EnumSet.of(ResourcesVariation.HkMsvc64),
-    /// /        ResourceType.HkNavVolume, EnumSet.of(ResourcesVariation.HkMsvc64),
-    /// /        ResourceType.HkNavVolumeMediator, EnumSet.of(ResourcesVariation.HkMsvc64),
-    /// /        ResourceType.RenderProgResource, EnumSet.of(
-    /// /            ResourcesVariation.RenderProgVulkanPcAmd,
-    /// /            ResourcesVariation.RenderProgVulkanPcAmdRetail,
-    /// /            ResourcesVariation.RenderProgVulkanPcBase,
-    /// /            ResourcesVariation.RenderProgVulkanPcBaseRetail
-    /// /        )
-//    ));
     public static GreatCircleAssetID from(String name, ResourceType type) {
-        return new GreatCircleAssetID(
-            new ResourceName(name),
-            type,
-            ResourcesVariation.RES_VAR_NONE
-        );
-    }
-    //
-    //    public static ResourceKey from(String name, String type, ResourcesVariation variation) {
-    //        if (!Variations.getOrDefault(type, Set.of(ResourcesVariation.RES_VAR_NONE)).contains(variation)) {
-    //            throw new IllegalArgumentException("Invalid variation for type: " + type + " (" + variation + ")");
-    //        }
-    //        return new ResourceKey(
-    //            new ResourceName(name),
-    //            type,
-    //            variation
-    //        );
-    //    }
-
-    @Override
-    public String fullName() {
-        return name.name();
+        return new GreatCircleAssetID(name, type, ResourcesVariation.RES_VAR_NONE);
     }
 
-    @Override
-    public String displayName() {
-        return name.filename();
-    }
-
-    @Override
-    public String pathName() {
-        return name.pathname();
-    }
-
-    @Override
-    public String fileName() {
-        return name.filenameWithoutProperties();
-    }
-
-    @Override
-    public int compareTo(AssetID o) {
-        return COMPARATOR.compare(this, (GreatCircleAssetID) o);
+    public static GreatCircleAssetID material(String name) {
+        return from(name, ResourceType.material2);
     }
 }

@@ -11,7 +11,6 @@ import wtf.reversed.toolbox.collect.*;
 import wtf.reversed.toolbox.math.*;
 
 import java.io.*;
-import java.nio.*;
 import java.util.*;
 
 public abstract class GltfModelMapper {
@@ -19,10 +18,6 @@ public abstract class GltfModelMapper {
 
     final GltfContext context;
     final GltfMaterialMapper materialMapper;
-    private int numTexCoords = 0;
-    private int numColors = 0;
-    private int numJoints = 0;
-    private int numWeights = 0;
 
     public GltfModelMapper(GltfContext context) {
         this.context = context;
@@ -44,28 +39,10 @@ public abstract class GltfModelMapper {
         // Have to fix up the joints and weights first
         fixJointsAndWeights(mesh);
 
-        var attributes = new HashMap<String, AccessorID>();
-        attributes.put("POSITION", buildAccessor(mesh.positions(), AccessorComponentType.FLOAT, AccessorType.VEC3, true));
-        mesh.normals().ifPresent(floats -> attributes.put("NORMAL", buildAccessor(floats, AccessorComponentType.FLOAT, AccessorType.VEC3, false)));
-        mesh.tangents().ifPresent(floats -> attributes.put("TANGENT", buildAccessor(floats, AccessorComponentType.FLOAT, AccessorType.VEC4, false)));
-        mesh.texCoords().forEach(floats -> attributes.put("TEXCOORD_" + numTexCoords++, buildAccessor(floats, AccessorComponentType.FLOAT, AccessorType.VEC2, false)));
-        mesh.joints().ifPresent(shorts -> splitJoints(shorts, mesh.maxInfluence(), attributes));
-        mesh.weights().ifPresent(floats -> splitWeights(floats, mesh.maxInfluence(), attributes));
-        mesh.custom().forEach((name, vertexBuffer) -> {
-            var sanitizedName = "_" + name.toUpperCase(Locale.ROOT);
-            var componentType = mapComponentType(vertexBuffer.componentType());
-            var accessorType = mapElementType(vertexBuffer.elementType());
-            attributes.put(sanitizedName, buildAccessor(vertexBuffer.array(), componentType, accessorType, false));
-        });
-        // We don't do anything with colors, as Blender likes to incorporate vertex colors
-
-        this.numTexCoords = 0;
-        this.numColors = 0;
-        this.numJoints = 0;
-        this.numWeights = 0;
+        var attributes = buildAttributes(mesh);
 
         var indices = buildAccessor(mesh.indices());
-        var morphTargets = buildMorphTargets(mesh.blendShapes(), mesh.faceCount());
+        var morphTargets = buildMorphTargets(mesh.blendShapes(), mesh.vertexCount());
 
         var meshPrimitive = ImmutableMeshPrimitive.builder()
             .attributes(attributes)
@@ -74,6 +51,34 @@ public abstract class GltfModelMapper {
             .targets(morphTargets)
             .build();
         return Optional.of(meshPrimitive);
+    }
+
+    private Map<String, AccessorID> buildAttributes(Mesh mesh) {
+        var attributes = new HashMap<String, AccessorID>();
+        mesh.attributes().forEach((semantic, buffer) -> {
+            switch (semantic) {
+                case Semantic.Position ignored ->
+                    attributes.put("POSITION", buildAccessor(buffer.array(), AccessorComponentType.FLOAT, AccessorType.VEC3, true));
+                case Semantic.Normal ignored ->
+                    attributes.put("NORMAL", buildAccessor(buffer.array(), AccessorComponentType.FLOAT, AccessorType.VEC3, false));
+                case Semantic.Tangent ignored ->
+                    attributes.put("TANGENT", buildAccessor(buffer.array(), AccessorComponentType.FLOAT, AccessorType.VEC4, false));
+                case Semantic.TexCoord(int set) ->
+                    attributes.put("TEXCOORD_" + set, buildAccessor(buffer.array(), AccessorComponentType.FLOAT, AccessorType.VEC2, false));
+                case Semantic.Joints ignored -> splitJoints((Shorts) buffer.array(), mesh.maxInfluence(), attributes);
+                case Semantic.Weights ignored -> splitWeights((Floats) buffer.array(), mesh.maxInfluence(), attributes);
+                case Semantic.Custom(String name) -> {
+                    var sanitizedName = "_" + name.toUpperCase(Locale.ROOT);
+                    var componentType = mapComponentType(buffer.layout().componentType());
+                    var accessorType = mapElementType(buffer.layout().elementType());
+                    attributes.put(sanitizedName, buildAccessor(buffer.array(), componentType, accessorType, false));
+                }
+                case Semantic.Color ignored -> {
+                    // Skipped on purpose: Blender incorporates vertex colors in ways we don't want
+                }
+            }
+        });
+        return attributes;
     }
 
     private AccessorComponentType mapComponentType(ComponentType<?> componentType) {
@@ -126,7 +131,7 @@ public abstract class GltfModelMapper {
                     joints.set(o + j, (short) 0);
                 }
             }
-            attributes.put("JOINTS_" + numJoints++, buildAccessor(joints, AccessorComponentType.UNSIGNED_SHORT, AccessorType.VEC4, false));
+            attributes.put("JOINTS_" + b, buildAccessor(joints, AccessorComponentType.UNSIGNED_SHORT, AccessorType.VEC4, false));
         }
     }
 
@@ -143,29 +148,29 @@ public abstract class GltfModelMapper {
                     weights.set(o + j, floats.get(i + j));
                 }
                 for (int j = values; j < 4; j++) {
-                    weights.set(o + j, (short) 0);
+                    weights.set(o + j, 0.0f);
                 }
             }
-            attributes.put("WEIGHTS_" + numWeights++, buildAccessor(weights, AccessorComponentType.FLOAT, AccessorType.VEC4, false));
+            attributes.put("WEIGHTS_" + b, buildAccessor(weights, AccessorComponentType.FLOAT, AccessorType.VEC4, false));
         }
     }
 
     private List<Map<String, AccessorID>> buildMorphTargets(List<BlendShape> blendShapes, int count) throws IOException {
         var morphTargets = new ArrayList<Map<String, AccessorID>>();
         for (var blendShape : blendShapes) {
-            var indexBufferView = context.createBufferView(blendShape.indices(), null);
+            var indexBufferView = context.createBufferView(blendShape.indices().asBuffer(), null);
             var indices = ImmutableAccessorSparseIndices.builder()
                 .bufferView(indexBufferView)
                 .componentType(AccessorComponentType.UNSIGNED_SHORT)
                 .build();
 
-            var valuesBufferView = context.createBufferView(blendShape.values(), null);
+            var valuesBufferView = context.createBufferView(blendShape.values().asBuffer(), null);
             var values = ImmutableAccessorSparseValues.builder()
                 .bufferView(valuesBufferView)
                 .build();
 
             var accessorSparse = ImmutableAccessorSparse.builder()
-                .count(blendShape.indices().capacity())
+                .count(blendShape.indices().length())
                 .indices(indices)
                 .values(values)
                 .build();
@@ -207,7 +212,7 @@ public abstract class GltfModelMapper {
             .type(type);
 
         if (withBounds) {
-            Bounds bounds = calculateBounds(((Floats) slice).asBuffer());
+            Bounds bounds = calculateBounds((Floats) slice);
             builder
                 .min(GltfUtils.mapVector3(bounds.min()))
                 .max(GltfUtils.mapVector3(bounds.max()));
@@ -216,10 +221,14 @@ public abstract class GltfModelMapper {
         return context.addAccessor(builder.build());
     }
 
-    private Bounds calculateBounds(FloatBuffer buffer) {
+    private Bounds calculateBounds(Floats floats) {
+        if (floats.length() < 3) {
+            return Bounds.EMPTY;
+        }
+
         var builder = Bounds.builder();
-        for (int i = 0; i < buffer.remaining(); i += 3) {
-            builder.add(buffer.get(i), buffer.get(i + 1), buffer.get(i + 2));
+        for (var i = 0; i < floats.length(); i += 3) {
+            builder.add(floats.get(i), floats.get(i + 1), floats.get(i + 2));
         }
         return builder.build();
     }

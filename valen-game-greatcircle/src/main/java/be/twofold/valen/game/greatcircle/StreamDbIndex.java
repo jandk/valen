@@ -11,8 +11,10 @@ import java.util.*;
 
 record StreamDbIndex(
     Map<Path, BinarySource> sources,
-    Map<Long, Location.FileSlice> index
+    Map<Long, Location> index
 ) {
+    static final int UNKNOWN_SIZE = 0;
+
     private static final Logger log = LoggerFactory.getLogger(StreamDbIndex.class);
 
     StreamDbIndex {
@@ -22,7 +24,7 @@ record StreamDbIndex(
 
     static StreamDbIndex build(List<Path> paths) throws IOException {
         var sources = new HashMap<Path, BinarySource>();
-        var index = new HashMap<Long, Location.FileSlice>();
+        var index = new HashMap<Long, Location>();
         for (var path : paths) {
             log.info("Loading StreamDb: {}", path);
 
@@ -35,10 +37,12 @@ record StreamDbIndex(
                 var identity = streamDb.identities().get(i);
                 var entry = streamDb.entries().get(i);
 
-                // TODO: Wrap compression
-                index.computeIfAbsent(identity, _ -> new Location.FileSlice(
-                    path, entry.offset16() * 16L, entry.length()
-                ));
+                index.computeIfAbsent(identity, _ -> {
+                    Location slice = new Location.FileSlice(path, entry.offset16() * 16L, entry.length());
+                    return entry.compressionType().compressed()
+                        ? new Location.Compressed(slice, CompressionType.OODLE, UNKNOWN_SIZE)
+                        : slice;
+                });
             }
         }
 
