@@ -22,25 +22,58 @@ Right now, most of what is needed for general game support is available.
 * A general UI to select a game and a subsection (maps, archives, etc.)
 * A file browser, with search functionality and filtering between different types
 * Bulk export functionality
-* Abstractions for textures, models, materials, skeletons, animations...
+* Abstractions for textures, models, materials, skeletons, animations, scenes, audio...
 * Exporting to several different formats
     * Textures: DDS (including all mipmaps) and PNG (with "blue" normals)
-    * Models: GLTF, either split or in a single GLB file
-    * Materials: GLTF, applied to a UV sphere.
+  * Models: GLTF, either split or in a single GLB file, or CAST
+  * Materials: GLTF, applied to a UV sphere, or CAST
         * Currently support for Albedo, Normal, Specular, Smoothness, and Emissive
         * Either by using maps or factors (or both)
     * Skeletons: GLTF nodes, and automatically exported when the model is animated
-    * Animations: GLTF exported separately, including the skeleton so they can be merged in Blender
+  * Animations: GLTF or CAST, exported separately, including the skeleton so they can be merged in Blender
+  * Audio: WAV, or the native format (Ogg Vorbis, Ogg Opus) when it can be extracted without re-encoding
+      * Wwise IMA ADPCM and PTADPCM are decoded
     * Raw files: Exported as is
 * Previews, shown side by side as Preview, Metadata and Raw tabs
-  * Textures: Channel selection, mip and slice selection, with auto-detection of non-premultiplied alpha
+    * Textures: Channel selection, mip and slice selection, with auto-detection of non-premultiplied alpha
     * Models: 3d preview with albedo applied
-  * Metadata: Asset metadata as a tree
-  * Raw files: Binary as hex, auto-analyzed to text, with support for huge files
+    * Audio: Waveform view with playback, only for (AD)PCM for now
+    * Metadata: Asset metadata as a tree
+    * Raw files: Binary as hex, auto-analyzed to text, with support for huge files
+
+## Download
+
+Grab the latest zip from [Releases](https://github.com/jandk/valen/releases), extract it and run `Valen.exe`. It comes
+with its own Java runtime, so there's nothing else to install.
 
 ## Building
 
-Requires JDK 25. Build with `./mvnw package`.
+Only needed if you want to build from source. Requires JDK 25. Clone with submodules, as `reversed-toolbox` lives under
+`lib/`:
+
+```shell
+git clone --recurse-submodules https://github.com/jandk/valen.git
+```
+
+Build with the Maven wrapper (use `mvnw.cmd` on Windows):
+
+```shell
+./mvnw package
+```
+
+Add `-DskipITs` to skip the integration tests, as they read assets from an installed game (at a hardcoded path) and take
+a while.
+
+## Running
+
+After building, run it with:
+
+```shell
+./mvnw -pl valen-app exec:exec
+```
+
+Games that use Oodle compression will load it from the game directory on Windows, or download it automatically
+otherwise.
 
 ## Why
 
@@ -59,11 +92,13 @@ If there are any, those are bugs.
 
 For now a bit terse, but you have to start somewhere
 
-| Game                               | Textures | Materials | Models        | Skeletons | Animations | Hair |
-|------------------------------------|----------|-----------|---------------|-----------|------------|------|
-| DOOM Eternal                       | Yes      | Yes       | Yes           | Yes       | Yes        | ---  |
-| Indiana Jones and the Great Circle | Yes      | Yes       | Partial (3/4) | Yes       | No         | Yes  |
-| DOOM: The Dark Ages                | Yes      | Yes       | Yes           | Yes       | Yes        | Yes  |
+| Game                               | Textures | Materials | Models | Skeletons | Animations | Hair | Audio |
+|------------------------------------|:--------:|:---------:|:------:|:---------:|:----------:|:----:|:-----:|
+| DOOM Eternal                       |    ✅    |    ✅     |   ✅   |    ✅     |     ✅     |  ➖  |  ✅   |
+| Indiana Jones and the Great Circle |    ✅    |    ✅     | 🟡 3/4 |    ✅     |     ❌     |  ✅  |  ❌   |
+| DOOM: The Dark Ages                |    ✅    |    ✅     |   ✅   |    ✅     |     ✅     |  ✅  |  ✅   |
+
+✅ Supported · 🟡 Partial · ❌ Not supported · ➖ Not applicable
 
 ### Planned:
 

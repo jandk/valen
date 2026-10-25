@@ -12,6 +12,8 @@
 
     <properties>
         <target.module.path>target/modules</target.module.path>
+        <app.main.module>valen.app/be.twofold.valen.Main</app.main.module>
+        <app.native.access>--enable-native-access=javafx.graphics,wtf.reversed.toolbox</app.native.access>
     </properties>
 
     <dependencies>
@@ -115,9 +117,25 @@
 
                     <!-- Options for creating the application launcher -->
                     <javaOptions>
-                        <javaOption>--enable-native-access=javafx.graphics,wtf.reversed.toolbox</javaOption>
+                        <javaOption>${app.native.access}</javaOption>
                     </javaOptions>
-                    <module>valen.app/be.twofold.valen.Main</module>
+                    <module>${app.main.module}</module>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>3.6.4</version>
+                <configuration>
+                    <executable>${java.home}/bin/java</executable>
+                    <longModulepath>false</longModulepath>
+                    <arguments>
+                        <argument>${app.native.access}</argument>
+                        <argument>--module-path</argument>
+                        <argument>${project.basedir}/${target.module.path}</argument>
+                        <argument>--module</argument>
+                        <argument>${app.main.module}</argument>
+                    </arguments>
                 </configuration>
             </plugin>
         </plugins>
