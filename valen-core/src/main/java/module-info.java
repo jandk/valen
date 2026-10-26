@@ -1,5 +1,3 @@
-import be.twofold.valen.core.audio.export.*;
-
 module valen.core {
     requires be.twofold.tinybcdec;
     requires java.logging;
@@ -32,8 +30,11 @@ module valen.core {
     uses be.twofold.valen.core.export.Exporter;
     uses be.twofold.valen.core.game.GameFactory;
 
+    provides be.twofold.valen.core.audio.AudioDecoder with
+        be.twofold.valen.core.audio.decoder.PcmU8Decoder;
+
     provides be.twofold.valen.core.export.Exporter with
         be.twofold.valen.core.export.RawExporter,
         be.twofold.valen.core.audio.export.NativeAudioExporter,
-        WaveExporter;
+        be.twofold.valen.core.audio.export.WaveExporter;
 }
