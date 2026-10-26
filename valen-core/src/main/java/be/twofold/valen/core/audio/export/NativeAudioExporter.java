@@ -73,7 +73,7 @@ public final class NativeAudioExporter implements Exporter<Audio> {
                 }
                 break;
             case PCM_S16_LE:
-                new WavExporter().export(converted, outputPath);
+                new WaveExporter().export(converted, outputPath);
                 break;
             default:
                 throw new AssertionError();

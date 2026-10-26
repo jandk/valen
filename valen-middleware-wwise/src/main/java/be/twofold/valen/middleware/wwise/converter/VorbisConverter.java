@@ -40,8 +40,8 @@ final class VorbisConverter {
     private boolean previousBlockFlag;
 
     VorbisConverter(Audio audio) throws IOException {
-        this.source = BinarySource.wrap(audio.data());
-        this.wem = Wem.read(source);
+        this.wem = Wem.read(BinarySource.wrap(audio.data()));
+        this.source = BinarySource.wrap(wem.data().payload());
         this.vorbisHeader = (AkVorbisHeader) wem.format().codecHeader().orElseThrow();
         this.audioChannels = audio.channels().size();
         this.sampleRate = audio.sampleRate();
@@ -51,19 +51,19 @@ final class VorbisConverter {
         oggWriter.addPacket(rebuildIdentPacket(), 0);
         oggWriter.flushPage();
 
-        source.position(wem.dataOffset() + vorbisHeader.seekTableSize());
+        source.position(vorbisHeader.seekTableSize());
         oggWriter.addPacket(rebuildCommentPacket(), 0);
         oggWriter.addPacket(rebuildSetupHeader(), 0);
         oggWriter.flushPage();
 
-        source.position(wem.dataOffset() + vorbisHeader.vorbisDataOffset());
+        source.position(vorbisHeader.vorbisDataOffset());
         rebuildAudioPackets();
 
         return Bytes.wrap(out.toByteArray());
     }
 
     private void rebuildAudioPackets() throws IOException {
-        long end = wem.dataOffset() + wem.dataSize();
+        long end = wem.data().payload().length();
 
         int shortBlock = 1 << vorbisHeader.blockSize0();
         int longBlock = 1 << vorbisHeader.blockSize1();

@@ -68,11 +68,12 @@ public final class WwiseOpusConverter implements AudioConverter {
         writer.addPacket(rebuildOpusTags(), 0);
         writer.flushPage();
 
-        var offset = wem.dataOffset();
+        var offset = 0;
         var granule = 0L;
+        var payload = wem.data().payload();
         for (int i = 0; i < seek.length(); i++) {
             var size = seek.getUnsigned(i);
-            var packet = audio.data().slice(offset, size);
+            var packet = payload.slice(offset, size);
             offset += size;
 
             granule += 960;
@@ -81,15 +82,15 @@ public final class WwiseOpusConverter implements AudioConverter {
             }
             writer.addPacket(packet, granule);
         }
-        if (offset != wem.dataOffset() + wem.dataSize()) {
-            throw new IOException("Seek table covers " + (offset - wem.dataOffset()) + " bytes, data chunk has " + wem.dataSize());
+        if (offset != payload.length()) {
+            throw new IOException("Seek table covers " + offset + " bytes, data chunk has " + payload.length());
         }
         writer.finish();
 
         return Bytes.wrap(out.toByteArray());
     }
 
-    private Bytes rebuildOpusHead(WaveFormat format) {
+    private Bytes rebuildOpusHead(WwiseFormat format) {
         var opusHeader = (AkOpusWemHeader) format.codecHeader().orElseThrow();
         var size = opusHeader.mappingFamily() == 0 ? 19 : 21 + format.channels();
 

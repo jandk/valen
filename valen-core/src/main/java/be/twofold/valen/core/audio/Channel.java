@@ -1,6 +1,7 @@
 package be.twofold.valen.core.audio;
 
 import java.util.*;
+import java.util.stream.*;
 
 public enum Channel {
     FRONT_LEFT("FL"),
@@ -31,6 +32,23 @@ public enum Channel {
 
     Channel(String shortName) {
         this.shortName = shortName;
+    }
+
+    public static List<Channel> fromMask(int mask, int count) {
+        if (Integer.bitCount(mask) == count && mask >>> VALUES.size() == 0) {
+            return IntStream.range(0, VALUES.size())
+                .filter(i -> (mask & (1 << i)) != 0)
+                .mapToObj(VALUES::get)
+                .toList();
+        }
+
+        if (count == 1) {
+            return MONO;
+        }
+        if (count > VALUES.size()) {
+            throw new UnsupportedOperationException("Unsupported channel count: " + count);
+        }
+        return VALUES.subList(0, count);
     }
 
     public String shortName() {

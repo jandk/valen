@@ -24,7 +24,7 @@ public final class SoundReader implements AssetReader.Binary<Audio, Asset> {
             AudioCodec.OGG_OPUS,
             format.samplesPerSec(),
             wem.toChannels(),
-            wem.declaredDataSize() / format.blockAlign(),
+            Math.toIntExact(wem.data().declaredSize()) / format.blockAlign(),
             source.readBytes(Math.toIntExact(source.remaining()))
         );
     }

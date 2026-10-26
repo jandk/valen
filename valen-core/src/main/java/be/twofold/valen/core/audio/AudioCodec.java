@@ -6,6 +6,7 @@ package be.twofold.valen.core.audio;
 public enum AudioCodec {
     OGG_OPUS,
     OGG_VORBIS,
+    PCM_U8,
     PCM_S16_LE,
     WWISE_IMA_ADPCM,
     WWISE_OPUS,

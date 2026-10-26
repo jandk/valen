@@ -1,82 +1,57 @@
 package be.twofold.valen.middleware.wwise.wem;
 
 import be.twofold.valen.core.audio.*;
-import be.twofold.valen.middleware.wwise.shared.*;
+import be.twofold.valen.core.audio.riff.*;
+import be.twofold.valen.core.audio.wave.*;
 import wtf.reversed.toolbox.collect.*;
 import wtf.reversed.toolbox.io.*;
 import wtf.reversed.toolbox.util.*;
 
 import java.io.*;
+import java.nio.charset.*;
 import java.util.*;
-import java.util.stream.*;
 
 public record Wem(
-    WaveFormat format,
-    int dataOffset,
-    int dataSize,
-    int declaredDataSize,
+    WwiseFormat format,
+    RiffChunk.Data data,
     Optional<String> label,
     Optional<Shorts> seek
 ) {
-    private static final int WAVE = 'W' | 'A' << 8 | 'V' << 16 | 'E' << 24;
+    private static final FourCC LABL = FourCC.parse("labl");
+    private static final FourCC LIST = FourCC.parse("LIST");
+    private static final FourCC SEEK = FourCC.parse("seek");
 
     public Wem {
         Check.nonNull(format, "format");
-        Check.positive(dataOffset, "dataOffset");
-        Check.positiveOrZero(dataSize, "dataSize");
-        Check.positiveOrZero(declaredDataSize, "declaredDataSize");
+        Check.nonNull(data, "data");
     }
 
     public static Wem read(BinarySource source) throws IOException {
-        ChunkHeader riff = ChunkHeader.read(source);
-        if (riff.tag() != ChunkTag.RIFF) {
-            throw new IOException("Expected RIFF chunk");
-        }
-        source.expectInt(WAVE);
+        var waveFile = WaveFile.read(source);
+        var format = WwiseFormat.from(waveFile.format());
+        var seek = waveFile.riff().findFirst(SEEK)
+            .map(c -> c.asData().payload().asShorts());
+        return new Wem(format, waveFile.data(), findLabel(waveFile.riff()), seek);
+    }
 
-        WaveFormat format = null;
-        String label = null;
-        Shorts seek = null;
-
-        while (source.remaining() > 0) {
-            ChunkHeader chunk = ChunkHeader.read(source);
-            int start = Math.toIntExact(source.position());
-
-            switch (chunk.tag()) {
-                case fmt_ -> format = WaveFormat.read(source, chunk.size());
-                case LIST -> {
-                    source.skip(4); // type
-                    continue;
-                }
-                case labl -> {
-                    if (label == null) {
-                        source.skip(4); // cueId
-                        var text = source.readString(chunk.size() - 4);
-                        int end = text.indexOf('\0');
-                        label = end < 0 ? text : text.substring(0, end);
-                    }
-                }
-                case seek -> seek = source.readShorts(chunk.size() / 2);
-                case data -> {
-                    if (format == null) {
-                        throw new IOException("Expected fmt_ chunk");
-                    }
-
-                    return new Wem(
-                        format,
-                        start,
-                        Math.min(Math.toIntExact(source.remaining()), chunk.size()),
-                        chunk.size(),
-                        Optional.ofNullable(label),
-                        Optional.ofNullable(seek)
-                    );
-                }
-                default -> {
-                }
+    private static Optional<String> findLabel(RiffChunk.Container riff) {
+        for (var chunk : riff.chunks()) {
+            if (!chunk.id().equals(LIST)) {
+                continue;
             }
-            source.position(start + chunk.size() + (chunk.size() & 1));
+            var labl = chunk.asContainer().findFirst(LABL);
+            if (labl.isEmpty()) {
+                continue;
+            }
+            var payload = labl.get().asData().payload();
+            if (payload.length() < 4) {
+                continue;
+            }
+            var text = payload.slice(4).toString(StandardCharsets.ISO_8859_1);
+            var end = text.indexOf('\0');
+            return Optional.of(end < 0 ? text : text.substring(0, end));
         }
-        throw new IOException("Expected data chunk");
+        return Optional.empty();
     }
 
     public AudioCodec toAudioCodec() {
@@ -91,26 +66,20 @@ public record Wem(
     }
 
     public List<Channel> toChannels() {
-        int channelConfig = format.channelConfig();
+        var channelConfig = format.channelConfig();
         int channels = format.channels();
 
-        int type = (channelConfig >>> 8) & 0x0F;
-        int mask = type == 1 && Integer.bitCount(channelConfig >>> 12) == channels
+        var type = (channelConfig >>> 8) & 0x0F;
+        var mask = type == 1 && Integer.bitCount(channelConfig >>> 12) == channels
             ? channelConfig >>> 12
             : channelConfig;
-        if (Integer.bitCount(mask) != channels) {
-            throw new UnsupportedOperationException("Unsupported channel mask: 0x" + Integer.toHexString(channelConfig));
-        }
-        return IntStream.range(0, Channel.VALUES.size())
-            .filter(i -> (mask & (1 << i)) != 0)
-            .mapToObj(Channel.VALUES::get)
-            .toList();
+        return Channel.fromMask(mask, channels);
     }
 
     public int toFrameCount() {
         return switch (format.codec()) {
-            case PCM, PCM_EX -> dataSize / format.blockAlign();
-            case IMA_ADPCM, PT_ADPCM -> 64 * (dataSize / format.blockAlign());
+            case PCM, PCM_EX -> data.payload().length() / format.blockAlign();
+            case IMA_ADPCM, PT_ADPCM -> 64 * (data.payload().length() / format.blockAlign());
             case VORBIS -> ((AkVorbisHeader) format.codecHeader().orElseThrow()).totalPCMFrames();
             case WEM_OPUS -> ((AkOpusWemHeader) format.codecHeader().orElseThrow()).sampleCount();
             case OPUS -> throw new UnsupportedOperationException("Unsupported codec: " + format.codec());
