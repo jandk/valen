@@ -26,25 +26,25 @@ public final class WwiseOpusConverter implements AudioConverter {
     };
 
     @Override
-    public boolean canDecode(Audio audio, AudioCodec target) {
-        return audio.codec() == AudioCodec.WWISE_OPUS
-            && target == AudioCodec.OGG_OPUS;
+    public AudioCodec source() {
+        return AudioCodec.WWISE_OPUS;
     }
 
     @Override
-    public Audio decode(Audio audio, AudioCodec target) {
-        try {
-            var data = rebuildOpus(audio);
-            return new Audio(
-                AudioCodec.OGG_OPUS,
-                audio.sampleRate(),
-                audio.channels(),
-                audio.frameCount(),
-                data
-            );
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
+    public AudioCodec target() {
+        return AudioCodec.OGG_OPUS;
+    }
+
+    @Override
+    public Audio convert(Audio audio) throws IOException {
+        var data = rebuildOpus(audio);
+        return new Audio(
+            AudioCodec.OGG_OPUS,
+            audio.sampleRate(),
+            audio.channels(),
+            audio.frameCount(),
+            data
+        );
     }
 
     private Bytes rebuildOpus(Audio audio) throws IOException {

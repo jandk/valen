@@ -7,24 +7,24 @@ import java.io.*;
 
 public final class WwiseVorbisConverter implements AudioConverter {
     @Override
-    public boolean canDecode(Audio audio, AudioCodec target) {
-        return audio.codec() == AudioCodec.WWISE_VORBIS
-            && target == AudioCodec.OGG_VORBIS;
+    public AudioCodec source() {
+        return AudioCodec.WWISE_VORBIS;
     }
 
     @Override
-    public Audio decode(Audio audio, AudioCodec target) {
-        try {
-            Bytes data = new VorbisConverter(audio).convert();
-            return new Audio(
-                AudioCodec.OGG_VORBIS,
-                audio.sampleRate(),
-                audio.channels(),
-                audio.frameCount(),
-                data
-            );
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
+    public AudioCodec target() {
+        return AudioCodec.OGG_VORBIS;
+    }
+
+    @Override
+    public Audio convert(Audio audio) throws IOException {
+        Bytes data = new VorbisConverter(audio).convert();
+        return new Audio(
+            AudioCodec.OGG_VORBIS,
+            audio.sampleRate(),
+            audio.channels(),
+            audio.frameCount(),
+            data
+        );
     }
 }

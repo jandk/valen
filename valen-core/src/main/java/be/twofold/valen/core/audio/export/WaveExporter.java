@@ -35,7 +35,7 @@ public final class WaveExporter implements Exporter<Audio> {
 
     @Override
     public void export(Audio value, OutputStream out) throws IOException {
-        var pcmAudio = AudioConverter.convert(value, AudioCodec.PCM_S16_LE);
+        var pcmAudio = AudioDecoder.toPcm(value);
         if (pcmAudio.isEmpty()) {
             throw new IllegalArgumentException("Unsupported audio format");
         }

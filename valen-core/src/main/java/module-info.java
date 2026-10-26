@@ -28,6 +28,7 @@ module valen.core {
     exports be.twofold.valen.core.util;
 
     uses be.twofold.valen.core.audio.AudioConverter;
+    uses be.twofold.valen.core.audio.AudioDecoder;
     uses be.twofold.valen.core.export.Exporter;
     uses be.twofold.valen.core.game.GameFactory;
 

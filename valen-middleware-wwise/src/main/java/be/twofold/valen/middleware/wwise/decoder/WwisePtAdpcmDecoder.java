@@ -1,9 +1,9 @@
-package be.twofold.valen.middleware.wwise.converter;
+package be.twofold.valen.middleware.wwise.decoder;
 
 import be.twofold.valen.core.audio.*;
 import wtf.reversed.toolbox.collect.*;
 
-public final class WwisePtAdpcmConverter implements AudioConverter {
+public final class WwisePtAdpcmDecoder implements AudioDecoder {
     private static final byte[] STEP = {+1, 3, 5, 7, 10, 14, 20, 28};
     private static final byte[] NEXT = {-1, 0, 0, 0, +1, +1, +2, +2};
 
@@ -13,13 +13,12 @@ public final class WwisePtAdpcmConverter implements AudioConverter {
     private static final int MAX_INDEX = 11;
 
     @Override
-    public boolean canDecode(Audio audio, AudioCodec target) {
-        return audio.codec() == AudioCodec.WWISE_PTADPCM
-            && target == AudioCodec.PCM_S16_LE;
+    public AudioCodec source() {
+        return AudioCodec.WWISE_PTADPCM;
     }
 
     @Override
-    public Audio decode(Audio audio, AudioCodec target) {
+    public Audio decode(Audio audio) {
         int numChannels = audio.channels().size();
         int frameCount = audio.frameCount();
         int stride = numChannels * Short.BYTES;

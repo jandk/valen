@@ -1,9 +1,9 @@
-package be.twofold.valen.middleware.wwise.converter;
+package be.twofold.valen.middleware.wwise.decoder;
 
 import be.twofold.valen.core.audio.*;
 import wtf.reversed.toolbox.collect.*;
 
-public final class WwiseImaConverter implements AudioConverter {
+public final class WwiseImaDecoder implements AudioDecoder {
     // @formatter:off
     private static final int[] STEP = {
             7,     8,   9,      10,    11,    12,    13,    14,
@@ -30,13 +30,12 @@ public final class WwiseImaConverter implements AudioConverter {
     private static final int NIBBLES = SAMPLES - 1;
 
     @Override
-    public boolean canDecode(Audio audio, AudioCodec target) {
-        return audio.codec() == AudioCodec.WWISE_IMA_ADPCM
-            && target == AudioCodec.PCM_S16_LE;
+    public AudioCodec source() {
+        return AudioCodec.WWISE_IMA_ADPCM;
     }
 
     @Override
-    public Audio decode(Audio audio, AudioCodec target) {
+    public Audio decode(Audio audio) {
         int numChannels = audio.channels().size();
         int frameCount = audio.frameCount();
         int stride = numChannels * Short.BYTES;
