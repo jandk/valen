@@ -8,6 +8,7 @@ module valen.core {
     requires static java.compiler;
 
     exports be.twofold.valen.core.animation;
+    exports be.twofold.valen.core.audio.decoder;
     exports be.twofold.valen.core.audio.riff;
     exports be.twofold.valen.core.audio.wave;
     exports be.twofold.valen.core.audio;

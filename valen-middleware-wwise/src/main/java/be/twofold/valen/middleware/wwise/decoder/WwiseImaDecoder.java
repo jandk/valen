@@ -1,9 +1,10 @@
 package be.twofold.valen.middleware.wwise.decoder;
 
 import be.twofold.valen.core.audio.*;
+import be.twofold.valen.core.audio.decoder.*;
 import wtf.reversed.toolbox.collect.*;
 
-public final class WwiseImaDecoder implements AudioDecoder {
+public final class WwiseImaDecoder extends AdpcmDecoder {
     // @formatter:off
     private static final int[] STEP = {
             7,     8,   9,      10,    11,    12,    13,    14,
@@ -25,53 +26,19 @@ public final class WwiseImaDecoder implements AudioDecoder {
     };
     // @formatter:on
 
-    private static final int BLOCK = 36;
-    private static final int SAMPLES = 64;
-    private static final int NIBBLES = SAMPLES - 1;
-
     @Override
     public AudioCodec source() {
         return AudioCodec.WWISE_IMA_ADPCM;
     }
 
     @Override
-    public Audio decode(Audio audio) {
-        int numChannels = audio.channels().size();
-        int frameCount = audio.frameCount();
-        int stride = numChannels * Short.BYTES;
-
-        var src = audio.data();
-        var dst = Bytes.allocate(frameCount * numChannels * Short.BYTES);
-
-        int numBlocks = frameCount / SAMPLES;
-        for (int b = 0; b < numBlocks; b++) {
-            int srcOff = b * numChannels * BLOCK;
-            int dstOff = b * numChannels * SAMPLES * Short.BYTES;
-            for (int i = 0; i < numChannels; i++) {
-                decodeBlock(
-                    src, srcOff + i * BLOCK,
-                    dst, dstOff + i * Short.BYTES,
-                    stride
-                );
-            }
-        }
-
-        return new Audio(
-            AudioCodec.PCM_S16_LE,
-            audio.sampleRate(),
-            audio.channels(),
-            frameCount,
-            dst
-        );
-    }
-
-    private void decodeBlock(Bytes src, int srcOff, Bytes.Mutable dst, int dstOff, int stride) {
-        int pred = src.getShort(srcOff);
-        int index = src.getUnsigned(srcOff + 2);
+    protected void decodeChannel(Bytes src, Bytes.Mutable dst, int dstOff, int stride) {
+        int pred = src.getShort(0);
+        int index = src.getUnsigned(2);
         dst.setShort(dstOff, (short) pred);
 
-        for (int i = 0, o = dstOff + stride; i < NIBBLES; i++, o += stride) {
-            int b = src.getUnsigned(srcOff + 4 + (i >> 1));
+        for (int i = 0, o = dstOff + stride; i < 63; i++, o += stride) {
+            int b = src.getUnsigned(4 + (i >> 1));
             int n = (i & 1) == 0 ? b & 0x0F : b >> 4;
             int diff = (STEP[index] * (((n & 7) << 1) + 1)) >> 3;
             diff = (n & 8) == 0 ? diff : -diff;
@@ -79,5 +46,15 @@ public final class WwiseImaDecoder implements AudioDecoder {
             index = Math.clamp(index + NEXT[n], 0, 88);
             dst.setShort(o, (short) pred);
         }
+    }
+
+    @Override
+    protected int blockSize(Audio audio) {
+        return 36 * audio.channels().size();
+    }
+
+    @Override
+    protected int samplesPerBlock(Audio audio) {
+        return 64;
     }
 }
