@@ -44,11 +44,11 @@ public abstract class AdpcmDecoder implements AudioDecoder {
         );
     }
 
-    protected void decodeBlock(Bytes block, int numChannels, Bytes.Mutable dst, int dstOff) {
-        int size = block.length() / numChannels;
+    protected void decodeBlock(Bytes src, int numChannels, Bytes.Mutable dst, int dstOff) {
+        int size = src.length() / numChannels;
         int stride = numChannels * Short.BYTES;
         for (int i = 0; i < numChannels; i++, dstOff += Short.BYTES) {
-            decodeChannel(block.slice(i * size, size), dst, dstOff, stride);
+            decodeChannel(src.slice(i * size, size), dst, dstOff, stride);
         }
     }
 

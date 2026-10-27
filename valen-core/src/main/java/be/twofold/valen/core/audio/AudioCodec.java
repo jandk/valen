@@ -4,6 +4,7 @@ package be.twofold.valen.core.audio;
  * Represents the codec used for audio decoding.
  */
 public enum AudioCodec {
+    MS_ADPCM,
     OGG_OPUS,
     OGG_VORBIS,
     PCM_U8,

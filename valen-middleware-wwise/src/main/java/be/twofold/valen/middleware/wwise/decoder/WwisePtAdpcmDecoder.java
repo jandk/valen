@@ -16,6 +16,16 @@ public final class WwisePtAdpcmDecoder extends AdpcmDecoder {
     }
 
     @Override
+    protected int blockSize(Audio audio) {
+        return 36 * audio.channels().size();
+    }
+
+    @Override
+    protected int samplesPerBlock(Audio audio) {
+        return 64;
+    }
+
+    @Override
     protected void decodeChannel(Bytes src, Bytes.Mutable dst, int dstOff, int stride) {
         int hist2 = src.getShort(0);
         int hist1 = src.getShort(2);
@@ -36,15 +46,5 @@ public final class WwisePtAdpcmDecoder extends AdpcmDecoder {
             hist2 = hist1;
             hist1 = sample;
         }
-    }
-
-    @Override
-    protected int blockSize(Audio audio) {
-        return 36 * audio.channels().size();
-    }
-
-    @Override
-    protected int samplesPerBlock(Audio audio) {
-        return 64;
     }
 }

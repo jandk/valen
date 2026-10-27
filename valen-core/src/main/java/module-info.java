@@ -32,6 +32,7 @@ module valen.core {
     uses be.twofold.valen.core.game.GameFactory;
 
     provides be.twofold.valen.core.audio.AudioDecoder with
+        be.twofold.valen.core.audio.decoder.MsAdpcmDecoder,
         be.twofold.valen.core.audio.decoder.PcmU8Decoder;
 
     provides be.twofold.valen.core.export.Exporter with

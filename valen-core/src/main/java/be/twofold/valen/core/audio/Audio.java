@@ -19,7 +19,8 @@ public record Audio(
     int sampleRate,
     List<Channel> channels,
     int frameCount,
-    Bytes data
+    Bytes data,
+    AudioCodecInfo info
 ) {
     public Audio {
         Check.nonNull(codec, "codec");
@@ -27,6 +28,10 @@ public record Audio(
         Check.positive(channels.size(), "channels is empty");
         Check.positiveOrZero(frameCount, "frameCount");
         Check.nonNull(data, "data");
+    }
+
+    public Audio(AudioCodec codec, int sampleRate, List<Channel> channels, int frameCount, Bytes data) {
+        this(codec, sampleRate, channels, frameCount, data, new AudioCodecInfo.None());
     }
 
     public float duration() {

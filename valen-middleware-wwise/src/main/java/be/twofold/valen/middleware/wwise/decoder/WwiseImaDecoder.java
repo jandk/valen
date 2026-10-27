@@ -32,6 +32,16 @@ public final class WwiseImaDecoder extends AdpcmDecoder {
     }
 
     @Override
+    protected int blockSize(Audio audio) {
+        return 36 * audio.channels().size();
+    }
+
+    @Override
+    protected int samplesPerBlock(Audio audio) {
+        return 64;
+    }
+
+    @Override
     protected void decodeChannel(Bytes src, Bytes.Mutable dst, int dstOff, int stride) {
         int pred = src.getShort(0);
         int index = src.getUnsigned(2);
@@ -46,15 +56,5 @@ public final class WwiseImaDecoder extends AdpcmDecoder {
             index = Math.clamp(index + NEXT[n], 0, 88);
             dst.setShort(o, (short) pred);
         }
-    }
-
-    @Override
-    protected int blockSize(Audio audio) {
-        return 36 * audio.channels().size();
-    }
-
-    @Override
-    protected int samplesPerBlock(Audio audio) {
-        return 64;
     }
 }
