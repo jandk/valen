@@ -17,8 +17,9 @@ public record SourceAsset(
     @Override
     public AssetType type() {
         return switch (id().extension()) {
-            case "vtf" -> AssetType.TEXTURE;
             case "mdl" -> AssetType.MODEL;
+            case "vtf" -> AssetType.TEXTURE;
+            case "wav" -> AssetType.AUDIO;
             default -> AssetType.RAW;
         };
     }

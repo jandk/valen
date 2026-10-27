@@ -1,5 +1,6 @@
 package be.twofold.valen.game.source;
 
+import be.twofold.valen.core.audio.wave.*;
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.game.source.index.*;
 import be.twofold.valen.game.source.readers.gameinfo.*;
@@ -14,10 +15,11 @@ import java.nio.file.*;
 import java.util.*;
 
 public final class SourceGame implements Game {
-    private static final List<AssetReader<?, SourceAsset>> READERS = List.of(
+    private static final List<AssetReader<?, ?>> READERS = List.of(
         new KeyValueReader(),
         new VmtReader(),
-        new VtfReader()
+        new VtfReader(),
+        new WaveReader()
     );
 
     private final Path path;
