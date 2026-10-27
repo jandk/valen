@@ -26,25 +26,25 @@ public final class WwiseOpusConverter implements AudioConverter {
     };
 
     @Override
-    public boolean canDecode(Audio audio, AudioCodec target) {
-        return audio.codec() == AudioCodec.WWISE_OPUS
-            && target == AudioCodec.OGG_OPUS;
+    public AudioCodec source() {
+        return AudioCodec.WWISE_OPUS;
     }
 
     @Override
-    public Audio decode(Audio audio, AudioCodec target) {
-        try {
-            var data = rebuildOpus(audio);
-            return new Audio(
-                AudioCodec.OGG_OPUS,
-                audio.sampleRate(),
-                audio.channels(),
-                audio.frameCount(),
-                data
-            );
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
+    public AudioCodec target() {
+        return AudioCodec.OGG_OPUS;
+    }
+
+    @Override
+    public Audio convert(Audio audio) throws IOException {
+        var data = rebuildOpus(audio);
+        return new Audio(
+            AudioCodec.OGG_OPUS,
+            audio.sampleRate(),
+            audio.channels(),
+            audio.frameCount(),
+            data
+        );
     }
 
     private Bytes rebuildOpus(Audio audio) throws IOException {
@@ -68,11 +68,12 @@ public final class WwiseOpusConverter implements AudioConverter {
         writer.addPacket(rebuildOpusTags(), 0);
         writer.flushPage();
 
-        var offset = wem.dataOffset();
+        var offset = 0;
         var granule = 0L;
+        var payload = wem.data().payload();
         for (int i = 0; i < seek.length(); i++) {
             var size = seek.getUnsigned(i);
-            var packet = audio.data().slice(offset, size);
+            var packet = payload.slice(offset, size);
             offset += size;
 
             granule += 960;
@@ -81,15 +82,15 @@ public final class WwiseOpusConverter implements AudioConverter {
             }
             writer.addPacket(packet, granule);
         }
-        if (offset != wem.dataOffset() + wem.dataSize()) {
-            throw new IOException("Seek table covers " + (offset - wem.dataOffset()) + " bytes, data chunk has " + wem.dataSize());
+        if (offset != payload.length()) {
+            throw new IOException("Seek table covers " + offset + " bytes, data chunk has " + payload.length());
         }
         writer.finish();
 
         return Bytes.wrap(out.toByteArray());
     }
 
-    private Bytes rebuildOpusHead(WaveFormat format) {
+    private Bytes rebuildOpusHead(WwiseFormat format) {
         var opusHeader = (AkOpusWemHeader) format.codecHeader().orElseThrow();
         var size = opusHeader.mappingFamily() == 0 ? 19 : 21 + format.channels();
 

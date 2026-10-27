@@ -21,7 +21,7 @@ public final class WemReader implements AssetReader.Binary<Audio, Asset> {
 
         Bytes data = codec == AudioCodec.WWISE_OPUS || codec == AudioCodec.WWISE_VORBIS
             ? source.position(0).readBytes(Math.toIntExact(source.remaining()))
-            : source.position(wem.dataOffset()).readBytes(wem.dataSize());
+            : wem.data().payload();
 
         return new Audio(
             codec,

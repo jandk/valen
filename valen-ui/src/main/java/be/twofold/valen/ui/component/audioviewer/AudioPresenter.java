@@ -39,10 +39,13 @@ public final class AudioPresenter extends AbstractPresenter<AudioView> implement
         }
 
         var status = describe(audio);
-        return AudioConverter
-            .convert(audio, AudioCodec.PCM_S16_LE)
-            .map(value -> AudioPayload.decoded(value, status))
-            .orElseGet(() -> AudioPayload.undecoded(audio, status));
+        try {
+            return AudioDecoder.toPcm(audio)
+                .map(value -> AudioPayload.decoded(value, status))
+                .orElseGet(() -> AudioPayload.undecoded(audio, status));
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 
     @Override

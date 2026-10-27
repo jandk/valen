@@ -11,8 +11,7 @@ import java.util.*;
 public final class NativeAudioExporter implements Exporter<Audio> {
     private static final List<AudioCodec> TARGETS = List.of(
         AudioCodec.OGG_OPUS,
-        AudioCodec.OGG_VORBIS,
-        AudioCodec.PCM_S16_LE
+        AudioCodec.OGG_VORBIS
     );
 
     @Override
@@ -51,6 +50,12 @@ public final class NativeAudioExporter implements Exporter<Audio> {
             }
         }
 
+        var pcm = AudioDecoder.toPcm(value);
+        if (pcm.isPresent()) {
+            write(pcm.get(), path);
+            return;
+        }
+
         throw new IOException("No conversion for " + value.codec());
     }
 
@@ -73,7 +78,7 @@ public final class NativeAudioExporter implements Exporter<Audio> {
                 }
                 break;
             case PCM_S16_LE:
-                new WavExporter().export(converted, outputPath);
+                new WaveExporter().export(converted, outputPath);
                 break;
             default:
                 throw new AssertionError();
