@@ -9,7 +9,14 @@ public record ResourceEntry(
     int strings,
     long dataOffset,
     int dataSize,
-    ResourceEntryOptions options,
+    long uncompressedSize,
+    long dataCheckSum,
+    long generationTimeStamp,
+    long defaultHash,
+    int version,
+    int flags,
+    ResourceCompressionMode compMode,
+    ResourcesVariation variation,
     short numStrings,
     short numDependencies
 ) {
@@ -23,7 +30,17 @@ public record ResourceEntry(
         source.expectLong(0); // metaEntries
         var dataOffset = source.readLong();
         var dataSize = source.readLongAsInt();
-        var options = ResourceEntryOptions.read(source);
+        var uncompressedSize = source.readLong();
+        var dataCheckSum = source.readLong();
+        var generationTimeStamp = source.readLong();
+        var defaultHash = source.readLong();
+        var version = source.readInt();
+        var flags = source.readInt();
+        var compMode = ResourceCompressionMode.fromValue(source.readByte());
+        source.expectByte((byte) 0); // reserved0
+        var variation = ResourcesVariation.read(source);
+        source.expectInt(0); // reserved2
+        source.expectLong(0); // reservedForVariations
         var numStrings = source.readShort();
         source.expectShort((short) 0); // numSources
         var numDependencies = source.readShort();
@@ -36,7 +53,14 @@ public record ResourceEntry(
             strings,
             dataOffset,
             dataSize,
-            options,
+            uncompressedSize,
+            dataCheckSum,
+            generationTimeStamp,
+            defaultHash,
+            version,
+            flags,
+            compMode,
+            variation,
             numStrings,
             numDependencies
         );

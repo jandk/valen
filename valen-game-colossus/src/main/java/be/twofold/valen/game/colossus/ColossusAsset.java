@@ -1,25 +1,19 @@
 package be.twofold.valen.game.colossus;
 
 import be.twofold.valen.core.game.*;
-import be.twofold.valen.game.colossus.resource.*;
+import be.twofold.valen.game.colossus.reader.resources.*;
+import be.twofold.valen.game.idtech.game.*;
 
-import java.util.*;
-
-public record ColossusAsset(
-    ColossusAssetID id,
-    Location location,
-    long hash
-) implements Asset {
-    @Override
-    public AssetType type() {
-        if (id.type() == ResourceType.image) {
-            return AssetType.TEXTURE;
-        }
-        return AssetType.RAW;
+public final class ColossusAsset extends IdclAsset<ColossusAssetID> {
+    ColossusAsset(ColossusAssetID id, Location location, long hash, int version) {
+        super(id, location, hash, version);
     }
 
     @Override
-    public Map<String, Object> properties() {
-        return Map.of();
+    public AssetType type() {
+        if (id().type() == ResourcesType.Image) {
+            return AssetType.TEXTURE;
+        }
+        return AssetType.RAW;
     }
 }

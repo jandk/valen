@@ -16,16 +16,14 @@ public final class ColossusGame implements Game {
 
     private final Path base;
     private final PackageMapSpec spec;
+    private final Decompressors decompressors;
     private final ResourcesIndex commonResources;
     private final TexDbIndex commonTexDb;
 
     ColossusGame(Path path) throws IOException {
         this.base = path.resolve("base");
         this.spec = PackageMapSpec.read(base.resolve("packagemapspec.json"));
-        Decompressors.setOodlePath(path.resolve("oo2core_5_win64.dll"));
-        // The engine bootstrap (idResourceManagerLocal::Init1) loads patches
-        // newest-first then gameresources last; first match wins, so the
-        // newest patch overrides the original.
+        this.decompressors = new Decompressors(path.resolve("oo2core_5_win64.dll"));
         this.commonResources = ResourcesIndex.build(commonPaths(".resources"));
         this.commonTexDb = TexDbIndex.build(commonPaths(".texdb"));
     }
@@ -69,7 +67,7 @@ public final class ColossusGame implements Game {
         sharedSources.addAll(commonResources.sources().keySet());
         sharedSources.addAll(commonTexDb.sources().keySet());
 
-        var storageManager = new ColossusStorageManager(sources, sharedSources, combinedTexDb);
+        var storageManager = new ColossusStorageManager(sources, sharedSources, combinedTexDb, decompressors);
         return new AssetLoader(archive, storageManager, List.copyOf(ASSET_READERS));
     }
 
@@ -103,10 +101,5 @@ public final class ColossusGame implements Game {
         if (Files.exists(path)) {
             paths.add(path);
         }
-    }
-
-    @Override
-    public void close() {
-        Decompressors.resetOodle();
     }
 }

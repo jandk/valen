@@ -3,7 +3,7 @@ package be.twofold.valen.game.colossus.reader.image;
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.texture.*;
 import be.twofold.valen.game.colossus.*;
-import be.twofold.valen.game.colossus.resource.*;
+import be.twofold.valen.game.colossus.reader.resources.*;
 import wtf.reversed.toolbox.collect.*;
 import wtf.reversed.toolbox.io.*;
 import wtf.reversed.toolbox.util.*;
@@ -15,7 +15,7 @@ import java.util.function.*;
 public final class ImageReader implements AssetReader.Binary<Texture, ColossusAsset> {
     @Override
     public boolean canRead(ColossusAsset asset) {
-        return asset.id().type() == ResourceType.image;
+        return asset.id().type() == ResourcesType.Image;
     }
 
     @Override
@@ -116,13 +116,12 @@ public final class ImageReader implements AssetReader.Binary<Texture, ColossusAs
             default -> throw new UnsupportedOperationException("Unsupported texture format: " + textureFormat);
         };
 
-        var decompressor = Decompressors.getOodle();
         var surface = Surface.create(mip.mipPixelWidth(), mip.mipPixelHeight(), 1, surfaceFormat);
         while (source.position() < source.size()) {
             var tile = ImageTile.read(source);
             Check.state(tile.format() == tileFormat, "Tile format mismatch");
 
-            var tileData = decompressor.decompress(tile.data(), tile.size()).toArray();
+            var tileData = context.decompress(CompressionType.OODLE, tile.data(), tile.size()).toArray();
             byte[] decoded = WbpDecoder.decode(tile, tileData);
             var tileSurface = new Surface(surfaceFormat, tile.width(), tile.height(), 1, Bytes.wrap(decoded));
             Surface.copy(

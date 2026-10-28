@@ -2,7 +2,6 @@ package be.twofold.valen.game.colossus;
 
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.game.colossus.reader.resources.*;
-import be.twofold.valen.game.colossus.resource.*;
 import org.slf4j.*;
 import wtf.reversed.toolbox.io.*;
 
@@ -47,32 +46,33 @@ record ResourcesIndex(
         var name = resources.strings().get(resources.stringIndex().get(entry.strings() + 1));
 
         var resourceKey = new ColossusAssetID(
-            new ResourceName(name),
-            ResourceType.valueOf(type),
-            ResourceVariation.fromValue(entry.options().variation())
+            name,
+            ResourcesType.fromValue(type),
+            entry.variation()
         );
 
         var location = new Location.FileSlice(
             path, entry.dataOffset(), entry.dataSize()
         );
-        Location finalLocation = switch (entry.options().compMode()) {
+        Location finalLocation = switch (entry.compMode()) {
             case RES_COMP_MODE_NONE -> location;
             case RES_COMP_MODE_KRAKEN -> new Location.Compressed(
-                location, CompressionType.OODLE, Math.toIntExact(entry.options().uncompressedSize())
+                location, CompressionType.OODLE, Math.toIntExact(entry.uncompressedSize())
             );
             case RES_COMP_MODE_KRAKEN_CHUNKED -> new Location.Compressed(
                 new Location.FileSlice(
                     location.path(), location.offset() + 12, location.size() - 12
                 ),
-                CompressionType.OODLE, Math.toIntExact(entry.options().uncompressedSize())
+                CompressionType.OODLE, Math.toIntExact(entry.uncompressedSize())
             );
-            default -> throw new UnsupportedOperationException(entry.options().compMode().toString());
+            default -> throw new UnsupportedOperationException(entry.compMode().toString());
         };
 
         return new ColossusAsset(
             resourceKey,
             finalLocation,
-            entry.options().defaultHash()
+            entry.defaultHash(),
+            entry.version()
         );
     }
 }

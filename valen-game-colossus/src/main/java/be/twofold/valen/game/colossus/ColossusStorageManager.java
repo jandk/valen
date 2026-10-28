@@ -14,9 +14,10 @@ public final class ColossusStorageManager extends StorageManager {
     public ColossusStorageManager(
         Map<Path, BinarySource> sources,
         Set<Path> shared,
-        Map<Long, List<Location.FileSlice>> streamIndex
+        Map<Long, List<Location.FileSlice>> streamIndex,
+        Decompressors decompressors
     ) {
-        super(sources, shared);
+        super(sources, shared, decompressors);
         this.streamIndex = Map.copyOf(streamIndex);
     }
 
