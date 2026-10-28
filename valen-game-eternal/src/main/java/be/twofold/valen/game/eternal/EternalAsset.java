@@ -10,8 +10,7 @@ public final class EternalAsset extends IdclAsset<EternalAssetID> {
         ResourceType.of("anim"), AssetType.ANIMATION,
         ResourceType.of("baseModel"), AssetType.MODEL,
         ResourceType.of("model"), AssetType.MODEL,
-        ResourceType.of("image"), AssetType.TEXTURE,
-        ResourceType.of("material2"), AssetType.MATERIAL
+        ResourceType.of("image"), AssetType.TEXTURE
     );
 
     EternalAsset(EternalAssetID id, Location location, long hash, int version) {
