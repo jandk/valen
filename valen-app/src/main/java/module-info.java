@@ -2,10 +2,12 @@ module valen.app {
     requires java.logging;
     requires javafx.graphics;
     requires org.slf4j;
+    requires org.slf4j.jul;
     requires valen.core;
     requires valen.ui;
 
     // Exporters
+    requires valen.export.cast;
     requires valen.export.dds;
     requires valen.export.gltf;
     requires valen.export.png;

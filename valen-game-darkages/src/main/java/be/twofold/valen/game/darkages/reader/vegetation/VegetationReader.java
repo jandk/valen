@@ -4,7 +4,6 @@ import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.geometry.*;
 import be.twofold.valen.game.darkages.*;
 import be.twofold.valen.game.darkages.reader.*;
-import be.twofold.valen.game.darkages.reader.geometry.*;
 import be.twofold.valen.game.darkages.reader.resources.*;
 import be.twofold.valen.game.idtech.geometry.*;
 import wtf.reversed.toolbox.io.*;
@@ -31,7 +30,7 @@ public final class VegetationReader implements AssetReader.Binary<Model, DarkAge
 
         var meshes = readMeshes(vegetation, 0, asset.hash(), context);
         if (readMaterials) {
-            Materials.apply(context, meshes, vegetation.surfaces(), VegetationSurface::materialName, _ -> null);
+            meshes = Materials.apply(context, meshes, vegetation.surfaces(), DarkAgesAssetID::material, VegetationSurface::materialName, _ -> null);
         }
 
         return new Model(meshes, Optional.empty(), Optional.of(asset.id().fullName()), Optional.empty(), Axis.Z);

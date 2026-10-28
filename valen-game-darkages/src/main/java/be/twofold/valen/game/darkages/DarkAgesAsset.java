@@ -1,58 +1,23 @@
 package be.twofold.valen.game.darkages;
 
 import be.twofold.valen.core.game.*;
-import be.twofold.valen.game.darkages.reader.resources.*;
+import be.twofold.valen.game.idtech.game.*;
 
-import java.util.*;
+public final class DarkAgesAsset extends IdclAsset<DarkAgesAssetID> {
+    public DarkAgesAsset(DarkAgesAssetID id, Location location, long hash, int version) {
+        super(id, location, hash, version);
+    }
 
-public record DarkAgesAsset(
-    DarkAgesAssetID id,
-    Location location,
-    long hash,
-    long checksum,
-    int version
-) implements Asset {
     @Override
     public AssetType type() {
-        if (id.name().name().startsWith("generated/decls/material2/")) {
+        if (id().path().startsWith(AssetPaths.MATERIAL2)) {
             return AssetType.MATERIAL;
         }
-        return switch (id.type()) {
+        return switch (id().type()) {
             case Anim -> AssetType.ANIMATION;
             case BaseModel, Model, StrandsHair, Vegetation -> AssetType.MODEL;
             case Image -> AssetType.TEXTURE;
             default -> AssetType.RAW;
         };
-    }
-
-    @Override
-    public Map<String, Object> properties() {
-        var properties = new HashMap<String, Object>();
-        properties.put("hash", hash);
-        properties.put("Type", id.type().toString());
-        if (id.variation() != ResourcesVariation.RES_VAR_NONE) {
-            properties.put("Variation", id.variation());
-        }
-        return properties;
-    }
-
-    @Override
-    public String exportName() {
-        if (id.type() == ResourcesType.Image) {
-            var hashString = HexFormat.of().toHexDigits(hash);
-            return id.fileNameWithoutExtension() + "@" + hashString;
-        }
-        return id.fileNameWithoutExtension();
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        return obj instanceof DarkAgesAsset other
-            && id.equals(other.id);
-    }
-
-    @Override
-    public int hashCode() {
-        return id.hashCode();
     }
 }

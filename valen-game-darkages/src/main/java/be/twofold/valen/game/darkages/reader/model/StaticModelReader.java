@@ -2,15 +2,16 @@ package be.twofold.valen.game.darkages.reader.model;
 
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.geometry.*;
+import be.twofold.valen.core.util.*;
 import be.twofold.valen.game.darkages.*;
 import be.twofold.valen.game.darkages.reader.*;
-import be.twofold.valen.game.darkages.reader.geometry.*;
 import be.twofold.valen.game.darkages.reader.resources.*;
 import be.twofold.valen.game.idtech.geometry.*;
 import wtf.reversed.toolbox.io.*;
 import wtf.reversed.toolbox.util.*;
 
 import java.io.*;
+import java.lang.invoke.*;
 import java.util.*;
 
 public final class StaticModelReader implements AssetReader.Binary<Model, DarkAgesAsset> {
@@ -28,12 +29,20 @@ public final class StaticModelReader implements AssetReader.Binary<Model, DarkAg
     @Override
     public Model read(BinarySource source, DarkAgesAsset asset, LoadingContext context) throws IOException {
         var model = StaticModel.read(source);
-        var meshes = new ArrayList<>(readMeshes(model, source, asset.hash(), context));
+        var meshes = readMeshes(model, source, asset.hash(), context);
 
         if (readMaterials) {
-            Materials.apply(context, meshes, model.meshInfos(), StaticModelMeshInfo::mtlDecl, _ -> null);
+            meshes = Materials.apply(context, meshes, model.meshInfos(), DarkAgesAssetID::material, StaticModelMeshInfo::mtlDecl, _ -> null);
         }
         return new Model(meshes, Optional.empty(), Optional.of(asset.id().fullName()), Optional.empty(), Axis.Z);
+    }
+
+    @Override
+    public Optional<Meta.Node> readMetadata(DarkAgesAsset asset, LoadingContext context) throws IOException {
+        try (var source = BinarySource.wrap(context.open(asset.location()))) {
+            var model = StaticModel.read(source);
+            return Optional.of(Meta.build(MethodHandles.lookup(), model));
+        }
     }
 
     private List<Mesh> readMeshes(StaticModel model, BinarySource source, long hash, LoadingContext context) throws IOException {

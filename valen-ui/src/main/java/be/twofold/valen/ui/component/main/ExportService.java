@@ -1,21 +1,23 @@
 package be.twofold.valen.ui.component.main;
 
+import backbonefx.di.*;
 import be.twofold.valen.core.export.*;
 import be.twofold.valen.core.game.*;
+import be.twofold.valen.core.util.*;
 import be.twofold.valen.ui.common.settings.*;
 import be.twofold.valen.ui.component.*;
 import be.twofold.valen.ui.component.progress.*;
 import jakarta.inject.*;
-import javafx.application.*;
+import javafx.application.Platform;
 import javafx.concurrent.*;
 import javafx.scene.*;
 import javafx.stage.*;
 import org.slf4j.*;
 import wtf.reversed.toolbox.util.*;
 
+import java.io.*;
 import java.nio.file.*;
 import java.util.*;
-import java.util.stream.*;
 
 final class ExportService extends Service<Void> {
     private static final Logger log = LoggerFactory.getLogger(ExportService.class);
@@ -27,9 +29,9 @@ final class ExportService extends Service<Void> {
     private List<? extends Asset> assets;
 
     @Inject
-    ExportService(Settings settings, ViewLoader viewLoader) {
+    ExportService(Settings settings, Feather feather) {
         this.settings = settings;
-        this.presenter = viewLoader.loadPresenter(ProgressPresenter.class, "/fxml/Progress.fxml");
+        this.presenter = feather.instance(ProgressPresenter.class);
         this.stage = createStage(presenter.getView().getFXNode());
 
         presenter.setCancelHandler(this::cancel);
@@ -55,12 +57,12 @@ final class ExportService extends Service<Void> {
         return stage;
     }
 
-    public void setLoader(AssetLoader loader) {
-        this.loader = loader;
-    }
-
-    public void setAssets(List<? extends Asset> assets) {
-        this.assets = assets;
+    void export(AssetLoader loader, List<? extends Asset> assets) {
+        FxUtils.runOnFxThread(() -> {
+            this.loader = loader;
+            this.assets = assets.stream().sorted().toList();
+            restart();
+        });
     }
 
     @Override
@@ -69,14 +71,18 @@ final class ExportService extends Service<Void> {
         Check.nonNull(this.assets, "assets");
 
         ExportTask exportTask = new ExportTask();
-        exportTask.setOnFailed(event -> Platform.runLater(() -> {
-            FxUtils.showExceptionDialog(event.getSource().getException(), "Exception while exporting assets");
-        }));
+        exportTask.setOnFailed(event -> {
+            // Explicitly log the exception, so it reaches the log file.
+            log.error("Export failed", event.getSource().getException());
+            Platform.runLater(() -> {
+                FxUtils.showExceptionDialog(event.getSource().getException(), "Exception while exporting assets");
+            });
+        });
         return exportTask;
     }
 
     private final class ExportTask extends Task<Void> {
-        private final List<AssetID> failedAssets = new ArrayList<>();
+        private final Map<String, List<ExportFailure>> failures = new LinkedHashMap<>();
 
         @Override
         protected Void call() {
@@ -92,22 +98,22 @@ final class ExportService extends Service<Void> {
                 stage.show();
             });
 
-            for (int i = 0; i < assets.size(); i++) {
-                updateProgress(i, assets.size());
-                exportAsset(assets.get(i));
-                if (isCancelled()) {
-                    break;
+            try {
+                for (int i = 0; i < assets.size(); i++) {
+                    updateProgress(i, assets.size());
+                    exportAsset(assets.get(i));
+                    if (isCancelled()) {
+                        break;
+                    }
                 }
+                updateProgress(assets.size(), assets.size());
+            } finally {
+                // We always need to hide the dialog
+                Platform.runLater(stage::hide);
             }
-            updateProgress(assets.size(), assets.size());
 
-            Platform.runLater(stage::hide);
-
-            if (!failedAssets.isEmpty()) {
-                String text = failedAssets.stream()
-                    .map(AssetID::fullName)
-                    .collect(Collectors.joining("\n"));
-                FxUtils.showExceptionDialog(new Exception("Failed exporting some assets"), text);
+            if (!failures.isEmpty()) {
+                ExportFailuresDialog.show(assets.size(), failures);
             }
             return null;
         }
@@ -115,51 +121,74 @@ final class ExportService extends Service<Void> {
         private <T> void exportAsset(Asset asset) {
             updateMessage("Exporting " + asset.id().fullName());
 
+            Path targetPath = null;
             try {
-                Exporter<T> exporter = findExporter(asset);
-                exporter.setProperty("reconstructZ", settings.isReconstructZ());
-                exporter.setProperty("gltf.mode", settings.getModelExporter());
+                var type = settings.isTreatAsRaw() ? AssetType.RAW : asset.type();
 
-                var targetPath = findTargetPath(exporter, asset);
+                Exporter<T> exporter = findExporter(type);
+                exporter.setProperty("reconstructZ", settings.isReconstructZ());
+
+                targetPath = findTargetPath(exporter, asset);
                 if (Files.exists(targetPath)) {
-                    // log.warn("Target already exists at {}", targetPath);
                     return;
                 }
 
                 @SuppressWarnings("unchecked")
-                T rawAsset = (T) loader.load(asset.id(), asset.type().type());
+                T rawAsset = (T) loader.load(asset.id(), type.type());
                 Files.createDirectories(targetPath.getParent());
                 exporter.export(rawAsset, targetPath);
             } catch (Exception e) {
-                log.warn("Failed exporting asset", e);
-                failedAssets.add(asset.id());
+                var root = Throwables.getRootCause(e);
+                var failed = failures.computeIfAbsent(failureKey(root), _ -> new ArrayList<>());
+                if (failed.isEmpty()) {
+                    log.warn("Failed exporting {}", asset.id().fullName(), e);
+                } else {
+                    log.debug("Failed exporting {}: {}", asset.id().fullName(), root.toString());
+                }
+                failed.add(new ExportFailure(asset.id(), Throwables.getMessage(root)));
+                discardPartialExport(targetPath);
+            }
+        }
+
+        private String failureKey(Throwable root) {
+            for (StackTraceElement frame : root.getStackTrace()) {
+                String className = frame.getClassName();
+                if (className.startsWith("be.twofold.") || className.startsWith("wtf.reversed.")) {
+                    return root.getClass().getSimpleName() + " at "
+                        + className.substring(className.lastIndexOf('.') + 1) + "." + frame.getMethodName()
+                        + ":" + frame.getLineNumber();
+                }
+            }
+            return root.getClass().getSimpleName();
+        }
+
+        // In case we fail, remove the file, so the next run writes it again
+        private void discardPartialExport(Path targetPath) {
+            if (targetPath == null) {
+                return;
+            }
+            try {
+                Files.deleteIfExists(targetPath);
+            } catch (IOException e) {
+                log.warn("Could not delete partial export {}", targetPath, e);
             }
         }
 
         @SuppressWarnings("unchecked")
-        private <T> Exporter<T> findExporter(Asset asset) {
-            boolean isGltf = Set.of("glb", "gltf").contains(settings.getModelExporter());
-            var exporterId = switch (asset.type()) {
-                case ANIMATION -> "animation." + (isGltf ? "gltf" : "cast");
-                case MATERIAL -> "material." + (isGltf ? "gltf" : "cast");
-                case MODEL -> "model." + (isGltf ? "gltf" : "cast");
-                case TEXTURE -> settings.getTextureExporter();
-                case RAW -> "binary.raw";
-            };
+        private <T> Exporter<T> findExporter(AssetType type) {
+            var exporterId = settings.getExporter(type);
             var exporter = exporterId != null
-                ? Exporter.forTypeAndId(asset.type().type(), exporterId)
-                : Exporter.forType(asset.type().type()).findFirst().orElseThrow();
+                ? Exporter.forTypeAndId(type.type(), exporterId)
+                : Exporter.forType(type.type()).findFirst().orElseThrow();
             return (Exporter<T>) exporter;
         }
 
         private Path findTargetPath(Exporter<?> exporter, Asset asset) {
-            var basePath = settings.getExportPath();
-            var filename = exporter.getExtension().isEmpty()
-                ? asset.id().fileName()
-                : asset.exportName() + "." + exporter.getExtension();
-            return basePath
-                .resolve(asset.id().pathName())
-                .resolve(filename);
+            var path = asset.id().path();
+            if (!exporter.getExtension().isEmpty()) {
+                path = path.parent().resolve(asset.exportName() + "." + exporter.getExtension());
+            }
+            return path.toPath(settings.getExportPath());
         }
     }
 }

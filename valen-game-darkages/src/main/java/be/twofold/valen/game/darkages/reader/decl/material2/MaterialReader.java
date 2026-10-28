@@ -3,24 +3,26 @@ package be.twofold.valen.game.darkages.reader.decl.material2;
 import be.twofold.valen.game.darkages.*;
 import be.twofold.valen.game.darkages.reader.decl.*;
 import be.twofold.valen.game.darkages.reader.resources.*;
-import be.twofold.valen.game.idtech.material.*;
+import be.twofold.valen.game.idtech.game.*;
+import be.twofold.valen.game.idtech.reader.decl.material2.*;
 
 public final class MaterialReader extends AbstractMaterialReader<DarkAgesAssetID, DarkAgesAsset> {
     public MaterialReader(DeclReader declReader) {
-        super(declReader, false);
+        super(declReader, IdTechGame.DARK_AGES);
     }
 
     @Override
     public boolean canRead(DarkAgesAsset asset) {
         return asset.id().type() == ResourcesType.RsStreamFile
-            && asset.id().name().name().startsWith("generated/decls/material2/");
+            && asset.id().path().startsWith(AssetPaths.MATERIAL2);
     }
 
     @Override
     public String materialName(DarkAgesAsset asset) {
-        return asset.id().fullName()
-            .replace("generated/decls/material2/", "")
-            .replace(".decl", "");
+        return asset.id().path()
+            .relativize(AssetPaths.MATERIAL2)
+            .withoutExtension()
+            .toString();
     }
 
     @Override
@@ -30,7 +32,7 @@ public final class MaterialReader extends AbstractMaterialReader<DarkAgesAssetID
 
     @Override
     public DarkAgesAssetID renderParmAssetID(String name) {
-        var fullName = "generated/decls/renderparm/" + name + ".decl";
+        var fullName = AssetPaths.RENDER_PARM.resolve(name + ".decl").toString();
         return DarkAgesAssetID.from(fullName, ResourcesType.RsStreamFile);
     }
 }

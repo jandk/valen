@@ -6,13 +6,14 @@ import be.twofold.valen.core.texture.shader.node.*;
 import be.twofold.valen.core.util.*;
 import be.twofold.valen.game.eternal.*;
 import be.twofold.valen.game.eternal.resource.*;
+import be.twofold.valen.game.idtech.reader.image.*;
+import be.twofold.valen.game.idtech.reader.image.TextureFormat;
 import wtf.reversed.toolbox.collect.*;
 import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 import java.lang.invoke.*;
 import java.util.*;
-import java.util.function.*;
 import java.util.stream.*;
 
 public final class ImageReader implements AssetReader.Binary<Texture, EternalAsset> {
@@ -33,7 +34,7 @@ public final class ImageReader implements AssetReader.Binary<Texture, EternalAss
         var image = Image.read(source);
 
         var mipData = new Bytes[image.header().totalMipCount()];
-        for (var i = image.header().startMip(); i < image.header().totalMipCount(); i++) {
+        for (var i = image.header().streamedMipCount(); i < image.header().totalMipCount(); i++) {
             mipData[i] = source.readBytes(image.mipInfos().get(i).decompressedSize());
         }
         source.expectEnd();
@@ -74,7 +75,7 @@ public final class ImageReader implements AssetReader.Binary<Texture, EternalAss
     }
 
     private void readMultiStream(Image image, long hash, Bytes[] mipData, LoadingContext context) throws IOException {
-        for (var i = 0; i < image.header().startMip(); i++) {
+        for (var i = 0; i < image.header().streamedMipCount(); i++) {
             var mipInfo = image.mipInfos().get(i);
             var mipHash = hash << 4 | (image.header().mipCount() - mipInfo.mipLevel());
             var mip = context.open(new EternalStreamLocation(mipHash, mipInfo.decompressedSize()));
@@ -94,7 +95,7 @@ public final class ImageReader implements AssetReader.Binary<Texture, EternalAss
 
         var scale = image.header().albedoSpecularScale();
         var bias = image.header().albedoSpecularBias();
-        UnaryOperator<ShaderNode> scaleAndBias = node -> ShaderNode.scaleAndBias(node, scale, bias);
+        var scaleAndBias = ShaderNode.scaleAndBias(scale, bias);
 
         return new Texture(format, kind, width, height, depthOrLayers, surfaces, scaleAndBias);
     }

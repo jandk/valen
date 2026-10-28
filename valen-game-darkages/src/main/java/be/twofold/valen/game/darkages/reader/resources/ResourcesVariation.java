@@ -34,9 +34,11 @@ public enum ResourcesVariation implements ValueEnum<Integer> {
     ;
 
     private final int value;
+    private final String displayName;
 
     ResourcesVariation(int value) {
         this.value = value;
+        this.displayName = name().replace("RES_VAR_", "");
     }
 
     public static ResourcesVariation read(BinarySource source) throws IOException {
@@ -46,5 +48,10 @@ public enum ResourcesVariation implements ValueEnum<Integer> {
     @Override
     public Integer value() {
         return value;
+    }
+
+    @Override
+    public String toString() {
+        return displayName;
     }
 }

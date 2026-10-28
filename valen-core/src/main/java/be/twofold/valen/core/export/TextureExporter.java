@@ -6,7 +6,7 @@ import java.io.*;
 
 public abstract class TextureExporter implements Exporter<Texture> {
     private final boolean useMips;
-    private boolean reconstructZ = false;
+    private boolean reconstructZ = true;
 
     protected TextureExporter(boolean useMips) {
         this.useMips = useMips;

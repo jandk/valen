@@ -5,7 +5,7 @@
     <parent>
         <groupId>be.twofold</groupId>
         <artifactId>valen</artifactId>
-        <version>0.3.1-SNAPSHOT</version>
+        <version>0.3.4-SNAPSHOT</version>
     </parent>
 
     <artifactId>valen-game-eternal</artifactId>
@@ -15,6 +15,10 @@
         <dependency>
             <groupId>be.twofold</groupId>
             <artifactId>valen-game-idtech</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>be.twofold</groupId>
+            <artifactId>valen-middleware-wwise</artifactId>
         </dependency>
     </dependencies>
 

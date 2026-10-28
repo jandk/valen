@@ -3,7 +3,6 @@ package be.twofold.valen.game.greatcircle.reader.deformmodel;
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.geometry.*;
 import be.twofold.valen.game.greatcircle.*;
-import be.twofold.valen.game.greatcircle.reader.geometry.*;
 import be.twofold.valen.game.greatcircle.resource.*;
 import be.twofold.valen.game.idtech.geometry.*;
 import wtf.reversed.toolbox.io.*;
@@ -26,11 +25,11 @@ public final class DeformModelReader implements AssetReader.Binary<Model, GreatC
     @Override
     public Model read(BinarySource source, GreatCircleAsset asset, LoadingContext context) throws IOException {
         var deformModel = DeformModel.read(source);
-        var meshes = new ArrayList<>(readMeshes(deformModel, asset.hash(), context));
+        var meshes = readMeshes(deformModel, asset.hash(), context);
 
         if (readMaterials) {
-            Materials.apply(
-                context, meshes, deformModel.meshes(),
+            meshes = Materials.apply(
+                context, meshes, deformModel.meshes(), GreatCircleAssetID::material,
                 deformModelMesh -> deformModelMesh.lods().getFirst().materialName(),
                 _ -> null
             );

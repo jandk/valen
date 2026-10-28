@@ -14,11 +14,14 @@ import be.twofold.valen.game.darkages.reader.packagemapspec.*;
 import be.twofold.valen.game.darkages.reader.skeleton.*;
 import be.twofold.valen.game.darkages.reader.strandshair.*;
 import be.twofold.valen.game.darkages.reader.vegetation.*;
+import be.twofold.valen.game.idtech.game.*;
+import be.twofold.valen.game.idtech.reader.mask.*;
 import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 import java.nio.file.*;
 import java.util.*;
+import java.util.stream.*;
 
 public final class DarkAgesGame implements Game {
     private static final DeclReader DECL_READER = new DeclReader();
@@ -36,34 +39,59 @@ public final class DarkAgesGame implements Game {
         new StrandsHairReader(),
         new VegetationReader(true)
     );
+    private static final String SOUNDBANK_PREFIX = "sound/soundbanks/";
+    private static final String SOUNDBANK1_NAME = SOUNDBANK_PREFIX + "pc";
+    private static final String SOUNDBANK2_NAME = SOUNDBANK_PREFIX + "hhpc";
 
     private final Path base;
     private final PackageMapSpec spec;
     private final StreamDbIndex streamDbIndex;
     private final ResourcesIndex commonResources;
+    private final Decompressors decompressors;
+    private final ContainerMask masks;
 
     DarkAgesGame(Path path) throws IOException {
         this.base = path.resolve("base");
         this.spec = PackageMapSpecReader.read(base.resolve("packagemapspec.json"));
+        this.decompressors = new Decompressors(null);
+        this.masks = readMasks();
         this.streamDbIndex = loadStreamDbIndex(base, spec);
-        this.commonResources = ResourcesIndex.build(filterResources(spec, "common", "warehouse", "init"));
-        Decompressors.setOodlePath(OodleDownloader.download());
+        this.commonResources = ResourcesIndex.build(filterResources(spec, "common", "warehouse", "init"), masks);
+    }
+
+    private ContainerMask readMasks() throws IOException {
+        var metaResources = ResourcesIndex.build(List.of(base.resolve("meta.resources")), ContainerMask.empty());
+        try (var metaStorageManager = new StorageManager(metaResources.sources(), Set.of(), decompressors)) {
+            var metaLoader = new AssetLoader(Archive.of(metaResources.assets()), metaStorageManager, List.of());
+            return ContainerMask.load(metaLoader, IdTechGame.DARK_AGES);
+        }
     }
 
     @Override
     public List<String> archiveNames() {
-        return spec.maps().stream()
+        var names = spec.maps().stream()
             .filter(map -> spec.mapFiles().get(map).stream()
                 .anyMatch(file -> file.endsWith(".resources")))
-            .toList();
+            .collect(Collectors.toList());
+        names.add(SOUNDBANK1_NAME);
+        names.add(SOUNDBANK2_NAME);
+        return names;
     }
 
     public AssetLoader open(String name) throws IOException {
-        var loadedResources = ResourcesIndex.build(filterResources(spec, name));
+        if (!name.startsWith(SOUNDBANK_PREFIX)) {
+            return openArchive(name);
+        } else {
+            return openSoundbank(name);
+        }
+    }
 
-        var archive = new DarkAgesArchive(
-            Map.copyOf(commonResources.index()),
-            Map.copyOf(loadedResources.index())
+    private AssetLoader openArchive(String name) throws IOException {
+        var loadedResources = ResourcesIndex.build(filterResources(spec, name), masks);
+
+        var archive = Archive.layered(
+            Archive.of(loadedResources.assets()),
+            Archive.of(commonResources.assets())
         );
 
         var sources = new HashMap<Path, BinarySource>();
@@ -73,10 +101,16 @@ public final class DarkAgesGame implements Game {
         var storageManager = new DarkAgesStorageManager(
             sources,
             streamDbIndex.sources().keySet(),
-            streamDbIndex.index()
+            streamDbIndex.index(),
+            decompressors
         );
 
         return new AssetLoader(archive, storageManager, List.copyOf(ASSET_READERS));
+    }
+
+    private AssetLoader openSoundbank(String name) throws IOException {
+        var path = base.resolve(name);
+        return SoundbankIndex.build(path, decompressors);
     }
 
     private StreamDbIndex loadStreamDbIndex(Path base, PackageMapSpec spec) throws IOException {
@@ -100,7 +134,6 @@ public final class DarkAgesGame implements Game {
     @Override
     public void close() {
         // Unload for the next game
-        Decompressors.resetOodle();
         DECL_READER.clearCache();
     }
 }

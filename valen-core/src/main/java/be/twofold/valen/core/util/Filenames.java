@@ -27,6 +27,10 @@ public final class Filenames {
         return index < 0 ? filename : filename.substring(0, index);
     }
 
+    public static String replaceExtension(String filename, String extension) {
+        return removeExtension(filename) + "." + extension;
+    }
+
     public static int indexOfExtension(String filename) {
         int dotIndex = filename.lastIndexOf('.');
         int slashIndex = filename.lastIndexOf('/');

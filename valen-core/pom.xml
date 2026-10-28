@@ -5,7 +5,7 @@
     <parent>
         <groupId>be.twofold</groupId>
         <artifactId>valen</artifactId>
-        <version>0.3.1-SNAPSHOT</version>
+        <version>0.3.4-SNAPSHOT</version>
     </parent>
 
     <artifactId>valen-core</artifactId>
@@ -16,19 +16,17 @@
             <artifactId>tinybcdec</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.jetbrains</groupId>
-            <artifactId>annotations</artifactId>
-        </dependency>
-        <dependency>
             <groupId>wtf.reversed</groupId>
             <artifactId>reversed-toolbox</artifactId>
         </dependency>
-
-        <dependency>
-            <groupId>com.squareup</groupId>
-            <artifactId>javapoet</artifactId>
-            <scope>test</scope>
-        </dependency>
     </dependencies>
 
+    <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
+    </build>
 </project>

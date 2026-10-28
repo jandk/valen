@@ -1,15 +1,14 @@
 package be.twofold.valen.game.eternal.reader.decl;
 
+import be.twofold.valen.core.game.*;
 import be.twofold.valen.game.eternal.*;
 import be.twofold.valen.game.eternal.resource.*;
-import be.twofold.valen.game.idtech.decl.*;
+import be.twofold.valen.game.idtech.reader.decl.*;
 import wtf.reversed.toolbox.util.*;
 
 import java.util.*;
 
 public final class DeclReader extends AbstractDeclReader<EternalAssetID, EternalAsset> {
-    private static final String RootPrefix = "generated/decls/";
-
     private static final Set<String> Unsupported = Set.of(
         "animweb",
         "articulatedfigure",
@@ -32,31 +31,25 @@ public final class DeclReader extends AbstractDeclReader<EternalAssetID, Eternal
             return false;
         }
 
-        var name = asset.id().name().name();
-        if (!name.startsWith(RootPrefix)) {
-            return false;
-        }
-
-        var basePath = getBasePath(name);
-        return !Unsupported.contains(basePath);
+        var path = asset.id().path();
+        return path.startsWith(AssetPaths.DECLS)
+            && !Unsupported.contains(getBasePath(path));
     }
 
     @Override
     public EternalAssetID getAssetID(String name, EternalAssetID baseAssetID) {
-        String fullName;
-        if (name.startsWith(RootPrefix)) {
-            fullName = name;
-        } else {
-            var basePath = getBasePath(baseAssetID.fullName());
-            fullName = RootPrefix + basePath + "/" + name + ".decl";
+        var path = AssetPath.of(name);
+        if (!path.startsWith(AssetPaths.DECLS)) {
+            path = AssetPaths.DECLS
+                .resolve(getBasePath(baseAssetID.path()))
+                .resolve(name + ".decl");
         }
-        return EternalAssetID.from(fullName, ResourceType.RsStreamFile);
+        return EternalAssetID.from(path.value(), ResourceType.RsStreamFile);
     }
 
-    private String getBasePath(String name) {
-        Check.argument(name.startsWith(RootPrefix), "Invalid decl name: " + name);
-
-        name = name.substring(RootPrefix.length());
-        return name.substring(0, name.indexOf('/'));
+    private static String getBasePath(AssetPath path) {
+        var segments = path.relativize(AssetPaths.DECLS).segments();
+        Check.argument(segments.size() > 1, () -> "Invalid decl name: " + path);
+        return segments.getFirst();
     }
 }

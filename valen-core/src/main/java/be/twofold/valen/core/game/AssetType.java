@@ -1,6 +1,7 @@
 package be.twofold.valen.core.game;
 
 import be.twofold.valen.core.animation.*;
+import be.twofold.valen.core.audio.*;
 import be.twofold.valen.core.geometry.*;
 import be.twofold.valen.core.material.*;
 import be.twofold.valen.core.texture.*;
@@ -11,6 +12,7 @@ import java.util.stream.*;
 
 public enum AssetType {
     ANIMATION(Animation.class, "Animation"),
+    AUDIO(Audio.class, "Audio"),
     MATERIAL(Material.class, "Material"),
     MODEL(Model.class, "Model"),
     TEXTURE(Texture.class, "Texture"),

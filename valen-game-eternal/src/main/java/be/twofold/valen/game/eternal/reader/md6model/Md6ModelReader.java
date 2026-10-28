@@ -4,7 +4,6 @@ import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.geometry.*;
 import be.twofold.valen.core.util.*;
 import be.twofold.valen.game.eternal.*;
-import be.twofold.valen.game.eternal.reader.geometry.*;
 import be.twofold.valen.game.eternal.resource.*;
 import be.twofold.valen.game.idtech.geometry.*;
 import wtf.reversed.toolbox.collect.*;
@@ -29,12 +28,12 @@ public final class Md6ModelReader implements AssetReader.Binary<Model, EternalAs
     @Override
     public Model read(BinarySource source, EternalAsset asset, LoadingContext context) throws IOException {
         var model = Md6Model.read(source);
-        var meshes = new ArrayList<>(readMeshes(model, asset.hash(), context));
+        var meshes = readMeshes(model, asset.hash(), context);
         var skeletonKey = EternalAssetID.from(model.header().md6SkelName(), ResourceType.Skeleton);
         var skeleton = context.load(skeletonKey, Skeleton.class);
 
         if (readMaterials) {
-            Materials.apply(context, meshes, model.meshInfos(), Md6ModelInfo::materialName, Md6ModelInfo::meshName);
+            meshes = Materials.apply(context, meshes, model.meshInfos(), EternalAssetID::material, Md6ModelInfo::materialName, Md6ModelInfo::meshName);
         }
         return new Model(meshes, Optional.of(skeleton), Optional.of(asset.id().fullName()), Optional.empty(), Axis.Z);
     }
@@ -78,9 +77,9 @@ public final class Md6ModelReader implements AssetReader.Binary<Model, EternalAs
         var jointRemap = md6.boneInfo().jointRemap();
 
         // This lookup table is in reverse... Nice
-        var lookup = new byte[jointRemap.length()];
-        for (var i = 0; i < jointRemap.length(); i++) {
-            lookup[jointRemap.getUnsigned(i)] = (byte) i;
+        var lookup = new short[jointRemap.length()];
+        for (short i = 0; i < jointRemap.length(); i++) {
+            lookup[jointRemap.getUnsigned(i)] = i;
         }
 
         for (var i = 0; i < meshes.size(); i++) {

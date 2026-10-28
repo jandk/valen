@@ -6,6 +6,7 @@ import wtf.reversed.toolbox.util.*;
 
 import java.io.*;
 import java.util.*;
+import java.util.stream.*;
 
 public final class AssetLoader implements LoadingContext, Closeable {
     private final Archive archive;
@@ -26,8 +27,8 @@ public final class AssetLoader implements LoadingContext, Closeable {
         this.readers = List.copyOf(readers);
     }
 
-    public Archive archive() {
-        return archive;
+    public Stream<? extends Asset> all() {
+        return archive.all();
     }
 
     @Override
@@ -49,6 +50,11 @@ public final class AssetLoader implements LoadingContext, Closeable {
     @Override
     public Bytes open(Location location) throws IOException {
         return storage.open(location);
+    }
+
+    @Override
+    public Bytes decompress(CompressionType type, Bytes data, int uncompressedSize) {
+        return storage.decompress(type, data, uncompressedSize);
     }
 
     @Override

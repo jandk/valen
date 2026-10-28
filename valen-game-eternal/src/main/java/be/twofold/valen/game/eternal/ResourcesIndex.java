@@ -3,6 +3,7 @@ package be.twofold.valen.game.eternal;
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.game.eternal.reader.resources.*;
 import be.twofold.valen.game.eternal.resource.*;
+import be.twofold.valen.game.idtech.reader.mask.*;
 import org.slf4j.*;
 import wtf.reversed.toolbox.io.*;
 
@@ -12,18 +13,18 @@ import java.util.*;
 
 record ResourcesIndex(
     Map<Path, BinarySource> sources,
-    Map<EternalAssetID, EternalAsset> index
+    List<EternalAsset> assets
 ) {
     private static final Logger log = LoggerFactory.getLogger(ResourcesIndex.class);
 
     ResourcesIndex {
         sources = Map.copyOf(sources);
-        index = Map.copyOf(index);
+        assets = List.copyOf(assets);
     }
 
-    static ResourcesIndex build(List<Path> paths) throws IOException {
+    static ResourcesIndex build(List<Path> paths, ContainerMask masks) throws IOException {
         var sources = new HashMap<Path, BinarySource>();
-        var index = new HashMap<EternalAssetID, EternalAsset>();
+        var assets = new ArrayList<EternalAsset>();
         for (var path : paths) {
             log.info("Loading Resources: {}", path);
 
@@ -31,24 +32,25 @@ record ResourcesIndex(
             sources.put(path, source);
 
             var resources = Resources.read(source);
-            for (var entry : resources.entries()) {
-                if (entry.uncompressedSize() > 0) {
-                    var asset = mapResourceEntry(resources, entry, path);
-                    index.putIfAbsent(asset.id(), asset);
+            var entries = resources.entries();
+            var mask = masks.get(resources.hash(), entries.size());
+            for (var i = 0; i < entries.size(); i++) {
+                var entry = entries.get(i);
+                if (mask.get(i) && entry.uncompressedSize() > 0) {
+                    assets.add(mapResourceEntry(resources, entry, path));
                 }
             }
         }
 
-        return new ResourcesIndex(sources, index);
+        return new ResourcesIndex(sources, assets);
     }
 
     private static EternalAsset mapResourceEntry(Resources resources, ResourcesEntry entry, Path path) {
         var name = getString(resources, entry, 1);
         var type = getString(resources, entry, 0);
 
-        var resourceName = new ResourceName(name);
         var resourceType = ResourceType.fromValue(type);
-        var resourceKey = new EternalAssetID(resourceName, resourceType, entry.variation());
+        var resourceKey = new EternalAssetID(name, resourceType, entry.variation());
 
         var location = new Location.FileSlice(
             path, entry.dataOffset(), Math.toIntExact(entry.dataSize())
@@ -71,7 +73,7 @@ record ResourcesIndex(
             resourceKey,
             finalLocation,
             entry.defaultHash(),
-            entry.dataCheckSum()
+            entry.version()
         );
     }
 

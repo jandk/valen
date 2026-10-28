@@ -3,6 +3,7 @@ package be.twofold.valen.game.greatcircle;
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.game.greatcircle.reader.resources.*;
 import be.twofold.valen.game.greatcircle.resource.*;
+import be.twofold.valen.game.idtech.reader.mask.*;
 import org.slf4j.*;
 import wtf.reversed.toolbox.io.*;
 
@@ -12,18 +13,18 @@ import java.util.*;
 
 record ResourcesIndex(
     Map<Path, BinarySource> sources,
-    Map<GreatCircleAssetID, GreatCircleAsset> index
+    List<GreatCircleAsset> assets
 ) {
     private static final Logger log = LoggerFactory.getLogger(ResourcesIndex.class);
 
     ResourcesIndex {
         sources = Map.copyOf(sources);
-        index = Map.copyOf(index);
+        assets = List.copyOf(assets);
     }
 
-    static ResourcesIndex build(List<Path> paths) throws IOException {
+    static ResourcesIndex build(List<Path> paths, ContainerMask masks) throws IOException {
         var sources = new HashMap<Path, BinarySource>();
-        var index = new HashMap<GreatCircleAssetID, GreatCircleAsset>();
+        var assets = new ArrayList<GreatCircleAsset>();
         for (var path : paths) {
             log.info("Loading Resources: {}", path);
 
@@ -31,24 +32,25 @@ record ResourcesIndex(
             sources.put(path, source);
 
             var resources = Resources.read(source);
-            for (var entry : resources.entries()) {
-                if (entry.uncompressedSize() > 0) {
-                    var asset = mapResourceEntry(resources, entry, path);
-                    index.putIfAbsent(asset.id(), asset);
+            var entries = resources.entries();
+            var mask = masks.get(resources.hash(), entries.size());
+            for (var i = 0; i < entries.size(); i++) {
+                var entry = entries.get(i);
+                if (mask.get(i) && entry.uncompressedSize() > 0) {
+                    assets.add(mapResourceEntry(resources, entry, path));
                 }
             }
         }
 
-        return new ResourcesIndex(sources, index);
+        return new ResourcesIndex(sources, assets);
     }
 
     private static GreatCircleAsset mapResourceEntry(Resources resources, ResourcesEntry entry, Path path) {
         var name = getString(resources, entry.strings() + entry.nameString());
         var type = getString(resources, entry.strings()/* + entry.typeString()*/);
 
-        var resourceName = new ResourceName(name);
         var resourceType = ResourceType.fromValue(type);
-        var resourceKey = new GreatCircleAssetID(resourceName, resourceType, entry.variation());
+        var resourceKey = new GreatCircleAssetID(name, resourceType, entry.variation());
 
         var location = new Location.FileSlice(
             path, entry.dataOffset(), Math.toIntExact(entry.dataSize())
@@ -56,9 +58,14 @@ record ResourcesIndex(
         Location finalLocation = switch (entry.compMode()) {
             case RES_COMP_MODE_NONE -> location;
             case RES_COMP_MODE_KRAKEN,
-                 RES_COMP_MODE_KRAKEN_CHUNKED,
                  RES_COMP_MODE_LEVIATHAN -> new Location.Compressed(
                 location, CompressionType.OODLE, Math.toIntExact(entry.uncompressedSize())
+            );
+            case RES_COMP_MODE_KRAKEN_CHUNKED -> new Location.Compressed(
+                new Location.FileSlice(
+                    location.path(), location.offset() + 12, location.size() - 12
+                ),
+                CompressionType.OODLE, Math.toIntExact(entry.uncompressedSize())
             );
             default -> throw new UnsupportedOperationException(entry.compMode().toString());
         };
@@ -67,7 +74,6 @@ record ResourcesIndex(
             resourceKey,
             finalLocation,
             entry.defaultHash(),
-            entry.dataCheckSum(),
             entry.version()
         );
     }

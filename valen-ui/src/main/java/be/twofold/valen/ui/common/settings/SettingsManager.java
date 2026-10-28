@@ -32,7 +32,11 @@ public final class SettingsManager {
         }
 
         try {
-            return Optional.of(GSON.fromJson(Files.readString(path), Settings.class));
+            return Optional.ofNullable(GSON.fromJson(Files.readString(path), Settings.class))
+                .map(settings -> {
+                    settings.normalize();
+                    return settings;
+                });
         } catch (IOException | JsonParseException e) {
             return Optional.empty();
         }
@@ -49,12 +53,6 @@ public final class SettingsManager {
     }
 
     private static Path determinePath() {
-        String userHome = System.getProperty("user.home");
-
-        return switch (Platform.OS.current()) {
-            case LINUX -> Path.of(userHome, ".config", "valen", "settings.json");
-            case WINDOWS -> Path.of(System.getenv("LOCALAPPDATA"), "Valen", "settings.json");
-            case MAC -> Path.of(userHome, "Library", "Application Support", "Valen", "settings.json");
-        };
+        return AppDirectories.data().resolve("settings.json");
     }
 }

@@ -5,7 +5,7 @@
 
     <groupId>be.twofold</groupId>
     <artifactId>valen</artifactId>
-    <version>0.3.1-SNAPSHOT</version>
+    <version>0.3.4-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <modules>
@@ -23,6 +23,7 @@
         <module>valen-game-eternal</module>
         <module>valen-game-greatcircle</module>
         <module>valen-game-idtech</module>
+        <module>valen-middleware-wwise</module>
         <module>valen-ui</module>
     </modules>
 
@@ -31,9 +32,9 @@
         <maven.compiler.target>25</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-        <javafx.version>26</javafx.version>
-        <immutables.version>2.12.1</immutables.version>
-        <slf4j.version>2.0.17</slf4j.version>
+        <javafx.version>27.0.1</javafx.version>
+        <immutables.version>2.12.3</immutables.version>
+        <slf4j.version>2.0.20</slf4j.version>
     </properties>
 
     <build>
@@ -58,17 +59,27 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-compiler-plugin</artifactId>
-                    <version>3.15.0</version>
+                    <version>3.16.0</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-dependency-plugin</artifactId>
+                    <version>3.11.0</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-jar-plugin</artifactId>
-                    <version>3.5.0</version>
+                    <version>3.5.1</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <version>3.6.0</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-failsafe-plugin</artifactId>
-                    <version>3.5.5</version>
+                    <version>3.6.0</version>
                     <executions>
                         <execution>
                             <goals>
@@ -111,9 +122,9 @@
         <dependencies>
             <!-- Project -->
             <dependency>
-                <groupId>wtf.reversed</groupId>
-                <artifactId>reversed-toolbox</artifactId>
-                <version>1.0-SNAPSHOT</version>
+                <groupId>be.twofold</groupId>
+                <artifactId>valen-app</artifactId>
+                <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>be.twofold</groupId>
@@ -177,36 +188,41 @@
             </dependency>
             <dependency>
                 <groupId>be.twofold</groupId>
+                <artifactId>valen-middleware-wwise</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>be.twofold</groupId>
                 <artifactId>valen-ui</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
             <!-- External -->
             <dependency>
+                <groupId>wtf.reversed</groupId>
+                <artifactId>reversed-toolbox</artifactId>
+                <version>1.0-SNAPSHOT</version>
+            </dependency>
+            <dependency>
                 <groupId>be.twofold</groupId>
                 <artifactId>tinybcdec</artifactId>
-                <version>1.0</version>
+                <version>2.0</version>
             </dependency>
             <dependency>
                 <groupId>be.twofold</groupId>
                 <artifactId>tinycast</artifactId>
-                <version>0.1</version>
+                <version>0.2</version>
             </dependency>
             <dependency>
                 <groupId>com.google.code.gson</groupId>
                 <artifactId>gson</artifactId>
-                <version>2.13.2</version>
+                <version>2.15.0</version>
                 <exclusions>
                     <exclusion>
                         <groupId>com.google.errorprone</groupId>
                         <artifactId>error_prone_annotations</artifactId>
                     </exclusion>
                 </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>com.squareup</groupId>
-                <artifactId>javapoet</artifactId>
-                <version>1.13.0</version>
             </dependency>
             <dependency>
                 <groupId>io.github.mkpaz</groupId>
@@ -225,12 +241,12 @@
             </dependency>
             <dependency>
                 <groupId>org.openjfx</groupId>
-                <artifactId>javafx-fxml</artifactId>
+                <artifactId>javafx-graphics</artifactId>
                 <version>${javafx.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.openjfx</groupId>
-                <artifactId>javafx-graphics</artifactId>
+                <artifactId>jfx-incubator-richtext</artifactId>
                 <version>${javafx.version}</version>
             </dependency>
             <dependency>
@@ -256,17 +272,12 @@
                 <version>${immutables.version}</version>
                 <scope>provided</scope>
             </dependency>
-            <dependency>
-                <groupId>org.jetbrains</groupId>
-                <artifactId>annotations</artifactId>
-                <version>26.1.0</version>
-            </dependency>
 
             <!-- Testing -->
             <dependency>
                 <groupId>org.junit.jupiter</groupId>
                 <artifactId>junit-jupiter</artifactId>
-                <version>6.0.3</version>
+                <version>6.1.3</version>
                 <scope>test</scope>
             </dependency>
             <dependency>

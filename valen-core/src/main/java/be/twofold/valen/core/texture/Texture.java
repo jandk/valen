@@ -22,6 +22,7 @@ public record Texture(
         Check.positive(width, "width");
         Check.positive(height, "height");
         Check.positive(depthOrLayers, "depthOrLayers");
+        Check.nonNull(surfaces, "surfaces");
         Check.argument(!surfaces.isEmpty(), "surfaces must not be empty");
         Check.nonNull(decorator, "decorator");
 
@@ -67,6 +68,15 @@ public record Texture(
             () -> String.format("Surface height %s does not match expected %s", surface.height(), height));
         Check.argument(surface.depth() == depth,
             () -> String.format("Surface depth %s does not match expected %s", surface.depth(), depth));
+    }
+
+    public static Texture fromSurface(Surface surface) {
+        return fromSurface(surface, UnaryOperator.identity());
+    }
+
+    public static Texture fromSurface(Surface surface, UnaryOperator<ShaderNode> decorator) {
+        var kind = surface.depth() > 1 ? TextureKind.TEXTURE_3D : TextureKind.TEXTURE_2D;
+        return new Texture(surface.format(), kind, surface.width(), surface.height(), surface.depth(), List.of(surface), decorator);
     }
 
     public int mipCount() {
@@ -116,25 +126,11 @@ public record Texture(
     }
 
     public Texture convertSurface(int mip, int slice, TextureFormat dstFormat, boolean reconstructZ) {
-        return withSingleSurface(getSurface(mip, slice))
+        return fromSurface(getSurface(mip, slice), decorator)
             .convert(dstFormat, reconstructZ);
     }
 
     public Texture firstOnly() {
-        return withSingleSurface(surfaces.getFirst());
-    }
-
-    // Helpers
-
-    private Texture withSingleSurface(Surface surface) {
-        return new Texture(
-            format,
-            TextureKind.TEXTURE_2D,
-            surface.width(),
-            surface.height(),
-            surface.depth(),
-            List.of(surface),
-            decorator
-        );
+        return fromSurface(surfaces.getFirst(), decorator);
     }
 }

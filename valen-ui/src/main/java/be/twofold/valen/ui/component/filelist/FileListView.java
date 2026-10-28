@@ -15,11 +15,11 @@ public interface FileListView extends View<FileListView.Listener> {
 
     interface Listener extends View.Listener {
 
-        void onPathSelected(String path);
+        void onPathSelected(AssetPath path);
 
         void onAssetSelected(Asset asset, boolean forced);
 
-        void onPathExportRequested(String path, boolean recursive);
+        void onPathExportRequested(AssetPath path, boolean recursive);
 
     }
 }

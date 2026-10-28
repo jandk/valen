@@ -1,8 +1,10 @@
 package be.twofold.valen.ui.component.preview;
 
+import backbonefx.di.*;
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.util.*;
 import be.twofold.valen.ui.component.*;
+import be.twofold.valen.ui.component.audioviewer.*;
 import be.twofold.valen.ui.component.metaview.*;
 import be.twofold.valen.ui.component.modelviewer.*;
 import be.twofold.valen.ui.component.rawview.*;
@@ -11,54 +13,106 @@ import jakarta.inject.*;
 import javafx.scene.control.*;
 
 import java.util.*;
-import java.util.stream.*;
 
 public final class PreviewTabPane extends TabPane {
-    private final List<PreviewTab> viewers;
+    private final ModelPresenter model;
+    private final TexturePresenter texture;
+    private final AudioPresenter audio;
+    private final MetaPresenter meta;
+    private final RawPresenter raw;
+    private final List<Viewer> renderers;
+
+    private final Tab previewTab = new Tab("Preview");
+    private final Tab metaTab = new Tab("Metadata");
+    private final Tab rawTab = new Tab("Raw");
 
     @Inject
-    PreviewTabPane(ViewLoader viewLoader) {
-        this.viewers = Stream.of(
-                viewLoader.loadPresenter(ModelPresenter.class),
-                viewLoader.loadPresenter(TexturePresenter.class, "/fxml/Texture.fxml"),
-                viewLoader.loadPresenter(MetaPresenter.class),
-                viewLoader.loadPresenter(RawPresenter.class))
-            .map(PreviewTab::new)
-            .toList();
+    PreviewTabPane(Feather feather) {
+        this.model = feather.instance(ModelPresenter.class);
+        this.texture = feather.instance(TexturePresenter.class);
+        this.audio = feather.instance(AudioPresenter.class);
+        this.meta = feather.instance(MetaPresenter.class);
+        this.raw = feather.instance(RawPresenter.class);
+        this.renderers = List.of(model, texture, audio);
+
+        for (Tab tab : new Tab[]{previewTab, metaTab, rawTab}) {
+            tab.setClosable(false);
+            tab.setDisable(true);
+        }
+        metaTab.setContent(meta.getFXNode());
+        rawTab.setContent(raw.getFXNode());
+
+        getTabs().setAll(previewTab, metaTab, rawTab);
     }
 
-    public void setData(AssetType type, Object assetData, Meta.Node metaNode) {
-        getTabs().removeIf(tab -> {
-            var viewer = ((PreviewTab) tab).getViewer();
-            if (!canShow(viewer, type, metaNode)) {
-                viewer.setData(null);
-                return true;
-            }
-            return false;
-        });
+    /**
+     * Decodes the viewers that apply to this asset. Pure CPU/IO work with no
+     * scene-graph access, so it is safe to run off the FX thread; hand the
+     * result to {@link #display} on the FX thread.
+     */
+    public PreviewData decode(AssetType type, Object assetData, Meta.Node metaNode) {
+        Viewer renderer = switch (type) {
+            case MODEL -> model;
+            case TEXTURE -> texture;
+            case AUDIO -> audio;
+            default -> null;
+        };
 
-        for (PreviewTab tab : viewers) {
-            if (!canShow(tab.getViewer(), type, metaNode)) {
-                continue;
-            }
-            if (!getTabs().contains(tab)) {
-                getTabs().add(tab);
-            }
-            if (tab.getViewer() instanceof MetaPresenter) {
-                tab.getViewer().setData(metaNode);
-            } else {
-                tab.getViewer().setData(assetData);
+        return new PreviewData(
+            renderer,
+            renderer != null ? renderer.decode(assetData) : null,
+            metaNode != null ? meta.decode(metaNode) : null,
+            raw.canPreview(type) ? raw.decode(assetData) : null);
+    }
+
+    public void display(PreviewData data) {
+        showRenderer(data.renderer(), data.renderPayload());
+        show(metaTab, meta, data.metaPayload());
+        show(rawTab, raw, data.rawPayload());
+        selectFirstEnabled();
+    }
+
+    private void showRenderer(Viewer renderer, Object payload) {
+        for (var other : renderers) {
+            if (other != renderer) {
+                other.display(null);
             }
         }
 
-        getTabs().sort(Comparator.comparingInt(viewers::indexOf));
-        getSelectionModel().selectFirst();
+        if (renderer == null) {
+            previewTab.setContent(null);
+            previewTab.setDisable(true);
+            return;
+        }
+
+        previewTab.setContent(renderer.getFXNode());
+        renderer.display(payload);
+        previewTab.setDisable(false);
     }
 
-    private boolean canShow(Viewer viewer, AssetType type, Meta.Node metaNode) {
-        if (viewer instanceof MetaPresenter) {
-            return metaNode != null;
+    private void show(Tab tab, Viewer viewer, Object payload) {
+        viewer.display(payload);
+        tab.setDisable(payload == null);
+    }
+
+    private void selectFirstEnabled() {
+        var selected = getSelectionModel().getSelectedItem();
+        if (selected != null && !selected.isDisable()) {
+            return;
         }
-        return viewer.canPreview(type);
+        for (Tab tab : getTabs()) {
+            if (!tab.isDisable()) {
+                getSelectionModel().select(tab);
+                return;
+            }
+        }
+    }
+
+    public record PreviewData(
+        Viewer renderer,
+        Object renderPayload,
+        Object metaPayload,
+        Object rawPayload
+    ) {
     }
 }

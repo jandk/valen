@@ -52,36 +52,36 @@ public final class GltfWriter implements Closeable, GltfContext {
     private final Path gltfPath;
     private final Path binPath;
     private final Path imagePath;
+    private final String generator;
     private int buffersLength;
 
-    private GltfWriter(Path gltfPath, Path binPath, Path imagePath) throws IOException {
+    private GltfWriter(Path gltfPath, Path binPath, Path imagePath, String generator) throws IOException {
         this.gltfOut = Files.newOutputStream(gltfPath);
-        this.binOut = binPath == null ? null : Files.newOutputStream(binPath);
+        try {
+            this.binOut = binPath == null ? null : Files.newOutputStream(binPath);
+        } catch (IOException e) {
+            gltfOut.close();
+            throw e;
+        }
 
         this.gltfPath = gltfPath;
         this.binPath = binPath;
         this.imagePath = imagePath;
+        this.generator = generator;
     }
 
-    public static GltfWriter createGlbWriter(Path glbPath) throws IOException {
-        return new GltfWriter(glbPath, null, null);
+    public static GltfWriter createGlbWriter(Path glbPath, String generator) throws IOException {
+        return new GltfWriter(glbPath, null, null, generator);
     }
 
-    public static GltfWriter createSplitWriter(Path gltfPath, Path binPath, Path imagePath) throws IOException {
-        return new GltfWriter(gltfPath, binPath, imagePath);
+    public static GltfWriter createSplitWriter(Path gltfPath, Path binPath, Path imagePath, String generator) throws IOException {
+        return new GltfWriter(gltfPath, binPath, imagePath, generator);
     }
 
     public void addScene(List<NodeID> nodes) {
-        var sceneNodes = skins.stream()
-            .flatMap(skinSchema -> skinSchema.getSkeleton().stream())
-            .toList();
-
-        var scene = ImmutableScene.builder()
+        addScene(ImmutableScene.builder()
             .addAllNodes(nodes)
-            .addAllNodes(sceneNodes)
-            .build();
-
-        addScene(scene);
+            .build());
     }
 
     // region GltfContext
@@ -196,7 +196,7 @@ public final class GltfWriter implements Closeable, GltfContext {
             var outPath = imagePath.resolve(filename + extension);
             Files.write(outPath, buffer.array());
             return addImage(builder
-                .uri(URI.create(gltfPath.getParent().relativize(outPath).toString().replace('\\', '/')))
+                .uri(relativeUri(outPath))
                 .build());
         } else {
             var bufferViewID = createBufferView(buffer, null);
@@ -222,7 +222,7 @@ public final class GltfWriter implements Closeable, GltfContext {
         buffersLength = alignedLength(buffersLength + length);
 
         var bufferView = ImmutableBufferView.builder()
-            .buffer(BufferID.ZERO)
+            .buffer(BufferID.of(0))
             .byteOffset(offset)
             .byteLength(length)
             .target(Optional.ofNullable(target))
@@ -231,23 +231,14 @@ public final class GltfWriter implements Closeable, GltfContext {
         return addBufferView(bufferView);
     }
 
-    @Override
-    public NodeID nextNodeId() {
-        return NodeID.of(nodes.size());
-    }
-
     // endregion
 
     // region Finishing
 
     private void finish() throws IOException {
-        var relativeBinPath = binPath != null
-            ? gltfPath.getParent().relativize(binPath)
-            : null;
-
         var buffer = ImmutableBuffer.builder()
             .byteLength(buffersLength)
-            .uri(Optional.ofNullable(relativeBinPath).map(path -> URI.create(path.toString().replace('\\', '/'))))
+            .uri(Optional.ofNullable(binPath).map(this::relativeUri))
             .build();
 
         buffers.clear();
@@ -288,10 +279,10 @@ public final class GltfWriter implements Closeable, GltfContext {
     private GltfSchema buildGltf() {
         var asset = ImmutableAsset.builder()
             .version("2.0")
-            .generator("Valen")
+            .generator(generator)
             .build();
 
-        return ImmutableGltf.builder()
+        var builder = ImmutableGltf.builder()
             .asset(asset)
             .extensions(extensions)
             .extensionsRequired(extensionsRequired)
@@ -308,8 +299,14 @@ public final class GltfWriter implements Closeable, GltfContext {
             .samplers(samplers)
             .scenes(scenes)
             .skins(skins)
-            .textures(textures)
-            .build();
+            .textures(textures);
+
+        // Point at a default scene so viewers that don't fall back to scenes[0] still load something.
+        if (!scenes.isEmpty()) {
+            builder.scene(SceneID.of(0));
+        }
+
+        return builder.build();
     }
 
     // endregion
@@ -372,15 +369,21 @@ public final class GltfWriter implements Closeable, GltfContext {
         }
     }
 
+    private URI relativeUri(Path target) {
+        var relative = gltfPath.getParent().relativize(target).toString().replace('\\', '/');
+        try {
+            return new URI(null, null, relative, null);
+        } catch (URISyntaxException e) {
+            throw new IllegalArgumentException(e);
+        }
+    }
+
     // endregion
 
     @Override
     public void close() throws IOException {
-        finish();
-
-        gltfOut.close();
-        if (binOut != null) {
-            binOut.close();
+        try (gltfOut; binOut) {
+            finish();
         }
     }
 }

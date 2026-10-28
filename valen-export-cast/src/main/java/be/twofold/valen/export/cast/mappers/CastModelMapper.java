@@ -2,6 +2,7 @@ package be.twofold.valen.export.cast.mappers;
 
 import be.twofold.tinycast.*;
 import be.twofold.valen.core.geometry.*;
+import wtf.reversed.toolbox.collect.*;
 import wtf.reversed.toolbox.util.*;
 
 import java.io.*;
@@ -83,7 +84,7 @@ public final class CastModelMapper {
             modelNode.createBlendShape()
                 .setName(blendShape.name())
                 .setBaseShape(meshNode.getHash())
-                .setTargetShapeVertexIndices(blendShape.indices())
+                .setTargetShapeVertexIndices(blendShape.indices().asBuffer())
                 .setTargetShapeVertexPositions(absolute);
         }
     }
@@ -91,13 +92,13 @@ public final class CastModelMapper {
     private FloatBuffer makeAbsolute(CastNodes.Mesh meshNode, BlendShape blendShape) {
         var positions = meshNode.getVertexPositionBuffer();
         var relatives = blendShape.values();
-        var absolutes = FloatBuffer.allocate(relatives.capacity());
-        for (int i = 0, o = 0; o < absolutes.capacity(); i++, o += 3) {
-            var index = Short.toUnsignedInt(blendShape.indices().get(i));
-            absolutes.put(positions.get(index * 3/**/) + relatives.get(o/**/));
-            absolutes.put(positions.get(index * 3 + 1) + relatives.get(o + 1));
-            absolutes.put(positions.get(index * 3 + 2) + relatives.get(o + 2));
+        var absolutes = Floats.Mutable.allocate(relatives.length());
+        for (int i = 0, o = 0; o < absolutes.length(); i++, o += 3) {
+            var index = blendShape.indices().getUnsigned(i);
+            absolutes.set(o/**/, positions.get(index * 3/**/) + relatives.get(o/**/));
+            absolutes.set(o + 1, positions.get(index * 3 + 1) + relatives.get(o + 1));
+            absolutes.set(o + 2, positions.get(index * 3 + 2) + relatives.get(o + 2));
         }
-        return absolutes;
+        return absolutes.asBuffer();
     }
 }
