@@ -21,38 +21,6 @@ public final class WbpDecoder {
     private static final float G7 = +0.016864118443f;
     private static final float G8 = +0.026748757411f;
 
-//    static void main(String[] args) throws IOException {
-//        var data = Files.readAllBytes(Path.of("D:\\Jan\\Desktop\\Untitled1"));
-//        var source = BinarySource.wrap(Bytes.wrap(data));
-//
-//        var surface = Surface.create(
-//            2048,
-//            2048,
-//            TextureFormat.R8G8_UNORM
-//        );
-//
-//        while (source.tell() < source.size()) {
-//            var tile = ImageTile.read(source);
-//            var tileDecompressed = Buffers.toArray(Decompressor
-//                .forType(CompressionType.Kraken)
-//                .decompress(ByteBuffer.wrap(tile.data()), tile.size()));
-//
-//            byte[] decoded = WbpDecoder.decode(tile, tileDecompressed);
-//            var tileSurface = new Surface(
-//                tile.width(),
-//                tile.height(),
-//                TextureFormat.R8G8_UNORM,
-//                decoded
-//            );
-//            Surface.copy(
-//                tileSurface, 0, 0,
-//                surface, tile.x(), tile.y(),
-//                tile.width(), tile.height()
-//            );
-//            System.out.println(tile);
-//        }
-//    }
-
     private WbpDecoder() {
     }
 
@@ -92,91 +60,88 @@ public final class WbpDecoder {
         byte[] src,
         int srcOffset,
         byte[] dst,
-        int dstPitch,
-        int dstOffset,
+        int stride,
+        int channel,
         int width,
         int height,
         ImageTile tile,
         int scaleOffset
     ) {
-        int pageWidthBlocks = width / 4;
-        int pageHeightBlocks = height / 4;
 
-        int subBandWidth = pageWidthBlocks * 2;
-        int subBandHeight = pageHeightBlocks * 2;
-        int subBandPitch = subBandWidth + 4;
-        int subBandSize = (subBandHeight + 4) * subBandPitch;
+        int subBandWidth = width >> 2 << 1;
+        int subBandHeight = height >> 2 << 1;
+        int pitch = subBandWidth + 4;
+        int subBandSize = (subBandHeight + 4) * pitch;
 
-        int baseLLIndex = srcOffset + subBandPitch * 2;
-        int baseHLIndex = srcOffset + subBandPitch * 2 + subBandSize * 1;
-        int baseLHIndex = srcOffset + subBandPitch * 2 + subBandSize * 2;
-        int baseHHIndex = srcOffset + subBandPitch * 2 + subBandSize * 3;
+        int ll = srcOffset;
+        int hl = srcOffset + subBandSize;
+        int lh = srcOffset + subBandSize * 2;
+        int hh = srcOffset + subBandSize * 3;
 
-        int outBandPitch = subBandWidth + 4;
-        int outBandHeight = subBandHeight * 2;
-        int outBandSize = outBandPitch * outBandHeight;
-        int baseLIndex = 0;
-        int baseHIndex = 0 + outBandSize;
+        float[] bandL = new float[subBandHeight * 2 * pitch];
+        float[] bandH = new float[subBandHeight * 2 * pitch];
 
-        float scale1 = tile.scales().get(scaleOffset + 0);
-        float scale2 = tile.scales().get(scaleOffset + 1);
-        float scale3 = tile.scales().get(scaleOffset + 2);
+        float scale1 = tile.scales().getUnsigned(scaleOffset/**/);
+        float scale2 = tile.scales().getUnsigned(scaleOffset + 1);
+        float scale3 = tile.scales().getUnsigned(scaleOffset + 2);
 
-        float[] temp = new float[outBandSize * 2];
+        // Vertical
         for (int y = 0; y < subBandHeight; y++) {
-            for (int x = 0; x < subBandPitch; x++) {
-                int subBandOffset = y * subBandPitch + x;
-                float ll1 = unpackLow(src[baseLLIndex + subBandOffset - subBandPitch * 1]);
-                float ll2 = unpackLow(src[baseLLIndex + subBandOffset + subBandPitch * 0]);
-                float ll3 = unpackLow(src[baseLLIndex + subBandOffset + subBandPitch * 1]);
-                float ll4 = unpackLow(src[baseLLIndex + subBandOffset + subBandPitch * 2]);
+            for (int x = 0; x < pitch; x++) {
+                int i = y * pitch + x;
+                int o = (y * 2) * pitch + x;
 
-                float lh0 = unpackHigh(src[baseLHIndex + subBandOffset - subBandPitch * 2]) * scale1;
-                float lh1 = unpackHigh(src[baseLHIndex + subBandOffset - subBandPitch * 1]) * scale1;
-                float lh2 = unpackHigh(src[baseLHIndex + subBandOffset + subBandPitch * 0]) * scale1;
-                float lh3 = unpackHigh(src[baseLHIndex + subBandOffset + subBandPitch * 1]) * scale1;
-                float lh4 = unpackHigh(src[baseLHIndex + subBandOffset + subBandPitch * 2]) * scale1;
+                float ll1 = unpackLow(src[ll + i + pitch]);
+                float ll2 = unpackLow(src[ll + i + pitch * 2]);
+                float ll3 = unpackLow(src[ll + i + pitch * 3]);
+                float ll4 = unpackLow(src[ll + i + pitch * 4]);
 
-                temp[baseLIndex + (y * 2 + 0) * outBandPitch + x] = f1(ll1, ll2, ll3, lh0, lh1, lh2, lh3);
-                temp[baseLIndex + (y * 2 + 1) * outBandPitch + x] = f2(ll1, ll2, ll3, ll4, lh0, lh1, lh2, lh3, lh4);
+                float lh0 = unpackHigh(src[lh + i]) * scale1;
+                float lh1 = unpackHigh(src[lh + i + pitch]) * scale1;
+                float lh2 = unpackHigh(src[lh + i + pitch * 2]) * scale1;
+                float lh3 = unpackHigh(src[lh + i + pitch * 3]) * scale1;
+                float lh4 = unpackHigh(src[lh + i + pitch * 4]) * scale1;
 
-                float hl1 = unpackHigh(src[baseHLIndex + subBandOffset - subBandPitch * 1]) * scale2;
-                float hl2 = unpackHigh(src[baseHLIndex + subBandOffset + subBandPitch * 0]) * scale2;
-                float hl3 = unpackHigh(src[baseHLIndex + subBandOffset + subBandPitch * 1]) * scale2;
-                float hl4 = unpackHigh(src[baseHLIndex + subBandOffset + subBandPitch * 2]) * scale2;
+                bandL[o] = f1(ll1, ll2, ll3, lh0, lh1, lh2, lh3);
+                bandL[o + pitch] = f2(ll1, ll2, ll3, ll4, lh0, lh1, lh2, lh3, lh4);
 
-                float hh0 = unpackHigh(src[baseHHIndex + subBandOffset - subBandPitch * 2]) * scale3;
-                float hh1 = unpackHigh(src[baseHHIndex + subBandOffset - subBandPitch * 1]) * scale3;
-                float hh2 = unpackHigh(src[baseHHIndex + subBandOffset + subBandPitch * 0]) * scale3;
-                float hh3 = unpackHigh(src[baseHHIndex + subBandOffset + subBandPitch * 1]) * scale3;
-                float hh4 = unpackHigh(src[baseHHIndex + subBandOffset + subBandPitch * 2]) * scale3;
+                float hl1 = unpackHigh(src[hl + i + pitch]) * scale2;
+                float hl2 = unpackHigh(src[hl + i + pitch * 2]) * scale2;
+                float hl3 = unpackHigh(src[hl + i + pitch * 3]) * scale2;
+                float hl4 = unpackHigh(src[hl + i + pitch * 4]) * scale2;
 
-                temp[baseHIndex + (y * 2 + 0) * outBandPitch + x] = f1(hl1, hl2, hl3, hh0, hh1, hh2, hh3);
-                temp[baseHIndex + (y * 2 + 1) * outBandPitch + x] = f2(hl1, hl2, hl3, hl4, hh0, hh1, hh2, hh3, hh4);
+                float hh0 = unpackHigh(src[hh + i]) * scale3;
+                float hh1 = unpackHigh(src[hh + i + pitch]) * scale3;
+                float hh2 = unpackHigh(src[hh + i + pitch * 2]) * scale3;
+                float hh3 = unpackHigh(src[hh + i + pitch * 3]) * scale3;
+                float hh4 = unpackHigh(src[hh + i + pitch * 4]) * scale3;
+
+                bandH[o] = f1(hl1, hl2, hl3, hh0, hh1, hh2, hh3);
+                bandH[o + pitch] = f2(hl1, hl2, hl3, hl4, hh0, hh1, hh2, hh3, hh4);
             }
         }
 
-        for (int y = 0; y < outBandHeight; y++) {
+        for (int y = 0; y < subBandHeight * 2; y++) {
             for (int x = 0; x < subBandWidth; x++) {
-                int bandRowOffset = y * outBandPitch + 2 + x;
+                int i = y * pitch + x;
 
-                // float l0 = ...
-                float l1 = temp[baseLIndex + bandRowOffset - 1];
-                float l2 = temp[baseLIndex + bandRowOffset + 0];
-                float l3 = temp[baseLIndex + bandRowOffset + 1];
-                float l4 = temp[baseLIndex + bandRowOffset + 2];
+                float l1 = bandL[i + 1];
+                float l2 = bandL[i + 2];
+                float l3 = bandL[i + 3];
+                float l4 = bandL[i + 4];
 
-                float h0 = temp[baseHIndex + bandRowOffset - 2];
-                float h1 = temp[baseHIndex + bandRowOffset - 1];
-                float h2 = temp[baseHIndex + bandRowOffset + 0];
-                float h3 = temp[baseHIndex + bandRowOffset + 1];
-                float h4 = temp[baseHIndex + bandRowOffset + 2];
+                float h0 = bandH[i/**/];
+                float h1 = bandH[i + 1];
+                float h2 = bandH[i + 2];
+                float h3 = bandH[i + 3];
+                float h4 = bandH[i + 4];
 
                 float v0 = f1(l1, l2, l3, h0, h1, h2, h3);
                 float v1 = f2(l1, l2, l3, l4, h0, h1, h2, h3, h4);
 
-                dst[(y * width + x * 2) * dstPitch + dstOffset] = FloatMath.packUNorm8(v0);
-                dst[(y * width + x * 2) * dstPitch + dstPitch + dstOffset] = FloatMath.packUNorm8(v1);
+                int o = (y * width + x * 2) * stride + channel;
+                dst[o] = FloatMath.packUNorm8(v0);
+                dst[o + stride] = FloatMath.packUNorm8(v1);
             }
         }
     }
