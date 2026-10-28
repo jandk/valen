@@ -5,7 +5,7 @@ import be.twofold.valen.core.geometry.*;
 import be.twofold.valen.core.util.*;
 import be.twofold.valen.game.darkages.*;
 import be.twofold.valen.game.darkages.reader.*;
-import be.twofold.valen.game.darkages.reader.resources.*;
+import be.twofold.valen.game.idtech.game.*;
 import be.twofold.valen.game.idtech.geometry.*;
 import wtf.reversed.toolbox.io.*;
 import wtf.reversed.toolbox.util.*;
@@ -23,7 +23,7 @@ public final class StaticModelReader implements AssetReader.Binary<Model, DarkAg
 
     @Override
     public boolean canRead(DarkAgesAsset asset) {
-        return asset.id().type() == ResourcesType.Model;
+        return asset.id().type() == ResourceType.of("model");
     }
 
     @Override

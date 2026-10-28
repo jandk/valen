@@ -4,7 +4,7 @@ import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.geometry.*;
 import be.twofold.valen.game.darkages.*;
 import be.twofold.valen.game.darkages.reader.*;
-import be.twofold.valen.game.darkages.reader.resources.*;
+import be.twofold.valen.game.idtech.game.*;
 import be.twofold.valen.game.idtech.geometry.*;
 import wtf.reversed.toolbox.io.*;
 
@@ -20,7 +20,7 @@ public final class VegetationReader implements AssetReader.Binary<Model, DarkAge
 
     @Override
     public boolean canRead(DarkAgesAsset asset) {
-        return asset.id().type() == ResourcesType.Vegetation;
+        return asset.id().type() == ResourceType.of("vegetation");
     }
 
     @Override

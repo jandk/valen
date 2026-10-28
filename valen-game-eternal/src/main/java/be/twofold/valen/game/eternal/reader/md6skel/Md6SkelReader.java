@@ -4,7 +4,7 @@ import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.geometry.*;
 import be.twofold.valen.core.util.*;
 import be.twofold.valen.game.eternal.*;
-import be.twofold.valen.game.eternal.resource.*;
+import be.twofold.valen.game.idtech.game.*;
 import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
@@ -15,7 +15,7 @@ import java.util.stream.*;
 public final class Md6SkelReader implements AssetReader.Binary<Skeleton, EternalAsset> {
     @Override
     public boolean canRead(EternalAsset asset) {
-        return asset.id().type() == ResourceType.Skeleton;
+        return asset.id().type() == ResourceType.of("skeleton");
     }
 
     @Override

@@ -2,7 +2,7 @@ package be.twofold.valen.game.eternal.reader.decl;
 
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.game.eternal.*;
-import be.twofold.valen.game.eternal.resource.*;
+import be.twofold.valen.game.idtech.game.*;
 import be.twofold.valen.game.idtech.reader.decl.*;
 import wtf.reversed.toolbox.util.*;
 
@@ -27,7 +27,7 @@ public final class DeclReader extends AbstractDeclReader<EternalAssetID, Eternal
 
     @Override
     public boolean canRead(EternalAsset asset) {
-        if (asset.id().type() != ResourceType.RsStreamFile) {
+        if (asset.id().type() != ResourceType.of("rs_streamfile")) {
             return false;
         }
 
@@ -44,7 +44,7 @@ public final class DeclReader extends AbstractDeclReader<EternalAssetID, Eternal
                 .resolve(getBasePath(baseAssetID.path()))
                 .resolve(name + ".decl");
         }
-        return EternalAssetID.from(path.value(), ResourceType.RsStreamFile);
+        return EternalAssetID.from(path.value(), ResourceType.of("rs_streamfile"));
     }
 
     private static String getBasePath(AssetPath path) {

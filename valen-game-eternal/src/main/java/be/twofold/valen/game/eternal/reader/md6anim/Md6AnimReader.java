@@ -5,7 +5,7 @@ import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.geometry.*;
 import be.twofold.valen.core.util.*;
 import be.twofold.valen.game.eternal.*;
-import be.twofold.valen.game.eternal.resource.*;
+import be.twofold.valen.game.idtech.game.*;
 import org.slf4j.*;
 import wtf.reversed.toolbox.collect.*;
 import wtf.reversed.toolbox.io.*;
@@ -21,14 +21,14 @@ public final class Md6AnimReader implements AssetReader.Binary<Animation, Eterna
 
     @Override
     public boolean canRead(EternalAsset asset) {
-        return asset.id().type() == ResourceType.Anim;
+        return asset.id().type() == ResourceType.of("anim");
     }
 
     @Override
     public Animation read(BinarySource source, EternalAsset asset, LoadingContext context) throws IOException {
         var anim = Md6Anim.read(source);
 
-        var skeletonKey = EternalAssetID.from(anim.header().skelName(), ResourceType.Skeleton);
+        var skeletonKey = EternalAssetID.from(anim.header().skelName(), ResourceType.of("skeleton"));
         if (!context.exists(skeletonKey)) {
             log.warn("Could not find skeleton asset '{}' while loading anim '{}'", anim.header().skelName(), asset.id().fullName());
             throw new FileNotFoundException(anim.header().skelName());
