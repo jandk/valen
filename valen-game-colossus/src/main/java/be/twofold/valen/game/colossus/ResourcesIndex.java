@@ -2,6 +2,7 @@ package be.twofold.valen.game.colossus;
 
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.game.colossus.reader.resources.*;
+import be.twofold.valen.game.idtech.game.*;
 import org.slf4j.*;
 import wtf.reversed.toolbox.io.*;
 
@@ -47,7 +48,7 @@ record ResourcesIndex(
 
         var resourceKey = new ColossusAssetID(
             name,
-            ResourcesType.fromValue(type),
+            ResourceType.of(type),
             entry.variation()
         );
 

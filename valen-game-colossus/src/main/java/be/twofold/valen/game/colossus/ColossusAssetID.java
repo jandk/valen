@@ -6,17 +6,17 @@ import wtf.reversed.toolbox.util.*;
 
 import java.util.*;
 
-public final class ColossusAssetID extends IdclAssetID<ResourcesType, ResourcesVariation> {
+public final class ColossusAssetID extends IdclAssetID<ResourcesVariation> {
     private static final Set<ResourcesVariation> NONE_SET = EnumSet.of(ResourcesVariation.RES_VAR_NONE);
 
-    private static final Map<ResourcesType, Set<ResourcesVariation>> VARIATIONS = Map.of(
+    private static final Map<ResourceType, Set<ResourcesVariation>> VARIATIONS = Map.of(
         // Physics
-        ResourcesType.Cm, Set.of(ResourcesVariation.RES_VAR_HK_MSVC_64),
-        ResourcesType.HkNavMesh, Set.of(ResourcesVariation.RES_VAR_HK_MSVC_64),
-        ResourcesType.HkCloth, Set.of(ResourcesVariation.RES_VAR_PLATFORM_WIN64),
+        ResourceType.of("cm"), Set.of(ResourcesVariation.RES_VAR_HK_MSVC_64),
+        ResourceType.of("hknavmesh"), Set.of(ResourcesVariation.RES_VAR_HK_MSVC_64),
+        ResourceType.of("hkcloth"), Set.of(ResourcesVariation.RES_VAR_PLATFORM_WIN64),
 
         // Shaders
-        ResourcesType.RenderProgResource, Set.of(
+        ResourceType.of("renderProgResource"), Set.of(
             ResourcesVariation.RES_VAR_RENDERPROG_OGL_PC,
             ResourcesVariation.RES_VAR_RENDERPROG_VULKAN_PC_BASE,
             ResourcesVariation.RES_VAR_RENDERPROG_VULKAN_PC_AMD,
@@ -26,11 +26,11 @@ public final class ColossusAssetID extends IdclAssetID<ResourcesType, ResourcesV
         )
     );
 
-    ColossusAssetID(String name, ResourcesType type, ResourcesVariation variation) {
+    ColossusAssetID(String name, ResourceType type, ResourcesVariation variation) {
         super(name, type, variation);
     }
 
-    public static ColossusAssetID from(String name, ResourcesType type) {
+    public static ColossusAssetID from(String name, ResourceType type) {
         var variations = VARIATIONS
             .getOrDefault(type, NONE_SET);
 

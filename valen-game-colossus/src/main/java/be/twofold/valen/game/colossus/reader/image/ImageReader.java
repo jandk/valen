@@ -3,7 +3,7 @@ package be.twofold.valen.game.colossus.reader.image;
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.texture.*;
 import be.twofold.valen.game.colossus.*;
-import be.twofold.valen.game.colossus.reader.resources.*;
+import be.twofold.valen.game.idtech.game.*;
 import wtf.reversed.toolbox.collect.*;
 import wtf.reversed.toolbox.io.*;
 import wtf.reversed.toolbox.util.*;
@@ -15,7 +15,7 @@ import java.util.function.*;
 public final class ImageReader implements AssetReader.Binary<Texture, ColossusAsset> {
     @Override
     public boolean canRead(ColossusAsset asset) {
-        return asset.id().type() == ResourcesType.Image;
+        return asset.id().type() == ResourceType.of("image");
     }
 
     @Override

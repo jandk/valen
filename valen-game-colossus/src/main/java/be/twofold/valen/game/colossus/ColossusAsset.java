@@ -1,7 +1,6 @@
 package be.twofold.valen.game.colossus;
 
 import be.twofold.valen.core.game.*;
-import be.twofold.valen.game.colossus.reader.resources.*;
 import be.twofold.valen.game.idtech.game.*;
 
 public final class ColossusAsset extends IdclAsset<ColossusAssetID> {
@@ -11,7 +10,7 @@ public final class ColossusAsset extends IdclAsset<ColossusAssetID> {
 
     @Override
     public AssetType type() {
-        if (id().type() == ResourcesType.Image) {
+        if (id().type() == ResourceType.of("image")) {
             return AssetType.TEXTURE;
         }
         return AssetType.RAW;
