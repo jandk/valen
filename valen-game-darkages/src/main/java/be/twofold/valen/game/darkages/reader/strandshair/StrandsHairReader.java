@@ -3,7 +3,7 @@ package be.twofold.valen.game.darkages.reader.strandshair;
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.geometry.*;
 import be.twofold.valen.game.darkages.*;
-import be.twofold.valen.game.darkages.reader.resources.*;
+import be.twofold.valen.game.idtech.game.*;
 import wtf.reversed.toolbox.collect.*;
 import wtf.reversed.toolbox.io.*;
 import wtf.reversed.toolbox.math.*;
@@ -14,7 +14,7 @@ import java.util.*;
 public final class StrandsHairReader implements AssetReader.Binary<Model, DarkAgesAsset> {
     @Override
     public boolean canRead(DarkAgesAsset asset) {
-        return asset.id().type() == ResourcesType.StrandsHair;
+        return asset.id().type() == ResourceType.of("strandsHair");
     }
 
     @Override

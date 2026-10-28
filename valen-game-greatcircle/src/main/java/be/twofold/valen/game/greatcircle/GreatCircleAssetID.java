@@ -1,10 +1,9 @@
 package be.twofold.valen.game.greatcircle;
 
 import be.twofold.valen.game.greatcircle.reader.resources.*;
-import be.twofold.valen.game.greatcircle.resource.ResourceType;
 import be.twofold.valen.game.idtech.game.*;
 
-public final class GreatCircleAssetID extends IdclAssetID<ResourceType, ResourcesVariation> {
+public final class GreatCircleAssetID extends IdclAssetID<ResourcesVariation> {
     GreatCircleAssetID(String name, ResourceType type, ResourcesVariation variation) {
         super(name, type, variation);
     }
@@ -14,6 +13,6 @@ public final class GreatCircleAssetID extends IdclAssetID<ResourceType, Resource
     }
 
     public static GreatCircleAssetID material(String name) {
-        return from(name, ResourceType.material2);
+        return from(name, ResourceType.of("material2"));
     }
 }

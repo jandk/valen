@@ -2,7 +2,7 @@ package be.twofold.valen.game.eternal.reader.filecompressed;
 
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.game.eternal.*;
-import be.twofold.valen.game.eternal.resource.*;
+import be.twofold.valen.game.idtech.game.*;
 import wtf.reversed.toolbox.collect.*;
 import wtf.reversed.toolbox.io.*;
 
@@ -14,7 +14,7 @@ public final class FileCompressedReader implements AssetReader.Binary<Bytes, Ete
 
     @Override
     public boolean canRead(EternalAsset asset) {
-        return asset.id().type() == ResourceType.CompFile
+        return asset.id().type() == ResourceType.of("compfile")
             /*&& !resource.id().extension().equals("entities")*/;
     }
 

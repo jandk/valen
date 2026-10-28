@@ -5,12 +5,11 @@ import wtf.reversed.toolbox.util.*;
 import java.util.*;
 import java.util.concurrent.*;
 
+/**
+ * Represents a resource type in a modern idtech game.
+ */
 public final class ResourceType implements Comparable<ResourceType> {
     private static final Map<String, ResourceType> CACHE = new ConcurrentHashMap<>();
-
-    public static final ResourceType ANIM = of("anim");
-    public static final ResourceType IMAGE = of("image");
-    public static final ResourceType MODEL = of("model");
 
     private final String name;
 
@@ -24,7 +23,7 @@ public final class ResourceType implements Comparable<ResourceType> {
 
     @Override
     public int compareTo(ResourceType o) {
-        return name.compareToIgnoreCase(o.name);
+        return name.compareTo(o.name);
     }
 
     @Override

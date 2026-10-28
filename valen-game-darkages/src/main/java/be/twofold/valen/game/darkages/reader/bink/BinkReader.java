@@ -3,7 +3,7 @@ package be.twofold.valen.game.darkages.reader.bink;
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.game.darkages.*;
 import be.twofold.valen.game.darkages.reader.*;
-import be.twofold.valen.game.darkages.reader.resources.*;
+import be.twofold.valen.game.idtech.game.*;
 import wtf.reversed.toolbox.collect.*;
 import wtf.reversed.toolbox.io.*;
 
@@ -12,7 +12,7 @@ import java.io.*;
 public final class BinkReader implements AssetReader.Binary<Bytes, DarkAgesAsset> {
     @Override
     public boolean canRead(DarkAgesAsset asset) {
-        return asset.id().type() == ResourcesType.Bink;
+        return asset.id().type() == ResourceType.of("bink");
     }
 
     @Override

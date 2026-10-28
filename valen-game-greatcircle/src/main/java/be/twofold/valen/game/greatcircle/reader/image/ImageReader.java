@@ -5,7 +5,7 @@ import be.twofold.valen.core.texture.*;
 import be.twofold.valen.core.texture.shader.node.*;
 import be.twofold.valen.core.util.*;
 import be.twofold.valen.game.greatcircle.*;
-import be.twofold.valen.game.greatcircle.resource.*;
+import be.twofold.valen.game.idtech.game.*;
 import be.twofold.valen.game.idtech.reader.image.*;
 import be.twofold.valen.game.idtech.reader.image.TextureFormat;
 import wtf.reversed.toolbox.io.*;
@@ -23,7 +23,7 @@ public final class ImageReader implements AssetReader.Binary<Texture, GreatCircl
 
     @Override
     public boolean canRead(GreatCircleAsset asset) {
-        return asset.id().type() == ResourceType.image
+        return asset.id().type() == ResourceType.of("image")
             && !asset.id().path().extension().equals("bimage");
     }
 

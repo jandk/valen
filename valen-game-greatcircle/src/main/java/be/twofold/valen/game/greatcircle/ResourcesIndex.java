@@ -2,7 +2,7 @@ package be.twofold.valen.game.greatcircle;
 
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.game.greatcircle.reader.resources.*;
-import be.twofold.valen.game.greatcircle.resource.*;
+import be.twofold.valen.game.idtech.game.*;
 import be.twofold.valen.game.idtech.reader.mask.*;
 import org.slf4j.*;
 import wtf.reversed.toolbox.io.*;
@@ -49,7 +49,7 @@ record ResourcesIndex(
         var name = getString(resources, entry.strings() + entry.nameString());
         var type = getString(resources, entry.strings()/* + entry.typeString()*/);
 
-        var resourceType = ResourceType.fromValue(type);
+        var resourceType = ResourceType.of(type);
         var resourceKey = new GreatCircleAssetID(name, resourceType, entry.variation());
 
         var location = new Location.FileSlice(

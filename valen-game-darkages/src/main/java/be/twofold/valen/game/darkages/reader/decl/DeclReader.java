@@ -2,7 +2,7 @@ package be.twofold.valen.game.darkages.reader.decl;
 
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.game.darkages.*;
-import be.twofold.valen.game.darkages.reader.resources.*;
+import be.twofold.valen.game.idtech.game.*;
 import be.twofold.valen.game.idtech.reader.decl.*;
 import wtf.reversed.toolbox.util.*;
 
@@ -23,7 +23,7 @@ public final class DeclReader extends AbstractDeclReader<DarkAgesAssetID, DarkAg
 
     @Override
     public boolean canRead(DarkAgesAsset asset) {
-        if (asset.id().type() != ResourcesType.RsStreamFile) {
+        if (asset.id().type() != ResourceType.of("rs_streamfile")) {
             return false;
         }
 
@@ -40,7 +40,7 @@ public final class DeclReader extends AbstractDeclReader<DarkAgesAssetID, DarkAg
                 .resolve(getBasePath(baseAssetID.path()))
                 .resolve(name + ".decl");
         }
-        return DarkAgesAssetID.from(path.value(), ResourcesType.RsStreamFile);
+        return DarkAgesAssetID.from(path.value(), ResourceType.of("rs_streamfile"));
     }
 
     private static String getBasePath(AssetPath path) {

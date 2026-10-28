@@ -3,7 +3,7 @@ package be.twofold.valen.game.greatcircle.reader.hair;
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.geometry.*;
 import be.twofold.valen.game.greatcircle.*;
-import be.twofold.valen.game.greatcircle.resource.*;
+import be.twofold.valen.game.idtech.game.*;
 import wtf.reversed.toolbox.collect.*;
 import wtf.reversed.toolbox.io.*;
 import wtf.reversed.toolbox.math.*;
@@ -14,7 +14,7 @@ import java.util.*;
 public final class HairReader implements AssetReader.Binary<Model, GreatCircleAsset> {
     @Override
     public boolean canRead(GreatCircleAsset asset) {
-        return asset.id().type() == ResourceType.hair;
+        return asset.id().type() == ResourceType.of("hair");
     }
 
     @Override

@@ -6,7 +6,7 @@ import be.twofold.valen.core.geometry.*;
 import be.twofold.valen.core.util.*;
 import be.twofold.valen.game.darkages.*;
 import be.twofold.valen.game.darkages.reader.*;
-import be.twofold.valen.game.darkages.reader.resources.*;
+import be.twofold.valen.game.idtech.game.*;
 import wtf.reversed.toolbox.collect.*;
 import wtf.reversed.toolbox.io.*;
 
@@ -19,13 +19,13 @@ import java.util.stream.*;
 public final class Md6AnimReader implements AssetReader.Binary<Animation, DarkAgesAsset> {
     @Override
     public boolean canRead(DarkAgesAsset asset) {
-        return asset.id().type() == ResourcesType.Anim;
+        return asset.id().type() == ResourceType.of("anim");
     }
 
     @Override
     public Animation read(BinarySource source, DarkAgesAsset asset, LoadingContext context) throws IOException {
         var anim = Md6Anim.read(source);
-        var skeleton = context.load(DarkAgesAssetID.from(anim.header().skelName(), ResourcesType.Skeleton), Skeleton.class);
+        var skeleton = context.load(DarkAgesAssetID.from(anim.header().skelName(), ResourceType.of("skeleton")), Skeleton.class);
 
         var frameSets = switch (anim.data().streamMethod()) {
             case UNSTREAMED -> readUnstreamed(source, anim.frameSetOffsetTable(), anim.map());

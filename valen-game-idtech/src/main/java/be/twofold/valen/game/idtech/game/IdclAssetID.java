@@ -7,21 +7,18 @@ import wtf.reversed.toolbox.util.*;
 
 import java.util.*;
 
-public abstract class IdclAssetID<
-    T extends Comparable<T> & ValueEnum<String>,
-    V extends Enum<V> & ValueEnum<Integer>
-    > implements AssetID {
+public abstract class IdclAssetID<V extends Enum<V> & ValueEnum<Integer>> implements AssetID {
     private static final HashFunction HASH = HashFunction.farmHashFingerprint64();
-    private static final Comparator<IdclAssetID<?, ?>> COMPARATOR = Comparator
-        .<IdclAssetID<?, ?>, String>comparing(IdclAssetID::name, AlphanumericComparator.instance())
+    private static final Comparator<IdclAssetID<?>> COMPARATOR = Comparator
+        .<IdclAssetID<?>, String>comparing(IdclAssetID::name, AlphanumericComparator.instance())
         .thenComparing(IdclAssetID::type)
         .thenComparing(IdclAssetID::variation);
 
     private final String name;
-    private final T type;
+    private final ResourceType type;
     private final V variation;
 
-    protected IdclAssetID(String name, T type, V variation) {
+    protected IdclAssetID(String name, ResourceType type, V variation) {
         this.name = Check.nonNull(name, "name");
         this.type = Check.nonNull(type, "type");
         this.variation = Check.nonNull(variation, "variation");
@@ -31,7 +28,7 @@ public abstract class IdclAssetID<
         return name;
     }
 
-    public final T type() {
+    public final ResourceType type() {
         return type;
     }
 
@@ -40,7 +37,7 @@ public abstract class IdclAssetID<
     }
 
     public final long resourceId() {
-        return resourceId(type.value(), name);
+        return resourceId(type.toString(), name);
     }
 
     public final String hashedBaseName() {
@@ -90,12 +87,12 @@ public abstract class IdclAssetID<
 
     @Override
     public final int compareTo(AssetID o) {
-        return COMPARATOR.compare(this, (IdclAssetID<?, ?>) o);
+        return COMPARATOR.compare(this, (IdclAssetID<?>) o);
     }
 
     @Override
     public final boolean equals(Object obj) {
-        return obj instanceof IdclAssetID<?, ?> other
+        return obj instanceof IdclAssetID<?> other
             && getClass() == other.getClass()
             && name.equals(other.name)
             && type.equals(other.type)
