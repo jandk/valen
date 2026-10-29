@@ -7,9 +7,9 @@ pom.xml.versionsBackup
 *.iml
 
 # Native
-/*.dll
-/*.so.*
-/*.dylib
+*.dll
+*.so.*
+*.dylib
 
 # Export folder
 /exported
