@@ -74,9 +74,9 @@ final class VorbisConverter {
         boolean first = true;
 
         while (current != null) {
-            int modeNumber = current.read(modeBits);
+            int modeNumber = current.read(1); // wwise come on
             boolean blockFlag = modeBlockFlags[modeNumber];
-            boolean nextBlockFlag = next != null && modeBlockFlags[next.peek(modeBits)];
+            boolean nextBlockFlag = next != null && modeBlockFlags[next.peek(1)];
 
             if (!first) {
                 int previousSize = previousBlockFlag ? longBlock : shortBlock;
