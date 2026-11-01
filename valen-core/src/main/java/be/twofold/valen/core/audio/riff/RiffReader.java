@@ -33,7 +33,7 @@ public final class RiffReader {
 
     private RiffChunk readChunk(BinarySource source, long limit) throws IOException {
         var id = FourCC.read(source);
-        var size = Integer.toUnsignedLong(source.readInt());
+        var size = source.readUnsignedInt();
         var start = source.position();
         var end = Math.min(start + size, limit);
 

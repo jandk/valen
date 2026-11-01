@@ -19,10 +19,7 @@ public record FilePackage(
         var soundBanks = readTable(source, header.soundBanksLutSize(), FileEntry.BYTES, s -> FileEntry.read(s, BankId::of));
         var streams = readTable(source, header.stmFilesLutSize(), FileEntry.BYTES, s -> FileEntry.read(s, MediaId::of));
         var externals = readTable(source, header.externalsLutSize(), ExternalEntry.BYTES, ExternalEntry::read);
-
-        if (source.position() != header.dataOffset()) {
-            throw new IOException("Header ended at " + source.position() + ", expected " + header.dataOffset());
-        }
+        source.expectPosition(header.dataOffset());
 
         return new FilePackage(header, languages, soundBanks, streams, externals);
     }
@@ -33,9 +30,7 @@ public record FilePackage(
         int entrySize,
         BinarySource.Mapper<T> mapper
     ) throws IOException {
-        var slice = source.slice(source.position(), size);
-        source.skip(size);
-
+        var slice = source.readSlice(size);
         var count = slice.readInt();
         var expected = Integer.BYTES + count * entrySize;
         if (expected != size) {

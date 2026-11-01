@@ -113,7 +113,7 @@ final class VorbisConverter {
         if (source.position() >= end) {
             return null;
         }
-        int size = Short.toUnsignedInt(source.readShort());
+        int size = source.readUnsignedShort();
         return new BitReader(source.readBytes(size).toArray(), ByteOrder.LITTLE_ENDIAN);
     }
 
@@ -163,7 +163,7 @@ final class VorbisConverter {
     // region SetupHeader
 
     private Bytes rebuildSetupHeader() throws IOException {
-        int length = Short.toUnsignedInt(source.readShort());
+        int length = source.readUnsignedShort();
         byte[] packedBytes = source.readBytes(length).toArray();
         BitReader reader = new BitReader(packedBytes, ByteOrder.LITTLE_ENDIAN);
 

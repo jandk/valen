@@ -30,7 +30,7 @@ public record WaveFormatExtensible(
         }
         var channelMask = source.readInt();
         var subFormat = Guids.fromBytes(source.readBytes(16));
-        var codecData = source.readBytes(Math.toIntExact(source.remaining()));
+        var codecData = source.readRemaining();
 
         return new WaveFormatExtensible(
             validBitsPerSample,

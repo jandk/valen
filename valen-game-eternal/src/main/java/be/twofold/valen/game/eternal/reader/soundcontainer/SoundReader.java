@@ -25,7 +25,7 @@ public final class SoundReader implements AssetReader.Binary<Audio, Asset> {
             format.samplesPerSec(),
             wem.toChannels(),
             Math.toIntExact(wem.data().declaredSize()) / format.blockAlign(),
-            source.readBytes(Math.toIntExact(source.remaining()))
+                source.readRemaining()
         );
     }
 }

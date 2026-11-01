@@ -125,7 +125,7 @@ public record Md6Anim(
     }
 
     static Ints decodeRLE(BinarySource source, int numJoints) throws IOException {
-        var size = Byte.toUnsignedInt(source.readByte());
+        var size = source.readUnsignedByte();
         var length = Math.min(size, numJoints);
 
         var result = Ints.Mutable.allocate(length);
@@ -140,7 +140,7 @@ public record Md6Anim(
                 continue;
             }
 
-            int value = Byte.toUnsignedInt(source.readByte());
+            int value = source.readUnsignedByte();
             for (var i = 0; i < count; i++) {
                 result.set(o++, value + i);
             }

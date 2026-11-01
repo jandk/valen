@@ -10,7 +10,7 @@ public record Codebook(
     Bytes bytes
 ) {
     public static Codebook read(BinarySource source) throws IOException {
-        var bitCount = Short.toUnsignedInt(source.readShort());
+        var bitCount = source.readUnsignedShort();
         var bytes = source.readBytes(Math.ceilDiv(bitCount, 8));
 
         return new Codebook(

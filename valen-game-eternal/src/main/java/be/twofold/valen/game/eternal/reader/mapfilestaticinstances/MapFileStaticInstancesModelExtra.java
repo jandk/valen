@@ -72,8 +72,7 @@ public record MapFileStaticInstancesModelExtra(
         float unknown116 = source.readFloat();
         int unknown120 = source.readInt();
         int unknown124 = source.readInt();
-        source.expectInt(0);
-        source.expectInt(0);
+        source.expectZeros(8);
         float unknown136 = source.readFloat();
         source.expectInt(-1);
         float unknown144 = source.readFloat();
