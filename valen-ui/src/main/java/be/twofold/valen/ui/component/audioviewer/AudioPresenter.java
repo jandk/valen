@@ -74,11 +74,11 @@ public final class AudioPresenter extends AbstractPresenter<AudioView> implement
         show(audioPayload.waveform(), audioPayload.status(), audioPayload.message(), audioPayload.duration());
     }
 
-    private int channelsFor(List<Channel> channels) {
+    private int channelsFor(List<AudioChannel> channels) {
         var allChannels = new ArrayList<>(channels);
-        allChannels.remove(Channel.LOW_FREQUENCY);
+        allChannels.remove(AudioChannel.LOW_FREQUENCY);
         return allChannels.size() == 1
-            && allChannels.equals(Channel.MONO) ? 1 : 2;
+            && allChannels.equals(AudioChannel.MONO) ? 1 : 2;
     }
 
     private void clear(String message) {
@@ -154,14 +154,14 @@ public final class AudioPresenter extends AbstractPresenter<AudioView> implement
             audio.codec();
     }
 
-    private String channelNames(List<Channel> channels) {
-        if (channels.equals(Channel.MONO)) {
+    private String channelNames(List<AudioChannel> channels) {
+        if (channels.equals(AudioChannel.MONO)) {
             return "mono";
-        } else if (channels.equals(Channel.STEREO)) {
+        } else if (channels.equals(AudioChannel.STEREO)) {
             return "stereo";
         } else {
             return channels.stream()
-                .map(Channel::shortName)
+                .map(AudioChannel::shortName)
                 .collect(Collectors.joining(Constants.TS + "+" + Constants.TS));
         }
     }

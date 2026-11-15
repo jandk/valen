@@ -17,7 +17,7 @@ import java.util.*;
 public record Audio(
     AudioCodec codec,
     int sampleRate,
-    List<Channel> channels,
+    List<AudioChannel> channels,
     int frameCount,
     Bytes data,
     AudioCodecInfo info
@@ -30,7 +30,7 @@ public record Audio(
         Check.nonNull(data, "data");
     }
 
-    public Audio(AudioCodec codec, int sampleRate, List<Channel> channels, int frameCount, Bytes data) {
+    public Audio(AudioCodec codec, int sampleRate, List<AudioChannel> channels, int frameCount, Bytes data) {
         this(codec, sampleRate, channels, frameCount, data, new AudioCodecInfo.None());
     }
 

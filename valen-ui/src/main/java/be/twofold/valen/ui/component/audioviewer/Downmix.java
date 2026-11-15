@@ -3,7 +3,7 @@ package be.twofold.valen.ui.component.audioviewer;
 import be.twofold.valen.core.audio.*;
 import wtf.reversed.toolbox.collect.*;
 
-import static be.twofold.valen.core.audio.Channel.*;
+import static be.twofold.valen.core.audio.AudioChannel.*;
 
 final class Downmix {
     private static final float UNIT = 1.0f;
@@ -64,7 +64,7 @@ final class Downmix {
         }
 
         int[] indices = source.channels().stream()
-            .mapToInt(Channel::ordinal)
+            .mapToInt(AudioChannel::ordinal)
             .toArray();
 
         var target = Bytes.allocate(source.frameCount() * channels * Short.BYTES);

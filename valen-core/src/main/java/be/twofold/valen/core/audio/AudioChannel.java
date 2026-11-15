@@ -3,7 +3,7 @@ package be.twofold.valen.core.audio;
 import java.util.*;
 import java.util.stream.*;
 
-public enum Channel {
+public enum AudioChannel {
     FRONT_LEFT("FL"),
     FRONT_RIGHT("FR"),
     FRONT_CENTER("FC"),
@@ -24,17 +24,17 @@ public enum Channel {
     TOP_BACK_RIGHT("TBR"),
     ;
 
-    public static final List<Channel> VALUES = List.of(values());
-    public static final List<Channel> MONO = List.of(FRONT_CENTER);
-    public static final List<Channel> STEREO = List.of(FRONT_LEFT, FRONT_RIGHT);
+    public static final List<AudioChannel> VALUES = List.of(values());
+    public static final List<AudioChannel> MONO = List.of(FRONT_CENTER);
+    public static final List<AudioChannel> STEREO = List.of(FRONT_LEFT, FRONT_RIGHT);
 
     private final String shortName;
 
-    Channel(String shortName) {
+    AudioChannel(String shortName) {
         this.shortName = shortName;
     }
 
-    public static List<Channel> fromMask(int mask, int count) {
+    public static List<AudioChannel> fromMask(int mask, int count) {
         if (Integer.bitCount(mask) == count && mask >>> VALUES.size() == 0) {
             return IntStream.range(0, VALUES.size())
                 .filter(i -> (mask & (1 << i)) != 0)

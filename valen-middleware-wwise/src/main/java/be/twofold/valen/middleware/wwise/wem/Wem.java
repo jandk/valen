@@ -65,7 +65,7 @@ public record Wem(
         };
     }
 
-    public List<Channel> toChannels() {
+    public List<AudioChannel> toChannels() {
         var channelConfig = format.channelConfig();
         int channels = format.channels();
 
@@ -73,7 +73,7 @@ public record Wem(
         var mask = type == 1 && Integer.bitCount(channelConfig >>> 12) == channels
             ? channelConfig >>> 12
             : channelConfig;
-        return Channel.fromMask(mask, channels);
+        return AudioChannel.fromMask(mask, channels);
     }
 
     public int toFrameCount() {

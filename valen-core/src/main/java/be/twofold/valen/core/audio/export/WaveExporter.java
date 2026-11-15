@@ -53,8 +53,8 @@ public final class WaveExporter implements Exporter<Audio> {
     }
 
     private Bytes buildFormat(Audio audio) {
-        boolean extendedHeader = !audio.channels().equals(Channel.MONO)
-            && !audio.channels().equals(Channel.STEREO);
+        boolean extendedHeader = !audio.channels().equals(AudioChannel.MONO)
+            && !audio.channels().equals(AudioChannel.STEREO);
 
         Bytes.Mutable format = Bytes.allocate(extendedHeader ? 40 : 16);
         standardHeader(audio, format, extendedHeader);
@@ -82,7 +82,7 @@ public final class WaveExporter implements Exporter<Audio> {
         Guids.toBytes(KSDATAFORMAT_SUBTYPE_PCM).copyTo(bytes, 24);
     }
 
-    private int toChannelMask(List<Channel> channels) {
+    private int toChannelMask(List<AudioChannel> channels) {
         return channels.stream()
             .mapToInt(c -> 1 << c.ordinal())
             .reduce(0, (a, b) -> a | b);
