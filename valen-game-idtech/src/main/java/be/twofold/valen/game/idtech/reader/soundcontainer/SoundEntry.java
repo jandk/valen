@@ -27,7 +27,7 @@ public record SoundEntry(
         switch (game) {
             case ETERNAL -> {
                 type = SoundEntryType.read(source);
-                headerSize = Short.toUnsignedInt(source.readShort());
+                headerSize = source.readUnsignedShort();
             }
             case DARK_AGES -> {
                 type = SoundEntryType.NONE;

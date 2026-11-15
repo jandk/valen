@@ -4,7 +4,7 @@ import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.geometry.*;
 import be.twofold.valen.core.util.*;
 import be.twofold.valen.game.eternal.*;
-import be.twofold.valen.game.eternal.resource.*;
+import be.twofold.valen.game.idtech.game.*;
 import be.twofold.valen.game.idtech.geometry.*;
 import wtf.reversed.toolbox.collect.*;
 import wtf.reversed.toolbox.io.*;
@@ -22,14 +22,14 @@ public final class Md6ModelReader implements AssetReader.Binary<Model, EternalAs
 
     @Override
     public boolean canRead(EternalAsset asset) {
-        return asset.id().type() == ResourceType.BaseModel;
+        return asset.id().type() == ResourceType.of("baseModel");
     }
 
     @Override
     public Model read(BinarySource source, EternalAsset asset, LoadingContext context) throws IOException {
         var model = Md6Model.read(source);
         var meshes = readMeshes(model, asset.hash(), context);
-        var skeletonKey = EternalAssetID.from(model.header().md6SkelName(), ResourceType.Skeleton);
+        var skeletonKey = EternalAssetID.from(model.header().md6SkelName(), ResourceType.of("skeleton"));
         var skeleton = context.load(skeletonKey, Skeleton.class);
 
         if (readMaterials) {

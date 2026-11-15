@@ -19,9 +19,7 @@ public record LanguageMap(
         }
 
         // Relative indices, so slice
-        var slice = source.slice(source.position(), size);
-        source.skip(size);
-
+        var slice = source.readSlice(size);
         var count = slice.readInt();
         var offsets = new int[count];
         var ids = new int[count];

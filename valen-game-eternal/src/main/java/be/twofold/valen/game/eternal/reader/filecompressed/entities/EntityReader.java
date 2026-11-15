@@ -3,7 +3,7 @@ package be.twofold.valen.game.eternal.reader.filecompressed.entities;
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.game.eternal.*;
 import be.twofold.valen.game.eternal.reader.filecompressed.*;
-import be.twofold.valen.game.eternal.resource.*;
+import be.twofold.valen.game.idtech.game.*;
 import be.twofold.valen.game.idtech.lexer.*;
 import be.twofold.valen.game.idtech.reader.decl.parser.*;
 import com.google.gson.*;
@@ -22,7 +22,7 @@ public final class EntityReader implements AssetReader.Binary<EntityFile, Eterna
 
     @Override
     public boolean canRead(EternalAsset asset) {
-        return asset.id().type() == ResourceType.CompFile
+        return asset.id().type() == ResourceType.of("compfile")
             && asset.id().path().extension().equals("entities");
     }
 

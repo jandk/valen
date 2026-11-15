@@ -10,16 +10,15 @@ public record WwiseFormat(
     WaveFormat format,
     CodecId codec,
     short samplesPerBlock,
-    int channelConfig,
+    AkChannelConfig channelConfig,
     Optional<CodecHeader> codecHeader
 ) {
     public static WwiseFormat from(WaveFormat format) throws IOException {
         var codec = CodecId.fromValue(format.formatTag());
         var extra = BinarySource.wrap(format.extra());
         var size = extra.remaining();
-
-        var samplesPerBlock = size >= 6 ? extra.readShort() : 0;
-        var channelConfig = size >= 6 ? extra.readInt() : 0;
+        var samplesPerBlock = extra.readShort();
+        var channelConfig = AkChannelConfig.parse(extra.readInt(), format.channels());
 
         CodecHeader codecHeader;
         if (codec == CodecId.VORBIS && size >= 48) {

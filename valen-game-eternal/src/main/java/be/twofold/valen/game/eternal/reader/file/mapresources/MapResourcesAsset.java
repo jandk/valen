@@ -19,8 +19,7 @@ public record MapResourcesAsset(
         int unknown1 = source.order(ByteOrder.BIG_ENDIAN).readInt();
         int unknown2 = source.readInt();
         int unknown3 = source.readInt();
-        source.expectInt(0);
-        source.expectInt(0);
+        source.expectZeros(8);
         int unknown4 = source.readInt();
         return new MapResourcesAsset(
             type,

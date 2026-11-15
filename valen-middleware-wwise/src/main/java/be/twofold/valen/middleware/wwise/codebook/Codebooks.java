@@ -21,8 +21,8 @@ public record Codebooks(
         source.order(ByteOrder.BIG_ENDIAN);
         source.expectInt(MAGIC); // magic
         source.expectShort((short) 0x100); // version
-        var libraryCount = Short.toUnsignedInt(source.readShort());
-        var codebookCount = Short.toUnsignedInt(source.readShort());
+        var libraryCount = source.readUnsignedShort();
+        var codebookCount = source.readUnsignedShort();
 
         var libraries = source.readObjects(libraryCount, CodebookLibrary::read);
         var codebooks = source.readObjects(codebookCount, Codebook::read);

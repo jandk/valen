@@ -23,7 +23,7 @@ public enum ResourcesCompressionMode implements ValueEnum<Integer> {
     }
 
     public static ResourcesCompressionMode read(BinarySource source) throws IOException {
-        return ValueEnum.fromValue(ResourcesCompressionMode.class, Byte.toUnsignedInt(source.readByte()));
+        return ValueEnum.fromValue(ResourcesCompressionMode.class, source.readUnsignedByte());
     }
 
     @Override

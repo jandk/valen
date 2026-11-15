@@ -1,10 +1,14 @@
 module valen.core {
+    requires be.twofold.tinyaudio.core;
+    requires be.twofold.tinyaudio.ogg;
+    requires be.twofold.tinyaudio.opus;
+    requires be.twofold.tinyaudio.vorbis;
     requires be.twofold.tinybcdec;
     requires java.logging;
     requires java.net.http;
     requires org.slf4j;
-    requires transitive wtf.reversed.toolbox;
 
+    requires transitive wtf.reversed.toolbox;
     requires static java.compiler;
 
     exports be.twofold.valen.core.animation;
@@ -33,7 +37,9 @@ module valen.core {
 
     provides be.twofold.valen.core.audio.AudioDecoder with
         be.twofold.valen.core.audio.decoder.MsAdpcmDecoder,
-        be.twofold.valen.core.audio.decoder.PcmU8Decoder;
+        be.twofold.valen.core.audio.decoder.OpusDecoder,
+        be.twofold.valen.core.audio.decoder.PcmU8Decoder,
+        be.twofold.valen.core.audio.decoder.VorbisDecoder;
 
     provides be.twofold.valen.core.export.Exporter with
         be.twofold.valen.core.export.RawExporter,

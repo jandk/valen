@@ -11,7 +11,7 @@ public record CodebookLibrary(
 ) {
     public static CodebookLibrary read(BinarySource source) throws IOException {
         var name = source.readString(StringFormat.SHORT_LENGTH);
-        var count = Short.toUnsignedInt(source.readShort());
+        var count = source.readUnsignedShort();
         var indices = source.readShorts(count);
 
         return new CodebookLibrary(

@@ -65,15 +65,13 @@ public record Wem(
         };
     }
 
-    public List<Channel> toChannels() {
-        var channelConfig = format.channelConfig();
+    public List<AudioChannel> toChannels() {
+        var config = format.channelConfig();
         int channels = format.channels();
-
-        var type = (channelConfig >>> 8) & 0x0F;
-        var mask = type == 1 && Integer.bitCount(channelConfig >>> 12) == channels
-            ? channelConfig >>> 12
-            : channelConfig;
-        return Channel.fromMask(mask, channels);
+        return switch (config.type()) {
+            case STANDARD -> AudioChannel.fromMask(config.channelMask(), channels);
+            case ANONYMOUS, AMBISONIC, OBJECTS -> AudioChannel.fromMask(0, channels);
+        };
     }
 
     public int toFrameCount() {

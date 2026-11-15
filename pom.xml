@@ -28,8 +28,7 @@
     </modules>
 
     <properties>
-        <maven.compiler.source>25</maven.compiler.source>
-        <maven.compiler.target>25</maven.compiler.target>
+        <maven.compiler.release>25</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <javafx.version>27.0.1</javafx.version>
@@ -207,6 +206,16 @@
                 <groupId>wtf.reversed</groupId>
                 <artifactId>reversed-toolbox</artifactId>
                 <version>1.0-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>be.twofold</groupId>
+                <artifactId>tinyaudio-opus</artifactId>
+                <version>0.1-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>be.twofold</groupId>
+                <artifactId>tinyaudio-vorbis</artifactId>
+                <version>0.1-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>be.twofold</groupId>

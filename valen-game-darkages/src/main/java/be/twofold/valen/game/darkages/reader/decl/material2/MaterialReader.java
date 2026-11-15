@@ -2,7 +2,6 @@ package be.twofold.valen.game.darkages.reader.decl.material2;
 
 import be.twofold.valen.game.darkages.*;
 import be.twofold.valen.game.darkages.reader.decl.*;
-import be.twofold.valen.game.darkages.reader.resources.*;
 import be.twofold.valen.game.idtech.game.*;
 import be.twofold.valen.game.idtech.reader.decl.material2.*;
 
@@ -13,7 +12,7 @@ public final class MaterialReader extends AbstractMaterialReader<DarkAgesAssetID
 
     @Override
     public boolean canRead(DarkAgesAsset asset) {
-        return asset.id().type() == ResourcesType.RsStreamFile
+        return asset.id().type() == ResourceType.of("rs_streamfile")
             && asset.id().path().startsWith(AssetPaths.MATERIAL2);
     }
 
@@ -27,12 +26,12 @@ public final class MaterialReader extends AbstractMaterialReader<DarkAgesAssetID
 
     @Override
     public DarkAgesAssetID imageAssetID(String name) {
-        return DarkAgesAssetID.from(name, ResourcesType.Image);
+        return DarkAgesAssetID.from(name, ResourceType.of("image"));
     }
 
     @Override
     public DarkAgesAssetID renderParmAssetID(String name) {
         var fullName = AssetPaths.RENDER_PARM.resolve(name + ".decl").toString();
-        return DarkAgesAssetID.from(fullName, ResourcesType.RsStreamFile);
+        return DarkAgesAssetID.from(fullName, ResourceType.of("rs_streamfile"));
     }
 }

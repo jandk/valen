@@ -46,7 +46,7 @@ public final class WaveReader implements AssetReader.Binary<Audio, Asset> {
         var data = waveFile.data().payload();
         var codec = toCodec(format.bitsPerSample());
         var sampleRate = format.samplesPerSec();
-        var channels = Channel.fromMask(channelMask, format.channels());
+        var channels = AudioChannel.fromMask(channelMask, format.channels());
         // We don't trust blockAlign
         var blockAlign = format.channels() * (format.bitsPerSample() / 8);
         var frameCount = data.length() / blockAlign;
@@ -90,7 +90,7 @@ public final class WaveReader implements AssetReader.Binary<Audio, Asset> {
         return new Audio(
             AudioCodec.MS_ADPCM,
             format.samplesPerSec(),
-            Channel.fromMask(0, channels),
+                AudioChannel.fromMask(0, channels),
             frameCount,
             data,
             new AudioCodecInfo.MsAdpcm(blockAlign, samplesPerBlock, adpcm.coef())

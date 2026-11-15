@@ -4,7 +4,7 @@ import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.geometry.*;
 import be.twofold.valen.core.util.*;
 import be.twofold.valen.game.eternal.*;
-import be.twofold.valen.game.eternal.resource.*;
+import be.twofold.valen.game.idtech.game.*;
 import be.twofold.valen.game.idtech.geometry.*;
 import wtf.reversed.toolbox.io.*;
 import wtf.reversed.toolbox.util.*;
@@ -22,7 +22,7 @@ public final class StaticModelReader implements AssetReader.Binary<Model, Eterna
 
     @Override
     public boolean canRead(EternalAsset asset) {
-        return asset.id().type() == ResourceType.Model;
+        return asset.id().type() == ResourceType.of("model");
     }
 
     @Override

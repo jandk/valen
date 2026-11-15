@@ -4,7 +4,7 @@ import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.geometry.*;
 import be.twofold.valen.game.darkages.*;
 import be.twofold.valen.game.darkages.reader.*;
-import be.twofold.valen.game.darkages.reader.resources.*;
+import be.twofold.valen.game.idtech.game.*;
 import be.twofold.valen.game.idtech.geometry.*;
 import wtf.reversed.toolbox.collect.*;
 import wtf.reversed.toolbox.io.*;
@@ -23,13 +23,13 @@ public final class Md6ModelReader implements AssetReader.Binary<Model, DarkAgesA
 
     @Override
     public boolean canRead(DarkAgesAsset asset) {
-        return asset.id().type() == ResourcesType.BaseModel;
+        return asset.id().type() == ResourceType.of("baseModel");
     }
 
     @Override
     public Model read(BinarySource source, DarkAgesAsset asset, LoadingContext context) throws IOException {
         var skelName = source.readString(StringFormat.INT_LENGTH);
-        var skeletonKey = DarkAgesAssetID.from(skelName, ResourcesType.Skeleton);
+        var skeletonKey = DarkAgesAssetID.from(skelName, ResourceType.of("skeleton"));
         var skeleton = context.load(skeletonKey, Skeleton.class);
         var md6Model = Md6Model.read(source, skeleton.bones().size() + 7 & ~7);
         source.expectEnd();

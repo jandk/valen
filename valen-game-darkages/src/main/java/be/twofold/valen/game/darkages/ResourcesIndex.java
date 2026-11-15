@@ -2,6 +2,7 @@ package be.twofold.valen.game.darkages;
 
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.game.darkages.reader.resources.*;
+import be.twofold.valen.game.idtech.game.*;
 import be.twofold.valen.game.idtech.reader.mask.*;
 import org.slf4j.*;
 import wtf.reversed.toolbox.io.*;
@@ -49,7 +50,7 @@ record ResourcesIndex(
         var name = getString(resources, entry, 1);
         var type = getString(resources, entry, 0);
 
-        var resourceType = ResourcesType.fromValue(type);
+        var resourceType = ResourceType.of(type);
         var resourceKey = new DarkAgesAssetID(name, resourceType, entry.variation());
 
         var location = new Location.FileSlice(

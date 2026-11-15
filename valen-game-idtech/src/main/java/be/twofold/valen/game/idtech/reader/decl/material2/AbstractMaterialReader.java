@@ -20,7 +20,7 @@ import java.util.*;
 import java.util.function.*;
 import java.util.stream.*;
 
-public abstract class AbstractMaterialReader<K extends IdclAssetID<?, ?>, V extends IdclAsset<K>> implements AssetReader.Binary<Material, V> {
+public abstract class AbstractMaterialReader<K extends IdclAssetID<?>, V extends IdclAsset<K>> implements AssetReader.Binary<Material, V> {
     private static final Map<MaterialPropertyType, List<String>> ParmTextures = Map.of(
         MaterialPropertyType.Albedo, List.of(
             "albedo",

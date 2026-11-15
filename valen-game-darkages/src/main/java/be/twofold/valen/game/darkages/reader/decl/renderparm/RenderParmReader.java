@@ -3,7 +3,7 @@ package be.twofold.valen.game.darkages.reader.decl.renderparm;
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.game.darkages.*;
 import be.twofold.valen.game.darkages.reader.image.*;
-import be.twofold.valen.game.darkages.reader.resources.*;
+import be.twofold.valen.game.idtech.game.*;
 import be.twofold.valen.game.idtech.reader.decl.renderparm.*;
 import wtf.reversed.toolbox.io.*;
 
@@ -16,7 +16,7 @@ public final class RenderParmReader extends AbstractRenderParmReader<DarkAgesAss
 
     @Override
     public boolean canRead(DarkAgesAsset asset) {
-        return asset.id().type() == ResourcesType.RsStreamFile
+        return asset.id().type() == ResourceType.of("rs_streamfile")
             && asset.id().path().startsWith(AssetPaths.RENDER_PARM);
     }
 

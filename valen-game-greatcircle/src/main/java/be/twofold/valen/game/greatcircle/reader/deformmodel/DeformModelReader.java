@@ -3,7 +3,7 @@ package be.twofold.valen.game.greatcircle.reader.deformmodel;
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.geometry.*;
 import be.twofold.valen.game.greatcircle.*;
-import be.twofold.valen.game.greatcircle.resource.*;
+import be.twofold.valen.game.idtech.game.*;
 import be.twofold.valen.game.idtech.geometry.*;
 import wtf.reversed.toolbox.io.*;
 
@@ -19,7 +19,7 @@ public final class DeformModelReader implements AssetReader.Binary<Model, GreatC
 
     @Override
     public boolean canRead(GreatCircleAsset asset) {
-        return asset.id().type() == ResourceType.deformmodel;
+        return asset.id().type() == ResourceType.of("deformmodel");
     }
 
     @Override
