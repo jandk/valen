@@ -1,8 +1,12 @@
 package be.twofold.valen.game.source.readers.vtf;
 
 import be.twofold.valen.core.texture.*;
+import wtf.reversed.toolbox.io.*;
+import wtf.reversed.toolbox.util.*;
 
-public enum VtfImageFormat {
+import java.io.*;
+
+public enum VtfImageFormat implements ValueEnum<Integer> {
     UNKNOWN(-1),
     RGBA8888(0),
     ABGR8888(1),
@@ -36,20 +40,20 @@ public enum VtfImageFormat {
     RGBA32323232F(29),
     ;
 
-    private static final VtfImageFormat[] VALUES = values();
     private final int value;
 
     VtfImageFormat(int value) {
         this.value = value;
     }
 
-    public static VtfImageFormat fromValue(int value) {
-        for (var format : VALUES) {
-            if (format.value == value) {
-                return format;
-            }
-        }
-        throw new UnsupportedOperationException("Unknown image format: " + value);
+    public static VtfImageFormat read(BinarySource source) throws IOException {
+        int value = source.readInt();
+        return ValueEnum.fromValue(VtfImageFormat.class, value);
+    }
+
+    @Override
+    public Integer value() {
+        return value;
     }
 
     public TextureFormat toTextureFormat(boolean srgb) {
