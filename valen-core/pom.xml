@@ -13,6 +13,14 @@
     <dependencies>
         <dependency>
             <groupId>be.twofold</groupId>
+            <artifactId>tinyaudio-opus</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>be.twofold</groupId>
+            <artifactId>tinyaudio-vorbis</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>be.twofold</groupId>
             <artifactId>tinybcdec</artifactId>
         </dependency>
         <dependency>

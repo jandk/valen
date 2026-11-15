@@ -40,7 +40,7 @@ public final class WaveExporter implements Exporter<Audio> {
             throw new IllegalArgumentException("Unsupported audio format");
         }
 
-        Bytes fmt = buildFormat(value);
+        Bytes fmt = buildFormat(pcmAudio.get());
         Bytes pcm = pcmAudio.get().data();
         RiffChunk.container("RIFF", "WAVE",
             RiffChunk.data("fmt ", fmt),

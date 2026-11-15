@@ -12,8 +12,9 @@ import java.nio.*;
 import java.nio.charset.*;
 
 public final class WwiseOpusConverter implements AudioConverter {
-    private static final long OPUS_HEAD = 0x6461_6548_7375_704FL; // "OpusHead"
-    private static final long OPUS_TAGS = 0x7367_6154_7375_704FL; // "OpusTags"
+    private static final byte[] OPUS_HEAD = "OpusHead".getBytes(StandardCharsets.US_ASCII);
+    private static final byte[] OPUS_TAGS = "OpusTags".getBytes(StandardCharsets.US_ASCII);
+
     private static final byte[] STREAMS = {2, 2, 3, 4, 4, 5};
     private static final byte[] COUPLED = {1, 2, 2, 2, 3, 3};
     private static final byte[][] CHANNELS = {
@@ -21,7 +22,7 @@ public final class WwiseOpusConverter implements AudioConverter {
         {0, 1, 2, 3},
         {0, 4, 1, 2, 3},
         {0, 4, 1, 2, 3, 5},
-        {0, 4, 1, 2, 3, 5, 6},
+        {0, 6, 1, 2, 3, 4, 5},
         {0, 6, 1, 2, 3, 4, 5, 7},
     };
 
@@ -41,10 +42,22 @@ public final class WwiseOpusConverter implements AudioConverter {
         return new Audio(
             AudioCodec.OGG_OPUS,
             audio.sampleRate(),
-            audio.channels(),
+            VorbisChannelOrder.fromWave(audio.channels()),
             audio.frameCount(),
             data
         );
+    }
+
+    // AK::Opus::ValidateFormat
+    private static int familyOneMask(int channels) {
+        return switch (channels) {
+            case 3 -> 0x007; // FL FR FC
+            case 4 -> 0x603; // FL FR SL SR
+            case 5 -> 0x607; // FL FR FC SL SR
+            case 6 -> 0x60F; // FL FR FC LFE SL SR
+            case 8 -> 0x63F; // FL FR FC LFE BL BR SL SR
+            default -> -1;
+        };
     }
 
     private Bytes rebuildOpus(Audio audio) throws IOException {
@@ -55,8 +68,13 @@ public final class WwiseOpusConverter implements AudioConverter {
 
         var family = opusHeader.mappingFamily();
         var channels = wem.format().channels();
-        if (family == 0 ? channels > 2 : family != 1 || channels < 3 || channels > 8) {
-            throw new IOException("Unsupported Opus mapping family " + family + " with " + channels + " channels");
+        var config = wem.format().channelConfig();
+        var isStandard = config.type() == AkChannelConfigType.STANDARD;
+        if (family == 0 ? channels > 2 : family != 1 || !isStandard || config.channelMask() != familyOneMask(channels)) {
+            throw new IOException(String.format(
+                "Unsupported Opus mapping family %s with %s channels (%s)",
+                family, channels, config
+            ));
         }
 
         var out = new ByteArrayOutputStream();
@@ -96,7 +114,7 @@ public final class WwiseOpusConverter implements AudioConverter {
 
         var head = ByteBuffer.allocate(size)
             .order(ByteOrder.LITTLE_ENDIAN)
-            .putLong(OPUS_HEAD)
+            .put(OPUS_HEAD)
             .put((byte) 1)
             .put((byte) format.channels())
             .putShort(opusHeader.preSkip())
@@ -120,7 +138,7 @@ public final class WwiseOpusConverter implements AudioConverter {
 
         var tags = ByteBuffer.allocate(8 + 4 + vendor.length + 4 + 4 + comment.length)
             .order(ByteOrder.LITTLE_ENDIAN)
-            .putLong(OPUS_TAGS)
+            .put(OPUS_TAGS)
             .putInt(vendor.length)
             .put(vendor)
             .putInt(1)

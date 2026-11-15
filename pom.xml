@@ -198,6 +198,16 @@
             </dependency>
             <dependency>
                 <groupId>be.twofold</groupId>
+                <artifactId>tinyaudio-opus</artifactId>
+                <version>0.1-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>be.twofold</groupId>
+                <artifactId>tinyaudio-vorbis</artifactId>
+                <version>0.1-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>be.twofold</groupId>
                 <artifactId>tinybcdec</artifactId>
                 <version>2.0</version>
             </dependency>
