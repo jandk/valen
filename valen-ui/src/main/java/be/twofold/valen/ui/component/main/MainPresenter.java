@@ -3,6 +3,7 @@ package be.twofold.valen.ui.component.main;
 import backbonefx.di.*;
 import backbonefx.event.*;
 import be.twofold.valen.core.game.*;
+import be.twofold.valen.core.util.*;
 import be.twofold.valen.ui.*;
 import be.twofold.valen.ui.common.*;
 import be.twofold.valen.ui.common.settings.*;
@@ -143,7 +144,9 @@ public final class MainPresenter extends AbstractPresenter<MainView> implements 
         try {
             var type = previewType(asset);
             var assetData = loader.load(asset.id(), type.type());
-            var metadata = loader.loadMetadata(asset.id()).orElse(null);
+            Meta.Node metadata = type != AssetType.RAW
+                ? loader.loadMetadata(asset.id()).orElse(null)
+                : null;
             if (isStale(seq)) {
                 return;
             }
