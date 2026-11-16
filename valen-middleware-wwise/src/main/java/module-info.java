@@ -10,8 +10,10 @@ module valen.middleware.wwise {
     exports be.twofold.valen.middleware.wwise.wem;
 
     provides be.twofold.valen.core.audio.AudioConverter with
-        be.twofold.valen.middleware.wwise.converter.WwiseImaConverter,
         be.twofold.valen.middleware.wwise.converter.WwiseOpusConverter,
-        be.twofold.valen.middleware.wwise.converter.WwisePtAdpcmConverter,
         be.twofold.valen.middleware.wwise.converter.WwiseVorbisConverter;
+
+    provides be.twofold.valen.core.audio.AudioDecoder with
+        be.twofold.valen.middleware.wwise.decoder.WwiseImaDecoder,
+        be.twofold.valen.middleware.wwise.decoder.WwisePtAdpcmDecoder;
 }

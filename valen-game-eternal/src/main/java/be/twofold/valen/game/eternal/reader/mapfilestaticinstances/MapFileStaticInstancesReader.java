@@ -5,17 +5,16 @@ import be.twofold.valen.core.geometry.*;
 import be.twofold.valen.core.scene.*;
 import be.twofold.valen.core.util.*;
 import be.twofold.valen.game.eternal.*;
-import be.twofold.valen.game.eternal.resource.*;
+import be.twofold.valen.game.idtech.game.*;
 import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
-import java.lang.invoke.*;
 import java.util.*;
 
 public final class MapFileStaticInstancesReader implements AssetReader.Binary<Scene, EternalAsset> {
     @Override
     public boolean canRead(EternalAsset asset) {
-        return asset.id().type() == ResourceType.StaticInstances;
+        return asset.id().type() == ResourceType.of("staticInstances");
     }
 
     @Override
@@ -44,7 +43,7 @@ public final class MapFileStaticInstancesReader implements AssetReader.Binary<Sc
     */
 
     private Optional<Instance> mapToInstance(String modelName, String instanceName, MapFileStaticInstancesModelGeometry geometry, LoadingContext context) {
-        var resourceKey = EternalAssetID.from(modelName, ResourceType.Model);
+        var resourceKey = EternalAssetID.from(modelName, ResourceType.of("model"));
         if (!context.exists(resourceKey)) {
             return Optional.empty();
         }

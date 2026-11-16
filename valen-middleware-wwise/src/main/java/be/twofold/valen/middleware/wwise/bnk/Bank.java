@@ -33,9 +33,7 @@ public record Bank(
                 default -> source.skip(chunk.size());
             }
 
-            if (source.position() != end) {
-                throw new IOException("Chunk not fully read");
-            }
+            source.expectPosition(end);
         }
 
         if (header == null) {

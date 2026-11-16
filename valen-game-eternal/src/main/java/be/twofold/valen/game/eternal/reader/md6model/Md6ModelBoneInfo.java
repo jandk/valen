@@ -17,9 +17,7 @@ public record Md6ModelBoneInfo(
         source.expectInt(5); // numLods
         var maxLodDeviations = source.readFloats(5);
         source.expectInt(0); // numBlendShapeNames
-        for (int i = 0; i < 9; i++) {
-            source.expectInt(0); // padding
-        }
+        source.expectZeros(36); // padding
 
         return new Md6ModelBoneInfo(
             jointRemap,

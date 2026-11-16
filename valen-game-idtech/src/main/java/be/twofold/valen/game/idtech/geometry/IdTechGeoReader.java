@@ -81,7 +81,7 @@ public final class IdTechGeoReader {
     public static AttributeReader<Shorts.Mutable> readBone1() {
         return (source, target, offset) -> {
             source.skip(3);
-            target.set(offset, (short) Byte.toUnsignedInt(source.readByte()));
+            target.set(offset, (short) source.readUnsignedByte());
         };
     }
 

@@ -14,7 +14,7 @@ import java.nio.charset.*;
 import java.util.*;
 import java.util.regex.*;
 
-public abstract class AbstractDeclReader<K extends IdclAssetID<?, ?>, V extends IdclAsset<K>> implements AssetReader.Binary<JsonObject, V> {
+public abstract class AbstractDeclReader<K extends IdclAssetID<?>, V extends IdclAsset<K>> implements AssetReader.Binary<JsonObject, V> {
     private static final Logger log = LoggerFactory.getLogger(AbstractDeclReader.class);
     private static final Pattern ItemPattern = Pattern.compile("^\\w+\\[(\\d+)]$");
     private static final CharsetDecoder Utf8Decoder = StandardCharsets.UTF_8.newDecoder();

@@ -5,7 +5,7 @@ import wtf.reversed.toolbox.util.*;
 
 import java.util.*;
 
-public abstract class IdclAsset<I extends IdclAssetID<?, ?>> implements Asset {
+public abstract class IdclAsset<I extends IdclAssetID<?>> implements Asset {
     private final I id;
     private final Location location;
     private final long hash;
@@ -49,7 +49,7 @@ public abstract class IdclAsset<I extends IdclAssetID<?, ?>> implements Asset {
 
     @Override
     public String exportName() {
-        if (id.type().value().equals("image")) {
+        if (id.type().equals(ResourceType.of("image"))) {
             return id.hashedBaseName();
         }
         return id.path().baseName();

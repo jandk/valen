@@ -14,16 +14,12 @@ public record HavokShape(
 ) {
     public static HavokShape read(BinarySource source) throws IOException {
         var infos = source.readObjects(source.readInt(), HavokShapeInfo::read);
-        var names = source.readObjects(source.readInt(), bb -> readFixedString(bb, 1024));
+        var names = source.readObjects(source.readInt(), bb -> bb.readCString(1024));
         var data = source.readBytes(source.readInt());
 
         source.expectEnd();
 
         return new HavokShape(infos, names, data);
-    }
-
-    private static String readFixedString(BinarySource source, int length) throws IOException {
-        return source.readString(length).trim();
     }
 
     public static void main(String[] args) throws IOException {

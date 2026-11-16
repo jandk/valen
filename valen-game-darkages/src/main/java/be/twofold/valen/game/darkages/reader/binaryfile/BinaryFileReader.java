@@ -2,7 +2,7 @@ package be.twofold.valen.game.darkages.reader.binaryfile;
 
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.game.darkages.*;
-import be.twofold.valen.game.darkages.reader.resources.*;
+import be.twofold.valen.game.idtech.game.*;
 import wtf.reversed.toolbox.collect.*;
 import wtf.reversed.toolbox.io.*;
 
@@ -15,7 +15,7 @@ import java.util.*;
 public final class BinaryFileReader implements AssetReader.Binary<Bytes, DarkAgesAsset> {
     @Override
     public boolean canRead(DarkAgesAsset asset) {
-        return asset.id().type() == ResourcesType.BinaryFile;
+        return asset.id().type() == ResourceType.of("binaryFile");
     }
 
     @Override

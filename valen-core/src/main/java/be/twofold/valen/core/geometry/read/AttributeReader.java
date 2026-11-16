@@ -24,14 +24,14 @@ public interface AttributeReader<T> {
 
     static AttributeReader<Ints.Mutable> readShortAsInts() {
         return (source, target, offset) -> {
-            target.set(offset, Short.toUnsignedInt(source.readShort()));
+            target.set(offset, source.readUnsignedShort());
         };
     }
 
     static AttributeReader<Shorts.Mutable> copyBytesAsShorts(int n) {
         return (source, target, offset) -> {
             for (int i = 0; i < n; i++) {
-                target.set(offset + i, (short) Byte.toUnsignedInt(source.readByte()));
+                target.set(offset + i, (short) source.readUnsignedByte());
             }
         };
     }

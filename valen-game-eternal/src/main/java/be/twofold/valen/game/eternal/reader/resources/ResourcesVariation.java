@@ -52,7 +52,7 @@ public enum ResourcesVariation implements ValueEnum<Integer> {
     }
 
     public static ResourcesVariation read(BinarySource source) throws IOException {
-        return ValueEnum.fromValue(ResourcesVariation.class, Short.toUnsignedInt(source.readShort()));
+        return ValueEnum.fromValue(ResourcesVariation.class, source.readUnsignedShort());
     }
 
     @Override

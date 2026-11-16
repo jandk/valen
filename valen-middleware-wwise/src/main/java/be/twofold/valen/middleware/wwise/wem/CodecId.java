@@ -1,9 +1,6 @@
 package be.twofold.valen.middleware.wwise.wem;
 
-import wtf.reversed.toolbox.io.*;
 import wtf.reversed.toolbox.util.*;
-
-import java.io.*;
 
 public enum CodecId implements ValueEnum<Short> {
     PCM(0x0001),
@@ -21,8 +18,7 @@ public enum CodecId implements ValueEnum<Short> {
         this.value = (short) value;
     }
 
-    public static CodecId read(BinarySource source) throws IOException {
-        short value = source.readShort();
+    public static CodecId fromValue(short value) {
         return ValueEnum.fromValue(CodecId.class, value);
     }
 

@@ -2,7 +2,6 @@ package be.twofold.valen.game.greatcircle.reader.decl.material2;
 
 import be.twofold.valen.game.greatcircle.*;
 import be.twofold.valen.game.greatcircle.reader.decl.*;
-import be.twofold.valen.game.greatcircle.resource.ResourceType;
 import be.twofold.valen.game.idtech.game.*;
 import be.twofold.valen.game.idtech.reader.decl.material2.*;
 
@@ -13,7 +12,7 @@ public final class MaterialReader extends AbstractMaterialReader<GreatCircleAsse
 
     @Override
     public boolean canRead(GreatCircleAsset asset) {
-        return asset.id().type() == ResourceType.material2;
+        return asset.id().type() == ResourceType.of("material2");
     }
 
     @Override
@@ -23,11 +22,11 @@ public final class MaterialReader extends AbstractMaterialReader<GreatCircleAsse
 
     @Override
     public GreatCircleAssetID imageAssetID(String name) {
-        return GreatCircleAssetID.from(name, ResourceType.image);
+        return GreatCircleAssetID.from(name, ResourceType.of("image"));
     }
 
     @Override
     public GreatCircleAssetID renderParmAssetID(String name) {
-        return GreatCircleAssetID.from(name, ResourceType.renderparm);
+        return GreatCircleAssetID.from(name, ResourceType.of("renderparm"));
     }
 }

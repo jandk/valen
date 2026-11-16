@@ -5,7 +5,7 @@ import be.twofold.valen.core.texture.*;
 import be.twofold.valen.core.texture.shader.node.*;
 import be.twofold.valen.core.util.*;
 import be.twofold.valen.game.eternal.*;
-import be.twofold.valen.game.eternal.resource.*;
+import be.twofold.valen.game.idtech.game.*;
 import be.twofold.valen.game.idtech.reader.image.*;
 import be.twofold.valen.game.idtech.reader.image.TextureFormat;
 import wtf.reversed.toolbox.collect.*;
@@ -25,7 +25,7 @@ public final class ImageReader implements AssetReader.Binary<Texture, EternalAss
 
     @Override
     public boolean canRead(EternalAsset asset) {
-        return asset.id().type() == ResourceType.Image;
+        return asset.id().type() == ResourceType.of("image");
     }
 
     @Override

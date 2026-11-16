@@ -4,12 +4,13 @@ import be.twofold.valen.core.geometry.*;
 import be.twofold.valen.core.geometry.read.*;
 import wtf.reversed.toolbox.io.*;
 
+import java.io.*;
 import java.util.*;
 import java.util.stream.*;
 
 public final class GeometryReader {
 
-    public static Mesh readEmbeddedMesh(BinarySource source, LodInfo lodInfo) {
+    public static Mesh readEmbeddedMesh(BinarySource source, LodInfo lodInfo) throws IOException {
         var masks = GeometryVertexMask.FixedOrder.stream()
             .filter(mask -> (lodInfo.vertexMask() & mask.mask()) == mask.mask())
             .toList();
@@ -32,9 +33,8 @@ public final class GeometryReader {
         // Accessor offsets are absolute, and embedded geometry starts wherever the header left
         // off, so hand the reader a slice that begins at the vertex data.
         var length = offset + lodInfo.numFaces() * 3L * Short.BYTES;
-        var mesh = new MeshReader(true).readMesh(source.slice(source.position(), length), builder.build());
-        source.skip(length);
-        return mesh;
+        return new MeshReader(true)
+            .readMesh(source.readSlice(length), builder.build());
     }
 
     public static List<Mesh> readStreamedMesh(

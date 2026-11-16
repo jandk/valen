@@ -10,16 +10,17 @@ import java.util.*;
  *
  * @param codec      The codec specifying the audio decoding method.
  * @param sampleRate The number of samples of audio carried per second, expressed in Hz. Must be positive.
- * @param channels   The number of audio channels (e.g., 1 for mono, 2 for stereo). Must be positive.
+ * @param channels   The speaker of each channel, in the order the channels appear in the data. Must not be empty.
  * @param frameCount The total number of audio frames in the data. Must be non-negative.
  * @param data       The raw binary data of the audio stream. Cannot be null.
  */
 public record Audio(
     AudioCodec codec,
     int sampleRate,
-    List<Channel> channels,
+    List<AudioChannel> channels,
     int frameCount,
-    Bytes data
+    Bytes data,
+    AudioCodecInfo info
 ) {
     public Audio {
         Check.nonNull(codec, "codec");
@@ -27,6 +28,10 @@ public record Audio(
         Check.positive(channels.size(), "channels is empty");
         Check.positiveOrZero(frameCount, "frameCount");
         Check.nonNull(data, "data");
+    }
+
+    public Audio(AudioCodec codec, int sampleRate, List<AudioChannel> channels, int frameCount, Bytes data) {
+        this(codec, sampleRate, channels, frameCount, data, new AudioCodecInfo.None());
     }
 
     public float duration() {

@@ -2,7 +2,7 @@ package be.twofold.valen.game.eternal;
 
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.game.eternal.reader.resources.*;
-import be.twofold.valen.game.eternal.resource.*;
+import be.twofold.valen.game.idtech.game.*;
 import be.twofold.valen.game.idtech.reader.mask.*;
 import org.slf4j.*;
 import wtf.reversed.toolbox.io.*;
@@ -49,7 +49,7 @@ record ResourcesIndex(
         var name = getString(resources, entry, 1);
         var type = getString(resources, entry, 0);
 
-        var resourceType = ResourceType.fromValue(type);
+        var resourceType = ResourceType.of(type);
         var resourceKey = new EternalAssetID(name, resourceType, entry.variation());
 
         var location = new Location.FileSlice(

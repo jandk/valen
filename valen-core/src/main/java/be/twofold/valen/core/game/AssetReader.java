@@ -66,7 +66,7 @@ public interface AssetReader<R, A extends Asset> {
 
         @Override
         public Bytes read(BinarySource source, Asset asset, LoadingContext context) throws IOException {
-            return source.readBytes(Math.toIntExact(source.remaining()));
+            return source.readRemaining();
         }
     }
 
