@@ -7,7 +7,7 @@ import wtf.reversed.toolbox.math.*;
 import java.util.*;
 
 public record Waveform(
-    int channels,
+    List<AudioChannel> channels,
     int buckets,
     int frames,
     int sampleRate,
@@ -71,7 +71,7 @@ public record Waveform(
         }
 
         return new Waveform(
-            numChannels,
+            audio.channels(),
             numBuckets,
             frames,
             audio.sampleRate(),
