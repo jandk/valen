@@ -1,6 +1,7 @@
 package be.twofold.valen.game.greatcircle.reader.packagemapspec;
 
 import com.google.gson.annotations.*;
+import wtf.reversed.toolbox.util.*;
 
 import java.util.*;
 
@@ -12,6 +13,6 @@ public record SpecMap(
     public SpecMap {
         containerRefs = List.copyOf(containerRefs);
         fileRefs = List.copyOf(fileRefs);
-        Objects.requireNonNull(name);
+        Check.nonNull(name, "name");
     }
 }

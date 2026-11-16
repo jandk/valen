@@ -26,7 +26,7 @@ public record DeformModelLod(
     List<Entry> entries
 ) implements LodInfo {
     public DeformModelLod {
-        Check.argument(numIndices % 3 == 0, "numIndices must be a multiple of 3");
+        Check.multipleOf(numIndices, 3, "numIndices");
     }
 
     public static DeformModelLod read(BinarySource source) throws IOException {

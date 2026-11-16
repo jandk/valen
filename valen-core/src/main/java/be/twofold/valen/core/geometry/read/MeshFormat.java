@@ -18,8 +18,8 @@ public record MeshFormat(
     Map<Semantic, Accessor<?>> accessors
 ) {
     public MeshFormat {
-        Check.positiveOrZero(indexCount, "indexCount");
-        Check.positiveOrZero(vertexCount, "vertexCount");
+        Check.nonNegative(indexCount, "indexCount");
+        Check.nonNegative(vertexCount, "vertexCount");
         Check.nonNull(indices, "indices");
         accessors = Collections.unmodifiableMap(new LinkedHashMap<>(accessors));
     }
@@ -35,8 +35,8 @@ public record MeshFormat(
         private final Map<Semantic, Accessor<?>> accessors = new LinkedHashMap<>();
 
         private Builder(int indexCount, int vertexCount) {
-            this.indexCount = Check.positiveOrZero(indexCount, "indexCount");
-            this.vertexCount = Check.positiveOrZero(vertexCount, "vertexCount");
+            this.indexCount = Check.nonNegative(indexCount, "indexCount");
+            this.vertexCount = Check.nonNegative(vertexCount, "vertexCount");
         }
 
         public Builder indices(int offset, int stride, AttributeReader<Ints.Mutable> reader) {

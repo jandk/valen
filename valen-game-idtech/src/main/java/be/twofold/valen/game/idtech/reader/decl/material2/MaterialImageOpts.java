@@ -23,11 +23,11 @@ public record MaterialImageOpts(
     public MaterialImageOpts {
         Check.nonNull(type, "type");
         Check.nonNull(format, "format");
-        Check.argument(atlasPadding >= 0 && atlasPadding <= 16, () -> "Invalid atlasPadding: " + atlasPadding);
+        Check.between(atlasPadding, 0, 16, "atlasPadding");
         Check.argument(minMip >= -1, () -> "Invalid minMip: " + minMip);
-        Check.positiveOrZero(width3D, "width3D");
-        Check.positiveOrZero(height3D, "height3D");
-        Check.positiveOrZero(depth3D, "depth3D");
+        Check.nonNegative(width3D, "width3D");
+        Check.nonNegative(height3D, "height3D");
+        Check.nonNegative(depth3D, "depth3D");
         Check.argument(!(fftBloom && prefilterMips), "fftBloom and prefilterMips can't both be set");
     }
 

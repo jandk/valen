@@ -2,6 +2,7 @@ package be.twofold.valen.game.greatcircle.reader.packagemapspec;
 
 import com.google.gson.*;
 import com.google.gson.annotations.*;
+import wtf.reversed.toolbox.util.*;
 
 import java.io.*;
 import java.nio.file.*;
@@ -27,7 +28,7 @@ public record PackageMapSpec(
         containers = List.copyOf(containers);
         files = List.copyOf(files);
         maps = List.copyOf(maps);
-        Objects.requireNonNull(project);
+        Check.nonNull(project, "project");
         textLanguages = List.copyOf(textLanguages);
         voLanguages = List.copyOf(voLanguages);
     }

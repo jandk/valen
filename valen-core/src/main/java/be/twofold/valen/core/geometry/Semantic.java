@@ -25,13 +25,13 @@ public sealed interface Semantic {
 
     record TexCoord(int set) implements Semantic {
         public TexCoord {
-            Check.positiveOrZero(set, "set");
+            Check.nonNegative(set, "set");
         }
     }
 
     record Color(int set) implements Semantic {
         public Color {
-            Check.positiveOrZero(set, "set");
+            Check.nonNegative(set, "set");
         }
     }
 

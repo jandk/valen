@@ -25,8 +25,8 @@ public record Audio(
     public Audio {
         Check.nonNull(codec, "codec");
         Check.positive(sampleRate, "sampleRate");
-        Check.positive(channels.size(), "channels is empty");
-        Check.positiveOrZero(frameCount, "frameCount");
+        Check.nonEmpty(channels, "channels");
+        Check.nonNegative(frameCount, "frameCount");
         Check.nonNull(data, "data");
     }
 

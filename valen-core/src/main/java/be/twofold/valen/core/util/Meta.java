@@ -1,6 +1,7 @@
 package be.twofold.valen.core.util;
 
 import wtf.reversed.toolbox.math.*;
+import wtf.reversed.toolbox.util.*;
 
 import java.lang.invoke.*;
 import java.lang.reflect.*;
@@ -48,8 +49,8 @@ public interface Meta {
         Node node
     ) {
         public Item {
-            Objects.requireNonNull(name);
-            Objects.requireNonNull(node);
+            Check.nonNull(name, "name");
+            Check.nonNull(node, "node");
         }
     }
 
@@ -61,7 +62,7 @@ public interface Meta {
         List<Item> fields
     ) implements Node {
         public Struct {
-            Objects.requireNonNull(typeName);
+            Check.nonNull(typeName, "typeName");
             fields = List.copyOf(fields);
         }
     }

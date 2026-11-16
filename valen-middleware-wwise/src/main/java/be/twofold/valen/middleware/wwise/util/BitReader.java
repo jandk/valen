@@ -4,7 +4,6 @@ import wtf.reversed.toolbox.util.*;
 
 import java.lang.invoke.*;
 import java.nio.*;
-import java.util.*;
 
 /**
  * Reads variable-width bit fields from a {@code byte[]}. Supports both little and big endian bit readers.
@@ -26,11 +25,11 @@ public final class BitReader {
     }
 
     public BitReader(byte[] source, int offset, int length, ByteOrder order) {
-        Objects.checkFromIndexSize(offset, length, source.length);
+        Check.fromIndexSize(offset, length, source.length);
         this.source = source;
         this.offset = offset;
         this.end = offset + length;
-        this.bigEndian = Objects.requireNonNull(order) == ByteOrder.BIG_ENDIAN;
+        this.bigEndian = Check.nonNull(order, "order") == ByteOrder.BIG_ENDIAN;
         this.position = offset;
     }
 
@@ -70,9 +69,7 @@ public final class BitReader {
      * @param count number of bits to read, in {@code [0, 32]}
      */
     public int read(int count) {
-        if (count < 0 || count > 32) {
-            throw new IllegalArgumentException("count must be between 0 and 32 inclusive");
-        }
+        Check.between(count, 0, 32, "count");
         return (int) readLong(count);
     }
 
@@ -82,9 +79,7 @@ public final class BitReader {
      * @param count number of bits to read, in {@code [0, 57]}
      */
     public long readLong(int count) {
-        if (count < 0 || count > 57) {
-            throw new IllegalArgumentException("count must be between 0 and 57 inclusive");
-        }
+        Check.between(count, 0, 57, "count");
         refill(count);
         long result = peekBits(count);
         consume(count);
@@ -104,9 +99,7 @@ public final class BitReader {
      * @param count number of bits to peek, in {@code [0, 32]}
      */
     public int peek(int count) {
-        if (count < 0 || count > 32) {
-            throw new IllegalArgumentException("count must be between 0 and 32 inclusive");
-        }
+        Check.between(count, 0, 32, "count");
         return (int) peekLong(count);
     }
 
@@ -116,9 +109,7 @@ public final class BitReader {
      * @param count number of bits to peek, in {@code [0, 57]}
      */
     public long peekLong(int count) {
-        if (count < 0 || count > 57) {
-            throw new IllegalArgumentException("count must be between 0 and 57 inclusive");
-        }
+        Check.between(count, 0, 57, "count");
         refill(count);
         return peekBits(count);
     }
@@ -131,9 +122,7 @@ public final class BitReader {
      * @param count number of bits to skip, in {@code [0, 57]}
      */
     public void skip(int count) {
-        if (count < 0 || count > 57) {
-            throw new IllegalArgumentException("count must be between 0 and 57 inclusive");
-        }
+        Check.between(count, 0, 57, "count");
         refill(count);
         consume(count);
     }

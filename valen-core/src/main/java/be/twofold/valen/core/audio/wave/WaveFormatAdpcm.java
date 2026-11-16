@@ -18,9 +18,8 @@ public record WaveFormatAdpcm(
 
     public WaveFormatAdpcm {
         Check.nonNull(coef, "coef");
-        if (coef.length() != numCoef * 2) {
-            throw new IllegalArgumentException("numCoef (" + numCoef + ") doesn't match coef length (" + coef.length() + ")");
-        }
+        Check.argument(coef.length() == numCoef * 2,
+            () -> "numCoef (" + numCoef + ") doesn't match coef length (" + coef.length() + ")");
         if (!Arrays.equals(coef.toArray(), STANDARD_COEFFICIENTS)) {
             throw new UnsupportedOperationException("Unsupported MS ADPCM coefficients, only the standard set is supported");
         }

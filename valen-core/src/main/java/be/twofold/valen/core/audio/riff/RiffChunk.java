@@ -51,7 +51,7 @@ sealed public interface RiffChunk
         public Data {
             Check.nonNull(id, "id");
             Check.nonNull(payload, "payload");
-            Check.positiveOrZero(declaredSize, "declaredSize");
+            Check.nonNegative(declaredSize, "declaredSize");
         }
 
         public Data(FourCC id, Bytes payload) {

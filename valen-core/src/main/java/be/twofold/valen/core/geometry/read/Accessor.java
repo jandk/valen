@@ -17,8 +17,8 @@ public record Accessor<T extends Slice>(
     AttributeLayout<T> layout
 ) {
     public Accessor {
-        Check.positiveOrZero(offset, "offset");
-        Check.positiveOrZero(stride, "stride");
+        Check.nonNegative(offset, "offset");
+        Check.nonNegative(stride, "stride");
         Check.nonNull(reader, "reader");
         Check.nonNull(layout, "layout");
     }

@@ -64,7 +64,7 @@ public final class Shader {
     }
 
     public Surface execute(SourceNode.Bind... binds) {
-        Check.argument(binds.length > 0, "At least one binding is required");
+        Check.nonEmpty(binds, "binds");
         var first = binds[0].surface();
         for (int i = 1; i < binds.length; i++) {
             var s = binds[i].surface();

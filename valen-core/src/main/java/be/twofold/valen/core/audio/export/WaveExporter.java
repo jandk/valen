@@ -5,6 +5,7 @@ import be.twofold.valen.core.audio.riff.*;
 import be.twofold.valen.core.export.*;
 import be.twofold.valen.core.util.*;
 import wtf.reversed.toolbox.collect.*;
+import wtf.reversed.toolbox.util.*;
 
 import java.io.*;
 import java.nio.charset.*;
@@ -36,9 +37,7 @@ public final class WaveExporter implements Exporter<Audio> {
     @Override
     public void export(Audio value, OutputStream out) throws IOException {
         var pcmAudio = AudioDecoder.toPcm(value);
-        if (pcmAudio.isEmpty()) {
-            throw new IllegalArgumentException("Unsupported audio format");
-        }
+        Check.argument(pcmAudio.isPresent(), "Unsupported audio format");
 
         Bytes fmt = buildFormat(pcmAudio.get());
         Bytes pcm = pcmAudio.get().data();

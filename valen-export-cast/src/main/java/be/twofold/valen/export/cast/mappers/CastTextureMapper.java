@@ -4,6 +4,7 @@ import be.twofold.tinycast.*;
 import be.twofold.valen.core.export.*;
 import be.twofold.valen.core.material.*;
 import be.twofold.valen.core.texture.*;
+import wtf.reversed.toolbox.util.*;
 
 import java.io.*;
 import java.nio.file.*;
@@ -17,8 +18,8 @@ public final class CastTextureMapper {
     private final Path imagePath;
 
     public CastTextureMapper(Path castPath, Path imagePath) {
-        this.castPath = Objects.requireNonNull(castPath);
-        this.imagePath = Objects.requireNonNull(imagePath);
+        this.castPath = Check.nonNull(castPath, "castPath");
+        this.imagePath = Check.nonNull(imagePath, "imagePath");
         pngExporter.setProperty("reconstructZ", true);
     }
 

@@ -59,8 +59,7 @@ public record WaveFormat(
             "bitsPerSample must be less than or equal to bytesPerSample * 8");
         Check.argument(avgBytesPerSec == blockAlign * samplesPerSec,
             "avgBytesPerSec must be equal to blockAlign * samplesPerSec");
-        Check.argument(bitsPerSample % 8 == 0,
-            "bitsPerSample must be a multiple of 8");
+        Check.multipleOf(bitsPerSample, 8, "bitsPerSample");
         Check.argument(bitsPerSample != 0,
             "bitsPerSample must be non-zero");
     }

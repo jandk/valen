@@ -13,7 +13,7 @@ public record ChunkHeader(
 
     public ChunkHeader {
         Check.nonNull(tag, "tag");
-        Check.positiveOrZero(size, "size");
+        Check.nonNegative(size, "size");
     }
 
     public static ChunkHeader read(BinarySource source) throws IOException {

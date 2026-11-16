@@ -1,5 +1,7 @@
 package be.twofold.valen.middleware.wwise.util;
 
+import wtf.reversed.toolbox.util.*;
+
 import java.nio.*;
 import java.util.*;
 
@@ -15,7 +17,7 @@ public final class BitWriter {
 
     public BitWriter(ByteOrder order) {
         this.buffer = new byte[1024];
-        this.bigEndian = Objects.requireNonNull(order) == ByteOrder.BIG_ENDIAN;
+        this.bigEndian = Check.nonNull(order, "order") == ByteOrder.BIG_ENDIAN;
     }
 
     public int bitsWritten() {
@@ -23,16 +25,12 @@ public final class BitWriter {
     }
 
     public void write(int count, int value) {
-        if (count < 0 || count > 32) {
-            throw new IllegalArgumentException("count must be between 0 and 32 inclusive");
-        }
+        Check.between(count, 0, 32, "count");
         write(count, (long) value);
     }
 
     public void write(int count, long value) {
-        if (count < 0 || count > 57) {
-            throw new IllegalArgumentException("count must be between 0 and 57 inclusive");
-        }
+        Check.between(count, 0, 57, "count");
         drain(count);
         pokeBits(count, value);
         advance(count);

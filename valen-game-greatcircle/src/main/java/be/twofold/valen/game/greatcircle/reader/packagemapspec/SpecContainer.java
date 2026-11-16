@@ -1,8 +1,7 @@
 package be.twofold.valen.game.greatcircle.reader.packagemapspec;
 
 import com.google.gson.annotations.*;
-
-import java.util.*;
+import wtf.reversed.toolbox.util.*;
 
 public record SpecContainer(
     @SerializedName("basename") String basename,
@@ -14,8 +13,8 @@ public record SpecContainer(
     @SerializedName("type") String type
 ) {
     public SpecContainer {
-        Objects.requireNonNull(basename);
-        Objects.requireNonNull(debugName);
-        Objects.requireNonNull(type);
+        Check.nonNull(basename, "basename");
+        Check.nonNull(debugName, "debugName");
+        Check.nonNull(type, "type");
     }
 }
