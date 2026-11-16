@@ -35,9 +35,9 @@ public record VtfHeader(
         var flags = VtfFlags.fromValue(source.readInt());
         var frames = source.readShort();
         var firstFrame = source.readShort();
-        source.expectZeros(4);
+        source.skip(4);
         var reflectivity = Vector3.read(source);
-        source.expectZeros(4);
+        source.skip(4);
         var bumpmapScale = source.readFloat();
         var highResImageFormat = VtfImageFormat.read(source);
         var mipmapCount = source.readByte();
