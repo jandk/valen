@@ -1,7 +1,7 @@
 package be.twofold.valen.core.game;
 
-import be.twofold.valen.core.util.*;
 import org.slf4j.*;
+import wtf.reversed.toolbox.util.*;
 
 import java.net.*;
 import java.net.http.*;

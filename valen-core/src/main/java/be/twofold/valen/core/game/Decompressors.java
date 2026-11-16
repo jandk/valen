@@ -1,8 +1,8 @@
 package be.twofold.valen.core.game;
 
-import be.twofold.valen.core.util.*;
 import org.slf4j.*;
 import wtf.reversed.toolbox.compress.*;
+import wtf.reversed.toolbox.util.*;
 
 import java.nio.file.*;
 
