@@ -8,6 +8,16 @@ import java.util.*;
 
 public final class DarkAgesGameFactory implements GameFactory<DarkAgesGame> {
     @Override
+    public String displayName() {
+        return "DOOM: The Dark Ages";
+    }
+
+    @Override
+    public int steamAppId() {
+        return 3017860;
+    }
+
+    @Override
     public Set<String> executableNames() {
         return Set.of("DOOMTheDarkAges.exe");
     }

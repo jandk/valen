@@ -15,6 +15,7 @@ import javafx.concurrent.*;
 import org.slf4j.*;
 
 import java.io.*;
+import java.nio.file.*;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.*;
@@ -69,6 +70,13 @@ public final class MainPresenter extends AbstractPresenter<MainView> implements 
         exportService.stateProperty().addListener((_, _, newValue) -> {
             getView().setExporting(newValue == Worker.State.RUNNING);
         });
+
+        detectGames();
+    }
+
+    @Override
+    public void onGameSelected(Path executable) {
+        eventBus.publish(new MainEvent.GameSelected(executable));
     }
 
     @Override
@@ -106,6 +114,41 @@ public final class MainPresenter extends AbstractPresenter<MainView> implements 
         updateFileList();
     }
 
+    public void setGame(Game game, GameEntry entry) {
+        this.game = game;
+        getView().setCurrentGame(entry);
+        loader = null;
+        resetSelection();
+        updateFileList();
+        getView().setArchives(game.archiveNames().stream().sorted().toList());
+    }
+
+    public void focusOnSearch() {
+        getView().focusOnSearch();
+    }
+
+    private void resetSelection() {
+        lastAsset = null;
+        cancelPreviewLoad();
+        getView().clearPreview();
+    }
+
+    private void detectGames() {
+        CompletableFuture
+            .supplyAsync(() -> {
+                try {
+                    return GameFactory.detectInstalled();
+                } catch (IOException e) {
+                    throw new UncheckedIOException(e);
+                }
+            })
+            .exceptionally(e -> {
+                log.warn("Could not scan Steam libraries", e);
+                return List.of();
+            })
+            .thenAccept(games -> getView().setGames(games));
+    }
+
     private void selectArchive(String archiveName) {
         if (game == null) {
             return;
@@ -113,8 +156,8 @@ public final class MainPresenter extends AbstractPresenter<MainView> implements 
         try {
             // This cast is safe here, we don't care about the actual types
             loader = game.open(archiveName);
-            cancelPreviewLoad();
             updateFileList();
+            resetSelection();
         } catch (IOException e) {
             log.error("Could not load archive {}", archiveName, e);
             FxUtils.showExceptionDialog(e, "Could not load archive " + archiveName);
@@ -247,14 +290,5 @@ public final class MainPresenter extends AbstractPresenter<MainView> implements 
         return predicates.stream()
             .reduce(Predicate::and)
             .orElse(_ -> true);
-    }
-
-    public void setGame(Game game) {
-        this.game = game;
-        getView().setArchives(game.archiveNames().stream().sorted().toList());
-    }
-
-    public void focusOnSearch() {
-        getView().focusOnSearch();
     }
 }

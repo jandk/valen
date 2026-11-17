@@ -72,6 +72,10 @@ public final class PreviewTabPane extends TabPane {
         selectFirstEnabled();
     }
 
+    public void clear() {
+        display(new PreviewData(null, null, null, null));
+    }
+
     private void showRenderer(Viewer renderer, Object payload) {
         for (var other : renderers) {
             if (other != renderer) {

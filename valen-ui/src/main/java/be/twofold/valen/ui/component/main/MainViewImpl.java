@@ -28,6 +28,9 @@ public final class MainViewImpl extends AbstractView<MainView.Listener> implemen
     private final ToggleButton previewButton = new ToggleButton("Preview");
     private final ToggleButton settingsButton = new ToggleButton("Settings");
 
+    private final MenuButton gameButton = new MenuButton("Load Game");
+    private final ToggleGroup gameGroup = new ToggleGroup();
+    private GameEntry currentGame;
     private final ComboBox<String> archiveChooser = new ComboBox<>();
     private final TextField searchTextField = new TextField();
 
@@ -36,12 +39,12 @@ public final class MainViewImpl extends AbstractView<MainView.Listener> implemen
     private final StackPane previewVeil = new StackPane(previewSpinner);
     private final PauseTransition spinnerDelay = new PauseTransition(Duration.millis(200));
 
-    private final PreviewTabPane tabPane;
+    private final PreviewTabPane previewTabPane;
     private final SettingsPresenter settingsPresenter;
 
     @Inject
-    MainViewImpl(PreviewTabPane tabPane, Feather feather) {
-        this.tabPane = tabPane;
+    MainViewImpl(PreviewTabPane previewTabPane, Feather feather) {
+        this.previewTabPane = previewTabPane;
         this.settingsPresenter = feather.instance(SettingsPresenter.class);
 
         buildUI();
@@ -62,7 +65,52 @@ public final class MainViewImpl extends AbstractView<MainView.Listener> implemen
     }
 
     @Override
+    public void setGames(List<GameEntry> games) {
+        FxUtils.runOnFxThread(() -> {
+            var items = new ArrayList<MenuItem>();
+            for (var game : games) {
+                var item = new RadioMenuItem(game.name());
+                item.setToggleGroup(gameGroup);
+                item.setUserData(game.executable());
+                item.setOnAction(_ -> {
+                    showCurrentGame();
+                    getListener().onGameSelected(game.executable());
+                });
+                items.add(item);
+            }
+            if (!items.isEmpty()) {
+                items.add(new SeparatorMenuItem());
+            }
+            var browse = new MenuItem("Browse for executable...");
+            browse.setOnAction(_ -> getListener().onLoadGameClicked());
+            items.add(browse);
+            gameButton.getItems().setAll(items);
+            showCurrentGame();
+        });
+    }
+
+    @Override
+    public void setCurrentGame(GameEntry game) {
+        FxUtils.runOnFxThread(() -> {
+            currentGame = game;
+            showCurrentGame();
+        });
+    }
+
+    private void showCurrentGame() {
+        gameButton.setText(currentGame != null ? currentGame.name() : "Load Game");
+
+        var executable = currentGame != null ? currentGame.executable() : null;
+        var toggle = gameGroup.getToggles().stream()
+            .filter(t -> t.getUserData().equals(executable))
+            .findFirst()
+            .orElse(null);
+        gameGroup.selectToggle(toggle);
+    }
+
+    @Override
     public void setArchives(List<String> archives) {
+        archiveChooser.getSelectionModel().clearSelection();
         archiveChooser.getItems().setAll(archives);
         // archiveChooser.getSelectionModel().select(0);
     }
@@ -70,12 +118,17 @@ public final class MainViewImpl extends AbstractView<MainView.Listener> implemen
     @Override
     public Object decodePreview(AssetType type, Object assetData, Meta.Node metadata) {
         // Runs on the caller's (loader) thread: decode is pure, no scene graph.
-        return tabPane.decode(type, assetData, metadata);
+        return previewTabPane.decode(type, assetData, metadata);
     }
 
     @Override
     public void displayPreview(Object preview) {
-        FxUtils.runOnFxThread(() -> tabPane.display((PreviewTabPane.PreviewData) preview));
+        FxUtils.runOnFxThread(() -> previewTabPane.display((PreviewTabPane.PreviewData) preview));
+    }
+
+    @Override
+    public void clearPreview() {
+        FxUtils.runOnFxThread(previewTabPane::clear);
     }
 
     @Override
@@ -167,7 +220,7 @@ public final class MainViewImpl extends AbstractView<MainView.Listener> implemen
         previewVeil.setPickOnBounds(true);
         spinnerDelay.setOnFinished(_ -> previewVeil.setVisible(true));
 
-        previewPane.getChildren().setAll(tabPane, previewVeil);
+        previewPane.getChildren().setAll(previewTabPane, previewVeil);
     }
 
     private SplitPane buildMainContent() {
@@ -206,9 +259,6 @@ public final class MainViewImpl extends AbstractView<MainView.Listener> implemen
     }
 
     private Control buildToolBar() {
-        var loadGame = new Button("Load Game");
-        loadGame.setOnAction(_ -> getListener().onLoadGameClicked());
-
         archiveChooser.setPromptText("Select archive to load");
         archiveChooser.getSelectionModel().selectedItemProperty().addListener((_, _, newValue) -> selectArchive(newValue));
 
@@ -227,7 +277,7 @@ public final class MainViewImpl extends AbstractView<MainView.Listener> implemen
         settingsButton.setOnAction(_ -> getListener().onSidePanelToggled(selectedPanel()));
 
         return new ToolBar(
-            loadGame, archiveChooser,
+            gameButton, archiveChooser,
             pane,
             exportButton,
             new Separator(),

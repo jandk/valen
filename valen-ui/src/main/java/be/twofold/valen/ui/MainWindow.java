@@ -8,6 +8,7 @@ import be.twofold.valen.ui.component.*;
 import be.twofold.valen.ui.component.main.*;
 import javafx.application.*;
 import javafx.scene.*;
+import javafx.scene.control.*;
 import javafx.scene.image.*;
 import javafx.scene.input.*;
 import javafx.stage.*;
@@ -39,6 +40,7 @@ public final class MainWindow extends Application {
             .subscribe(MainEvent.class, event -> {
                 switch (event) {
                     case MainEvent.GameLoadRequested() -> selectAndLoadGame();
+                    case MainEvent.GameSelected(var path) -> tryLoadGame(path);
                     case MainEvent.SaveFileRequested(var filename, var consumer) -> saveFile(filename, consumer);
                 }
             });
@@ -60,10 +62,8 @@ public final class MainWindow extends Application {
         primaryStage.show();
 
         settings.getGameExecutable()
-            .ifPresentOrElse(
-                this::tryLoadGame,
-                this::selectAndLoadGame
-            );
+            .filter(Files::isRegularFile)
+            .ifPresent(this::tryLoadGame);
     }
 
     private void selectAndLoadGame() {
@@ -97,27 +97,40 @@ public final class MainWindow extends Application {
             .map(File::toPath);
     }
 
-    private void tryLoadGame(Path path) {
+    private boolean tryLoadGame(Path path) {
+        if (!Files.isRegularFile(path)) {
+            showError("Game not found", path + " does not exist.");
+            return false;
+        }
+
+        var gameFactory = GameFactory.resolve(path);
+        if (gameFactory.isEmpty()) {
+            showError("Unsupported game", path.getFileName() + " is not a game Valen can open.");
+            return false;
+        }
+
         try {
-            if (!Files.exists(path)) {
-                selectAndLoadGame();
-                return;
-            }
-
-            var gameFactory = GameFactory.resolve(path);
-            if (gameFactory.isEmpty()) {
-                selectAndLoadGame();
-                return;
-            }
-
-            settings.setGameExecutable(path);
+            var newGame = gameFactory.get().load(path);
             if (game != null) {
                 game.close();
             }
-            game = gameFactory.get().load(path);
-            presenter.setGame(game);
+            game = newGame;
+            settings.setGameExecutable(path);
+
+            var entry = new GameEntry(gameFactory.get().displayName(), path);
+            presenter.setGame(game, entry);
+            primaryStage.setTitle("Valen — " + entry.name());
+            return true;
         } catch (Exception e) {
             FxUtils.showExceptionDialog(e, "Could not load game");
+            return false;
         }
+    }
+
+    private void showError(String header, String content) {
+        var alert = new Alert(Alert.AlertType.ERROR, content);
+        alert.setHeaderText(header);
+        alert.initOwner(primaryStage);
+        alert.showAndWait();
     }
 }

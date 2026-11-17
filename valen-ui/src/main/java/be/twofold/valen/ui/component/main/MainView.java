@@ -5,15 +5,22 @@ import be.twofold.valen.core.util.*;
 import be.twofold.valen.ui.common.*;
 import javafx.scene.*;
 
+import java.nio.file.*;
 import java.util.*;
 
 public interface MainView extends View<MainView.Listener> {
+
+    void setGames(List<GameEntry> games);
+
+    void setCurrentGame(GameEntry game);
 
     void setArchives(List<String> archives);
 
     Object decodePreview(AssetType type, Object assetData, Meta.Node metadata);
 
     void displayPreview(Object preview);
+
+    void clearPreview();
 
     void focusOnSearch();
 
@@ -26,6 +33,8 @@ public interface MainView extends View<MainView.Listener> {
     void setFileListView(Node node);
 
     interface Listener extends View.Listener {
+
+        void onGameSelected(Path executable);
 
         void onArchiveSelected(String name);
 

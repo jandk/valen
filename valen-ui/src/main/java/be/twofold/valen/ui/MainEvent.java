@@ -9,9 +9,9 @@ public sealed interface MainEvent extends Event {
     record GameLoadRequested() implements MainEvent {
     }
 
-    record SaveFileRequested(
-        String filename,
-        Consumer<Path> consumer
-    ) implements MainEvent {
+    record GameSelected(Path executable) implements MainEvent {
+    }
+
+    record SaveFileRequested(String filename, Consumer<Path> consumer) implements MainEvent {
     }
 }
