@@ -2,7 +2,8 @@ package be.twofold.valen.ui.component.main;
 
 import be.twofold.valen.core.util.*;
 import be.twofold.valen.ui.*;
-import javafx.application.Platform;
+import be.twofold.valen.ui.component.*;
+import be.twofold.valen.ui.service.*;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 
@@ -14,8 +15,8 @@ public final class ExportFailuresDialog {
     private ExportFailuresDialog() {
     }
 
-    static void show(int total, Map<String, List<ExportFailure>> failures) {
-        Platform.runLater(() -> {
+    public static void show(int total, Map<String, List<ExportFailure>> failures) {
+        FxUtils.runOnFxThread(() -> {
             var alert = new Alert(Alert.AlertType.WARNING);
             alert.getDialogPane().getStylesheets().add(MainWindow.class.getResource("/style.css").toExternalForm());
             alert.setHeaderText("Failed to export " + countFailures(failures) + " of " + total + " assets");

@@ -19,6 +19,11 @@ public final class WindowModule {
     }
 
     @Provides
+    public Stage stage() {
+        return stage;
+    }
+
+    @Provides
     @Singleton
     public UiThread uiThread() {
         return FxUtils::runOnFxThread;

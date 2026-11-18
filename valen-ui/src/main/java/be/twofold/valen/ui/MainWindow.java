@@ -5,6 +5,7 @@ import be.twofold.valen.ui.common.*;
 import be.twofold.valen.ui.common.settings.*;
 import be.twofold.valen.ui.component.*;
 import be.twofold.valen.ui.component.main.*;
+import be.twofold.valen.ui.component.progress.*;
 import be.twofold.valen.ui.service.*;
 import javafx.application.*;
 import javafx.scene.*;
@@ -28,6 +29,8 @@ public final class MainWindow extends Application {
         var session = feather.instance(Session.class);
         var gameService = feather.instance(GameService.class);
         var mainPresenter = feather.instance(MainPresenter.class);
+        // Not referenced here: it subscribes to ExportService and shows its own window during exports
+        feather.instance(ProgressPresenter.class);
 
         // Window
         var scene = new Scene(mainPresenter.getFXNode());

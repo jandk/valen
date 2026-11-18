@@ -14,4 +14,6 @@ public interface Dialogs {
 
     void showException(String message, Throwable throwable);
 
+    void showExportFailures(int total, Map<String, List<ExportFailure>> failures);
+
 }

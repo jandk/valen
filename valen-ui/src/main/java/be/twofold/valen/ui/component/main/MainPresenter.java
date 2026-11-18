@@ -9,7 +9,6 @@ import be.twofold.valen.ui.component.filelist.*;
 import be.twofold.valen.ui.events.*;
 import be.twofold.valen.ui.service.*;
 import jakarta.inject.*;
-import javafx.concurrent.*;
 import org.slf4j.*;
 
 import java.nio.file.*;
@@ -76,9 +75,7 @@ public final class MainPresenter extends AbstractPresenter<MainView> implements 
         eventBus.subscribe(SettingsApplied.class, _ -> applySettings());
         eventBus.subscribe(ExportRequested.class, event -> exportPath(event.path(), event.recursive()));
 
-        exportService.stateProperty().addListener((_, _, newValue) -> {
-            getView().setExporting(newValue == Worker.State.RUNNING);
-        });
+        exportService.progressProperty().subscribe(progress -> uiThread.execute(() -> getView().setExporting(progress != null)));
     }
 
     @Override

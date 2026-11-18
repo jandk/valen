@@ -1,5 +1,6 @@
 package be.twofold.valen.ui.component;
 
+import be.twofold.valen.ui.component.main.*;
 import be.twofold.valen.ui.service.*;
 import javafx.scene.control.*;
 import javafx.stage.*;
@@ -49,5 +50,10 @@ public final class FxDialogs implements Dialogs {
     @Override
     public void showException(String message, Throwable throwable) {
         FxUtils.showExceptionDialog(throwable, message);
+    }
+
+    @Override
+    public void showExportFailures(int total, Map<String, List<ExportFailure>> failures) {
+        ExportFailuresDialog.show(total, failures);
     }
 }
