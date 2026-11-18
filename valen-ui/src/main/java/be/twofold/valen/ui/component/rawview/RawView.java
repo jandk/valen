@@ -1,6 +1,8 @@
 package be.twofold.valen.ui.component.rawview;
 
-public interface RawView {
+import be.twofold.valen.ui.common.*;
+
+public interface RawView extends View<View.Listener> {
 
     void setContent(RawPayload payload);
 

@@ -6,6 +6,7 @@ import be.twofold.valen.ui.component.filelist.*;
 import be.twofold.valen.ui.component.main.*;
 import be.twofold.valen.ui.component.metaview.*;
 import be.twofold.valen.ui.component.modelviewer.*;
+import be.twofold.valen.ui.component.preview.*;
 import be.twofold.valen.ui.component.progress.*;
 import be.twofold.valen.ui.component.rawview.*;
 import be.twofold.valen.ui.component.settings.*;
@@ -41,6 +42,11 @@ public final class ViewModule {
     @Provides
     public ProgressView bindProgressView(ProgressViewImpl progressView) {
         return progressView;
+    }
+
+    @Provides
+    public PreviewView bindPreviewView(PreviewViewImpl previewView) {
+        return previewView;
     }
 
     @Provides

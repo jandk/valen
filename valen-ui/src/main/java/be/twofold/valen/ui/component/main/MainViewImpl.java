@@ -1,7 +1,6 @@
 package be.twofold.valen.ui.component.main;
 
 import be.twofold.valen.core.game.*;
-import be.twofold.valen.core.util.*;
 import be.twofold.valen.ui.common.*;
 import be.twofold.valen.ui.component.*;
 import be.twofold.valen.ui.component.filelist.*;
@@ -13,7 +12,6 @@ import javafx.geometry.*;
 import javafx.scene.*;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
-import javafx.util.*;
 import wtf.reversed.toolbox.util.*;
 
 import java.util.*;
@@ -32,19 +30,11 @@ public final class MainViewImpl extends AbstractView<MainView.Listener> implemen
     private final ComboBox<String> archiveChooser = new ComboBox<>();
     private final TextField searchTextField = new TextField();
 
-    private final StackPane previewPane = new StackPane();
-    private final ProgressIndicator previewSpinner = new ProgressIndicator();
-    private final StackPane previewVeil = new StackPane(previewSpinner);
-    private final PauseTransition spinnerDelay = new PauseTransition(Duration.millis(200));
-
-    private final PreviewTabPane previewTabPane;
-
+    private PreviewView previewView;
     private SettingsView settingsView;
 
     @Inject
-    MainViewImpl(PreviewTabPane previewTabPane) {
-        this.previewTabPane = previewTabPane;
-
+    MainViewImpl() {
         buildUI();
     }
 
@@ -52,6 +42,12 @@ public final class MainViewImpl extends AbstractView<MainView.Listener> implemen
     public void setFileListView(FileListView fileListView) {
         Check.nonNull(fileListView, "fileListView");
         splitPane.getItems().setAll(fileListView.getFXNode());
+    }
+
+    @Override
+    public void setPreviewView(PreviewView previewView) {
+        Check.nonNull(previewView, "previewView");
+        this.previewView = previewView;
     }
 
     @Override
@@ -119,22 +115,6 @@ public final class MainViewImpl extends AbstractView<MainView.Listener> implemen
     }
 
     @Override
-    public Object decodePreview(AssetType type, Object assetData, Meta.Node metadata) {
-        // Runs on the caller's (loader) thread: decode is pure, no scene graph.
-        return previewTabPane.decode(type, assetData, metadata);
-    }
-
-    @Override
-    public void displayPreview(Object preview) {
-        FX.run(() -> previewTabPane.display((PreviewTabPane.PreviewData) preview));
-    }
-
-    @Override
-    public void clearPreview() {
-        FX.run(previewTabPane::clear);
-    }
-
-    @Override
     public void focusOnSearch() {
         searchTextField.requestFocus();
     }
@@ -142,19 +122,6 @@ public final class MainViewImpl extends AbstractView<MainView.Listener> implemen
     @Override
     public void setExporting(boolean exporting) {
         FX.run(() -> view.setDisable(exporting));
-    }
-
-    @Override
-    public void setPreviewLoading(boolean loading) {
-        FX.run(() -> {
-            if (loading) {
-                // Delay showing the spinner so quick loads don't flash it.
-                spinnerDelay.playFromStart();
-            } else {
-                spinnerDelay.stop();
-                previewVeil.setVisible(false);
-            }
-        });
     }
 
     @Override
@@ -175,7 +142,7 @@ public final class MainViewImpl extends AbstractView<MainView.Listener> implemen
 
     private void setSidePanelContent(SidePanel panel) {
         var node = switch (panel) {
-            case PREVIEW -> previewPane;
+            case PREVIEW -> previewView.getFXNode();
             case SETTINGS -> settingsView.getFXNode();
             case NONE -> null;
         };
@@ -207,23 +174,10 @@ public final class MainViewImpl extends AbstractView<MainView.Listener> implemen
     // region UI
 
     private void buildUI() {
-        buildPreviewPane();
-
         view.setPrefSize(1250, 666);
         view.setTop(buildToolBar());
         view.setCenter(buildMainContent());
         view.setBottom(buildStatusBar());
-    }
-
-    private void buildPreviewPane() {
-        previewSpinner.setMaxSize(60, 60);
-
-        // Block interaction while loading
-        previewVeil.setVisible(false);
-        previewVeil.setPickOnBounds(true);
-        spinnerDelay.setOnFinished(_ -> previewVeil.setVisible(true));
-
-        previewPane.getChildren().setAll(previewTabPane, previewVeil);
     }
 
     private SplitPane buildMainContent() {

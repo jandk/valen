@@ -16,7 +16,7 @@ public final class RawPresenter extends AbstractPresenter<RawView> implements Vi
 
     @Override
     public boolean canPreview(AssetType type) {
-        return type != AssetType.MODEL && type != AssetType.TEXTURE;
+        return true;
     }
 
     @Override
