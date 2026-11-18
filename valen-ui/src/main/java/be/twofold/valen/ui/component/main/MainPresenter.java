@@ -1,12 +1,11 @@
 package be.twofold.valen.ui.component.main;
 
-import backbonefx.event.*;
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.util.*;
 import be.twofold.valen.ui.common.*;
 import be.twofold.valen.ui.common.settings.*;
 import be.twofold.valen.ui.component.filelist.*;
-import be.twofold.valen.ui.events.*;
+import be.twofold.valen.ui.component.settings.*;
 import be.twofold.valen.ui.service.*;
 import jakarta.inject.*;
 import org.slf4j.*;
@@ -18,10 +17,11 @@ import java.util.concurrent.atomic.*;
 import java.util.function.*;
 import java.util.stream.*;
 
-public final class MainPresenter extends AbstractPresenter<MainView> implements MainView.Listener {
+public final class MainPresenter extends AbstractPresenter<MainView> implements MainView.Listener, FileListPresenter.Listener {
     private final Logger log = LoggerFactory.getLogger(MainPresenter.class);
 
-    private final FileListPresenter fileList;
+    private final FileListPresenter fileListPresenter;
+    private final SettingsPresenter settingsPresenter;
 
     private final Session session;
     private final Settings settings;
@@ -46,18 +46,23 @@ public final class MainPresenter extends AbstractPresenter<MainView> implements 
     @Inject
     MainPresenter(
         MainView view,
-        FileListPresenter fileList,
+        FileListPresenter fileListPresenter,
+        SettingsPresenter settingsPresenter,
         Session session,
         Settings settings,
         GameService gameService,
         ExportService exportService,
         Dialogs dialogs,
-        UiThread uiThread,
-        EventBus eventBus
+        UiThread uiThread
     ) {
         super(view);
 
-        this.fileList = fileList;
+        this.fileListPresenter = fileListPresenter;
+        this.fileListPresenter.setListener(this);
+
+        this.settingsPresenter = settingsPresenter;
+        this.settingsPresenter.setOnApplied(this::applySettings);
+
         this.session = session;
         this.settings = settings;
         this.gameService = gameService;
@@ -65,15 +70,12 @@ public final class MainPresenter extends AbstractPresenter<MainView> implements 
         this.dialogs = dialogs;
 
         view.setListener(this);
-        view.setFileListView(fileList.getView().getFXNode());
+        view.setFileListView(fileListPresenter.getView());
+        view.setSettingsView(settingsPresenter.getView());
 
         session.gameProperty().subscribe(game -> uiThread.execute(() -> gameChanged(game)));
         session.loaderProperty().subscribe(_ -> uiThread.execute(this::loaderChanged));
         session.installedGamesProperty().subscribe(games -> uiThread.execute(() -> getView().setGames(games)));
-
-        eventBus.subscribe(AssetSelected.class, event -> selectAsset(event.asset(), event.forced()));
-        eventBus.subscribe(SettingsApplied.class, _ -> applySettings());
-        eventBus.subscribe(ExportRequested.class, event -> exportPath(event.path(), event.recursive()));
 
         exportService.progressProperty().subscribe(progress -> uiThread.execute(() -> getView().setExporting(progress != null)));
     }
@@ -93,9 +95,7 @@ public final class MainPresenter extends AbstractPresenter<MainView> implements 
         sidePanel = panel;
         getView().showSidePanel(panel);
         if (panel == SidePanel.PREVIEW) {
-            if (lastAsset != null) {
-                selectAsset(lastAsset, false);
-            }
+            loadPreview();
         } else {
             // Leaving the preview: drop any in-flight load and its spinner.
             cancelPreviewLoad();
@@ -118,6 +118,38 @@ public final class MainPresenter extends AbstractPresenter<MainView> implements 
         updateFileList();
     }
 
+    @Override
+    public void onAssetSelected(Asset asset, boolean forced) {
+        if (forced) {
+            sidePanel = SidePanel.PREVIEW;
+            getView().showSidePanel(SidePanel.PREVIEW);
+        }
+        lastAsset = asset;
+        loadPreview();
+    }
+
+    @Override
+    public void onPathExportRequested(AssetPath path, boolean recursive) {
+        Predicate<AssetPath> predicate = recursive ? s -> s.startsWith(path) : s -> s.equals(path);
+        var assets = filteredAssets()
+            .filter(asset -> predicate.test(asset.id().path().parent()))
+            .toList();
+
+        exportAssets(assets);
+    }
+
+    private void loadPreview() {
+        var seq = loadSequence.incrementAndGet();
+        var currentLoader = session.getLoader();
+        if (lastAsset == null || sidePanel != SidePanel.PREVIEW || currentLoader == null) {
+            return;
+        }
+
+        var asset = lastAsset;
+        getView().setPreviewLoading(true);
+        loadExecutor.execute(() -> loadAsset(seq, currentLoader, asset));
+    }
+
     public void focusOnSearch() {
         getView().focusOnSearch();
     }
@@ -138,25 +170,6 @@ public final class MainPresenter extends AbstractPresenter<MainView> implements 
         lastAsset = null;
         cancelPreviewLoad();
         getView().clearPreview();
-    }
-
-    private void selectAsset(Asset asset, boolean forced) {
-        if (forced) {
-            sidePanel = SidePanel.PREVIEW;
-            getView().showSidePanel(SidePanel.PREVIEW);
-        }
-        lastAsset = asset;
-
-        // Bump the sequence so any in-flight load is superseded, even if we
-        // don't start a new one (e.g. the preview panel is hidden).
-        var seq = loadSequence.incrementAndGet();
-        var currentLoader = session.getLoader();
-        if (sidePanel != SidePanel.PREVIEW || currentLoader == null) {
-            return;
-        }
-
-        getView().setPreviewLoading(true);
-        loadExecutor.execute(() -> loadAsset(seq, currentLoader, asset));
     }
 
     private void loadAsset(long seq, AssetLoader loader, Asset asset) {
@@ -209,16 +222,7 @@ public final class MainPresenter extends AbstractPresenter<MainView> implements 
     }
 
     private void exportSelectedAssets() {
-        var assets = fileList.getView().getSelectedAssets();
-        exportAssets(assets);
-    }
-
-    private void exportPath(AssetPath path, boolean recursive) {
-        Predicate<AssetPath> predicate = recursive ? s -> s.startsWith(path) : s -> s.equals(path);
-        var assets = filteredAssets()
-            .filter(asset -> predicate.test(asset.id().path().parent()))
-            .toList();
-
+        var assets = fileListPresenter.getView().getSelectedAssets();
         exportAssets(assets);
     }
 
@@ -234,13 +238,13 @@ public final class MainPresenter extends AbstractPresenter<MainView> implements 
         updateFileList();
 
         // "Treat as raw" changes how the current asset decodes, so reload it.
-        if (lastAsset != null && sidePanel == SidePanel.PREVIEW) {
-            selectAsset(lastAsset, false);
+        if (sidePanel == SidePanel.PREVIEW) {
+            loadPreview();
         }
     }
 
     private void updateFileList() {
-        fileList.setAssets(filteredAssets());
+        fileListPresenter.setAssets(filteredAssets());
     }
 
     private Stream<? extends Asset> filteredAssets() {

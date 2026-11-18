@@ -1,24 +1,21 @@
 package be.twofold.valen.ui.component.settings;
 
-import backbonefx.event.*;
 import be.twofold.valen.core.export.*;
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.ui.common.*;
 import be.twofold.valen.ui.common.settings.*;
-import be.twofold.valen.ui.events.*;
 import jakarta.inject.*;
 
 import java.util.*;
 
 public final class SettingsPresenter extends AbstractPresenter<SettingsView> implements SettingsView.Listener {
 
-    private final EventBus eventBus;
     private final Settings settings;
+    private Runnable onApplied;
 
     @Inject
-    public SettingsPresenter(SettingsView view, EventBus eventBus, Settings settings) {
+    public SettingsPresenter(SettingsView view, Settings settings) {
         super(view);
-        this.eventBus = eventBus;
         this.settings = settings;
 
         view.setListener(this);
@@ -85,9 +82,12 @@ public final class SettingsPresenter extends AbstractPresenter<SettingsView> imp
         getView().setDescriptors(descriptors);
     }
 
-    @Override
-    public void onSave() {
-        eventBus.publish(new SettingsApplied(settings));
+    public void setOnApplied(Runnable onApplied) {
+        this.onApplied = onApplied;
     }
 
+    @Override
+    public void onSave() {
+        onApplied.run();
+    }
 }

@@ -3,7 +3,8 @@ package be.twofold.valen.ui.component.main;
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.util.*;
 import be.twofold.valen.ui.common.*;
-import javafx.scene.*;
+import be.twofold.valen.ui.component.filelist.*;
+import be.twofold.valen.ui.component.settings.*;
 
 import java.nio.file.*;
 import java.util.*;
@@ -30,7 +31,9 @@ public interface MainView extends View<MainView.Listener> {
 
     void showSidePanel(SidePanel panel);
 
-    void setFileListView(Node node);
+    void setFileListView(FileListView fileListView);
+
+    void setSettingsView(SettingsView settingsView);
 
     interface Listener extends View.Listener {
 

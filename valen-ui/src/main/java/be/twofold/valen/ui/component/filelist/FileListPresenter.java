@@ -1,25 +1,24 @@
 package be.twofold.valen.ui.component.filelist;
 
-import backbonefx.event.*;
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.ui.common.*;
-import be.twofold.valen.ui.events.*;
 import jakarta.inject.*;
 
 import java.util.*;
 import java.util.stream.*;
 
 public final class FileListPresenter extends AbstractPresenter<FileListView> implements FileListView.Listener {
-
     private Map<AssetPath, List<Asset>> assetIndex = Map.of();
-    private final EventBus eventBus;
+    private Listener listener;
 
     @Inject
-    FileListPresenter(FileListView view, EventBus eventBus) {
+    FileListPresenter(FileListView view) {
         super(view);
-        this.eventBus = eventBus;
-
         view.setListener(this);
+    }
+
+    public void setListener(Listener listener) {
+        this.listener = listener;
     }
 
     @Override
@@ -30,12 +29,12 @@ public final class FileListPresenter extends AbstractPresenter<FileListView> imp
 
     @Override
     public void onAssetSelected(Asset asset, boolean forced) {
-        eventBus.publish(new AssetSelected(asset, forced));
+        listener.onAssetSelected(asset, forced);
     }
 
     @Override
     public void onPathExportRequested(AssetPath path, boolean recursive) {
-        eventBus.publish(new ExportRequested(path, recursive));
+        listener.onPathExportRequested(path, recursive);
     }
 
     public void setAssets(Stream<? extends Asset> assets) {
@@ -60,5 +59,11 @@ public final class FileListPresenter extends AbstractPresenter<FileListView> imp
             }
         }
         return root;
+    }
+
+    public interface Listener {
+        void onAssetSelected(Asset asset, boolean forced);
+
+        void onPathExportRequested(AssetPath path, boolean recursive);
     }
 }

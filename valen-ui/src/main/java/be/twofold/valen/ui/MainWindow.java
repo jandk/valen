@@ -21,7 +21,6 @@ public final class MainWindow extends Application {
     public void start(Stage primaryStage) {
         // Wiring
         var feather = Feather.with(
-            new EventBusModule(),
             new SettingsModule(),
             new ViewModule(),
             new WindowModule(primaryStage)
@@ -29,8 +28,7 @@ public final class MainWindow extends Application {
         var session = feather.instance(Session.class);
         var gameService = feather.instance(GameService.class);
         var mainPresenter = feather.instance(MainPresenter.class);
-        // Not referenced here: it subscribes to ExportService and shows its own window during exports
-        feather.instance(ProgressPresenter.class);
+        feather.instance(ProgressPresenter.class); // Just instantiate
 
         // Window
         var scene = new Scene(mainPresenter.getFXNode());
@@ -48,7 +46,7 @@ public final class MainWindow extends Application {
         primaryStage.setScene(scene);
         primaryStage.show();
 
-        // Go: loads the saved game and scans Steam, after everything is subscribed
+        // Games
         gameService.start();
     }
 }

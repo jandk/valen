@@ -1,10 +1,10 @@
 package be.twofold.valen.ui.component.main;
 
-import backbonefx.di.*;
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.util.*;
 import be.twofold.valen.ui.common.*;
 import be.twofold.valen.ui.component.*;
+import be.twofold.valen.ui.component.filelist.*;
 import be.twofold.valen.ui.component.preview.*;
 import be.twofold.valen.ui.component.settings.*;
 import jakarta.inject.*;
@@ -14,14 +14,12 @@ import javafx.scene.*;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.util.*;
-import org.slf4j.*;
+import wtf.reversed.toolbox.util.*;
 
 import java.util.*;
 
 @Singleton
 public final class MainViewImpl extends AbstractView<MainView.Listener> implements MainView {
-    private static final Logger log = LoggerFactory.getLogger(MainViewImpl.class);
-
     private final BorderPane view = new BorderPane();
     private final SplitPane splitPane = new SplitPane();
 
@@ -40,23 +38,26 @@ public final class MainViewImpl extends AbstractView<MainView.Listener> implemen
     private final PauseTransition spinnerDelay = new PauseTransition(Duration.millis(200));
 
     private final PreviewTabPane previewTabPane;
-    private final SettingsPresenter settingsPresenter;
+
+    private SettingsView settingsView;
 
     @Inject
-    MainViewImpl(PreviewTabPane previewTabPane, Feather feather) {
+    MainViewImpl(PreviewTabPane previewTabPane) {
         this.previewTabPane = previewTabPane;
-        this.settingsPresenter = feather.instance(SettingsPresenter.class);
 
         buildUI();
     }
 
     @Override
-    public void setFileListView(Node node) {
-        if (node == null) {
-            log.error("setFileListView called with null node");
-            return;
-        }
-        splitPane.getItems().setAll(node);
+    public void setFileListView(FileListView fileListView) {
+        Check.nonNull(fileListView, "fileListView");
+        splitPane.getItems().setAll(fileListView.getFXNode());
+    }
+
+    @Override
+    public void setSettingsView(SettingsView settingsView) {
+        Check.nonNull(settingsView, "settingsView");
+        this.settingsView = settingsView;
     }
 
     @Override
@@ -175,7 +176,7 @@ public final class MainViewImpl extends AbstractView<MainView.Listener> implemen
     private void setSidePanelContent(SidePanel panel) {
         var node = switch (panel) {
             case PREVIEW -> previewPane;
-            case SETTINGS -> settingsPresenter.getView().getFXNode();
+            case SETTINGS -> settingsView.getFXNode();
             case NONE -> null;
         };
 
