@@ -16,7 +16,7 @@ public final class OodleDownloader {
     private static final String OODLE_LINUX_X86_64 = PREFIX + "linux/lib/liboo2corelinux64.so.9";
     private static final String OODLE_LINUX_ARM64 = PREFIX + "linuxarm/lib/liboo2corelinuxarm64.so.9";
     private static final String OODLE_LINUX_ARM32 = PREFIX + "linuxarm/lib/liboo2corelinuxarm32.so.9";
-    private static final String OODLE_MACOSX = PREFIX + "mac/lib/liboo2coremac64.2.9.10.dylib";
+    private static final String OODLE_MACOS = PREFIX + "mac/lib/liboo2coremac64.2.9.10.dylib";
 
     private OodleDownloader() {
     }
@@ -37,7 +37,7 @@ public final class OodleDownloader {
                 default ->
                     throw new UnsupportedOperationException("Unsupported architecture on Linux: " + platform.arch());
             };
-            case MAC -> OODLE_MACOSX;
+            case MACOS -> OODLE_MACOS;
         };
 
         var uri = URI.create(uriString);
