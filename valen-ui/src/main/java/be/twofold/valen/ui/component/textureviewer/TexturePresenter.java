@@ -32,11 +32,6 @@ public final class TexturePresenter extends AbstractPresenter<TextureView> imple
     }
 
     @Override
-    public String getName() {
-        return "Texture";
-    }
-
-    @Override
     public boolean canPreview(AssetType type) {
         return type == AssetType.TEXTURE;
     }

@@ -1,20 +1,17 @@
 package be.twofold.valen.ui.component.main;
 
-import backbonefx.di.*;
 import backbonefx.event.*;
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.util.*;
-import be.twofold.valen.ui.*;
 import be.twofold.valen.ui.common.*;
 import be.twofold.valen.ui.common.settings.*;
-import be.twofold.valen.ui.component.*;
 import be.twofold.valen.ui.component.filelist.*;
 import be.twofold.valen.ui.events.*;
+import be.twofold.valen.ui.service.*;
 import jakarta.inject.*;
 import javafx.concurrent.*;
 import org.slf4j.*;
 
-import java.io.*;
 import java.nio.file.*;
 import java.util.*;
 import java.util.concurrent.*;
@@ -25,11 +22,14 @@ import java.util.stream.*;
 public final class MainPresenter extends AbstractPresenter<MainView> implements MainView.Listener {
     private final Logger log = LoggerFactory.getLogger(MainPresenter.class);
 
-    private final ExportService exportService;
     private final FileListPresenter fileList;
-    private final Settings settings;
+
     private final Session session;
-    private final EventBus eventBus;
+    private final Settings settings;
+
+    private final GameService gameService;
+    private final ExportService exportService;
+    private final Dialogs dialogs;
 
     // Loads run off the FX thread so browsing stays responsive. A single thread
     // serializes loads; loadSeq makes the latest selection win (see selectAsset).
@@ -47,25 +47,30 @@ public final class MainPresenter extends AbstractPresenter<MainView> implements 
     @Inject
     MainPresenter(
         MainView view,
-        EventBus eventBus,
-        Settings settings,
+        FileListPresenter fileList,
         Session session,
+        Settings settings,
+        GameService gameService,
         ExportService exportService,
-        Feather feather
+        Dialogs dialogs,
+        UiThread uiThread,
+        EventBus eventBus
     ) {
         super(view);
 
-        this.fileList = feather.instance(FileListPresenter.class);
-        this.settings = settings;
+        this.fileList = fileList;
         this.session = session;
+        this.settings = settings;
+        this.gameService = gameService;
         this.exportService = exportService;
-        this.eventBus = eventBus;
+        this.dialogs = dialogs;
 
         view.setListener(this);
         view.setFileListView(fileList.getView().getFXNode());
 
-        session.gameProperty().subscribe(this::gameChanged);
-        session.loaderProperty().subscribe(_ -> loaderChanged());
+        session.gameProperty().subscribe(game -> uiThread.execute(() -> gameChanged(game)));
+        session.loaderProperty().subscribe(_ -> uiThread.execute(this::loaderChanged));
+        session.installedGamesProperty().subscribe(games -> uiThread.execute(() -> getView().setGames(games)));
 
         eventBus.subscribe(AssetSelected.class, event -> selectAsset(event.asset(), event.forced()));
         eventBus.subscribe(SettingsApplied.class, _ -> applySettings());
@@ -74,18 +79,16 @@ public final class MainPresenter extends AbstractPresenter<MainView> implements 
         exportService.stateProperty().addListener((_, _, newValue) -> {
             getView().setExporting(newValue == Worker.State.RUNNING);
         });
-
-        detectGames();
     }
 
     @Override
     public void onGameSelected(Path executable) {
-        eventBus.publish(new MainEvent.GameSelected(executable));
+        gameService.load(executable);
     }
 
     @Override
     public void onArchiveSelected(String name) {
-        selectArchive(name);
+        gameService.openArchive(name);
     }
 
     @Override
@@ -104,7 +107,7 @@ public final class MainPresenter extends AbstractPresenter<MainView> implements 
 
     @Override
     public void onLoadGameClicked() {
-        eventBus.publish(new MainEvent.GameLoadRequested());
+        gameService.browse();
     }
 
     @Override
@@ -138,35 +141,6 @@ public final class MainPresenter extends AbstractPresenter<MainView> implements 
         lastAsset = null;
         cancelPreviewLoad();
         getView().clearPreview();
-    }
-
-    private void detectGames() {
-        CompletableFuture
-            .supplyAsync(() -> {
-                try {
-                    return GameFactory.detectInstalled();
-                } catch (IOException e) {
-                    throw new UncheckedIOException(e);
-                }
-            })
-            .exceptionally(e -> {
-                log.warn("Could not scan Steam libraries", e);
-                return List.of();
-            })
-            .thenAccept(games -> getView().setGames(games));
-    }
-
-    private void selectArchive(String archiveName) {
-        var game = session.getGame();
-        if (archiveName == null || game == null) {
-            return;
-        }
-        try {
-            session.setLoader(game.game().open(archiveName));
-        } catch (IOException e) {
-            log.error("Could not load archive {}", archiveName, e);
-            FxUtils.showExceptionDialog(e, "Could not load archive " + archiveName);
-        }
     }
 
     private void selectAsset(Asset asset, boolean forced) {
@@ -210,7 +184,7 @@ public final class MainPresenter extends AbstractPresenter<MainView> implements 
             }
             log.error("Could not load asset {}", asset.id().path().fileName(), e);
             getView().setPreviewLoading(false);
-            FxUtils.showExceptionDialog(e, "Could not load asset " + asset.id().path().fileName());
+            dialogs.showException("Could not load asset " + asset.id().path().fileName(), e);
         }
     }
 

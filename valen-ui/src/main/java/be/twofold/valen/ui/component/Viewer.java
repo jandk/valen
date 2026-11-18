@@ -7,8 +7,6 @@ public interface Viewer {
 
     Node getFXNode();
 
-    String getName();
-
     boolean canPreview(AssetType type);
 
     /**

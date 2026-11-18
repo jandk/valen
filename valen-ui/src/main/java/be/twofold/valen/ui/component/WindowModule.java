@@ -1,0 +1,26 @@
+package be.twofold.valen.ui.component;
+
+import backbonefx.di.*;
+import be.twofold.valen.ui.service.*;
+import jakarta.inject.*;
+import javafx.stage.*;
+
+public final class WindowModule {
+    private final Stage stage;
+
+    public WindowModule(Stage stage) {
+        this.stage = stage;
+    }
+
+    @Provides
+    @Singleton
+    public Dialogs dialogs() {
+        return new FxDialogs(stage);
+    }
+
+    @Provides
+    @Singleton
+    public UiThread uiThread() {
+        return FxUtils::runOnFxThread;
+    }
+}

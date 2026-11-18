@@ -13,11 +13,6 @@ public final class MetaPresenter extends AbstractPresenter<MetaView> implements 
     }
 
     @Override
-    public String getName() {
-        return "Metadata";
-    }
-
-    @Override
     public boolean canPreview(AssetType type) {
         return true;
     }

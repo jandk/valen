@@ -11,6 +11,14 @@ public final class Value<T> implements ReadOnlyValue<T> {
     private final List<Consumer<? super T>> listeners = new CopyOnWriteArrayList<>();
     private volatile T value;
 
+    public Value() {
+        this(null);
+    }
+
+    public Value(T value) {
+        this.value = value;
+    }
+
     @Override
     public T get() {
         return value;

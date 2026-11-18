@@ -2,10 +2,13 @@ package be.twofold.valen.ui.component;
 
 import be.twofold.valen.core.util.*;
 import be.twofold.valen.ui.*;
-import javafx.application.Platform;
+import javafx.application.*;
 import javafx.scene.control.*;
 import javafx.scene.image.*;
 import javafx.scene.layout.*;
+
+import java.util.concurrent.*;
+import java.util.function.*;
 
 public final class FxUtils {
 
@@ -18,6 +21,18 @@ public final class FxUtils {
         } else {
             Platform.runLater(action);
         }
+    }
+
+    public static <T> CompletableFuture<T> runOnFxThread(Supplier<T> action) {
+        var future = new CompletableFuture<T>();
+        runOnFxThread(() -> {
+            try {
+                future.complete(action.get());
+            } catch (Throwable e) {
+                future.completeExceptionally(e);
+            }
+        });
+        return future;
     }
 
     /**
@@ -34,7 +49,7 @@ public final class FxUtils {
     }
 
     public static void showExceptionDialog(Throwable throwable, String text) {
-        Platform.runLater(() -> {
+        runOnFxThread(() -> {
             var alert = new Alert(Alert.AlertType.ERROR, "An error occurred");
             alert.getDialogPane().getStylesheets().add(MainWindow.class.getResource("/style.css").toExternalForm());
             alert.setHeaderText(text);

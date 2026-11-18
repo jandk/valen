@@ -3,15 +3,18 @@ package be.twofold.valen.ui.common;
 import be.twofold.valen.core.game.*;
 import jakarta.inject.*;
 
+import java.util.*;
+
 /**
  * Shared application state: the loaded game and the open archive.
  * <p>
- * Write from the FX thread, read from anywhere.
+ * Only written by {@code GameService}, on its own thread; read from anywhere.
  */
 @Singleton
 public final class Session {
     private final Value<LoadedGame> game = new Value<>();
     private final Value<AssetLoader> loader = new Value<>();
+    private final Value<List<GameEntry>> installedGames = new Value<>(List.of());
 
     @Inject
     public Session() {
@@ -40,6 +43,18 @@ public final class Session {
 
     public void setLoader(AssetLoader value) {
         loader.set(value);
+    }
+
+    public ReadOnlyValue<List<GameEntry>> installedGamesProperty() {
+        return installedGames;
+    }
+
+    public List<GameEntry> getInstalledGames() {
+        return installedGames.get();
+    }
+
+    public void setInstalledGames(List<GameEntry> installedGames) {
+        this.installedGames.set(List.copyOf(installedGames));
     }
 
     public record LoadedGame(Game game, GameEntry entry) {

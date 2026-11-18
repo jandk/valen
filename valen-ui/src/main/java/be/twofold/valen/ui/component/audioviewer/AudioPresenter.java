@@ -23,11 +23,6 @@ public final class AudioPresenter extends AbstractPresenter<AudioView> implement
     }
 
     @Override
-    public String getName() {
-        return "Audio";
-    }
-
-    @Override
     public boolean canPreview(AssetType type) {
         return type == AssetType.AUDIO;
     }

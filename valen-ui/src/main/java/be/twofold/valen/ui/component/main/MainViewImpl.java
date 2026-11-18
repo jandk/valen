@@ -110,9 +110,11 @@ public final class MainViewImpl extends AbstractView<MainView.Listener> implemen
 
     @Override
     public void setArchives(List<String> archives) {
-        archiveChooser.getSelectionModel().clearSelection();
-        archiveChooser.getItems().setAll(archives);
-        // archiveChooser.getSelectionModel().select(0);
+        FxUtils.runOnFxThread(() -> {
+            archiveChooser.getSelectionModel().clearSelection();
+            archiveChooser.getItems().setAll(archives);
+            // archiveChooser.getSelectionModel().select(0);
+        });
     }
 
     @Override
