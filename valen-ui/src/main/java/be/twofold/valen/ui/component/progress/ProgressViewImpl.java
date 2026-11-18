@@ -47,7 +47,7 @@ public final class ProgressViewImpl extends AbstractView<ProgressView.Listener> 
 
     @Override
     public void updateProgress(ExportProgress progress) {
-        FxUtils.runOnFxThread(() -> {
+        FX.run(() -> {
             var fraction = (double) progress.done() / progress.total();
             progressBar.setProgress(fraction);
             messageText.setText(progress.message());
@@ -58,7 +58,7 @@ public final class ProgressViewImpl extends AbstractView<ProgressView.Listener> 
 
     @Override
     public void show() {
-        FxUtils.runOnFxThread(() -> {
+        FX.run(() -> {
             closing = false;
             dialog.getDialogPane().lookupButton(ButtonType.CANCEL).setDisable(false);
             dialog.show();
@@ -67,7 +67,7 @@ public final class ProgressViewImpl extends AbstractView<ProgressView.Listener> 
 
     @Override
     public void hide() {
-        FxUtils.runOnFxThread(() -> {
+        FX.run(() -> {
             closing = true;
             dialog.close();
         });

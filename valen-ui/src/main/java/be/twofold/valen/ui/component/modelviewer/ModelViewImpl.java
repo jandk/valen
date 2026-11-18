@@ -9,6 +9,7 @@ import javafx.collections.*;
 import javafx.geometry.*;
 import javafx.scene.*;
 import javafx.scene.control.*;
+import javafx.scene.image.*;
 import javafx.scene.layout.*;
 import javafx.scene.paint.*;
 import javafx.scene.shape.*;
@@ -90,8 +91,17 @@ public final class ModelViewImpl extends AbstractView<View.Listener> implements 
 
     private Material buildMaterial(DecodedImage diffuse) {
         var material = new PhongMaterial();
-        material.setDiffuseMap(FxUtils.toWritableImage(diffuse));
+        material.setDiffuseMap(toWritableImage(diffuse));
         return material;
+    }
+
+    private WritableImage toWritableImage(DecodedImage image) {
+        return new WritableImage(new PixelBuffer<>(
+            image.width(),
+            image.height(),
+            image.pixels().asMutableBuffer(),
+            PixelFormat.getByteBgraPreInstance()
+        ));
     }
 
     private void copy(Floats floats, ObservableFloatArray floatArray) {

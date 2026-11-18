@@ -42,7 +42,7 @@ public final class MainWindow extends Application {
             .toList();
         primaryStage.getIcons().setAll(icons);
 
-        session.gameProperty().subscribe(game -> FxUtils.runOnFxThread(() -> {
+        session.gameProperty().subscribe(game -> FX.run(() -> {
             primaryStage.setTitle(game != null ? "Valen :: " + game.entry().name() : "Valen");
         }));
         primaryStage.setScene(scene);

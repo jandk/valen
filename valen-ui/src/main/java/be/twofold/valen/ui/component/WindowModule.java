@@ -26,6 +26,6 @@ public final class WindowModule {
     @Provides
     @Singleton
     public UiThread uiThread() {
-        return FxUtils::runOnFxThread;
+        return FX::run;
     }
 }

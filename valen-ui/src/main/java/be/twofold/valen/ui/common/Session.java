@@ -49,10 +49,6 @@ public final class Session {
         return installedGames;
     }
 
-    public List<GameEntry> getInstalledGames() {
-        return installedGames.get();
-    }
-
     public void setInstalledGames(List<GameEntry> installedGames) {
         this.installedGames.set(List.copyOf(installedGames));
     }

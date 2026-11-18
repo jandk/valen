@@ -44,7 +44,7 @@ public final class FileListViewImpl extends AbstractView<FileListView.Listener> 
     @Override
     public void setFileTree(PathNode<PathCombo> tree) {
         var root = convert(tree);
-        FxUtils.runOnFxThread(() -> {
+        FX.run(() -> {
             var selectedItem = treeView.getSelectionModel().getSelectedItem();
             var selectedValue = selectedItem != null ? selectedItem.getValue() : null;
             var selectedTreeItem = findSelected(root, selectedValue);
@@ -80,7 +80,7 @@ public final class FileListViewImpl extends AbstractView<FileListView.Listener> 
 
     @Override
     public void setFilteredAssets(List<Asset> assets) {
-        FxUtils.runOnFxThread(() -> tableView.getItems().setAll(assets));
+        FX.run(() -> tableView.getItems().setAll(assets));
     }
 
     @Override

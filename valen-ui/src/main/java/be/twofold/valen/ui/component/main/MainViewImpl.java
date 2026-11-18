@@ -66,7 +66,7 @@ public final class MainViewImpl extends AbstractView<MainView.Listener> implemen
 
     @Override
     public void setGames(List<GameEntry> games) {
-        FxUtils.runOnFxThread(() -> {
+        FX.run(() -> {
             var items = new ArrayList<MenuItem>();
             for (var game : games) {
                 var item = new RadioMenuItem(game.name());
@@ -91,7 +91,7 @@ public final class MainViewImpl extends AbstractView<MainView.Listener> implemen
 
     @Override
     public void setCurrentGame(GameEntry game) {
-        FxUtils.runOnFxThread(() -> {
+        FX.run(() -> {
             currentGame = game;
             showCurrentGame();
         });
@@ -110,7 +110,7 @@ public final class MainViewImpl extends AbstractView<MainView.Listener> implemen
 
     @Override
     public void setArchives(List<String> archives) {
-        FxUtils.runOnFxThread(() -> {
+        FX.run(() -> {
             archiveChooser.getSelectionModel().clearSelection();
             archiveChooser.getItems().setAll(archives);
             // archiveChooser.getSelectionModel().select(0);
@@ -125,12 +125,12 @@ public final class MainViewImpl extends AbstractView<MainView.Listener> implemen
 
     @Override
     public void displayPreview(Object preview) {
-        FxUtils.runOnFxThread(() -> previewTabPane.display((PreviewTabPane.PreviewData) preview));
+        FX.run(() -> previewTabPane.display((PreviewTabPane.PreviewData) preview));
     }
 
     @Override
     public void clearPreview() {
-        FxUtils.runOnFxThread(previewTabPane::clear);
+        FX.run(previewTabPane::clear);
     }
 
     @Override
@@ -140,12 +140,12 @@ public final class MainViewImpl extends AbstractView<MainView.Listener> implemen
 
     @Override
     public void setExporting(boolean exporting) {
-        FxUtils.runOnFxThread(() -> view.setDisable(exporting));
+        FX.run(() -> view.setDisable(exporting));
     }
 
     @Override
     public void setPreviewLoading(boolean loading) {
-        FxUtils.runOnFxThread(() -> {
+        FX.run(() -> {
             if (loading) {
                 // Delay showing the spinner so quick loads don't flash it.
                 spinnerDelay.playFromStart();
@@ -158,7 +158,7 @@ public final class MainViewImpl extends AbstractView<MainView.Listener> implemen
 
     @Override
     public void showSidePanel(SidePanel panel) {
-        FxUtils.runOnFxThread(() -> {
+        FX.run(() -> {
             previewButton.setSelected(panel == SidePanel.PREVIEW);
             settingsButton.setSelected(panel == SidePanel.SETTINGS);
             setSidePanelContent(panel);
