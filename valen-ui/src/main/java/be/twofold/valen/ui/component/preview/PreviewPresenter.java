@@ -11,7 +11,6 @@ import be.twofold.valen.ui.component.modelviewer.*;
 import be.twofold.valen.ui.component.rawview.*;
 import be.twofold.valen.ui.component.textureviewer.*;
 import be.twofold.valen.ui.service.*;
-import jakarta.inject.*;
 import org.slf4j.*;
 import wtf.reversed.toolbox.collect.*;
 
@@ -42,14 +41,13 @@ public final class PreviewPresenter extends AbstractPresenter<PreviewView> {
     private boolean visible;
     private CompletableFuture<Preview> pending;
 
-    @Inject
-    PreviewPresenter(
+    public PreviewPresenter(
         PreviewView view,
-        ModelPresenter model,
-        TexturePresenter texture,
         AudioPresenter audio,
         MetaPresenter meta,
+        ModelPresenter model,
         RawPresenter raw,
+        TexturePresenter texture,
         Session session,
         Settings settings,
         Dialogs dialogs,
@@ -57,7 +55,7 @@ public final class PreviewPresenter extends AbstractPresenter<PreviewView> {
     ) {
         super(view);
 
-        this.renderers = List.of(model, texture, audio);
+        this.renderers = List.of(audio, model, texture);
         this.meta = meta;
         this.raw = raw;
 

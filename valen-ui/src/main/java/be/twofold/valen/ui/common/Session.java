@@ -1,7 +1,6 @@
 package be.twofold.valen.ui.common;
 
 import be.twofold.valen.core.game.*;
-import jakarta.inject.*;
 
 import java.util.*;
 
@@ -10,13 +9,11 @@ import java.util.*;
  * <p>
  * Only written by {@code GameService}, on its own thread; read from anywhere.
  */
-@Singleton
 public final class Session {
     private final Value<LoadedGame> game = new Value<>();
     private final Value<AssetLoader> loader = new Value<>();
     private final Value<List<GameEntry>> installedGames = new Value<>(List.of());
 
-    @Inject
     public Session() {
     }
 

@@ -4,10 +4,8 @@ import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.util.*;
 import be.twofold.valen.ui.common.*;
 import be.twofold.valen.ui.component.*;
-import jakarta.inject.*;
 
 public final class MetaPresenter extends AbstractPresenter<MetaView> implements Viewer {
-    @Inject
     public MetaPresenter(MetaView view) {
         super(view);
     }

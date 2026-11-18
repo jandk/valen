@@ -2,14 +2,12 @@ package be.twofold.valen.ui.component.preview;
 
 import be.twofold.valen.ui.common.*;
 import be.twofold.valen.ui.component.*;
-import jakarta.inject.*;
 import javafx.animation.*;
 import javafx.scene.*;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.util.*;
 
-@Singleton
 public final class PreviewViewImpl extends AbstractView<PreviewView.Listener> implements PreviewView {
     private final StackPane root = new StackPane();
     private final TabPane tabPane = new TabPane();
@@ -21,8 +19,7 @@ public final class PreviewViewImpl extends AbstractView<PreviewView.Listener> im
     private final StackPane veil = new StackPane(spinner);
     private final PauseTransition spinnerDelay = new PauseTransition(Duration.millis(200));
 
-    @Inject
-    PreviewViewImpl() {
+    public PreviewViewImpl() {
         buildUI();
     }
 

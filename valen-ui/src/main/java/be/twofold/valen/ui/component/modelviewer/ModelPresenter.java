@@ -6,7 +6,6 @@ import be.twofold.valen.core.material.*;
 import be.twofold.valen.core.texture.*;
 import be.twofold.valen.ui.common.*;
 import be.twofold.valen.ui.component.*;
-import jakarta.inject.*;
 import org.slf4j.*;
 import wtf.reversed.toolbox.collect.*;
 
@@ -21,7 +20,6 @@ public final class ModelPresenter extends AbstractPresenter<ModelView> implement
 
     private static final Logger log = LoggerFactory.getLogger(ModelPresenter.class);
 
-    @Inject
     public ModelPresenter(ModelView view) {
         super(view);
     }

@@ -5,7 +5,6 @@ import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.util.*;
 import be.twofold.valen.ui.common.*;
 import be.twofold.valen.ui.component.*;
-import jakarta.inject.*;
 
 import javax.sound.sampled.*;
 import java.io.*;
@@ -16,7 +15,6 @@ public final class AudioPresenter extends AbstractPresenter<AudioView> implement
     private Clip clip;
     private boolean playing;
 
-    @Inject
     public AudioPresenter(AudioView view) {
         super(view);
         view.setListener(this);

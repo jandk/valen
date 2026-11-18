@@ -2,7 +2,6 @@ package be.twofold.valen.ui.component.textureviewer;
 
 import be.twofold.valen.ui.common.*;
 import be.twofold.valen.ui.component.*;
-import jakarta.inject.*;
 import javafx.scene.*;
 import javafx.scene.control.*;
 import javafx.scene.image.*;
@@ -11,7 +10,6 @@ import javafx.util.*;
 
 import java.util.*;
 
-@Singleton
 public final class TextureViewImpl extends AbstractView<TextureView.Listener> implements TextureView {
     private static final Map<Channel, String> CHANNEL_NAMES = Map.of(
         Channel.RED, "R",
@@ -36,8 +34,7 @@ public final class TextureViewImpl extends AbstractView<TextureView.Listener> im
     private ZoomableScrollPane scrollPane;
     private WritableImage image;
 
-    @Inject
-    TextureViewImpl() {
+    public TextureViewImpl() {
         buildUI();
     }
 

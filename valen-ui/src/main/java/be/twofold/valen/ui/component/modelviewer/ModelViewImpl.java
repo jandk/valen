@@ -4,7 +4,6 @@ import be.twofold.valen.core.geometry.*;
 import be.twofold.valen.core.geometry.Mesh;
 import be.twofold.valen.ui.common.*;
 import be.twofold.valen.ui.component.*;
-import jakarta.inject.*;
 import javafx.collections.*;
 import javafx.geometry.*;
 import javafx.scene.*;
@@ -25,7 +24,6 @@ public final class ModelViewImpl extends AbstractView<View.Listener> implements 
     private final Label statusLabel = new Label();
     private final CameraSystem cameraSystem;
 
-    @Inject
     public ModelViewImpl() {
         var subScene = new SubScene(root, 400, 400, true, SceneAntialiasing.BALANCED);
         subScene.setFill(new Color(0.2, 0.2, 0.2, 1.0));

@@ -3,14 +3,12 @@ package be.twofold.valen.ui.component.progress;
 import be.twofold.valen.ui.common.*;
 import be.twofold.valen.ui.component.*;
 import be.twofold.valen.ui.service.*;
-import jakarta.inject.*;
 import javafx.geometry.*;
 import javafx.scene.*;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.stage.*;
 
-@Singleton
 public final class ProgressViewImpl extends AbstractView<ProgressView.Listener> implements ProgressView {
     private final Dialog<Void> dialog = new Dialog<>();
     private final VBox root = new VBox(10.0);
@@ -21,7 +19,6 @@ public final class ProgressViewImpl extends AbstractView<ProgressView.Listener> 
 
     private boolean closing;
 
-    @Inject
     public ProgressViewImpl(Stage owner) {
         buildUI();
         dialog.initOwner(owner);

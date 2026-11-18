@@ -4,27 +4,25 @@ import be.twofold.valen.core.game.*;
 import be.twofold.valen.ui.common.*;
 import be.twofold.valen.ui.common.settings.*;
 import be.twofold.valen.ui.service.*;
-import jakarta.inject.*;
 
 import java.util.*;
 import java.util.function.*;
 import java.util.stream.*;
 
 public final class FileListPresenter extends AbstractPresenter<FileListView> implements FileListView.Listener {
+    private final ExportService exportService;
     private final Session session;
     private final Settings settings;
-    private final ExportService exportService;
 
     private Map<AssetPath, List<Asset>> assetIndex = Map.of();
     private String query = "";
     private Listener listener;
 
-    @Inject
-    FileListPresenter(FileListView view, Session session, Settings settings, ExportService exportService, UiThread uiThread) {
+    public FileListPresenter(FileListView view, ExportService exportService, Session session, Settings settings, UiThread uiThread) {
         super(view);
+        this.exportService = exportService;
         this.session = session;
         this.settings = settings;
-        this.exportService = exportService;
 
         view.setListener(this);
         session.loaderProperty().subscribe(_ -> uiThread.execute(this::refresh));

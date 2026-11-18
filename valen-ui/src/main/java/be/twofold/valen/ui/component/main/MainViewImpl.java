@@ -6,7 +6,6 @@ import be.twofold.valen.ui.component.*;
 import be.twofold.valen.ui.component.filelist.*;
 import be.twofold.valen.ui.component.preview.*;
 import be.twofold.valen.ui.component.settings.*;
-import jakarta.inject.*;
 import javafx.animation.*;
 import javafx.geometry.*;
 import javafx.scene.*;
@@ -16,7 +15,6 @@ import wtf.reversed.toolbox.util.*;
 
 import java.util.*;
 
-@Singleton
 public final class MainViewImpl extends AbstractView<MainView.Listener> implements MainView {
     private final BorderPane view = new BorderPane();
     private final SplitPane splitPane = new SplitPane();
@@ -33,8 +31,7 @@ public final class MainViewImpl extends AbstractView<MainView.Listener> implemen
     private PreviewView previewView;
     private SettingsView settingsView;
 
-    @Inject
-    MainViewImpl() {
+    public MainViewImpl() {
         buildUI();
     }
 

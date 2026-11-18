@@ -4,7 +4,6 @@ import be.twofold.valen.core.game.*;
 import be.twofold.valen.ui.common.*;
 import be.twofold.valen.ui.component.*;
 import be.twofold.valen.ui.component.utils.*;
-import jakarta.inject.*;
 import javafx.beans.property.*;
 import javafx.beans.value.*;
 import javafx.collections.*;
@@ -19,7 +18,6 @@ import java.util.*;
 import java.util.function.*;
 import java.util.stream.*;
 
-@Singleton
 public final class FileListViewImpl extends AbstractView<FileListView.Listener> implements FileListView {
     private static final String SPACE = " ";
     private static final String SEPARATOR = SPACE + "/" + SPACE;
@@ -31,8 +29,7 @@ public final class FileListViewImpl extends AbstractView<FileListView.Listener> 
     private final TableColumn<Asset, String> typeColumn = new TableColumn<>("Type");
     private final TableColumn<Asset, String> propertiesColumn = new TableColumn<>("Properties");
 
-    @Inject
-    FileListViewImpl() {
+    public FileListViewImpl() {
         buildUI();
     }
 

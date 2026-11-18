@@ -1,11 +1,18 @@
 package be.twofold.valen.ui;
 
-import backbonefx.di.*;
 import be.twofold.valen.ui.common.*;
 import be.twofold.valen.ui.common.settings.*;
 import be.twofold.valen.ui.component.*;
+import be.twofold.valen.ui.component.audioviewer.*;
+import be.twofold.valen.ui.component.filelist.*;
 import be.twofold.valen.ui.component.main.*;
+import be.twofold.valen.ui.component.metaview.*;
+import be.twofold.valen.ui.component.modelviewer.*;
+import be.twofold.valen.ui.component.preview.*;
 import be.twofold.valen.ui.component.progress.*;
+import be.twofold.valen.ui.component.rawview.*;
+import be.twofold.valen.ui.component.settings.*;
+import be.twofold.valen.ui.component.textureviewer.*;
 import be.twofold.valen.ui.service.*;
 import javafx.application.*;
 import javafx.scene.*;
@@ -19,16 +26,26 @@ public final class MainWindow extends Application {
     @Override
     @SuppressWarnings("DataFlowIssue")
     public void start(Stage primaryStage) {
-        // Wiring
-        var feather = Feather.with(
-            new SettingsModule(),
-            new ViewModule(),
-            new WindowModule(primaryStage)
-        );
-        var session = feather.instance(Session.class);
-        var gameService = feather.instance(GameService.class);
-        var mainPresenter = feather.instance(MainPresenter.class);
-        feather.instance(ProgressPresenter.class); // Just instantiate
+        var container = new Container()
+            .instance(Dialogs.class, new FxDialogs(primaryStage))
+            .instance(Settings.class, SettingsManager.get())
+            .instance(Stage.class, primaryStage)
+            .instance(UiThread.class, FX::run)
+            .bind(AudioView.class, AudioViewImpl.class)
+            .bind(FileListView.class, FileListViewImpl.class)
+            .bind(MainView.class, MainViewImpl.class)
+            .bind(MetaView.class, MetaViewImpl.class)
+            .bind(ModelView.class, ModelViewImpl.class)
+            .bind(PreviewView.class, PreviewViewImpl.class)
+            .bind(ProgressView.class, ProgressViewImpl.class)
+            .bind(RawView.class, RawViewImpl.class)
+            .bind(SettingsView.class, SettingsViewImpl.class)
+            .bind(TextureView.class, TextureViewImpl.class);
+
+        var session = container.get(Session.class);
+        var gameService = container.get(GameService.class);
+        var mainPresenter = container.get(MainPresenter.class);
+        container.get(ProgressPresenter.class); // Just need instantiating
 
         // Window
         var scene = new Scene(mainPresenter.getFXNode());

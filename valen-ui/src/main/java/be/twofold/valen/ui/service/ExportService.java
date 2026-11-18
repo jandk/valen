@@ -5,7 +5,6 @@ import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.util.*;
 import be.twofold.valen.ui.common.*;
 import be.twofold.valen.ui.common.settings.*;
-import jakarta.inject.*;
 import org.slf4j.*;
 
 import java.io.*;
@@ -13,7 +12,6 @@ import java.nio.file.*;
 import java.util.*;
 import java.util.concurrent.*;
 
-@Singleton
 public final class ExportService {
     private static final Logger log = LoggerFactory.getLogger(ExportService.class);
 
@@ -28,8 +26,7 @@ public final class ExportService {
     private final Dialogs dialogs;
     private volatile boolean cancelled;
 
-    @Inject
-    ExportService(Settings settings, Dialogs dialogs) {
+    public ExportService(Settings settings, Dialogs dialogs) {
         this.settings = settings;
         this.dialogs = dialogs;
     }

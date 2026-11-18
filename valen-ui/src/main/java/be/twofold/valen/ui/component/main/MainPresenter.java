@@ -6,7 +6,6 @@ import be.twofold.valen.ui.component.filelist.*;
 import be.twofold.valen.ui.component.preview.*;
 import be.twofold.valen.ui.component.settings.*;
 import be.twofold.valen.ui.service.*;
-import jakarta.inject.*;
 
 import java.nio.file.*;
 import java.util.*;
@@ -17,34 +16,31 @@ public final class MainPresenter extends AbstractPresenter<MainView> implements 
 
     private final GameService gameService;
 
-    @Inject
-    MainPresenter(
+    public MainPresenter(
         MainView view,
         FileListPresenter fileListPresenter,
         PreviewPresenter previewPresenter,
         SettingsPresenter settingsPresenter,
-        Session session,
         GameService gameService,
         ExportService exportService,
+        Session session,
         UiThread uiThread
     ) {
         super(view);
 
         this.fileListPresenter = fileListPresenter;
-        this.fileListPresenter.setListener(this);
         this.previewPresenter = previewPresenter;
-        settingsPresenter.setOnApplied(this::applySettings);
-
         this.gameService = gameService;
 
-        view.setListener(this);
+        fileListPresenter.setListener(this);
+        settingsPresenter.setOnApplied(this::applySettings);
         view.setFileListView(fileListPresenter.getView());
         view.setPreviewView(previewPresenter.getView());
         view.setSettingsView(settingsPresenter.getView());
+        view.setListener(this);
 
         session.gameProperty().subscribe(game -> uiThread.execute(() -> gameChanged(game)));
         session.installedGamesProperty().subscribe(games -> uiThread.execute(() -> getView().setGames(games)));
-
         exportService.progressProperty().subscribe(progress -> uiThread.execute(() -> getView().setExporting(progress != null)));
     }
 

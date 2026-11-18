@@ -2,19 +2,16 @@ package be.twofold.valen.ui.component.metaview;
 
 import be.twofold.valen.core.util.*;
 import be.twofold.valen.ui.common.*;
-import jakarta.inject.*;
 import javafx.beans.property.*;
 import javafx.scene.*;
 import javafx.scene.control.*;
 
 import java.lang.reflect.*;
 
-@Singleton
 public final class MetaViewImpl extends AbstractView<View.Listener> implements MetaView {
     private final TreeTableView<Meta.Item> treeTableView = new TreeTableView<>();
 
-    @Inject
-    MetaViewImpl() {
+    public MetaViewImpl() {
         var nameColumn = new TreeTableColumn<Meta.Item, String>("Name");
         nameColumn.setCellValueFactory(param -> {
             var item = param.getValue().getValue();

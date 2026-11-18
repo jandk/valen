@@ -3,7 +3,6 @@ package be.twofold.valen.ui.service;
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.ui.common.*;
 import be.twofold.valen.ui.common.settings.*;
-import jakarta.inject.*;
 import org.slf4j.*;
 
 import java.io.*;
@@ -11,7 +10,6 @@ import java.nio.file.*;
 import java.util.*;
 import java.util.concurrent.*;
 
-@Singleton
 public final class GameService {
     private static final Logger log = LoggerFactory.getLogger(GameService.class);
 
@@ -25,8 +23,7 @@ public final class GameService {
     private final Settings settings;
     private final Dialogs dialogs;
 
-    @Inject
-    GameService(Session session, Settings settings, Dialogs dialogs) {
+    public GameService(Session session, Settings settings, Dialogs dialogs) {
         this.session = session;
         this.settings = settings;
         this.dialogs = dialogs;

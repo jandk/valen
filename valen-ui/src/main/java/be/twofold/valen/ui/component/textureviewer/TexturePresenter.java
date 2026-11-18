@@ -5,7 +5,6 @@ import be.twofold.valen.core.texture.*;
 import be.twofold.valen.ui.common.*;
 import be.twofold.valen.ui.common.settings.*;
 import be.twofold.valen.ui.component.*;
-import jakarta.inject.*;
 import wtf.reversed.toolbox.collect.*;
 
 import java.util.function.*;
@@ -23,8 +22,7 @@ public final class TexturePresenter extends AbstractPresenter<TextureView> imple
 
     private Channel channel = Channel.ALL;
 
-    @Inject
-    TexturePresenter(TextureView view, Settings settings) {
+    public TexturePresenter(TextureView view, Settings settings) {
         super(view);
         this.settings = settings;
 
