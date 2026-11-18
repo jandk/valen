@@ -80,18 +80,45 @@ public final class FileListPresenter extends AbstractPresenter<FileListView> imp
         return loader.all().filter(predicate);
     }
 
-    private Predicate<Asset> buildPredicate(String assetName, Collection<AssetType> assetTypes) {
+    private Predicate<Asset> buildPredicate(String query, Collection<AssetType> assetTypes) {
         var predicates = new ArrayList<Predicate<Asset>>();
-        if (assetName != null) {
-            predicates.add(asset -> asset.id().fullName().contains(assetName));
+        var terms = query.isBlank() ? new String[0] : query.strip().split("\\s+");
+        if (terms.length > 0) {
+            predicates.add(asset -> matchesAll(asset.id().fullName(), terms));
         }
         if (assetTypes != null && !assetTypes.isEmpty()) {
-            var assetTypeSet = EnumSet.copyOf(assetTypes);
-            predicates.add(asset -> assetTypeSet.contains(asset.type()));
+            var typeSet = EnumSet.copyOf(assetTypes);
+            predicates.add(asset -> typeSet.contains(asset.type()));
         }
         return predicates.stream()
             .reduce(Predicate::and)
             .orElse(_ -> true);
+    }
+
+    private boolean matchesAll(String name, String[] terms) {
+        for (var term : terms) {
+            if (!containsIgnoreCase(name, term)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private boolean containsIgnoreCase(String haystack, String needle) {
+        var length = needle.length();
+        if (length == 0) {
+            return true;
+        }
+
+        var lower = Character.toLowerCase(needle.charAt(0));
+        var upper = Character.toUpperCase(needle.charAt(0));
+        for (int i = 0, lim = haystack.length() - length; i <= lim; i++) {
+            var c = haystack.charAt(i);
+            if ((c == lower || c == upper) && haystack.regionMatches(true, i, needle, 0, length)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private void export(List<? extends Asset> assets) {
