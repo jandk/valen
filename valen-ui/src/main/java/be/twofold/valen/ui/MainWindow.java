@@ -3,6 +3,7 @@ package be.twofold.valen.ui;
 import backbonefx.di.*;
 import backbonefx.event.*;
 import be.twofold.valen.core.game.*;
+import be.twofold.valen.ui.common.*;
 import be.twofold.valen.ui.common.settings.*;
 import be.twofold.valen.ui.component.*;
 import be.twofold.valen.ui.component.main.*;
@@ -23,7 +24,7 @@ public final class MainWindow extends Application {
     private Stage primaryStage;
     private MainPresenter presenter;
     private Settings settings;
-    private Game game;
+    private Session session;
 
     @Override
     @SuppressWarnings("DataFlowIssue")
@@ -47,6 +48,7 @@ public final class MainWindow extends Application {
 
         presenter = feather.instance(MainPresenter.class);
         settings = feather.instance(Settings.class);
+        session = feather.instance(Session.class);
 
         var icons = Stream.of(16, 24, 32, 48, 64, 96, 128)
             .map(i -> new Image(getClass().getResourceAsStream("/appicon/valen-" + i + ".png")))
@@ -56,7 +58,9 @@ public final class MainWindow extends Application {
         scene.getAccelerators().put(KeyCombination.keyCombination("Ctrl+F"), presenter::focusOnSearch);
         scene.getStylesheets().add(getClass().getResource("/style.css").toExternalForm());
 
-        primaryStage.setTitle("Valen");
+        session.gameProperty().subscribe(game -> FxUtils.runOnFxThread(() -> {
+            primaryStage.setTitle(game != null ? "Valen :: " + game.entry().name() : "Valen");
+        }));
         primaryStage.getIcons().setAll(icons);
         primaryStage.setScene(scene);
         primaryStage.show();
@@ -111,15 +115,16 @@ public final class MainWindow extends Application {
 
         try {
             var newGame = gameFactory.get().load(path);
-            if (game != null) {
-                game.close();
-            }
-            game = newGame;
-            settings.setGameExecutable(path);
-
             var entry = new GameEntry(gameFactory.get().displayName(), path);
-            presenter.setGame(game, entry);
-            primaryStage.setTitle("Valen — " + entry.name());
+
+            // Swap first, so nothing still points at the old game when it gets closed
+            var oldGame = session.getGame();
+            session.setGame(new Session.LoadedGame(newGame, entry));
+            if (oldGame != null) {
+                oldGame.game().close();
+            }
+
+            settings.setGameExecutable(path);
             return true;
         } catch (Exception e) {
             FxUtils.showExceptionDialog(e, "Could not load game");

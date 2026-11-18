@@ -28,6 +28,7 @@ public final class MainPresenter extends AbstractPresenter<MainView> implements 
     private final ExportService exportService;
     private final FileListPresenter fileList;
     private final Settings settings;
+    private final Session session;
     private final EventBus eventBus;
 
     // Loads run off the FX thread so browsing stays responsive. A single thread
@@ -39,8 +40,6 @@ public final class MainPresenter extends AbstractPresenter<MainView> implements 
     });
     private final AtomicLong loadSequence = new AtomicLong();
 
-    private Game game;
-    private AssetLoader loader;
     private Asset lastAsset;
     private SidePanel sidePanel = SidePanel.NONE;
     private String query = "";
@@ -50,6 +49,7 @@ public final class MainPresenter extends AbstractPresenter<MainView> implements 
         MainView view,
         EventBus eventBus,
         Settings settings,
+        Session session,
         ExportService exportService,
         Feather feather
     ) {
@@ -57,11 +57,15 @@ public final class MainPresenter extends AbstractPresenter<MainView> implements 
 
         this.fileList = feather.instance(FileListPresenter.class);
         this.settings = settings;
+        this.session = session;
         this.exportService = exportService;
         this.eventBus = eventBus;
 
         view.setListener(this);
         view.setFileListView(fileList.getView().getFXNode());
+
+        session.gameProperty().subscribe(this::gameChanged);
+        session.loaderProperty().subscribe(_ -> loaderChanged());
 
         eventBus.subscribe(AssetSelected.class, event -> selectAsset(event.asset(), event.forced()));
         eventBus.subscribe(SettingsApplied.class, _ -> applySettings());
@@ -114,17 +118,20 @@ public final class MainPresenter extends AbstractPresenter<MainView> implements 
         updateFileList();
     }
 
-    public void setGame(Game game, GameEntry entry) {
-        this.game = game;
-        getView().setCurrentGame(entry);
-        loader = null;
-        resetSelection();
-        updateFileList();
-        getView().setArchives(game.archiveNames().stream().sorted().toList());
-    }
-
     public void focusOnSearch() {
         getView().focusOnSearch();
+    }
+
+    private void gameChanged(Session.LoadedGame game) {
+        getView().setCurrentGame(game != null ? game.entry() : null);
+        getView().setArchives(game != null
+            ? game.game().archiveNames().stream().sorted().toList()
+            : List.of());
+    }
+
+    private void loaderChanged() {
+        resetSelection();
+        updateFileList();
     }
 
     private void resetSelection() {
@@ -150,14 +157,12 @@ public final class MainPresenter extends AbstractPresenter<MainView> implements 
     }
 
     private void selectArchive(String archiveName) {
-        if (game == null) {
+        var game = session.getGame();
+        if (archiveName == null || game == null) {
             return;
         }
         try {
-            // This cast is safe here, we don't care about the actual types
-            loader = game.open(archiveName);
-            updateFileList();
-            resetSelection();
+            session.setLoader(game.game().open(archiveName));
         } catch (IOException e) {
             log.error("Could not load archive {}", archiveName, e);
             FxUtils.showExceptionDialog(e, "Could not load archive " + archiveName);
@@ -174,11 +179,11 @@ public final class MainPresenter extends AbstractPresenter<MainView> implements 
         // Bump the sequence so any in-flight load is superseded, even if we
         // don't start a new one (e.g. the preview panel is hidden).
         var seq = loadSequence.incrementAndGet();
-        if (sidePanel != SidePanel.PREVIEW || loader == null) {
+        var currentLoader = session.getLoader();
+        if (sidePanel != SidePanel.PREVIEW || currentLoader == null) {
             return;
         }
 
-        var currentLoader = loader;
         getView().setPreviewLoading(true);
         loadExecutor.execute(() -> loadAsset(seq, currentLoader, asset));
     }
@@ -251,7 +256,7 @@ public final class MainPresenter extends AbstractPresenter<MainView> implements 
             return;
         }
 
-        exportService.export(loader, assets);
+        exportService.export(session.getLoader(), assets);
     }
 
     private void applySettings() {
@@ -268,6 +273,7 @@ public final class MainPresenter extends AbstractPresenter<MainView> implements 
     }
 
     private Stream<? extends Asset> filteredAssets() {
+        var loader = session.getLoader();
         if (loader == null) {
             return Stream.empty();
         }
