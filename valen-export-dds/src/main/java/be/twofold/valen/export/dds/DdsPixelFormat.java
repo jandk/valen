@@ -1,6 +1,8 @@
 package be.twofold.valen.export.dds;
 
-import java.nio.*;
+import wtf.reversed.toolbox.io.*;
+
+import java.io.*;
 
 record DdsPixelFormat(
     int flags,
@@ -21,17 +23,14 @@ record DdsPixelFormat(
 
     public static final int SIZE = 32;
 
-    public ByteBuffer toBuffer() {
-        return ByteBuffer.allocate(SIZE)
-            .order(ByteOrder.LITTLE_ENDIAN)
-            .putInt(SIZE)
-            .putInt(flags)
-            .putInt(fourCC)
-            .putInt(rgbBitCount)
-            .putInt(rBitMask)
-            .putInt(gBitMask)
-            .putInt(bBitMask)
-            .putInt(aBitMask)
-            .flip();
+    public void writeTo(BinaryWriter writer) throws IOException {
+        writer.writeInt(SIZE);
+        writer.writeInt(flags);
+        writer.writeInt(fourCC);
+        writer.writeInt(rgbBitCount);
+        writer.writeInt(rBitMask);
+        writer.writeInt(gBitMask);
+        writer.writeInt(bBitMask);
+        writer.writeInt(aBitMask);
     }
 }

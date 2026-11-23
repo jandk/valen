@@ -4,6 +4,7 @@ import be.twofold.tinycast.*;
 import be.twofold.valen.core.export.*;
 import be.twofold.valen.core.material.*;
 import be.twofold.valen.core.texture.*;
+import wtf.reversed.toolbox.io.BinaryWriter;
 import wtf.reversed.toolbox.util.*;
 
 import java.io.*;
@@ -29,9 +30,11 @@ public final class CastTextureMapper {
             return existingHash;
         }
 
-        var bytes = textureToPng(reference.supplier().get());
         var path = imagePath.resolve(reference.filename() + ".png");
-        Files.write(path, bytes);
+        try (var writer = BinaryWriter.open(path)) {
+            var texture = reference.supplier().get();
+            pngExporter.export(texture, writer);
+        }
 
         var pathString = castPath.getParent().relativize(path).toString().replace('\\', '/');
         var hash = material.createFile()
@@ -40,12 +43,5 @@ public final class CastTextureMapper {
 
         textures.put(reference.filename(), hash);
         return hash;
-    }
-
-    private byte[] textureToPng(Texture texture) throws IOException {
-        try (var out = new ByteArrayOutputStream()) {
-            pngExporter.export(texture, out);
-            return out.toByteArray();
-        }
     }
 }

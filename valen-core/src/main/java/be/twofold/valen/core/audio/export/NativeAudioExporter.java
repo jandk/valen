@@ -3,6 +3,7 @@ package be.twofold.valen.core.audio.export;
 import be.twofold.valen.core.audio.*;
 import be.twofold.valen.core.export.*;
 import be.twofold.valen.core.util.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 import java.nio.file.*;
@@ -35,7 +36,7 @@ public final class NativeAudioExporter implements Exporter<Audio> {
     }
 
     @Override
-    public void export(Audio value, OutputStream out) throws IOException {
+    public void export(Audio value, BinaryWriter writer) throws IOException {
         // TODO: Eehm, Liskov fail for now
         throw new UnsupportedOperationException("Native Audio can't export to a stream");
     }
@@ -72,9 +73,8 @@ public final class NativeAudioExporter implements Exporter<Audio> {
         switch (converted.codec()) {
             case OGG_OPUS:
             case OGG_VORBIS:
-                try (var in = converted.data().asInputStream();
-                     var out = Files.newOutputStream(outputPath)) {
-                    in.transferTo(out);
+                try (var writer = BinaryWriter.open(outputPath)) {
+                    writer.writeBytes(converted.data());
                 }
                 break;
             case PCM_S16_LE:

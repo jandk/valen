@@ -31,10 +31,8 @@ public record FourCC(int value) {
         return new FourCC(result);
     }
 
-    public void write(OutputStream out) throws IOException {
-        for (int i = 0; i < 4; i++) {
-            out.write((byte) (value >>> (i * 8)));
-        }
+    public void write(BinaryWriter writer) throws IOException {
+        writer.writeInt(value);
     }
 
     @Override

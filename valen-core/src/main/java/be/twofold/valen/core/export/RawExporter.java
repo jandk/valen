@@ -1,9 +1,9 @@
 package be.twofold.valen.core.export;
 
 import wtf.reversed.toolbox.collect.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
-import java.nio.channels.*;
 
 public final class RawExporter implements Exporter<Bytes> {
     @Override
@@ -27,7 +27,7 @@ public final class RawExporter implements Exporter<Bytes> {
     }
 
     @Override
-    public void export(Bytes value, OutputStream out) throws IOException {
-        Channels.newChannel(out).write(value.asBuffer());
+    public void export(Bytes value, BinaryWriter writer) throws IOException {
+        writer.writeBytes(value);
     }
 }

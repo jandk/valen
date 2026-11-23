@@ -3,6 +3,7 @@ package be.twofold.valen.export.gltf;
 import be.twofold.valen.core.export.*;
 import be.twofold.valen.core.util.*;
 import be.twofold.valen.format.gltf.*;
+import wtf.reversed.toolbox.io.*;
 import wtf.reversed.toolbox.util.*;
 
 import java.io.*;
@@ -26,7 +27,7 @@ public abstract class GltfExporter<T> implements Exporter<T> {
     }
 
     @Override
-    public void export(T value, OutputStream out) throws IOException {
+    public void export(T value, BinaryWriter writer) throws IOException {
         // TODO: Eehm, Liskov fail for now
         throw new UnsupportedOperationException("GLTF can't export to a stream");
     }
