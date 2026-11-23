@@ -10,6 +10,7 @@
 
     <modules>
         <module>lib/reversed-toolbox</module>
+        <module>lib/tinyaudio</module>
         <module>valen-app</module>
         <module>valen-core</module>
         <module>valen-export-cast</module>

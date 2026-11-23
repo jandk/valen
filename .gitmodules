@@ -1,3 +1,6 @@
 [submodule "lib/reversed-toolbox"]
 	path = lib/reversed-toolbox
 	url = https://github.com/reversed-wtf/reversed-toolbox/
+[submodule "lib/tinyaudio"]
+	path = lib/tinyaudio
+	url = https://github.com/jandk/tinyaudio/
