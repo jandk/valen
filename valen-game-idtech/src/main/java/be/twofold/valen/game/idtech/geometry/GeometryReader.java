@@ -10,7 +10,7 @@ import java.util.stream.*;
 
 public final class GeometryReader {
 
-    public static Mesh readEmbeddedMesh(BinarySource source, LodInfo lodInfo) throws IOException {
+    public static Mesh readEmbeddedMesh(BinaryReader reader, LodInfo lodInfo) throws IOException {
         var masks = GeometryVertexMask.FixedOrder.stream()
             .filter(mask -> (lodInfo.vertexMask() & mask.mask()) == mask.mask())
             .toList();
@@ -34,11 +34,11 @@ public final class GeometryReader {
         // off, so hand the reader a slice that begins at the vertex data.
         var length = offset + lodInfo.numFaces() * 3L * Short.BYTES;
         return new MeshReader(true)
-            .readMesh(source.readSlice(length), builder.build());
+            .readMesh(reader.readSlice(length), builder.build());
     }
 
     public static List<Mesh> readStreamedMesh(
-        BinarySource source,
+        BinaryReader reader,
         List<LodInfo> lods,
         List<? extends GeoMemoryLayout> layouts,
         boolean animated
@@ -73,7 +73,7 @@ public final class GeometryReader {
                 builder.indices(offsets.indexOffset, Short.BYTES, AttributeReader.readShortAsInts());
                 offsets.indexOffset += lodInfo.numFaces() * 3 * Short.BYTES;
 
-                var mesh = new MeshReader(true).readMesh(source, builder.build());
+                var mesh = new MeshReader(true).readMesh(reader, builder.build());
                 meshes.add(mesh);
             }
         }
@@ -81,7 +81,7 @@ public final class GeometryReader {
     }
 
     public static List<Mesh> readStreamedMesh(
-        BinarySource source,
+        BinaryReader reader,
         List<LodInfo> lods,
         boolean animated
     ) {
@@ -106,7 +106,7 @@ public final class GeometryReader {
             offset = (offset + lodOffset + 7) & ~7;
 
             meshes.add(new MeshReader(true)
-                .readMesh(source, builder.build()));
+                .readMesh(reader, builder.build()));
         }
 
         return meshes;

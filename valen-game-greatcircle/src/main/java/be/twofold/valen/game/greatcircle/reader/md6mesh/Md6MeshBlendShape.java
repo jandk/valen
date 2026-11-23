@@ -9,10 +9,10 @@ record Md6MeshBlendShape(
     short rigControlIndex,
     int deltaIndexStart
 ) {
-    static Md6MeshBlendShape read(BinarySource source) throws IOException {
-        var name = source.readString(StringFormat.INT_LENGTH);
-        var rigControlIndex = source.readShort();
-        var deltaIndexStart = source.readInt();
+    static Md6MeshBlendShape read(BinaryReader reader) throws IOException {
+        var name = reader.readString(StringFormat.INT_LENGTH);
+        var rigControlIndex = reader.readShort();
+        var deltaIndexStart = reader.readInt();
         return new Md6MeshBlendShape(name, rigControlIndex, deltaIndexStart);
     }
 }

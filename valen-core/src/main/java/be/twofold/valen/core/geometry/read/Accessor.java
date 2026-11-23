@@ -6,7 +6,7 @@ import wtf.reversed.toolbox.io.*;
 import wtf.reversed.toolbox.util.*;
 
 /**
- * How to read a VertexBuffer from a {@link BinarySource}.
+ * How to read a VertexBuffer from a {@link BinaryReader}.
  * <p>
  * This is the read-time mirror of {@link VertexBuffer}.
  */

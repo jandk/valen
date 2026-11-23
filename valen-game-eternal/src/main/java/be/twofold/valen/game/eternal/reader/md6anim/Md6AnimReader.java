@@ -25,8 +25,8 @@ public final class Md6AnimReader implements AssetReader.Binary<Animation, Eterna
     }
 
     @Override
-    public Animation read(BinarySource source, EternalAsset asset, LoadingContext context) throws IOException {
-        var anim = Md6Anim.read(source);
+    public Animation read(BinaryReader reader, EternalAsset asset, LoadingContext context) throws IOException {
+        var anim = Md6Anim.read(reader);
 
         var skeletonKey = EternalAssetID.from(anim.header().skelName(), ResourceType.of("skeleton"));
         if (!context.exists(skeletonKey)) {
@@ -50,8 +50,8 @@ public final class Md6AnimReader implements AssetReader.Binary<Animation, Eterna
 
     @Override
     public Optional<Meta.Node> readMetadata(EternalAsset asset, LoadingContext context) throws IOException {
-        try (var source = BinarySource.wrap(context.open(asset.location()))) {
-            var anim = Md6Anim.read(source);
+        try (var reader = BinaryReader.wrap(context.open(asset.location()))) {
+            var anim = Md6Anim.read(reader);
             return Optional.of(Meta.build(MethodHandles.lookup(), anim));
         }
     }

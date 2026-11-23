@@ -15,28 +15,28 @@ public record SoundEntry(
     int headerSize,
     int headerOffset
 ) {
-    public static SoundEntry read(BinarySource source, IdTechGame game) throws IOException {
-        var hash = source.readLong();
-        var mediaId = source.readInt();
-        var sizeOnDisk = source.readInt();
-        var offset = source.readInt();
-        var size = source.readInt();
+    public static SoundEntry read(BinaryReader reader, IdTechGame game) throws IOException {
+        var hash = reader.readLong();
+        var mediaId = reader.readInt();
+        var sizeOnDisk = reader.readInt();
+        var offset = reader.readInt();
+        var size = reader.readInt();
 
         SoundEntryType type;
         int headerSize;
         switch (game) {
             case ETERNAL -> {
-                type = SoundEntryType.read(source);
-                headerSize = source.readUnsignedShort();
+                type = SoundEntryType.read(reader);
+                headerSize = reader.readUnsignedShort();
             }
             case DARK_AGES -> {
                 type = SoundEntryType.NONE;
-                headerSize = source.readInt();
+                headerSize = reader.readInt();
             }
             default -> throw new UnsupportedOperationException("Unsupported sound format for " + game);
         }
 
-        var headerOffset = source.readInt();
+        var headerOffset = reader.readInt();
 
         return new SoundEntry(
             hash,

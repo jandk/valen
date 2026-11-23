@@ -20,27 +20,27 @@ public record WaveFormat(
         Check.nonNull(extra, "extra");
     }
 
-    public static WaveFormat read(BinarySource source) throws IOException {
-        var size = Math.toIntExact(source.remaining());
+    public static WaveFormat read(BinaryReader reader) throws IOException {
+        var size = Math.toIntExact(reader.remaining());
         if (size < 14) {
             throw new IOException("fmt chunk too small: " + size);
         }
         // WAVEFORMAT
-        var formatTag = source.readShort();
-        var channels = source.readShort();
-        var samplesPerSec = source.readInt();
-        var avgBytesPerSec = source.readInt();
-        var blockAlign = source.readShort();
+        var formatTag = reader.readShort();
+        var channels = reader.readShort();
+        var samplesPerSec = reader.readInt();
+        var avgBytesPerSec = reader.readInt();
+        var blockAlign = reader.readShort();
 
         // PCMWAVEFORMAT
-        var bitsPerSample = size >= 16 ? source.readShort() : 0;
+        var bitsPerSample = size >= 16 ? reader.readShort() : 0;
 
         // WAVEFORMATEX
         if (size >= 18) {
-            source.readShort(); // cbSize, unreliable
+            reader.readShort(); // cbSize, unreliable
         }
 
-        var extra = size > 18 ? source.readBytes(size - 18) : Bytes.empty();
+        var extra = size > 18 ? reader.readBytes(size - 18) : Bytes.empty();
 
         return new WaveFormat(
             formatTag,

@@ -13,23 +13,23 @@ public final class MeshReader {
         this.flipWindingOrder = flipWindingOrder;
     }
 
-    public Mesh readMesh(BinarySource source, MeshFormat plan) {
-        var indices = read(source, plan.indices(), plan.indexCount());
+    public Mesh readMesh(BinaryReader reader, MeshFormat plan) {
+        var indices = read(reader, plan.indices(), plan.indexCount());
         if (flipWindingOrder) {
             invertIndices(indices);
         }
 
         var builder = Mesh.builder(indices, plan.vertexCount());
         plan.accessors().forEach((semantic, accessor) ->
-            builder.attribute(semantic, readAttribute(source, accessor, plan.vertexCount())));
+            builder.attribute(semantic, readAttribute(reader, accessor, plan.vertexCount())));
         return builder.build();
     }
 
-    private <T extends Slice> VertexBuffer<T> readAttribute(BinarySource source, Accessor<T> accessor, int count) {
-        return new VertexBuffer<>(read(source, accessor, count), accessor.layout());
+    private <T extends Slice> VertexBuffer<T> readAttribute(BinaryReader reader, Accessor<T> accessor, int count) {
+        return new VertexBuffer<>(read(reader, accessor, count), accessor.layout());
     }
 
-    private <T extends Slice> T read(BinarySource source, Accessor<T> accessor, int count) {
+    private <T extends Slice> T read(BinaryReader reader, Accessor<T> accessor, int count) {
         int capacity = count * accessor.count();
         T buffer = accessor.allocate(capacity);
 
@@ -37,8 +37,8 @@ public final class MeshReader {
             long start = accessor.offset();
             int offset = 0;
             for (long i = 0L; i < count; i++) {
-                source.position(start + i * accessor.stride());
-                accessor.reader().read(source, buffer, offset);
+                reader.position(start + i * accessor.stride());
+                accessor.reader().read(reader, buffer, offset);
                 offset += accessor.count();
             }
         } catch (IOException e) {

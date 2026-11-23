@@ -61,8 +61,8 @@ public final class WwiseOpusConverter implements AudioConverter {
     }
 
     private Bytes rebuildOpus(Audio audio) throws IOException {
-        var source = BinarySource.wrap(audio.data());
-        var wem = Wem.read(source);
+        var reader = BinaryReader.wrap(audio.data());
+        var wem = Wem.read(reader);
         var seek = wem.seek().orElseThrow();
         var opusHeader = (AkOpusWemHeader) wem.format().codecHeader().orElseThrow();
 

@@ -12,7 +12,7 @@ import java.nio.file.*;
 import java.util.*;
 
 record ResourcesIndex(
-    Map<Path, BinarySource> sources,
+    Map<Path, BinaryReader> sources,
     List<GreatCircleAsset> assets
 ) {
     private static final Logger log = LoggerFactory.getLogger(ResourcesIndex.class);
@@ -23,15 +23,15 @@ record ResourcesIndex(
     }
 
     static ResourcesIndex build(List<Path> paths, ContainerMask masks) throws IOException {
-        var sources = new HashMap<Path, BinarySource>();
+        var sources = new HashMap<Path, BinaryReader>();
         var assets = new ArrayList<GreatCircleAsset>();
         for (var path : paths) {
             log.info("Loading Resources: {}", path);
 
-            var source = BinarySource.open(path);
-            sources.put(path, source);
+            var reader = BinaryReader.open(path);
+            sources.put(path, reader);
 
-            var resources = Resources.read(source);
+            var resources = Resources.read(reader);
             var entries = resources.entries();
             var mask = masks.get(resources.hash(), entries.size());
             for (var i = 0; i < entries.size(); i++) {

@@ -18,8 +18,8 @@ public final class MapFileStaticInstancesReader implements AssetReader.Binary<Sc
     }
 
     @Override
-    public Scene read(BinarySource source, EternalAsset asset, LoadingContext context) throws IOException {
-        var staticInstances = MapFileStaticInstances.read(source);
+    public Scene read(BinaryReader reader, EternalAsset asset, LoadingContext context) throws IOException {
+        var staticInstances = MapFileStaticInstances.read(reader);
 
         var instances = new ArrayList<Instance>();
         for (int i = 0; i < staticInstances.modelInstanceNames().size(); i++) {
@@ -35,8 +35,8 @@ public final class MapFileStaticInstancesReader implements AssetReader.Binary<Sc
     /* TODO: Skip this one for now as the data is too big
     @Override
     public Optional<Meta.Node> readMetadata(EternalAsset asset, LoadingContext context) throws IOException {
-        try (var source = BinarySource.wrap(context.open(asset.location()))) {
-            var staticInstances = MapFileStaticInstances.read(source);
+        try (var reader = BinaryReader.wrap(context.open(asset.location()))) {
+            var staticInstances = MapFileStaticInstances.read(reader);
             return Optional.of(Meta.build(MethodHandles.lookup(), staticInstances));
         }
     }

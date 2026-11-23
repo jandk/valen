@@ -17,19 +17,19 @@ public record SoundMetadata(
     List<Container> containers
 ) {
     public static SoundMetadata load(Path path) throws IOException {
-        try (var source = BinarySource.open(path)) {
-            return read(source);
+        try (var reader = BinaryReader.open(path)) {
+            return read(reader);
         }
     }
 
-    public static SoundMetadata read(BinarySource source) throws IOException {
-        var banks = source.readObjects(source.readInt(), Bank::read);
-        var auxBuses = source.readObjects(source.readInt(), NameId::readReversed);
-        var rtpcs = source.readObjects(source.readInt(), NameId::read);
-        var switchGroups = source.readObjects(source.readInt(), Group::read);
-        var stateGroups = source.readObjects(source.readInt(), Group::read);
-        var events = source.readObjects(source.readInt(), Event::read);
-        var containers = source.readObjects(source.readInt(), Container::read);
+    public static SoundMetadata read(BinaryReader reader) throws IOException {
+        var banks = reader.readObjects(reader.readInt(), Bank::read);
+        var auxBuses = reader.readObjects(reader.readInt(), NameId::readReversed);
+        var rtpcs = reader.readObjects(reader.readInt(), NameId::read);
+        var switchGroups = reader.readObjects(reader.readInt(), Group::read);
+        var stateGroups = reader.readObjects(reader.readInt(), Group::read);
+        var events = reader.readObjects(reader.readInt(), Event::read);
+        var containers = reader.readObjects(reader.readInt(), Container::read);
 
         return new SoundMetadata(
             banks,

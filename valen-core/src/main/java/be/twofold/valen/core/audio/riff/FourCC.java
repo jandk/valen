@@ -15,8 +15,8 @@ public record FourCC(int value) {
         }
     }
 
-    public static FourCC read(BinarySource source) throws IOException {
-        return new FourCC(source.readInt());
+    public static FourCC read(BinaryReader reader) throws IOException {
+        return new FourCC(reader.readInt());
     }
 
     public static FourCC parse(String s) {

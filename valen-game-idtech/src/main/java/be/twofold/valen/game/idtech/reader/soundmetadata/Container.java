@@ -9,9 +9,9 @@ public record Container(
     String name,
     List<ContainerFile> files
 ) {
-    public static Container read(BinarySource source) throws IOException {
-        var name = source.readString(StringFormat.INT_LENGTH);
-        var files = source.readObjects(source.readInt(), ContainerFile::read);
+    public static Container read(BinaryReader reader) throws IOException {
+        var name = reader.readString(StringFormat.INT_LENGTH);
+        var files = reader.readObjects(reader.readInt(), ContainerFile::read);
 
         return new Container(
             name,

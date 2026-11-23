@@ -27,8 +27,8 @@ public final class EntityReader implements AssetReader.Binary<EntityFile, Eterna
     }
 
     @Override
-    public EntityFile read(BinarySource source, EternalAsset asset, LoadingContext context) throws IOException {
-        var bytes = fileCompressedReader.read(source, asset, context);
+    public EntityFile read(BinaryReader reader, EternalAsset asset, LoadingContext context) throws IOException {
+        var bytes = fileCompressedReader.read(reader, asset, context);
         var input = StandardCharsets.UTF_8.decode(bytes.asBuffer()).toString();
 
         var lexer = DeclParser.createLexer(input);

@@ -26,34 +26,34 @@ public record ImageHeader(
     int streamedSize,
     boolean unknown
 ) {
-    public static ImageHeader read(BinarySource source) throws IOException {
-        var magic = source.readInt();
+    public static ImageHeader read(BinaryReader reader) throws IOException {
+        var magic = reader.readInt();
         if (magic != 0x1F4D4942 && magic != 0x1E4D4942 && magic != 0x1D4D4942) {
             throw new IOException("Invalid magic number: " + magic);
         }
         var version = magic >>> 24;
 
-        var type = TextureType.read(source);
-        var kind = TextureMaterialKind.read(source);
-        var width = source.readInt();
-        var height = source.readInt();
-        var depth = source.readInt();
-        var count = version < 31 ? 1 : source.readInt();
-        var mipCount = source.readInt();
-        var unknown1 = source.readInt();
-        var bias = source.readFloat();
-        var scale = source.readFloat();
-        source.expectByte((byte) 0);
-        var textureFormat = toTextureFormat(source.readInt());
-        source.expectShort((short) 0);
-        var streamed = source.readBool(BoolFormat.BYTE);
-        var singleStream = source.readBool(BoolFormat.BYTE);
-        var noMips = source.readBool(BoolFormat.BYTE);
-        var fftBloom = source.readBool(BoolFormat.BYTE);
-        source.expectInt(0);
-        var startMip = source.readInt();
-        var streamedSize = source.readInt();
-        var unknown = source.readBool(BoolFormat.BYTE);
+        var type = TextureType.read(reader);
+        var kind = TextureMaterialKind.read(reader);
+        var width = reader.readInt();
+        var height = reader.readInt();
+        var depth = reader.readInt();
+        var count = version < 31 ? 1 : reader.readInt();
+        var mipCount = reader.readInt();
+        var unknown1 = reader.readInt();
+        var bias = reader.readFloat();
+        var scale = reader.readFloat();
+        reader.expectByte((byte) 0);
+        var textureFormat = toTextureFormat(reader.readInt());
+        reader.expectShort((short) 0);
+        var streamed = reader.readBool(BoolFormat.BYTE);
+        var singleStream = reader.readBool(BoolFormat.BYTE);
+        var noMips = reader.readBool(BoolFormat.BYTE);
+        var fftBloom = reader.readBool(BoolFormat.BYTE);
+        reader.expectInt(0);
+        var startMip = reader.readInt();
+        var streamedSize = reader.readInt();
+        var unknown = reader.readBool(BoolFormat.BYTE);
 
         return new ImageHeader(
             magic,

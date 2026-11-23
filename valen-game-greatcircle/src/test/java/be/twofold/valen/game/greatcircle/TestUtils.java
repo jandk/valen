@@ -31,7 +31,7 @@ public abstract class TestUtils {
         for (Asset asset : entries) {
             try {
                 var bytes = loader.load(asset.id(), Bytes.class);
-                reader.read(BinarySource.wrap(bytes), (GreatCircleAsset) asset, loader);
+                reader.read(BinaryReader.wrap(bytes), (GreatCircleAsset) asset, loader);
             } catch (FileNotFoundException e) {
                 System.err.println(e.getMessage());
             } catch (IOException e) {

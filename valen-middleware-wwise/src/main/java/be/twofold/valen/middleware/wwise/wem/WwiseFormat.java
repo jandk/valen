@@ -15,7 +15,7 @@ public record WwiseFormat(
 ) {
     public static WwiseFormat from(WaveFormat format) throws IOException {
         var codec = CodecId.fromValue(format.formatTag());
-        var extra = BinarySource.wrap(format.extra());
+        var extra = BinaryReader.wrap(format.extra());
         var size = extra.remaining();
         var samplesPerBlock = extra.readShort();
         var channelConfig = AkChannelConfig.parse(extra.readInt(), format.channels());

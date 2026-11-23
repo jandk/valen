@@ -11,12 +11,12 @@ public record ResourcesDependency(
     int depSubType,
     long hashOrTimestamp
 ) {
-    public static ResourcesDependency read(BinarySource source) throws IOException {
-        var type = source.readLong();
-        var name = source.readLong();
-        var depType = source.readInt();
-        var depSubType = source.readInt();
-        var hashOrTimestamp = source.readLong();
+    public static ResourcesDependency read(BinaryReader reader) throws IOException {
+        var type = reader.readLong();
+        var name = reader.readLong();
+        var depType = reader.readInt();
+        var depSubType = reader.readInt();
+        var hashOrTimestamp = reader.readLong();
 
         return new ResourcesDependency(
             type,

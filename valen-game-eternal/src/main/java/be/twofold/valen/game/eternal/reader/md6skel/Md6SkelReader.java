@@ -19,15 +19,15 @@ public final class Md6SkelReader implements AssetReader.Binary<Skeleton, Eternal
     }
 
     @Override
-    public Skeleton read(BinarySource source, EternalAsset asset, LoadingContext context) throws IOException {
-        Md6Skel skeleton = Md6Skel.read(source);
+    public Skeleton read(BinaryReader reader, EternalAsset asset, LoadingContext context) throws IOException {
+        Md6Skel skeleton = Md6Skel.read(reader);
         return map(skeleton);
     }
 
     @Override
     public Optional<Meta.Node> readMetadata(EternalAsset asset, LoadingContext context) throws IOException {
-        try (var source = BinarySource.wrap(context.open(asset.location()))) {
-            var skeleton = Md6Skel.read(source);
+        try (var reader = BinaryReader.wrap(context.open(asset.location()))) {
+            var skeleton = Md6Skel.read(reader);
             return Optional.of(Meta.build(MethodHandles.lookup(), skeleton));
         }
     }

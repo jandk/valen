@@ -9,9 +9,9 @@ public record Image(
     ImageHeader header,
     List<ImageMipInfo> mipInfos
 ) {
-    public static Image read(BinarySource source) throws IOException {
-        var header = ImageHeader.read(source);
-        var mipInfos = source.readObjects(header.totalMipCount(), ImageMipInfo::read);
+    public static Image read(BinaryReader reader) throws IOException {
+        var header = ImageHeader.read(reader);
+        var mipInfos = reader.readObjects(header.totalMipCount(), ImageMipInfo::read);
 
         return new Image(
             header,

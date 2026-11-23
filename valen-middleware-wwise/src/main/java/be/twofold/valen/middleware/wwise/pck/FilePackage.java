@@ -13,24 +13,24 @@ public record FilePackage(
     List<FileEntry<MediaId>> streams,
     List<ExternalEntry> externals
 ) {
-    public static FilePackage read(BinarySource source) throws IOException {
-        var header = FilePackageHeader.read(source);
-        var languages = LanguageMap.read(source, header.languageMapSize());
-        var soundBanks = readTable(source, header.soundBanksLutSize(), FileEntry.BYTES, s -> FileEntry.read(s, BankId::of));
-        var streams = readTable(source, header.stmFilesLutSize(), FileEntry.BYTES, s -> FileEntry.read(s, MediaId::of));
-        var externals = readTable(source, header.externalsLutSize(), ExternalEntry.BYTES, ExternalEntry::read);
-        source.expectPosition(header.dataOffset());
+    public static FilePackage read(BinaryReader reader) throws IOException {
+        var header = FilePackageHeader.read(reader);
+        var languages = LanguageMap.read(reader, header.languageMapSize());
+        var soundBanks = readTable(reader, header.soundBanksLutSize(), FileEntry.BYTES, s -> FileEntry.read(s, BankId::of));
+        var streams = readTable(reader, header.stmFilesLutSize(), FileEntry.BYTES, s -> FileEntry.read(s, MediaId::of));
+        var externals = readTable(reader, header.externalsLutSize(), ExternalEntry.BYTES, ExternalEntry::read);
+        reader.expectPosition(header.dataOffset());
 
         return new FilePackage(header, languages, soundBanks, streams, externals);
     }
 
     private static <T> List<T> readTable(
-        BinarySource source,
+        BinaryReader reader,
         int size,
         int entrySize,
-        BinarySource.Mapper<T> mapper
+        BinaryReader.Mapper<T> mapper
     ) throws IOException {
-        var slice = source.readSlice(size);
+        var slice = reader.readSlice(size);
         var count = slice.readInt();
         var expected = Integer.BYTES + count * entrySize;
         if (expected != size) {

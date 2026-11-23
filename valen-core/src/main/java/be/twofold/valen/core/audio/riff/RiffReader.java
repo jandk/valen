@@ -23,33 +23,33 @@ public final class RiffReader {
         }
     }
 
-    public RiffChunk.Container read(BinarySource source) throws IOException {
-        RiffChunk chunk = readChunk(source, source.position() + source.remaining());
+    public RiffChunk.Container read(BinaryReader reader) throws IOException {
+        RiffChunk chunk = readChunk(reader, reader.position() + reader.remaining());
         if (!(chunk instanceof RiffChunk.Container container)) {
             throw new IOException("Expected container chunk as the root");
         }
         return container;
     }
 
-    private RiffChunk readChunk(BinarySource source, long limit) throws IOException {
-        var id = FourCC.read(source);
-        var size = source.readUnsignedInt();
-        var start = source.position();
+    private RiffChunk readChunk(BinaryReader reader, long limit) throws IOException {
+        var id = FourCC.read(reader);
+        var size = reader.readUnsignedInt();
+        var start = reader.position();
         var end = Math.min(start + size, limit);
 
         RiffChunk chunk;
         if (containers.contains(id)) {
-            var type = FourCC.read(source);
+            var type = FourCC.read(reader);
             var subChunks = new ArrayList<RiffChunk>();
-            while (end - source.position() >= 8) {
-                subChunks.add(readChunk(source, end));
+            while (end - reader.position() >= 8) {
+                subChunks.add(readChunk(reader, end));
             }
             chunk = new RiffChunk.Container(id, type, subChunks);
         } else {
-            chunk = new RiffChunk.Data(id, source.readBytes(Math.toIntExact(end - start)), size);
+            chunk = new RiffChunk.Data(id, reader.readBytes(Math.toIntExact(end - start)), size);
         }
 
-        source.position(Math.min(end + (size & 1), limit));
+        reader.position(Math.min(end + (size & 1), limit));
         return chunk;
     }
 }

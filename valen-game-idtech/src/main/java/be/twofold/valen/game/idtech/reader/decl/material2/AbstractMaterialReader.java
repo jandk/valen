@@ -91,8 +91,8 @@ public abstract class AbstractMaterialReader<K extends IdclAssetID<?>, V extends
     public abstract boolean canRead(V asset);
 
     @Override
-    public final Material read(BinarySource source, V asset, LoadingContext context) throws IOException {
-        var object = declReader.read(source, asset, context);
+    public final Material read(BinaryReader reader, V asset, LoadingContext context) throws IOException {
+        var object = declReader.read(reader, asset, context);
         return parseMaterial(object, asset, context);
     }
 

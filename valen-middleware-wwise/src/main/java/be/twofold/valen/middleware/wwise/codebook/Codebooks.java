@@ -14,18 +14,18 @@ public record Codebooks(
     private static final int MAGIC = 'C' << 24 | 'D' << 16 | 'B' << 8 | 'K';
 
     public static Codebooks load(InputStream in) throws IOException {
-        return read(BinarySource.wrap(Bytes.wrap(in.readAllBytes())));
+        return read(BinaryReader.wrap(Bytes.wrap(in.readAllBytes())));
     }
 
-    public static Codebooks read(BinarySource source) throws IOException {
-        source.order(ByteOrder.BIG_ENDIAN);
-        source.expectInt(MAGIC); // magic
-        source.expectShort((short) 0x100); // version
-        var libraryCount = source.readUnsignedShort();
-        var codebookCount = source.readUnsignedShort();
+    public static Codebooks read(BinaryReader reader) throws IOException {
+        reader.order(ByteOrder.BIG_ENDIAN);
+        reader.expectInt(MAGIC); // magic
+        reader.expectShort((short) 0x100); // version
+        var libraryCount = reader.readUnsignedShort();
+        var codebookCount = reader.readUnsignedShort();
 
-        var libraries = source.readObjects(libraryCount, CodebookLibrary::read);
-        var codebooks = source.readObjects(codebookCount, Codebook::read);
+        var libraries = reader.readObjects(libraryCount, CodebookLibrary::read);
+        var codebooks = reader.readObjects(codebookCount, Codebook::read);
 
         return new Codebooks(
             libraries,

@@ -28,7 +28,7 @@ final class SoundbankIndex {
         var metadata = SoundMetadata.load(path.resolve("soundmetadata.bin"));
 
         var sounds = new LinkedHashMap<MediaId, ContainerSound>();
-        var sources = new HashMap<Path, BinarySource>();
+        var sources = new HashMap<Path, BinaryReader>();
 
         for (var container : metadata.containers()) {
             var containerName = AssetPath.of(container.name());
@@ -40,10 +40,10 @@ final class SoundbankIndex {
                     : containerName.withSuffix("_patch_" + i);
 
                 var filePath = fileName.toPath(path);
-                var source = BinarySource.open(filePath);
-                sources.put(filePath, source);
+                var reader = BinaryReader.open(filePath);
+                sources.put(filePath, reader);
 
-                var soundContainer = SoundContainer.read(source, IdTechGame.ETERNAL);
+                var soundContainer = SoundContainer.read(reader, IdTechGame.ETERNAL);
                 for (var j = 0; j < soundContainer.entries().size(); j++) {
                     var entry = soundContainer.entries().get(j);
                     var isEnabled = ((containerFile.mask().get(j / 32) >>> (j % 32)) & 1) != 0;

@@ -28,9 +28,9 @@ public final class ImageReader implements AssetReader.Binary<Texture, GreatCircl
     }
 
     @Override
-    public Texture read(BinarySource source, GreatCircleAsset asset, LoadingContext context) throws IOException {
-        var image = Image.read(source);
-        source.expectEnd();
+    public Texture read(BinaryReader reader, GreatCircleAsset asset, LoadingContext context) throws IOException {
+        var image = Image.read(reader);
+        reader.expectEnd();
 
         if (readStreams) {
             /*
@@ -51,8 +51,8 @@ public final class ImageReader implements AssetReader.Binary<Texture, GreatCircl
 
     @Override
     public Optional<Meta.Node> readMetadata(GreatCircleAsset asset, LoadingContext context) throws IOException {
-        try (var source = BinarySource.wrap(context.open(asset.location()))) {
-            var image = Image.read(source);
+        try (var reader = BinaryReader.wrap(context.open(asset.location()))) {
+            var image = Image.read(reader);
             return Optional.of(Meta.build(MethodHandles.lookup(), image));
         }
     }

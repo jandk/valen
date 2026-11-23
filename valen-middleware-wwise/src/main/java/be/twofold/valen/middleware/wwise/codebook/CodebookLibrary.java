@@ -9,10 +9,10 @@ public record CodebookLibrary(
     String name,
     Shorts indices
 ) {
-    public static CodebookLibrary read(BinarySource source) throws IOException {
-        var name = source.readString(StringFormat.SHORT_LENGTH);
-        var count = source.readUnsignedShort();
-        var indices = source.readShorts(count);
+    public static CodebookLibrary read(BinaryReader reader) throws IOException {
+        var name = reader.readString(StringFormat.SHORT_LENGTH);
+        var count = reader.readUnsignedShort();
+        var indices = reader.readShorts(count);
 
         return new CodebookLibrary(
             name,

@@ -9,8 +9,8 @@ public record StringPool(
     Bytes value,
     Ints indices
 ) {
-    public static StringPool read(BinarySource source) throws IOException {
-        var value = source.readBytes(source.readInt());
+    public static StringPool read(BinaryReader reader) throws IOException {
+        var value = reader.readBytes(reader.readInt());
         var count = (int) value.stream().filter(b -> b == 0).count();
 
         var indices = new int[count + 1];

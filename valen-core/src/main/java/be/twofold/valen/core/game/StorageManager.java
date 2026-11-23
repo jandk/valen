@@ -9,11 +9,11 @@ import java.nio.file.*;
 import java.util.*;
 
 public class StorageManager implements Closeable {
-    private final Map<Path, BinarySource> sources;
+    private final Map<Path, BinaryReader> sources;
     private final Set<Path> sharedIds;
     private final Decompressors decompressors;
 
-    public StorageManager(Map<Path, BinarySource> sources, Set<Path> shared, Decompressors decompressors) {
+    public StorageManager(Map<Path, BinaryReader> sources, Set<Path> shared, Decompressors decompressors) {
         this.sources = Map.copyOf(sources);
         this.sharedIds = Set.copyOf(shared);
         this.decompressors = Check.nonNull(decompressors, "decompressors");

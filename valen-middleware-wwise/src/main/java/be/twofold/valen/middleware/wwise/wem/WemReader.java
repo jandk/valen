@@ -15,12 +15,12 @@ public final class WemReader implements AssetReader.Binary<Audio, Asset> {
     }
 
     @Override
-    public Audio read(BinarySource source, Asset asset, LoadingContext context) throws IOException {
-        var wem = Wem.read(source);
+    public Audio read(BinaryReader reader, Asset asset, LoadingContext context) throws IOException {
+        var wem = Wem.read(reader);
         var codec = wem.toAudioCodec();
 
         Bytes data = codec == AudioCodec.WWISE_OPUS || codec == AudioCodec.WWISE_VORBIS
-            ? source.position(0).readRemaining()
+            ? reader.position(0).readRemaining()
             : wem.data().payload();
 
         return new Audio(

@@ -26,8 +26,8 @@ public final class Md6ModelReader implements AssetReader.Binary<Model, EternalAs
     }
 
     @Override
-    public Model read(BinarySource source, EternalAsset asset, LoadingContext context) throws IOException {
-        var model = Md6Model.read(source);
+    public Model read(BinaryReader reader, EternalAsset asset, LoadingContext context) throws IOException {
+        var model = Md6Model.read(reader);
         var meshes = readMeshes(model, asset.hash(), context);
         var skeletonKey = EternalAssetID.from(model.header().md6SkelName(), ResourceType.of("skeleton"));
         var skeleton = context.load(skeletonKey, Skeleton.class);
@@ -40,8 +40,8 @@ public final class Md6ModelReader implements AssetReader.Binary<Model, EternalAs
 
     @Override
     public Optional<Meta.Node> readMetadata(EternalAsset asset, LoadingContext context) throws IOException {
-        try (var source = BinarySource.wrap(context.open(asset.location()))) {
-            var model = Md6Model.read(source);
+        try (var reader = BinaryReader.wrap(context.open(asset.location()))) {
+            var model = Md6Model.read(reader);
             return Optional.of(Meta.build(MethodHandles.lookup(), model));
         }
     }
@@ -68,8 +68,8 @@ public final class Md6ModelReader implements AssetReader.Binary<Model, EternalAs
         if (bytes.length() == 0) {
             throw new FileNotFoundException("Streamed geometry not found for hash: " + hash);
         }
-        try (var source = BinarySource.wrap(bytes)) {
-            return GeometryReader.readStreamedMesh(source, lodInfos, layouts, true);
+        try (var reader = BinaryReader.wrap(bytes)) {
+            return GeometryReader.readStreamedMesh(reader, lodInfos, layouts, true);
         }
     }
 

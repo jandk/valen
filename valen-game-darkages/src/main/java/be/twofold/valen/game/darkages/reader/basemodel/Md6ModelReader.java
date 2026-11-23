@@ -29,9 +29,9 @@ public final class Md6ModelReader implements AssetReader.Binary<Model, DarkAgesA
     }
 
     @Override
-    public Model read(BinarySource source, DarkAgesAsset asset, LoadingContext context) throws IOException {
-        var skeleton = readSkeleton(source, context);
-        var md6Model = readMd6Model(source, skeleton);
+    public Model read(BinaryReader reader, DarkAgesAsset asset, LoadingContext context) throws IOException {
+        var skeleton = readSkeleton(reader, context);
+        var md6Model = readMd6Model(reader, skeleton);
 
         var meshes = readMeshes(md6Model, 0, asset.hash(), context);
         if (readMaterials) {
@@ -43,22 +43,22 @@ public final class Md6ModelReader implements AssetReader.Binary<Model, DarkAgesA
 
     @Override
     public Optional<Meta.Node> readMetadata(DarkAgesAsset asset, LoadingContext context) throws IOException {
-        try (var source = BinarySource.wrap(context.open(asset.location()))) {
-            var skeleton = readSkeleton(source, context);
-            var md6Model = readMd6Model(source, skeleton);
+        try (var reader = BinaryReader.wrap(context.open(asset.location()))) {
+            var skeleton = readSkeleton(reader, context);
+            var md6Model = readMd6Model(reader, skeleton);
             return Optional.of(Meta.build(MethodHandles.lookup(), md6Model));
         }
     }
 
-    private Skeleton readSkeleton(BinarySource source, LoadingContext context) throws IOException {
-        var skelName = source.readString(StringFormat.INT_LENGTH);
+    private Skeleton readSkeleton(BinaryReader reader, LoadingContext context) throws IOException {
+        var skelName = reader.readString(StringFormat.INT_LENGTH);
         var skeletonKey = DarkAgesAssetID.from(skelName, ResourceType.of("skeleton"));
         return context.load(skeletonKey, Skeleton.class);
     }
 
-    private Md6Model readMd6Model(BinarySource source, Skeleton skeleton) throws IOException {
-        var md6Model = Md6Model.read(source, skeleton.bones().size() + 7 & ~7);
-        source.expectEnd();
+    private Md6Model readMd6Model(BinaryReader reader, Skeleton skeleton) throws IOException {
+        var md6Model = Md6Model.read(reader, skeleton.bones().size() + 7 & ~7);
+        reader.expectEnd();
         return md6Model;
     }
 
@@ -79,8 +79,8 @@ public final class Md6ModelReader implements AssetReader.Binary<Model, DarkAgesA
         var identity = Hash.hash(hash, 4 - lod, 0);
         var bytes = context.open(new DarkAgesStreamLocation(identity, uncompressedSize));
 
-        try (var source = BinarySource.wrap(bytes)) {
-            var meshes = GeometryReader.readStreamedMesh(source, lodInfos, true);
+        try (var reader = BinaryReader.wrap(bytes)) {
+            var meshes = GeometryReader.readStreamedMesh(reader, lodInfos, true);
             meshes = meshes.stream()
                 .map(this::mergeJointsAndWeights)
                 .map(this::trimUnusedInfluences)

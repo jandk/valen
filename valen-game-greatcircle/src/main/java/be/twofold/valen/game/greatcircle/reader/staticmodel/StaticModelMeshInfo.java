@@ -10,19 +10,19 @@ public record StaticModelMeshInfo(
     int unkHash,
     List<StaticModelLodInfo> lodInfos
 ) {
-    public static StaticModelMeshInfo read(BinarySource source, int version) throws IOException {
-        var mtlDecl = source.readString(StringFormat.INT_LENGTH);
-        var unkHash = version < 80 ? source.readInt() : 0;
-        var unknown = source.readInt();
+    public static StaticModelMeshInfo read(BinaryReader reader, int version) throws IOException {
+        var mtlDecl = reader.readString(StringFormat.INT_LENGTH);
+        var unkHash = version < 80 ? reader.readInt() : 0;
+        var unknown = reader.readInt();
         if (unknown != 0 && unknown != -1 && unknown != 1) {
             throw new IOException("Unknown value: " + unknown);
         }
-        source.expectInt(0);
+        reader.expectInt(0);
 
         var lodInfos = new ArrayList<StaticModelLodInfo>();
         for (var lod = 0; lod < StaticModel.LodCount; lod++) {
-            if (!source.readBool(BoolFormat.INT)) {
-                lodInfos.add(StaticModelLodInfo.read(source));
+            if (!reader.readBool(BoolFormat.INT)) {
+                lodInfos.add(StaticModelLodInfo.read(reader));
             }
         }
 

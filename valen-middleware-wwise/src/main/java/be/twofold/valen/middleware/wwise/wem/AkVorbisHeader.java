@@ -17,18 +17,18 @@ public record AkVorbisHeader(
     byte blockSize0,
     byte blockSize1
 ) implements CodecHeader {
-    public static AkVorbisHeader read(BinarySource source) throws IOException {
-        int totalPCMFrames = source.readInt();
-        AkVorbisLoopInfo loopInfo = AkVorbisLoopInfo.read(source);
-        int seekTableSize = source.readInt();
-        int vorbisDataOffset = source.readInt();
-        short maxPacketSize = source.readShort();
-        short lastGranuleExtra = source.readShort();
-        int decodeAllocSize = source.readInt();
-        int decodeX64AllocSize = source.readInt();
-        int hashCodebook = source.readInt();
-        byte blockSize0 = source.readByte();
-        byte blockSize1 = source.readByte();
+    public static AkVorbisHeader read(BinaryReader reader) throws IOException {
+        int totalPCMFrames = reader.readInt();
+        AkVorbisLoopInfo loopInfo = AkVorbisLoopInfo.read(reader);
+        int seekTableSize = reader.readInt();
+        int vorbisDataOffset = reader.readInt();
+        short maxPacketSize = reader.readShort();
+        short lastGranuleExtra = reader.readShort();
+        int decodeAllocSize = reader.readInt();
+        int decodeX64AllocSize = reader.readInt();
+        int hashCodebook = reader.readInt();
+        byte blockSize0 = reader.readByte();
+        byte blockSize1 = reader.readByte();
 
         return new AkVorbisHeader(
             totalPCMFrames,

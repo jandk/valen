@@ -21,7 +21,7 @@ public final class RenderParmReader extends AbstractRenderParmReader<DarkAgesAss
     }
 
     @Override
-    public RenderParm read(BinarySource source, DarkAgesAsset asset, LoadingContext context) throws IOException {
-        return read(source);
+    public RenderParm read(BinaryReader reader, DarkAgesAsset asset, LoadingContext context) throws IOException {
+        return read(reader);
     }
 }

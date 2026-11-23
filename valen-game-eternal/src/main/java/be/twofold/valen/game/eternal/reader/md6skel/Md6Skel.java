@@ -16,22 +16,22 @@ public record Md6Skel(
     List<Matrix4> inverseBasePoses,
     List<String> names
 ) {
-    public static Md6Skel read(BinarySource source) throws IOException {
-        var header = Md6SkelHeader.read(source);
+    public static Md6Skel read(BinaryReader reader) throws IOException {
+        var header = Md6SkelHeader.read(reader);
 
-        source.expectPosition(header.basePoseOffset() + 4);
-        var rotations = source.readObjects(header.numJoints8(), Quaternion::read);
-        var scales = source.readObjects(header.numJoints8(), Vector3::read);
-        var translations = source.readObjects(header.numJoints8(), Vector3::read);
+        reader.expectPosition(header.basePoseOffset() + 4);
+        var rotations = reader.readObjects(header.numJoints8(), Quaternion::read);
+        var scales = reader.readObjects(header.numJoints8(), Vector3::read);
+        var translations = reader.readObjects(header.numJoints8(), Vector3::read);
 
-        source.position(header.parentTblOffset() + 4);
-        var parents = source.readShorts(header.numJoints8());
+        reader.position(header.parentTblOffset() + 4);
+        var parents = reader.readShorts(header.numJoints8());
 
-        source.position(header.inverseBasePoseOffset() + 4);
-        var inverseBasePoses = source.readObjects(header.numJoints8(), Matrix4::read3x4);
+        reader.position(header.inverseBasePoseOffset() + 4);
+        var inverseBasePoses = reader.readObjects(header.numJoints8(), Matrix4::read3x4);
 
-        source.expectPosition(header.size() + 4); // names are tacked on the end
-        var names = source.readStrings(header.numJoints8(), StringFormat.INT_LENGTH);
+        reader.expectPosition(header.size() + 4); // names are tacked on the end
+        var names = reader.readStrings(header.numJoints8(), StringFormat.INT_LENGTH);
 
         return new Md6Skel(header, rotations, scales, translations, parents, inverseBasePoses, names);
     }

@@ -10,7 +10,7 @@ import java.nio.file.*;
 import java.util.*;
 
 record StreamDbIndex(
-    Map<Path, BinarySource> sources,
+    Map<Path, BinaryReader> sources,
     Map<Long, Location> index
 ) {
     static final int UNKNOWN_SIZE = 0;
@@ -23,15 +23,15 @@ record StreamDbIndex(
     }
 
     static StreamDbIndex build(List<Path> paths) throws IOException {
-        var sources = new HashMap<Path, BinarySource>();
+        var sources = new HashMap<Path, BinaryReader>();
         var index = new HashMap<Long, Location>();
         for (var path : paths) {
             log.info("Loading StreamDb: {}", path);
 
-            var source = BinarySource.open(path);
-            sources.put(path, source);
+            var reader = BinaryReader.open(path);
+            sources.put(path, reader);
 
-            StreamDb streamDb = StreamDb.read(source);
+            StreamDb streamDb = StreamDb.read(reader);
             int length = streamDb.entries().size();
             for (int i = 0; i < length; i++) {
                 var identity = streamDb.identities().get(i);

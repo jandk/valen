@@ -26,7 +26,7 @@ final class VorbisConverter {
         }
     });
 
-    private final BinarySource source;
+    private final BinaryReader reader;
     private final Wem wem;
     private final AkVorbisHeader vorbisHeader;
     private final int audioChannels;
@@ -40,8 +40,8 @@ final class VorbisConverter {
     private boolean previousBlockFlag;
 
     VorbisConverter(Audio audio) throws IOException {
-        this.wem = Wem.read(BinarySource.wrap(audio.data()));
-        this.source = BinarySource.wrap(wem.data().payload());
+        this.wem = Wem.read(BinaryReader.wrap(audio.data()));
+        this.reader = BinaryReader.wrap(wem.data().payload());
         this.vorbisHeader = (AkVorbisHeader) wem.format().codecHeader().orElseThrow();
         this.audioChannels = audio.channels().size();
         this.sampleRate = audio.sampleRate();
@@ -51,12 +51,12 @@ final class VorbisConverter {
         oggWriter.addPacket(rebuildIdentPacket(), 0);
         oggWriter.flushPage();
 
-        source.position(vorbisHeader.seekTableSize());
+        reader.position(vorbisHeader.seekTableSize());
         oggWriter.addPacket(rebuildCommentPacket(), 0);
         oggWriter.addPacket(rebuildSetupHeader(), 0);
         oggWriter.flushPage();
 
-        source.position(vorbisHeader.vorbisDataOffset());
+        reader.position(vorbisHeader.vorbisDataOffset());
         rebuildAudioPackets();
 
         return Bytes.wrap(out.toByteArray());
@@ -95,7 +95,7 @@ final class VorbisConverter {
         oggWriter.finish();
     }
 
-    private Bytes rebuildAudioPacket(BitReader reader, int modeNumber, boolean blockFlag, boolean nextBlockFlag) {
+    private Bytes rebuildAudioPacket(BitReader bitReader, int modeNumber, boolean blockFlag, boolean nextBlockFlag) {
         var writer = new BitWriter(ByteOrder.LITTLE_ENDIAN);
 
         writer.write(1, 0);
@@ -104,17 +104,17 @@ final class VorbisConverter {
             writer.writeBool(previousBlockFlag);
             writer.writeBool(nextBlockFlag);
         }
-        reader.copyTo(writer, reader.bitsRemaining());
+        bitReader.copyTo(writer, bitReader.bitsRemaining());
 
         return Bytes.wrap(writer.toByteArray());
     }
 
     private BitReader readPacket(long end) throws IOException {
-        if (source.position() >= end) {
+        if (reader.position() >= end) {
             return null;
         }
-        int size = source.readUnsignedShort();
-        return new BitReader(source.readBytes(size).toArray(), ByteOrder.LITTLE_ENDIAN);
+        int size = reader.readUnsignedShort();
+        return new BitReader(reader.readBytes(size).toArray(), ByteOrder.LITTLE_ENDIAN);
     }
 
     private Bytes rebuildIdentPacket() {
@@ -163,22 +163,22 @@ final class VorbisConverter {
     // region SetupHeader
 
     private Bytes rebuildSetupHeader() throws IOException {
-        int length = source.readUnsignedShort();
-        byte[] packedBytes = source.readBytes(length).toArray();
-        BitReader reader = new BitReader(packedBytes, ByteOrder.LITTLE_ENDIAN);
+        int length = reader.readUnsignedShort();
+        byte[] packedBytes = reader.readBytes(length).toArray();
+        BitReader bitReader = new BitReader(packedBytes, ByteOrder.LITTLE_ENDIAN);
 
         BitWriter writer = new BitWriter(ByteOrder.LITTLE_ENDIAN);
         writeHeader(writer, 5);
 
-        rebuildCodebooks(reader, writer);
+        rebuildCodebooks(bitReader, writer);
         rebuildTimeDomain(writer);
-        rebuildFloors(reader, writer);
-        rebuildResidues(reader, writer);
-        rebuildMappings(reader, writer);
-        var modeBlockFlags = rebuildModes(reader, writer);
+        rebuildFloors(bitReader, writer);
+        rebuildResidues(bitReader, writer);
+        rebuildMappings(bitReader, writer);
+        var modeBlockFlags = rebuildModes(bitReader, writer);
         writer.writeBool(true);
 
-        if (reader.isOverrun()) {
+        if (bitReader.isOverrun()) {
             throw new IOException("Setup header overrun");
         }
 
@@ -188,13 +188,13 @@ final class VorbisConverter {
         return Bytes.wrap(writer.toByteArray());
     }
 
-    private void rebuildCodebooks(BitReader reader, BitWriter writer) throws IOException {
-        int codebookCount = reader.read(8) + 1;
+    private void rebuildCodebooks(BitReader bitReader, BitWriter writer) throws IOException {
+        int codebookCount = bitReader.read(8) + 1;
         writer.write(8, codebookCount - 1);
 
         List<Codebook> library = LIBRARY.get();
         for (int i = 0; i < codebookCount; i++) {
-            int codebookId = reader.read(10);
+            int codebookId = bitReader.read(10);
             if (codebookId >= library.size()) {
                 throw new IOException("Codebook id out of range: " + codebookId);
             }
@@ -210,24 +210,24 @@ final class VorbisConverter {
         writer.write(16, 0);
     }
 
-    private void rebuildFloors(BitReader reader, BitWriter writer) {
-        int floorCount = reader.read(6) + 1;
+    private void rebuildFloors(BitReader bitReader, BitWriter writer) {
+        int floorCount = bitReader.read(6) + 1;
         writer.write(6, floorCount - 1);
 
         for (int i = 0; i < floorCount; i++) {
             writer.write(16, 1);
-            rebuildFloor1(reader, writer);
+            rebuildFloor1(bitReader, writer);
         }
     }
 
-    private void rebuildFloor1(BitReader reader, BitWriter writer) {
-        int partitions = reader.read(5);
+    private void rebuildFloor1(BitReader bitReader, BitWriter writer) {
+        int partitions = bitReader.read(5);
         writer.write(5, partitions);
 
         int maximumClass = -1;
         int[] partitionClassList = new int[partitions];
         for (int i = 0; i < partitions; i++) {
-            int partitionClass = reader.read(4);
+            int partitionClass = bitReader.read(4);
             maximumClass = Math.max(maximumClass, partitionClass);
             partitionClassList[i] = partitionClass;
 
@@ -236,27 +236,27 @@ final class VorbisConverter {
 
         int[] classDimensions = new int[maximumClass + 1];
         for (int i = 0; i < maximumClass + 1; i++) {
-            classDimensions[i] = reader.read(3) + 1;
-            int classSubclass = reader.read(2);
+            classDimensions[i] = bitReader.read(3) + 1;
+            int classSubclass = bitReader.read(2);
 
             writer.write(3, classDimensions[i] - 1);
             writer.write(2, classSubclass);
 
             if (classSubclass != 0) {
-                int classMasterBook = reader.read(8);
+                int classMasterBook = bitReader.read(8);
 
                 writer.write(8, classMasterBook);
             }
 
             for (int j = 0; j < 1 << classSubclass; j++) {
-                int subclassBookPlus1 = reader.read(8);
+                int subclassBookPlus1 = bitReader.read(8);
 
                 writer.write(8, subclassBookPlus1);
             }
         }
 
-        int multiplierMinus1 = reader.read(2);
-        int rangeBits = reader.read(4);
+        int multiplierMinus1 = bitReader.read(2);
+        int rangeBits = bitReader.read(4);
 
         writer.write(2, multiplierMinus1);
         writer.write(4, rangeBits);
@@ -266,25 +266,25 @@ final class VorbisConverter {
             floorValues += classDimensions[partitionClassList[i]];
         }
 
-        reader.copyTo(writer, floorValues * rangeBits);
+        bitReader.copyTo(writer, floorValues * rangeBits);
     }
 
-    private void rebuildResidues(BitReader reader, BitWriter writer) {
-        int residueCount = reader.read(6) + 1;
+    private void rebuildResidues(BitReader bitReader, BitWriter writer) {
+        int residueCount = bitReader.read(6) + 1;
         writer.write(6, residueCount - 1);
 
         for (int i = 0; i < residueCount; i++) {
-            rebuildResidue(reader, writer);
+            rebuildResidue(bitReader, writer);
         }
     }
 
-    private void rebuildResidue(BitReader reader, BitWriter writer) {
-        int type = reader.read(2);
-        int begin = reader.read(24);
-        int end = reader.read(24);
-        int partitionSize = reader.read(24) + 1;
-        int classifications = reader.read(6) + 1;
-        int classBook = reader.read(8);
+    private void rebuildResidue(BitReader bitReader, BitWriter writer) {
+        int type = bitReader.read(2);
+        int begin = bitReader.read(24);
+        int end = bitReader.read(24);
+        int partitionSize = bitReader.read(24) + 1;
+        int classifications = bitReader.read(6) + 1;
+        int classBook = bitReader.read(8);
 
         writer.write(16, type);
         writer.write(24, begin);
@@ -296,10 +296,10 @@ final class VorbisConverter {
         int[] cascade = new int[classifications];
         for (int i = 0; i < classifications; i++) {
             int highBits = 0;
-            int lowBits = reader.read(3);
-            boolean bitflag = reader.readBool();
+            int lowBits = bitReader.read(3);
+            boolean bitflag = bitReader.readBool();
             if (bitflag) {
-                highBits = reader.read(5);
+                highBits = bitReader.read(5);
             }
             cascade[i] = highBits * 8 + lowBits;
 
@@ -313,7 +313,7 @@ final class VorbisConverter {
         for (int i = 0; i < classifications; i++) {
             for (int j = 0; j < 8; j++) {
                 if ((cascade[i] & (1 << j)) != 0) {
-                    int number = reader.read(8);
+                    int number = bitReader.read(8);
 
                     writer.write(8, number);
                 }
@@ -321,20 +321,20 @@ final class VorbisConverter {
         }
     }
 
-    private void rebuildMappings(BitReader reader, BitWriter writer) {
-        int mappingCount = reader.read(6) + 1;
+    private void rebuildMappings(BitReader bitReader, BitWriter writer) {
+        int mappingCount = bitReader.read(6) + 1;
         writer.write(6, mappingCount - 1);
 
         for (int i = 0; i < mappingCount; i++) {
             writer.write(16, 0);
-            rebuildMapping(reader, writer);
+            rebuildMapping(bitReader, writer);
         }
     }
 
-    private void rebuildMapping(BitReader reader, BitWriter writer) {
-        boolean submapsFlag = reader.readBool();
+    private void rebuildMapping(BitReader bitReader, BitWriter writer) {
+        boolean submapsFlag = bitReader.readBool();
         int submaps = submapsFlag
-            ? reader.read(4) + 1
+            ? bitReader.read(4) + 1
             : 1;
 
         writer.writeBool(submapsFlag);
@@ -342,37 +342,37 @@ final class VorbisConverter {
             writer.write(4, submaps - 1);
         }
 
-        boolean couplingFlag = reader.readBool();
+        boolean couplingFlag = bitReader.readBool();
         writer.writeBool(couplingFlag);
         if (couplingFlag) {
-            int couplingSteps = reader.read(8) + 1;
+            int couplingSteps = bitReader.read(8) + 1;
             writer.write(8, couplingSteps - 1);
 
             int audioChannelLog = ilog(audioChannels - 1);
             for (int i = 0; i < couplingSteps; i++) {
-                int mag = reader.read(audioChannelLog);
-                int ang = reader.read(audioChannelLog);
+                int mag = bitReader.read(audioChannelLog);
+                int ang = bitReader.read(audioChannelLog);
 
                 writer.write(audioChannelLog, mag);
                 writer.write(audioChannelLog, ang);
             }
         }
 
-        int reserved = reader.read(2);
+        int reserved = bitReader.read(2);
         writer.write(2, reserved);
 
         if (submaps > 1) {
             for (int i = 0; i < audioChannels; i++) {
-                int submap = reader.read(4);
+                int submap = bitReader.read(4);
 
                 writer.write(4, submap);
             }
         }
 
         for (int i = 0; i < submaps; i++) {
-            int timeConfig = reader.read(8);
-            int floor = reader.read(8);
-            int residue = reader.read(8);
+            int timeConfig = bitReader.read(8);
+            int floor = bitReader.read(8);
+            int residue = bitReader.read(8);
 
             writer.write(8, timeConfig);
             writer.write(8, floor);
@@ -380,20 +380,20 @@ final class VorbisConverter {
         }
     }
 
-    private boolean[] rebuildModes(BitReader reader, BitWriter writer) {
-        int modeCount = reader.read(6) + 1;
+    private boolean[] rebuildModes(BitReader bitReader, BitWriter writer) {
+        int modeCount = bitReader.read(6) + 1;
         writer.write(6, modeCount - 1);
 
         boolean[] modeBlockFlags = new boolean[modeCount];
         for (int i = 0; i < modeCount; i++) {
-            modeBlockFlags[i] = rebuildMode(reader, writer);
+            modeBlockFlags[i] = rebuildMode(bitReader, writer);
         }
         return modeBlockFlags;
     }
 
-    private boolean rebuildMode(BitReader reader, BitWriter writer) {
-        boolean blockFlag = reader.read(1) == 1;
-        int mapping = reader.read(8);
+    private boolean rebuildMode(BitReader bitReader, BitWriter writer) {
+        boolean blockFlag = bitReader.read(1) == 1;
+        int mapping = bitReader.read(8);
 
         writer.writeBool(blockFlag);
         writer.write(16, 0);

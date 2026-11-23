@@ -20,7 +20,7 @@ public final class RenderParmReader extends AbstractRenderParmReader<GreatCircle
     }
 
     @Override
-    public RenderParm read(BinarySource source, GreatCircleAsset asset, LoadingContext context) throws IOException {
-        return read(source);
+    public RenderParm read(BinaryReader reader, GreatCircleAsset asset, LoadingContext context) throws IOException {
+        return read(reader);
     }
 }

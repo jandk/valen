@@ -10,11 +10,11 @@ public record AkVorbisLoopInfo(
     short loopBeginExtra,
     short loopEndExtra
 ) {
-    public static AkVorbisLoopInfo read(BinarySource source) throws IOException {
-        int loopStartPacketOffset = source.readInt();
-        int loopEndPacketOffset = source.readInt();
-        short loopBeginExtra = source.readShort();
-        short loopEndExtra = source.readShort();
+    public static AkVorbisLoopInfo read(BinaryReader reader) throws IOException {
+        int loopStartPacketOffset = reader.readInt();
+        int loopEndPacketOffset = reader.readInt();
+        short loopBeginExtra = reader.readShort();
+        short loopEndExtra = reader.readShort();
 
         return new AkVorbisLoopInfo(
             loopStartPacketOffset,

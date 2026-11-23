@@ -17,8 +17,8 @@ public enum ResourcesFlags implements FlagEnum {
         this.value = value;
     }
 
-    public static Set<ResourcesFlags> read(BinarySource source) throws IOException {
-        return FlagEnum.fromValue(ResourcesFlags.class, source.readInt());
+    public static Set<ResourcesFlags> read(BinaryReader reader) throws IOException {
+        return FlagEnum.fromValue(ResourcesFlags.class, reader.readInt());
     }
 
     @Override

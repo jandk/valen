@@ -12,7 +12,7 @@ public final class GreatCircleStorageManager extends StorageManager {
     private final Map<Long, Location> streamIndex;
 
     public GreatCircleStorageManager(
-        Map<Path, BinarySource> sources,
+        Map<Path, BinaryReader> sources,
         Set<Path> shared,
         Map<Long, Location> streamIndex,
         Decompressors decompressors

@@ -23,30 +23,30 @@ public record ImageHeader(
     boolean fftBloom,
     int streamDbMipCount
 ) {
-    public static ImageHeader read(BinarySource source) throws IOException {
-        source.expectByte((byte) 0x42); // magic0
-        source.expectByte((byte) 0x49); // magic1
-        source.expectByte((byte) 0x4D); // magic2
-        var version = source.readByte();
-        var textureType = TextureType.read(source);
-        var textureMaterialKind = TextureMaterialKind.read(source);
-        var pixelWidth = source.readInt();
-        var pixelHeight = source.readInt();
-        var depth = source.readInt();
-        var mipCount = source.readInt();
-        var unknown = source.readInt();
-        var albedoSpecularBias = source.readFloat();
-        var albedoSpecularScale = source.readFloat();
-        source.expectByte((byte) 0x0); // environment
-        var textureFormat = toTextureFormat(source.readInt());
-        source.expectInt(0x7); // always7
-        source.expectInt(0x0); // padding
-        source.expectShort((short) 0x0); // atlasPadding
-        var streamed = source.readBool(BoolFormat.BYTE);
-        var singleStream = source.readBool(BoolFormat.BYTE);
-        var noMips = source.readBool(BoolFormat.BYTE);
-        var fftBloom = source.readBool(BoolFormat.BYTE);
-        var streamDbMipCount = source.readInt();
+    public static ImageHeader read(BinaryReader reader) throws IOException {
+        reader.expectByte((byte) 0x42); // magic0
+        reader.expectByte((byte) 0x49); // magic1
+        reader.expectByte((byte) 0x4D); // magic2
+        var version = reader.readByte();
+        var textureType = TextureType.read(reader);
+        var textureMaterialKind = TextureMaterialKind.read(reader);
+        var pixelWidth = reader.readInt();
+        var pixelHeight = reader.readInt();
+        var depth = reader.readInt();
+        var mipCount = reader.readInt();
+        var unknown = reader.readInt();
+        var albedoSpecularBias = reader.readFloat();
+        var albedoSpecularScale = reader.readFloat();
+        reader.expectByte((byte) 0x0); // environment
+        var textureFormat = toTextureFormat(reader.readInt());
+        reader.expectInt(0x7); // always7
+        reader.expectInt(0x0); // padding
+        reader.expectShort((short) 0x0); // atlasPadding
+        var streamed = reader.readBool(BoolFormat.BYTE);
+        var singleStream = reader.readBool(BoolFormat.BYTE);
+        var noMips = reader.readBool(BoolFormat.BYTE);
+        var fftBloom = reader.readBool(BoolFormat.BYTE);
+        var streamDbMipCount = reader.readInt();
 
         return new ImageHeader(
             version,

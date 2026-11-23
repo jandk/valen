@@ -26,9 +26,9 @@ public final class StaticModelReader implements AssetReader.Binary<Model, Eterna
     }
 
     @Override
-    public Model read(BinarySource source, EternalAsset asset, LoadingContext context) throws IOException {
-        var model = StaticModel.read(source);
-        var meshes = readMeshes(model, source, asset.hash(), context);
+    public Model read(BinaryReader reader, EternalAsset asset, LoadingContext context) throws IOException {
+        var model = StaticModel.read(reader);
+        var meshes = readMeshes(model, reader, asset.hash(), context);
 
         if (readMaterials) {
             meshes = Materials.apply(context, meshes, model.meshInfos(), EternalAssetID::material, StaticModelMeshInfo::mtlDecl, _ -> null);
@@ -38,24 +38,24 @@ public final class StaticModelReader implements AssetReader.Binary<Model, Eterna
 
     @Override
     public Optional<Meta.Node> readMetadata(EternalAsset asset, LoadingContext context) throws IOException {
-        try (var source = BinarySource.wrap(context.open(asset.location()))) {
-            var model = StaticModel.read(source);
+        try (var reader = BinaryReader.wrap(context.open(asset.location()))) {
+            var model = StaticModel.read(reader);
             return Optional.of(Meta.build(MethodHandles.lookup(), model));
         }
     }
 
-    private List<Mesh> readMeshes(StaticModel model, BinarySource source, long hash, LoadingContext context) throws IOException {
+    private List<Mesh> readMeshes(StaticModel model, BinaryReader reader, long hash, LoadingContext context) throws IOException {
         if (!model.header().streamable()) {
-            return readEmbeddedGeometry(model, source);
+            return readEmbeddedGeometry(model, reader);
         }
         return readStreamedGeometry(model, 0, hash, context);
     }
 
-    private List<Mesh> readEmbeddedGeometry(StaticModel model, BinarySource source) throws IOException {
+    private List<Mesh> readEmbeddedGeometry(StaticModel model, BinaryReader reader) throws IOException {
         List<Mesh> meshes = new ArrayList<>();
         for (var meshInfo : model.meshInfos()) {
             Check.state(meshInfo.lodInfos().size() == 1, "Expected single LOD");
-            meshes.add(GeometryReader.readEmbeddedMesh(source, meshInfo.lodInfos().getFirst()));
+            meshes.add(GeometryReader.readEmbeddedMesh(reader, meshInfo.lodInfos().getFirst()));
         }
         return meshes;
     }
@@ -71,8 +71,8 @@ public final class StaticModelReader implements AssetReader.Binary<Model, Eterna
         var layouts = model.streamDiskLayouts().get(lod).memoryLayouts();
 
         var bytes = context.open(new EternalStreamLocation(streamHash, uncompressedSize));
-        var source = BinarySource.wrap(bytes);
-        return GeometryReader.readStreamedMesh(source, lods, layouts, false);
+        var reader = BinaryReader.wrap(bytes);
+        return GeometryReader.readStreamedMesh(reader, lods, layouts, false);
     }
 
 }

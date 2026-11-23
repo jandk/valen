@@ -9,9 +9,9 @@ public record StreamDb(
     StreamDbHeader header,
     List<StreamDbEntry> entries
 ) {
-    public static StreamDb read(BinarySource source) throws IOException {
-        var header = StreamDbHeader.read(source);
-        var entries = source.readObjects(header.numEntries(), StreamDbEntry::read);
+    public static StreamDb read(BinaryReader reader) throws IOException {
+        var header = StreamDbHeader.read(reader);
+        var entries = reader.readObjects(header.numEntries(), StreamDbEntry::read);
 
         return new StreamDb(
             header,

@@ -26,8 +26,8 @@ public record Wem(
         Check.nonNull(data, "data");
     }
 
-    public static Wem read(BinarySource source) throws IOException {
-        var waveFile = WaveFile.read(source);
+    public static Wem read(BinaryReader reader) throws IOException {
+        var waveFile = WaveFile.read(reader);
         var format = WwiseFormat.from(waveFile.format());
         var seek = waveFile.riff().findFirst(SEEK)
             .map(c -> c.asData().payload().asShorts());

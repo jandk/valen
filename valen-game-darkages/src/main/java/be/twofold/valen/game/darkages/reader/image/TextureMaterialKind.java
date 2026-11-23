@@ -48,8 +48,8 @@ public enum TextureMaterialKind implements MaterialKind {
         this.skipsFormat = skipsFormat;
     }
 
-    public static TextureMaterialKind read(BinarySource source) throws IOException {
-        return ValueEnum.fromValue(TextureMaterialKind.class, source.readInt());
+    public static TextureMaterialKind read(BinaryReader reader) throws IOException {
+        return ValueEnum.fromValue(TextureMaterialKind.class, reader.readInt());
     }
 
     public static Optional<TextureMaterialKind> parse(String word) {

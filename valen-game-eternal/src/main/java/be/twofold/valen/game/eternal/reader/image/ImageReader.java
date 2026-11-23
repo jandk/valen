@@ -29,15 +29,15 @@ public final class ImageReader implements AssetReader.Binary<Texture, EternalAss
     }
 
     @Override
-    public Texture read(BinarySource source, EternalAsset asset, LoadingContext context) throws IOException {
+    public Texture read(BinaryReader reader, EternalAsset asset, LoadingContext context) throws IOException {
         var hash = asset.hash();
-        var image = Image.read(source);
+        var image = Image.read(reader);
 
         var mipData = new Bytes[image.header().totalMipCount()];
         for (var i = image.header().streamedMipCount(); i < image.header().totalMipCount(); i++) {
-            mipData[i] = source.readBytes(image.mipInfos().get(i).decompressedSize());
+            mipData[i] = reader.readBytes(image.mipInfos().get(i).decompressedSize());
         }
-        source.expectEnd();
+        reader.expectEnd();
 
         if (readStreams) {
             /*
@@ -57,8 +57,8 @@ public final class ImageReader implements AssetReader.Binary<Texture, EternalAss
 
     @Override
     public Optional<Meta.Node> readMetadata(EternalAsset asset, LoadingContext context) throws IOException {
-        try (var source = BinarySource.wrap(context.open(asset.location()))) {
-            var image = Image.read(source);
+        try (var reader = BinaryReader.wrap(context.open(asset.location()))) {
+            var image = Image.read(reader);
             return Optional.of(Meta.build(MethodHandles.lookup(), image));
         }
     }
@@ -67,7 +67,7 @@ public final class ImageReader implements AssetReader.Binary<Texture, EternalAss
         var lastMip = image.mipInfos().getLast();
         var uncompressedSize = lastMip.cumulativeSizeStreamDb() + lastMip.decompressedSize();
         var bytes = context.open(new EternalStreamLocation(hash, uncompressedSize));
-        try (var mipSource = BinarySource.wrap(bytes)) {
+        try (var mipSource = BinaryReader.wrap(bytes)) {
             for (var i = 0; i < image.header().totalMipCount(); i++) {
                 mipData[i] = mipSource.readBytes(image.mipInfos().get(i).decompressedSize());
             }

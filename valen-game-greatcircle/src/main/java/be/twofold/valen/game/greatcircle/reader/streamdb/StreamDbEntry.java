@@ -9,10 +9,10 @@ public record StreamDbEntry(
     int length,
     StreamDbCompression compressionType
 ) {
-    public static StreamDbEntry read(BinarySource source) throws IOException {
-        var offset16 = source.readInt();
-        var length = source.readInt();
-        var compressionType = StreamDbCompression.read(source);
+    public static StreamDbEntry read(BinaryReader reader) throws IOException {
+        var offset16 = reader.readInt();
+        var length = reader.readInt();
+        var compressionType = StreamDbCompression.read(reader);
 
         return new StreamDbEntry(
             offset16,

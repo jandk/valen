@@ -10,14 +10,14 @@ public record StreamDbHeader(
     int numEntries,
     Set<StreamDbHeaderFlags> flags
 ) {
-    public static StreamDbHeader read(BinarySource source) throws IOException {
-        source.expectLong(0x61C7F32E29C2A550L); // magic
-        var headerLength = source.readInt();
-        source.expectInt(0x0); // pad0
-        source.expectInt(0x0); // pad1
-        source.expectInt(0x0); // pad2
-        var numEntries = source.readInt();
-        var flags = StreamDbHeaderFlags.read(source);
+    public static StreamDbHeader read(BinaryReader reader) throws IOException {
+        reader.expectLong(0x61C7F32E29C2A550L); // magic
+        var headerLength = reader.readInt();
+        reader.expectInt(0x0); // pad0
+        reader.expectInt(0x0); // pad1
+        reader.expectInt(0x0); // pad2
+        var numEntries = reader.readInt();
+        var flags = StreamDbHeaderFlags.read(reader);
 
         return new StreamDbHeader(
             headerLength,

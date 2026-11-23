@@ -12,10 +12,10 @@ public record MediaHeader(
 ) {
     public static final int BYTES = 12;
 
-    public static MediaHeader read(BinarySource source) throws IOException {
-        MediaId id = MediaId.of(source.readInt());
-        int offset = source.readInt();
-        int size = source.readInt();
+    public static MediaHeader read(BinaryReader reader) throws IOException {
+        MediaId id = MediaId.of(reader.readInt());
+        int offset = reader.readInt();
+        int size = reader.readInt();
         return new MediaHeader(id, offset, size);
     }
 }

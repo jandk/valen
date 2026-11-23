@@ -9,9 +9,9 @@ public record Codebook(
     int bitCount,
     Bytes bytes
 ) {
-    public static Codebook read(BinarySource source) throws IOException {
-        var bitCount = source.readUnsignedShort();
-        var bytes = source.readBytes(Math.ceilDiv(bitCount, 8));
+    public static Codebook read(BinaryReader reader) throws IOException {
+        var bitCount = reader.readUnsignedShort();
+        var bytes = reader.readBytes(Math.ceilDiv(bitCount, 8));
 
         return new Codebook(
             bitCount,

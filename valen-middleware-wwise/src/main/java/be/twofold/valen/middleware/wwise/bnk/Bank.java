@@ -11,29 +11,29 @@ public record Bank(
     long dataOffset,
     int dataSize
 ) {
-    public static Bank read(BinarySource source) throws IOException {
+    public static Bank read(BinaryReader reader) throws IOException {
         var header = (BankHeader) null;
         var index = MediaIndex.EMPTY;
         var dataOffset = 0L;
         var dataSize = 0;
 
-        while (source.remaining() > 0) {
-            var chunk = ChunkHeader.read(source);
-            var start = source.position();
+        while (reader.remaining() > 0) {
+            var chunk = ChunkHeader.read(reader);
+            var start = reader.position();
             var end = start + chunk.size();
 
             switch (chunk.tag()) {
-                case BKHD -> header = BankHeader.read(source, chunk.size());
-                case DIDX -> index = MediaIndex.read(source, chunk.size());
+                case BKHD -> header = BankHeader.read(reader, chunk.size());
+                case DIDX -> index = MediaIndex.read(reader, chunk.size());
                 case DATA -> {
                     dataOffset = start;
                     dataSize = chunk.size();
-                    source.skip(chunk.size());
+                    reader.skip(chunk.size());
                 }
-                default -> source.skip(chunk.size());
+                default -> reader.skip(chunk.size());
             }
 
-            source.expectPosition(end);
+            reader.expectPosition(end);
         }
 
         if (header == null) {

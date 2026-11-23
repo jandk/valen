@@ -10,11 +10,11 @@ public record Md6ModelMaterialInfo(
     int firstVertex,
     int lastVertex
 ) {
-    public static Md6ModelMaterialInfo read(BinarySource source) throws IOException {
-        var mtrName = source.readString(StringFormat.INT_LENGTH);
-        var renderSurface = source.readInt();
-        var firstVertex = source.readInt();
-        var lastVertex = source.readInt();
+    public static Md6ModelMaterialInfo read(BinaryReader reader) throws IOException {
+        var mtrName = reader.readString(StringFormat.INT_LENGTH);
+        var renderSurface = reader.readInt();
+        var firstVertex = reader.readInt();
+        var lastVertex = reader.readInt();
 
         return new Md6ModelMaterialInfo(
             mtrName,

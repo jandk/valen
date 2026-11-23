@@ -14,12 +14,12 @@ public record MediaIndex(
         headers = List.copyOf(headers);
     }
 
-    public static MediaIndex read(BinarySource source, int size) throws IOException {
+    public static MediaIndex read(BinaryReader reader, int size) throws IOException {
         if (size % MediaHeader.BYTES != 0) {
             throw new IOException("Invalid size for MediaIndex");
         }
 
-        var headers = source.readObjects(size / MediaHeader.BYTES, MediaHeader::read);
+        var headers = reader.readObjects(size / MediaHeader.BYTES, MediaHeader::read);
         return new MediaIndex(headers);
     }
 }

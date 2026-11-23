@@ -12,7 +12,7 @@ public final class EternalStorageManager extends StorageManager {
     private final Map<Long, Location.FileSlice> streamIndex;
 
     public EternalStorageManager(
-        Map<Path, BinarySource> sources,
+        Map<Path, BinaryReader> sources,
         Set<Path> shared,
         Map<Long, Location.FileSlice> streamIndex,
         Decompressors decompressors

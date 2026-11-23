@@ -16,7 +16,7 @@ public final class BinkReader implements AssetReader.Binary<Bytes, DarkAgesAsset
     }
 
     @Override
-    public Bytes read(BinarySource source, DarkAgesAsset asset, LoadingContext context) throws IOException {
+    public Bytes read(BinaryReader reader, DarkAgesAsset asset, LoadingContext context) throws IOException {
         long hash = Hash.hash(asset.hash(), 0, 0);
         return context.open(new DarkAgesStreamLocation(hash, -1));
     }

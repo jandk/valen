@@ -16,18 +16,18 @@ public record Event(
     List<LanguageDuration> languageDurations,
     List<NameId> mediaIds
 ) {
-    public static Event read(BinarySource source) throws IOException {
-        var name = source.readString(StringFormat.INT_LENGTH);
-        var id = source.readInt();
-        var maxAttenuation = source.readFloat();
-        source.expectByte((byte) 0); // unused
-        var nonLocalized = source.readBool(BoolFormat.BYTE);
-        var looping = source.readBool(BoolFormat.BYTE);
-        var duration = source.readFloat();
+    public static Event read(BinaryReader reader) throws IOException {
+        var name = reader.readString(StringFormat.INT_LENGTH);
+        var id = reader.readInt();
+        var maxAttenuation = reader.readFloat();
+        reader.expectByte((byte) 0); // unused
+        var nonLocalized = reader.readBool(BoolFormat.BYTE);
+        var looping = reader.readBool(BoolFormat.BYTE);
+        var duration = reader.readFloat();
         var languageDurations = nonLocalized
             ? List.<LanguageDuration>of()
-            : source.readObjects(source.readInt(), LanguageDuration::read);
-        var mediaIds = source.readObjects(source.readInt(), NameId::readReversed);
+            : reader.readObjects(reader.readInt(), LanguageDuration::read);
+        var mediaIds = reader.readObjects(reader.readInt(), NameId::readReversed);
 
         return new Event(
             name,

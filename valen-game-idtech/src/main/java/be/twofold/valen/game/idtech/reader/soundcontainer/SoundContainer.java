@@ -11,11 +11,11 @@ public record SoundContainer(
     Bytes headers,
     List<SoundEntry> entries
 ) {
-    public static SoundContainer read(BinarySource source, IdTechGame game) throws IOException {
-        source.expectInt(6); // version
-        source.skip(4); // indexSize
-        var headers = source.readBytes(source.readInt() - 4);
-        var entries = source.readObjects(source.readInt(), s -> SoundEntry.read(s, game));
+    public static SoundContainer read(BinaryReader reader, IdTechGame game) throws IOException {
+        reader.expectInt(6); // version
+        reader.skip(4); // indexSize
+        var headers = reader.readBytes(reader.readInt() - 4);
+        var entries = reader.readObjects(reader.readInt(), s -> SoundEntry.read(s, game));
 
         return new SoundContainer(
             headers,

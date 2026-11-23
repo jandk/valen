@@ -17,8 +17,8 @@ public enum SoundEntryType implements ValueEnum<Short> {
         this.value = value;
     }
 
-    public static SoundEntryType read(BinarySource source) throws IOException {
-        var value = source.readShort();
+    public static SoundEntryType read(BinaryReader reader) throws IOException {
+        var value = reader.readShort();
         return ValueEnum.fromValue(SoundEntryType.class, value);
     }
 
