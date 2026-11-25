@@ -5,7 +5,6 @@ import wtf.reversed.toolbox.io.*;
 import wtf.reversed.toolbox.math.*;
 
 import java.io.*;
-import java.nio.*;
 import java.util.*;
 
 /**
@@ -27,12 +26,10 @@ public record Triangles(
     public static final int VERTEX_SIZE = 48;
 
     public static Triangles read(BinaryReader reader) throws IOException {
-        reader.order(ByteOrder.BIG_ENDIAN);
-
         var numVerts = reader.readInt();
         var numIndices = reader.readInt();
         int rawVertexMask = reader.readInt();
-        if (rawVertexMask != 98335) {
+        if (rawVertexMask != 0x1_801F) {
             throw new UnsupportedOperationException("Unknown vertex mask: " + rawVertexMask);
         }
 

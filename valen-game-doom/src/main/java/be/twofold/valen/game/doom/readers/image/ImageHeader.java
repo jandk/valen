@@ -3,7 +3,6 @@ package be.twofold.valen.game.doom.readers.image;
 import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
-import java.nio.*;
 import java.time.*;
 
 public record ImageHeader(
@@ -18,8 +17,6 @@ public record ImageHeader(
     int unk9
 ) {
     public static ImageHeader read(BinaryReader reader) throws IOException {
-        reader.order(ByteOrder.BIG_ENDIAN);
-
         var timestamp = Instant.ofEpochSecond(reader.readInt());
         reader.expectInt(0x074D_4942);
         var type = reader.readInt();

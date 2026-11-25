@@ -1,9 +1,9 @@
 package be.twofold.valen.game.doom.readers.common;
 
+import be.twofold.valen.game.doom.readers.*;
 import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
-import java.nio.*;
 
 public record SourceSurface(
     String material,
@@ -12,10 +12,7 @@ public record SourceSurface(
     int lastVertex
 ) {
     public static SourceSurface read(BinaryReader reader) throws IOException {
-        reader.order(ByteOrder.LITTLE_ENDIAN);
-        var material = reader.readString(StringFormat.INT_LENGTH);
-
-        reader.order(ByteOrder.BIG_ENDIAN);
+        var material = IdStrings.read(reader);
         var renderSurface = reader.readInt();
         var firstVertex = reader.readInt();
         var lastVertex = reader.readInt();

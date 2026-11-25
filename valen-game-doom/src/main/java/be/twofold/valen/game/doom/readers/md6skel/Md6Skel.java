@@ -1,5 +1,6 @@
 package be.twofold.valen.game.doom.readers.md6skel;
 
+import be.twofold.valen.game.doom.readers.*;
 import wtf.reversed.toolbox.collect.*;
 import wtf.reversed.toolbox.io.*;
 import wtf.reversed.toolbox.math.*;
@@ -36,11 +37,9 @@ public record Md6Skel(
         reader.position(Md6SkelHeader.BYTES + data.inverseBasePoseOffset());
         var inverseBasePoses = reader.readObjects(data.numJoints8(), Matrix4::read3x4);
 
-        reader.position(Md6SkelHeader.BYTES + header.dataSize()).order(ByteOrder.LITTLE_ENDIAN);
-        var names = reader.readStrings(data.numJoints8(), StringFormat.INT_LENGTH);
-        var userChannelNames = reader.readStrings(data.numUserChannels8(), StringFormat.INT_LENGTH);
-
-        reader.order(ByteOrder.BIG_ENDIAN);
+        reader.position(Md6SkelHeader.BYTES + header.dataSize());
+        var names = IdStrings.read(reader, data.numJoints8());
+        var userChannelNames = IdStrings.read(reader, data.numUserChannels8());
         var userChannelValues = reader.readFloats(data.numUserChannels8());
         reader.expectInt(0x0E02_534D);
 
