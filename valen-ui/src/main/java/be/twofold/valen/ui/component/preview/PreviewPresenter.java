@@ -173,9 +173,12 @@ public final class PreviewPresenter extends AbstractPresenter<PreviewView> {
     }
 
     private void cancelPending() {
-        if (pending != null) {
-            pending.cancel(false);
+        // Clear first: the UI executor runs inline on the FX thread, so cancel() fires the
+        // completion callback right away, and it must already see this future as stale.
+        var future = pending;
+        if (future != null) {
             pending = null;
+            future.cancel(false);
         }
     }
 
