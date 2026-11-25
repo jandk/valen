@@ -21,6 +21,7 @@ public sealed interface DoomAsset extends Asset {
         Location location
     ) implements DoomAsset {
         private static final Map<ResourceType, AssetType> TYPE_MAP = Map.of(
+            ResourceType.of("baseModel"), AssetType.MODEL,
             ResourceType.of("image"), AssetType.TEXTURE,
             ResourceType.of("model"), AssetType.MODEL
         );
