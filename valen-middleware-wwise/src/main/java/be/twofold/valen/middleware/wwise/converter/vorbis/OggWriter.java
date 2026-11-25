@@ -2,6 +2,7 @@ package be.twofold.valen.middleware.wwise.converter.vorbis;
 
 import wtf.reversed.toolbox.collect.*;
 import wtf.reversed.toolbox.hash.*;
+import wtf.reversed.toolbox.io.*;
 import wtf.reversed.toolbox.util.*;
 
 import java.io.*;
@@ -14,7 +15,7 @@ public final class OggWriter {
 
     private static final int OggS = 'O' | 'g' << 8 | 'g' << 16 | 'S' << 24;
 
-    private final OutputStream out;
+    private final BinaryWriter writer;
     private long granulePosition;
     private final int bitStreamSerialNumber = ThreadLocalRandom.current().nextInt();
     private int pageSequenceNumber = 0;
@@ -23,8 +24,8 @@ public final class OggWriter {
     private int pendingBytes = 0;
     private int pendingSegments = 0;
 
-    public OggWriter(OutputStream out) {
-        this.out = Check.nonNull(out, "out");
+    public OggWriter(BinaryWriter writer) {
+        this.writer = Check.nonNull(writer, "writer");
     }
 
     public void addPacket(Bytes packet, long granulePosition) throws IOException {
@@ -43,29 +44,15 @@ public final class OggWriter {
     }
 
     public void flushPage() throws IOException {
-        out.write(buildPage(false));
+        writer.writeBytes(buildPage(false));
     }
 
     public void finish() throws IOException {
-        out.write(buildPage(true));
+        writer.writeBytes(buildPage(true));
     }
 
-    private byte[] buildSegmentTable() {
-        byte[] segmentTable = new byte[pendingSegments];
-        for (int i = 0, o = 0; i < packets.size(); i++) {
-            int length = packets.get(i).length();
-            int segments = length / 255 + 1;
-            for (int j = 0; j < segments; j++) {
-                segmentTable[o++] = (byte) Math.min(255, length - j * 255);
-            }
-        }
-
-        return segmentTable;
-    }
-
-    private byte[] buildPage(boolean last) {
-        byte[] segmentTable = buildSegmentTable();
-        int totalPageSize = 27 + segmentTable.length + pendingBytes;
+    private Bytes buildPage(boolean last) {
+        int totalPageSize = 27 + pendingSegments + pendingBytes;
 
         int bos = pageSequenceNumber == 0 ? 2 : 0;
         int eos = last ? 4 : 0;
@@ -76,11 +63,9 @@ public final class OggWriter {
             .setLong(6, granulePosition)
             .setInt(14, bitStreamSerialNumber)
             .setInt(18, pageSequenceNumber++)
-            .set(26, (byte) segmentTable.length);
+            .set(26, (byte) pendingSegments);
 
-        Bytes.wrap(segmentTable).copyTo(pageData, 27);
-
-        int offset = 27 + segmentTable.length;
+        int offset = writeSegmentTable(pageData, 27);
         for (Bytes packet : packets) {
             packet.copyTo(pageData, offset);
             offset += packet.length();
@@ -92,6 +77,17 @@ public final class OggWriter {
         packets.clear();
         pendingBytes = 0;
         pendingSegments = 0;
-        return pageData.toArray();
+        return pageData;
+    }
+
+    private int writeSegmentTable(Bytes.Mutable target, int offset) {
+        for (Bytes packet : packets) {
+            int length = packet.length();
+            int segments = length / 255 + 1;
+            for (int j = 0; j < segments; j++) {
+                target.set(offset++, (byte) Math.min(255, length - j * 255));
+            }
+        }
+        return offset;
     }
 }

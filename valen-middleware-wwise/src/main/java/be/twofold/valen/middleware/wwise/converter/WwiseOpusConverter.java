@@ -8,12 +8,11 @@ import wtf.reversed.toolbox.collect.*;
 import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
-import java.nio.*;
 import java.nio.charset.*;
 
 public final class WwiseOpusConverter implements AudioConverter {
-    private static final byte[] OPUS_HEAD = "OpusHead".getBytes(StandardCharsets.US_ASCII);
-    private static final byte[] OPUS_TAGS = "OpusTags".getBytes(StandardCharsets.US_ASCII);
+    private static final Bytes OPUS_HEAD = Bytes.wrap("OpusHead".getBytes(StandardCharsets.US_ASCII));
+    private static final Bytes OPUS_TAGS = Bytes.wrap("OpusTags".getBytes(StandardCharsets.US_ASCII));
 
     private static final byte[] STREAMS = {2, 2, 3, 4, 4, 5};
     private static final byte[] COUPLED = {1, 2, 2, 2, 3, 3};
@@ -77,14 +76,14 @@ public final class WwiseOpusConverter implements AudioConverter {
             ));
         }
 
-        var out = new ByteArrayOutputStream();
-        var writer = new OggWriter(out);
+        var writer = new BytesBinaryWriter();
+        var oggWriter = new OggWriter(writer);
 
-        writer.addPacket(rebuildOpusHead(wem.format()), 0);
-        writer.flushPage();
+        oggWriter.addPacket(rebuildOpusHead(wem.format()), 0);
+        oggWriter.flushPage();
 
-        writer.addPacket(rebuildOpusTags(), 0);
-        writer.flushPage();
+        oggWriter.addPacket(rebuildOpusTags(), 0);
+        oggWriter.flushPage();
 
         var offset = 0;
         var granule = 0L;
@@ -98,53 +97,44 @@ public final class WwiseOpusConverter implements AudioConverter {
             if (i == seek.length() - 1) {
                 granule = opusHeader.preSkip() + opusHeader.sampleCount();
             }
-            writer.addPacket(packet, granule);
+            oggWriter.addPacket(packet, granule);
         }
         if (offset != payload.length()) {
             throw new IOException("Seek table covers " + offset + " bytes, data chunk has " + payload.length());
         }
-        writer.finish();
+        oggWriter.finish();
 
-        return Bytes.wrap(out.toByteArray());
+        return writer.toBytes();
     }
 
     private Bytes rebuildOpusHead(WwiseFormat format) {
         var opusHeader = (AkOpusWemHeader) format.codecHeader().orElseThrow();
-        var size = opusHeader.mappingFamily() == 0 ? 19 : 21 + format.channels();
 
-        var head = ByteBuffer.allocate(size)
-            .order(ByteOrder.LITTLE_ENDIAN)
-            .put(OPUS_HEAD)
-            .put((byte) 1)
-            .put((byte) format.channels())
-            .putShort(opusHeader.preSkip())
-            .putInt(format.samplesPerSec())
-            .putShort((short) 0)
-            .put(opusHeader.mappingFamily());
+        var writer = new BytesBinaryWriter();
+        writer.writeBytes(OPUS_HEAD);
+        writer.writeByte((byte) 1);
+        writer.writeByte((byte) format.channels());
+        writer.writeShort(opusHeader.preSkip());
+        writer.writeInt(format.samplesPerSec());
+        writer.writeShort((short) 0);
+        writer.writeByte(opusHeader.mappingFamily());
 
         if (opusHeader.mappingFamily() != 0) {
             int index = format.channels() - 3;
-            head.put(STREAMS[index]);
-            head.put(COUPLED[index]);
-            head.put(CHANNELS[index]);
+            writer.writeByte(STREAMS[index]);
+            writer.writeByte(COUPLED[index]);
+            writer.writeBytes(Bytes.wrap(CHANNELS[index]));
         }
 
-        return Bytes.wrap(head.flip());
+        return writer.toBytes();
     }
 
-    private Bytes rebuildOpusTags() {
-        var vendor = Valen.software().getBytes(StandardCharsets.UTF_8);
-        var comment = ("COMMENT=Exported with Valen " + Valen.version()).getBytes(StandardCharsets.UTF_8);
-
-        var tags = ByteBuffer.allocate(8 + 4 + vendor.length + 4 + 4 + comment.length)
-            .order(ByteOrder.LITTLE_ENDIAN)
-            .put(OPUS_TAGS)
-            .putInt(vendor.length)
-            .put(vendor)
-            .putInt(1)
-            .putInt(comment.length)
-            .put(comment);
-
-        return Bytes.wrap(tags.flip());
+    private Bytes rebuildOpusTags() throws IOException {
+        var writer = new BytesBinaryWriter();
+        writer.writeBytes(OPUS_TAGS);
+        writer.writeString(Valen.software(), StringFormat.INT_LENGTH);
+        writer.writeInt(1);
+        writer.writeString("COMMENT=Exported with Valen " + Valen.version(), StringFormat.INT_LENGTH);
+        return writer.toBytes();
     }
 }

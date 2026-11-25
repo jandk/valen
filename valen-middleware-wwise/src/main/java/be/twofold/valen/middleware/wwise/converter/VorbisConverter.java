@@ -32,8 +32,8 @@ final class VorbisConverter {
     private final int audioChannels;
     private final int sampleRate;
 
-    private final ByteArrayOutputStream out = new ByteArrayOutputStream();
-    private final OggWriter oggWriter = new OggWriter(out);
+    private final BytesBinaryWriter writer = new BytesBinaryWriter();
+    private final OggWriter oggWriter = new OggWriter(writer);
 
     private boolean[] modeBlockFlags;
     private int modeBits;
@@ -59,7 +59,7 @@ final class VorbisConverter {
         reader.position(vorbisHeader.vorbisDataOffset());
         rebuildAudioPackets();
 
-        return Bytes.wrap(out.toByteArray());
+        return writer.toBytes();
     }
 
     private void rebuildAudioPackets() throws IOException {
@@ -166,17 +166,16 @@ final class VorbisConverter {
         int length = reader.readUnsignedShort();
         byte[] packedBytes = reader.readBytes(length).toArray();
         BitReader bitReader = new BitReader(packedBytes, ByteOrder.LITTLE_ENDIAN);
+        BitWriter bitWriter = new BitWriter(ByteOrder.LITTLE_ENDIAN);
 
-        BitWriter writer = new BitWriter(ByteOrder.LITTLE_ENDIAN);
-        writeHeader(writer, 5);
-
-        rebuildCodebooks(bitReader, writer);
-        rebuildTimeDomain(writer);
-        rebuildFloors(bitReader, writer);
-        rebuildResidues(bitReader, writer);
-        rebuildMappings(bitReader, writer);
-        var modeBlockFlags = rebuildModes(bitReader, writer);
-        writer.writeBool(true);
+        writeHeader(bitWriter, 5);
+        rebuildCodebooks(bitReader, bitWriter);
+        rebuildTimeDomain(bitWriter);
+        rebuildFloors(bitReader, bitWriter);
+        rebuildResidues(bitReader, bitWriter);
+        rebuildMappings(bitReader, bitWriter);
+        var modeBlockFlags = rebuildModes(bitReader, bitWriter);
+        bitWriter.writeBool(true);
 
         if (bitReader.isOverrun()) {
             throw new IOException("Setup header overrun");
@@ -185,7 +184,7 @@ final class VorbisConverter {
         this.modeBlockFlags = modeBlockFlags;
         this.modeBits = ilog(modeBlockFlags.length - 1);
 
-        return Bytes.wrap(writer.toByteArray());
+        return Bytes.wrap(bitWriter.toByteArray());
     }
 
     private void rebuildCodebooks(BitReader bitReader, BitWriter writer) throws IOException {
