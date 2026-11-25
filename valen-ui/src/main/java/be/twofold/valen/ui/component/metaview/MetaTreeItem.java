@@ -5,6 +5,7 @@ import javafx.collections.*;
 import javafx.scene.control.*;
 
 import java.util.*;
+import java.util.stream.*;
 
 final class MetaTreeItem extends TreeItem<Meta.Item> {
     private boolean firstTime = true;
@@ -33,8 +34,8 @@ final class MetaTreeItem extends TreeItem<Meta.Item> {
 
     private List<MetaTreeItem> buildChildren() {
         return switch (getValue().node()) {
-            case Meta.Sequence sequence -> sequence.items().stream()
-                .map(e -> new MetaTreeItem(new Meta.Item("[" + sequence.items().indexOf(e) + "]", e)))
+            case Meta.Sequence sequence -> IntStream.range(0, sequence.items().size())
+                .mapToObj(i -> new MetaTreeItem(new Meta.Item("[" + i + "]", sequence.items().get(i))))
                 .toList();
             case Meta.Struct struct -> struct.fields().stream()
                 .map(e -> new MetaTreeItem(new Meta.Item(e.name(), e.node())))

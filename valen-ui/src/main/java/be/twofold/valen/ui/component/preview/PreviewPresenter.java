@@ -126,9 +126,7 @@ public final class PreviewPresenter extends AbstractPresenter<PreviewView> {
         try {
             var data = loader.load(asset.id(), type.type());
             var bytes = type == AssetType.RAW ? data : loader.load(asset.id(), Bytes.class);
-            var metadata = type != AssetType.RAW
-                ? loader.loadMetadata(asset.id()).orElse(null)
-                : null;
+            var metadata = loader.loadMetadata(asset.id()).orElse(null);
             return decode(type, data, bytes, metadata);
         } catch (IOException e) {
             throw new CompletionException(e);
