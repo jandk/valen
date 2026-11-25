@@ -4,7 +4,7 @@ import be.twofold.valen.core.game.*;
 import be.twofold.valen.game.doom.megatexture.*;
 import be.twofold.valen.game.doom.megatexture.vmtr.*;
 import be.twofold.valen.game.doom.readers.image.*;
-import be.twofold.valen.game.doom.readers.model.*;
+import be.twofold.valen.game.doom.readers.staticmodel.*;
 import be.twofold.valen.game.doom.resources.*;
 import be.twofold.valen.game.doom.vmtr.*;
 import wtf.reversed.toolbox.io.*;
@@ -24,7 +24,7 @@ public final class DoomGame implements Game {
 
     private static final List<AssetReader<?, DoomAsset>> READERS = List.of(
         new ImageReader(),
-        new ModelReader()
+        new StaticModelReader()
     );
     public static final String SOUND_SOUNDBANKS_PC = "sound/soundbanks/pc";
 

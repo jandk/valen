@@ -1,12 +1,13 @@
-package be.twofold.valen.game.doom.readers.model;
+package be.twofold.valen.game.doom.readers.staticmodel;
 
+import be.twofold.valen.game.doom.readers.common.*;
 import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 import java.nio.*;
 import java.util.*;
 
-public record ModelSurface(
+public record StaticModelSurface(
     String material,
     int unk1,
     int unk2,
@@ -15,7 +16,7 @@ public record ModelSurface(
     List<String> unk5,
     Triangles triangles
 ) {
-    public static ModelSurface read(BinaryReader reader) throws IOException {
+    public static StaticModelSurface read(BinaryReader reader) throws IOException {
         reader.order(ByteOrder.LITTLE_ENDIAN);
         var material = reader.readString(StringFormat.INT_LENGTH);
 
@@ -31,7 +32,7 @@ public record ModelSurface(
 
         reader.expectInt(StaticModel.MAGIC);
 
-        return new ModelSurface(
+        return new StaticModelSurface(
             material,
             unk1,
             unk2,

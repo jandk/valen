@@ -1,10 +1,11 @@
-package be.twofold.valen.game.doom.readers.model;
+package be.twofold.valen.game.doom.readers.staticmodel;
 
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.geometry.*;
 import be.twofold.valen.core.geometry.read.*;
 import be.twofold.valen.core.util.*;
 import be.twofold.valen.game.doom.*;
+import be.twofold.valen.game.doom.readers.common.*;
 import wtf.reversed.toolbox.collect.*;
 import wtf.reversed.toolbox.io.*;
 import wtf.reversed.toolbox.math.*;
@@ -12,7 +13,7 @@ import wtf.reversed.toolbox.math.*;
 import java.io.*;
 import java.nio.*;
 
-public final class ModelReader implements AssetReader.Binary<Model, DoomAsset> {
+public final class StaticModelReader implements AssetReader.Binary<Model, DoomAsset> {
     private static final int POSITION_OFFSET = 0;
     private static final int TEX_COORD_OFFSET = 12;
     private static final int NORMAL_OFFSET = 20;
@@ -38,7 +39,7 @@ public final class ModelReader implements AssetReader.Binary<Model, DoomAsset> {
         return new Model(meshes, Axis.Z);
     }
 
-    private Mesh mapSurface(ModelSurface surface) {
+    private Mesh mapSurface(StaticModelSurface surface) {
         var triangles = surface.triangles();
 
         var format = MeshFormat.builder(triangles.numIndices(), triangles.numVerts())

@@ -1,4 +1,4 @@
-package be.twofold.valen.game.doom.readers.model;
+package be.twofold.valen.game.doom.readers.common;
 
 import wtf.reversed.toolbox.collect.*;
 import wtf.reversed.toolbox.io.*;

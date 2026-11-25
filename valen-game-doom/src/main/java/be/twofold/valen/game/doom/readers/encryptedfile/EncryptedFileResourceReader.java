@@ -1,4 +1,4 @@
-package be.twofold.valen.game.doom.readers;
+package be.twofold.valen.game.doom.readers.encryptedfile;
 
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.game.doom.*;
@@ -12,7 +12,7 @@ import java.nio.*;
 import java.security.*;
 import java.util.*;
 
-public final class BinaryFileReader implements AssetReader.Binary<ByteBuffer, DoomAsset> {
+public final class EncryptedFileResourceReader implements AssetReader.Binary<ByteBuffer, DoomAsset> {
     @Override
     public boolean canRead(DoomAsset resource) {
         return false;
