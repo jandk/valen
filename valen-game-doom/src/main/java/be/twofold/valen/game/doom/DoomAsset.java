@@ -3,6 +3,7 @@ package be.twofold.valen.game.doom;
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.game.doom.megatexture.vmtr.*;
 import be.twofold.valen.game.doom.vmtr.*;
+import be.twofold.valen.game.idtech.game.*;
 import wtf.reversed.toolbox.util.*;
 
 import java.util.*;
@@ -16,27 +17,26 @@ public sealed interface DoomAsset extends Asset {
      */
     record Resource(
         DoomAssetID id,
-        String rawType,
         Location location
     ) implements DoomAsset {
+        private static final Map<ResourceType, AssetType> TYPE_MAP = Map.of(
+            ResourceType.of("image"), AssetType.TEXTURE,
+            ResourceType.of("model"), AssetType.MODEL
+        );
+
         public Resource {
             Check.nonNull(id, "id");
-            Check.nonNull(rawType, "rawType");
             Check.nonNull(location, "location");
         }
 
         @Override
         public AssetType type() {
-            return switch (rawType) {
-                case "image" -> AssetType.TEXTURE;
-                case "model" -> AssetType.MODEL;
-                default -> AssetType.RAW;
-            };
+            return TYPE_MAP.getOrDefault(id.type(), AssetType.RAW);
         }
 
         @Override
         public Map<String, Object> properties() {
-            return Map.of("Type", rawType);
+            return Map.of("Type", id.type());
         }
 
         @Override

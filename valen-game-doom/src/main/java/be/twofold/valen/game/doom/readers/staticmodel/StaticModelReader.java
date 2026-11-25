@@ -6,6 +6,7 @@ import be.twofold.valen.core.geometry.read.*;
 import be.twofold.valen.core.util.*;
 import be.twofold.valen.game.doom.*;
 import be.twofold.valen.game.doom.readers.common.*;
+import be.twofold.valen.game.idtech.game.*;
 import wtf.reversed.toolbox.collect.*;
 import wtf.reversed.toolbox.io.*;
 import wtf.reversed.toolbox.math.*;
@@ -24,8 +25,7 @@ public final class StaticModelReader implements AssetReader.Binary<Model, DoomAs
 
     @Override
     public boolean canRead(DoomAsset asset) {
-        return asset instanceof DoomAsset.Resource resource
-            && resource.rawType().equals("model");
+        return asset.id().type() == ResourceType.of("model");
     }
 
     @Override

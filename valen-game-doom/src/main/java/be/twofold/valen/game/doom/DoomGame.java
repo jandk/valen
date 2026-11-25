@@ -7,6 +7,7 @@ import be.twofold.valen.game.doom.readers.image.*;
 import be.twofold.valen.game.doom.readers.staticmodel.*;
 import be.twofold.valen.game.doom.resources.*;
 import be.twofold.valen.game.doom.vmtr.*;
+import be.twofold.valen.game.idtech.game.*;
 import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
@@ -14,12 +15,12 @@ import java.nio.file.*;
 import java.util.*;
 
 public final class DoomGame implements Game {
-    private static final Set<String> KNOWN_TYPES = Set.of(
-        "image",
-        "model", "baseModel",
-        "skeleton",
-        "material", "decalatlas", "transsortatlas",
-        "anim"
+    private static final Set<ResourceType> KNOWN_TYPES = Set.of(
+        ResourceType.of("image"),
+        ResourceType.of("model"), ResourceType.of("baseModel"),
+        ResourceType.of("skeleton"),
+        ResourceType.of("material"), ResourceType.of("decalatlas"), ResourceType.of("transsortatlas"),
+        ResourceType.of("anim")
     );
 
     private static final List<AssetReader<?, DoomAsset>> READERS = List.of(
@@ -74,20 +75,22 @@ public final class DoomGame implements Game {
             }
         }
 
-        var uniqueNames = new HashSet<String>(index.entries().size());
+        var uniqueIds = new HashSet<DoomAssetID>(index.entries().size());
         var assets = new ArrayList<DoomAsset>();
         for (var entry : index.entries()) {
             if (entry.size() == 0) {
                 continue;
             }
 
-            var fileName = KNOWN_TYPES.contains(entry.typeName())
+            var type = ResourceType.of(entry.typeName());
+            var assetName = KNOWN_TYPES.contains(type)
                 ? entry.resourceName() : entry.fileName();
-            if (!uniqueNames.add(fileName)) {
+            var id = new DoomAssetID(assetName, type);
+            if (!uniqueIds.add(id)) {
                 continue;
             }
 
-            assets.add(mapResourceEntry(entry, fileName, dataPaths.get(entry.fileId())));
+            assets.add(mapResourceEntry(entry, id, dataPaths.get(entry.fileId())));
         }
 
         var vmtrAssets = vmtrEntries.stream()
@@ -115,15 +118,13 @@ public final class DoomGame implements Game {
         );
     }
 
-    private DoomAsset.Resource mapResourceEntry(ResourcesIndexEntry entry, String fileName, Path path) {
-        var id = new DoomAssetID(fileName);
-
+    private DoomAsset.Resource mapResourceEntry(ResourcesIndexEntry entry, DoomAssetID id, Path path) {
         Location location = new Location.FileSlice(path, entry.offset(), entry.sizeCompressed());
         if (entry.size() != entry.sizeCompressed()) {
             location = new Location.Compressed(location, CompressionType.DEFLATE_RAW, entry.size());
         }
 
-        return new DoomAsset.Resource(id, entry.typeName(), location);
+        return new DoomAsset.Resource(id, location);
     }
 
     @Override

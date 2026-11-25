@@ -3,6 +3,7 @@ package be.twofold.valen.game.doom.readers.image;
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.texture.*;
 import be.twofold.valen.game.doom.*;
+import be.twofold.valen.game.idtech.game.*;
 import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
@@ -12,8 +13,7 @@ import java.util.function.*;
 public final class ImageReader implements AssetReader.Binary<Texture, DoomAsset> {
     @Override
     public boolean canRead(DoomAsset asset) {
-        return asset instanceof DoomAsset.Resource resource
-            && resource.rawType().equals("image");
+        return asset.id().type() == ResourceType.of("image");
     }
 
     @Override

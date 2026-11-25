@@ -16,7 +16,7 @@ public final class EncryptedFileResourceReader implements AssetReader.Binary<Byt
     @Override
     public boolean canRead(DoomAsset resource) {
         return false;
-        // return resource.resourceType().equals("binaryFile");
+        // return resource.id().type() == ResourceType.of("binaryFile");
     }
 
     @Override
