@@ -15,21 +15,21 @@ public record ModelSurface(
     List<String> unk5,
     Triangles triangles
 ) {
-    public static ModelSurface read(BinarySource source) throws IOException {
-        source.order(ByteOrder.LITTLE_ENDIAN);
-        var material = source.readString(StringFormat.INT_LENGTH);
+    public static ModelSurface read(BinaryReader reader) throws IOException {
+        reader.order(ByteOrder.LITTLE_ENDIAN);
+        var material = reader.readString(StringFormat.INT_LENGTH);
 
-        source.order(ByteOrder.BIG_ENDIAN);
-        int unk1 = source.readInt();
-        int unk2 = source.readInt();
-        int unk3 = source.readInt();
-        int unk4 = source.readInt();
+        reader.order(ByteOrder.BIG_ENDIAN);
+        int unk1 = reader.readInt();
+        int unk2 = reader.readInt();
+        int unk3 = reader.readInt();
+        int unk4 = reader.readInt();
 
-        source.order(ByteOrder.LITTLE_ENDIAN);
-        var unk5 = source.readStrings(unk4, StringFormat.INT_LENGTH);
-        var triangles = Triangles.read(source);
+        reader.order(ByteOrder.LITTLE_ENDIAN);
+        var unk5 = reader.readStrings(unk4, StringFormat.INT_LENGTH);
+        var triangles = Triangles.read(reader);
 
-        source.expectInt(StaticModel.MAGIC);
+        reader.expectInt(StaticModel.MAGIC);
 
         return new ModelSurface(
             material,

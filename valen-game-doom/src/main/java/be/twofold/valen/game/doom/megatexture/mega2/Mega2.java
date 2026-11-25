@@ -12,15 +12,15 @@ public record Mega2(
     Ints offsets,
     List<Mega2Pointer> pointers
 ) {
-    public static Mega2 read(BinarySource source) throws IOException {
-        var header = Mega2Header.read(source);
-        var levels = source.readObjects(header.quadtreeLevelCount(), Mega2Level::read);
+    public static Mega2 read(BinaryReader reader) throws IOException {
+        var header = Mega2Header.read(reader);
+        var levels = reader.readObjects(header.quadtreeLevelCount(), Mega2Level::read);
 
-        source.position(header.quadtreeOffset());
-        var offsets = source.readInts(header.quadtreeCount());
+        reader.position(header.quadtreeOffset());
+        var offsets = reader.readInts(header.quadtreeCount());
 
-        source.position(header.pointerOffset());
-        var pointers = source.readObjects(header.pointerCount(), Mega2Pointer::read);
+        reader.position(header.pointerOffset());
+        var pointers = reader.readObjects(header.pointerCount(), Mega2Pointer::read);
 
         return new Mega2(
             header,

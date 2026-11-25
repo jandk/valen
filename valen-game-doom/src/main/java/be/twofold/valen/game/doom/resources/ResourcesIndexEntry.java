@@ -16,23 +16,23 @@ public record ResourcesIndexEntry(
     int unknown,
     byte fileId
 ) {
-    public static ResourcesIndexEntry read(BinarySource source) throws IOException {
-        source.order(ByteOrder.BIG_ENDIAN);
-        var index = source.readInt();
+    public static ResourcesIndexEntry read(BinaryReader reader) throws IOException {
+        reader.order(ByteOrder.BIG_ENDIAN);
+        var index = reader.readInt();
 
-        source.order(ByteOrder.LITTLE_ENDIAN);
-        var typeName = source.readString(StringFormat.INT_LENGTH);
-        var resourceName = source.readString(StringFormat.INT_LENGTH);
-        var fileName = source.readString(StringFormat.INT_LENGTH);
+        reader.order(ByteOrder.LITTLE_ENDIAN);
+        var typeName = reader.readString(StringFormat.INT_LENGTH);
+        var resourceName = reader.readString(StringFormat.INT_LENGTH);
+        var fileName = reader.readString(StringFormat.INT_LENGTH);
 
-        source.order(ByteOrder.BIG_ENDIAN);
-        var offset = source.readLong();
-        var size = source.readInt();
-        var sizeCompressed = source.readInt();
+        reader.order(ByteOrder.BIG_ENDIAN);
+        var offset = reader.readLong();
+        var size = reader.readInt();
+        var sizeCompressed = reader.readInt();
 
-        source.order(ByteOrder.LITTLE_ENDIAN);
-        var unknown = source.readInt();
-        var fileId = source.readByte();
+        reader.order(ByteOrder.LITTLE_ENDIAN);
+        var unknown = reader.readInt();
+        var fileId = reader.readByte();
 
         return new ResourcesIndexEntry(
             index,

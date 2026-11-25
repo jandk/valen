@@ -17,8 +17,8 @@ public final class ImageReader implements AssetReader.Binary<Texture, DoomAsset>
     }
 
     @Override
-    public Texture read(BinarySource source, DoomAsset asset, LoadingContext context) throws IOException {
-        var image = Image.read(source);
+    public Texture read(BinaryReader reader, DoomAsset asset, LoadingContext context) throws IOException {
+        var image = Image.read(reader);
 
         var format = mapFormat(image.header().format());
         var surfaces = new Surface[image.mips().size()];

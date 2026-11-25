@@ -26,24 +26,24 @@ public record Triangles(
 ) {
     public static final int VERTEX_SIZE = 48;
 
-    public static Triangles read(BinarySource source) throws IOException {
-        source.order(ByteOrder.BIG_ENDIAN);
+    public static Triangles read(BinaryReader reader) throws IOException {
+        reader.order(ByteOrder.BIG_ENDIAN);
 
-        var numVerts = source.readInt();
-        var numIndices = source.readInt();
-        int rawVertexMask = source.readInt();
+        var numVerts = reader.readInt();
+        var numIndices = reader.readInt();
+        int rawVertexMask = reader.readInt();
         if (rawVertexMask != 98335) {
             throw new UnsupportedOperationException("Unknown vertex mask: " + rawVertexMask);
         }
 
         var vertexMask = VertexMask.fromValue(rawVertexMask);
-        var xyzScale = Vector3.read(source);
-        var xyzBias = Vector3.read(source);
-        var stScale = Vector2.read(source);
-        var stBias = Vector2.read(source);
-        var buffer = source.readBytes(numVerts * VERTEX_SIZE + numIndices * Short.BYTES);
-        var bounds = Bounds.read(source);
-        var detailOffset = source.readInt();
+        var xyzScale = Vector3.read(reader);
+        var xyzBias = Vector3.read(reader);
+        var stScale = Vector2.read(reader);
+        var stBias = Vector2.read(reader);
+        var buffer = reader.readBytes(numVerts * VERTEX_SIZE + numIndices * Short.BYTES);
+        var bounds = Bounds.read(reader);
+        var detailOffset = reader.readInt();
 
         return new Triangles(
             numVerts,

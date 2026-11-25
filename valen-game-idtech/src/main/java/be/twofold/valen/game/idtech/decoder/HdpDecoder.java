@@ -18,7 +18,7 @@ public final class HdpDecoder implements PageDecoder {
 
     @Override
     public Surface decode(Bytes bytes, int width, int height) throws IOException {
-        try (var source = BitSource.big(BinarySource.wrap(bytes))) {
+        try (var source = BitSource.big(BinaryReader.wrap(bytes))) {
             var data = HdpDec.decode(source, width, height, hasAlphaChannel);
             var format = srgb ? TextureFormat.R8G8B8A8_SRGB : TextureFormat.R8G8B8A8_UNORM;
             return new Surface(format, width, height, 1, Bytes.wrap(data));

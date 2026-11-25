@@ -17,7 +17,7 @@ import java.util.stream.*;
 
 final class WwiseLoader {
     private final Path root;
-    private final Map<Path, BinarySource> sources = new LinkedHashMap<>();
+    private final Map<Path, BinaryReader> sources = new LinkedHashMap<>();
     private final Map<MediaId, WwiseAsset> assets = new LinkedHashMap<>();
     private Map<MediaId, MediaFile> mediaFiles;
 
@@ -56,10 +56,10 @@ final class WwiseLoader {
     private void loadBanks(List<SoundBank> soundBanks, Set<MediaId> excluded) throws IOException {
         for (var soundBank : soundBanks) {
             var resolved = root.resolve(soundBank.path());
-            var source = BinarySource.open(resolved);
-            sources.put(resolved, source);
+            var reader = BinaryReader.open(resolved);
+            sources.put(resolved, reader);
 
-            var bank = Bank.read(source);
+            var bank = Bank.read(reader);
             loadBank(bank, resolved, excluded);
         }
     }
@@ -85,10 +85,10 @@ final class WwiseLoader {
 
         for (var packFilePath : packFilePaths) {
             var resolved = root.resolve(packFilePath);
-            var source = BinarySource.open(resolved);
-            sources.put(resolved, source);
+            var reader = BinaryReader.open(resolved);
+            sources.put(resolved, reader);
 
-            var pack = FilePackage.read(source);
+            var pack = FilePackage.read(reader);
             loadPackage(pack, resolved);
         }
     }

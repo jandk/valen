@@ -14,15 +14,15 @@ public record ImageMip(
     int size,
     Bytes data
 ) {
-    public static ImageMip read(BinarySource source) throws IOException {
-        source.order(ByteOrder.BIG_ENDIAN);
+    public static ImageMip read(BinaryReader reader) throws IOException {
+        reader.order(ByteOrder.BIG_ENDIAN);
 
-        var mip = source.readInt();
-        var face = source.readInt();
-        var width = source.readInt();
-        var height = source.readInt();
-        var size = source.readInt();
-        var data = source.readBytes(size);
+        var mip = reader.readInt();
+        var face = reader.readInt();
+        var width = reader.readInt();
+        var height = reader.readInt();
+        var size = reader.readInt();
+        var data = reader.readBytes(size);
 
         return new ImageMip(
             mip,

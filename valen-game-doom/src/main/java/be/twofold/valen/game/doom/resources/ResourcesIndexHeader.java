@@ -9,14 +9,14 @@ public record ResourcesIndexHeader(
     int size,
     int count
 ) {
-    public static ResourcesIndexHeader read(BinarySource source) throws IOException {
-        source.expectInt(0x5245_5305);
-        source.order(ByteOrder.BIG_ENDIAN);
-        var size = source.readInt();
+    public static ResourcesIndexHeader read(BinaryReader reader) throws IOException {
+        reader.expectInt(0x5245_5305);
+        reader.order(ByteOrder.BIG_ENDIAN);
+        var size = reader.readInt();
         for (var i = 0; i < 6; i++) {
-            source.expectInt(0);
+            reader.expectInt(0);
         }
-        var count = source.readInt();
+        var count = reader.readInt();
 
         return new ResourcesIndexHeader(
             size,

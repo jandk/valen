@@ -90,8 +90,8 @@ public final class PageStitcher {
                 return;
             }
 
-            var source = found.get();
-            var payload = source.readBytes(Math.toIntExact(source.size()));
+            var reader = found.get();
+            var payload = reader.readBytes(Math.toIntExact(reader.size()));
             tile = decodeTile(payload, layer);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
@@ -117,7 +117,7 @@ public final class PageStitcher {
         return transcoder.decode(payload, size, size);
     }
 
-    private Optional<BinarySource> payload(Rect rect, VmtrLayer layer, int level, int x, int y) throws IOException {
+    private Optional<BinaryReader> payload(Rect rect, VmtrLayer layer, int level, int x, int y) throws IOException {
         return megaTexture.findLayer(
             level,
             tileX(rect, level) + x,

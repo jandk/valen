@@ -21,20 +21,20 @@ public record Mega2PageHeader(
     public static final int BYTES = 16;
     public static final int COVER_SIZE = 2048;
 
-    public static Mega2PageHeader read(BinarySource source) throws IOException {
-        source.order(ByteOrder.BIG_ENDIAN);
+    public static Mega2PageHeader read(BinaryReader reader) throws IOException {
+        reader.order(ByteOrder.BIG_ENDIAN);
 
-        byte qualityDiffuse = source.readByte();
-        byte qualitySpecular = source.readByte();
-        byte qualityLightmap = source.readByte();
-        byte flags = source.readByte();
-        short diffuseSize = source.readShort();
-        short specularSize = source.readShort();
-        short lightmapSize = source.readShort();
-        short colormaskSize = source.readShort();
-        short unusedSize = source.readShort();
-        byte zeroFlags = source.readByte();
-        byte coverFill = source.readByte();
+        byte qualityDiffuse = reader.readByte();
+        byte qualitySpecular = reader.readByte();
+        byte qualityLightmap = reader.readByte();
+        byte flags = reader.readByte();
+        short diffuseSize = reader.readShort();
+        short specularSize = reader.readShort();
+        short lightmapSize = reader.readShort();
+        short colormaskSize = reader.readShort();
+        short unusedSize = reader.readShort();
+        byte zeroFlags = reader.readByte();
+        byte coverFill = reader.readByte();
 
         return new Mega2PageHeader(
             qualityDiffuse,

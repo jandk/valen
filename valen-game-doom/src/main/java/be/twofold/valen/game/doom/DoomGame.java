@@ -67,10 +67,10 @@ public final class DoomGame implements Game {
             base.resolve(name + ".patch")
         );
 
-        var sources = new HashMap<Path, BinarySource>();
+        var sources = new HashMap<Path, BinaryReader>();
         for (var dataPath : dataPaths) {
             if (Files.exists(dataPath)) {
-                sources.put(dataPath, BinarySource.open(dataPath));
+                sources.put(dataPath, BinaryReader.open(dataPath));
             }
         }
 

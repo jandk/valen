@@ -18,6 +18,6 @@ public interface MegaTexture extends Closeable {
     /**
      * The data in a single layer in a single page. Empty if it doesn't exist.
      */
-    Optional<BinarySource> findLayer(int level, int x, int y, int layer) throws IOException;
+    Optional<BinaryReader> findLayer(int level, int x, int y, int layer) throws IOException;
 
 }

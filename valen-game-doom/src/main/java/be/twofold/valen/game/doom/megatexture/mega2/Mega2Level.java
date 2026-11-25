@@ -12,13 +12,13 @@ public record Mega2Level(
     int quadtreeIndex,
     int quadtreeCount
 ) {
-    public static Mega2Level read(BinarySource source) throws IOException {
-        int xBlockIndex = source.readInt();
-        int yBlockIndex = source.readInt();
-        int xBlockCount = source.readInt();
-        int yBlockCount = source.readInt();
-        int quadtreeIndex = source.readInt();
-        int quadtreeCount = source.readInt();
+    public static Mega2Level read(BinaryReader reader) throws IOException {
+        int xBlockIndex = reader.readInt();
+        int yBlockIndex = reader.readInt();
+        int xBlockCount = reader.readInt();
+        int yBlockCount = reader.readInt();
+        int quadtreeIndex = reader.readInt();
+        int quadtreeCount = reader.readInt();
 
         return new Mega2Level(
             xBlockIndex,

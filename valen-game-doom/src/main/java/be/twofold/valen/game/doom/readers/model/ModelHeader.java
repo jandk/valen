@@ -10,12 +10,12 @@ public record ModelHeader(
     Instant sourceTimeStamp,
     int numSurfaces
 ) {
-    public static ModelHeader read(BinarySource source) throws IOException {
-        source.order(ByteOrder.BIG_ENDIAN);
+    public static ModelHeader read(BinaryReader reader) throws IOException {
+        reader.order(ByteOrder.BIG_ENDIAN);
 
-        source.expectInt(StaticModel.MAGIC);
-        var sourceTimeStamp = Instant.ofEpochSecond(source.readInt());
-        var numSurfaces = source.readInt();
+        reader.expectInt(StaticModel.MAGIC);
+        var sourceTimeStamp = Instant.ofEpochSecond(reader.readInt());
+        var numSurfaces = reader.readInt();
 
         return new ModelHeader(
             sourceTimeStamp,

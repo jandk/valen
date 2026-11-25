@@ -17,21 +17,21 @@ public record ImageHeader(
     int unk8,
     int unk9
 ) {
-    public static ImageHeader read(BinarySource source) throws IOException {
-        source.order(ByteOrder.BIG_ENDIAN);
+    public static ImageHeader read(BinaryReader reader) throws IOException {
+        reader.order(ByteOrder.BIG_ENDIAN);
 
-        var timestamp = Instant.ofEpochSecond(source.readInt());
-        source.expectInt(0x074D_4942);
-        var type = source.readInt();
-        var width = source.readInt();
-        var height = source.readInt();
-        var depth = source.readInt();
-        var mipCount = source.readInt();
-        source.expectByte((byte) 0);
-        var format = source.readInt();
-        var unk8 = source.readInt();
-        var unk9 = source.readInt();
-        source.expectByte((byte) 0);
+        var timestamp = Instant.ofEpochSecond(reader.readInt());
+        reader.expectInt(0x074D_4942);
+        var type = reader.readInt();
+        var width = reader.readInt();
+        var height = reader.readInt();
+        var depth = reader.readInt();
+        var mipCount = reader.readInt();
+        reader.expectByte((byte) 0);
+        var format = reader.readInt();
+        var unk8 = reader.readInt();
+        var unk9 = reader.readInt();
+        reader.expectByte((byte) 0);
 
         return new ImageHeader(
             timestamp,

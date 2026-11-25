@@ -11,9 +11,9 @@ public record ResourcesIndex(
     List<ResourcesIndexEntry> entries
 ) {
     public static ResourcesIndex read(Path path) throws IOException {
-        try (var source = BinarySource.open(path)) {
-            var header = ResourcesIndexHeader.read(source);
-            var entries = source.readObjects(header.count(), ResourcesIndexEntry::read);
+        try (var reader = BinaryReader.open(path)) {
+            var header = ResourcesIndexHeader.read(reader);
+            var entries = reader.readObjects(header.count(), ResourcesIndexEntry::read);
 
             return new ResourcesIndex(header, entries);
         }

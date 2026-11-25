@@ -22,12 +22,12 @@ public final class Mega2Grid implements MegaTexture {
     public static final int TILE_BORDER = 4;
     public static final int TILE_USABLE = TILE_SIZE - TILE_BORDER * 2;
 
-    private final List<BinarySource> sources;
+    private final List<BinaryReader> sources;
     private final List<Mega2> tables;
     private final Mega2Header header;
     private final int gridSize;
 
-    private Mega2Grid(List<BinarySource> sources, List<Mega2> tables) {
+    private Mega2Grid(List<BinaryReader> sources, List<Mega2> tables) {
         Check.argument(!tables.isEmpty(), "a grid needs at least one file");
         Check.argument(sources.size() == tables.size(), "every table needs a source");
         header = tables.getFirst().header();
@@ -59,17 +59,17 @@ public final class Mega2Grid implements MegaTexture {
             ? SUB_QUADRANTS
             : QUADRANTS;
 
-        var sources = new ArrayList<BinarySource>();
+        var sources = new ArrayList<BinaryReader>();
         var tables = new ArrayList<Mega2>();
 
-        var source = BinarySource.open(directory.resolve(pattern.formatted(1)));
-        sources.add(source);
-        tables.add(Mega2.read(source));
+        var reader = BinaryReader.open(directory.resolve(pattern.formatted(1)));
+        sources.add(reader);
+        tables.add(Mega2.read(reader));
         var gridSize = 1 << tables.getFirst().header().gridLog2();
         for (var i = 2; i <= gridSize * gridSize; i++) {
-            source = BinarySource.open(directory.resolve(pattern.formatted(i)));
-            sources.add(source);
-            tables.add(Mega2.read(source));
+            reader = BinaryReader.open(directory.resolve(pattern.formatted(i)));
+            sources.add(reader);
+            tables.add(Mega2.read(reader));
         }
         return new Mega2Grid(sources, tables);
     }
@@ -80,18 +80,18 @@ public final class Mega2Grid implements MegaTexture {
     }
 
     @Override
-    public Optional<BinarySource> findLayer(int level, int x, int y, int layer) throws IOException {
+    public Optional<BinaryReader> findLayer(int level, int x, int y, int layer) throws IOException {
         var page = findPage(level, x, y);
         if (page.isEmpty()) {
             return Optional.empty();
         }
 
-        var source = page.get();
-        var pageHeader = Mega2PageHeader.read(source);
+        var reader = page.get();
+        var pageHeader = Mega2PageHeader.read(reader);
 
         // Cover can either be stored or replicated from a constant
         if (layer == 4 && !pageHeader.hasCover()) {
-            return Optional.of(BinarySource.wrap(
+            return Optional.of(BinaryReader.wrap(
                 Bytes
                     .allocate(Mega2PageHeader.COVER_SIZE)
                     .fill(pageHeader.coverFill())
@@ -103,10 +103,10 @@ public final class Mega2Grid implements MegaTexture {
             return Optional.empty();
         }
 
-        return Optional.of(source.slice(Mega2PageHeader.BYTES + pageHeader.offset(layer), size));
+        return Optional.of(reader.slice(Mega2PageHeader.BYTES + pageHeader.offset(layer), size));
     }
 
-    private Optional<BinarySource> findPage(int level, int x, int y) {
+    private Optional<BinaryReader> findPage(int level, int x, int y) {
         Check.index(level, levelCount());
 
         var xBlockCount = Math.max(1, header.xBlockCount() >> level);
@@ -126,8 +126,8 @@ public final class Mega2Grid implements MegaTexture {
 
     @Override
     public void close() throws IOException {
-        for (var source : sources) {
-            source.close();
+        for (var reader : sources) {
+            reader.close();
         }
     }
 }

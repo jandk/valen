@@ -28,8 +28,8 @@ public final class ModelReader implements AssetReader.Binary<Model, DoomAsset> {
     }
 
     @Override
-    public Model read(BinarySource source, DoomAsset asset, LoadingContext context) throws IOException {
-        var model = StaticModel.read(source);
+    public Model read(BinaryReader reader, DoomAsset asset, LoadingContext context) throws IOException {
+        var model = StaticModel.read(reader);
 
         var meshes = model.surfaces().stream()
             .map(this::mapSurface)
@@ -48,31 +48,31 @@ public final class ModelReader implements AssetReader.Binary<Model, DoomAsset> {
             .indices(triangles.numVerts() * Triangles.VERTEX_SIZE, Short.BYTES, AttributeReader.readShortAsInts())
             .build();
 
-        var source = BinarySource
+        var reader = BinaryReader
             .wrap(triangles.buffer())
             .order(ByteOrder.BIG_ENDIAN);
 
-        return meshReader.readMesh(source, format);
+        return meshReader.readMesh(reader, format);
     }
 
     private static AttributeReader<Floats.Mutable> readPosition(Vector3 scale, Vector3 bias) {
-        return (source, target, offset) -> Vector3.read(source)
+        return (reader, target, offset) -> Vector3.read(reader)
             .fma(scale, bias)
             .multiply(UNIT_SCALE)
             .toSlice(target, offset);
     }
 
     private static AttributeReader<Floats.Mutable> readTexCoord(Vector2 scale, Vector2 bias) {
-        return (source, target, offset) -> Vector2.read(source)
+        return (reader, target, offset) -> Vector2.read(reader)
             .fma(scale, bias)
             .toSlice(target, offset);
     }
 
     private static AttributeReader<Floats.Mutable> readNormal() {
-        return (source, target, offset) -> {
-            target.set(offset/**/, MathF.unpackUNorm8Normal(source.readByte()));
-            target.set(offset + 1, MathF.unpackUNorm8Normal(source.readByte()));
-            target.set(offset + 2, MathF.unpackUNorm8Normal(source.readByte()));
+        return (reader, target, offset) -> {
+            target.set(offset/**/, MathF.unpackUNorm8Normal(reader.readByte()));
+            target.set(offset + 1, MathF.unpackUNorm8Normal(reader.readByte()));
+            target.set(offset + 2, MathF.unpackUNorm8Normal(reader.readByte()));
         };
     }
 }

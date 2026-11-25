@@ -81,7 +81,11 @@ public final class GameService {
             var oldGame = session.getGame();
             session.setGame(new Session.LoadedGame(newGame, entry));
             if (oldGame != null) {
-                oldGame.game().close();
+                try {
+                    oldGame.game().close();
+                } catch (IOException e) {
+                    log.warn("Could not close {}", oldGame.entry().name(), e);
+                }
             }
         });
     }
