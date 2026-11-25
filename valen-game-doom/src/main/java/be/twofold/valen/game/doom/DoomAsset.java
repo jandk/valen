@@ -4,6 +4,7 @@ import be.twofold.valen.core.game.*;
 import be.twofold.valen.game.doom.megatexture.vmtr.*;
 import be.twofold.valen.game.doom.vmtr.*;
 import be.twofold.valen.game.idtech.game.*;
+import wtf.reversed.toolbox.collect.*;
 import wtf.reversed.toolbox.util.*;
 
 import java.util.*;
@@ -68,7 +69,8 @@ public sealed interface DoomAsset extends Asset {
 
         @Override
         public Location location() {
-            throw new UnsupportedOperationException("Virtual textures are assembled from pages, they have no location");
+            // TODO: Feels like a hack...
+            return new Location.InMemory(Bytes.empty());
         }
 
         @Override
