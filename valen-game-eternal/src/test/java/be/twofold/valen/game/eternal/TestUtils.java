@@ -32,7 +32,7 @@ public abstract class TestUtils {
         for (Asset asset : entries) {
             try {
                 var bytes = loader.load(asset.id(), Bytes.class);
-                reader.read(BinarySource.wrap(bytes), (EternalAsset) asset, loader);
+                reader.read(BinaryReader.wrap(bytes), (EternalAsset) asset, loader);
             } catch (FileNotFoundException e) {
                 System.err.println("File not found: " + asset.id().fullName());
             } catch (Exception e) {

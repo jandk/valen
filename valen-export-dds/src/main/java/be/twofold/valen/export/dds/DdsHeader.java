@@ -1,6 +1,8 @@
 package be.twofold.valen.export.dds;
 
-import java.nio.*;
+import wtf.reversed.toolbox.io.*;
+
+import java.io.*;
 
 record DdsHeader(
     int flags,
@@ -46,28 +48,24 @@ record DdsHeader(
 
     public static final int SIZE = 124;
 
-    public ByteBuffer toBuffer() {
-        var dxt10Size = header10 == null ? 0 : DdsHeaderDxt10.SIZE;
-        var dxt10Buffer = header10 == null ? ByteBuffer.allocate(0) : header10.toBuffer();
-
-        return ByteBuffer.allocate(4 + SIZE + dxt10Size)
-            .order(ByteOrder.LITTLE_ENDIAN)
-            .putInt(0x20534444) // "DDS "
-            .putInt(SIZE) // size
-            .putInt(flags)
-            .putInt(height)
-            .putInt(width)
-            .putInt(pitchOrLinearSize)
-            .putInt(depth)
-            .putInt(mipMapCount)
-            .position(0x4c) // skip 11 ints
-            .put(pixelFormat.toBuffer())
-            .putInt(caps1)
-            .putInt(caps2)
-            .putInt(0) // caps3
-            .putInt(0) // caps4
-            .putInt(0) // reserved
-            .put(dxt10Buffer)
-            .flip();
+    public void writeTo(BinaryWriter writer) throws IOException {
+        writer.writeInt(0x20534444); // "DDS "
+        writer.writeInt(SIZE); // size
+        writer.writeInt(flags);
+        writer.writeInt(height);
+        writer.writeInt(width);
+        writer.writeInt(pitchOrLinearSize);
+        writer.writeInt(depth);
+        writer.writeInt(mipMapCount);
+        writer.writeZeros(11 * Integer.BYTES); // reserved
+        pixelFormat.writeTo(writer);
+        writer.writeInt(caps1);
+        writer.writeInt(caps2);
+        writer.writeInt(0); // caps3
+        writer.writeInt(0); // caps4
+        writer.writeInt(0); // reserved
+        if (header10 != null) {
+            header10.writeTo(writer);
+        }
     }
 }

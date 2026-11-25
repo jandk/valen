@@ -6,7 +6,7 @@ import wtf.reversed.toolbox.io.*;
 import wtf.reversed.toolbox.util.*;
 
 /**
- * How to read a VertexBuffer from a {@link BinarySource}.
+ * How to read a VertexBuffer from a {@link BinaryReader}.
  * <p>
  * This is the read-time mirror of {@link VertexBuffer}.
  */
@@ -17,8 +17,8 @@ public record Accessor<T extends Slice>(
     AttributeLayout<T> layout
 ) {
     public Accessor {
-        Check.positiveOrZero(offset, "offset");
-        Check.positiveOrZero(stride, "stride");
+        Check.nonNegative(offset, "offset");
+        Check.nonNegative(stride, "stride");
         Check.nonNull(reader, "reader");
         Check.nonNull(layout, "layout");
     }

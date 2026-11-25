@@ -15,8 +15,8 @@ public record WaveFile(
 
     private static final RiffReader RIFF_READER = new RiffReader();
 
-    public static WaveFile read(BinarySource source) throws IOException {
-        var riff = RIFF_READER.read(source);
+    public static WaveFile read(BinaryReader reader) throws IOException {
+        var riff = RIFF_READER.read(reader);
         if (!riff.id().equals(RIFF) || !riff.type().equals(WAVE)) {
             throw new IOException("Expected RIFF/WAVE format");
         }
@@ -24,7 +24,7 @@ public record WaveFile(
         var fmt = riff.findFirst(FourCC.parse("fmt "))
             .orElseThrow(() -> new IOException("Expected fmt chunk"))
             .asData();
-        var format = WaveFormat.read(BinarySource.wrap(fmt.payload()));
+        var format = WaveFormat.read(BinaryReader.wrap(fmt.payload()));
 
         var data = riff.findFirst(FourCC.parse("data"))
             .orElseThrow(() -> new IOException("Expected data chunk"))

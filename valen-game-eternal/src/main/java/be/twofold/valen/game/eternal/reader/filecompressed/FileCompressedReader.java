@@ -19,13 +19,13 @@ public final class FileCompressedReader implements AssetReader.Binary<Bytes, Ete
     }
 
     @Override
-    public Bytes read(BinarySource source, EternalAsset asset, LoadingContext context) throws IOException {
-        var header = FileCompressedHeader.read(source);
+    public Bytes read(BinaryReader reader, EternalAsset asset, LoadingContext context) throws IOException {
+        var header = FileCompressedHeader.read(reader);
         if (header.compressedSize() == -1) {
-            return source.readBytes(header.uncompressedSize());
+            return reader.readBytes(header.uncompressedSize());
         }
 
-        var compressed = source.readBytes(header.compressedSize());
+        var compressed = reader.readBytes(header.compressedSize());
         return context.decompress(CompressionType.OODLE, compressed, header.uncompressedSize());
     }
 }

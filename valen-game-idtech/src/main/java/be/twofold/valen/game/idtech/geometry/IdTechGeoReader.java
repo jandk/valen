@@ -17,34 +17,34 @@ public final class IdTechGeoReader {
     }
 
     public static AttributeReader<Floats.Mutable> readPackedPosition(float scale, Vector3 bias) {
-        return (source, target, offset) -> {
-            float x = FloatMath.unpackUNorm16(source.readShort());
-            float y = FloatMath.unpackUNorm16(source.readShort());
-            float z = FloatMath.unpackUNorm16(source.readShort());
-            source.skip(2);
+        return (reader, target, offset) -> {
+            float x = FloatMath.unpackUNorm16(reader.readShort());
+            float y = FloatMath.unpackUNorm16(reader.readShort());
+            float z = FloatMath.unpackUNorm16(reader.readShort());
+            reader.skip(2);
 
             new Vector3(x, y, z).multiply(scale).add(bias).toSlice(target, offset);
         };
     }
 
     public static AttributeReader<Floats.Mutable> readPackedNormal() {
-        return (source, target, offset) -> readVector3UNorm8Normal(source).normalize().toSlice(target, offset);
+        return (reader, target, offset) -> readVector3UNorm8Normal(reader).normalize().toSlice(target, offset);
     }
 
     public static AttributeReader<Floats.Mutable> readPackedTangent() {
-        return (source, target, offset) -> {
-            source.skip(4); // skip normal
+        return (reader, target, offset) -> {
+            reader.skip(4); // skip normal
 
-            Vector3 xyz = readVector3UNorm8Normal(source).normalize();
-            float w = Float.intBitsToFloat(((source.readByte() & 0x80) << 24) | 0x3F800000);
+            Vector3 xyz = readVector3UNorm8Normal(reader).normalize();
+            float w = Float.intBitsToFloat(((reader.readByte() & 0x80) << 24) | 0x3F800000);
             new Vector4(xyz, w).toSlice(target, offset);
         };
     }
 
     public static AttributeReader<Floats.Mutable> readPackedUV(float scale, Vector2 bias) {
-        return (source, target, offset) -> {
-            float x = FloatMath.unpackUNorm16(source.readShort());
-            float y = FloatMath.unpackUNorm16(source.readShort());
+        return (reader, target, offset) -> {
+            float x = FloatMath.unpackUNorm16(reader.readShort());
+            float y = FloatMath.unpackUNorm16(reader.readShort());
             new Vector2(x, y).multiply(scale).add(bias).toSlice(target, offset);
         };
     }
@@ -61,11 +61,11 @@ public final class IdTechGeoReader {
     private static AttributeReader<Floats.Mutable> readNormalTangentWeights(float scale1, float scale2) {
         float factor1 = 1.0f / scale1;
         float factor2 = 1.0f / scale2;
-        return (source, target, offset) -> {
-            source.skip(3); // skip normal
-            byte wn = source.readByte();
-            source.skip(3); // skip tangent
-            byte wt = source.readByte();
+        return (reader, target, offset) -> {
+            reader.skip(3); // skip normal
+            byte wn = reader.readByte();
+            reader.skip(3); // skip tangent
+            byte wt = reader.readByte();
 
             float y = (wt & 0x7f) * (1.0f / 254.0f);
             float z = ((wn & 0xf0) >>> 4) * factor1;
@@ -79,16 +79,16 @@ public final class IdTechGeoReader {
     }
 
     public static AttributeReader<Shorts.Mutable> readBone1() {
-        return (source, target, offset) -> {
-            source.skip(3);
-            target.set(offset, (short) source.readUnsignedByte());
+        return (reader, target, offset) -> {
+            reader.skip(3);
+            target.set(offset, (short) reader.readUnsignedByte());
         };
     }
 
-    private static Vector3 readVector3UNorm8Normal(BinarySource source) throws IOException {
-        float x = MathF.unpackUNorm8Normal(source.readByte());
-        float y = MathF.unpackUNorm8Normal(source.readByte());
-        float z = MathF.unpackUNorm8Normal(source.readByte());
+    private static Vector3 readVector3UNorm8Normal(BinaryReader reader) throws IOException {
+        float x = MathF.unpackUNorm8Normal(reader.readByte());
+        float y = MathF.unpackUNorm8Normal(reader.readByte());
+        float z = MathF.unpackUNorm8Normal(reader.readByte());
         return new Vector3(x, y, z);
     }
 }

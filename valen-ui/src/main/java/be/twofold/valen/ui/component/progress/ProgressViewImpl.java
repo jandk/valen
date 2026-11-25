@@ -1,23 +1,40 @@
 package be.twofold.valen.ui.component.progress;
 
 import be.twofold.valen.ui.common.*;
-import jakarta.inject.*;
+import be.twofold.valen.ui.component.*;
+import be.twofold.valen.ui.service.*;
 import javafx.geometry.*;
 import javafx.scene.*;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
+import javafx.stage.*;
 
-@Singleton
 public final class ProgressViewImpl extends AbstractView<ProgressView.Listener> implements ProgressView {
+    private final Dialog<Void> dialog = new Dialog<>();
     private final VBox root = new VBox(10.0);
     private final ProgressBar progressBar = new ProgressBar(0.0);
     private final Label messageText = new Label("Exporting");
     private final Label percentageText = new Label("0%");
     private final Label countText = new Label("0/0");
 
-    @Inject
-    public ProgressViewImpl() {
+    private boolean closing;
+
+    public ProgressViewImpl(Stage owner) {
         buildUI();
+        dialog.initOwner(owner);
+        dialog.setTitle("Exporting...");
+        dialog.getDialogPane().setContent(root);
+        dialog.getDialogPane().getButtonTypes().setAll(ButtonType.CANCEL);
+        dialog.getDialogPane().getStylesheets().add(getClass().getResource("/style.css").toExternalForm());
+        dialog.setOnCloseRequest(event -> {
+            if (closing) {
+                return;
+            }
+            event.consume();
+            dialog.getDialogPane().lookupButton(ButtonType.CANCEL).setDisable(true);
+            messageText.setText("Cancelling...");
+            getListener().onCancelClicked();
+        });
     }
 
     @Override
@@ -26,11 +43,31 @@ public final class ProgressViewImpl extends AbstractView<ProgressView.Listener> 
     }
 
     @Override
-    public void updateProgress(Progress progress) {
-        progressBar.setProgress(progress.progress());
-        messageText.setText(progress.message());
-        percentageText.setText((int) (progress.progress() * 100.0 + 0.5) + "%");
-        countText.setText((int) progress.workDone() + Constants.TS_SLASH + (int) progress.totalWork());
+    public void updateProgress(ExportProgress progress) {
+        FX.run(() -> {
+            var fraction = (double) progress.done() / progress.total();
+            progressBar.setProgress(fraction);
+            messageText.setText(progress.message());
+            percentageText.setText((int) (fraction * 100.0 + 0.5) + "%");
+            countText.setText(progress.done() + Constants.TS_SLASH + progress.total());
+        });
+    }
+
+    @Override
+    public void show() {
+        FX.run(() -> {
+            closing = false;
+            dialog.getDialogPane().lookupButton(ButtonType.CANCEL).setDisable(false);
+            dialog.show();
+        });
+    }
+
+    @Override
+    public void hide() {
+        FX.run(() -> {
+            closing = true;
+            dialog.close();
+        });
     }
 
     // region UI
@@ -43,11 +80,7 @@ public final class ProgressViewImpl extends AbstractView<ProgressView.Listener> 
 
         var countRow = new HBox(percentageText, spacer(), countText);
 
-        var cancelButton = new Button("Cancel");
-        cancelButton.setOnAction(_ -> getListener().onCancelClicked());
-        var cancelRow = new HBox(spacer(), cancelButton, spacer());
-
-        root.getChildren().setAll(progressBar, messageText, countRow, cancelRow);
+        root.getChildren().setAll(progressBar, messageText, countRow);
     }
 
     private static Pane spacer() {

@@ -15,9 +15,9 @@ public final class SoundReader implements AssetReader.Binary<Audio, Asset> {
     }
 
     @Override
-    public Audio read(BinarySource source, Asset asset, LoadingContext context) throws IOException {
+    public Audio read(BinaryReader reader, Asset asset, LoadingContext context) throws IOException {
         var soundAsset = (SoundAsset) asset;
-        var wem = Wem.read(BinarySource.wrap(soundAsset.header()));
+        var wem = Wem.read(BinaryReader.wrap(soundAsset.header()));
         var format = wem.format();
 
         return new Audio(
@@ -25,7 +25,7 @@ public final class SoundReader implements AssetReader.Binary<Audio, Asset> {
             format.samplesPerSec(),
             VorbisChannelOrder.fromWave(wem.toChannels()),
             Math.toIntExact(wem.data().declaredSize()) / format.blockAlign(),
-            source.readRemaining()
+            reader.readRemaining()
         );
     }
 }

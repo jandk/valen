@@ -1,5 +1,7 @@
 package be.twofold.valen.core.export;
 
+import wtf.reversed.toolbox.io.*;
+
 import java.io.*;
 import java.nio.file.*;
 import java.util.*;
@@ -17,11 +19,11 @@ public interface Exporter<T> {
     default void setProperty(String key, Object value) {
     }
 
-    void export(T value, OutputStream out) throws IOException;
+    void export(T value, BinaryWriter writer) throws IOException;
 
     default void export(T value, Path path) throws IOException {
-        try (var out = Files.newOutputStream(path)) {
-            export(value, out);
+        try (var writer = BinaryWriter.open(path)) {
+            export(value, writer);
         }
     }
 

@@ -1,12 +1,12 @@
 package be.twofold.valen;
 
 import be.twofold.valen.core.util.*;
-import be.twofold.valen.core.util.Platform;
 import be.twofold.valen.core.util.logging.*;
 import be.twofold.valen.ui.*;
 import javafx.application.*;
 import org.slf4j.*;
 import org.slf4j.Logger;
+import wtf.reversed.toolbox.util.Platform;
 
 import java.io.*;
 import java.nio.file.*;

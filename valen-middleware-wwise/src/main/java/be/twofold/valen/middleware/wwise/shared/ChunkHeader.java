@@ -13,12 +13,12 @@ public record ChunkHeader(
 
     public ChunkHeader {
         Check.nonNull(tag, "tag");
-        Check.positiveOrZero(size, "size");
+        Check.nonNegative(size, "size");
     }
 
-    public static ChunkHeader read(BinarySource source) throws IOException {
-        var tag = ChunkTag.fromValue(source.readInt());
-        var size = source.readInt();
+    public static ChunkHeader read(BinaryReader reader) throws IOException {
+        var tag = ChunkTag.fromValue(reader.readInt());
+        var size = reader.readInt();
 
         return new ChunkHeader(
             tag,

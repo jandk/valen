@@ -13,22 +13,22 @@ public record Md6ModelMeshInfo(
     short unknown3,
     List<Md6ModelLodInfo> lodInfos
 ) {
-    public static Md6ModelMeshInfo read(BinarySource source, int numLods) throws IOException {
-        var meshName = source.readString(StringFormat.INT_LENGTH);
-        var materialName = source.readString(StringFormat.INT_LENGTH);
-        var unknown1 = source.readInt();
-        var unknown2 = source.readInt();
-        var unknown3 = source.readShort();
+    public static Md6ModelMeshInfo read(BinaryReader reader, int numLods) throws IOException {
+        var meshName = reader.readString(StringFormat.INT_LENGTH);
+        var materialName = reader.readString(StringFormat.INT_LENGTH);
+        var unknown1 = reader.readInt();
+        var unknown2 = reader.readInt();
+        var unknown3 = reader.readShort();
 
         var lodInfos = new ArrayList<Md6ModelLodInfo>();
         for (var i = 0; i < numLods; i++) {
-            var absent = source.readBool(BoolFormat.INT);
+            var absent = reader.readBool(BoolFormat.INT);
             if (!absent) {
-                lodInfos.add(Md6ModelLodInfo.read(source));
+                lodInfos.add(Md6ModelLodInfo.read(reader));
             }
         }
-        source.expectByte((byte) 0); // morphMapPresent
-        source.expectInt(0); // blendShapesPresent
+        reader.expectByte((byte) 0); // morphMapPresent
+        reader.expectInt(0); // blendShapesPresent
 
         return new Md6ModelMeshInfo(
             meshName,

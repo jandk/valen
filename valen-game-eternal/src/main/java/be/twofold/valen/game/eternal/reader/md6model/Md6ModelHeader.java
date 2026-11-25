@@ -11,12 +11,12 @@ public record Md6ModelHeader(
     Vector3 maxBoundsExpansion,
     boolean remapForSkinning
 ) {
-    public static Md6ModelHeader read(BinarySource source) throws IOException {
-        var md6SkelName = source.readString(StringFormat.INT_LENGTH);
-        var minBoundsExpansion = Vector3.read(source);
-        var maxBoundsExpansion = Vector3.read(source);
-        var remapForSkinning = source.readBool(BoolFormat.BYTE); // true for md6skel, false for alembic
-        source.expectInt(0);
+    public static Md6ModelHeader read(BinaryReader reader) throws IOException {
+        var md6SkelName = reader.readString(StringFormat.INT_LENGTH);
+        var minBoundsExpansion = Vector3.read(reader);
+        var maxBoundsExpansion = Vector3.read(reader);
+        var remapForSkinning = reader.readBool(BoolFormat.BYTE); // true for md6skel, false for alembic
+        reader.expectInt(0);
 
         return new Md6ModelHeader(
             md6SkelName,

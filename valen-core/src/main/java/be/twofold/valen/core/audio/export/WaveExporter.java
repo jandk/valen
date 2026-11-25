@@ -5,8 +5,11 @@ import be.twofold.valen.core.audio.riff.*;
 import be.twofold.valen.core.export.*;
 import be.twofold.valen.core.util.*;
 import wtf.reversed.toolbox.collect.*;
+import wtf.reversed.toolbox.io.*;
+import wtf.reversed.toolbox.util.*;
 
 import java.io.*;
+import java.nio.*;
 import java.nio.charset.*;
 import java.util.*;
 
@@ -34,11 +37,10 @@ public final class WaveExporter implements Exporter<Audio> {
     }
 
     @Override
-    public void export(Audio value, OutputStream out) throws IOException {
+    public void export(Audio value, BinaryWriter writer) throws IOException {
+        writer.order(ByteOrder.LITTLE_ENDIAN);
         var pcmAudio = AudioDecoder.toPcm(value);
-        if (pcmAudio.isEmpty()) {
-            throw new IllegalArgumentException("Unsupported audio format");
-        }
+        Check.argument(pcmAudio.isPresent(), "Unsupported audio format");
 
         Bytes fmt = buildFormat(pcmAudio.get());
         Bytes pcm = pcmAudio.get().data();
@@ -49,7 +51,7 @@ public final class WaveExporter implements Exporter<Audio> {
                 RiffChunk.data("ICMT", Bytes.wrap(("Exported with Valen " + Valen.version() + "\0").getBytes(StandardCharsets.US_ASCII))),
                 RiffChunk.data("ISFT", Bytes.wrap((Valen.software() + "\0").getBytes(StandardCharsets.US_ASCII)))
             )
-        ).write(out);
+        ).write(writer);
     }
 
     private Bytes buildFormat(Audio audio) {

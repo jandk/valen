@@ -25,16 +25,16 @@ public final class BlangReader implements AssetReader.Binary<Blang, EternalAsset
     }
 
     @Override
-    public Blang read(BinarySource source, EternalAsset asset, LoadingContext context) throws IOException {
-        var bytes = binaryFileReader.read(source, asset, context);
-        return Blang.read(BinarySource.wrap(bytes));
+    public Blang read(BinaryReader reader, EternalAsset asset, LoadingContext context) throws IOException {
+        var bytes = binaryFileReader.read(reader, asset, context);
+        return Blang.read(BinaryReader.wrap(bytes));
     }
 
     @Override
     public Optional<Meta.Node> readMetadata(EternalAsset asset, LoadingContext context) throws IOException {
-        try (var source = BinarySource.wrap(context.open(asset.location()))) {
-            var bytes = binaryFileReader.read(source, asset, context);
-            var blang = Blang.read(BinarySource.wrap(bytes));
+        try (var reader = BinaryReader.wrap(context.open(asset.location()))) {
+            var bytes = binaryFileReader.read(reader, asset, context);
+            var blang = Blang.read(BinaryReader.wrap(bytes));
             return Optional.of(Meta.build(MethodHandles.lookup(), blang));
         }
     }

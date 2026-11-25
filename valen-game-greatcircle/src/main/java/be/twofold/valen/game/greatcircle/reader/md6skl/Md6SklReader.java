@@ -19,17 +19,17 @@ public final class Md6SklReader implements AssetReader.Binary<Skeleton, GreatCir
     }
 
     @Override
-    public Skeleton read(BinarySource source, GreatCircleAsset asset, LoadingContext context) throws IOException {
+    public Skeleton read(BinaryReader reader, GreatCircleAsset asset, LoadingContext context) throws IOException {
         Md6Skl md6Skl1 = null;
-        int skeleton1Length = source.readInt();
+        int skeleton1Length = reader.readInt();
         if (skeleton1Length != 0) {
-            md6Skl1 = Md6Skl.read(source);
+            md6Skl1 = Md6Skl.read(reader);
         }
 
         Md6Skl md6Skl2 = null;
-        int skeleton2Length = source.readInt();
+        int skeleton2Length = reader.readInt();
         if (skeleton2Length != 0) {
-            md6Skl2 = Md6Skl.read(source);
+            md6Skl2 = Md6Skl.read(reader);
         }
         if (md6Skl1 == null) {
             throw new IOException("No skeleton found");
@@ -39,12 +39,12 @@ public final class Md6SklReader implements AssetReader.Binary<Skeleton, GreatCir
 
     @Override
     public Optional<Meta.Node> readMetadata(GreatCircleAsset asset, LoadingContext context) throws IOException {
-        try (var source = BinarySource.wrap(context.open(asset.location()))) {
-            int skeleton1Length = source.readInt();
+        try (var reader = BinaryReader.wrap(context.open(asset.location()))) {
+            int skeleton1Length = reader.readInt();
             if (skeleton1Length == 0) {
                 throw new IOException("No skeleton found");
             }
-            var md6Skl = Md6Skl.read(source);
+            var md6Skl = Md6Skl.read(reader);
             return Optional.of(Meta.build(MethodHandles.lookup(), md6Skl));
         }
     }

@@ -1,6 +1,7 @@
 package be.twofold.valen.core.export;
 
 import be.twofold.valen.core.texture.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 
@@ -20,17 +21,17 @@ public abstract class TextureExporter implements Exporter<Texture> {
     }
 
     @Override
-    public void export(Texture texture, OutputStream out) throws IOException {
+    public void export(Texture texture, BinaryWriter writer) throws IOException {
         if (!useMips) {
             texture = texture.firstOnly();
         }
 
         var chosenFormat = chooseFormat(texture.format());
         var converted = texture.convert(chosenFormat, reconstructZ);
-        doExport(converted, out);
+        doExport(converted, writer);
     }
 
     protected abstract TextureFormat chooseFormat(TextureFormat format);
 
-    protected abstract void doExport(Texture texture, OutputStream out) throws IOException;
+    protected abstract void doExport(Texture texture, BinaryWriter writer) throws IOException;
 }

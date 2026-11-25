@@ -2,20 +2,21 @@ package be.twofold.valen.core.game;
 
 import wtf.reversed.toolbox.collect.*;
 import wtf.reversed.toolbox.io.*;
+import wtf.reversed.toolbox.util.*;
 
 import java.io.*;
 import java.nio.file.*;
 import java.util.*;
 
 public class StorageManager implements Closeable {
-    private final Map<Path, BinarySource> sources;
+    private final Map<Path, BinaryReader> sources;
     private final Set<Path> sharedIds;
     private final Decompressors decompressors;
 
-    public StorageManager(Map<Path, BinarySource> sources, Set<Path> shared, Decompressors decompressors) {
+    public StorageManager(Map<Path, BinaryReader> sources, Set<Path> shared, Decompressors decompressors) {
         this.sources = Map.copyOf(sources);
         this.sharedIds = Set.copyOf(shared);
-        this.decompressors = Objects.requireNonNull(decompressors, "decompressors");
+        this.decompressors = Check.nonNull(decompressors, "decompressors");
     }
 
     public final Bytes open(Location location) throws IOException {

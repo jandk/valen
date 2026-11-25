@@ -2,6 +2,7 @@ package be.twofold.valen.game.darkages.reader.basemodel;
 
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.geometry.*;
+import be.twofold.valen.core.util.*;
 import be.twofold.valen.game.darkages.*;
 import be.twofold.valen.game.darkages.reader.*;
 import be.twofold.valen.game.idtech.game.*;
@@ -10,6 +11,7 @@ import wtf.reversed.toolbox.collect.*;
 import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
+import java.lang.invoke.*;
 import java.util.*;
 
 public final class Md6ModelReader implements AssetReader.Binary<Model, DarkAgesAsset> {
@@ -27,12 +29,9 @@ public final class Md6ModelReader implements AssetReader.Binary<Model, DarkAgesA
     }
 
     @Override
-    public Model read(BinarySource source, DarkAgesAsset asset, LoadingContext context) throws IOException {
-        var skelName = source.readString(StringFormat.INT_LENGTH);
-        var skeletonKey = DarkAgesAssetID.from(skelName, ResourceType.of("skeleton"));
-        var skeleton = context.load(skeletonKey, Skeleton.class);
-        var md6Model = Md6Model.read(source, skeleton.bones().size() + 7 & ~7);
-        source.expectEnd();
+    public Model read(BinaryReader reader, DarkAgesAsset asset, LoadingContext context) throws IOException {
+        var skeleton = readSkeleton(reader, context);
+        var md6Model = readMd6Model(reader, skeleton);
 
         var meshes = readMeshes(md6Model, 0, asset.hash(), context);
         if (readMaterials) {
@@ -40,6 +39,27 @@ public final class Md6ModelReader implements AssetReader.Binary<Model, DarkAgesA
         }
 
         return new Model(meshes, Optional.of(skeleton), Optional.of(asset.id().fullName()), Optional.empty(), Axis.Z);
+    }
+
+    @Override
+    public Optional<Meta.Node> readMetadata(DarkAgesAsset asset, LoadingContext context) throws IOException {
+        try (var reader = BinaryReader.wrap(context.open(asset.location()))) {
+            var skeleton = readSkeleton(reader, context);
+            var md6Model = readMd6Model(reader, skeleton);
+            return Optional.of(Meta.build(MethodHandles.lookup(), md6Model));
+        }
+    }
+
+    private Skeleton readSkeleton(BinaryReader reader, LoadingContext context) throws IOException {
+        var skelName = reader.readString(StringFormat.INT_LENGTH);
+        var skeletonKey = DarkAgesAssetID.from(skelName, ResourceType.of("skeleton"));
+        return context.load(skeletonKey, Skeleton.class);
+    }
+
+    private Md6Model readMd6Model(BinaryReader reader, Skeleton skeleton) throws IOException {
+        var md6Model = Md6Model.read(reader, skeleton.bones().size() + 7 & ~7);
+        reader.expectEnd();
+        return md6Model;
     }
 
     private List<Mesh> readMeshes(Md6Model md6Model, int lod, long hash, LoadingContext context) throws IOException {
@@ -59,8 +79,8 @@ public final class Md6ModelReader implements AssetReader.Binary<Model, DarkAgesA
         var identity = Hash.hash(hash, 4 - lod, 0);
         var bytes = context.open(new DarkAgesStreamLocation(identity, uncompressedSize));
 
-        try (var source = BinarySource.wrap(bytes)) {
-            var meshes = GeometryReader.readStreamedMesh(source, lodInfos, true);
+        try (var reader = BinaryReader.wrap(bytes)) {
+            var meshes = GeometryReader.readStreamedMesh(reader, lodInfos, true);
             meshes = meshes.stream()
                 .map(this::mergeJointsAndWeights)
                 .map(this::trimUnusedInfluences)

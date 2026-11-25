@@ -15,24 +15,24 @@ record Md6MeshInfo(
     int unkHash,
     List<Md6MeshLodInfo> lodInfos
 ) {
-    static Md6MeshInfo read(BinarySource source) throws IOException {
-        var meshName = source.readString(StringFormat.INT_LENGTH);
-        var materialName = source.readString(StringFormat.INT_LENGTH);
-        source.expectByte((byte) 1);
-        int unknown0 = source.readInt();
-        var unknown1 = source.readInt();
-        var unknown2 = source.readInt();
-        var unknown3 = source.readInt();
-        var unkHash = source.readInt();
-        source.expectInt(0);
+    static Md6MeshInfo read(BinaryReader reader) throws IOException {
+        var meshName = reader.readString(StringFormat.INT_LENGTH);
+        var materialName = reader.readString(StringFormat.INT_LENGTH);
+        reader.expectByte((byte) 1);
+        int unknown0 = reader.readInt();
+        var unknown1 = reader.readInt();
+        var unknown2 = reader.readInt();
+        var unknown3 = reader.readInt();
+        var unkHash = reader.readInt();
+        reader.expectInt(0);
 
         var lodInfos = new ArrayList<Md6MeshLodInfo>();
         for (var i = 0; i < 5; i++) {
-            if (!source.readBool(BoolFormat.INT)) {
-                lodInfos.add(Md6MeshLodInfo.read(source));
+            if (!reader.readBool(BoolFormat.INT)) {
+                lodInfos.add(Md6MeshLodInfo.read(reader));
             }
         }
-        source.expectInt(0);
+        reader.expectInt(0);
 
         return new Md6MeshInfo(
             meshName,

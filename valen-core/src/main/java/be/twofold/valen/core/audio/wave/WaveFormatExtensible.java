@@ -14,23 +14,23 @@ public record WaveFormatExtensible(
     UUID subFormat,
     Bytes codecData
 ) {
-    public static WaveFormatExtensible read(BinarySource source, int bitsPerSample) throws IOException {
-        if (source.remaining() < 22) {
+    public static WaveFormatExtensible read(BinaryReader reader, int bitsPerSample) throws IOException {
+        if (reader.remaining() < 22) {
             throw new IOException("WaveFormatExtensible requires at least 22 bytes");
         }
 
         short validBitsPerSample;
         short samplesPerBlock;
         if (bitsPerSample != 0) {
-            validBitsPerSample = source.readShort();
+            validBitsPerSample = reader.readShort();
             samplesPerBlock = 0;
         } else {
             validBitsPerSample = 0;
-            samplesPerBlock = source.readShort();
+            samplesPerBlock = reader.readShort();
         }
-        var channelMask = source.readInt();
-        var subFormat = Guids.fromBytes(source.readBytes(16));
-        var codecData = source.readRemaining();
+        var channelMask = reader.readInt();
+        var subFormat = Guids.fromBytes(reader.readBytes(16));
+        var codecData = reader.readRemaining();
 
         return new WaveFormatExtensible(
             validBitsPerSample,

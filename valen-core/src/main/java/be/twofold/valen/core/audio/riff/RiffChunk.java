@@ -1,6 +1,7 @@
 package be.twofold.valen.core.audio.riff;
 
 import wtf.reversed.toolbox.collect.*;
+import wtf.reversed.toolbox.io.*;
 import wtf.reversed.toolbox.util.*;
 
 import java.io.*;
@@ -13,7 +14,7 @@ sealed public interface RiffChunk
 
     int size();
 
-    void write(OutputStream out) throws IOException;
+    void write(BinaryWriter writer) throws IOException;
 
     static RiffChunk data(String id, Bytes payload) {
         return new Data(FourCC.parse(id), payload);
@@ -21,12 +22,6 @@ sealed public interface RiffChunk
 
     static RiffChunk container(String id, String type, RiffChunk... chunks) {
         return new Container(FourCC.parse(id), FourCC.parse(type), List.of(chunks));
-    }
-
-    private static void writeSize(OutputStream out, int size) throws IOException {
-        for (int i = 0; i < 4; i++) {
-            out.write(size >> (i * 8));
-        }
     }
 
     default Data asData() {
@@ -51,7 +46,7 @@ sealed public interface RiffChunk
         public Data {
             Check.nonNull(id, "id");
             Check.nonNull(payload, "payload");
-            Check.positiveOrZero(declaredSize, "declaredSize");
+            Check.nonNegative(declaredSize, "declaredSize");
         }
 
         public Data(FourCC id, Bytes payload) {
@@ -64,14 +59,12 @@ sealed public interface RiffChunk
         }
 
         @Override
-        public void write(OutputStream out) throws IOException {
-            id.write(out);
-            writeSize(out, size());
-            try (var in = payload.asInputStream()) {
-                in.transferTo(out);
-            }
+        public void write(BinaryWriter writer) throws IOException {
+            id.write(writer);
+            writer.writeInt(size());
+            writer.writeBytes(payload);
             if ((size() & 1) != 0) {
-                out.write(0);
+                writer.writeZeros(1);
             }
         }
 
@@ -107,12 +100,12 @@ sealed public interface RiffChunk
         }
 
         @Override
-        public void write(OutputStream out) throws IOException {
-            id.write(out);
-            writeSize(out, size());
-            type.write(out);
+        public void write(BinaryWriter writer) throws IOException {
+            id.write(writer);
+            writer.writeInt(size());
+            type.write(writer);
             for (var chunk : chunks) {
-                chunk.write(out);
+                chunk.write(writer);
             }
         }
 

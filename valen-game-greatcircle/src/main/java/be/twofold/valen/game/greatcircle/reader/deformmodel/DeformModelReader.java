@@ -23,8 +23,8 @@ public final class DeformModelReader implements AssetReader.Binary<Model, GreatC
     }
 
     @Override
-    public Model read(BinarySource source, GreatCircleAsset asset, LoadingContext context) throws IOException {
-        var deformModel = DeformModel.read(source);
+    public Model read(BinaryReader reader, GreatCircleAsset asset, LoadingContext context) throws IOException {
+        var deformModel = DeformModel.read(reader);
         var meshes = readMeshes(deformModel, asset.hash(), context);
 
         if (readMaterials) {
@@ -56,8 +56,8 @@ public final class DeformModelReader implements AssetReader.Binary<Model, GreatC
 
         var identity = (hash << 4) | lod;
         var bytes = context.open(new GreatCircleStreamLocation(identity, uncompressedSize));
-        try (var source = BinarySource.wrap(bytes)) {
-            return GeometryReader.readStreamedMesh(source, lodInfos, layouts, true);
+        try (var reader = BinaryReader.wrap(bytes)) {
+            return GeometryReader.readStreamedMesh(reader, lodInfos, layouts, true);
         }
     }
 

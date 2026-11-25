@@ -1,6 +1,7 @@
 package be.twofold.valen.core.util;
 
 import org.junit.jupiter.api.*;
+import wtf.reversed.toolbox.util.*;
 
 import static org.assertj.core.api.Assertions.*;
 

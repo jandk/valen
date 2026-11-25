@@ -23,14 +23,14 @@ public final class WaveReader implements AssetReader.Binary<Audio, Asset> {
     }
 
     @Override
-    public Audio read(BinarySource source, Asset asset, LoadingContext context) throws IOException {
-        var waveFile = WaveFile.read(source);
+    public Audio read(BinaryReader reader, Asset asset, LoadingContext context) throws IOException {
+        var waveFile = WaveFile.read(reader);
         var format = waveFile.format();
 
         var formatTag = format.formatTag();
         var channelMask = 0;
         if (format.formatTag() == WAVE_FORMAT_EXTENSIBLE) {
-            var extensible = WaveFormatExtensible.read(BinarySource.wrap(format.extra()), format.bitsPerSample());
+            var extensible = WaveFormatExtensible.read(BinaryReader.wrap(format.extra()), format.bitsPerSample());
             formatTag = toFormatTag(extensible.subFormat());
             channelMask = extensible.channelMask();
         }

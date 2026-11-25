@@ -32,8 +32,8 @@ public enum StreamDbCompression implements ValueEnum<Integer> {
         this.value = value;
     }
 
-    public static StreamDbCompression read(BinarySource source) throws IOException {
-        return ValueEnum.fromValue(StreamDbCompression.class, source.readInt());
+    public static StreamDbCompression read(BinaryReader reader) throws IOException {
+        return ValueEnum.fromValue(StreamDbCompression.class, reader.readInt());
     }
 
     public boolean compressed() {

@@ -17,7 +17,7 @@ public record Mesh(
 ) {
     public Mesh {
         Check.nonNull(indices, "indices");
-        Check.positiveOrZero(vertexCount, "vertexCount");
+        Check.nonNegative(vertexCount, "vertexCount");
         attributes = Collections.unmodifiableMap(new LinkedHashMap<>(attributes));
         blendShapes = List.copyOf(blendShapes);
         attributes.forEach((semantic, buffer) -> Check.argument(
@@ -112,7 +112,7 @@ public record Mesh(
 
         private Builder(Ints indices, int vertexCount) {
             this.indices = Check.nonNull(indices, "indices");
-            this.vertexCount = Check.positiveOrZero(vertexCount, "vertexCount");
+            this.vertexCount = Check.nonNegative(vertexCount, "vertexCount");
         }
 
         public Builder attribute(Semantic semantic, VertexBuffer<?> buffer) {

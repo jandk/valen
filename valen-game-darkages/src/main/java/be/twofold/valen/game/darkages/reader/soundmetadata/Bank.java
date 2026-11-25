@@ -10,11 +10,11 @@ public record Bank(
     boolean localized,
     String packageName
 ) {
-    public static Bank read(BinarySource source) throws IOException {
-        var name = source.readString(StringFormat.INT_LENGTH);
-        var id = source.readInt();
-        var localized = source.readBool(BoolFormat.BYTE);
-        var packageName = source.readString(StringFormat.INT_LENGTH);
+    public static Bank read(BinaryReader reader) throws IOException {
+        var name = reader.readString(StringFormat.INT_LENGTH);
+        var id = reader.readInt();
+        var localized = reader.readBool(BoolFormat.BYTE);
+        var packageName = reader.readString(StringFormat.INT_LENGTH);
 
         return new Bank(
             name,

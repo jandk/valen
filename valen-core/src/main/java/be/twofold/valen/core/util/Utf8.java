@@ -1,8 +1,7 @@
 package be.twofold.valen.core.util;
 
 import wtf.reversed.toolbox.collect.*;
-
-import java.util.*;
+import wtf.reversed.toolbox.util.*;
 
 /**
  * Small UTF-8 utilities.
@@ -37,7 +36,7 @@ public final class Utf8 {
      * @throws IllegalArgumentException  if the range contains an unpaired surrogate
      */
     public static int byteLength(CharSequence cs, int fromIndex, int toIndex) {
-        Objects.checkFromToIndex(fromIndex, toIndex, cs.length());
+        Check.fromToIndex(fromIndex, toIndex, cs.length());
 
         int length = toIndex - fromIndex;
         for (int index = fromIndex; index < toIndex; index++) {

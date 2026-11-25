@@ -2,8 +2,10 @@ package be.twofold.valen.export.dds;
 
 import be.twofold.valen.core.export.*;
 import be.twofold.valen.core.texture.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
+import java.nio.*;
 
 public final class DdsExporter extends TextureExporter {
     public DdsExporter() {
@@ -43,12 +45,11 @@ public final class DdsExporter extends TextureExporter {
     }
 
     @Override
-    protected void doExport(Texture texture, OutputStream out) throws IOException {
-        out.write(createHeader(texture).toBuffer().array());
+    protected void doExport(Texture texture, BinaryWriter writer) throws IOException {
+        writer.order(ByteOrder.LITTLE_ENDIAN);
+        createHeader(texture).writeTo(writer);
         for (var surface : texture.surfaces()) {
-            try (var in = surface.data().asInputStream()) {
-                in.transferTo(out);
-            }
+            writer.writeBytes(surface.data());
         }
     }
 

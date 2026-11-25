@@ -11,12 +11,12 @@ public record AkOpusWemHeader(
     byte version,
     byte mappingFamily
 ) implements CodecHeader {
-    public static AkOpusWemHeader read(BinarySource source) throws IOException {
-        var sampleCount = source.readInt();
-        var packetCount = source.readInt();
-        var preSkip = source.readShort();
-        var version = source.readByte();
-        var mappingFamily = source.readByte();
+    public static AkOpusWemHeader read(BinaryReader reader) throws IOException {
+        var sampleCount = reader.readInt();
+        var packetCount = reader.readInt();
+        var preSkip = reader.readShort();
+        var version = reader.readByte();
+        var mappingFamily = reader.readByte();
 
         return new AkOpusWemHeader(
             sampleCount,

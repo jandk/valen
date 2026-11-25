@@ -9,10 +9,10 @@ public record Md6ModelWoundOffset(
     int vertexWeightsOffset,
     int numVertices
 ) {
-    public static Md6ModelWoundOffset read(BinarySource source) throws IOException {
-        var vertexIDsOffsets = source.readInt();
-        var vertexWeightsOffset = source.readInt();
-        var numVertices = source.readInt();
+    public static Md6ModelWoundOffset read(BinaryReader reader) throws IOException {
+        var vertexIDsOffsets = reader.readInt();
+        var vertexWeightsOffset = reader.readInt();
+        var numVertices = reader.readInt();
 
         return new Md6ModelWoundOffset(
             vertexIDsOffsets,

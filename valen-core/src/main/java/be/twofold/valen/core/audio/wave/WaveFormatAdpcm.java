@@ -18,9 +18,8 @@ public record WaveFormatAdpcm(
 
     public WaveFormatAdpcm {
         Check.nonNull(coef, "coef");
-        if (coef.length() != numCoef * 2) {
-            throw new IllegalArgumentException("numCoef (" + numCoef + ") doesn't match coef length (" + coef.length() + ")");
-        }
+        Check.argument(coef.length() == numCoef * 2,
+            () -> "numCoef (" + numCoef + ") doesn't match coef length (" + coef.length() + ")");
         if (!Arrays.equals(coef.toArray(), STANDARD_COEFFICIENTS)) {
             throw new UnsupportedOperationException("Unsupported MS ADPCM coefficients, only the standard set is supported");
         }
@@ -35,10 +34,10 @@ public record WaveFormatAdpcm(
             throw new IOException("Invalid MS ADPCM block align: " + format.blockAlign());
         }
 
-        var source = BinarySource.wrap(format.extra());
-        var samplesPerBlock = source.readShort();
-        var numCoef = source.readShort();
-        var coef = source.readShorts(numCoef * 2);
+        var reader = BinaryReader.wrap(format.extra());
+        var samplesPerBlock = reader.readShort();
+        var numCoef = reader.readShort();
+        var coef = reader.readShorts(numCoef * 2);
 
         var expectedSamplesPerBlock = samplesPerBlock(format.blockAlign(), format.channels());
         if (Short.toUnsignedInt(samplesPerBlock) != expectedSamplesPerBlock) {

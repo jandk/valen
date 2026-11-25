@@ -13,12 +13,12 @@ public record ExternalEntry(
 ) {
     static final int BYTES = 24;
 
-    public static ExternalEntry read(BinarySource source) throws IOException {
-        var fileId = source.readLong();
-        var blockSize = source.readInt();
-        var fileSize = source.readInt();
-        var startBlock = source.readInt();
-        var languageId = source.readInt();
+    public static ExternalEntry read(BinaryReader reader) throws IOException {
+        var fileId = reader.readLong();
+        var blockSize = reader.readInt();
+        var fileSize = reader.readInt();
+        var startBlock = reader.readInt();
+        var languageId = reader.readInt();
 
         return new ExternalEntry(
             fileId,

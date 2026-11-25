@@ -97,7 +97,7 @@ public final class EternalGame implements Game {
             Archive.of(commonResources.assets())
         );
 
-        var sources = new HashMap<Path, BinarySource>();
+        var sources = new HashMap<Path, BinaryReader>();
         sources.putAll(streamDbIndex.sources());
         sources.putAll(commonResources.sources());
         sources.putAll(loadedResources.sources());

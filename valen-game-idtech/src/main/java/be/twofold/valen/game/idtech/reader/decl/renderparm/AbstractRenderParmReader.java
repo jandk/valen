@@ -18,8 +18,8 @@ public abstract class AbstractRenderParmReader<V extends IdclAsset<?>> implement
         this.materialKindParser = Check.nonNull(materialKindParser, "materialKindParser");
     }
 
-    protected RenderParm read(BinarySource source) throws IOException {
-        var string = source.readString(Math.toIntExact(source.remaining()));
+    protected RenderParm read(BinaryReader reader) throws IOException {
+        var string = reader.readString(Math.toIntExact(reader.remaining()));
         var lexer = new IdLexer(string,
             LexerFlags.LEXFL_NOSTRINGCONCAT,
             LexerFlags.LEXFL_NOSTRINGESCAPECHARS,

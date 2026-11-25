@@ -41,8 +41,8 @@ public enum ResourcesVariation implements ValueEnum<Integer> {
         this.displayName = name().replace("RES_VAR_", "");
     }
 
-    public static ResourcesVariation read(BinarySource source) throws IOException {
-        return ValueEnum.fromValue(ResourcesVariation.class, source.readUnsignedShort());
+    public static ResourcesVariation read(BinaryReader reader) throws IOException {
+        return ValueEnum.fromValue(ResourcesVariation.class, reader.readUnsignedShort());
     }
 
     @Override

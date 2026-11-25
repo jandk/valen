@@ -1,5 +1,7 @@
 package be.twofold.valen.ui.component.modelviewer;
 
-public interface ModelView {
+import be.twofold.valen.ui.common.*;
+
+public interface ModelView extends View<View.Listener> {
     void setMeshes(ModelPayload payload);
 }

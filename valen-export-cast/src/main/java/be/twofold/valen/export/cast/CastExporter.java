@@ -3,6 +3,7 @@ package be.twofold.valen.export.cast;
 import be.twofold.tinycast.*;
 import be.twofold.valen.core.export.*;
 import be.twofold.valen.core.util.*;
+import wtf.reversed.toolbox.io.BinaryWriter;
 
 import java.io.*;
 import java.nio.file.*;
@@ -19,9 +20,9 @@ public abstract class CastExporter<T> implements Exporter<T> {
     }
 
     @Override
-    public void export(T value, OutputStream out) {
+    public void export(T value, BinaryWriter writer) {
         // TODO: Eehm, Liskov fail for now
-        throw new UnsupportedOperationException("GLTF can't export to a stream");
+        throw new UnsupportedOperationException("Cast can't export to a stream");
     }
 
     @Override

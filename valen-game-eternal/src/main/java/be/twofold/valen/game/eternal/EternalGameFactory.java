@@ -8,6 +8,16 @@ import java.util.*;
 
 public final class EternalGameFactory implements GameFactory<EternalGame> {
     @Override
+    public String displayName() {
+        return "DOOM Eternal";
+    }
+
+    @Override
+    public int steamAppId() {
+        return 782330;
+    }
+
+    @Override
     public Set<String> executableNames() {
         return Set.of("DOOMEternalx64vk.exe");
     }

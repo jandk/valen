@@ -17,8 +17,8 @@ public enum TextureType implements ValueEnum<Integer> {
         this.value = value;
     }
 
-    public static TextureType read(BinarySource source) throws IOException {
-        int value = source.readInt();
+    public static TextureType read(BinaryReader reader) throws IOException {
+        int value = reader.readInt();
         return ValueEnum.fromValue(TextureType.class, value);
     }
 

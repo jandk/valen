@@ -2,13 +2,10 @@ package be.twofold.valen.ui.component.modelviewer;
 
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.geometry.*;
-import be.twofold.valen.core.geometry.Mesh;
 import be.twofold.valen.core.material.*;
-import be.twofold.valen.core.material.Material;
 import be.twofold.valen.core.texture.*;
 import be.twofold.valen.ui.common.*;
 import be.twofold.valen.ui.component.*;
-import jakarta.inject.*;
 import org.slf4j.*;
 import wtf.reversed.toolbox.collect.*;
 
@@ -23,7 +20,6 @@ public final class ModelPresenter extends AbstractPresenter<ModelView> implement
 
     private static final Logger log = LoggerFactory.getLogger(ModelPresenter.class);
 
-    @Inject
     public ModelPresenter(ModelView view) {
         super(view);
     }
@@ -51,11 +47,6 @@ public final class ModelPresenter extends AbstractPresenter<ModelView> implement
         }
 
         getView().setMeshes((ModelPayload) payload);
-    }
-
-    @Override
-    public String getName() {
-        return "Model";
     }
 
     private List<ModelPayload.MeshMaterial> mapMeshMaterials(Model model) {

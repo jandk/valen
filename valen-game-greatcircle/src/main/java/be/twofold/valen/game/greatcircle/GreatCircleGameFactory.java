@@ -8,6 +8,16 @@ import java.util.*;
 
 public final class GreatCircleGameFactory implements GameFactory<GreatCircleGame> {
     @Override
+    public String displayName() {
+        return "Indiana Jones and the Great Circle";
+    }
+
+    @Override
+    public int steamAppId() {
+        return 2677660;
+    }
+
+    @Override
     public Set<String> executableNames() {
         return Set.of("TheGreatCircle.exe");
     }

@@ -4,6 +4,7 @@ import be.twofold.valen.core.export.*;
 import be.twofold.valen.core.texture.*;
 import be.twofold.valen.core.util.*;
 import be.twofold.valen.format.png.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 
@@ -76,7 +77,7 @@ public final class PngExporter extends TextureExporter {
     }
 
     @Override
-    protected void doExport(Texture texture, OutputStream out) throws IOException {
+    protected void doExport(Texture texture, BinaryWriter writer) throws IOException {
         var format = mapPngFormat(texture);
 
         var data = texture.surfaces().getFirst().data().toArray();
@@ -88,8 +89,9 @@ public final class PngExporter extends TextureExporter {
             }
         }
 
-        // TODO: How to handle closing the output stream?
-        new PngOutputStream(out, format, Valen.software()).writeImage(data);
+        try (var out = new PngOutputStream(writer.asOutputStream(), format, Valen.software())) {
+            out.writeImage(data);
+        }
     }
 
     private PngFormat mapPngFormat(Texture texture) {

@@ -1,7 +1,6 @@
 package be.twofold.valen.ui.component.audioviewer;
 
 import be.twofold.valen.ui.common.*;
-import jakarta.inject.*;
 import javafx.animation.*;
 import javafx.scene.*;
 import javafx.scene.control.*;
@@ -31,7 +30,6 @@ public final class AudioViewImpl extends AbstractView<AudioView.Listener> implem
     private double duration;
     private double position;
 
-    @Inject
     public AudioViewImpl() {
         buildUI();
     }

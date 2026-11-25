@@ -19,24 +19,24 @@ public final class Md6SkelReader implements AssetReader.Binary<Skeleton, DarkAge
     }
 
     @Override
-    public Skeleton read(BinarySource source, DarkAgesAsset asset, LoadingContext context) throws IOException {
-        int size = source.readInt();
+    public Skeleton read(BinaryReader reader, DarkAgesAsset asset, LoadingContext context) throws IOException {
+        int size = reader.readInt();
         if (size == 0) {
             throw new UnsupportedOperationException();
         }
 
-        Md6Skel skeleton = Md6Skel.read(source);
+        Md6Skel skeleton = Md6Skel.read(reader);
         return map(skeleton);
     }
 
     @Override
     public Optional<Meta.Node> readMetadata(DarkAgesAsset asset, LoadingContext context) throws IOException {
-        try (var source = BinarySource.wrap(context.open(asset.location()))) {
-            int size = source.readInt();
+        try (var reader = BinaryReader.wrap(context.open(asset.location()))) {
+            int size = reader.readInt();
             if (size == 0) {
                 throw new UnsupportedOperationException();
             }
-            var skeleton = Md6Skel.read(source);
+            var skeleton = Md6Skel.read(reader);
             return Optional.of(Meta.build(MethodHandles.lookup(), skeleton));
         }
     }

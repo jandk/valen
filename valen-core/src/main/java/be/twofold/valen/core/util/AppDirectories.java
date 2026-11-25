@@ -1,5 +1,7 @@
 package be.twofold.valen.core.util;
 
+import wtf.reversed.toolbox.util.*;
+
 import java.nio.file.*;
 
 /**
@@ -15,7 +17,7 @@ public final class AppDirectories {
         return switch (Platform.OS.current()) {
             case LINUX -> Path.of(userHome, ".config", "valen");
             case WINDOWS -> Path.of(localAppData(userHome), "Valen");
-            case MAC -> Path.of(userHome, "Library", "Application Support", "Valen");
+            case MACOS -> Path.of(userHome, "Library", "Application Support", "Valen");
         };
     }
 

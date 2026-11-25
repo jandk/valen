@@ -21,23 +21,23 @@ public record SoundMetadata(
     Ints prefetches
 ) {
     public static SoundMetadata load(Path path) throws IOException {
-        try (var source = BinarySource.open(path)) {
-            return read(source);
+        try (var reader = BinaryReader.open(path)) {
+            return read(reader);
         }
     }
 
-    public static SoundMetadata read(BinarySource source) throws IOException {
-        source.expectInt(23); // version
-        var packages = source.readObjects(source.readInt(), NameId::read);
-        var containers = source.readObjects(source.readInt(), Container::read);
-        var banks = source.readObjects(source.readInt(), NameId::read);
-        var auxBuses = source.readObjects(source.readInt(), NameId::readReversed);
-        var rtpcs = source.readObjects(source.readInt(), NameId::readReversed);
-        var switchGroups = source.readObjects(source.readInt(), Group::read);
-        var stateGroups = source.readObjects(source.readInt(), Group::read);
-        var stringPool = StringPool.read(source);
-        var events = source.readObjects(source.readInt(), Event::read);
-        var prefetches = source.readInts(source.readInt());
+    public static SoundMetadata read(BinaryReader reader) throws IOException {
+        reader.expectInt(23); // version
+        var packages = reader.readObjects(reader.readInt(), NameId::read);
+        var containers = reader.readObjects(reader.readInt(), Container::read);
+        var banks = reader.readObjects(reader.readInt(), NameId::read);
+        var auxBuses = reader.readObjects(reader.readInt(), NameId::readReversed);
+        var rtpcs = reader.readObjects(reader.readInt(), NameId::readReversed);
+        var switchGroups = reader.readObjects(reader.readInt(), Group::read);
+        var stateGroups = reader.readObjects(reader.readInt(), Group::read);
+        var stringPool = StringPool.read(reader);
+        var events = reader.readObjects(reader.readInt(), Event::read);
+        var prefetches = reader.readInts(reader.readInt());
 
         return new SoundMetadata(
             packages,

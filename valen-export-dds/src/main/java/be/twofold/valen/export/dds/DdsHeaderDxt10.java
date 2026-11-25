@@ -1,6 +1,8 @@
 package be.twofold.valen.export.dds;
 
-import java.nio.*;
+import wtf.reversed.toolbox.io.*;
+
+import java.io.*;
 
 record DdsHeaderDxt10(
     int dxgiFormat,
@@ -24,16 +26,11 @@ record DdsHeaderDxt10(
     public static final int DDS_ALPHA_MODE_OPAQUE = 0x3;
     public static final int DDS_ALPHA_MODE_CUSTOM = 0x4;
 
-    public static final int SIZE = 20;
-
-    public ByteBuffer toBuffer() {
-        return ByteBuffer.allocate(SIZE)
-            .order(ByteOrder.LITTLE_ENDIAN)
-            .putInt(dxgiFormat)
-            .putInt(resourceDimension)
-            .putInt(miscFlag)
-            .putInt(arraySize)
-            .putInt(miscFlags2)
-            .flip();
+    public void writeTo(BinaryWriter writer) throws IOException {
+        writer.writeInt(dxgiFormat);
+        writer.writeInt(resourceDimension);
+        writer.writeInt(miscFlag);
+        writer.writeInt(arraySize);
+        writer.writeInt(miscFlags2);
     }
 }

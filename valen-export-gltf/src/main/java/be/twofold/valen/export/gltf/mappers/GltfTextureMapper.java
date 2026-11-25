@@ -6,6 +6,7 @@ import be.twofold.valen.export.png.*;
 import be.twofold.valen.format.gltf.*;
 import be.twofold.valen.format.gltf.model.image.*;
 import be.twofold.valen.format.gltf.model.texture.*;
+import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 import java.nio.*;
@@ -48,9 +49,10 @@ public final class GltfTextureMapper {
     }
 
     private ByteBuffer textureToPng(Texture texture) throws IOException {
-        try (var out = new ByteArrayOutputStream()) {
-            pngExporter.export(texture, out);
-            return ByteBuffer.wrap(out.toByteArray());
+        try (var writer = new BytesBinaryWriter()) {
+            pngExporter.export(texture, writer);
+            // TODO: Fix duplicate copy, but GLTF needs work first
+            return ByteBuffer.wrap(writer.toBytes().toArray());
         }
     }
 }

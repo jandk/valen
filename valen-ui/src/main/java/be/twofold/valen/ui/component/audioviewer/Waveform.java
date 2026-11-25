@@ -3,11 +3,12 @@ package be.twofold.valen.ui.component.audioviewer;
 import be.twofold.valen.core.audio.*;
 import wtf.reversed.toolbox.collect.*;
 import wtf.reversed.toolbox.math.*;
+import wtf.reversed.toolbox.util.*;
 
 import java.util.*;
 
 public record Waveform(
-    int channels,
+    List<AudioChannel> channels,
     int buckets,
     int frames,
     int sampleRate,
@@ -18,9 +19,8 @@ public record Waveform(
     private static final int MAX_BUCKETS = 8 * 1024;
 
     public static Waveform of(Audio audio) {
-        if (audio.codec() != AudioCodec.PCM_S16_LE) {
-            throw new IllegalArgumentException("Can only summarize PCM_S16_LE audio, got " + audio.codec());
-        }
+        Check.argument(audio.codec() == AudioCodec.PCM_S16_LE,
+            () -> "Can only summarize PCM_S16_LE audio, got " + audio.codec());
 
         Bytes data = audio.data();
         int numChannels = audio.channels().size();
@@ -71,7 +71,7 @@ public record Waveform(
         }
 
         return new Waveform(
-            numChannels,
+            audio.channels(),
             numBuckets,
             frames,
             audio.sampleRate(),

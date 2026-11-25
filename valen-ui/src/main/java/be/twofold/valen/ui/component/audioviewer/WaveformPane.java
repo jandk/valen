@@ -1,9 +1,13 @@
 package be.twofold.valen.ui.component.audioviewer;
 
+import javafx.geometry.*;
 import javafx.scene.canvas.*;
+import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.paint.*;
 import javafx.scene.shape.*;
+
+import java.util.*;
 
 final class WaveformPane extends Pane {
     // TODO: I have to theme using CSS...
@@ -13,12 +17,17 @@ final class WaveformPane extends Pane {
     private static final Color MIDLINE = PEAK;
     private static final Color CLIPPED = Color.rgb(239, 71, 111);
     private static final Color SHADE = Color.rgb(50, 50, 50, 0.5);
+    private static final Color LABEL = Color.rgb(220, 220, 220);
+    private static final Color LABEL_BACKGROUND = Color.rgb(30, 30, 30, 0.8);
+    private static final double LABEL_INSET = 5;
+    private static final double LABEL_PADDING = 3;
 
     private static final double LANE_PADDING = 2;
     private static final float CLIP = 0.99f;
 
     private final Canvas waveCanvas = new Canvas();
     private final Rectangle shade = new Rectangle();
+    private final List<Label> labels = new ArrayList<>();
 
     private Waveform waveform;
     private double progress;
@@ -34,6 +43,7 @@ final class WaveformPane extends Pane {
         this.waveform = waveform;
         setProgress(0.0);
         drawWave();
+        updateLabels();
     }
 
     void setProgress(double progress) {
@@ -49,6 +59,7 @@ final class WaveformPane extends Pane {
         waveCanvas.setHeight(height);
         shade.setHeight(height);
         drawWave();
+        layoutLabels();
         updateShade();
     }
 
@@ -64,7 +75,7 @@ final class WaveformPane extends Pane {
             return;
         }
 
-        int channels = waveform.channels();
+        int channels = waveform.channels().size();
         int buckets = waveform.buckets();
         float laneHeight = (float) height / (float) channels;
 
@@ -115,6 +126,41 @@ final class WaveformPane extends Pane {
                     gc.fillRect(xMin, rmsTop, xMax - xMin, rmsHeight);
                 }
             }
+        }
+    }
+
+    private void updateLabels() {
+        getChildren().removeAll(labels);
+        labels.clear();
+        if (waveform == null) {
+            return;
+        }
+
+        var background = new Background(new BackgroundFill(LABEL_BACKGROUND, CornerRadii.EMPTY, Insets.EMPTY));
+        for (var channel : waveform.channels()) {
+            var label = new Label(channel.shortName());
+            label.setTextFill(LABEL);
+            label.setBackground(background);
+            label.setPadding(new Insets(LABEL_PADDING));
+            label.setManaged(false);
+            label.setMouseTransparent(true);
+            labels.add(label);
+        }
+        getChildren().addAll(labels);
+    }
+
+    private void layoutLabels() {
+        if (labels.isEmpty()) {
+            return;
+        }
+
+        double laneHeight = getHeight() / labels.size();
+        boolean visible = laneHeight / 2 - LANE_PADDING > 0;
+        for (int i = 0; i < labels.size(); i++) {
+            var label = labels.get(i);
+            label.setVisible(visible);
+            label.autosize();
+            label.relocate(snapPositionX(LABEL_INSET), snapPositionY(laneHeight * i + LABEL_INSET));
         }
     }
 

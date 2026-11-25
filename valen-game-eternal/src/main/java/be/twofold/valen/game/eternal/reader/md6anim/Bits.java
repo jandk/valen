@@ -3,13 +3,11 @@ package be.twofold.valen.game.eternal.reader.md6anim;
 import wtf.reversed.toolbox.collect.*;
 import wtf.reversed.toolbox.util.*;
 
-import java.util.*;
-
 public final class Bits {
     private final Bytes bytes;
 
     public Bits(Bytes bytes) {
-        this.bytes = Objects.requireNonNull(bytes);
+        this.bytes = Check.nonNull(bytes, "bytes");
     }
 
     public boolean get(int index) {

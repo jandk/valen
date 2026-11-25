@@ -24,45 +24,45 @@ public record Md6Skl(
     List<String> userChannelNames,
     List<String> rigControlNames
 ) {
-    public static Md6Skl read(BinarySource source) throws IOException {
-        var base = source.position();
+    public static Md6Skl read(BinaryReader reader) throws IOException {
+        var base = reader.position();
 
-        var header = Md6SklHeader.read(source);
+        var header = Md6SklHeader.read(reader);
         var numJoints8 = (header.numJoints() + 7) & ~7;
         var numUserChannels8 = (header.numUserChannels() + 7) & ~7;
         var numRigControls8 = (header.numRigControls() + 7) & ~7;
 
-        source.position(base + header.animationMaskOffset());
-        var animationMask = source.readBytes(numJoints8);
+        reader.position(base + header.animationMaskOffset());
+        var animationMask = reader.readBytes(numJoints8);
 
-        source.position(base + header.parentTblOffset());
-        var parentTbl = source.readShorts(numJoints8);
+        reader.position(base + header.parentTblOffset());
+        var parentTbl = reader.readShorts(numJoints8);
 
-        source.position(base + header.lastChildTblOffset());
-        var lastChildTbl = source.readShorts(numJoints8);
+        reader.position(base + header.lastChildTblOffset());
+        var lastChildTbl = reader.readShorts(numJoints8);
 
-        source.position(base + header.jointHandleTblOffset());
-        var jointHandleTbl = source.readShorts(numJoints8);
+        reader.position(base + header.jointHandleTblOffset());
+        var jointHandleTbl = reader.readShorts(numJoints8);
 
-        source.position(base + header.userChannelHandleTblOffset());
-        var userChannelHandleTbl = source.readShorts(numUserChannels8);
+        reader.position(base + header.userChannelHandleTblOffset());
+        var userChannelHandleTbl = reader.readShorts(numUserChannels8);
 
-        source.position(base + header.rigControlHandleTblOffset());
-        var rigControlHandleTbl = source.readShorts(numRigControls8);
+        reader.position(base + header.rigControlHandleTblOffset());
+        var rigControlHandleTbl = reader.readShorts(numRigControls8);
 
-        source.position(base + header.basePoseOffset());
-        var rotations = source.readObjects(numJoints8, Quaternion::read);
-        var scales = source.readObjects(numJoints8, Vector3::read);
-        var translations = source.readObjects(numJoints8, Vector3::read);
+        reader.position(base + header.basePoseOffset());
+        var rotations = reader.readObjects(numJoints8, Quaternion::read);
+        var scales = reader.readObjects(numJoints8, Vector3::read);
+        var translations = reader.readObjects(numJoints8, Vector3::read);
 
-        source.position(base + header.inverseBasePoseOffset());
-        var inverseBasePoses = source.readObjects(numJoints8, Matrix4::read3x4);
+        reader.position(base + header.inverseBasePoseOffset());
+        var inverseBasePoses = reader.readObjects(numJoints8, Matrix4::read3x4);
 
-        source.position(base + header.size());
-        var unknownInts = source.readInts(numUserChannels8);
-        var jointNames = source.readStrings(numJoints8, StringFormat.INT_LENGTH);
-        var userChannelNames = source.readStrings(numUserChannels8, StringFormat.INT_LENGTH);
-        var rigControlNames = source.readStrings(numRigControls8, StringFormat.INT_LENGTH);
+        reader.position(base + header.size());
+        var unknownInts = reader.readInts(numUserChannels8);
+        var jointNames = reader.readStrings(numJoints8, StringFormat.INT_LENGTH);
+        var userChannelNames = reader.readStrings(numUserChannels8, StringFormat.INT_LENGTH);
+        var rigControlNames = reader.readStrings(numRigControls8, StringFormat.INT_LENGTH);
 
         return new Md6Skl(
             header,

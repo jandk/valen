@@ -13,13 +13,13 @@ public record LanguageMap(
         languages = Map.copyOf(languages);
     }
 
-    public static LanguageMap read(BinarySource source, int size) throws IOException {
+    public static LanguageMap read(BinaryReader reader, int size) throws IOException {
         if (size == 0) {
             return new LanguageMap(Map.of());
         }
 
         // Relative indices, so slice
-        var slice = source.readSlice(size);
+        var slice = reader.readSlice(size);
         var count = slice.readInt();
         var offsets = new int[count];
         var ids = new int[count];

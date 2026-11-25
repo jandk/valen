@@ -11,13 +11,13 @@ public record Md6ModelBoneInfo(
     Bounds defaultBounds,
     Floats maxLodDeviations
 ) {
-    public static Md6ModelBoneInfo read(BinarySource source) throws IOException {
-        var jointRemap = source.readBytes(source.readShort());
-        var defaultBounds = Bounds.read(source);
-        source.expectInt(5); // numLods
-        var maxLodDeviations = source.readFloats(5);
-        source.expectInt(0); // numBlendShapeNames
-        source.expectZeros(36); // padding
+    public static Md6ModelBoneInfo read(BinaryReader reader) throws IOException {
+        var jointRemap = reader.readBytes(reader.readShort());
+        var defaultBounds = Bounds.read(reader);
+        reader.expectInt(5); // numLods
+        var maxLodDeviations = reader.readFloats(5);
+        reader.expectInt(0); // numBlendShapeNames
+        reader.expectZeros(36); // padding
 
         return new Md6ModelBoneInfo(
             jointRemap,

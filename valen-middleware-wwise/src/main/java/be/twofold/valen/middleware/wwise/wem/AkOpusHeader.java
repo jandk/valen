@@ -9,10 +9,10 @@ public record AkOpusHeader(
     int endGranuleOffset,
     int endGranulePCM
 ) implements CodecHeader {
-    public static AkOpusHeader read(BinarySource source) throws IOException {
-        int totalPCMFrames = source.readInt();
-        int endGranuleOffset = source.readInt();
-        int endGranulePCM = source.readInt();
+    public static AkOpusHeader read(BinaryReader reader) throws IOException {
+        int totalPCMFrames = reader.readInt();
+        int endGranuleOffset = reader.readInt();
+        int endGranulePCM = reader.readInt();
 
         return new AkOpusHeader(
             totalPCMFrames,

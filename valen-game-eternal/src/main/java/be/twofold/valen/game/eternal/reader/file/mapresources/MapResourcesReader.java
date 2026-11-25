@@ -25,16 +25,16 @@ public final class MapResourcesReader implements AssetReader.Binary<MapResources
     }
 
     @Override
-    public MapResources read(BinarySource source, EternalAsset asset, LoadingContext context) throws IOException {
-        var bytes = fileReader.read(source, asset, context);
-        return MapResources.read(BinarySource.wrap(bytes));
+    public MapResources read(BinaryReader reader, EternalAsset asset, LoadingContext context) throws IOException {
+        var bytes = fileReader.read(reader, asset, context);
+        return MapResources.read(BinaryReader.wrap(bytes));
     }
 
     @Override
     public Optional<Meta.Node> readMetadata(EternalAsset asset, LoadingContext context) throws IOException {
-        try (var source = BinarySource.wrap(context.open(asset.location()))) {
-            var bytes = fileReader.read(source, asset, context);
-            var mapResources = MapResources.read(BinarySource.wrap(bytes));
+        try (var reader = BinaryReader.wrap(context.open(asset.location()))) {
+            var bytes = fileReader.read(reader, asset, context);
+            var mapResources = MapResources.read(BinaryReader.wrap(bytes));
             return Optional.of(Meta.build(MethodHandles.lookup(), mapResources));
         }
     }

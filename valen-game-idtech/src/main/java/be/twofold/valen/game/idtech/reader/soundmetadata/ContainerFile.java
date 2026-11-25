@@ -9,9 +9,9 @@ public record ContainerFile(
     int id,
     Ints mask
 ) {
-    public static ContainerFile read(BinarySource source) throws IOException {
-        var id = source.readInt();
-        var mask = source.readInts(source.readInt());
+    public static ContainerFile read(BinaryReader reader) throws IOException {
+        var id = reader.readInt();
+        var mask = reader.readInts(reader.readInt());
 
         return new ContainerFile(
             id,

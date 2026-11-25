@@ -23,7 +23,7 @@ public record Texture(
         Check.positive(height, "height");
         Check.positive(depthOrLayers, "depthOrLayers");
         Check.nonNull(surfaces, "surfaces");
-        Check.argument(!surfaces.isEmpty(), "surfaces must not be empty");
+        Check.nonEmpty(surfaces, "surfaces");
         Check.nonNull(decorator, "decorator");
 
         if (kind == TextureKind.TEXTURE_1D) {
@@ -41,11 +41,9 @@ public record Texture(
                     Math.max(1, depthOrLayers >> mip));
             }
         } else {
-            int surfaceCount = surfaces.size();
-            Check.argument(surfaceCount % depthOrLayers == 0,
-                () -> String.format("surfaces.size() %s is not divisible by depthOrLayers %s", surfaceCount, depthOrLayers));
+            Check.multipleOf(surfaces.size(), depthOrLayers, "surfaces.size()");
 
-            var mipCount = surfaceCount / depthOrLayers;
+            var mipCount = surfaces.size() / depthOrLayers;
             for (int slice = 0; slice < depthOrLayers; slice++) {
                 for (int mip = 0; mip < mipCount; mip++) {
                     checkSurface(surfaces.get(slice * mipCount + mip), format,

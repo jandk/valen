@@ -26,9 +26,9 @@ public final class StaticModelReader implements AssetReader.Binary<Model, GreatC
     }
 
     @Override
-    public Model read(BinarySource source, GreatCircleAsset asset, LoadingContext context) throws IOException {
-        var model = StaticModel.read(source, asset.version());
-        var meshes = readMeshes(model, source, context);
+    public Model read(BinaryReader reader, GreatCircleAsset asset, LoadingContext context) throws IOException {
+        var model = StaticModel.read(reader, asset.version());
+        var meshes = readMeshes(model, reader, context);
 
         if (readMaterials) {
             meshes = Materials.apply(context, meshes, model.meshInfos(), GreatCircleAssetID::material, StaticModelMeshInfo::mtlDecl, _ -> null);
@@ -38,24 +38,24 @@ public final class StaticModelReader implements AssetReader.Binary<Model, GreatC
 
     @Override
     public Optional<Meta.Node> readMetadata(GreatCircleAsset asset, LoadingContext context) throws IOException {
-        try (var source = BinarySource.wrap(context.open(asset.location()))) {
-            var model = StaticModel.read(source, asset.version());
+        try (var reader = BinaryReader.wrap(context.open(asset.location()))) {
+            var model = StaticModel.read(reader, asset.version());
             return Optional.of(Meta.build(MethodHandles.lookup(), model));
         }
     }
 
-    private List<Mesh> readMeshes(StaticModel model, BinarySource source, LoadingContext context) throws IOException {
+    private List<Mesh> readMeshes(StaticModel model, BinaryReader reader, LoadingContext context) throws IOException {
         if (!model.header().streamable()) {
-            return readEmbeddedGeometry(model, source);
+            return readEmbeddedGeometry(model, reader);
         }
         return readStreamedGeometry(model, 0, context);
     }
 
-    private List<Mesh> readEmbeddedGeometry(StaticModel model, BinarySource source) throws IOException {
+    private List<Mesh> readEmbeddedGeometry(StaticModel model, BinaryReader reader) throws IOException {
         List<Mesh> meshes = new ArrayList<>();
         for (var meshInfo : model.meshInfos()) {
             Check.state(meshInfo.lodInfos().size() == 1, "Expected single LOD");
-            meshes.add(GeometryReader.readEmbeddedMesh(source, meshInfo.lodInfos().getFirst()));
+            meshes.add(GeometryReader.readEmbeddedMesh(reader, meshInfo.lodInfos().getFirst()));
         }
         return meshes;
     }
@@ -68,7 +68,7 @@ public final class StaticModelReader implements AssetReader.Binary<Model, GreatC
         var diskLayout = model.streamDiskLayouts().get(lod);
         var uncompressedSize = diskLayout.uncompressedSize();
         var bytes = context.open(new GreatCircleStreamLocation(diskLayout.hash(), uncompressedSize));
-        var source = BinarySource.wrap(bytes);
-        return GeometryReader.readStreamedMesh(source, lods, diskLayout.memoryLayouts(), false);
+        var reader = BinaryReader.wrap(bytes);
+        return GeometryReader.readStreamedMesh(reader, lods, diskLayout.memoryLayouts(), false);
     }
 }

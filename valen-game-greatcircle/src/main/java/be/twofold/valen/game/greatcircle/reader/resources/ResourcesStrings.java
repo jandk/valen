@@ -11,10 +11,10 @@ public record ResourcesStrings(
     Longs offsets,
     List<String> values
 ) {
-    public static ResourcesStrings read(BinarySource source) throws IOException {
-        var numStrings = source.readLong();
-        var offsets = source.readLongs(Math.toIntExact(numStrings));
-        var values = source.readObjects(Math.toIntExact(numStrings), s -> s.readString(StringFormat.NULL_TERM));
+    public static ResourcesStrings read(BinaryReader reader) throws IOException {
+        var numStrings = reader.readLong();
+        var offsets = reader.readLongs(Math.toIntExact(numStrings));
+        var values = reader.readObjects(Math.toIntExact(numStrings), s -> s.readString(StringFormat.NULL_TERM));
 
         return new ResourcesStrings(
             numStrings,

@@ -46,10 +46,10 @@ public record Surface(
         var format = src.format;
         int blockWidth = format.blockWidth();
         int blockHeight = format.blockHeight();
-        Check.argument(srcX % blockWidth == 0, "srcX must be a multiple of " + blockWidth);
-        Check.argument(srcY % blockHeight == 0, "srcY must be a multiple of " + blockHeight);
-        Check.argument(dstX % blockWidth == 0, "dstX must be a multiple of " + blockWidth);
-        Check.argument(dstY % blockHeight == 0, "dstY must be a multiple of " + blockHeight);
+        Check.multipleOf(srcX, blockWidth, "srcX");
+        Check.multipleOf(srcY, blockHeight, "srcY");
+        Check.multipleOf(dstX, blockWidth, "dstX");
+        Check.multipleOf(dstY, blockHeight, "dstY");
 
         var srcTileX = Math.ceilDiv(srcX, blockWidth);
         var srcTileY = Math.ceilDiv(srcY, blockHeight);

@@ -17,28 +17,28 @@ public record BankHeader(
 ) {
     private static final int BYTES = 20;
 
-    public static BankHeader read(BinarySource source, int size) throws IOException {
-        var bankGeneratorVersion = source.readInt();
-        var soundBankId = BankId.of(source.readInt());
-        var languageId = source.readInt();
+    public static BankHeader read(BinaryReader reader, int size) throws IOException {
+        var bankGeneratorVersion = reader.readInt();
+        var soundBankId = BankId.of(reader.readInt());
+        var languageId = reader.readInt();
 
         Optional<Boolean> feedbackInBankOptional = Optional.empty();
         Optional<Short> alignment = Optional.empty();
         Optional<Short> deviceAllocated = Optional.empty();
         switch (bankGeneratorVersion) {
             case 113:
-                feedbackInBankOptional = Optional.of(source.readBool(BoolFormat.INT));
+                feedbackInBankOptional = Optional.of(reader.readBool(BoolFormat.INT));
                 break;
             case 135:
-                alignment = Optional.of(source.readShort());
-                deviceAllocated = Optional.of(source.readShort());
+                alignment = Optional.of(reader.readShort());
+                deviceAllocated = Optional.of(reader.readShort());
                 break;
             default:
                 throw new IOException("Unsupported bank generator version: " + bankGeneratorVersion);
         }
 
-        var projectId = source.readInt();
-        source.skip(size - BYTES);
+        var projectId = reader.readInt();
+        reader.skip(size - BYTES);
 
         return new BankHeader(
             bankGeneratorVersion,

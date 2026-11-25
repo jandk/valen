@@ -2,7 +2,6 @@ package be.twofold.valen.ui.component.settings;
 
 import be.twofold.valen.ui.common.*;
 import be.twofold.valen.ui.common.settings.*;
-import jakarta.inject.*;
 import javafx.geometry.*;
 import javafx.scene.*;
 import javafx.scene.Node;
@@ -17,7 +16,6 @@ import java.util.*;
 import java.util.function.*;
 import java.util.stream.*;
 
-@Singleton
 public final class SettingsViewImpl extends AbstractView<SettingsView.Listener> implements SettingsView {
 
     private final VBox root = new VBox();
@@ -26,7 +24,6 @@ public final class SettingsViewImpl extends AbstractView<SettingsView.Listener> 
     // One per control, re-run after any change so settings can gate each other.
     private final List<Runnable> disableRefreshers = new ArrayList<>();
 
-    @Inject
     public SettingsViewImpl() {
         buildUI();
     }

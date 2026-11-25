@@ -1,8 +1,8 @@
-package be.twofold.valen.ui.component.main;
+package be.twofold.valen.ui.service;
 
 import be.twofold.valen.core.game.*;
 
-record ExportFailure(
+public record ExportFailure(
     AssetID id,
     String message
 ) {

@@ -17,8 +17,8 @@ public enum StreamDbHeaderFlags implements FlagEnum {
         this.value = value;
     }
 
-    public static Set<StreamDbHeaderFlags> read(BinarySource source) throws IOException {
-        return FlagEnum.fromValue(StreamDbHeaderFlags.class, source.readInt());
+    public static Set<StreamDbHeaderFlags> read(BinaryReader reader) throws IOException {
+        return FlagEnum.fromValue(StreamDbHeaderFlags.class, reader.readInt());
     }
 
     @Override

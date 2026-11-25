@@ -10,6 +10,7 @@
 
     <modules>
         <module>lib/reversed-toolbox</module>
+        <module>lib/tinyaudio</module>
         <module>valen-app</module>
         <module>valen-core</module>
         <module>valen-export-cast</module>
@@ -234,11 +235,6 @@
                 </exclusions>
             </dependency>
             <dependency>
-                <groupId>io.github.mkpaz</groupId>
-                <artifactId>backbonefx</artifactId>
-                <version>1.0.1</version>
-            </dependency>
-            <dependency>
                 <groupId>org.openjfx</groupId>
                 <artifactId>javafx-base</artifactId>
                 <version>${javafx.version}</version>
@@ -270,11 +266,6 @@
             </dependency>
 
             <!-- Annotations -->
-            <dependency>
-                <groupId>jakarta.inject</groupId>
-                <artifactId>jakarta.inject-api</artifactId>
-                <version>2.0.1</version>
-            </dependency>
             <dependency>
                 <groupId>org.immutables</groupId>
                 <artifactId>value-annotations</artifactId>

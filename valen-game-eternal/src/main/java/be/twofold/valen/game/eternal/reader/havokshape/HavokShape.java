@@ -12,12 +12,12 @@ public record HavokShape(
     List<String> names,
     Bytes data
 ) {
-    public static HavokShape read(BinarySource source) throws IOException {
-        var infos = source.readObjects(source.readInt(), HavokShapeInfo::read);
-        var names = source.readObjects(source.readInt(), bb -> bb.readCString(1024));
-        var data = source.readBytes(source.readInt());
+    public static HavokShape read(BinaryReader reader) throws IOException {
+        var infos = reader.readObjects(reader.readInt(), HavokShapeInfo::read);
+        var names = reader.readObjects(reader.readInt(), bb -> bb.readCString(1024));
+        var data = reader.readBytes(reader.readInt());
 
-        source.expectEnd();
+        reader.expectEnd();
 
         return new HavokShape(infos, names, data);
     }
@@ -25,7 +25,7 @@ public record HavokShape(
     public static void main(String[] args) throws IOException {
         var bytes = Files.readAllBytes(Path.of("D:\\Eternal\\DOOMExtracted\\maps\\game\\hub\\hub\\_combo\\world.hkshape"));
 
-        var shape = HavokShape.read(BinarySource.wrap(Bytes.wrap(bytes)));
+        var shape = HavokShape.read(BinaryReader.wrap(Bytes.wrap(bytes)));
         HkTagFile.read(shape.data().asBuffer());
     }
 }

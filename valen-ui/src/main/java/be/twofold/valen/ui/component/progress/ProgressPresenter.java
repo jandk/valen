@@ -1,29 +1,38 @@
 package be.twofold.valen.ui.component.progress;
 
 import be.twofold.valen.ui.common.*;
-import jakarta.inject.*;
+import be.twofold.valen.ui.service.*;
 
-public class ProgressPresenter extends AbstractPresenter<ProgressView> implements ProgressView.Listener {
-    private Runnable cancelHandler;
+public final class ProgressPresenter extends AbstractPresenter<ProgressView> implements ProgressView.Listener {
+    private final ExportService exportService;
+    private boolean showing;
 
-    @Inject
-    public ProgressPresenter(ProgressView view) {
+    public ProgressPresenter(ProgressView view, ExportService exportService, UiThread uiThread) {
         super(view);
+        this.exportService = exportService;
+
         view.setListener(this);
+        exportService.progressProperty().subscribe(progress -> uiThread.execute(() -> progressChanged(progress)));
     }
 
     @Override
     public void onCancelClicked() {
-        if (cancelHandler != null) {
-            cancelHandler.run();
+        exportService.cancel();
+    }
+
+    private void progressChanged(ExportProgress progress) {
+        if (progress == null) {
+            if (showing) {
+                getView().hide();
+                showing = false;
+            }
+            return;
         }
-    }
 
-    public void setCancelHandler(Runnable handler) {
-        this.cancelHandler = handler;
-    }
-
-    public void update(Progress progress) {
         getView().updateProgress(progress);
+        if (!showing) {
+            getView().show();
+            showing = true;
+        }
     }
 }

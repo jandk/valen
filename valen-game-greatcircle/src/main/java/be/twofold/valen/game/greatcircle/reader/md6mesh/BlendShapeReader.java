@@ -13,7 +13,7 @@ final class BlendShapeReader {
     }
 
     static Map<Integer, List<BlendShape>> readBlendShapes(
-        BinarySource source,
+        BinaryReader reader,
         List<LodInfo> lodInfos,
         List<GeometryMemoryLayout> memoryLayouts
     ) throws IOException {
@@ -27,26 +27,26 @@ final class BlendShapeReader {
                 : blendShapeLayouts.get(i + 1).deltaIndexesBufferOffset()) - layout.deltaIndexesBufferOffset();
 
             var shapeInfos = ((Md6MeshLodInfo) lodInfos.get(layout.meshIndex())).blendShapes();
-            var shapes = readBlendShapesForSingleMesh(source, shapeInfos, layout.deltaIndexesBufferOffset(), indexBufferLength, layout.deltaBufferOffset());
+            var shapes = readBlendShapesForSingleMesh(reader, shapeInfos, layout.deltaIndexesBufferOffset(), indexBufferLength, layout.deltaBufferOffset());
             result.put(layout.meshIndex(), shapes);
         }
         return result;
     }
 
     private static List<BlendShape> readBlendShapesForSingleMesh(
-        BinarySource source,
+        BinaryReader reader,
         List<Md6MeshBlendShape> md6MeshBlendShapes,
         int indexOffset,
         int indexLength,
         int bufferOffset
     ) throws IOException {
         var numDeltaIndices = indexLength / 16;
-        source.position(indexOffset);
-        var deltaIndices = source.readObjects(numDeltaIndices, BlendShapeDeltaIndex::read);
+        reader.position(indexOffset);
+        var deltaIndices = reader.readObjects(numDeltaIndices, BlendShapeDeltaIndex::read);
 
         var blendShapes = new ArrayList<BlendShape>(md6MeshBlendShapes.size());
         for (var i = 0; i < md6MeshBlendShapes.size(); i++) {
-            var result = readBlendShape(source, md6MeshBlendShapes, i, numDeltaIndices, deltaIndices, bufferOffset);
+            var result = readBlendShape(reader, md6MeshBlendShapes, i, numDeltaIndices, deltaIndices, bufferOffset);
             if (result.indices().length() > 0) {
                 blendShapes.add(result);
             }
@@ -54,7 +54,7 @@ final class BlendShapeReader {
         return blendShapes;
     }
 
-    private static BlendShape readBlendShape(BinarySource source, List<Md6MeshBlendShape> shapes, int i, int numIndices, List<BlendShapeDeltaIndex> indices, int bufferOffset) throws IOException {
+    private static BlendShape readBlendShape(BinaryReader reader, List<Md6MeshBlendShape> shapes, int i, int numIndices, List<BlendShapeDeltaIndex> indices, int bufferOffset) throws IOException {
         var shape = shapes.get(i);
         var start = shape.deltaIndexStart();
         var end = i == shapes.size() - 1 ? numIndices : shapes.get(i + 1).deltaIndexStart();
@@ -71,10 +71,10 @@ final class BlendShapeReader {
         var slot = 0;
         for (var idx = start; idx < end; idx++) {
             var deltaIndex = indices.get(idx);
-            source.position(bufferOffset + deltaIndex.offset() * 16L);
-            slot = decode(deltaIndex.occupied1(), source, indexBuffer, valueBuffer, vertex, slot, deltaIndex.hasOrientation());
+            reader.position(bufferOffset + deltaIndex.offset() * 16L);
+            slot = decode(deltaIndex.occupied1(), reader, indexBuffer, valueBuffer, vertex, slot, deltaIndex.hasOrientation());
             vertex += Integer.SIZE;
-            slot = decode(deltaIndex.occupied2(), source, indexBuffer, valueBuffer, vertex, slot, deltaIndex.hasOrientation());
+            slot = decode(deltaIndex.occupied2(), reader, indexBuffer, valueBuffer, vertex, slot, deltaIndex.hasOrientation());
             vertex += Integer.SIZE;
         }
 
@@ -83,7 +83,7 @@ final class BlendShapeReader {
 
     private static int decode(
         int mask,
-        BinarySource source,
+        BinaryReader reader,
         Shorts.Mutable indices,
         Floats.Mutable values,
         int vertex,
@@ -93,9 +93,9 @@ final class BlendShapeReader {
         for (var i = 0; i < Integer.SIZE; i++) {
             if ((mask & 1) != 0) {
                 indices.set(slot, (short) (vertex + i));
-                readHalf3(source, values, slot * 3);
+                readHalf3(reader, values, slot * 3);
                 if (hasOrientation) {
-                    source.skip(8);
+                    reader.skip(8);
                 }
                 slot++;
             }
@@ -104,11 +104,11 @@ final class BlendShapeReader {
         return slot;
     }
 
-    private static void readHalf3(BinarySource source, Floats.Mutable values, int offset) throws IOException {
+    private static void readHalf3(BinaryReader reader, Floats.Mutable values, int offset) throws IOException {
         for (var i = 0; i < 3; i++) {
-            values.set(offset + i, Float.float16ToFloat(source.readShort()));
+            values.set(offset + i, Float.float16ToFloat(reader.readShort()));
         }
-        source.skip(2);
+        reader.skip(2);
     }
 
     record BlendShapeDeltaIndex(
@@ -117,11 +117,11 @@ final class BlendShapeReader {
         int occupied2,
         boolean hasOrientation
     ) {
-        static BlendShapeDeltaIndex read(BinarySource source) throws IOException {
-            var offset = source.readInt();
-            var occupied1 = source.readInt();
-            var occupied2 = source.readInt();
-            var hasOrientation = source.readBool(BoolFormat.INT);
+        static BlendShapeDeltaIndex read(BinaryReader reader) throws IOException {
+            var offset = reader.readInt();
+            var occupied1 = reader.readInt();
+            var occupied2 = reader.readInt();
+            var hasOrientation = reader.readBool(BoolFormat.INT);
             return new BlendShapeDeltaIndex(offset, occupied1, occupied2, hasOrientation);
         }
     }

@@ -26,8 +26,8 @@ public final class Md6MeshReader implements AssetReader.Binary<Model, GreatCircl
     }
 
     @Override
-    public Model read(BinarySource source, GreatCircleAsset asset, LoadingContext context) throws IOException {
-        var model = Md6Mesh.read(source);
+    public Model read(BinaryReader reader, GreatCircleAsset asset, LoadingContext context) throws IOException {
+        var model = Md6Mesh.read(reader);
         var skeletonKey = GreatCircleAssetID.from(model.header().skeletonName(), ResourceType.of("skeleton"));
         var skeleton = context.load(skeletonKey, Skeleton.class);
         var boneCount = skeleton == null ? 0 : skeleton.bones().size();
@@ -41,8 +41,8 @@ public final class Md6MeshReader implements AssetReader.Binary<Model, GreatCircl
 
     @Override
     public Optional<Meta.Node> readMetadata(GreatCircleAsset asset, LoadingContext context) throws IOException {
-        try (var source = BinarySource.wrap(context.open(asset.location()))) {
-            var model = Md6Mesh.read(source);
+        try (var reader = BinaryReader.wrap(context.open(asset.location()))) {
+            var model = Md6Mesh.read(reader);
             return Optional.of(Meta.build(MethodHandles.lookup(), model));
         }
     }
@@ -66,9 +66,9 @@ public final class Md6MeshReader implements AssetReader.Binary<Model, GreatCircl
 
         var identity = (hash << 4) | lod;
         var bytes = context.open(new GreatCircleStreamLocation(identity, uncompressedSize));
-        try (var source = BinarySource.wrap(bytes)) {
-            var meshes = GeometryReader.readStreamedMesh(source, lodInfos, layouts, true);
-            var allBlendShapes = BlendShapeReader.readBlendShapes(source, lodInfos, layouts);
+        try (var reader = BinaryReader.wrap(bytes)) {
+            var meshes = GeometryReader.readStreamedMesh(reader, lodInfos, layouts, true);
+            var allBlendShapes = BlendShapeReader.readBlendShapes(reader, lodInfos, layouts);
 
             var newMeshes = new ArrayList<Mesh>(meshes.size());
             for (int i = 0; i < meshes.size(); i++) {

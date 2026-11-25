@@ -3,7 +3,6 @@ package be.twofold.valen.ui.component.rawview;
 import be.twofold.valen.ui.common.*;
 import be.twofold.valen.ui.component.rawview.binary.*;
 import be.twofold.valen.ui.component.rawview.text.*;
-import jakarta.inject.*;
 import javafx.scene.*;
 import javafx.scene.layout.*;
 
@@ -12,7 +11,6 @@ public final class RawViewImpl extends AbstractView<View.Listener> implements Ra
     private final BinaryView binaryView = new BinaryView();
     private final TextView textView = new TextView();
 
-    @Inject
     public RawViewImpl() {
         clear();
     }

@@ -8,9 +8,9 @@ public record LanguageDuration(
     String language,
     float duration
 ) {
-    public static LanguageDuration read(BinarySource source) throws IOException {
-        var name = source.readString(StringFormat.INT_LENGTH);
-        var duration = source.readFloat();
+    public static LanguageDuration read(BinaryReader reader) throws IOException {
+        var name = reader.readString(StringFormat.INT_LENGTH);
+        var duration = reader.readFloat();
 
         return new LanguageDuration(
             name,

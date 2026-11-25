@@ -15,17 +15,17 @@ public record FilePackageHeader(
 ) {
     private static final int BYTES = 20;
 
-    public static FilePackageHeader read(BinarySource source) throws IOException {
-        var chunk = ChunkHeader.read(source);
+    public static FilePackageHeader read(BinaryReader reader) throws IOException {
+        var chunk = ChunkHeader.read(reader);
         if (chunk.tag() != ChunkTag.AKPK) {
             throw new IOException("Expected AKPK, got " + chunk.tag());
         }
 
-        var version = source.readInt();
-        var languageMapSize = source.readInt();
-        var soundBanksLutSize = source.readInt();
-        var stmFilesLutSize = source.readInt();
-        var externalsLutSize = source.readInt();
+        var version = reader.readInt();
+        var languageMapSize = reader.readInt();
+        var soundBanksLutSize = reader.readInt();
+        var stmFilesLutSize = reader.readInt();
+        var externalsLutSize = reader.readInt();
 
         var partition = BYTES + languageMapSize + soundBanksLutSize + stmFilesLutSize + externalsLutSize;
         if (partition != chunk.size()) {

@@ -24,9 +24,9 @@ public final class VegetationReader implements AssetReader.Binary<Model, DarkAge
     }
 
     @Override
-    public Model read(BinarySource source, DarkAgesAsset asset, LoadingContext context) throws IOException {
-        Vegetation vegetation = Vegetation.read(source);
-        source.expectEnd();
+    public Model read(BinaryReader reader, DarkAgesAsset asset, LoadingContext context) throws IOException {
+        Vegetation vegetation = Vegetation.read(reader);
+        reader.expectEnd();
 
         var meshes = readMeshes(vegetation, 0, asset.hash(), context);
         if (readMaterials) {
@@ -46,8 +46,8 @@ public final class VegetationReader implements AssetReader.Binary<Model, DarkAge
         var identity = Hash.hash(hash, 4 - lod, 0);
         var bytes = context.open(new DarkAgesStreamLocation(identity, uncompressedSize));
 
-        try (var source = BinarySource.wrap(bytes)) {
-            return GeometryReader.readStreamedMesh(source, lodInfos, false);
+        try (var reader = BinaryReader.wrap(bytes)) {
+            return GeometryReader.readStreamedMesh(reader, lodInfos, false);
         }
     }
 }

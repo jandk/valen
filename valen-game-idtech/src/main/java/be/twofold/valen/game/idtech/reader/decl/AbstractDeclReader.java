@@ -28,8 +28,8 @@ public abstract class AbstractDeclReader<K extends IdclAssetID<?>, V extends Idc
     public abstract boolean canRead(V asset);
 
     @Override
-    public JsonObject read(BinarySource source, V asset, LoadingContext context) throws IOException {
-        var bytes = source.readBytes(Math.toIntExact(source.size()));
+    public JsonObject read(BinaryReader reader, V asset, LoadingContext context) throws IOException {
+        var bytes = reader.readBytes(Math.toIntExact(reader.size()));
         var object = DeclParser.parse(decode(bytes));
 
         var result = loadInherit(object, asset.id(), context);

@@ -28,20 +28,20 @@ public record ContainerMask(
             .orElseThrow(() -> new IOException("Could not find " + NAME));
 
         var bytes = loader.load(asset.id(), Bytes.class);
-        return read(BinarySource.wrap(bytes), game);
+        return read(BinaryReader.wrap(bytes), game);
     }
 
-    public static ContainerMask read(BinarySource source, IdTechGame game) throws IOException {
+    public static ContainerMask read(BinaryReader reader, IdTechGame game) throws IOException {
         if (game == IdTechGame.ETERNAL) {
-            source.skip(4);
+            reader.skip(4);
         }
 
-        var count = source.readInt();
+        var count = reader.readInt();
 
         var masks = new HashMap<Long, BitSet>();
         for (var i = 0; i < count; i++) {
-            var key = source.readLong();
-            var bits = source.readBytes(source.readInt() * Long.BYTES);
+            var key = reader.readLong();
+            var bits = reader.readBytes(reader.readInt() * Long.BYTES);
             masks.put(key, BitSet.valueOf(bits.toArray()));
         }
         return new ContainerMask(masks);

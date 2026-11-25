@@ -1,13 +1,11 @@
 package be.twofold.valen.ui.component;
 
 import be.twofold.valen.core.game.*;
-import javafx.scene.*;
+import be.twofold.valen.ui.common.*;
 
 public interface Viewer {
 
-    Node getFXNode();
-
-    String getName();
+    View<?> getView();
 
     boolean canPreview(AssetType type);
 

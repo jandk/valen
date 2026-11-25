@@ -1,59 +1,56 @@
 package be.twofold.valen.ui.component.main;
 
-import backbonefx.di.*;
 import be.twofold.valen.core.game.*;
-import be.twofold.valen.core.util.*;
 import be.twofold.valen.ui.common.*;
 import be.twofold.valen.ui.component.*;
+import be.twofold.valen.ui.component.filelist.*;
 import be.twofold.valen.ui.component.preview.*;
 import be.twofold.valen.ui.component.settings.*;
-import jakarta.inject.*;
 import javafx.animation.*;
 import javafx.geometry.*;
 import javafx.scene.*;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
-import javafx.util.*;
-import org.slf4j.*;
+import wtf.reversed.toolbox.util.*;
 
 import java.util.*;
 
-@Singleton
 public final class MainViewImpl extends AbstractView<MainView.Listener> implements MainView {
-    private static final Logger log = LoggerFactory.getLogger(MainViewImpl.class);
-
     private final BorderPane view = new BorderPane();
     private final SplitPane splitPane = new SplitPane();
 
     private final ToggleButton previewButton = new ToggleButton("Preview");
     private final ToggleButton settingsButton = new ToggleButton("Settings");
 
+    private final MenuButton gameButton = new MenuButton("Load Game");
+    private final ToggleGroup gameGroup = new ToggleGroup();
+    private GameEntry currentGame;
     private final ComboBox<String> archiveChooser = new ComboBox<>();
     private final TextField searchTextField = new TextField();
 
-    private final StackPane previewPane = new StackPane();
-    private final ProgressIndicator previewSpinner = new ProgressIndicator();
-    private final StackPane previewVeil = new StackPane(previewSpinner);
-    private final PauseTransition spinnerDelay = new PauseTransition(Duration.millis(200));
+    private PreviewView previewView;
+    private SettingsView settingsView;
 
-    private final PreviewTabPane tabPane;
-    private final SettingsPresenter settingsPresenter;
-
-    @Inject
-    MainViewImpl(PreviewTabPane tabPane, Feather feather) {
-        this.tabPane = tabPane;
-        this.settingsPresenter = feather.instance(SettingsPresenter.class);
-
+    public MainViewImpl() {
         buildUI();
     }
 
     @Override
-    public void setFileListView(Node node) {
-        if (node == null) {
-            log.error("setFileListView called with null node");
-            return;
-        }
-        splitPane.getItems().setAll(node);
+    public void setFileListView(FileListView fileListView) {
+        Check.nonNull(fileListView, "fileListView");
+        splitPane.getItems().setAll(fileListView.getFXNode());
+    }
+
+    @Override
+    public void setPreviewView(PreviewView previewView) {
+        Check.nonNull(previewView, "previewView");
+        this.previewView = previewView;
+    }
+
+    @Override
+    public void setSettingsView(SettingsView settingsView) {
+        Check.nonNull(settingsView, "settingsView");
+        this.settingsView = settingsView;
     }
 
     @Override
@@ -62,20 +59,56 @@ public final class MainViewImpl extends AbstractView<MainView.Listener> implemen
     }
 
     @Override
+    public void setGames(List<GameEntry> games) {
+        FX.run(() -> {
+            var items = new ArrayList<MenuItem>();
+            for (var game : games) {
+                var item = new RadioMenuItem(game.name());
+                item.setToggleGroup(gameGroup);
+                item.setUserData(game.executable());
+                item.setOnAction(_ -> {
+                    showCurrentGame();
+                    getListener().onGameSelected(game.executable());
+                });
+                items.add(item);
+            }
+            if (!items.isEmpty()) {
+                items.add(new SeparatorMenuItem());
+            }
+            var browse = new MenuItem("Browse for executable...");
+            browse.setOnAction(_ -> getListener().onLoadGameClicked());
+            items.add(browse);
+            gameButton.getItems().setAll(items);
+            showCurrentGame();
+        });
+    }
+
+    @Override
+    public void setCurrentGame(GameEntry game) {
+        FX.run(() -> {
+            currentGame = game;
+            showCurrentGame();
+        });
+    }
+
+    private void showCurrentGame() {
+        gameButton.setText(currentGame != null ? currentGame.name() : "Load Game");
+
+        var executable = currentGame != null ? currentGame.executable() : null;
+        var toggle = gameGroup.getToggles().stream()
+            .filter(t -> t.getUserData().equals(executable))
+            .findFirst()
+            .orElse(null);
+        gameGroup.selectToggle(toggle);
+    }
+
+    @Override
     public void setArchives(List<String> archives) {
-        archiveChooser.getItems().setAll(archives);
-        // archiveChooser.getSelectionModel().select(0);
-    }
-
-    @Override
-    public Object decodePreview(AssetType type, Object assetData, Meta.Node metadata) {
-        // Runs on the caller's (loader) thread: decode is pure, no scene graph.
-        return tabPane.decode(type, assetData, metadata);
-    }
-
-    @Override
-    public void displayPreview(Object preview) {
-        FxUtils.runOnFxThread(() -> tabPane.display((PreviewTabPane.PreviewData) preview));
+        FX.run(() -> {
+            archiveChooser.getSelectionModel().clearSelection();
+            archiveChooser.getItems().setAll(archives);
+            // archiveChooser.getSelectionModel().select(0);
+        });
     }
 
     @Override
@@ -85,25 +118,12 @@ public final class MainViewImpl extends AbstractView<MainView.Listener> implemen
 
     @Override
     public void setExporting(boolean exporting) {
-        FxUtils.runOnFxThread(() -> view.setDisable(exporting));
-    }
-
-    @Override
-    public void setPreviewLoading(boolean loading) {
-        FxUtils.runOnFxThread(() -> {
-            if (loading) {
-                // Delay showing the spinner so quick loads don't flash it.
-                spinnerDelay.playFromStart();
-            } else {
-                spinnerDelay.stop();
-                previewVeil.setVisible(false);
-            }
-        });
+        FX.run(() -> view.setDisable(exporting));
     }
 
     @Override
     public void showSidePanel(SidePanel panel) {
-        FxUtils.runOnFxThread(() -> {
+        FX.run(() -> {
             previewButton.setSelected(panel == SidePanel.PREVIEW);
             settingsButton.setSelected(panel == SidePanel.SETTINGS);
             setSidePanelContent(panel);
@@ -119,8 +139,8 @@ public final class MainViewImpl extends AbstractView<MainView.Listener> implemen
 
     private void setSidePanelContent(SidePanel panel) {
         var node = switch (panel) {
-            case PREVIEW -> previewPane;
-            case SETTINGS -> settingsPresenter.getView().getFXNode();
+            case PREVIEW -> previewView.getFXNode();
+            case SETTINGS -> settingsView.getFXNode();
             case NONE -> null;
         };
 
@@ -151,23 +171,10 @@ public final class MainViewImpl extends AbstractView<MainView.Listener> implemen
     // region UI
 
     private void buildUI() {
-        buildPreviewPane();
-
         view.setPrefSize(1250, 666);
         view.setTop(buildToolBar());
         view.setCenter(buildMainContent());
         view.setBottom(buildStatusBar());
-    }
-
-    private void buildPreviewPane() {
-        previewSpinner.setMaxSize(60, 60);
-
-        // Block interaction while loading
-        previewVeil.setVisible(false);
-        previewVeil.setPickOnBounds(true);
-        spinnerDelay.setOnFinished(_ -> previewVeil.setVisible(true));
-
-        previewPane.getChildren().setAll(tabPane, previewVeil);
     }
 
     private SplitPane buildMainContent() {
@@ -206,9 +213,6 @@ public final class MainViewImpl extends AbstractView<MainView.Listener> implemen
     }
 
     private Control buildToolBar() {
-        var loadGame = new Button("Load Game");
-        loadGame.setOnAction(_ -> getListener().onLoadGameClicked());
-
         archiveChooser.setPromptText("Select archive to load");
         archiveChooser.getSelectionModel().selectedItemProperty().addListener((_, _, newValue) -> selectArchive(newValue));
 
@@ -227,7 +231,7 @@ public final class MainViewImpl extends AbstractView<MainView.Listener> implemen
         settingsButton.setOnAction(_ -> getListener().onSidePanelToggled(selectedPanel()));
 
         return new ToolBar(
-            loadGame, archiveChooser,
+            gameButton, archiveChooser,
             pane,
             exportButton,
             new Separator(),

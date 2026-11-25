@@ -28,22 +28,22 @@ public final class ImageReader implements AssetReader.Binary<Texture, DarkAgesAs
     }
 
     @Override
-    public Texture read(BinarySource source, DarkAgesAsset asset, LoadingContext context) throws IOException {
-        var image = read(source, asset.hash(), context);
+    public Texture read(BinaryReader reader, DarkAgesAsset asset, LoadingContext context) throws IOException {
+        var image = read(reader, asset.hash(), context);
         return map(image);
     }
 
     @Override
     public Optional<Meta.Node> readMetadata(DarkAgesAsset asset, LoadingContext context) throws IOException {
-        try (var source = BinarySource.wrap(context.open(asset.location()))) {
-            var image = Image.read(source);
+        try (var reader = BinaryReader.wrap(context.open(asset.location()))) {
+            var image = Image.read(reader);
             return Optional.of(Meta.build(MethodHandles.lookup(), image));
         }
     }
 
-    public Image read(BinarySource source, long hash, LoadingContext context) throws IOException {
-        var image = Image.read(source);
-        source.expectEnd();
+    public Image read(BinaryReader reader, long hash, LoadingContext context) throws IOException {
+        var image = Image.read(reader);
+        reader.expectEnd();
 
         if (readStreams) {
             /*
@@ -66,7 +66,7 @@ public final class ImageReader implements AssetReader.Binary<Texture, DarkAgesAs
         var uncompressedSize = lastMip.cumulativeSizeStreamDB() + lastMip.decompressedSize();
         var streamId = Hash.hash(hash, 0, 0);
         var bytes = context.open(new DarkAgesStreamLocation(streamId, uncompressedSize));
-        try (var mipSource = BinarySource.wrap(bytes)) {
+        try (var mipSource = BinaryReader.wrap(bytes)) {
             for (var i = 0; i < image.header().totalMipCount(); i++) {
                 image.mipData()[i] = mipSource.readBytes(image.mipInfos().get(i).decompressedSize());
             }

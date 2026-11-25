@@ -14,12 +14,12 @@ public record FileEntry<T>(
 ) {
     static final int BYTES = 20;
 
-    public static <T> FileEntry<T> read(BinarySource source, IntFunction<T> idMapper) throws IOException {
-        var fileId = idMapper.apply(source.readInt());
-        var blockSize = source.readInt();
-        var fileSize = source.readInt();
-        var startBlock = source.readInt();
-        var languageId = source.readInt();
+    public static <T> FileEntry<T> read(BinaryReader reader, IntFunction<T> idMapper) throws IOException {
+        var fileId = idMapper.apply(reader.readInt());
+        var blockSize = reader.readInt();
+        var fileSize = reader.readInt();
+        var startBlock = reader.readInt();
+        var languageId = reader.readInt();
 
         return new FileEntry<>(fileId, blockSize, fileSize, startBlock, languageId);
     }

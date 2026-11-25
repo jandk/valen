@@ -18,29 +18,29 @@ public record ResourcesHeader(
     long dataOffset,
     long metaSize
 ) {
-    public static ResourcesHeader read(BinarySource source) throws IOException {
-        source.expectInt(0x4C434449); // magic
-        source.expectInt(0xC); // version
-        source.expectInt(0x0); // flags
-        source.expectInt(0x1); // numSegments
-        source.expectLong(0xFFFFFFFFFFL); // segmentSize
-        source.expectLong(0x0); // metadataHash
-        var numResources = source.readInt();
-        var numDependencies = source.readInt();
-        var numDepIndices = source.readInt();
-        var numStringIndices = source.readInt();
-        source.expectInt(0x0); // numSpecialHashes
-        source.expectInt(0x0); // numMetaEntries
-        var stringTableSize = source.readInt();
-        source.expectInt(0x0); // metaEntriesSize
-        var stringTableOffset = source.readLong();
-        var metaEntriesOffset = source.readLong();
-        var resourceEntriesOffset = source.readLong();
-        var resourceDepsOffset = source.readLong();
-        var resourceSpecialHashOffset = source.readLong();
-        var dataOffset = source.readLong();
-        source.expectInt(0x0); // unknown
-        var metaSize = source.readLong();
+    public static ResourcesHeader read(BinaryReader reader) throws IOException {
+        reader.expectInt(0x4C434449); // magic
+        reader.expectInt(0xC); // version
+        reader.expectInt(0x0); // flags
+        reader.expectInt(0x1); // numSegments
+        reader.expectLong(0xFFFFFFFFFFL); // segmentSize
+        reader.expectLong(0x0); // metadataHash
+        var numResources = reader.readInt();
+        var numDependencies = reader.readInt();
+        var numDepIndices = reader.readInt();
+        var numStringIndices = reader.readInt();
+        reader.expectInt(0x0); // numSpecialHashes
+        reader.expectInt(0x0); // numMetaEntries
+        var stringTableSize = reader.readInt();
+        reader.expectInt(0x0); // metaEntriesSize
+        var stringTableOffset = reader.readLong();
+        var metaEntriesOffset = reader.readLong();
+        var resourceEntriesOffset = reader.readLong();
+        var resourceDepsOffset = reader.readLong();
+        var resourceSpecialHashOffset = reader.readLong();
+        var dataOffset = reader.readLong();
+        reader.expectInt(0x0); // unknown
+        var metaSize = reader.readLong();
 
         return new ResourcesHeader(
             numResources,
