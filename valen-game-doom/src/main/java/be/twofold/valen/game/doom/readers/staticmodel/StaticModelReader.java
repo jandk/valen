@@ -32,7 +32,7 @@ public final class StaticModelReader implements AssetReader.Binary<Model, DoomAs
     public Model read(BinaryReader reader, DoomAsset asset, LoadingContext context) throws IOException {
         var model = StaticModel.read(reader);
 
-        var meshes = model.surfaces().stream()
+        var meshes = model.modelSurfaces().stream()
             .map(this::mapSurface)
             .toList();
 
@@ -40,7 +40,7 @@ public final class StaticModelReader implements AssetReader.Binary<Model, DoomAs
     }
 
     private Mesh mapSurface(StaticModelSurface surface) {
-        var triangles = surface.triangles();
+        var triangles = surface.geometry();
 
         var format = MeshFormat.builder(triangles.numIndices(), triangles.numVerts())
             .positions(POSITION_OFFSET, Triangles.VERTEX_SIZE, readPosition(triangles.xyzScale(), triangles.xyzBias()))

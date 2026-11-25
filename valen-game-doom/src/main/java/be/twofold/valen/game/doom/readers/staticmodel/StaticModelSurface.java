@@ -9,37 +9,37 @@ import java.util.*;
 
 public record StaticModelSurface(
     String material,
-    int unk1,
-    int unk2,
-    int unk3,
-    int unk4,
-    List<String> unk5,
-    Triangles triangles
+    int materialChecksum,
+    int materialNum,
+    int binaryModelId,
+    int numPatchMaterials,
+    List<String> patchMaterials,
+    Triangles geometry
 ) {
-    public static StaticModelSurface read(BinaryReader reader) throws IOException {
+    public static StaticModelSurface read(BinaryReader reader, int version) throws IOException {
         reader.order(ByteOrder.LITTLE_ENDIAN);
         var material = reader.readString(StringFormat.INT_LENGTH);
 
         reader.order(ByteOrder.BIG_ENDIAN);
-        int unk1 = reader.readInt();
-        int unk2 = reader.readInt();
-        int unk3 = reader.readInt();
-        int unk4 = reader.readInt();
+        int materialChecksum = version > 0x1A ? reader.readInt() : 0;
+        int materialNum = reader.readInt();
+        int binaryModelId = reader.readInt();
+        int numPatchMaterials = reader.readInt();
 
         reader.order(ByteOrder.LITTLE_ENDIAN);
-        var unk5 = reader.readStrings(unk4, StringFormat.INT_LENGTH);
-        var triangles = Triangles.read(reader);
+        var patchMaterials = reader.readStrings(numPatchMaterials, StringFormat.INT_LENGTH);
+        var geometry = Triangles.read(reader);
 
-        reader.expectInt(StaticModel.MAGIC);
+        reader.expectInt(StaticModel.MAGIC | version << 24);
 
         return new StaticModelSurface(
             material,
-            unk1,
-            unk2,
-            unk3,
-            unk4,
-            unk5,
-            triangles
+            materialChecksum,
+            materialNum,
+            binaryModelId,
+            numPatchMaterials,
+            patchMaterials,
+            geometry
         );
     }
 }
