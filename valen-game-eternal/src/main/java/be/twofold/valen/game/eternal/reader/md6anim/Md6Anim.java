@@ -83,10 +83,9 @@ public record Md6Anim(
         var firstS = reader.position(frameSetOffset + animFrameSet.firstSOffset()).readObjects(animMap.animS().length(), Vector3::read);
         var firstT = reader.position(frameSetOffset + animFrameSet.firstTOffset()).readObjects(animMap.animT().length(), Vector3::read);
 
-        var bytesPerBone = Math.ceilDiv(animFrameSet.frameRange(), 8);
-        var bitsR = reader.position(frameSetOffset + animFrameSet.RBitsOffset()).readObject(s -> new Bits(s.readBytes(bytesPerBone * animMap.animR().length())));
-        var bitsS = reader.position(frameSetOffset + animFrameSet.SBitsOffset()).readObject(s -> new Bits(s.readBytes(bytesPerBone * animMap.animS().length())));
-        var bitsT = reader.position(frameSetOffset + animFrameSet.TBitsOffset()).readObject(s -> new Bits(s.readBytes(bytesPerBone * animMap.animT().length())));
+        var bitsR = reader.position(frameSetOffset + animFrameSet.RBitsOffset()).readObject(s -> Md6AnimDecoder.decodeBits(s, animMap.animR().length(), animFrameSet.frameRange()));
+        var bitsS = reader.position(frameSetOffset + animFrameSet.SBitsOffset()).readObject(s -> Md6AnimDecoder.decodeBits(s, animMap.animS().length(), animFrameSet.frameRange()));
+        var bitsT = reader.position(frameSetOffset + animFrameSet.TBitsOffset()).readObject(s -> Md6AnimDecoder.decodeBits(s, animMap.animT().length(), animFrameSet.frameRange()));
 
         var rangeR = reader.position(frameSetOffset + animFrameSet.rangeROffset()).readObjects(bitsR.cardinality(), Md6AnimDecoder::decodeQuat);
         var rangeS = reader.position(frameSetOffset + animFrameSet.rangeSOffset()).readObjects(bitsS.cardinality(), Vector3::read);

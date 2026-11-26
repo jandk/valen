@@ -93,6 +93,14 @@ class Md6AnimDecoderTest {
     }
 
     @Test
+    void testDecodeBits() throws IOException {
+        var hex = "40 80 00 01";
+
+        var actual = Md6AnimDecoder.decodeBits(reader(hex), 2, 10);
+        assertThat(actual.stream().toArray()).containsExactly(0, 9, 16 + 7);
+    }
+
+    @Test
     void testDecodeQuatIdentity() throws IOException {
         var mid = Math.round(Math.sqrt(0.5) / (Math.sqrt(2) / 0x7FFF));
         var hex = "%04X".formatted(mid).repeat(3);

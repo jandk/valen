@@ -13,9 +13,9 @@ public record FrameSet(
     List<Quaternion> rangeR,
     List<Vector3> rangeS,
     List<Vector3> rangeT,
-    Bits bitsR,
-    Bits bitsS,
-    Bits bitsT
+    BitSet bitsR,
+    BitSet bitsS,
+    BitSet bitsT
 ) {
     public int bytesPerBone() {
         return Math.ceilDiv(frameRange, 8);

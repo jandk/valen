@@ -5,21 +5,38 @@ import wtf.reversed.toolbox.io.*;
 import wtf.reversed.toolbox.math.*;
 
 import java.io.*;
+import java.util.*;
 
 /**
- * Common animation decoding utilities.
+ * Shared MD6 animation decoders for DOOM (2016), DOOM Eternal and DOOM: The Dark Ages.
  */
 public final class Md6AnimDecoder {
     public static final int MISSING = -1;
-
     private static final float QUAT_SCALE = FloatMath.SQRT_2 / 0x7FFF;
 
     private Md6AnimDecoder() {
     }
 
     /**
-     * Quaternions are stored using the "smallest three" encoding. Each value is stored in 15 bits,
-     * and the leftovers tell you which component was dropped.
+     * Decodes key frame bits. Bit {@code bone * bytesPerBone * 8 + frame} is set if the bone has a key.
+     */
+    public static BitSet decodeBits(BinaryReader reader, int numBones, int frameRange) throws IOException {
+        var bytesPerBone = Math.ceilDiv(frameRange, 8);
+        var bytes = reader.readBytes(numBones * bytesPerBone).toArray();
+
+        var result = new byte[bytes.length];
+        for (var bone = 0; bone < numBones; bone++) {
+            var start = bone * bytesPerBone;
+            for (var i = 0; i < bytesPerBone; i++) {
+                var b = bytes[start + bytesPerBone - 1 - i];
+                result[start + i] = (byte) (Integer.reverse(b) >>> 24);
+            }
+        }
+        return BitSet.valueOf(result);
+    }
+
+    /**
+     * Decodes a "smallest three" quaternion.
      */
     public static Quaternion decodeQuat(BinaryReader reader) throws IOException {
         var x = reader.readShort();
@@ -43,7 +60,9 @@ public final class Md6AnimDecoder {
     }
 
     /**
-     * Bone indices are encoded using run-length encoding, so animations use this to decode them.
+     * Decodes run-length encoded bone indices. Skipped bones are {@link #MISSING}.
+     *
+     * @param shortHeader {@code true} for The Dark Ages
      */
     public static Ints decodeRle(BinaryReader reader, boolean shortHeader) throws IOException {
         int count;

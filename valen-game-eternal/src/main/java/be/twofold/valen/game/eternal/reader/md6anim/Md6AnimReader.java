@@ -71,7 +71,7 @@ public final class Md6AnimReader implements AssetReader.Binary<Animation, Eterna
     private <T> List<Track<T>> mapAnimated(
         Ints animBoneIds,
         List<FrameSet> frameSets,
-        Function<FrameSet, Bits> bitsMapper,
+        Function<FrameSet, BitSet> bitsMapper,
         Function<FrameSet, List<T>> firstMapper,
         Function<FrameSet, List<T>> rangeMapper,
         BiFunction<Integer, List<KeyFrame<T>>, Track<T>> constructor

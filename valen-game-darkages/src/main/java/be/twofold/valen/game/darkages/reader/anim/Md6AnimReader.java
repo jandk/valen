@@ -100,7 +100,7 @@ public final class Md6AnimReader implements AssetReader.Binary<Animation, DarkAg
     private <T> List<Track<T>> mapAnimated(
         Ints animBoneIds,
         List<FrameSet> frameSets,
-        Function<FrameSet, Bytes> bitsMapper,
+        Function<FrameSet, BitSet> bitsMapper,
         Function<FrameSet, List<T>> firstMapper,
         Function<FrameSet, List<T>> rangeMapper,
         BiFunction<Integer, List<KeyFrame<T>>, Track<T>> constructor
@@ -111,13 +111,12 @@ public final class Md6AnimReader implements AssetReader.Binary<Animation, DarkAg
             var bits = bitsMapper.apply(frameSet);
             var first = firstMapper.apply(frameSet);
             var range = rangeMapper.apply(frameSet);
-            int bytesPerBone = frameSet.bytesPerBone();
 
             for (int i = 0, vi = 0; i < animBoneIds.length(); i++) {
                 var curve = curves.computeIfAbsent(animBoneIds.get(i), _ -> new ArrayList<>());
                 curve.add(new KeyFrame<>(frameSet.frameStart(), first.get(i)));
                 for (var frame = 0; frame < frameSet.frameRange(); frame++) {
-                    if (checkFrameLE(bits, i, bytesPerBone, frame)) {
+                    if (bits.get(i * frameSet.bytesPerBone() * 8 + frame)) {
                         curve.add(new KeyFrame<>(frameSet.frameStart() + frame, range.get(vi++)));
                     }
                 }
@@ -128,21 +127,5 @@ public final class Md6AnimReader implements AssetReader.Binary<Animation, DarkAg
             .filter(e -> e.getKey() != Md6AnimDecoder.MISSING)
             .map(e -> constructor.apply(e.getKey(), e.getValue()))
             .toList();
-    }
-
-    // Standard anims use this
-    private boolean checkFrameBE(Bytes bytes, int boneId, int bytesPerBone, int frame) {
-        int frameByte = frame >> 3;
-        int byteIndex = boneId * bytesPerBone + frameByte;
-        int bitIndex = 0x80 >> (frame & 7);
-        return (bytes.get(byteIndex) & bitIndex) != 0;
-    }
-
-    // LODS use this
-    private boolean checkFrameLE(Bytes bytes, int boneId, int bytesPerBone, int frame) {
-        int frameByte = bytesPerBone - (frame >> 3) - 1;
-        int byteIndex = boneId * bytesPerBone + frameByte;
-        int bitIndex = 0x80 >> (frame & 7);
-        return (bytes.get(byteIndex) & bitIndex) != 0;
     }
 }
