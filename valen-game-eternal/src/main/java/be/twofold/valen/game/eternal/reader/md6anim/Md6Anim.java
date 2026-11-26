@@ -1,5 +1,6 @@
 package be.twofold.valen.game.eternal.reader.md6anim;
 
+import be.twofold.valen.game.idtech.game.*;
 import be.twofold.valen.game.idtech.md6anim.*;
 import org.slf4j.*;
 import wtf.reversed.toolbox.io.*;
@@ -49,29 +50,13 @@ public record Md6Anim(
 
     private static List<Md6AnimMap> readAnimMaps(BinaryReader reader) throws IOException {
         var start = Math.toIntExact(reader.position());
-        var numAnimMaps = reader.readShort();
-        var tableCRCs = reader.readShorts(numAnimMaps);
+        var numAnimMaps = reader.readUnsignedShort();
+        reader.skip(numAnimMaps * 2L); // tableCRCs
+        var offsets = reader.readObjects(numAnimMaps, Md6AnimMapOffsets::read);
 
-        List<Md6AnimMapOffsets> offsets = new ArrayList<>();
-        for (var i = 0; i < numAnimMaps; i++) {
-            offsets.add(Md6AnimMapOffsets.read(reader));
-        }
-
-        List<Md6AnimMap> animMaps = new ArrayList<>();
-        for (var i = 0; i < numAnimMaps; i++) {
-            var offset = offsets.get(i);
-
-            var constR = reader.position(start + offset.constRRLEOffset()).readObject(s -> Md6AnimDecoder.decodeRle(s, false));
-            var constS = reader.position(start + offset.constSRLEOffset()).readObject(s -> Md6AnimDecoder.decodeRle(s, false));
-            var constT = reader.position(start + offset.constTRLEOffset()).readObject(s -> Md6AnimDecoder.decodeRle(s, false));
-            var constU = reader.position(start + offset.constURLEOffset()).readObject(s -> Md6AnimDecoder.decodeRle(s, false));
-
-            var animR = reader.position(start + offset.animRRLEOffset()).readObject(s -> Md6AnimDecoder.decodeRle(s, false));
-            var animS = reader.position(start + offset.animSRLEOffset()).readObject(s -> Md6AnimDecoder.decodeRle(s, false));
-            var animT = reader.position(start + offset.animTRLEOffset()).readObject(s -> Md6AnimDecoder.decodeRle(s, false));
-            var animU = reader.position(start + offset.animURLEOffset()).readObject(s -> Md6AnimDecoder.decodeRle(s, false));
-
-            animMaps.add(new Md6AnimMap(tableCRCs.get(i), constR, constS, constT, constU, animR, animS, animT, animU));
+        var animMaps = new ArrayList<Md6AnimMap>();
+        for (var offset : offsets) {
+            animMaps.add(Md6AnimMap.read(reader, start, offset, IdTechGame.ETERNAL));
         }
         return animMaps;
     }

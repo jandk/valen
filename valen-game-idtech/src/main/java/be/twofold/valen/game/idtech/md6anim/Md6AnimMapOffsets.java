@@ -1,4 +1,4 @@
-package be.twofold.valen.game.darkages.reader.anim;
+package be.twofold.valen.game.idtech.md6anim;
 
 import wtf.reversed.toolbox.io.*;
 
@@ -15,24 +15,24 @@ import java.io.*;
  * @param animURLEOffset  offset to RLE stream that specifies how many animated user channels there are and which target user channel indices they map to
  */
 public record Md6AnimMapOffsets(
-    short constRRLEOffset,
-    short constSRLEOffset,
-    short constTRLEOffset,
-    short constURLEOffset,
-    short animRRLEOffset,
-    short animSRLEOffset,
-    short animTRLEOffset,
-    short animURLEOffset
+    int constRRLEOffset,
+    int constSRLEOffset,
+    int constTRLEOffset,
+    int constURLEOffset,
+    int animRRLEOffset,
+    int animSRLEOffset,
+    int animTRLEOffset,
+    int animURLEOffset
 ) {
     public static Md6AnimMapOffsets read(BinaryReader reader) throws IOException {
-        var constRRLEOffset = reader.readShort();
-        var constSRLEOffset = reader.readShort();
-        var constTRLEOffset = reader.readShort();
-        var constURLEOffset = reader.readShort();
-        var animRRLEOffset = reader.readShort();
-        var animSRLEOffset = reader.readShort();
-        var animTRLEOffset = reader.readShort();
-        var animURLEOffset = reader.readShort();
+        var constRRLEOffset = reader.readUnsignedShort();
+        var constSRLEOffset = reader.readUnsignedShort();
+        var constTRLEOffset = reader.readUnsignedShort();
+        var constURLEOffset = reader.readUnsignedShort();
+        var animRRLEOffset = reader.readUnsignedShort();
+        var animSRLEOffset = reader.readUnsignedShort();
+        var animTRLEOffset = reader.readUnsignedShort();
+        var animURLEOffset = reader.readUnsignedShort();
 
         return new Md6AnimMapOffsets(
             constRRLEOffset,
