@@ -6,6 +6,7 @@ import be.twofold.valen.core.geometry.*;
 import be.twofold.valen.core.util.*;
 import be.twofold.valen.game.eternal.*;
 import be.twofold.valen.game.idtech.game.*;
+import be.twofold.valen.game.idtech.md6anim.*;
 import org.slf4j.*;
 import wtf.reversed.toolbox.collect.*;
 import wtf.reversed.toolbox.io.*;
@@ -62,6 +63,7 @@ public final class Md6AnimReader implements AssetReader.Binary<Animation, Eterna
         BiFunction<Integer, List<KeyFrame<T>>, Track<T>> constructor
     ) {
         return IntStream.range(0, boneIDs.length())
+            .filter(i -> boneIDs.get(i) != Md6AnimDecoder.MISSING)
             .mapToObj(i -> constructor.apply(boneIDs.get(i), List.of(new KeyFrame<>(0, values.get(i)))))
             .toList();
     }
@@ -93,6 +95,7 @@ public final class Md6AnimReader implements AssetReader.Binary<Animation, Eterna
         }
 
         return curves.entrySet().stream()
+            .filter(e -> e.getKey() != Md6AnimDecoder.MISSING)
             .map(e -> constructor.apply(e.getKey(), e.getValue()))
             .toList();
     }

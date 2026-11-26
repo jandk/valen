@@ -1,7 +1,7 @@
 package be.twofold.valen.game.eternal.reader.md6anim;
 
+import be.twofold.valen.game.idtech.md6anim.*;
 import org.slf4j.*;
-import wtf.reversed.toolbox.collect.*;
 import wtf.reversed.toolbox.io.*;
 import wtf.reversed.toolbox.math.*;
 
@@ -30,7 +30,7 @@ public record Md6Anim(
         }
 
         var animMap = animMaps.getFirst();
-        var constR = reader.position(start + data.constROffset()).readObjects(animMap.constR().length(), Md6Anim::decodeQuat);
+        var constR = reader.position(start + data.constROffset()).readObjects(animMap.constR().length(), Md6AnimDecoder::decodeQuat);
         var constS = reader.position(start + data.constSOffset()).readObjects(animMap.constS().length(), Vector3::read);
         var constT = reader.position(start + data.constTOffset()).readObjects(animMap.constT().length(), Vector3::read);
 
@@ -61,15 +61,15 @@ public record Md6Anim(
         for (var i = 0; i < numAnimMaps; i++) {
             var offset = offsets.get(i);
 
-            var constR = reader.position(start + offset.constRRLEOffset()).readObject(s -> decodeRLE(s, 0xff));
-            var constS = reader.position(start + offset.constSRLEOffset()).readObject(s -> decodeRLE(s, 0xff));
-            var constT = reader.position(start + offset.constTRLEOffset()).readObject(s -> decodeRLE(s, 0xff));
-            var constU = reader.position(start + offset.constURLEOffset()).readObject(s -> decodeRLE(s, 0xff));
+            var constR = reader.position(start + offset.constRRLEOffset()).readObject(s -> Md6AnimDecoder.decodeRle(s, false));
+            var constS = reader.position(start + offset.constSRLEOffset()).readObject(s -> Md6AnimDecoder.decodeRle(s, false));
+            var constT = reader.position(start + offset.constTRLEOffset()).readObject(s -> Md6AnimDecoder.decodeRle(s, false));
+            var constU = reader.position(start + offset.constURLEOffset()).readObject(s -> Md6AnimDecoder.decodeRle(s, false));
 
-            var animR = reader.position(start + offset.animRRLEOffset()).readObject(s -> decodeRLE(s, 0xff));
-            var animS = reader.position(start + offset.animSRLEOffset()).readObject(s -> decodeRLE(s, 0xff));
-            var animT = reader.position(start + offset.animTRLEOffset()).readObject(s -> decodeRLE(s, 0xff));
-            var animU = reader.position(start + offset.animURLEOffset()).readObject(s -> decodeRLE(s, 0xff));
+            var animR = reader.position(start + offset.animRRLEOffset()).readObject(s -> Md6AnimDecoder.decodeRle(s, false));
+            var animS = reader.position(start + offset.animSRLEOffset()).readObject(s -> Md6AnimDecoder.decodeRle(s, false));
+            var animT = reader.position(start + offset.animTRLEOffset()).readObject(s -> Md6AnimDecoder.decodeRle(s, false));
+            var animU = reader.position(start + offset.animURLEOffset()).readObject(s -> Md6AnimDecoder.decodeRle(s, false));
 
             animMaps.add(new Md6AnimMap(tableCRCs.get(i), constR, constS, constT, constU, animR, animS, animT, animU));
         }
@@ -79,16 +79,16 @@ public record Md6Anim(
     private static FrameSet readFrameSet(BinaryReader reader, int frameSetOffset, Md6AnimMap animMap) throws IOException {
         var animFrameSet = Md6AnimFrameSet.read(reader);
 
-        var firstR = reader.position(frameSetOffset + animFrameSet.firstROffset()).readObjects(animMap.animR().length(), Md6Anim::decodeQuat);
+        var firstR = reader.position(frameSetOffset + animFrameSet.firstROffset()).readObjects(animMap.animR().length(), Md6AnimDecoder::decodeQuat);
         var firstS = reader.position(frameSetOffset + animFrameSet.firstSOffset()).readObjects(animMap.animS().length(), Vector3::read);
         var firstT = reader.position(frameSetOffset + animFrameSet.firstTOffset()).readObjects(animMap.animT().length(), Vector3::read);
 
-        var bytesPerBone = (animFrameSet.frameRange() + 7) >> 3;
+        var bytesPerBone = Math.ceilDiv(animFrameSet.frameRange(), 8);
         var bitsR = reader.position(frameSetOffset + animFrameSet.RBitsOffset()).readObject(s -> new Bits(s.readBytes(bytesPerBone * animMap.animR().length())));
         var bitsS = reader.position(frameSetOffset + animFrameSet.SBitsOffset()).readObject(s -> new Bits(s.readBytes(bytesPerBone * animMap.animS().length())));
         var bitsT = reader.position(frameSetOffset + animFrameSet.TBitsOffset()).readObject(s -> new Bits(s.readBytes(bytesPerBone * animMap.animT().length())));
 
-        var rangeR = reader.position(frameSetOffset + animFrameSet.rangeROffset()).readObjects(bitsR.cardinality(), Md6Anim::decodeQuat);
+        var rangeR = reader.position(frameSetOffset + animFrameSet.rangeROffset()).readObjects(bitsR.cardinality(), Md6AnimDecoder::decodeQuat);
         var rangeS = reader.position(frameSetOffset + animFrameSet.rangeSOffset()).readObjects(bitsS.cardinality(), Vector3::read);
         var rangeT = reader.position(frameSetOffset + animFrameSet.rangeTOffset()).readObjects(bitsT.cardinality(), Vector3::read);
 
@@ -99,52 +99,5 @@ public record Md6Anim(
             rangeR, rangeS, rangeT,
             bitsR, bitsS, bitsT
         );
-    }
-
-    private static Quaternion decodeQuat(BinaryReader reader) throws IOException {
-        var x = reader.readShort();
-        var y = reader.readShort();
-        var z = reader.readShort();
-
-        var xBit = (x >>> 15) & 1;
-        var yBit = (y >>> 15) & 1;
-        var index = (yBit << 1 | xBit);
-
-        var a = Math.fma(x & 0x7fff, FloatMath.SQRT_2 / 0x7fff, -FloatMath.SQRT1_2);
-        var b = Math.fma(y & 0x7fff, FloatMath.SQRT_2 / 0x7fff, -FloatMath.SQRT1_2);
-        var c = Math.fma(z & 0x7fff, FloatMath.SQRT_2 / 0x7fff, -FloatMath.SQRT1_2);
-        var d = FloatMath.sqrt(1 - a * a - b * b - c * c);
-
-        return switch (index) {
-            case 0 -> new Quaternion(a, b, c, d);
-            case 1 -> new Quaternion(b, c, d, a);
-            case 2 -> new Quaternion(c, d, a, b);
-            case 3 -> new Quaternion(d, a, b, c);
-            default -> throw new UnsupportedOperationException();
-        };
-    }
-
-    static Ints decodeRLE(BinaryReader reader, int numJoints) throws IOException {
-        var size = reader.readUnsignedByte();
-        var length = Math.min(size, numJoints);
-
-        var result = Ints.Mutable.allocate(length);
-        for (var o = 0; o < length; ) {
-            int count = reader.readByte();
-            if ((count & 0x80) != 0) {
-                count &= 0x7F;
-                for (int i = o; i < o + count; i++) {
-                    result.set(i, numJoints);
-                }
-                o += count;
-                continue;
-            }
-
-            int value = reader.readUnsignedByte();
-            for (var i = 0; i < count; i++) {
-                result.set(o++, value + i);
-            }
-        }
-        return result;
     }
 }

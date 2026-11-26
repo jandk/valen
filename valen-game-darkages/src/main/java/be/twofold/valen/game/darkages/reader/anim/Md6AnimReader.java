@@ -7,6 +7,7 @@ import be.twofold.valen.core.util.*;
 import be.twofold.valen.game.darkages.*;
 import be.twofold.valen.game.darkages.reader.*;
 import be.twofold.valen.game.idtech.game.*;
+import be.twofold.valen.game.idtech.md6anim.*;
 import wtf.reversed.toolbox.collect.*;
 import wtf.reversed.toolbox.io.*;
 
@@ -86,17 +87,18 @@ public final class Md6AnimReader implements AssetReader.Binary<Animation, DarkAg
 
 
     private <T> List<Track<T>> mapConstant(
-        int[] boneIDs,
+        Ints boneIDs,
         List<T> values,
         BiFunction<Integer, List<KeyFrame<T>>, Track<T>> constructor
     ) {
-        return IntStream.range(0, boneIDs.length)
-            .mapToObj(i -> constructor.apply(boneIDs[i], List.of(new KeyFrame<>(0, values.get(i)))))
+        return IntStream.range(0, boneIDs.length())
+            .filter(i -> boneIDs.get(i) != Md6AnimDecoder.MISSING)
+            .mapToObj(i -> constructor.apply(boneIDs.get(i), List.of(new KeyFrame<>(0, values.get(i)))))
             .toList();
     }
 
     private <T> List<Track<T>> mapAnimated(
-        int[] animBoneIds,
+        Ints animBoneIds,
         List<FrameSet> frameSets,
         Function<FrameSet, Bytes> bitsMapper,
         Function<FrameSet, List<T>> firstMapper,
@@ -111,8 +113,8 @@ public final class Md6AnimReader implements AssetReader.Binary<Animation, DarkAg
             var range = rangeMapper.apply(frameSet);
             int bytesPerBone = frameSet.bytesPerBone();
 
-            for (int i = 0, vi = 0; i < animBoneIds.length; i++) {
-                var curve = curves.computeIfAbsent(animBoneIds[i], _ -> new ArrayList<>());
+            for (int i = 0, vi = 0; i < animBoneIds.length(); i++) {
+                var curve = curves.computeIfAbsent(animBoneIds.get(i), _ -> new ArrayList<>());
                 curve.add(new KeyFrame<>(frameSet.frameStart(), first.get(i)));
                 for (var frame = 0; frame < frameSet.frameRange(); frame++) {
                     if (checkFrameLE(bits, i, bytesPerBone, frame)) {
@@ -123,6 +125,7 @@ public final class Md6AnimReader implements AssetReader.Binary<Animation, DarkAg
         }
 
         return curves.entrySet().stream()
+            .filter(e -> e.getKey() != Md6AnimDecoder.MISSING)
             .map(e -> constructor.apply(e.getKey(), e.getValue()))
             .toList();
     }

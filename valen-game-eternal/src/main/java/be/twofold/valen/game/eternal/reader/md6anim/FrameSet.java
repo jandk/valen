@@ -18,7 +18,7 @@ public record FrameSet(
     Bits bitsT
 ) {
     public int bytesPerBone() {
-        return (frameRange + 7) >> 3;
+        return Math.ceilDiv(frameRange, 8);
     }
 
     public int frameEnd() {

@@ -7,6 +7,7 @@ module valen.game.idtech {
     exports be.twofold.valen.game.idtech.game;
     exports be.twofold.valen.game.idtech.geometry;
     exports be.twofold.valen.game.idtech.lexer;
+    exports be.twofold.valen.game.idtech.md6anim;
     exports be.twofold.valen.game.idtech.megatexture;
     exports be.twofold.valen.game.idtech.reader.decl.material2;
     exports be.twofold.valen.game.idtech.reader.decl.parser;
