@@ -1,6 +1,5 @@
-package be.twofold.valen.game.darkages.reader.anim;
+package be.twofold.valen.game.idtech.md6anim;
 
-import be.twofold.valen.game.idtech.md6anim.*;
 import wtf.reversed.toolbox.io.*;
 import wtf.reversed.toolbox.math.*;
 
@@ -24,11 +23,7 @@ public record FrameSet(
         return Math.ceilDiv(frameRange, 8);
     }
 
-    public static FrameSet read(BinaryReader reader, long frameSetOffset, Md6AnimMap map) throws IOException {
-        int rLength = map.animR().length();
-        int sLength = map.animS().length();
-        int tLength = map.animT().length();
-
+    public static FrameSet read(BinaryReader reader, long frameSetOffset, int rLength, int sLength, int tLength) throws IOException {
         var animFrameSet = reader.position(frameSetOffset).readObject(Md6AnimFrameSet::read);
         var firstR = reader.position(frameSetOffset + Short.toUnsignedInt(animFrameSet.firstROffset())).readObjects(rLength, Md6AnimDecoder::decodeQuat);
         var firstS = reader.position(frameSetOffset + Short.toUnsignedInt(animFrameSet.firstSOffset())).readObjects(sLength, Vector3::read);

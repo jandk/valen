@@ -40,7 +40,7 @@ public record Md6Anim(
         var frameSets = new ArrayList<FrameSet>();
         for (var i = 0; i < data.numFrameSets(); i++) {
             var frameSetOffset = start + frameSetOffsetTable.get(i) * 16;
-            var frameSet = reader.position(frameSetOffset).readObject(s -> readFrameSet(s, frameSetOffset, animMap));
+            var frameSet = FrameSet.read(reader, frameSetOffset, animMap.animR().length(), animMap.animS().length(), animMap.animT().length());
             frameSets.add(frameSet);
         }
 
@@ -74,29 +74,5 @@ public record Md6Anim(
             animMaps.add(new Md6AnimMap(tableCRCs.get(i), constR, constS, constT, constU, animR, animS, animT, animU));
         }
         return animMaps;
-    }
-
-    private static FrameSet readFrameSet(BinaryReader reader, int frameSetOffset, Md6AnimMap animMap) throws IOException {
-        var animFrameSet = Md6AnimFrameSet.read(reader);
-
-        var firstR = reader.position(frameSetOffset + animFrameSet.firstROffset()).readObjects(animMap.animR().length(), Md6AnimDecoder::decodeQuat);
-        var firstS = reader.position(frameSetOffset + animFrameSet.firstSOffset()).readObjects(animMap.animS().length(), Vector3::read);
-        var firstT = reader.position(frameSetOffset + animFrameSet.firstTOffset()).readObjects(animMap.animT().length(), Vector3::read);
-
-        var bitsR = reader.position(frameSetOffset + animFrameSet.RBitsOffset()).readObject(s -> Md6AnimDecoder.decodeBits(s, animMap.animR().length(), animFrameSet.frameRange()));
-        var bitsS = reader.position(frameSetOffset + animFrameSet.SBitsOffset()).readObject(s -> Md6AnimDecoder.decodeBits(s, animMap.animS().length(), animFrameSet.frameRange()));
-        var bitsT = reader.position(frameSetOffset + animFrameSet.TBitsOffset()).readObject(s -> Md6AnimDecoder.decodeBits(s, animMap.animT().length(), animFrameSet.frameRange()));
-
-        var rangeR = reader.position(frameSetOffset + animFrameSet.rangeROffset()).readObjects(bitsR.cardinality(), Md6AnimDecoder::decodeQuat);
-        var rangeS = reader.position(frameSetOffset + animFrameSet.rangeSOffset()).readObjects(bitsS.cardinality(), Vector3::read);
-        var rangeT = reader.position(frameSetOffset + animFrameSet.rangeTOffset()).readObjects(bitsT.cardinality(), Vector3::read);
-
-        return new FrameSet(
-            animFrameSet.frameStart(),
-            animFrameSet.frameRange(),
-            firstR, firstS, firstT,
-            rangeR, rangeS, rangeT,
-            bitsR, bitsS, bitsT
-        );
     }
 }

@@ -1,4 +1,4 @@
-package be.twofold.valen.game.darkages.reader.anim;
+package be.twofold.valen.game.idtech.md6anim;
 
 import wtf.reversed.toolbox.io.*;
 
@@ -69,9 +69,7 @@ public record Md6AnimFrameSet(
         var frameStart = reader.readShort();
         var frameRange = reader.readShort();
         var lodIndex = reader.readByte();
-        for (int i = 0; i < 9; i++) {
-            reader.expectByte((byte) 0);
-        }
+        reader.skip(9); // Not always 0
 
         return new Md6AnimFrameSet(
             firstROffset,

@@ -60,7 +60,7 @@ public final class Md6AnimReader implements AssetReader.Binary<Animation, DarkAg
         var frameSets = new ArrayList<FrameSet>();
         for (var i = 0; i < frameSetOffsetTable.length() - 1; i++) {
             var frameSetOffset = start + frameSetOffsetTable.get(i) * 16L;
-            var frameSet = reader.position(frameSetOffset).readObject(s -> FrameSet.read(s, frameSetOffset, animMap));
+            var frameSet = reader.position(frameSetOffset).readObject(s -> FrameSet.read(s, frameSetOffset, animMap.animR().length(), animMap.animS().length(), animMap.animT().length()));
             frameSets.add(frameSet);
         }
         return frameSets;
@@ -79,7 +79,7 @@ public final class Md6AnimReader implements AssetReader.Binary<Animation, DarkAg
             }
 
             var frameSetOffset = Short.toUnsignedInt(streamInfo.streamFrameSetOffsets().get(i));
-            var frameSet = FrameSet.read(sources[layoutIndex], frameSetOffset, animMap);
+            var frameSet = FrameSet.read(sources[layoutIndex], frameSetOffset, animMap.animR().length(), animMap.animS().length(), animMap.animT().length());
             frameSets.add(frameSet);
         }
         return frameSets;
