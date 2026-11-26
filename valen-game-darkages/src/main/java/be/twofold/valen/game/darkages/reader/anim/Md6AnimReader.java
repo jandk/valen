@@ -14,8 +14,6 @@ import wtf.reversed.toolbox.io.*;
 import java.io.*;
 import java.lang.invoke.*;
 import java.util.*;
-import java.util.function.*;
-import java.util.stream.*;
 
 public final class Md6AnimReader implements AssetReader.Binary<Animation, DarkAgesAsset> {
     @Override
@@ -37,13 +35,13 @@ public final class Md6AnimReader implements AssetReader.Binary<Animation, DarkAg
 
         var animMap = anim.map();
         var tracks = new ArrayList<Track<?>>();
-        tracks.addAll(mapConstant(animMap.constR(), anim.constR(), Track.Rotation::new));
-        tracks.addAll(mapConstant(animMap.constS(), anim.constS(), Track.Scale::new));
-        tracks.addAll(mapConstant(animMap.constT(), anim.constT(), Track.Translation::new));
+        tracks.addAll(Md6AnimTracks.mapConstant(animMap.constR(), anim.constR(), Track.Rotation::new));
+        tracks.addAll(Md6AnimTracks.mapConstant(animMap.constS(), anim.constS(), Track.Scale::new));
+        tracks.addAll(Md6AnimTracks.mapConstant(animMap.constT(), anim.constT(), Track.Translation::new));
 
-        tracks.addAll(mapAnimated(animMap.animR(), frameSets, FrameSet::bitsR, FrameSet::firstR, FrameSet::rangeR, Track.Rotation::new));
-        tracks.addAll(mapAnimated(animMap.animS(), frameSets, FrameSet::bitsS, FrameSet::firstS, FrameSet::rangeS, Track.Scale::new));
-        tracks.addAll(mapAnimated(animMap.animT(), frameSets, FrameSet::bitsT, FrameSet::firstT, FrameSet::rangeT, Track.Translation::new));
+        tracks.addAll(Md6AnimTracks.mapAnimated(animMap.animR(), frameSets, FrameSet::bitsR, FrameSet::firstR, FrameSet::rangeR, Track.Rotation::new));
+        tracks.addAll(Md6AnimTracks.mapAnimated(animMap.animS(), frameSets, FrameSet::bitsS, FrameSet::firstS, FrameSet::rangeS, Track.Scale::new));
+        tracks.addAll(Md6AnimTracks.mapAnimated(animMap.animT(), frameSets, FrameSet::bitsT, FrameSet::firstT, FrameSet::rangeT, Track.Translation::new));
         return new Animation(skeleton, anim.data().frameRate(), tracks);
     }
 
@@ -83,49 +81,5 @@ public final class Md6AnimReader implements AssetReader.Binary<Animation, DarkAg
             frameSets.add(frameSet);
         }
         return frameSets;
-    }
-
-
-    private <T> List<Track<T>> mapConstant(
-        Ints boneIDs,
-        List<T> values,
-        BiFunction<Integer, List<KeyFrame<T>>, Track<T>> constructor
-    ) {
-        return IntStream.range(0, boneIDs.length())
-            .filter(i -> boneIDs.get(i) != Md6AnimDecoder.MISSING)
-            .mapToObj(i -> constructor.apply(boneIDs.get(i), List.of(new KeyFrame<>(0, values.get(i)))))
-            .toList();
-    }
-
-    private <T> List<Track<T>> mapAnimated(
-        Ints animBoneIds,
-        List<FrameSet> frameSets,
-        Function<FrameSet, BitSet> bitsMapper,
-        Function<FrameSet, List<T>> firstMapper,
-        Function<FrameSet, List<T>> rangeMapper,
-        BiFunction<Integer, List<KeyFrame<T>>, Track<T>> constructor
-    ) {
-        var curves = new LinkedHashMap<Integer, List<KeyFrame<T>>>();
-
-        for (var frameSet : frameSets) {
-            var bits = bitsMapper.apply(frameSet);
-            var first = firstMapper.apply(frameSet);
-            var range = rangeMapper.apply(frameSet);
-
-            for (int i = 0, vi = 0; i < animBoneIds.length(); i++) {
-                var curve = curves.computeIfAbsent(animBoneIds.get(i), _ -> new ArrayList<>());
-                curve.add(new KeyFrame<>(frameSet.frameStart(), first.get(i)));
-                for (var frame = 0; frame < frameSet.frameRange(); frame++) {
-                    if (bits.get(i * frameSet.bytesPerBone() * 8 + frame)) {
-                        curve.add(new KeyFrame<>(frameSet.frameStart() + frame, range.get(vi++)));
-                    }
-                }
-            }
-        }
-
-        return curves.entrySet().stream()
-            .filter(e -> e.getKey() != Md6AnimDecoder.MISSING)
-            .map(e -> constructor.apply(e.getKey(), e.getValue()))
-            .toList();
     }
 }
