@@ -311,7 +311,7 @@ public abstract class AbstractMaterialReader<K extends IdclAssetID<?>, V extends
         if (opts.fullScaleBias()) {
             builder.append("$fullscalebias");
         }
-        if (parm.renderParm().flags().contains(RenderParm.Flags.STREAMED)) {
+        if (parm.renderParm().flags().contains(RenderParmFlags.STREAMED)) {
             builder.append("$streamed");
         }
         if (opts.noMips()) {

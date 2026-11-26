@@ -7,6 +7,7 @@ import be.twofold.valen.game.doom.readers.image.*;
 import be.twofold.valen.game.doom.readers.md6anim.*;
 import be.twofold.valen.game.doom.readers.md6model.*;
 import be.twofold.valen.game.doom.readers.md6skel.*;
+import be.twofold.valen.game.doom.readers.renderparm.*;
 import be.twofold.valen.game.doom.readers.staticmodel.*;
 import be.twofold.valen.game.doom.resources.*;
 import be.twofold.valen.game.doom.vmtr.*;
@@ -23,7 +24,8 @@ public final class DoomGame implements Game {
         ResourceType.of("model"), ResourceType.of("baseModel"),
         ResourceType.of("skeleton"),
         ResourceType.of("material"), ResourceType.of("decalatlas"), ResourceType.of("transsortatlas"),
-        ResourceType.of("anim")
+        ResourceType.of("anim"),
+        ResourceType.of("renderParm")
     );
 
     private static final List<AssetReader<?, DoomAsset>> READERS = List.of(
@@ -31,6 +33,7 @@ public final class DoomGame implements Game {
         new Md6AnimReader(),
         new Md6ModelReader(),
         new Md6SkelReader(),
+        new RenderParmReader(),
         new StaticModelReader()
     );
     public static final String SOUND_SOUNDBANKS_PC = "sound/soundbanks/pc";

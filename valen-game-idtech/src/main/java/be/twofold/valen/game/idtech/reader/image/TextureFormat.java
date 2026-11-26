@@ -3,6 +3,7 @@ package be.twofold.valen.game.idtech.reader.image;
 import java.util.*;
 
 public enum TextureFormat {
+    // DOOM Eternal
     FMT_NONE,
     FMT_RGBA32F,
     FMT_RGBA16F,
@@ -60,14 +61,14 @@ public enum TextureFormat {
     FMT_ASTC_8X8_SRGB,
     FMT_DEPTH32F,
 
-    // Great Circle
+    // Indiana Jones and the Great Circle
     FMT_RGBA8_SNORM,
     FMT_STENCIL,
     FMT_R9G9B9E5,
     FMT_RGBA32_UINT,
     FMT_RG32_UINT,
 
-    // Dark Ages
+    // DOOM: The Dark Ages
     FMT_SMALLF,
     FMT_MAINVIEW_SMALLF,
     FMT_RGBA16_UINT,
@@ -85,11 +86,14 @@ public enum TextureFormat {
             case "bc7" -> TextureFormat.FMT_BC7;
             case "float" -> TextureFormat.FMT_RGBA16F;
             case "hqcompress", "hqcompressnormal" -> TextureFormat.FMT_BC3;
+            case "intensity" -> TextureFormat.FMT_INT8_DEPRECATED; // DOOM (2016)
+            case "luminancealpha" -> TextureFormat.FMT_L8A8_DEPRECATED; // DOOM (2016)
             case "r8" -> TextureFormat.FMT_R8;
             case "rg16f" -> TextureFormat.FMT_RG16F;
             case "rg32f" -> TextureFormat.FMT_RG32F;
             case "rg8" -> TextureFormat.FMT_RG8;
             case "uncompressed" -> TextureFormat.FMT_RGBA8;
+            case "ycocgdxt5" -> TextureFormat.FMT_BC7; // DOOM (2016) uses BC3 with YCoCg colors
             default -> null;
         };
     }
