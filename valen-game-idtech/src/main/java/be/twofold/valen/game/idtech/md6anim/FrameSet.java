@@ -23,7 +23,11 @@ public record FrameSet(
         return Math.ceilDiv(frameRange, 8);
     }
 
-    public static FrameSet read(BinaryReader reader, long frameSetOffset, int rLength, int sLength, int tLength, boolean streamed) throws IOException {
+    public static FrameSet read(BinaryReader reader, long frameSetOffset, Md6AnimMap animMap, boolean streamed) throws IOException {
+        int rLength = animMap.animR().length();
+        int sLength = animMap.animS().length();
+        int tLength = animMap.animT().length();
+
         var animFrameSet = reader.position(frameSetOffset).readObject(Md6AnimFrameSet::read);
         var firstR = reader.position(frameSetOffset + Short.toUnsignedInt(animFrameSet.firstROffset())).readObjects(rLength, Md6AnimDecoder::decodeQuat);
         var firstS = reader.position(frameSetOffset + Short.toUnsignedInt(animFrameSet.firstSOffset())).readObjects(sLength, Vector3::read);
