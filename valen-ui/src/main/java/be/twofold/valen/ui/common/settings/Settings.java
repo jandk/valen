@@ -9,6 +9,7 @@ import java.util.*;
 public final class Settings {
     private static final Map<AssetType, String> DEFAULTS = Map.of(
         AssetType.ANIMATION, "animation.gltf",
+        AssetType.AUDIO, "audio.native",
         AssetType.MATERIAL, "material.gltf",
         AssetType.MODEL, "model.gltf",
         AssetType.TEXTURE, "texture.png",
@@ -23,6 +24,7 @@ public final class Settings {
     private Boolean reconstructZ = true;
     private Boolean treatAsRaw = false;
     private Path exportPath = Path.of("exported").toAbsolutePath();
+    private String pngCompression = "FASTEST";
 
     public Set<AssetType> getAssetTypes() {
         return copyOf(assetTypes);
@@ -47,6 +49,7 @@ public final class Settings {
         reconstructZ = Objects.requireNonNullElse(reconstructZ, defaults.reconstructZ);
         treatAsRaw = Objects.requireNonNullElse(treatAsRaw, defaults.treatAsRaw);
         exportPath = Objects.requireNonNullElse(exportPath, defaults.exportPath);
+        pngCompression = Objects.requireNonNullElse(pngCompression, defaults.pngCompression);
         migrate();
     }
 
@@ -93,6 +96,14 @@ public final class Settings {
 
     public void setExportPath(Path exportPath) {
         this.exportPath = Check.nonNull(exportPath, "exportPath");
+    }
+
+    public String getPngCompression() {
+        return pngCompression;
+    }
+
+    public void setPngCompression(String pngCompression) {
+        this.pngCompression = Check.nonNull(pngCompression, "pngCompression");
     }
 
     public String getExporter(AssetType type) {

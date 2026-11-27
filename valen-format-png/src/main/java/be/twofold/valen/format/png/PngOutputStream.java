@@ -27,18 +27,15 @@ public final class PngOutputStream implements Closeable {
     private final PngFilter filter;
 
     // IDAT
-    private final Deflater deflater = new Deflater(Deflater.BEST_SPEED);
+    private final Deflater deflater;
     private final byte[] idatBuffer = new byte[64 * 1024 - 12];
     private int idatLength = 0;
 
-    public PngOutputStream(OutputStream output, PngFormat format) {
-        this(output, format, null);
-    }
-
-    public PngOutputStream(OutputStream output, PngFormat format, String software) {
+    public PngOutputStream(OutputStream output, PngFormat format, PngCompression compression, String software) {
         this.output = Objects.requireNonNull(output, "output is null");
         this.format = Objects.requireNonNull(format, "format is null");
-        this.filter = new PngFilter(format);
+        this.filter = new PngFilter(format, compression.filterMethod());
+        this.deflater = new Deflater(compression.deflateLevel());
 
         try {
             output.write(Magic);
@@ -52,8 +49,8 @@ public final class PngOutputStream implements Closeable {
     }
 
     public void writeImage(byte[] image) throws IOException {
-        if (image.length != format.bytesPerImage()) {
-            throw new IllegalArgumentException("image has wrong size, expected " + format.bytesPerImage() + " but was " + image.length);
+        if (image.length < format.bytesPerImage()) {
+            throw new IllegalArgumentException("image has wrong size, expected at least " + format.bytesPerImage() + " but was " + image.length);
         }
 
         for (int y = 0; y < format.height(); y++) {

@@ -4,8 +4,6 @@ import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 import java.nio.file.*;
-import java.util.*;
-import java.util.stream.*;
 
 public interface Exporter<T> {
     String getID();
@@ -25,19 +23,5 @@ public interface Exporter<T> {
         try (var writer = BinaryWriter.open(path)) {
             export(value, writer);
         }
-    }
-
-    @SuppressWarnings("unchecked")
-    static <T> Stream<Exporter<T>> forType(Class<T> type) {
-        return ServiceLoader.load(Exporter.class).stream()
-            .map(ServiceLoader.Provider::get)
-            .filter(e -> e.getSupportedType().isAssignableFrom(type))
-            .map(e -> (Exporter<T>) e);
-    }
-
-    static <T> Exporter<T> forTypeAndId(Class<T> type, String id) {
-        return forType(type)
-            .filter(e -> e.getID().equals(id))
-            .findFirst().orElseThrow();
     }
 }

@@ -10,8 +10,6 @@ import java.nio.file.*;
 import java.util.*;
 
 public final class CastMaterialExporter extends CastExporter<Material> {
-    private final CastModelExporter modelExporter = new CastModelExporter();
-
     @Override
     public String getID() {
         return "material.cast";
@@ -30,6 +28,6 @@ public final class CastMaterialExporter extends CastExporter<Material> {
                 .build();
         var model = new Model(List.of(mesh), Axis.Y);
 
-        modelExporter.doExport(model, root, castPath, imagePath);
+        CastModelExporter.writeModel(model, root, castPath, imagePath);
     }
 }

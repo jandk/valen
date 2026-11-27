@@ -8,8 +8,6 @@ import java.io.*;
 import java.nio.file.*;
 
 public final class CastModelExporter extends CastExporter<Model> {
-    private final CastHairMapper hairMapper = new CastHairMapper();
-
     @Override
     public String getID() {
         return "model.cast";
@@ -22,14 +20,18 @@ public final class CastModelExporter extends CastExporter<Model> {
 
     @Override
     public void doExport(Model model, CastNodes.Root root, Path castPath, Path imagePath) throws IOException {
+        writeModel(model, root, castPath, imagePath);
+    }
+
+    static void writeModel(Model model, CastNodes.Root root, Path castPath, Path imagePath) throws IOException {
         root.getMetadatas().getFirst()
             .setUpAxis(mapUpAxis(model.upAxis()));
 
         CastNodes.Model modelNode = new CastModelMapper(castPath, imagePath).map(model, root);
-        model.hair().ifPresent(hair -> hairMapper.map(modelNode, hair));
+        model.hair().ifPresent(hair -> new CastHairMapper().map(modelNode, hair));
     }
 
-    private CastNodes.UpAxis mapUpAxis(Axis axis) {
+    private static CastNodes.UpAxis mapUpAxis(Axis axis) {
         return switch (axis) {
             case X -> CastNodes.UpAxis.X;
             case Y -> CastNodes.UpAxis.Y;

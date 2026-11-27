@@ -79,8 +79,6 @@ public final class ExportService {
             var type = settings.isTreatAsRaw() ? AssetType.RAW : asset.type();
 
             Exporter<T> exporter = findExporter(type);
-            exporter.setProperty("reconstructZ", settings.isReconstructZ());
-
             targetPath = findTargetPath(exporter, asset);
             if (Files.exists(targetPath)) {
                 return;
@@ -129,11 +127,17 @@ public final class ExportService {
 
     @SuppressWarnings("unchecked")
     private <T> Exporter<T> findExporter(AssetType type) {
+        Exporters.setProperties(Map.of(
+            "reconstructZ", settings.isReconstructZ(),
+            "texture.png.compression", settings.getPngCompression()
+        ));
+
         var exporterId = settings.getExporter(type);
-        var exporter = exporterId != null
-            ? Exporter.forTypeAndId(type.type(), exporterId)
-            : Exporter.forType(type.type()).findFirst().orElseThrow();
-        return (Exporter<T>) exporter;
+        if (exporterId == null) {
+            exporterId = Exporters.forType(type.type()).findFirst().orElseThrow().getID();
+            settings.setExporter(type, exporterId);
+        }
+        return (Exporter<T>) Exporters.forTypeAndId(type.type(), exporterId);
     }
 
     private Path findTargetPath(Exporter<?> exporter, Asset asset) {

@@ -18,10 +18,6 @@
         </dependency>
         <dependency>
             <groupId>be.twofold</groupId>
-            <artifactId>valen-export-png</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>be.twofold</groupId>
             <artifactId>valen-format-gltf</artifactId>
         </dependency>
 
@@ -31,6 +27,12 @@
             <artifactId>gson</artifactId>
         </dependency>
 
+        <!-- Testing -->
+        <dependency>
+            <groupId>be.twofold</groupId>
+            <artifactId>valen-export-png</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <!-- Testing -->

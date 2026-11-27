@@ -1,8 +1,8 @@
 package be.twofold.valen.export.gltf.mappers;
 
+import be.twofold.valen.core.export.*;
 import be.twofold.valen.core.material.*;
 import be.twofold.valen.core.texture.*;
-import be.twofold.valen.export.png.*;
 import be.twofold.valen.format.gltf.*;
 import be.twofold.valen.format.gltf.model.image.*;
 import be.twofold.valen.format.gltf.model.texture.*;
@@ -14,9 +14,8 @@ import java.util.*;
 import java.util.concurrent.*;
 
 public final class GltfTextureMapper {
-    private final PngExporter pngExporter = new PngExporter();
+    private final Exporter<Texture> pngExporter = Exporters.forTypeAndId(Texture.class, "texture.png");
     private final Map<String, TextureID> textures = new ConcurrentHashMap<>();
-
     private final GltfContext context;
 
     public GltfTextureMapper(GltfContext context) {
