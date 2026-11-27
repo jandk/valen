@@ -23,15 +23,15 @@ public record FrameSet(
         return Math.ceilDiv(frameRange, 8);
     }
 
-    public static FrameSet read(BinaryReader reader, long frameSetOffset, int rLength, int sLength, int tLength) throws IOException {
+    public static FrameSet read(BinaryReader reader, long frameSetOffset, int rLength, int sLength, int tLength, boolean streamed) throws IOException {
         var animFrameSet = reader.position(frameSetOffset).readObject(Md6AnimFrameSet::read);
         var firstR = reader.position(frameSetOffset + Short.toUnsignedInt(animFrameSet.firstROffset())).readObjects(rLength, Md6AnimDecoder::decodeQuat);
         var firstS = reader.position(frameSetOffset + Short.toUnsignedInt(animFrameSet.firstSOffset())).readObjects(sLength, Vector3::read);
         var firstT = reader.position(frameSetOffset + Short.toUnsignedInt(animFrameSet.firstTOffset())).readObjects(tLength, Vector3::read);
 
-        var bitsR = reader.position(frameSetOffset + Short.toUnsignedInt(animFrameSet.RBitsOffset())).readObject(s -> Md6AnimDecoder.decodeBits(s, rLength, animFrameSet.frameRange()));
-        var bitsS = reader.position(frameSetOffset + Short.toUnsignedInt(animFrameSet.SBitsOffset())).readObject(s -> Md6AnimDecoder.decodeBits(s, sLength, animFrameSet.frameRange()));
-        var bitsT = reader.position(frameSetOffset + Short.toUnsignedInt(animFrameSet.TBitsOffset())).readObject(s -> Md6AnimDecoder.decodeBits(s, tLength, animFrameSet.frameRange()));
+        var bitsR = reader.position(frameSetOffset + Short.toUnsignedInt(animFrameSet.RBitsOffset())).readObject(s -> Md6AnimDecoder.decodeBits(s, rLength, animFrameSet.frameRange(), streamed));
+        var bitsS = reader.position(frameSetOffset + Short.toUnsignedInt(animFrameSet.SBitsOffset())).readObject(s -> Md6AnimDecoder.decodeBits(s, sLength, animFrameSet.frameRange(), streamed));
+        var bitsT = reader.position(frameSetOffset + Short.toUnsignedInt(animFrameSet.TBitsOffset())).readObject(s -> Md6AnimDecoder.decodeBits(s, tLength, animFrameSet.frameRange(), streamed));
 
         var rangeR = reader.position(frameSetOffset + Short.toUnsignedInt(animFrameSet.rangeROffset())).readObjects(bitsR.cardinality(), Md6AnimDecoder::decodeQuat);
         var rangeS = reader.position(frameSetOffset + Short.toUnsignedInt(animFrameSet.rangeSOffset())).readObjects(bitsS.cardinality(), Vector3::read);

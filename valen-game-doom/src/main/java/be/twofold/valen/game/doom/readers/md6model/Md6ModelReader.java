@@ -4,6 +4,7 @@ import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.geometry.*;
 import be.twofold.valen.game.doom.*;
 import be.twofold.valen.game.idtech.game.*;
+import be.twofold.valen.game.idtech.geometry.*;
 import wtf.reversed.toolbox.collect.*;
 import wtf.reversed.toolbox.io.*;
 
@@ -12,6 +13,12 @@ import java.nio.*;
 import java.util.*;
 
 public final class Md6ModelReader implements AssetReader.Binary<Model, DoomAsset> {
+    private final boolean readMaterials;
+
+    public Md6ModelReader(boolean readMaterials) {
+        this.readMaterials = readMaterials;
+    }
+
     @Override
     public boolean canRead(DoomAsset asset) {
         return asset.id().type() == ResourceType.of("baseModel");
@@ -27,6 +34,10 @@ public final class Md6ModelReader implements AssetReader.Binary<Model, DoomAsset
         var meshes = model.meshes().stream()
             .map(mesh -> mesh.triangles().toMesh(true))
             .toList();
+
+        if (readMaterials) {
+            meshes = Materials.apply(context, meshes, model.meshes(), DoomAssetID::material, Md6Mesh::material, Md6Mesh::name);
+        }
 
         fixJointIndices(model, meshes);
 

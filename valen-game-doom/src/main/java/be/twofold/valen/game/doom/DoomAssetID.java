@@ -29,13 +29,13 @@ public record DoomAssetID(
         this(name, VMTR, Check.nonNull(layer, "layer"));
     }
 
+    public static AssetID material(String name) {
+        return new DoomAssetID(name, ResourceType.of("material"));
+    }
+
     @Override
     public String fullName() {
         return layer == null ? name : name + layer.suffix();
-    }
-
-    public boolean isVmtr() {
-        return layer != null;
     }
 
     public String hashedBaseName() {

@@ -20,7 +20,7 @@ public final class Md6AnimDecoder {
     /**
      * Decodes key frame bits. Bit {@code bone * bytesPerBone * 8 + frame} is set if the bone has a key.
      */
-    public static BitSet decodeBits(BinaryReader reader, int numBones, int frameRange) throws IOException {
+    public static BitSet decodeBits(BinaryReader reader, int numBones, int frameRange, boolean streamed) throws IOException {
         var bytesPerBone = Math.ceilDiv(frameRange, 8);
         var bytes = reader.readBytes(numBones * bytesPerBone).toArray();
 
@@ -28,7 +28,7 @@ public final class Md6AnimDecoder {
         for (var bone = 0; bone < numBones; bone++) {
             var start = bone * bytesPerBone;
             for (var i = 0; i < bytesPerBone; i++) {
-                var b = bytes[start + bytesPerBone - 1 - i];
+                var b = bytes[streamed ? start + bytesPerBone - i - 1 : start + i];
                 result[start + i] = (byte) (Integer.reverse(b) >>> 24);
             }
         }

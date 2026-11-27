@@ -33,10 +33,10 @@ public final class DoomGame implements Game {
         new ImageReader(),
         new Md6AnimReader(),
         new MaterialReader(),
-        new Md6ModelReader(),
+        new Md6ModelReader(true),
         new Md6SkelReader(),
         new RenderParmReader(),
-        new StaticModelReader()
+        new StaticModelReader(true)
     );
     public static final String SOUND_SOUNDBANKS_PC = "sound/soundbanks/pc";
 

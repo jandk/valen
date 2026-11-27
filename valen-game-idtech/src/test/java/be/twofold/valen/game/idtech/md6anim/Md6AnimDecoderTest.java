@@ -96,7 +96,7 @@ class Md6AnimDecoderTest {
     void testDecodeBits() throws IOException {
         var hex = "40 80 00 01";
 
-        var actual = Md6AnimDecoder.decodeBits(reader(hex), 2, 10);
+        var actual = Md6AnimDecoder.decodeBits(reader(hex), 2, 10, true);
         assertThat(actual.stream().toArray()).containsExactly(0, 9, 16 + 7);
     }
 

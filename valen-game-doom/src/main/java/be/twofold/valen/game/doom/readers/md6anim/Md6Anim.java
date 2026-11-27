@@ -47,7 +47,7 @@ public record Md6Anim(
         var frameSets = new ArrayList<FrameSet>();
         for (var i = 0; i < data.numFrameSets(); i++) {
             var frameSetOffset = start + Short.toUnsignedInt(frameSetOffsetTable.get(i)) * 16;
-            var frameSet = FrameSet.read(reader, frameSetOffset, animMap.animR().length(), animMap.animS().length(), animMap.animT().length());
+            var frameSet = FrameSet.read(reader, frameSetOffset, animMap.animR().length(), animMap.animS().length(), animMap.animT().length(), false);
             frameSets.add(frameSet);
         }
 

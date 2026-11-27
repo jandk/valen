@@ -15,7 +15,7 @@ class StaticModelReaderIT {
 
     @Test
     void testCanReadAll() throws IOException {
-        TestUtils.testReader(new StaticModelReader(), BROKEN);
+        TestUtils.testReader(new StaticModelReader(false), BROKEN);
     }
 
 }
