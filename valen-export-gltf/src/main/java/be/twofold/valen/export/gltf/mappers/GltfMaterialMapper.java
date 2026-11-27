@@ -86,11 +86,12 @@ public final class GltfMaterialMapper {
         MaterialProperty property,
         ImmutableMaterial.Builder builder
     ) throws IOException {
-        var emissiveFactor = new Vector4(property.factor().xyz(), 1.0f);
+        var factor = property.factor() != null ? property.factor() : Vector4.ONE;
+        var emissiveFactor = new Vector4(factor.xyz(), 1.0f);
         mapProperty(property.withFactor(emissiveFactor), builder::emissiveTexture,
             v -> builder.emissiveFactor(GltfUtils.mapVector3(v.xyz())));
 
-        var emissiveScale = property.factor().w();
+        var emissiveScale = factor.w();
         if (emissiveScale != 1.0f) {
             var emissiveStrengthSchema = ImmutableKHRMaterialsEmissiveStrength.builder()
                 .emissiveStrength(emissiveScale)
@@ -149,7 +150,7 @@ public final class GltfMaterialMapper {
     private Texture mapSmoothness(Texture texture) {
         var smoothness = ShaderNode.source();
         var decorated = texture.decorator().apply(smoothness);
-        var inverted = ShaderNode.scaleAndBias(decorated, -1.0f, 1.0f);
+        var inverted = ShaderNode.invert(decorated, Channel.RED);
         var metalRough = ShaderNode.merge(builder -> builder.channel(Channel.RED, inverted, Channel.GREEN));
 
         var surface = Shader

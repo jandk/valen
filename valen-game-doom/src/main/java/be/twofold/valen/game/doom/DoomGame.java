@@ -4,6 +4,7 @@ import be.twofold.valen.core.game.*;
 import be.twofold.valen.game.doom.megatexture.*;
 import be.twofold.valen.game.doom.megatexture.vmtr.*;
 import be.twofold.valen.game.doom.readers.image.*;
+import be.twofold.valen.game.doom.readers.material.*;
 import be.twofold.valen.game.doom.readers.md6anim.*;
 import be.twofold.valen.game.doom.readers.md6model.*;
 import be.twofold.valen.game.doom.readers.md6skel.*;
@@ -31,6 +32,7 @@ public final class DoomGame implements Game {
     private static final List<AssetReader<?, DoomAsset>> READERS = List.of(
         new ImageReader(),
         new Md6AnimReader(),
+        new MaterialReader(),
         new Md6ModelReader(),
         new Md6SkelReader(),
         new RenderParmReader(),

@@ -24,6 +24,7 @@ public sealed interface DoomAsset extends Asset {
             ResourceType.of("anim"), AssetType.ANIMATION,
             ResourceType.of("baseModel"), AssetType.MODEL,
             ResourceType.of("image"), AssetType.TEXTURE,
+            ResourceType.of("material"), AssetType.MATERIAL,
             ResourceType.of("model"), AssetType.MODEL
         );
 
@@ -40,6 +41,14 @@ public sealed interface DoomAsset extends Asset {
         @Override
         public Map<String, Object> properties() {
             return Map.of("Type", id.type());
+        }
+
+        @Override
+        public String exportName() {
+            if (id.type().equals(ResourceType.of("image"))) {
+                return id.hashedBaseName();
+            }
+            return id.path().baseName();
         }
 
         @Override
