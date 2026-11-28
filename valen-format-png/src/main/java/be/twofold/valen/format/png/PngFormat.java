@@ -41,4 +41,8 @@ public record PngFormat(
     public int bytesPerImage() {
         return bytesPerRow() * height;
     }
+
+    public PngFormat withColorType(PngColorType colorType) {
+        return new PngFormat(width, height, colorType, bitDepth, linear);
+    }
 }

@@ -8,6 +8,14 @@ import java.util.*;
 public interface Operation {
     void process(float[] src, float[] dst, int pixelCount);
 
+    static Operation fill(float value, Channel... channels) {
+        return new Fill(value, Set.of(channels));
+    }
+
+    static Operation invert(Channel... channels) {
+        return new Invert(Set.of(channels));
+    }
+
     static Operation reconstructZ() {
         return new ReconstructZ();
     }
@@ -18,5 +26,9 @@ public interface Operation {
 
     static Operation splat(Channel source, Channel... targets) {
         return new Splat(source, Set.of(targets));
+    }
+
+    static Operation yCoCgToRgb(float chromaBias, boolean scaled) {
+        return new YCoCgToRgb(chromaBias, scaled);
     }
 }

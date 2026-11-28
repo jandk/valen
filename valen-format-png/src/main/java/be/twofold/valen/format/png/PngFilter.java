@@ -1,76 +1,117 @@
 package be.twofold.valen.format.png;
 
 final class PngFilter {
-    private final PngFormat format;
+    private final int bpp;
+    private final int bpr;
+    private final PngFilterMethod method;
     private final byte[][] filtered;
-    // private final int[] filterCounts = new int[5];
     private byte[] previous;
     private byte[] current;
 
-    public PngFilter(PngFormat format) {
-        this.filtered = new byte[5][format.bytesPerPixel() + format.bytesPerRow()];
-        this.previous = new byte[format.bytesPerPixel() + format.bytesPerRow()];
-        this.current = new byte[format.bytesPerPixel() + format.bytesPerRow()];
-        this.format = format;
+    public PngFilter(PngFormat format, PngFilterMethod method) {
+        this.bpp = format.bytesPerPixel();
+        this.bpr = format.bytesPerRow();
+        this.filtered = new byte[5][bpp + bpr];
+        this.previous = new byte[bpp + bpr];
+        this.current = new byte[bpp + bpr];
+        this.method = method;
     }
 
     public int filter(byte[] row, int offset) {
-        int bpp = format.bytesPerPixel();
-        int bpr = format.bytesPerRow();
-
         System.arraycopy(row, offset, current, bpp, bpr);
-        int best = filter(null, current, previous, filtered, bpp, bpr);
+
+        int filter = switch (method) {
+            case NONE -> {
+                System.arraycopy(current, bpp, filtered[0], bpp, bpr);
+                yield 0;
+            }
+            case UP -> {
+                filterUp();
+                yield 2;
+            }
+            case ADAPTIVE -> {
+                filterSub();
+                filterUp();
+                filterAvg();
+                filterPaeth();
+                yield bestSad();
+            }
+        };
 
         byte[] temp = previous;
         previous = current;
         current = temp;
-        return best;
+        return filter;
     }
 
     public byte[] filtered(int filter) {
         return filtered[filter];
     }
 
-    private static int filter(PngColorType colorType, byte[] curr, byte[] prev, byte[][] scratch, int bpp, int bpr) {
-        // if (colorType == PngColorType.Palette) {
-        //     System.arraycopy(curr, bytesPerPixel, scratch[0], bytesPerPixel, bytesPerRow);
-        //     return 0;
-        // }
-
-        byte[] sRow = scratch[1];
-        byte[] uRow = scratch[2];
-        byte[] aRow = scratch[3];
-        byte[] pRow = scratch[4];
-        int sadN = 0, sadS = 0, sadU = 0, sadA = 0, sadP = 0;
-        for (int i = bpp; i < bpp + bpr; i++) {
-            int x = Byte.toUnsignedInt(curr[i]);
-            int a = Byte.toUnsignedInt(curr[i - bpp]);
-            int b = Byte.toUnsignedInt(prev[i]);
-            int c = Byte.toUnsignedInt(prev[i - bpp]);
-
-            sadN += Math.abs(curr[i]);
-            sadS += Math.abs(sRow[i] = (byte) (x - a));
-            sadU += Math.abs(uRow[i] = (byte) (x - b));
-            sadA += Math.abs(aRow[i] = (byte) (x - ((a + b) >>> 1)));
-            sadP += Math.abs(pRow[i] = (byte) (x - paeth(a, b, c)));
-        }
-
-        int[] sad = {sadN, sadS, sadU, sadA, sadP};
+    private int bestSad() {
         int filter = 0;
-        int minSad = sad[0];
+        int minSad = Integer.MAX_VALUE;
         for (int i = 1; i < 5; i++) {
-            if (sad[i] < minSad) {
-                filter = i;
-                minSad = sad[i];
+            int sad = 0;
+            byte[] row = filtered[i];
+            for (int j = bpp, lim = bpp + bpr; j < lim; j++) {
+                sad += Math.abs(row[j]);
             }
-        }
-        if (filter == 0) {
-            System.arraycopy(curr, bpp, scratch[0], bpp, bpr);
+            if (sad < minSad) {
+                filter = i;
+                minSad = sad;
+            }
         }
         return filter;
     }
 
-    private static int paeth(int a, int b, int c) {
+    private void filterSub() {
+        byte[] curr = current;
+        byte[] row = filtered[1];
+        for (int i = bpp, lim = bpp + bpr; i < lim; i++) {
+            int x = Byte.toUnsignedInt(curr[i]);
+            int a = Byte.toUnsignedInt(curr[i - bpp]);
+            row[i] = (byte) (x - a);
+        }
+    }
+
+    private void filterUp() {
+        byte[] curr = current;
+        byte[] prev = previous;
+        byte[] row = filtered[2];
+        for (int i = bpp, lim = bpp + bpr; i < lim; i++) {
+            int x = Byte.toUnsignedInt(curr[i]);
+            int b = Byte.toUnsignedInt(prev[i]);
+            row[i] = (byte) (x - b);
+        }
+    }
+
+    private void filterAvg() {
+        byte[] curr = current;
+        byte[] prev = previous;
+        byte[] row = filtered[3];
+        for (int i = bpp, lim = bpp + bpr; i < lim; i++) {
+            int x = Byte.toUnsignedInt(curr[i]);
+            int a = Byte.toUnsignedInt(curr[i - bpp]);
+            int b = Byte.toUnsignedInt(prev[i]);
+            row[i] = (byte) (x - ((a + b) >>> 1));
+        }
+    }
+
+    private void filterPaeth() {
+        byte[] curr = current;
+        byte[] prev = previous;
+        byte[] row = filtered[4];
+        for (int i = bpp, lim = bpp + bpr; i < lim; i++) {
+            int x = Byte.toUnsignedInt(curr[i]);
+            int a = Byte.toUnsignedInt(curr[i - bpp]);
+            int b = Byte.toUnsignedInt(prev[i]);
+            int c = Byte.toUnsignedInt(prev[i - bpp]);
+            row[i] = (byte) (x - paeth(a, b, c));
+        }
+    }
+
+    private int paeth(int a, int b, int c) {
         var thresh = c * 3 - (a + b);
         var lo = Math.min(a, b);
         var hi = Math.max(a, b);

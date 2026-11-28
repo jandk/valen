@@ -87,7 +87,7 @@ public record ImageHeader(
             case +3 -> TextureFormat.FMT_RGBA8;
             case +4 -> TextureFormat.FMT_ARGB8;
             case +5 -> TextureFormat.FMT_ALPHA;
-            case +6 -> TextureFormat.FMT_L8A8_DEPRECATED;
+            case +6 -> TextureFormat.FMT_L8A8;
             case +7 -> TextureFormat.FMT_RG8;
             case +8 -> TextureFormat.FMT_LUM8_DEPRECATED;
             case +9 -> TextureFormat.FMT_INT8_DEPRECATED;

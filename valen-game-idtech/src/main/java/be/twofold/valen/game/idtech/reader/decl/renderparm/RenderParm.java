@@ -15,29 +15,29 @@ public record RenderParm(
     ParmScope parmScope,
     MaterialKind materialKind,
     String smoothnessNormalParm,
-    Set<Flags> flags
+    Set<RenderParmFlags> flags
 ) {
     public RenderParm {
         Check.nonNull(parmType, "parmType");
-        var flagsCopy = EnumSet.noneOf(Flags.class);
+        var flagsCopy = EnumSet.noneOf(RenderParmFlags.class);
         flagsCopy.addAll(flags);
         flags = Collections.unmodifiableSet(flagsCopy);
     }
 
     public static RenderParm parse(IdLexer lexer, Function<String, Optional<? extends MaterialKind>> materialKindParser) {
         lexer.expectPunctuation(LexerPunctuation.P_BRACEOPEN);
-        var flags = EnumSet.noneOf(Flags.class);
+        var flags = EnumSet.noneOf(RenderParmFlags.class);
         var typeName = lexer.expectName().value();
 
         var parmType = ParmType.parse(typeName);
         if (typeName.equalsIgnoreCase("environment")) {
-            flags.add(Flags.CUBE_FILTER_TEXTURE);
+            flags.add(RenderParmFlags.CUBE_FILTER_TEXTURE);
         }
 
         var declaredValue = parseValue(lexer, parmType);
         if (declaredValue instanceof ImageProperties imageProperties
             && imageProperties.flags().contains(ImageProperties.Flags.STREAMED)) {
-            flags.add(Flags.STREAMED);
+            flags.add(RenderParmFlags.STREAMED);
         }
 
         ParmEdit parmEdit = null;
@@ -58,11 +58,11 @@ public record RenderParm(
                 continue;
             }
 
-            var flag = parseFlag(lexer);
+            var flag = RenderParmFlags.parse(lexer);
             if (flag != null) {
                 flags.add(flag);
-                if (flag == Flags.STREAMED) {
-                    flags.add(Flags.GLOBALLY_INDEXED);
+                if (flag == RenderParmFlags.STREAMED) {
+                    flags.add(RenderParmFlags.GLOBALLY_INDEXED);
                 }
                 continue;
             }
@@ -87,7 +87,11 @@ public record RenderParm(
                     }
                     continue;
                 }
-                case "cvar", "coherent" -> {
+                case "type" -> {
+                    lexer.expectName();
+                    continue;
+                }
+                case "cvar", "coherent", "internal", "early_fragment_tests" -> {
                     // ignore
                     continue;
                 }
@@ -123,6 +127,9 @@ public record RenderParm(
             case PT_TEXTURE_ARRAY_CUBE:
             case PT_TEXTURE_MULTISAMPLE_2D:
             case PT_TEXTURE_STENCIL:
+            case PT_TEXTURE_SHADOW_2D:
+            case PT_TEXTURE_SHADOW_3D:
+            case PT_TEXTURE_SHADOW_CUBE:
                 return ImageProperties.parse(lexer);
             case PT_SAMPLER:
             case PT_SAMPLER_SHADOW_2D:
@@ -189,32 +196,19 @@ public record RenderParm(
         };
         if (parmEdit != null && !(parmEdit instanceof ParmEdit.Range)) {
             lexer.expectName();
+            // DOOM (2016) does this
+            if (lexer.checkPunctuation(LexerPunctuation.P_BRACEOPEN)) {
+                while (!lexer.checkPunctuation(LexerPunctuation.P_BRACECLOSE)) {
+                    lexer.expectAnyToken();
+                }
+            }
         }
         return parmEdit;
     }
 
-    private static String peekValue(IdLexer lexer) {
+    static String peekValue(IdLexer lexer) {
         var token = lexer.peekToken();
         return token != null ? token.value() : "";
-    }
-
-    private static Flags parseFlag(IdLexer lexer) {
-        var flag = switch (peekValue(lexer).toLowerCase(Locale.ROOT)) {
-            case "divergent" -> Flags.DIVERGENT;
-            case "env_nointerp" -> Flags.ENV_NO_INTERPOLATION;
-            case "fftbloom" -> Flags.FFT_BLOOM;
-            case "globallyindexed" -> Flags.GLOBALLY_INDEXED;
-            case "material", "edit" -> Flags.EDITABLE;
-            case "materialfeedback" -> Flags.MATERIAL_FEEDBACK;
-            case "prefiltermips" -> Flags.PREFILTER_MIPS;
-            case "sfsfeedback" -> Flags.SFS_FEEDBACK;
-            case "streamed" -> Flags.STREAMED;
-            default -> null;
-        };
-        if (flag != null) {
-            lexer.expectName();
-        }
-        return flag;
     }
 
     private static Vector4 readVector4(IdLexer lexer) {
@@ -298,18 +292,5 @@ public record RenderParm(
             }
         }
         return values;
-    }
-
-    public enum Flags {
-        CUBE_FILTER_TEXTURE,
-        DIVERGENT,
-        EDITABLE,
-        ENV_NO_INTERPOLATION,
-        FFT_BLOOM,
-        GLOBALLY_INDEXED,
-        MATERIAL_FEEDBACK,
-        PREFILTER_MIPS,
-        SFS_FEEDBACK,
-        STREAMED,
     }
 }

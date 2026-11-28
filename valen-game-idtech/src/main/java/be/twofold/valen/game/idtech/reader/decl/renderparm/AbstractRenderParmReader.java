@@ -1,7 +1,6 @@
 package be.twofold.valen.game.idtech.reader.decl.renderparm;
 
 import be.twofold.valen.core.game.*;
-import be.twofold.valen.game.idtech.game.*;
 import be.twofold.valen.game.idtech.lexer.*;
 import be.twofold.valen.game.idtech.reader.image.*;
 import wtf.reversed.toolbox.io.*;
@@ -11,7 +10,7 @@ import java.io.*;
 import java.util.*;
 import java.util.function.*;
 
-public abstract class AbstractRenderParmReader<V extends IdclAsset<?>> implements AssetReader.Binary<RenderParm, V> {
+public abstract class AbstractRenderParmReader<V extends Asset> implements AssetReader.Binary<RenderParm, V> {
     private final Function<String, Optional<? extends MaterialKind>> materialKindParser;
 
     protected AbstractRenderParmReader(Function<String, Optional<? extends MaterialKind>> materialKindParser) {

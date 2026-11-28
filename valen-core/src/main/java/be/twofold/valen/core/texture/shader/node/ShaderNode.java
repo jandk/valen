@@ -37,12 +37,24 @@ public sealed interface ShaderNode permits MergeNode, OperationNode, SourceNode 
         return node -> scaleAndBias(node, scale, bias);
     }
 
+    static ShaderNode fill(ShaderNode input, float value, Channel... channels) {
+        return new OperationNode(input, Operation.fill(value, channels));
+    }
+
+    static ShaderNode invert(ShaderNode input, Channel... channels) {
+        return new OperationNode(input, Operation.invert(channels));
+    }
+
     static ShaderNode reconstructZ(ShaderNode input) {
         return new OperationNode(input, Operation.reconstructZ());
     }
 
     static ShaderNode splat(ShaderNode input, Channel source, Channel... targets) {
         return new OperationNode(input, Operation.splat(source, targets));
+    }
+
+    static ShaderNode yCoCgToRgb(ShaderNode input, float chromaBias, boolean scaled) {
+        return new OperationNode(input, Operation.yCoCgToRgb(chromaBias, scaled));
     }
 
 }

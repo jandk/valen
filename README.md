@@ -24,20 +24,20 @@ Right now, most of what is needed for general game support is available.
 * Bulk export functionality
 * Abstractions for textures, models, materials, skeletons, animations, scenes, audio...
 * Exporting to several different formats
-    * Textures: DDS (including all mipmaps) and PNG (with "blue" normals)
-  * Models: GLTF, either split or in a single GLB file, or CAST
-  * Materials: GLTF, applied to a UV sphere, or CAST
+    * Textures: DDS (including all mipmaps) and PNG (with "blue" normals, and a selectable compression level)
+    * Models: GLTF, either split or in a single GLB file, or CAST
+    * Materials: GLTF, applied to a UV sphere, or CAST
         * Currently support for Albedo, Normal, Specular, Smoothness, and Emissive
         * Either by using maps or factors (or both)
-    * Skeletons: GLTF nodes, and automatically exported when the model is animated
-  * Animations: GLTF or CAST, exported separately, including the skeleton so they can be merged in Blender
-  * Audio: WAV, or the native format (Ogg Vorbis, Ogg Opus) when it can be extracted without re-encoding
-      * Wwise IMA ADPCM and PTADPCM are decoded
-    * Raw files: Exported as is
+        * Skeletons: GLTF nodes, and automatically exported when the model is animated
+    * Animations: GLTF or CAST, exported separately, including the skeleton so they can be merged in Blender
+    * Audio: WAV, or the native format (Ogg Vorbis, Ogg Opus) when it can be extracted without re-encoding
+        * Wwise IMA ADPCM and PTADPCM are decoded
+        * Raw files: Exported as is
 * Previews, shown side by side as Preview, Metadata and Raw tabs
     * Textures: Channel selection, mip and slice selection, with auto-detection of non-premultiplied alpha
     * Models: 3d preview with albedo applied
-    * Audio: Waveform view with playback, only for (AD)PCM for now
+    * Audio: Waveform view with playback, for (AD)PCM, Vorbis and Opus
     * Metadata: Asset metadata as a tree
     * Raw files: Binary as hex, auto-analyzed to text, with support for huge files
 
@@ -83,7 +83,8 @@ the formats of every supported game. I believe this information should be public
 take advantage of, or general tinkering...
 
 The goal is to document the file formats that are used in the games and provide a way to read them. Meanwhile, I've
-written templates for all formats, so you can do with this information whatever you want.
+written [010 Editor templates](https://github.com/jandk/010-templates) for all formats, so you can do with this
+information whatever you want.
 
 Full compatibility is pretty much guaranteed. If it can read a file, I mean all files of that type. With no exceptions.
 If there are any, those are bugs.
@@ -94,6 +95,7 @@ For now a bit terse, but you have to start somewhere
 
 | Game                               | Textures | Materials | Models | Skeletons | Animations | Hair | Audio |
 |------------------------------------|:--------:|:---------:|:------:|:---------:|:----------:|:----:|:-----:|
+| DOOM (2016)                        |    ✅    |    ✅     |   ✅   |    ✅     |     ✅     |  ➖  |  ✅   |
 | DOOM Eternal                       |    ✅    |    ✅     |   ✅   |    ✅     |     ✅     |  ➖  |  ✅   |
 | Indiana Jones and the Great Circle |    ✅    |    ✅     | 🟡 3/4 |    ✅     |     ❌     |  ✅  |  ❌   |
 | DOOM: The Dark Ages                |    ✅    |    ✅     |   ✅   |    ✅     |     ✅     |  ✅  |  ✅   |
@@ -111,16 +113,16 @@ For now a bit terse, but you have to start somewhere
 Having a bad habit of not being satisfied with existing libraries, and for some functionality, there's even a complete
 absence of any existing libraries, so there are a few custom implementations in here.
 
-* BCn decoder — currently spun off in a separate project [TinyBCDec](https://github.com/jandk/tinybcdec/)
-* PNG exporter — the Java built-in still has the adaptive filtering bug for non-paletted images...
+* [reversed-toolbox](https://github.com/reversed-wtf/reversed-toolbox): Buffers, binary IO, hashing and compression.
+  Developed together with [@ShadelessFox](https://github.com/ShadelessFox), built here under `lib/`
+* [tinyaudio](https://github.com/jandk/tinyaudio): Vorbis and Opus decoders in pure Java, so audio can be previewed and
+  converted to WAV. Built here under `lib/`
+* [tinybcdec](https://github.com/jandk/tinybcdec): BCn decoder, spun off into its own project
+* [tinycast](https://github.com/jandk/tinycast): CAST exporter. There wasn't any available for Java yet, so I made one
+* PNG exporter: the Java built-in still has the adaptive filtering bug for non-paletted images...
     * That, and it's written in Java itself, so there's no loss here, and I have more control
-* GLTF exporter — Unlike dotnet, there's only a very confusing library available for GLTF the last time I checked,
+* GLTF exporter: Unlike dotnet, there's only a very confusing library available for GLTF the last time I checked,
   needs to be spun off into its own project as well
-* CAST exporter — There wasn't any available for Java yet, so I made one, since spun off into
-  [tinycast](https://github.com/jandk/tinycast).
-* reversed-toolbox — Buffers, binary IO, hashing and compression, built here under `lib/`. Developed together with
-  ([@ShadelessFox](https://github.com/ShadelessFox)), and lives at
-  [reversed-toolbox](https://github.com/reversed-wtf/reversed-toolbox)
 * There are some others planned...
 
 ## Todo
@@ -128,17 +130,16 @@ absence of any existing libraries, so there are a few custom implementations in 
 So. Much. Todo...
 
 * World export. The code is there, but the export itself is still lacking
-* Improve the exporter — It needs work, but it's _good enough_ for now
+* Metallic and roughness factors in the GLTF material export
 * Support more games, obviously
 * EXR support for textures, because PNG is not enough for half/float textures
 * Eventually a proper OpenGL renderer (for animations!)
 * Nearest neighbor filtering for texture viewer
-* Generic JSON-like data structure, more as a helping hand. And a little UI for it as well.
 
 ## Credits
 
 * SamPT ([@brongo](https://github.com/brongo/)) - He did most of the leg work, and inspired me to dig in
 * Shadeless ([@ShadelessFox](https://github.com/ShadelessFox)) and RED_EYE ([@REDxEYE](https://github.com/REDxEYE)) as
   my partners in crime haha
-* [Doom Eternal Modding Discord](https://discord.gg/6yvZs2U) - For being a great community.
-* XeNTaX Discord - For being a bunch of like-minded crazies
+* [Doom 2016+ Modding Discord](https://discord.gg/fuvAdZrng) - For being a great community.
+* XeNTaX Discord - Unfortunately closed, but it was awesome while it lasted.

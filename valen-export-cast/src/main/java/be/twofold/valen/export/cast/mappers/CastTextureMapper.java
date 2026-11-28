@@ -13,7 +13,7 @@ import java.util.*;
 import java.util.concurrent.*;
 
 public final class CastTextureMapper {
-    private final Exporter<Texture> pngExporter = Exporter.forTypeAndId(Texture.class, "texture.png");
+    private final Exporter<Texture> pngExporter = Exporters.forTypeAndId(Texture.class, "texture.png");
     private final Map<String, Long> textures = new ConcurrentHashMap<>();
     private final Path castPath;
     private final Path imagePath;

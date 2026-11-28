@@ -1,5 +1,7 @@
 package be.twofold.valen.game.darkages.reader.anim;
 
+import be.twofold.valen.game.idtech.game.*;
+import be.twofold.valen.game.idtech.md6anim.*;
 import wtf.reversed.toolbox.collect.*;
 import wtf.reversed.toolbox.io.*;
 import wtf.reversed.toolbox.math.*;
@@ -22,11 +24,11 @@ public record Md6Anim(
         var header = Md6AnimHeader.read(reader);
         var start = reader.position();
         var animData = Md6AnimData.read(reader);
-        var animMap = Md6AnimMap.read(reader);
+        var animMap = readAnimMaps(reader);
 
-        var constR = reader.position(start + animData.constROffset()).readObjects(animMap.constR().length, Md6Anim::decodeQuat);
-        var constS = reader.position(start + animData.constSOffset()).readObjects(animMap.constS().length, Vector3::read);
-        var constT = reader.position(start + animData.constTOffset()).readObjects(animMap.constT().length, Vector3::read);
+        var constR = reader.position(start + animData.constROffset()).readObjects(animMap.constR().length(), Md6AnimDecoder::decodeQuat);
+        var constS = reader.position(start + animData.constSOffset()).readObjects(animMap.constS().length(), Vector3::read);
+        var constT = reader.position(start + animData.constTOffset()).readObjects(animMap.constT().length(), Vector3::read);
 
         // TODO: Figure out what index 1 does
         var frameSetTable0 = reader.position(start + animData.frameSetTblOffset().get(0)).readBytes(animData.numFrames());
@@ -50,26 +52,10 @@ public record Md6Anim(
         );
     }
 
-    static Quaternion decodeQuat(BinaryReader reader) throws IOException {
-        var x = reader.readShort();
-        var y = reader.readShort();
-        var z = reader.readShort();
-
-        var xBit = (x >>> 15) & 1;
-        var yBit = (y >>> 15) & 1;
-        var index = (yBit << 1 | xBit);
-
-        var a = Math.fma(x & 0x7FFF, FloatMath.SQRT_2 / 0x8000, -FloatMath.SQRT1_2);
-        var b = Math.fma(y & 0x7FFF, FloatMath.SQRT_2 / 0x8000, -FloatMath.SQRT1_2);
-        var c = Math.fma(z & 0x7FFF, FloatMath.SQRT_2 / 0x8000, -FloatMath.SQRT1_2);
-        var d = FloatMath.sqrt(1 - a * a - b * b - c * c);
-
-        return switch (index) {
-            case 0 -> new Quaternion(a, b, c, d);
-            case 1 -> new Quaternion(b, c, d, a);
-            case 2 -> new Quaternion(c, d, a, b);
-            case 3 -> new Quaternion(d, a, b, c);
-            default -> throw new UnsupportedOperationException();
-        };
+    private static Md6AnimMap readAnimMaps(BinaryReader reader) throws IOException {
+        var start = Math.toIntExact(reader.position());
+        reader.expectByte((byte) 0); // Empty animMaps_t, there's only one map
+        var offsets = Md6AnimMapOffsets.read(reader);
+        return Md6AnimMap.read(reader, start, offsets, IdTechGame.DARK_AGES);
     }
 }

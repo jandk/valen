@@ -55,11 +55,24 @@ public final class SettingsPresenter extends AbstractPresenter<SettingsView> imp
                 "Reconstruct the blue channel from the red and green channels of the texture",
                 settings::isReconstructZ,
                 settings::setReconstructZ
-            )
+            ),
+            new SettingDescriptor<>(
+                SettingGroup.TEXTURES,
+                SettingType.MULTI_SINGLE,
+                "PNG Compression",
+                "Faster exports make bigger files, Balanced and Best are much slower",
+                settings::getPngCompression,
+                settings::setPngCompression
+            ).withOptions(List.of(
+                Map.entry("FASTEST", "Fastest"),
+                Map.entry("FAST", "Fast"),
+                Map.entry("BALANCED", "Balanced"),
+                Map.entry("BEST", "Best")
+            ), Map.Entry::getValue)
         ));
 
         for (var type : AssetType.values()) {
-            var options = Exporter.forType(type.type())
+            var options = Exporters.forType(type.type())
                 .map(e -> Map.entry(e.getID(), e.getName()))
                 .sorted(Map.Entry.comparingByKey())
                 .toList();

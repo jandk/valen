@@ -9,6 +9,8 @@ import wtf.reversed.toolbox.io.*;
 import java.io.*;
 
 public final class PngExporter extends TextureExporter {
+    private PngCompression compression = PngCompression.FASTEST;
+
     public PngExporter() {
         super(false);
     }
@@ -31,6 +33,18 @@ public final class PngExporter extends TextureExporter {
     @Override
     public Class<Texture> getSupportedType() {
         return Texture.class;
+    }
+
+    @Override
+    public void setProperty(String key, Object value) {
+        if (key.equals("texture.png.compression")) {
+            try {
+                this.compression = PngCompression.valueOf((String) value);
+            } catch (Exception e) {
+                // do nothing
+            }
+        }
+        super.setProperty(key, value);
     }
 
     @Override
@@ -89,7 +103,8 @@ public final class PngExporter extends TextureExporter {
             }
         }
 
-        try (var out = new PngOutputStream(writer.asOutputStream(), format, Valen.software())) {
+        format = PngOptimizer.optimize(data, format);
+        try (var out = new PngOutputStream(writer.asOutputStream(), format, compression, Valen.software())) {
             out.writeImage(data);
         }
     }
