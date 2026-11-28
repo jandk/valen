@@ -98,7 +98,7 @@ public final class DdsExporter extends TextureExporter {
         return switch (format) {
             case R8_UNORM,
                  R8_SRGB -> DxgiFormat.R8_UNORM;
-            case R8G8_UNORM -> DxgiFormat.R8G8_UNORM;
+            case R8G8_UNORM, L8A8_UNORM -> DxgiFormat.R8G8_UNORM;
             case R8G8B8_UNORM,
                  R8G8B8A8_UNORM -> DxgiFormat.R8G8B8A8_UNORM;
             case R8G8B8_SRGB,

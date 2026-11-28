@@ -104,7 +104,7 @@ public enum TextureFormat {
             case FMT_RGBA8 -> be.twofold.valen.core.texture.TextureFormat.R8G8B8A8_UNORM;
             case FMT_RGBA8_SRGB -> be.twofold.valen.core.texture.TextureFormat.R8G8B8A8_SRGB;
             case FMT_ALPHA -> be.twofold.valen.core.texture.TextureFormat.R8_UNORM;
-            case FMT_L8A8 -> be.twofold.valen.core.texture.TextureFormat.R8G8_UNORM; // Needs core support
+            case FMT_L8A8 -> be.twofold.valen.core.texture.TextureFormat.L8A8_UNORM;
             case FMT_RG8 -> be.twofold.valen.core.texture.TextureFormat.R8G8_UNORM;
             case FMT_BC1 -> be.twofold.valen.core.texture.TextureFormat.BC1_UNORM;
             case FMT_BC1_SRGB -> be.twofold.valen.core.texture.TextureFormat.BC1_SRGB;

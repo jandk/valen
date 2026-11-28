@@ -112,7 +112,11 @@ public record Texture(
         if (format.channelCount() == 1 && dstFormat.channelCount() >= 3) {
             current = ShaderNode.splat(current, Channel.RED, Channel.GREEN, Channel.BLUE);
         }
-        if (reconstructZ && format.channelCount() == 2 && dstFormat.channelCount() >= 3) {
+        if (reconstructZ &&
+            format.channelCount() == 2 &&
+            format != TextureFormat.L8A8_UNORM &&
+            dstFormat.channelCount() >= 3
+        ) {
             current = ShaderNode.reconstructZ(current);
         }
 

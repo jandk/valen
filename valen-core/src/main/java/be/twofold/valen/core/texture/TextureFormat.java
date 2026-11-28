@@ -13,6 +13,7 @@ public enum TextureFormat {
     B8G8R8_SRGB,
     B8G8R8A8_UNORM,
     B8G8R8A8_SRGB,
+    L8A8_UNORM,
     R16_UNORM,
     R16G16B16A16_UNORM,
     R16_SFLOAT,
@@ -54,7 +55,7 @@ public enum TextureFormat {
     public int blockSize() {
         return switch (this) {
             case R8_UNORM, R8_SRGB -> 1;
-            case R8G8_UNORM,
+            case R8G8_UNORM, L8A8_UNORM,
                  R16_UNORM, R16_SFLOAT -> 2;
             case R8G8B8_UNORM, R8G8B8_SRGB,
                  B8G8R8_UNORM, B8G8R8_SRGB -> 3;
@@ -81,7 +82,7 @@ public enum TextureFormat {
             case R8_UNORM, R8_SRGB,
                  R16_UNORM, R16_SFLOAT,
                  BC4_UNORM, BC4_SNORM -> 1;
-            case R8G8_UNORM,
+            case R8G8_UNORM, L8A8_UNORM,
                  R16G16_SFLOAT,
                  BC5_UNORM, BC5_SNORM -> 2;
             case R8G8B8_UNORM, R8G8B8_SRGB,
@@ -105,6 +106,7 @@ public enum TextureFormat {
         return switch (this) {
             case R8G8B8A8_UNORM, R8G8B8A8_SRGB,
                  B8G8R8A8_UNORM, B8G8R8A8_SRGB,
+                 L8A8_UNORM,
                  R10G10B10A2_UNORM,
                  R16G16B16A16_UNORM, R16G16B16A16_SFLOAT,
                  BC1A_UNORM, BC1A_SRGB,

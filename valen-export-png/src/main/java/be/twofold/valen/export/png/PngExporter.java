@@ -54,6 +54,7 @@ public final class PngExporter extends TextureExporter {
                  BC4_UNORM,
                  BC4_SNORM -> TextureFormat.R8_UNORM;
             case R8_SRGB -> TextureFormat.R8_SRGB;
+            case L8A8_UNORM -> TextureFormat.L8A8_UNORM;
             case R8G8_UNORM,
                  R8G8B8_UNORM,
                  B8G8R8_UNORM,
@@ -116,6 +117,7 @@ public final class PngExporter extends TextureExporter {
         return switch (texture.format()) {
             case R8_UNORM, R8_SRGB -> new PngFormat(w, h, PngColorType.Gray, 8, linear);
             case R8G8B8_UNORM, R8G8B8_SRGB -> new PngFormat(w, h, PngColorType.Rgb, 8, linear);
+            case L8A8_UNORM -> new PngFormat(w, h, PngColorType.GrayAlpha, 8, linear);
             case R8G8B8A8_UNORM, R8G8B8A8_SRGB -> new PngFormat(w, h, PngColorType.RgbAlpha, 8, linear);
             case R16_UNORM -> new PngFormat(w, h, PngColorType.Gray, 16, linear);
             case R16G16B16A16_UNORM -> new PngFormat(w, h, PngColorType.RgbAlpha, 16, linear);

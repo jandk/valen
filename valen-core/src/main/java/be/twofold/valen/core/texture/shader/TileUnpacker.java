@@ -39,6 +39,9 @@ interface TileUnpacker {
             case B8G8R8A8_UNORM, B8G8R8A8_SRGB -> (ctx, dst) -> {
                 unpackB8G8R8A8(source, ctx.x, ctx.y, ctx.z, ctx.width, ctx.height, dst);
             };
+            case L8A8_UNORM -> (ctx, dst) -> {
+                unpackL8A8(source, ctx.x, ctx.y, ctx.z, ctx.width, ctx.height, dst);
+            };
             case R16_UNORM -> (ctx, dst) -> {
                 unpackR16Unorm(source, ctx.x, ctx.y, ctx.z, ctx.width, ctx.height, dst);
             };
@@ -153,6 +156,21 @@ interface TileUnpacker {
                 dst[dstOff + 1] = decode(data.get(srcOff + 1), srgb);
                 dst[dstOff + 2] = decode(data.get(srcOff/**/), srgb);
                 dst[dstOff + 3] = decode(data.get(srcOff + 3), false); // alpha is always linear
+            }
+        }
+    }
+
+    private static void unpackL8A8(Surface src, int x, int y, int z, int width, int height, float[] dst) {
+        Bytes data = src.data();
+        for (int row = 0; row < height; row++) {
+            int srcOff = src.offset(x, y + row, z);
+            int dstOff = row * width * 4;
+            for (int col = 0; col < width; col++, srcOff += 2, dstOff += 4) {
+                float gray = decode(data.get(srcOff), false);
+                dst[dstOff/**/] = gray;
+                dst[dstOff + 1] = gray;
+                dst[dstOff + 2] = gray;
+                dst[dstOff + 3] = decode(data.get(srcOff + 1), false); // alpha is always linear
             }
         }
     }
