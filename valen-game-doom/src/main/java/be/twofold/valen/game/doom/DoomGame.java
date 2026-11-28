@@ -80,10 +80,16 @@ public final class DoomGame implements Game {
         }
 
         var knownTypes = knownTypes(index);
+        var imageNames = imageNames(index);
         var uniqueIds = new HashSet<DoomAssetID>(index.entries().size());
         var assets = new ArrayList<DoomAsset>();
         for (var entry : index.entries()) {
             if (entry.size() == 0) {
+                continue;
+            }
+
+            // SWF images are listed twice, pointing to the same data, so skip
+            if (entry.typeName().equals("file") && imageNames.contains(entry.resourceName())) {
                 continue;
             }
 
@@ -131,6 +137,13 @@ public final class DoomGame implements Game {
                 var asset = new DoomAsset.Resource(new DoomAssetID("", type), new Location.InMemory(Bytes.empty()));
                 return READERS.stream().anyMatch(reader -> reader.canRead(asset));
             })
+            .collect(Collectors.toUnmodifiableSet());
+    }
+
+    private static Set<String> imageNames(ResourcesIndex index) {
+        return index.entries().stream()
+            .filter(entry -> entry.typeName().equals("image"))
+            .map(ResourcesIndexEntry::resourceName)
             .collect(Collectors.toUnmodifiableSet());
     }
 
