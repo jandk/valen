@@ -7,7 +7,6 @@ import be.twofold.valen.core.util.*;
 import be.twofold.valen.game.greatcircle.*;
 import be.twofold.valen.game.idtech.game.*;
 import be.twofold.valen.game.idtech.reader.image.*;
-import be.twofold.valen.game.idtech.reader.image.TextureFormat;
 import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
@@ -78,7 +77,7 @@ public final class ImageReader implements AssetReader.Binary<Texture, GreatCircl
 
     private Texture map(Image image) {
         var minMip = image.minMip();
-        var format = toImageFormat(image.header().textureFormat());
+        var format = image.header().textureFormat().toImageFormat();
         var kind = switch (image.header().type()) {
             case TT_2D -> TextureKind.TEXTURE_2D;
             case TT_3D -> TextureKind.TEXTURE_3D;
@@ -124,27 +123,5 @@ public final class ImageReader implements AssetReader.Binary<Texture, GreatCircl
             }
         }
         return List.copyOf(surfaces);
-    }
-
-    private be.twofold.valen.core.texture.TextureFormat toImageFormat(TextureFormat format) {
-        // I might not be sure about all these mappings, but it's a start
-        return switch (format) {
-            case FMT_BC1, FMT_BC1_ZERO_ALPHA -> be.twofold.valen.core.texture.TextureFormat.BC1_UNORM;
-            case FMT_BC1_SRGB -> be.twofold.valen.core.texture.TextureFormat.BC1_SRGB;
-            case FMT_BC3 -> be.twofold.valen.core.texture.TextureFormat.BC3_UNORM;
-            case FMT_BC3_SRGB -> be.twofold.valen.core.texture.TextureFormat.BC3_SRGB;
-            case FMT_BC4 -> be.twofold.valen.core.texture.TextureFormat.BC4_UNORM;
-            case FMT_BC5 -> be.twofold.valen.core.texture.TextureFormat.BC5_UNORM;
-            case FMT_BC6H_UF16 -> be.twofold.valen.core.texture.TextureFormat.BC6H_UFLOAT;
-            case FMT_BC7 -> be.twofold.valen.core.texture.TextureFormat.BC7_UNORM;
-            case FMT_BC7_SRGB -> be.twofold.valen.core.texture.TextureFormat.BC7_SRGB;
-            case FMT_R8 -> be.twofold.valen.core.texture.TextureFormat.R8_UNORM;
-            case FMT_RG16F -> be.twofold.valen.core.texture.TextureFormat.R16G16_SFLOAT;
-            case FMT_RG8 -> be.twofold.valen.core.texture.TextureFormat.R8G8_UNORM;
-            case FMT_RGBA8 -> be.twofold.valen.core.texture.TextureFormat.R8G8B8A8_UNORM;
-            case FMT_X16 -> be.twofold.valen.core.texture.TextureFormat.R16_UNORM;
-            case FMT_X16F -> be.twofold.valen.core.texture.TextureFormat.R16_SFLOAT;
-            default -> throw new UnsupportedOperationException("Unsupported format: " + format);
-        };
     }
 }

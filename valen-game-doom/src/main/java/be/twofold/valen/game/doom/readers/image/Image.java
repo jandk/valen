@@ -13,14 +13,11 @@ public record Image(
     public static Image read(BinaryReader reader) throws IOException {
         reader.order(ByteOrder.BIG_ENDIAN);
         var header = ImageHeader.read(reader);
+        var mips = reader.readObjects(header.totalMipCount(), ImageMip::read);
 
-        int mipCount = header.mipCount();
-        if (header.type() == 2) { // TT_CUBIC
-            mipCount *= 6;
-        }
-
-        var mips = reader.readObjects(mipCount, ImageMip::read);
-
-        return new Image(header, mips);
+        return new Image(
+            header,
+            mips
+        );
     }
 }

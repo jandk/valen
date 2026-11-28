@@ -4,6 +4,7 @@ import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.texture.*;
 import be.twofold.valen.game.doom.*;
 import be.twofold.valen.game.idtech.game.*;
+import be.twofold.valen.game.idtech.reader.image.*;
 import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
@@ -28,9 +29,9 @@ public final class ImageReader implements AssetReader.Binary<Texture, DoomAsset>
     public Texture read(BinaryReader reader, DoomAsset asset, LoadingContext context) throws IOException {
         var image = Image.read(reader);
 
-        var format = mapFormat(image.header().format());
+        var format = image.header().format().toImageFormat();
         var surfaces = new Surface[image.mips().size()];
-        var numFaces = image.header().type() == 2 ? 6 : 1;
+        var numFaces = image.header().type() == TextureType.TT_CUBIC ? 6 : 1;
         for (int mip = 0, i = 0; mip < image.header().mipCount(); mip++) {
             for (int face = 0; face < numFaces; face++, i++) {
                 var current = image.mips().get(i);
@@ -47,21 +48,5 @@ public final class ImageReader implements AssetReader.Binary<Texture, DoomAsset>
             List.of(surfaces),
             UnaryOperator.identity()
         );
-    }
-
-    private TextureFormat mapFormat(int format) {
-        return switch (format) {
-            case 2 -> TextureFormat.R16G16B16A16_SFLOAT;
-            case 3 -> TextureFormat.R8G8B8A8_UNORM;
-            case 5 -> TextureFormat.R8_UNORM;
-            case 6 -> TextureFormat.R8G8_UNORM; // L8A8
-            case 10 -> TextureFormat.BC1_UNORM;
-            case 11 -> TextureFormat.BC3_UNORM;
-            case 22 -> TextureFormat.BC6H_UFLOAT;
-            case 23 -> TextureFormat.BC7_UNORM;
-            case 24 -> TextureFormat.BC4_UNORM;
-            case 25 -> TextureFormat.BC5_UNORM;
-            default -> throw new UnsupportedOperationException("Unsupported format: " + format);
-        };
     }
 }

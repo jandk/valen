@@ -11,7 +11,7 @@ public enum TextureFormat {
     FMT_RGBA8_SRGB,
     FMT_ARGB8,
     FMT_ALPHA,
-    FMT_L8A8_DEPRECATED,
+    FMT_L8A8,
     FMT_RG8,
     FMT_LUM8_DEPRECATED,
     FMT_INT8_DEPRECATED,
@@ -87,7 +87,7 @@ public enum TextureFormat {
             case "float" -> TextureFormat.FMT_RGBA16F;
             case "hqcompress", "hqcompressnormal" -> TextureFormat.FMT_BC3;
             case "intensity" -> TextureFormat.FMT_INT8_DEPRECATED; // DOOM (2016)
-            case "luminancealpha" -> TextureFormat.FMT_L8A8_DEPRECATED; // DOOM (2016)
+            case "luminancealpha" -> TextureFormat.FMT_L8A8; // DOOM (2016)
             case "r8" -> TextureFormat.FMT_R8;
             case "rg16f" -> TextureFormat.FMT_RG16F;
             case "rg32f" -> TextureFormat.FMT_RG32F;
@@ -95,6 +95,33 @@ public enum TextureFormat {
             case "uncompressed" -> TextureFormat.FMT_RGBA8;
             case "ycocgdxt5" -> TextureFormat.FMT_BC7; // DOOM (2016) uses BC3 with YCoCg colors
             default -> null;
+        };
+    }
+
+    public be.twofold.valen.core.texture.TextureFormat toImageFormat() {
+        return switch (this) {
+            case FMT_RGBA16F -> be.twofold.valen.core.texture.TextureFormat.R16G16B16A16_SFLOAT;
+            case FMT_RGBA8 -> be.twofold.valen.core.texture.TextureFormat.R8G8B8A8_UNORM;
+            case FMT_RGBA8_SRGB -> be.twofold.valen.core.texture.TextureFormat.R8G8B8A8_SRGB;
+            case FMT_ALPHA -> be.twofold.valen.core.texture.TextureFormat.R8_UNORM;
+            case FMT_L8A8 -> be.twofold.valen.core.texture.TextureFormat.R8G8_UNORM; // Needs core support
+            case FMT_RG8 -> be.twofold.valen.core.texture.TextureFormat.R8G8_UNORM;
+            case FMT_BC1 -> be.twofold.valen.core.texture.TextureFormat.BC1_UNORM;
+            case FMT_BC1_SRGB -> be.twofold.valen.core.texture.TextureFormat.BC1_SRGB;
+            case FMT_BC1_ZERO_ALPHA -> be.twofold.valen.core.texture.TextureFormat.BC1_UNORM;
+            case FMT_BC3 -> be.twofold.valen.core.texture.TextureFormat.BC3_UNORM;
+            case FMT_BC3_SRGB -> be.twofold.valen.core.texture.TextureFormat.BC3_SRGB;
+            case FMT_BC4 -> be.twofold.valen.core.texture.TextureFormat.BC4_UNORM;
+            case FMT_BC5 -> be.twofold.valen.core.texture.TextureFormat.BC5_UNORM;
+            case FMT_BC6H_UF16 -> be.twofold.valen.core.texture.TextureFormat.BC6H_UFLOAT;
+            case FMT_BC6H_SF16 -> be.twofold.valen.core.texture.TextureFormat.BC6H_SFLOAT;
+            case FMT_BC7 -> be.twofold.valen.core.texture.TextureFormat.BC7_UNORM;
+            case FMT_BC7_SRGB -> be.twofold.valen.core.texture.TextureFormat.BC7_SRGB;
+            case FMT_X16 -> be.twofold.valen.core.texture.TextureFormat.R16_UNORM;
+            case FMT_R8 -> be.twofold.valen.core.texture.TextureFormat.R8_UNORM;
+            case FMT_X16F -> be.twofold.valen.core.texture.TextureFormat.R16_SFLOAT;
+            case FMT_RG16F -> be.twofold.valen.core.texture.TextureFormat.R16G16_SFLOAT;
+            default -> throw new UnsupportedOperationException("Unsupported format: " + this);
         };
     }
 }
