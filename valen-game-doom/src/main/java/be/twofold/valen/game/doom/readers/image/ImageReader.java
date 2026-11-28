@@ -20,7 +20,8 @@ public final class ImageReader implements AssetReader.Binary<Texture, DoomAsset>
 
     @Override
     public boolean canRead(DoomAsset asset) {
-        return TYPES.contains(asset.id().type());
+        return TYPES.contains(asset.id().type())
+            || asset instanceof DoomAsset.Resource resource && resource.isBImage();
     }
 
     @Override
@@ -56,6 +57,7 @@ public final class ImageReader implements AssetReader.Binary<Texture, DoomAsset>
             case 6 -> TextureFormat.R8G8_UNORM; // L8A8
             case 10 -> TextureFormat.BC1_UNORM;
             case 11 -> TextureFormat.BC3_UNORM;
+            case 22 -> TextureFormat.BC6H_UFLOAT;
             case 23 -> TextureFormat.BC7_UNORM;
             case 24 -> TextureFormat.BC4_UNORM;
             case 25 -> TextureFormat.BC5_UNORM;

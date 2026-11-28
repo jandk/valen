@@ -36,9 +36,15 @@ public sealed interface DoomAsset extends Asset {
             Check.nonNull(location, "location");
         }
 
+        public boolean isBImage() {
+            return id.type() == ResourceType.of("file") && id.path().extension().equals("bimage");
+        }
+
         @Override
         public AssetType type() {
-            return TYPE_MAP.getOrDefault(id.type(), AssetType.RAW);
+            return isBImage()
+                ? AssetType.TEXTURE
+                : TYPE_MAP.getOrDefault(id.type(), AssetType.RAW);
         }
 
         @Override
@@ -48,10 +54,9 @@ public sealed interface DoomAsset extends Asset {
 
         @Override
         public String exportName() {
-            if (id.type().equals(ResourceType.of("image"))) {
-                return id.hashedBaseName();
-            }
-            return id.path().baseName();
+            return id.type() == ResourceType.of("image") || isBImage()
+                ? id.hashedBaseName()
+                : id.path().baseName();
         }
 
         @Override
