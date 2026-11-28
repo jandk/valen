@@ -53,4 +53,8 @@ public sealed interface ShaderNode permits MergeNode, OperationNode, SourceNode 
         return new OperationNode(input, Operation.splat(source, targets));
     }
 
+    static ShaderNode yCoCgToRgb(ShaderNode input, float chromaBias, boolean scaled) {
+        return new OperationNode(input, Operation.yCoCgToRgb(chromaBias, scaled));
+    }
+
 }

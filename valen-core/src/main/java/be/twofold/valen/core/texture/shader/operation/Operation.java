@@ -27,4 +27,8 @@ public interface Operation {
     static Operation splat(Channel source, Channel... targets) {
         return new Splat(source, Set.of(targets));
     }
+
+    static Operation yCoCgToRgb(float chromaBias, boolean scaled) {
+        return new YCoCgToRgb(chromaBias, scaled);
+    }
 }

@@ -2,6 +2,7 @@ package be.twofold.valen.game.doom.readers.image;
 
 import be.twofold.valen.core.game.*;
 import be.twofold.valen.core.texture.*;
+import be.twofold.valen.core.texture.shader.node.*;
 import be.twofold.valen.game.doom.*;
 import be.twofold.valen.game.idtech.game.*;
 import be.twofold.valen.game.idtech.reader.image.*;
@@ -46,7 +47,33 @@ public final class ImageReader implements AssetReader.Binary<Texture, DoomAsset>
             image.header().height(),
             numFaces,
             List.of(surfaces),
-            UnaryOperator.identity()
+            convertYCoCg(asset.id().name())
         );
+    }
+
+    private static UnaryOperator<ShaderNode> convertYCoCg(String name) {
+        if (name.startsWith("generated/swf/")) {
+            // SWF images: Co A Cg Y
+            return node -> {
+                ShaderNode swizzled = ShaderNode.merge(builder -> builder
+                    .channel(Channel.ALPHA, node, Channel.RED)
+                    .channel(Channel.RED, node, Channel.GREEN)
+                    .channel(Channel.BLUE, node, Channel.BLUE)
+                    .channel(Channel.GREEN, node, Channel.ALPHA));
+                return ShaderNode.yCoCgToRgb(swizzled, 132.0f / 255.0f, false);
+            };
+        }
+        if (name.contains("$ycocgdxt5")) {
+            // "YCoCg-DXT5": Co Cg S Y
+            return node -> {
+                ShaderNode swizzled = ShaderNode.merge(builder -> builder
+                    .channel(Channel.ALPHA, node, Channel.RED)
+                    .channel(Channel.RED, node, Channel.GREEN)
+                    .channel(Channel.GREEN, node, Channel.BLUE)
+                    .channel(Channel.BLUE, node, Channel.ALPHA));
+                return ShaderNode.yCoCgToRgb(swizzled, 128.0f / 255.0f, true);
+            };
+        }
+        return UnaryOperator.identity();
     }
 }
