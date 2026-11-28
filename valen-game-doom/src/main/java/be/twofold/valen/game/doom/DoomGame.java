@@ -13,22 +13,15 @@ import be.twofold.valen.game.doom.readers.staticmodel.*;
 import be.twofold.valen.game.doom.resources.*;
 import be.twofold.valen.game.doom.vmtr.*;
 import be.twofold.valen.game.idtech.game.*;
+import wtf.reversed.toolbox.collect.*;
 import wtf.reversed.toolbox.io.*;
 
 import java.io.*;
 import java.nio.file.*;
 import java.util.*;
+import java.util.stream.*;
 
 public final class DoomGame implements Game {
-    private static final Set<ResourceType> KNOWN_TYPES = Set.of(
-        ResourceType.of("image"),
-        ResourceType.of("model"), ResourceType.of("baseModel"),
-        ResourceType.of("skeleton"),
-        ResourceType.of("material"), ResourceType.of("decalatlas"), ResourceType.of("transsortatlas"),
-        ResourceType.of("anim"),
-        ResourceType.of("renderParm")
-    );
-
     private static final List<AssetReader<?, DoomAsset>> READERS = List.of(
         new ImageReader(),
         new Md6AnimReader(),
@@ -86,6 +79,7 @@ public final class DoomGame implements Game {
             }
         }
 
+        var knownTypes = knownTypes(index);
         var uniqueIds = new HashSet<DoomAssetID>(index.entries().size());
         var assets = new ArrayList<DoomAsset>();
         for (var entry : index.entries()) {
@@ -94,7 +88,7 @@ public final class DoomGame implements Game {
             }
 
             var type = ResourceType.of(entry.typeName());
-            var assetName = KNOWN_TYPES.contains(type)
+            var assetName = knownTypes.contains(type)
                 ? entry.resourceName() : entry.fileName();
             var id = new DoomAssetID(assetName, type);
             if (!uniqueIds.add(id)) {
@@ -127,6 +121,17 @@ public final class DoomGame implements Game {
             storageManager,
             List.copyOf(readers)
         );
+    }
+
+    private static Set<ResourceType> knownTypes(ResourcesIndex index) {
+        return index.entries().stream()
+            .map(e -> ResourceType.of(e.typeName()))
+            .distinct()
+            .filter(type -> {
+                var asset = new DoomAsset.Resource(new DoomAssetID("", type), new Location.InMemory(Bytes.empty()));
+                return READERS.stream().anyMatch(reader -> reader.canRead(asset));
+            })
+            .collect(Collectors.toUnmodifiableSet());
     }
 
     private DoomAsset.Resource mapResourceEntry(ResourcesIndexEntry entry, DoomAssetID id, Path path) {

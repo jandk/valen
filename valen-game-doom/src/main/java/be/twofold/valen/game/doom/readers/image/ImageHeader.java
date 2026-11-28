@@ -12,9 +12,10 @@ public record ImageHeader(
     int height,
     int depth,
     int mipCount,
+    boolean environment,
     int format,
-    int unk8,
-    int unk9
+    int filter,
+    int repeat
 ) {
     public static ImageHeader read(BinaryReader reader) throws IOException {
         var timestamp = Instant.ofEpochSecond(reader.readInt());
@@ -24,11 +25,11 @@ public record ImageHeader(
         var height = reader.readInt();
         var depth = reader.readInt();
         var mipCount = reader.readInt();
-        reader.expectByte((byte) 0);
+        var environment = reader.readBool(BoolFormat.BYTE);
         var format = reader.readInt();
-        var unk8 = reader.readInt();
-        var unk9 = reader.readInt();
-        reader.expectByte((byte) 0);
+        var filter = reader.readInt();
+        var repeat = reader.readInt();
+        reader.expectZeros(1);
 
         return new ImageHeader(
             timestamp,
@@ -37,9 +38,10 @@ public record ImageHeader(
             height,
             depth,
             mipCount,
+            environment,
             format,
-            unk8,
-            unk9
+            filter,
+            repeat
         );
     }
 }

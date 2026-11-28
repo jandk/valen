@@ -71,7 +71,7 @@ final class MaterialBuilder {
             if (!TYPES.containsKey(key) && !value.toLowerCase(Locale.ROOT).contains(".tga")) {
                 continue;
             }
-            addImage(TYPES.getOrDefault(key, MaterialPropertyType.Unknown), value);
+            addImage(TYPES.getOrDefault(key, MaterialPropertyType.Unknown), key, value);
         }
         return new Material(name, properties);
     }
@@ -126,12 +126,12 @@ final class MaterialBuilder {
         addVmtr(MaterialPropertyType.Unknown, layer, path.withSuffix("_vmtr" + layer.suffix()), UnaryOperator.identity());
     }
 
-    private void addImage(MaterialPropertyType type, String value) {
+    private void addImage(MaterialPropertyType type, String key, String value) {
         var path = imagePath(value);
         if (path.isEmpty() || path.startsWith("_")) {
             return; // Special cases
         }
-        var id = new DoomAssetID(imageName(value), ResourceType.of("image"));
+        var id = imageId(key, value);
         if (!context.exists(id)) {
             log.debug("Missing image '{}' in material '{}'", id.name(), name);
             return;
@@ -158,6 +158,19 @@ final class MaterialBuilder {
     private ThrowingSupplier<Texture, IOException> layer(VmtrLayer layer) {
         return layers.computeIfAbsent(layer, l -> ThrowingSupplier.lazy(
             () -> context.load(new DoomAssetID(name, l), Texture.class)));
+    }
+
+    // Specific keys map to specific images
+    private static DoomAssetID imageId(String key, String value) {
+        var path = imagePath(value).toLowerCase(Locale.ROOT);
+        return switch (key) {
+            case "decaldiffusemap", "decalbumpmap", "decalspecularmap" ->
+                new DoomAssetID(String.join(" ", value.toLowerCase(Locale.ROOT).split("\\s+")), ResourceType.of("decalatlas"));
+            case "transatlasmap", "transsortmap" ->
+                new DoomAssetID(AssetPath.of(path).withoutExtension().value(), ResourceType.of("transsortatlas"));
+            case "lightprojectmap", "lightfalloffmap" -> new DoomAssetID(path, ResourceType.of("lightatlas"));
+            default -> new DoomAssetID(imageName(value), ResourceType.of("image"));
+        };
     }
 
     // The (thank God), way simpler version of what idImage::NameWithOpts does in newer games

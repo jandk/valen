@@ -11,9 +11,16 @@ import java.util.*;
 import java.util.function.*;
 
 public final class ImageReader implements AssetReader.Binary<Texture, DoomAsset> {
+    private static final Set<ResourceType> TYPES = Set.of(
+        ResourceType.of("decalatlas"),
+        ResourceType.of("image"),
+        ResourceType.of("lightatlas"),
+        ResourceType.of("transsortatlas")
+    );
+
     @Override
     public boolean canRead(DoomAsset asset) {
-        return asset.id().type() == ResourceType.of("image");
+        return TYPES.contains(asset.id().type());
     }
 
     @Override
@@ -50,6 +57,8 @@ public final class ImageReader implements AssetReader.Binary<Texture, DoomAsset>
             case 10 -> TextureFormat.BC1_UNORM;
             case 11 -> TextureFormat.BC3_UNORM;
             case 23 -> TextureFormat.BC7_UNORM;
+            case 24 -> TextureFormat.BC4_UNORM;
+            case 25 -> TextureFormat.BC5_UNORM;
             default -> throw new UnsupportedOperationException("Unsupported format: " + format);
         };
     }

@@ -23,9 +23,12 @@ public sealed interface DoomAsset extends Asset {
         private static final Map<ResourceType, AssetType> TYPE_MAP = Map.of(
             ResourceType.of("anim"), AssetType.ANIMATION,
             ResourceType.of("baseModel"), AssetType.MODEL,
+            ResourceType.of("decalatlas"), AssetType.TEXTURE,
             ResourceType.of("image"), AssetType.TEXTURE,
+            ResourceType.of("lightatlas"), AssetType.TEXTURE,
             ResourceType.of("material"), AssetType.MATERIAL,
-            ResourceType.of("model"), AssetType.MODEL
+            ResourceType.of("model"), AssetType.MODEL,
+            ResourceType.of("transsortatlas"), AssetType.TEXTURE
         );
 
         public Resource {
