@@ -14,6 +14,7 @@ import wtf.reversed.toolbox.io.*;
 import java.io.*;
 import java.lang.invoke.*;
 import java.util.*;
+import java.util.function.*;
 
 public final class Md6AnimReader implements AssetReader.Binary<Animation, DarkAgesAsset> {
     @Override
@@ -33,15 +34,10 @@ public final class Md6AnimReader implements AssetReader.Binary<Animation, DarkAg
             case LODS -> readStreamed(anim.streamInfo(), anim.map(), asset.hash(), context);
         };
 
-        var animMap = anim.map();
-        var tracks = new ArrayList<Track<?>>();
-        tracks.addAll(Md6AnimTracks.mapConstant(animMap.constR(), anim.constR(), Track.Rotation::new));
-        tracks.addAll(Md6AnimTracks.mapConstant(animMap.constS(), anim.constS(), Track.Scale::new));
-        tracks.addAll(Md6AnimTracks.mapConstant(animMap.constT(), anim.constT(), Track.Translation::new));
-
-        tracks.addAll(Md6AnimTracks.mapAnimated(animMap.animR(), frameSets, FrameSet::bitsR, FrameSet::firstR, FrameSet::rangeR, Track.Rotation::new));
-        tracks.addAll(Md6AnimTracks.mapAnimated(animMap.animS(), frameSets, FrameSet::bitsS, FrameSet::firstS, FrameSet::rangeS, Track.Scale::new));
-        tracks.addAll(Md6AnimTracks.mapAnimated(animMap.animT(), frameSets, FrameSet::bitsT, FrameSet::firstT, FrameSet::rangeT, Track.Translation::new));
+        var tracks = Md6AnimTracks.map(
+            anim.map(),
+            anim.constR(), anim.constS(), anim.constT(), frameSets,
+            UnaryOperator.identity());
         return new Animation(skeleton, anim.data().frameRate(), tracks);
     }
 

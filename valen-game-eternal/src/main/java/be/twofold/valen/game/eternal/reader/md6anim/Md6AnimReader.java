@@ -13,6 +13,7 @@ import wtf.reversed.toolbox.io.*;
 import java.io.*;
 import java.lang.invoke.*;
 import java.util.*;
+import java.util.function.*;
 
 public final class Md6AnimReader implements AssetReader.Binary<Animation, EternalAsset> {
     private static final Logger log = LoggerFactory.getLogger(Md6AnimReader.class);
@@ -33,16 +34,10 @@ public final class Md6AnimReader implements AssetReader.Binary<Animation, Eterna
         }
         var skeleton = context.load(skeletonKey, Skeleton.class);
 
-        var animMap = anim.animMaps().getFirst();
-
-        var tracks = new ArrayList<Track<?>>();
-        tracks.addAll(Md6AnimTracks.mapConstant(animMap.constR(), anim.constR(), Track.Rotation::new));
-        tracks.addAll(Md6AnimTracks.mapConstant(animMap.constS(), anim.constS(), Track.Scale::new));
-        tracks.addAll(Md6AnimTracks.mapConstant(animMap.constT(), anim.constT(), Track.Translation::new));
-
-        tracks.addAll(Md6AnimTracks.mapAnimated(animMap.animR(), anim.frameSets(), FrameSet::bitsR, FrameSet::firstR, FrameSet::rangeR, Track.Rotation::new));
-        tracks.addAll(Md6AnimTracks.mapAnimated(animMap.animS(), anim.frameSets(), FrameSet::bitsS, FrameSet::firstS, FrameSet::rangeS, Track.Scale::new));
-        tracks.addAll(Md6AnimTracks.mapAnimated(animMap.animT(), anim.frameSets(), FrameSet::bitsT, FrameSet::firstT, FrameSet::rangeT, Track.Translation::new));
+        var tracks = Md6AnimTracks.map(
+            anim.animMaps().getFirst(),
+            anim.constR(), anim.constS(), anim.constT(), anim.frameSets(),
+            UnaryOperator.identity());
         return new Animation(skeleton, anim.data().frameRate(), tracks);
     }
 
